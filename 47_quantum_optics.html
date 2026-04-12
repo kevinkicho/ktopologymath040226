@@ -1,0 +1,2119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>47 · Laser Cooling, BEC &amp; Optical Tweezers</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg1:#0d0d1a; --bg2:#12122a; --bg3:#1a1a35;
+  --border:#2a2a50; --text:#e8e8f8; --muted:#8888aa;
+  --accent:#ffdd44;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg1);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.82rem;opacity:.6}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.76rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.25rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.74rem;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 20px;flex-shrink:0}
+.tab{padding:9px 18px;cursor:pointer;font-size:.81rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.pane{display:none;flex:1;overflow:hidden}
+.pane.active{display:flex}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.75rem;color:var(--muted)}
+.controls input[type=range]{width:90px;accent-color:var(--accent)}
+.controls span{font-size:.75rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.76rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.on{border-color:var(--accent);color:var(--accent);background:#1a1500}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.75rem;color:var(--muted);line-height:1.7;flex-shrink:0}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:300px;min-width:210px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:13px 12px;gap:9px;flex-shrink:0}
+.side-panel h3{font-size:.86rem;color:var(--accent);margin-bottom:2px}
+.side-panel p,.side-panel li{font-size:.73rem;color:var(--muted);line-height:1.66}
+.side-panel ul{padding-left:13px}
+.side-panel .eq{font-size:.76rem;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--accent);margin:3px 0}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 22</span>
+  <span style="font-size:1.5rem;color:var(--accent)">λ</span>
+  <div class="title-block">
+    <h1>Laser Cooling, BEC &amp; Optical Tweezers</h1>
+    <p>Nobel 1997 · 2001 · 2018 — Chu, Cohen-Tannoudji, Phillips · Cornell, Wieman, Ketterle · Ashkin, Mourou, Strickland</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Laser Cooling</div>
+  <div class="tab" onclick="switchTab(1)">BEC</div>
+  <div class="tab" onclick="switchTab(2)">Optical Tweezers</div>
+  <div class="tab" onclick="switchTab(3)">CPA Lasers</div>
+  <div class="tab" onclick="switchTab(4)">Squeezed States</div>
+  <div class="tab" onclick="switchTab(5)">Wigner Function</div>
+  <div class="tab" onclick="switchTab(6)">Cavity QED</div>
+  <div class="tab" onclick="switchTab(7)">Single Photons</div>
+  <div class="tab" onclick="switchTab(8)">Quantum Networks</div>
+</div>
+
+<div id="main">
+
+<!-- ===== TAB 0: LASER COOLING ===== -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <canvas id="c0" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+      <button id="btnCool" onclick="toggleCooling()">Cooling: ON</button>
+      <label>Detuning δ:</label>
+      <input type="range" id="detSlider" min="-30" max="0" value="-15" oninput="updateDetuning()">
+      <span id="detVal">-1.5Γ</span>
+      <label>Atoms:</label>
+      <input type="range" id="atomSlider" min="10" max="50" value="30" step="1" oninput="updateAtomCount()">
+      <span id="atomVal">30</span>
+      <button onclick="addHeat()">Add Heat</button>
+      <button id="btnAnim0" onclick="toggleAnim0()">▶ Play</button>
+      <label>Speed:</label><input type="range" id="speed0" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal0">0.1x</span>
+      <span style="font-size:.75rem;color:var(--muted)">T =</span>
+      <span id="tempDisp" class="val">—</span>
+    </div>
+    <div class="info-box">
+      Optical molasses: six counter-propagating lasers tuned to $\delta = \omega_L - \omega_0 < 0$.
+      Doppler shift brings laser into resonance for atoms moving <em>toward</em> the beam.
+      Each photon absorption decelerates the atom by $\hbar k/m$.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about0">
+    <h3>Doppler Cooling</h3>
+    <div class="eq">$F = -\alpha\, v,\quad \alpha = \hbar k^2 \frac{8|\delta|/\Gamma}{(1+4\delta^2/\Gamma^2)^2}$</div>
+    <p>A laser red-detuned by $\delta$ exerts a friction force on moving atoms. The Doppler-shifted frequency $\omega_L + kv$ is resonant when the atom moves toward the laser.</p>
+    <h3>Doppler Limit</h3>
+    <div class="eq">$T_D = \frac{\hbar\Gamma}{2k_B}$</div>
+    <p>For Rb-87 ($\Gamma/2\pi \approx 6\,\text{MHz}$), $T_D \approx 146\,\mu\text{K}$. This is the minimum temperature reachable by Doppler cooling alone.</p>
+    <h3>Sub-Doppler Cooling</h3>
+    <p>Sisyphus cooling (Cohen-Tannoudji): atoms climb potential hills created by polarization gradients, losing kinetic energy at each hill. Reaches $T \sim \mu\text{K}$, below $T_D$.</p>
+    <h3>Magneto-Optical Trap</h3>
+    <div class="eq">$F = -\alpha v - \kappa x$</div>
+    <p>A quadrupole magnetic field combined with polarized lasers provides both cooling and spatial confinement — a MOT. The workhorse of cold-atom labs worldwide.</p>
+    <h3>1997 Nobel Prize</h3>
+    <p>Steven Chu, Claude Cohen-Tannoudji, William D. Phillips — "for development of methods to cool and trap atoms with laser light."</p>
+  </div>
+</div>
+
+<!-- ===== TAB 1: BEC ===== -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-col">
+    <canvas id="c1" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>T / T_c =</label>
+      <input type="range" id="becTSlider" min="1" max="200" value="180" oninput="updateBecT()">
+      <span id="becTVal">1.80</span>
+      <button id="btnAnim1" onclick="toggleAnim1()">▶ Play</button>
+      <button id="btnRelease" onclick="releaseTrap()">Release Trap</button>
+      <button id="btnTwoCloud" onclick="toggleTwoCloud()">Two Condensates</button>
+      <span style="font-size:.75rem;color:var(--muted)">$N_0/N$ =</span>
+      <span id="condFrac" class="val">0%</span>
+      <label>Speed:</label><input type="range" id="speed1" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal1">0.1x</span>
+    </div>
+    <div class="info-box">
+      Below $T_c$, bosons macroscopically occupy the ground state. Condensate fraction:
+      $N_0/N = 1-(T/T_c)^3$. First achieved in 1995 with Rb-87 (Cornell &amp; Wieman) and Na-23 (Ketterle).
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about1">
+    <h3>Bose-Einstein Statistics</h3>
+    <div class="eq">$\bar{n}_\epsilon = \frac{1}{e^{(\epsilon-\mu)/k_BT}-1}$</div>
+    <p>Bosons pile up in the lowest energy state when the chemical potential $\mu \to 0^-$.</p>
+    <h3>Critical Temperature</h3>
+    <div class="eq">$T_c = \frac{2\pi\hbar^2}{mk_B}\!\left(\frac{N}{\zeta(3/2)V}\right)^{\!2/3}$</div>
+    <p>$\zeta(3/2)\approx 2.612$. When the thermal de Broglie wavelength $\lambda_T \sim n^{-1/3}$, quantum effects dominate and BEC occurs.</p>
+    <h3>Condensate Fraction</h3>
+    <div class="eq">$\frac{N_0}{N} = 1 - \left(\frac{T}{T_c}\right)^3$</div>
+    <h3>Macroscopic Wave Function</h3>
+    <div class="eq">$i\hbar\,\partial_t\Psi = \left(-\frac{\hbar^2\nabla^2}{2m}+V+g|\Psi|^2\right)\Psi$</div>
+    <p>The Gross-Pitaevskii equation governs the condensate order parameter $\Psi(\mathbf{r},t)$. Superfluidity, vortices, and interference all follow from this single equation.</p>
+    <h3>2001 Nobel Prize</h3>
+    <p>Eric A. Cornell, Carl E. Wieman, Wolfgang Ketterle — "for the achievement of Bose-Einstein condensation in dilute gases of alkali atoms."</p>
+  </div>
+</div>
+
+<!-- ===== TAB 2: OPTICAL TWEEZERS ===== -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-col">
+    <canvas id="c2" style="flex:1;min-height:0;cursor:crosshair"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Laser Power:</label>
+      <input type="range" id="powerSlider" min="1" max="10" value="5" step="1" oninput="updatePower()">
+      <span id="powerVal">5</span>
+      <button id="btnAnim2" onclick="toggleAnim2()">▶ Play</button>
+      <button id="btnBioMode" onclick="toggleBioMode()">Biology Mode</button>
+      <button id="btnForceArrows" class="on" onclick="toggleForceArrows()">Force Arrows: ON</button>
+      <label>Waist:</label>
+      <input type="range" id="waistSlider" min="5" max="30" value="14" oninput="updateWaist()">
+      <span id="waistVal">14</span>
+      <button onclick="tweezZoomIn()">Zoom In</button>
+      <button onclick="tweezZoomOut()">Zoom Out</button>
+      <button onclick="tweezFit()">Fit</button>
+      <label>Speed:</label><input type="range" id="speed2" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal2">0.1x</span>
+      <span style="font-size:.75rem;color:var(--muted)">Click &amp; drag bead · scroll to zoom · drag canvas to pan</span>
+    </div>
+    <div class="info-box">
+      Gradient force: $F \propto \nabla|E|^2$ — points toward intensity maximum (beam focus).
+      Scattering force pushes along beam axis. The gradient force can overcome scattering to form a 3-D trap.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about2">
+    <h3>Gradient Force</h3>
+    <div class="eq">$\mathbf{F}_\text{grad} = \frac{\alpha}{2}\nabla|\mathbf{E}|^2 \propto \nabla I$</div>
+    <p>A dielectric particle (polarizability $\alpha > 0$) is attracted toward the highest intensity — the beam focus. This is the restoring force of the tweezer.</p>
+    <h3>Trap Stiffness</h3>
+    <div class="eq">$U(r) = -\frac{\alpha}{2}|E_0|^2 e^{-2r^2/w_0^2}$</div>
+    <div class="eq">$\kappa \approx \frac{4\alpha I_0}{w_0^2 c}$</div>
+    <p>Near the focus the trap is harmonic with stiffness $\kappa$. Brownian motion obeys $\langle x^2\rangle = k_BT/\kappa$ (equipartition).</p>
+    <h3>Rayleigh vs Mie</h3>
+    <p>Rayleigh regime: particle radius $a \ll \lambda$ — gradient force dominates. Mie regime: $a \sim \lambda$ — ray optics picture; refraction through particle redirects photon momentum.</p>
+    <h3>Biology Applications</h3>
+    <p>Single-molecule DNA stretching, kinesin motor force measurement, cell sorting, virus trapping. Forces measured in piconewtons — exactly the scale of molecular motors.</p>
+    <h3>2018 Nobel Prize</h3>
+    <p>Arthur Ashkin — "for the optical tweezers and their application to biological systems." (Shared with Mourou &amp; Strickland for CPA.)</p>
+  </div>
+</div>
+
+<!-- ===== TAB 3: CPA ===== -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-col">
+    <canvas id="c3" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnPlayCPA" onclick="playCPA()">▶ Play CPA Sequence</button>
+      <button id="btnAnim3" onclick="toggleAnim3()">▶ Play</button>
+      <label>Stretch:</label>
+      <input type="range" id="stretchSlider" min="2" max="50" value="15" oninput="updateStretch()">
+      <span id="stretchVal">1000×</span>
+      <button id="btnFreqColor" class="on" onclick="toggleFreqColor()">Freq Color: ON</button>
+      <span style="font-size:.75rem;color:var(--muted)">Peak Power:</span>
+      <span id="peakPower" class="val">—</span>
+      <label>Speed:</label><input type="range" id="speed3" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal3">0.1x</span>
+    </div>
+    <div class="info-box">
+      CPA: stretch → amplify → compress. Time-bandwidth product: $\Delta t \cdot \Delta\nu \geq \frac{1}{4\pi}$.
+      Peak powers up to $10^{15}$ W achieved — opening ultrafast science, fusion research, and precision surgery.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about3">
+    <h3>Chirped Pulse Amplification</h3>
+    <div class="eq">$\omega(t) = \omega_0 + \beta\,t \quad\text{(linear chirp)}$</div>
+    <p>Stretching a pulse in time (chirping) reduces its peak intensity by the stretch factor, allowing safe amplification in the gain medium without damaging it.</p>
+    <h3>Time-Bandwidth Product</h3>
+    <div class="eq">$\Delta t \cdot \Delta\nu \geq \frac{1}{4\pi}$</div>
+    <p>A transform-limited pulse saturates this bound. After stretching by factor $M$ and recompressing: $\Delta t_\text{final} = \Delta t_\text{original}$ but amplitude is $M$ times larger, giving $M^2$ times more peak power.</p>
+    <h3>Gain Media</h3>
+    <p>Nd:glass, Ti:sapphire (800 nm, bandwidth ~100 nm). Ti:sapphire supports sub-10 fs pulses. Multi-pass and regenerative amplifiers boost energy from nJ to J.</p>
+    <h3>Applications</h3>
+    <ul>
+      <li>LASIK eye surgery</li>
+      <li>Nuclear fusion ignition (NIF)</li>
+      <li>Laser-driven particle acceleration</li>
+      <li>Ultrafast spectroscopy (femtochemistry)</li>
+      <li>ELI-NP: $10^{23}$ W/cm²</li>
+    </ul>
+    <h3>2018 Nobel Prize</h3>
+    <p>Gérard Mourou &amp; Donna Strickland — "for their method of generating high-intensity, ultra-short optical pulses." (CPA, 1985.)</p>
+  </div>
+</div>
+
+<!-- ===== TAB 4: COHERENT & SQUEEZED STATES ===== -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-col">
+    <canvas id="c4" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Squeeze r:</label>
+      <input type="range" id="sqrSlider" min="0" max="20" value="0" oninput="updateSqr()">
+      <span id="sqrVal">0.0</span>
+      <label>Angle φ:</label>
+      <input type="range" id="sqPhiSlider" min="0" max="314" value="0" oninput="updateSqPhi()">
+      <span id="sqPhiVal">0°</span>
+      <button id="btnAnim4" onclick="toggleAnim4()">▶ Play</button>
+      <label>Speed:</label><input type="range" id="speed4" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal4">0.1x</span>
+    </div>
+    <div class="info-box">
+      Phase space (quadrature plane $X_1$–$X_2$). Coherent state: circular uncertainty disk (vacuum noise $= \tfrac{1}{2}$).
+      Squeezed state: ellipse — noise reduced in one quadrature at the cost of the conjugate.
+      $\Delta X_1 \cdot \Delta X_2 \geq \tfrac{1}{4}$ (Heisenberg).
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about4">
+    <h3>Coherent States</h3>
+    <div class="eq">$|\alpha\rangle = D(\alpha)|0\rangle,\quad \hat{a}|\alpha\rangle = \alpha|\alpha\rangle$</div>
+    <p>Eigenstate of the annihilation operator $\hat{a}$. Minimum-uncertainty state with equal noise in both quadratures — closest quantum analogue to a classical field.</p>
+    <h3>Squeezed States</h3>
+    <div class="eq">$S(r,\varphi)|\alpha\rangle,\quad S = e^{\frac{r}{2}(e^{-2i\varphi}\hat{a}^2 - e^{2i\varphi}\hat{a}^{\dagger 2})}$</div>
+    <div class="eq">$\Delta X_1 = \tfrac{1}{2}e^{-r},\quad \Delta X_2 = \tfrac{1}{2}e^{r}$</div>
+    <p>Squeezing parameter $r$ redistributes quantum noise: reduced by $e^{-r}$ in the squeezed quadrature, amplified by $e^{r}$ in the anti-squeezed quadrature.</p>
+    <h3>Heisenberg Uncertainty</h3>
+    <div class="eq">$\Delta X_1 \cdot \Delta X_2 \geq \tfrac{1}{4}$</div>
+    <p>Squeezed states saturate this bound — they are minimum-uncertainty states. The product of noise in both quadratures equals exactly $\tfrac{1}{4}$.</p>
+    <h3>Two-Mode Squeezing</h3>
+    <div class="eq">$S_2(\zeta) = e^{\zeta^* \hat{a}\hat{b} - \zeta\hat{a}^\dagger\hat{b}^\dagger}$</div>
+    <p>Generates EPR-entangled pairs — the continuous-variable analogue of Bell states. Used in quantum teleportation of optical fields and CV quantum key distribution.</p>
+    <h3>LIGO &amp; Gravitational Waves</h3>
+    <p>Advanced LIGO injects 15 dB of squeezed light into the dark port of the interferometer, reducing quantum shot noise by a factor of $\sim 5.6$ and extending the detection range by $\sim 40\%$. Demonstrated at design sensitivity since 2019.</p>
+    <h3>Applications</h3>
+    <ul>
+      <li>Gravitational-wave detection (LIGO, Virgo)</li>
+      <li>Sub-shot-noise optical sensing</li>
+      <li>Continuous-variable QKD</li>
+      <li>Optical quantum computing (GKP encoding)</li>
+      <li>Quantum imaging beyond Rayleigh limit</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== TAB 5: WIGNER FUNCTION / FOCK STATES ===== -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-col">
+    <canvas id="c5" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>State:</label>
+      <select id="wignerState" onchange="updateWignerState()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:.75rem">
+        <option value="0">|0⟩ vacuum</option>
+        <option value="1">|1⟩ Fock</option>
+        <option value="2">|2⟩ Fock</option>
+        <option value="3">|3⟩ Fock</option>
+        <option value="4">|4⟩ Fock</option>
+        <option value="5">|5⟩ Fock</option>
+        <option value="cat">(|α⟩+|-α⟩)/√2 cat</option>
+        <option value="sup01">|0⟩+|1⟩ superpos.</option>
+      </select>
+      <label>Damping:</label>
+      <input type="range" id="dampSlider" min="0" max="50" value="0" oninput="updateDamp()">
+      <span id="dampVal">0%</span>
+      <button id="btnAnim5" onclick="toggleAnim5()">▶ Play</button>
+      <label>Speed:</label><input type="range" id="speed5" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal5">0.1x</span>
+    </div>
+    <div class="info-box">
+      Wigner function $W(x,p)$ — quantum phase-space quasi-probability distribution. Negativity (blue regions) is a signature of non-classicality absent in any classical probability distribution.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about5">
+    <h3>Wigner Function</h3>
+    <div class="eq">$W(x,p) = \frac{1}{\pi}\int_{-\infty}^{\infty}\langle x-y|\hat{\rho}|x+y\rangle e^{2ipy}\,dy$</div>
+    <p>A quasi-probability distribution on phase space. Unlike a classical probability distribution, $W$ can be negative — a hallmark of genuine quantum behaviour.</p>
+    <h3>Fock States $|n\rangle$</h3>
+    <div class="eq">$W_n(x,p) = \frac{(-1)^n}{\pi}e^{-2(x^2+p^2)}L_n\!\left(4(x^2+p^2)\right)$</div>
+    <p>$L_n$ are Laguerre polynomials. The function has $n$ oscillating annular lobes with alternating sign — $W_n$ is negative at the origin for odd $n$, and shows $n$ radial zero-crossings.</p>
+    <h3>Non-Classicality</h3>
+    <p>Any state with $W(x,p) < 0$ somewhere has no classical analogue. Coherent states and thermal states have non-negative $W$; all Fock states $|n\geq 1\rangle$ and Schrödinger cats are non-classical.</p>
+    <h3>Schrödinger Cat State</h3>
+    <div class="eq">$|\text{cat}\rangle = \frac{|\alpha\rangle + |-\alpha\rangle}{\sqrt{2(1+e^{-2|\alpha|^2})}}$</div>
+    <p>Exhibits interference fringes between the two coherent-state blobs — the fringes are highly negative and are the classical field equivalent of quantum interference.</p>
+    <h3>Quantum Tomography</h3>
+    <p>$W(x,p)$ is reconstructed experimentally via homodyne detection — measuring rotated quadratures $X_\theta = x\cos\theta + p\sin\theta$ and applying inverse Radon transform. Achieves full quantum state tomography of optical pulses.</p>
+    <h3>Related Distributions</h3>
+    <ul>
+      <li>Husimi $Q$-function: smoothed $W$, always $\geq 0$</li>
+      <li>Glauber–Sudarshan $P$-function: diagonal in coherent-state basis; singular for non-classical states</li>
+      <li>$W$, $Q$, $P$ form an $s$-ordered family parameterised by $s \in [-1,+1]$</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== TAB 6: CAVITY QED ===== -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-col">
+    <canvas id="c6" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Coupling g:</label>
+      <input type="range" id="couplingSlider" min="1" max="30" value="15" oninput="updateCoupling()">
+      <span id="couplingVal">15</span>
+      <label>View:</label>
+      <select id="cqedView" onchange="updateCqedView()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:.75rem">
+        <option value="rabi">Rabi Oscillations</option>
+        <option value="spectrum">Transmission Spectrum</option>
+        <option value="blockade">Photon Blockade</option>
+      </select>
+      <button id="btnAnim6" onclick="toggleAnim6()">▶ Play</button>
+      <label>Speed:</label><input type="range" id="speed6" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal6">0.1x</span>
+    </div>
+    <div class="info-box">
+      Jaynes–Cummings model: two-level atom coupled to a single cavity mode.
+      Strong coupling $g \gg \kappa, \gamma$ — energy exchange faster than decay.
+      Vacuum Rabi splitting $2g$ visible in transmission spectrum.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about6">
+    <h3>Jaynes–Cummings Hamiltonian</h3>
+    <div class="eq">$H = \hbar\omega\hat{a}^\dagger\hat{a} + \frac{\hbar\omega_0}{2}\hat{\sigma}_z + \hbar g(\hat{a}^\dagger\hat{\sigma}^- + \hat{a}\hat{\sigma}^+)$</div>
+    <p>$g$ = vacuum Rabi coupling, $\kappa$ = cavity decay rate, $\gamma$ = spontaneous emission rate. Exactly solvable — the cornerstone of quantum optics theory.</p>
+    <h3>Dressed States</h3>
+    <div class="eq">$|\pm,n\rangle = \frac{1}{\sqrt{2}}\left(|e,n\rangle \pm |g,n+1\rangle\right)$</div>
+    <div class="eq">$E_{\pm,n} = \hbar\left(n+\tfrac{1}{2}\right)\omega \pm \hbar g\sqrt{n+1}$</div>
+    <p>The Jaynes–Cummings ladder is <em>anharmonic</em> — level spacing scales as $\sqrt{n}$. This anharmonicity underlies photon blockade.</p>
+    <h3>Strong Coupling Regime</h3>
+    <div class="eq">$g \gg \kappa,\, \gamma$</div>
+    <p>Coherent atom–photon exchange dominates over all decay channels. First achieved by Kimble (1992) and Rempe with Rydberg atoms. Enables deterministic quantum gates.</p>
+    <h3>Photon Blockade</h3>
+    <div class="eq">$\frac{g^2}{\kappa} \gg 1 \implies g^{(2)}(0) \ll 1$</div>
+    <p>A single photon shifts the cavity resonance by $\sim g^2/\Delta$, blocking entry of a second photon. Creates a deterministic single-photon source with $g^{(2)}(0) \to 0$.</p>
+    <h3>Circuit QED</h3>
+    <p>Superconducting transmon qubits coupled to microwave coplanar waveguide resonators achieve $g/2\pi \sim 100\,\text{MHz}$, $g/\kappa \sim 10^4$. The dominant architecture for quantum computing (Google, IBM, Rigetti).</p>
+    <h3>Nobel Prize 2012</h3>
+    <p>Serge Haroche — "for ground-breaking experimental methods that enable measuring and manipulation of individual quantum systems." Haroche counted single photons in a microwave cavity without destroying them using circular Rydberg atoms.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 7: SINGLE PHOTON SOURCES ===== -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-col">
+    <canvas id="c7" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Scene:</label>
+      <select id="spScene" onchange="updateSpScene()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:.75rem">
+        <option value="spdc">SPDC</option>
+        <option value="antibunch">Antibunching g²(τ)</option>
+        <option value="hom">Hong-Ou-Mandel</option>
+      </select>
+      <button id="btnAnim7" onclick="toggleAnim7()">▶ Play</button>
+      <label>Speed:</label><input type="range" id="speed7" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal7">0.1x</span>
+    </div>
+    <div class="info-box">
+      SPDC: pump → signal + idler (energy &amp; momentum conserved). HOM effect: two identical photons on a 50/50 beamsplitter always exit the same port — quantum interference of bosons.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about7">
+    <h3>Spontaneous Parametric Down-Conversion</h3>
+    <div class="eq">$\hbar\omega_p = \hbar\omega_s + \hbar\omega_i,\quad \mathbf{k}_p = \mathbf{k}_s + \mathbf{k}_i$</div>
+    <p>A $\chi^{(2)}$ nonlinear crystal converts one pump photon into a signal–idler pair. Phase matching (momentum conservation) restricts emission to specific angles (Type-I/II BBO, KTP, ppLN).</p>
+    <h3>Photon Statistics: $g^{(2)}(\tau)$</h3>
+    <div class="eq">$g^{(2)}(\tau) = \frac{\langle\hat{n}(t)\hat{n}(t+\tau)\rangle}{\langle\hat{n}\rangle^2}$</div>
+    <ul>
+      <li>Coherent (laser): $g^{(2)}(0) = 1$ (Poissonian)</li>
+      <li>Thermal light: $g^{(2)}(0) = 2$ (bunching)</li>
+      <li>Single photon: $g^{(2)}(0) = 0$ (antibunching)</li>
+    </ul>
+    <p>$g^{(2)}(0) &lt; 1$ is a non-classical criterion — impossible for any classical electromagnetic field.</p>
+    <h3>Hong-Ou-Mandel Effect</h3>
+    <div class="eq">$|1,1\rangle \xrightarrow{\text{BS}} \frac{1}{\sqrt{2}}(|2,0\rangle - |0,2\rangle)$</div>
+    <p>Two indistinguishable photons entering opposite ports of a 50/50 beamsplitter always bunch into the same output mode. HOM visibility $V = 1 - g^{(2)}_\text{HOM}(0)$ quantifies photon indistinguishability — critical for linear-optical quantum computing.</p>
+    <h3>Single-Photon Emitters</h3>
+    <ul>
+      <li>NV centres in diamond: room temperature, spin-photon interface</li>
+      <li>SiV, GeV, SnV in diamond: near-transform-limited linewidths</li>
+      <li>InGaAs quantum dots: $g^{(2)}(0) &lt; 0.01$, $V &gt; 99\%$</li>
+      <li>hBN defects: 2D material, visible range</li>
+    </ul>
+    <h3>Boson Sampling</h3>
+    <p>Photonic quantum advantage: $n$ photons through an $m$-mode interferometer sample a distribution that is classically $\#P$-hard to compute. Demonstrated beyond classical simulation by USTC (2020, Jiuzhang, 50+ photons).</p>
+  </div>
+</div>
+
+<!-- ===== TAB 8: QUANTUM NETWORKS ===== -->
+<div class="pane" data-role="panel" id="pane8">
+  <div class="canvas-col">
+    <canvas id="c8" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Distance:</label>
+      <input type="range" id="distSlider" min="1" max="100" value="50" oninput="updateDist()">
+      <span id="distVal">500 km</span>
+      <label>Repeaters:</label>
+      <input type="range" id="repSlider" min="0" max="10" value="3" oninput="updateRep()">
+      <span id="repVal">3</span>
+      <button id="btnAnim8" onclick="toggleAnim8()">▶ Play</button>
+      <label>Speed:</label><input type="range" id="speed8" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal8">0.1x</span>
+    </div>
+    <div class="info-box">
+      Direct transmission: key rate $\propto e^{-\alpha L}$ (exponential decay, 0.2 dB/km at 1550 nm). Quantum repeater: polynomial scaling via entanglement swapping at intermediate nodes. Enables global quantum networks.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about8">
+    <h3>The Distance Problem</h3>
+    <div class="eq">$R_\text{direct} \propto \eta_\text{ch} = e^{-\alpha L},\quad \alpha = 0.046\,\text{km}^{-1}$</div>
+    <p>Fiber loss (0.2 dB/km at 1550 nm) limits direct quantum communication to $\sim 300\,\text{km}$ for practical key rates. Classical amplifiers cannot clone quantum states (no-cloning theorem).</p>
+    <h3>DLCZ Protocol</h3>
+    <div class="eq">$|\Psi^-\rangle_{AB} \xrightarrow{\text{BSM}_C} |\Psi^-\rangle_{AC}$</div>
+    <p>Duan–Lukin–Cirac–Zoller (2001): atomic ensembles as quantum memories, entanglement generated by photon-mediated Bell measurements, swapping extends range step by step.</p>
+    <h3>Entanglement Swapping</h3>
+    <p>If nodes A–B and B–C share entanglement, a Bell-state measurement (BSM) at B teleports entanglement to A–C. The middle node is consumed but no quantum information travels the full distance as a single photon.</p>
+    <h3>Quantum Memory</h3>
+    <div class="eq">$\eta_\text{mem} = e^{-t_\text{wait}/T_2}$</div>
+    <p>Spin-photon interfaces (atomic ensembles, rare-earth crystals, NV centres) store entanglement while waiting for heralding signals. Coherence times $T_2 \sim$ seconds demonstrated (europium:YSO).</p>
+    <h3>Satellite QKD</h3>
+    <p>Micius satellite (USTC, 2016–): free-space QKD over 2,400 km Alice–Bob ground stations via satellite relay. Not a true quantum repeater but demonstrates intercontinental quantum communication. Entanglement distributed over 1,200 km (2017).</p>
+    <h3>Quantum Internet Layers</h3>
+    <ul>
+      <li>Physical: photon generation, detection, fiber/free-space</li>
+      <li>Entanglement: Bell-state measurement, heralding, memories</li>
+      <li>Network: routing, entanglement purification</li>
+      <li>Application: QKD, blind quantum computing, distributed sensing</li>
+    </ul>
+    <h3>Photonic Quantum Computing</h3>
+    <p>PsiQuantum (fusion-based), Xanadu (GBS), QuiX: million-qubit photonic chips projected using silicon photonics. Advantage: room-temperature operation, telecom wavelengths, standard fab.</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+const panes = document.querySelectorAll('.pane');
+const tabs  = document.querySelectorAll('.tab');
+let activeTab = 0;
+
+function _cancelAllAnims47(){
+  [raf0,raf1,raf2,raf3,raf4,raf5,raf6,raf7,raf8].forEach(id=>{if(id)cancelAnimationFrame(id);});
+  raf0=raf1=raf2=raf3=raf4=raf5=raf6=raf7=raf8=null;
+  // Reset buttons
+  const btns=['btnAnim0','btnAnim1','btnAnim2','btnAnim3','btnAnim4','btnAnim5','btnAnim6','btnAnim7','btnAnim8'];
+  btns.forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.textContent='\u25b6 Play';b.classList.remove('on');}
+  });
+}
+function syncSpeedControl47(i){
+  const slider=document.getElementById('speed'+i);
+  const display=document.getElementById('speedVal'+i);
+  if(slider&&display){
+    display.textContent=''+(slider.value/100)+'x';
+  }
+}
+function switchTab(n){
+  // Null pane states so loop* guards (if(!p*) return) fire immediately
+  p0=p1=p2=p3=p4=p5=p6=p7=p8=null;
+  _cancelAllAnims47();
+  // Reset all anim flags to true for new tab
+  anim0=anim1=anim2=anim3=anim4=anim5=anim6=anim7=anim8=true;
+  tabs.forEach((t,i)=>t.classList.toggle('active',i===n));
+  panes.forEach((p,i)=>p.classList.toggle('active',i===n));
+  activeTab = n;
+  syncSpeedControl47(n);
+  if(n===0) initPane0();
+  if(n===1) initPane1();
+  if(n===2) initPane2();
+  if(n===3) initPane3();
+  if(n===4) initPane4();
+  if(n===5) initPane5();
+  if(n===6) initPane6();
+  if(n===7) initPane7();
+  if(n===8) initPane8();
+}
+
+// ─── UTIL ─────────────────────────────────────────────────────────────────────
+function setupCanvas(id){
+  const cv = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {cv, ctx, W, H};
+}
+
+function hsl(h,s,l){ return `hsl(${h},${s}%,${l}%)`; }
+
+// ─── TAB 0: LASER COOLING ────────────────────────────────────────────────────
+let p0 = null, raf0 = null, anim0 = true;
+
+function initPane0(){
+  if(raf0) cancelAnimationFrame(raf0);
+  const {cv,ctx,W,H} = setupCanvas('c0');
+  p0 = {cv,ctx,W,H};
+  if(!p0.atoms) buildAtoms(30);
+  anim0 = true;
+  document.getElementById('btnAnim0').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim0').classList.add('on');
+  loop0();
+}
+
+function toggleAnim0(){
+  anim0 = !anim0;
+  document.getElementById('btnAnim0').textContent = anim0 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim0').classList.toggle('on',anim0);
+  if(anim0 && !raf0) loop0();
+}
+
+let coolingOn = true;
+let detuning = -1.5;   // in units of Γ
+let targetAtoms = 30;
+const KB = 1.38e-23;
+let flashList = [];
+
+function buildAtoms(n){
+  p0.atoms = [];
+  for(let i=0;i<n;i++){
+    const spd = (Math.random()*2+0.5);
+    const ang = Math.random()*Math.PI*2;
+    p0.atoms.push({
+      x: 100+Math.random()*(p0.W-200),
+      y: 80+Math.random()*(p0.H-160),
+      vx: spd*Math.cos(ang),
+      vy: spd*Math.sin(ang),
+      r: 5
+    });
+  }
+}
+
+function updateAtomCount(){
+  const n = +document.getElementById('atomSlider').value;
+  document.getElementById('atomVal').textContent = n;
+  targetAtoms = n;
+  if(!p0) return;
+  while(p0.atoms.length < n){
+    const spd = (Math.random()*1.5+0.2);
+    const ang = Math.random()*Math.PI*2;
+    p0.atoms.push({x:p0.W/2+(-1+Math.random()*2)*80,y:p0.H/2+(-1+Math.random()*2)*80,
+      vx:spd*Math.cos(ang),vy:spd*Math.sin(ang),r:5});
+  }
+  while(p0.atoms.length > n) p0.atoms.pop();
+}
+
+function updateDetuning(){
+  const v = +document.getElementById('detSlider').value;
+  detuning = v/10;
+  document.getElementById('detVal').textContent = detuning.toFixed(1)+'Γ';
+}
+
+function toggleCooling(){
+  coolingOn = !coolingOn;
+  document.getElementById('btnCool').textContent = 'Cooling: '+(coolingOn?'ON':'OFF');
+  document.getElementById('btnCool').classList.toggle('on', coolingOn);
+}
+
+function addHeat(){
+  if(!p0||!p0.atoms) return;
+  p0.atoms.forEach(a=>{
+    a.vx += (Math.random()-0.5)*4;
+    a.vy += (Math.random()-0.5)*4;
+  });
+}
+
+function loop0(){
+  if(!p0) return;
+  const {ctx,W,H,atoms} = p0;
+  ctx.clearRect(0,0,W,H);
+
+  // draw laser beams
+  const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+  const beamW = 18;
+  dirs.forEach(d=>{
+    let bright = 0.18;
+    atoms.forEach(a=>{
+      const dot = a.vx*(-d.x)+a.vy*(-d.y);
+      if(dot > 0.5) bright = Math.max(bright, Math.min(0.55, bright+dot*0.04));
+    });
+    ctx.save();
+    const x0 = d.x>0?0:(d.x<0?W:W/2), y0 = d.y>0?0:(d.y<0?H:H/2);
+    const x1 = d.x>0?W:(d.x<0?0:W/2), y1 = d.y>0?H:(d.y<0?0:H/2);
+    const grad = ctx.createLinearGradient(x0,y0,x1,y1);
+    grad.addColorStop(0,`rgba(255,221,68,${bright})`);
+    grad.addColorStop(0.5,`rgba(255,221,68,${bright*0.4})`);
+    grad.addColorStop(1,`rgba(255,221,68,0)`);
+    ctx.strokeStyle=grad; ctx.lineWidth=beamW; ctx.beginPath();
+    ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+    ctx.restore();
+  });
+
+  // physics update
+  const dt = 0.016;
+  const alpha = coolingOn ? 0.25 * Math.min(1, Math.abs(detuning)/1.5) : 0;
+  atoms.forEach(a=>{
+    if(coolingOn){
+      a.vx -= alpha*a.vx*dt;
+      a.vy -= alpha*a.vy*dt;
+      // random photon recoil
+      if(Math.random()<0.03){
+        const rAng = Math.random()*Math.PI*2;
+        a.vx += 0.08*Math.cos(rAng*(window.animSpeed||0.1));
+        a.vy += 0.08*Math.sin(rAng*(window.animSpeed||0.1));
+        flashList.push({x:a.x,y:a.y,t:1});
+      }
+    }
+    a.x += a.vx; a.y += a.vy;
+    if(a.x<a.r){a.x=a.r;a.vx=Math.abs(a.vx);}
+    if(a.x>W-a.r){a.x=W-a.r;a.vx=-Math.abs(a.vx);}
+    if(a.y<a.r){a.y=a.r;a.vy=Math.abs(a.vy);}
+    if(a.y>H-a.r){a.y=H-a.r;a.vy=-Math.abs(a.vy);}
+  });
+
+  // draw flashes
+  flashList = flashList.filter(f=>f.t>0);
+  flashList.forEach(f=>{
+    const r = (1-f.t)*12;
+    ctx.beginPath();
+    ctx.arc(f.x,f.y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,180,${f.t*0.7})`;
+    ctx.fill();
+    f.t -= 0.05;
+  });
+
+  // draw atoms
+  atoms.forEach(a=>{
+    const spd = Math.sqrt(a.vx*a.vx+a.vy*a.vy);
+    const hot = Math.min(1, spd/3);
+    const h = hot*25;   // 0=blue(240), hot=red(0)
+    const hue = 240 - hot*240;
+    const lum = 40+hot*20;
+    ctx.beginPath();
+    ctx.arc(a.x,a.y,a.r,0,Math.PI*2);
+    ctx.fillStyle=hsl(hue,90,lum);
+    ctx.shadowColor=hsl(hue,90,70);
+    ctx.shadowBlur=8+hot*10;
+    ctx.fill();
+    ctx.shadowBlur=0;
+    // velocity arrow
+    const vlen = Math.min(spd*8, 30);
+    if(vlen>1){
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(a.x+a.vx/spd*vlen, a.y+a.vy/spd*vlen);
+      ctx.strokeStyle=`rgba(255,255,255,0.3)`;
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
+  });
+
+  // temperature readout
+  const v2 = atoms.reduce((s,a)=>s+a.vx*a.vx+a.vy*a.vy, 0)/atoms.length;
+  const T_rel = v2 * 0.5;
+  document.getElementById('tempDisp').textContent = (T_rel*1e3).toFixed(0)+' μK (rel.)';
+
+  // draw thermometer bar
+  const bh = 80, bw = 12, bx = W-30, by = H/2-bh/2;
+  ctx.fillStyle='#1a1a35';
+  ctx.strokeStyle=var_border;
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,3); ctx.fill(); ctx.stroke();
+  const fill = Math.min(1, T_rel/4)*bh;
+  const tHue = 240-Math.min(1,T_rel/4)*240;
+  ctx.fillStyle=hsl(tHue,90,50);
+  ctx.beginPath(); ctx.roundRect(bx,by+bh-fill,bw,fill,2); ctx.fill();
+  ctx.fillStyle='#888'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('T',bx+bw/2,by-4);
+
+  if(anim0) raf0 = requestAnimationFrame(loop0);
+}
+
+const var_border = '#2a2a50';
+
+// ─── TAB 1: BEC ───────────────────────────────────────────────────────────────
+let p1=null, raf1=null, anim1=true, becTRatio=1.8, released=false, releaseT=0, twoCloud=false;
+let becParticles=[];
+
+function initPane1(){
+  if(raf1) cancelAnimationFrame(raf1);
+  const {cv,ctx,W,H} = setupCanvas('c1');
+  p1 = {cv,ctx,W,H};
+  buildBecParticles();
+  released=false;
+  anim1 = true;
+  document.getElementById('btnAnim1').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim1').classList.add('on');
+  loop1();
+}
+
+function toggleAnim1(){
+  anim1 = !anim1;
+  document.getElementById('btnAnim1').textContent = anim1 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim1').classList.toggle('on',anim1);
+  if(anim1 && !raf1) loop1();
+}
+
+function buildBecParticles(){
+  becParticles=[];
+  for(let i=0;i<120;i++){
+    becParticles.push({
+      x: (Math.random()-0.5)*2,
+      y: (Math.random()-0.5)*2,
+      px:(Math.random()-0.5)*2,
+      py:(Math.random()-0.5)*2,
+      phase: Math.random()*Math.PI*2
+    });
+  }
+}
+
+function updateBecT(){
+  const v = +document.getElementById('becTSlider').value;
+  becTRatio = v/100;
+  document.getElementById('becTVal').textContent = becTRatio.toFixed(2);
+  const frac = Math.max(0, 1-Math.pow(becTRatio,3));
+  document.getElementById('condFrac').textContent = (frac*100).toFixed(0)+'%';
+}
+
+function releaseTrap(){
+  released = !released;
+  releaseT = 0;
+  document.getElementById('btnRelease').textContent = released ? 'Re-trap' : 'Release Trap';
+}
+
+function toggleTwoCloud(){
+  twoCloud = !twoCloud;
+  document.getElementById('btnTwoCloud').classList.toggle('on',twoCloud);
+}
+
+function loop1(){
+  if(!p1) return;
+  const {ctx,W,H}=p1;
+  ctx.clearRect(0,0,W,H);
+  const ratio = becTRatio;
+  const frac = Math.max(0,1-Math.pow(Math.min(ratio,1),3));
+  if(released) releaseT += 0.016*(window.animSpeed||0.1);
+
+  // Background gradient — thermal cloud
+  const cx=W/2, cy=H/2;
+  const thermalR = released ? (80+releaseT*150) : 120;
+  const thermalAlpha = (1-frac)*0.7;
+  if(thermalAlpha>0.01){
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,thermalR);
+    const tempColor = ratio>1 ? `rgba(255,100,60,${thermalAlpha*0.5})` : `rgba(180,120,255,${thermalAlpha*0.5})`;
+    g.addColorStop(0, tempColor);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(cx,cy,thermalR,0,Math.PI*2); ctx.fill();
+  }
+
+  // Draw thermal particles
+  const t = Date.now()*0.001;
+  becParticles.forEach((p,i)=>{
+    const spread = thermalR * 0.9;
+    const px = cx + Math.sin(p.phase+t*(0.5+p.px*0.3))*spread*Math.abs(p.x);
+    const py = cy + Math.cos(p.phase*1.3+t*(0.4+p.py*0.3))*spread*Math.abs(p.y);
+    const isCondensed = i < frac*becParticles.length;
+    if(isCondensed){
+      const cr = released ? releaseT*60 : 0;
+      const qx = cx + (twoCloud ? (i%2===0?-1:1)*Math.min(cr,50)+cr*0.3*(Math.random()-0.5) : 0) + (released?Math.cos(p.phase*7)*cr*0.2:0);
+      const qy = cy + (released?Math.sin(p.phase*7)*cr*0.2:0);
+      ctx.beginPath(); ctx.arc(qx+(Math.random()-0.5)*2,qy+(Math.random()-0.5)*2,2,0,Math.PI*2);
+      ctx.fillStyle=`rgba(100,220,255,0.8)`; ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(px,py,1.5,0,Math.PI*2);
+      const hue = 20+ratio*20;
+      ctx.fillStyle=`hsla(${hue},80%,60%,0.5)`; ctx.fill();
+    }
+  });
+
+  // Condensate blob
+  if(frac>0.02){
+    const blobR = released ? Math.min(100, frac*40+releaseT*80) : frac*40;
+    const blobX = twoCloud ? cx-30 : cx;
+    const blobX2 = cx+30;
+    [blobX, ...(twoCloud?[blobX2]:[])].forEach((bx,bi)=>{
+      const g2 = ctx.createRadialGradient(bx,cy,0,bx,cy,blobR);
+      g2.addColorStop(0,`rgba(100,230,255,${frac*0.9})`);
+      g2.addColorStop(0.4,`rgba(60,180,255,${frac*0.5})`);
+      g2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g2; ctx.beginPath(); ctx.arc(bx,cy,blobR,0,Math.PI*2); ctx.fill();
+    });
+
+    // Interference fringes if two condensates or released
+    if((twoCloud||released) && frac>0.1){
+      const fringeScale = released ? Math.max(5,20-releaseT*5) : 15;
+      for(let fy=-80;fy<80;fy+=fringeScale){
+        const yPos = cy+fy;
+        const xStart = released ? cx-blobR : cx-40;
+        const xEnd   = released ? cx+blobR : cx+40;
+        const alpha = frac*0.4*Math.max(0,(1-Math.abs(fy)/80));
+        ctx.beginPath();
+        ctx.moveTo(xStart, yPos); ctx.lineTo(xEnd, yPos);
+        ctx.strokeStyle=`rgba(180,255,255,${alpha})`;
+        ctx.lineWidth=1; ctx.stroke();
+      }
+    }
+  }
+
+  // Phase-space inset
+  const psX=20, psY=20, psW=110, psH=110;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(psX,psY,psW,psH); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.6)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('phase space',psX+3,psY+11);
+  ctx.fillStyle='rgba(136,136,170,0.5)';
+  ctx.fillText('x →',psX+psW-20,psY+psH-3);
+  ctx.save(); ctx.translate(psX+8,psY+psH-5); ctx.rotate(-Math.PI/2);
+  ctx.fillText('p →',0,0); ctx.restore();
+  for(let i=0;i<60;i++){
+    const p = becParticles[i];
+    const spread = Math.min(1,ratio)*0.45;
+    const px2 = psX+psW/2+p.x*psW*spread;
+    const py2 = psY+psH/2+p.y*psH*spread;
+    const isC = i < frac*60;
+    ctx.beginPath(); ctx.arc(px2,py2,isC?2:1.3,0,Math.PI*2);
+    ctx.fillStyle=isC?'rgba(100,220,255,0.9)':'rgba(255,140,60,0.6)';
+    ctx.fill();
+  }
+
+  // Side graph: condensate fraction vs T/Tc
+  const gx=W-120, gy=20, gw=100, gh=100;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(gx,gy,gw,gh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.6)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('N₀/N vs T/Tₒ',gx+gw/2,gy+10);
+  ctx.beginPath();
+  for(let tx=0;tx<=1;tx+=0.01){
+    const fy2=Math.max(0,1-Math.pow(tx,3));
+    const sx=gx+tx*gw, sy=gy+gh-(fy2*(gh-15))-5;
+    tx===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);
+  }
+  ctx.strokeStyle='rgba(100,220,255,0.8)'; ctx.lineWidth=2; ctx.stroke();
+  // current marker
+  const markerX=gx+Math.min(ratio,1)*gw;
+  const markerY=gy+gh-(frac*(gh-15))-5;
+  ctx.beginPath(); ctx.arc(markerX,markerY,4,0,Math.PI*2);
+  ctx.fillStyle='#ffdd44'; ctx.fill();
+
+  if(anim1) raf1=requestAnimationFrame(loop1);
+}
+
+// ─── TAB 2: OPTICAL TWEEZERS ─────────────────────────────────────────────────
+let p2=null, raf2=null, anim2=true;
+let bead={x:0,y:0,vx:0,vy:0};
+let bead2={x:0,y:0,vx:0,vy:0};
+let beadDragging=false, bead2Dragging=false;
+let trapX=0, trapY=0;
+let trap2X=0;
+let laserPower=5, beamWaist=14;
+let bioMode=false, forceArrows=true;
+let dnaStretch=0;
+let forceExtPoints=[];
+let tweezZoom=2.0, tweezPanX=0, tweezPanY=0;
+let tweezCanvasDragging=false, tweezDragLastX=0, tweezDragLastY=0;
+
+function tweezZoomIn(){ tweezZoom *= 1.3; }
+function tweezZoomOut(){ tweezZoom = Math.max(0.5, tweezZoom/1.3); }
+function tweezFit(){ tweezZoom=2.0; tweezPanX=0; tweezPanY=0; }
+
+function initPane2(){
+  if(raf2) cancelAnimationFrame(raf2);
+  const {cv,ctx,W,H}=setupCanvas('c2');
+  p2={cv,ctx,W,H};
+  trapX=W/2; trapY=H/2;
+  trap2X=W/2+120;
+  bead={x:trapX,y:trapY,vx:0,vy:0};
+  bead2={x:trap2X,y:trapY,vx:0,vy:0};
+  dnaStretch=0;
+  forceExtPoints=[];
+  anim2 = true;
+  document.getElementById('btnAnim2').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim2').classList.add('on');
+  loop2();
+}
+
+function toggleAnim2(){
+  anim2 = !anim2;
+  document.getElementById('btnAnim2').textContent = anim2 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim2').classList.toggle('on',anim2);
+  if(anim2 && !raf2) loop2();
+}
+
+  // Convert screen coords to world coords accounting for zoom/pan
+  function screenToWorld(sx, sy){
+    const W=p2.W, H=p2.H;
+    return {
+      x: (sx - W/2 - tweezPanX) / tweezZoom + W/2,
+      y: (sy - H/2 - tweezPanY) / tweezZoom + H/2
+    };
+  }
+
+  p2.cv.onmousedown=e=>{
+    const r=p2.cv.getBoundingClientRect();
+    const sx=e.clientX-r.left, sy=e.clientY-r.top;
+    const {x:wx,y:wy}=screenToWorld(sx,sy);
+    const dx=wx-bead.x, dy=wy-bead.y;
+    if(Math.sqrt(dx*dx+dy*dy)<18){
+      beadDragging=true;
+    } else if(bioMode){
+      const dx2=wx-bead2.x, dy2=wy-bead2.y;
+      if(Math.sqrt(dx2*dx2+dy2*dy2)<18){bead2Dragging=true;}
+      else { tweezCanvasDragging=true; tweezDragLastX=sx; tweezDragLastY=sy; }
+    } else {
+      tweezCanvasDragging=true; tweezDragLastX=sx; tweezDragLastY=sy;
+    }
+  };
+  p2.cv.onmousemove=e=>{
+    const r=p2.cv.getBoundingClientRect();
+    const sx=e.clientX-r.left, sy=e.clientY-r.top;
+    if(beadDragging){
+      const {x:wx,y:wy}=screenToWorld(sx,sy);
+      bead.x=wx; bead.y=wy; bead.vx=0; bead.vy=0;
+    }
+    if(bead2Dragging){
+      const {x:wx,y:wy}=screenToWorld(sx,sy);
+      bead2.x=wx; bead2.y=wy; bead2.vx=0; bead2.vy=0;
+    }
+    if(tweezCanvasDragging){
+      tweezPanX += sx-tweezDragLastX;
+      tweezPanY += sy-tweezDragLastY;
+      tweezDragLastX=sx; tweezDragLastY=sy;
+    }
+  };
+  p2.cv.onmouseup=()=>{beadDragging=false;bead2Dragging=false;tweezCanvasDragging=false;};
+  p2.cv.onmouseleave=()=>{beadDragging=false;bead2Dragging=false;tweezCanvasDragging=false;};
+
+  p2.cv.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const r=p2.cv.getBoundingClientRect();
+    const sx=e.clientX-r.left, sy=e.clientY-r.top;
+    const W=p2.W, H=p2.H;
+    const zoomFactor = e.deltaY<0 ? 1.12 : 1/1.12;
+    const newZoom = Math.max(0.5, tweezZoom*zoomFactor);
+    // Zoom centered on mouse position: adjust pan so world point under cursor stays fixed
+    tweezPanX = sx - W/2 - (sx - W/2 - tweezPanX) * (newZoom/tweezZoom);
+    tweezPanY = sy - H/2 - (sy - H/2 - tweezPanY) * (newZoom/tweezZoom);
+    tweezZoom = newZoom;
+  },{passive:false});
+  loop2();
+}
+
+function updatePower(){laserPower=+document.getElementById('powerSlider').value;document.getElementById('powerVal').textContent=laserPower;}
+function updateWaist(){beamWaist=+document.getElementById('waistSlider').value;document.getElementById('waistVal').textContent=beamWaist;}
+function toggleBioMode(){bioMode=!bioMode;document.getElementById('btnBioMode').classList.toggle('on',bioMode);}
+function toggleForceArrows(){forceArrows=!forceArrows;document.getElementById('btnForceArrows').textContent='Force Arrows: '+(forceArrows?'ON':'OFF');document.getElementById('btnForceArrows').classList.toggle('on',forceArrows);}
+
+function loop2(){
+  if(!p2) return;
+  const {ctx,W,H}=p2;
+  ctx.clearRect(0,0,W,H);
+  const t=Date.now()*0.001;
+
+  // Apply zoom/pan transform for world-space drawing
+  ctx.save();
+  ctx.translate(W/2+tweezPanX, H/2+tweezPanY);
+  ctx.scale(tweezZoom, tweezZoom);
+  ctx.translate(-W/2, -H/2);
+
+  // Draw laser beam (Gaussian cone)
+  const beamTopY=0, beamBotY=H;
+  const waistY=trapY;
+  function beamWidth(y){
+    const z=(y-waistY)/100;
+    return beamWaist*Math.sqrt(1+z*z);
+  }
+  // Draw beam as gradient strips
+  for(let y=0;y<H;y+=2){
+    const w=beamWidth(y);
+    const I=laserPower*Math.exp(0) / (1+Math.pow((y-waistY)/100,2));
+    const alpha=Math.min(0.35, I*0.04);
+    const grad=ctx.createLinearGradient(trapX-w*3,y,trapX+w*3,y);
+    grad.addColorStop(0,'rgba(255,221,68,0)');
+    grad.addColorStop(0.4,`rgba(255,221,68,${alpha})`);
+    grad.addColorStop(0.5,`rgba(255,240,100,${alpha*2})`);
+    grad.addColorStop(0.6,`rgba(255,221,68,${alpha})`);
+    grad.addColorStop(1,'rgba(255,221,68,0)');
+    ctx.fillStyle=grad;
+    ctx.fillRect(trapX-w*3,y,w*6,2);
+  }
+
+  // Physics: spring force toward trap
+  if(!beadDragging){
+    const kf=laserPower*0.03/(Math.pow(beamWaist/14,2));
+    const dx=bead.x-trapX, dy=bead.y-trapY;
+    bead.vx += -kf*dx; bead.vy += -kf*dy;
+    // thermal noise
+    bead.vx += (Math.random()-0.5)*0.3;
+    bead.vy += (Math.random()-0.5)*0.3;
+    bead.vx *= 0.92; bead.vy *= 0.92;
+    bead.x += bead.vx; bead.y += bead.vy;
+  }
+  if(bioMode&&!bead2Dragging){
+    const kf=laserPower*0.03/(Math.pow(beamWaist/14,2));
+    const dx2=bead2.x-trap2X, dy2=bead2.y-trapY;
+    bead2.vx += -kf*dx2; bead2.vy += -kf*dy2;
+    bead2.vx += (Math.random()-0.5)*0.3;
+    bead2.vy += (Math.random()-0.5)*0.3;
+    bead2.vx *= 0.92; bead2.vy *= 0.92;
+    bead2.x += bead2.vx; bead2.y += bead2.vy;
+  }
+
+  // Bio mode: second laser beam and DNA
+  if(bioMode){
+    for(let y=0;y<H;y+=2){
+      const w=beamWidth(y);
+      const alpha=Math.min(0.25,laserPower*0.025);
+      const grad=ctx.createLinearGradient(trap2X-w*3,y,trap2X+w*3,y);
+      grad.addColorStop(0,'rgba(255,221,68,0)');
+      grad.addColorStop(0.5,`rgba(255,240,100,${alpha*2})`);
+      grad.addColorStop(1,'rgba(255,221,68,0)');
+      ctx.fillStyle=grad; ctx.fillRect(trap2X-w*3,y,w*6,2);
+    }
+
+    // DNA tether
+    const separation=bead2.x-bead.x;
+    dnaStretch=Math.max(0,(separation-60)/200);
+    const segs=18;
+    ctx.beginPath();
+    for(let i=0;i<=segs;i++){
+      const f=i/segs;
+      const nx=bead.x+8+(bead2.x-bead.x-16)*f;
+      const waving=Math.sin(f*Math.PI*4+t*3)*(1-dnaStretch)*12;
+      const ny=bead.y+waving;
+      i===0?ctx.moveTo(nx,ny):ctx.lineTo(nx,ny);
+    }
+    ctx.strokeStyle='rgba(100,255,120,0.8)'; ctx.lineWidth=2; ctx.stroke();
+    // second strand
+    ctx.beginPath();
+    for(let i=0;i<=segs;i++){
+      const f=i/segs;
+      const nx=bead.x+8+(bead2.x-bead.x-16)*f;
+      const waving=Math.sin(f*Math.PI*4+t*3+Math.PI)*(1-dnaStretch)*12;
+      const ny=bead.y+waving;
+      i===0?ctx.moveTo(nx,ny):ctx.lineTo(nx,ny);
+    }
+    ctx.strokeStyle='rgba(80,200,100,0.6)'; ctx.lineWidth=2; ctx.stroke();
+
+    // Accumulate force-extension data (drawn later in screen space)
+    forceExtPoints.push({x:dnaStretch,f:dnaStretch*(1+dnaStretch*2)});
+    if(forceExtPoints.length>200) forceExtPoints.shift();
+  }
+
+  // Draw force arrows
+  if(forceArrows){
+    const N=8;
+    for(let i=0;i<N;i++){
+      const ang=i/N*Math.PI*2;
+      const pr=35;
+      const ax=trapX+Math.cos(ang)*pr, ay=trapY+Math.sin(ang)*pr;
+      const fx=trapX-ax, fy=trapY-ay;
+      const fmag=laserPower*2.5/Math.max(10,pr);
+      drawArrow(ctx,ax,ay,ax+fx*fmag,ay+fy*fmag,'rgba(255,221,68,0.55)',1.5);
+    }
+  }
+
+  // Draw bead(s)
+  drawBead(ctx,bead.x,bead.y,'rgba(180,220,255,0.9)',12);
+  if(bioMode) drawBead(ctx,bead2.x,bead2.y,'rgba(180,220,255,0.9)',12);
+
+  // Restore to screen space (undo zoom/pan transform)
+  ctx.restore();
+
+  // ── MINIMAPS in screen space (fixed position, unaffected by zoom) ──────────
+
+  // Trap potential well minimap (bottom-right corner)
+  const potX=W-130, potY=H-110, potW=110, potH=90;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(potX,potY,potW,potH); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Trap potential U(r)',potX+potW/2,potY+11);
+  ctx.beginPath();
+  const kappa=laserPower*0.5/(beamWaist*beamWaist*0.01+1);
+  for(let xi=-50;xi<=50;xi++){
+    const u=kappa*xi*xi*0.012;
+    const px2=potX+potW/2+xi*potW/110;
+    const py2=potY+potH-10-Math.min(u,potH-20);
+    xi===-50?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+  }
+  ctx.strokeStyle='rgba(100,200,255,0.8)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='rgba(136,136,170,0.7)';
+  ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('r →',potX+potW-12,potY+potH-2);
+
+  // F-x curve minimap (bottom-left corner, only in bio mode)
+  if(bioMode){
+    const feX=10, feY=H-100, feW=100, feH=80;
+    ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(feX,feY,feW,feH); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(100,255,120,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('F-x curve',feX+feW/2,feY+10);
+    ctx.beginPath();
+    forceExtPoints.forEach((pt,i)=>{
+      const px3=feX+pt.x*feW*0.9; const py3=feY+feH-10-Math.min(pt.f*(feH-15),feH-15);
+      i===0?ctx.moveTo(px3,py3):ctx.lineTo(px3,py3);
+    });
+    ctx.strokeStyle='rgba(100,255,120,0.9)'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+
+  if(anim2) raf2=requestAnimationFrame(loop2);
+}
+
+function drawBead(ctx,x,y,col,r){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,r*0.1,x,y,r);
+  g.addColorStop(0,'rgba(255,255,255,0.8)');
+  g.addColorStop(1,col);
+  ctx.fillStyle=g; ctx.shadowColor='rgba(100,180,255,0.6)'; ctx.shadowBlur=12;
+  ctx.fill(); ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(100,180,255,0.4)'; ctx.lineWidth=1; ctx.stroke();
+}
+
+function drawArrow(ctx,x1,y1,x2,y2,color,lw){
+  const dx=x2-x1, dy=y2-y1;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  if(len<2) return;
+  const ux=dx/len, uy=dy/len;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.stroke();
+  const hs=6;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-ux*hs-uy*hs*0.5, y2-uy*hs+ux*hs*0.5);
+  ctx.lineTo(x2-ux*hs+uy*hs*0.5, y2-uy*hs-ux*hs*0.5);
+  ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+}
+
+// ─── TAB 3: CPA ───────────────────────────────────────────────────────────────
+let p3=null, raf3=null, anim3=true, cpaStage=-1, cpaT=0, cpaPlaying=false;
+let stretchFactor=1000, freqColor=true;
+
+function initPane3(){
+  if(raf3) cancelAnimationFrame(raf3);
+  const {cv,ctx,W,H}=setupCanvas('c3');
+  p3={cv,ctx,W,H};
+  updateStretch();
+  anim3 = true;
+  document.getElementById('btnAnim3').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim3').classList.add('on');
+  loop3();
+}
+
+function toggleAnim3(){
+  anim3 = !anim3;
+  document.getElementById('btnAnim3').textContent = anim3 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim3').classList.toggle('on',anim3);
+  if(anim3 && !raf3) loop3();
+}
+
+function updateStretch(){
+  const v=+document.getElementById('stretchSlider').value;
+  stretchFactor=Math.round(Math.pow(10,(v-2)/48*4+2));
+  document.getElementById('stretchVal').textContent=stretchFactor.toLocaleString()+'×';
+  document.getElementById('peakPower').textContent=(stretchFactor/1000).toFixed(1)+'PW';
+}
+
+function playCPA(){
+  cpaPlaying=true; cpaStage=0; cpaT=0;
+  document.getElementById('btnPlayCPA').textContent='▶ Playing…';
+}
+
+function toggleFreqColor(){
+  freqColor=!freqColor;
+  document.getElementById('btnFreqColor').textContent='Freq Color: '+(freqColor?'ON':'OFF');
+  document.getElementById('btnFreqColor').classList.toggle('on',freqColor);
+}
+
+function loop3(){
+  if(!p3) return;
+  const {ctx,W,H}=p3;
+  ctx.clearRect(0,0,W,H);
+
+  if(cpaPlaying){
+    cpaT+=0.016*(window.animSpeed||0.1);
+    if(cpaT>2.5){cpaStage++;cpaT=0;}
+    if(cpaStage>=4){cpaStage=-1;cpaPlaying=false;document.getElementById('btnPlayCPA').textContent='▶ Play CPA Sequence';}
+  }
+
+  const stageLabels=['1. Input pulse','2. After stretcher','3. After amplifier','4. After compressor'];
+  const stageColors=['#aaddff','#ffaa44','#ff4444','#44ffaa'];
+  const stageY=[H*0.2, H*0.4, H*0.6, H*0.8];
+  const tNow=Date.now()*0.001;
+
+  stageLabels.forEach((lbl,si)=>{
+    const cy=stageY[si];
+    const isActive=(cpaStage===si)||(!cpaPlaying&&cpaStage===-1);
+    const alpha=isActive?1.0:0.35;
+
+    // label
+    ctx.fillStyle=`rgba(255,221,68,${alpha})`; ctx.font=`${isActive?'bold ':''}.72rem sans-serif`;
+    ctx.textAlign='left'; ctx.fillText(lbl,8,cy-18);
+
+    // pulse shape
+    const pulsePh=tNow*(si===0||si===3?3:0.5)+si;
+    let pulseW, ampScale, chirpDraw;
+    if(si===0){pulseW=12; ampScale=0.6; chirpDraw=false;}
+    else if(si===1){pulseW=12*stretchFactor/100; ampScale=0.6/Math.sqrt(stretchFactor/100); chirpDraw=true;}
+    else if(si===2){pulseW=12*stretchFactor/100; ampScale=Math.min(0.95, 0.6*Math.sqrt(stretchFactor)/10); chirpDraw=true;}
+    else{pulseW=12; ampScale=Math.min(1.2, 0.6*Math.pow(stretchFactor,0.5)/8); chirpDraw=false;}
+
+    const pw=Math.min(W-100, pulseW*3);
+    const env_h=55;
+    const centerX=W/2;
+
+    // draw envelope
+    ctx.save(); ctx.globalAlpha=alpha;
+    if(chirpDraw && freqColor){
+      // color-swept chirped pulse
+      for(let xi=-pw/2;xi<pw/2;xi+=2){
+        const frac=(xi+pw/2)/pw;
+        const hue=240-frac*240;
+        const env=Math.exp(-xi*xi/(pw*pw*0.15));
+        ctx.fillStyle=`hsla(${hue},100%,60%,${env*0.85})`;
+        ctx.fillRect(centerX+xi, cy-env*env_h*ampScale, 2, env*env_h*ampScale*2);
+      }
+    } else {
+      // monochrome
+      for(let xi=-pw/2;xi<pw/2;xi+=2){
+        const env=Math.exp(-xi*xi/(pw*pw*0.15));
+        const osc=Math.cos(xi*0.5*(si===1||si===2?0.3:1.5)+pulsePh)*env;
+        ctx.fillStyle=stageColors[si];
+        ctx.fillRect(centerX+xi, cy-osc*env_h*ampScale, 2, Math.abs(osc)*env_h*ampScale*2+1);
+      }
+    }
+    // glow outline
+    const g=ctx.createRadialGradient(centerX,cy,0,centerX,cy,pw/2+20);
+    g.addColorStop(0,`rgba(255,255,200,${alpha*ampScale*0.25})`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(centerX,cy,pw/2+20,env_h*1.2,0,0,Math.PI*2); ctx.fill();
+
+    // amplitude readout
+    ctx.fillStyle=stageColors[si]; ctx.textAlign='right';
+    ctx.font='.68rem sans-serif';
+    ctx.fillText(`A×${(ampScale/0.6).toFixed(si===2?0:1).replace('.0','')}`, W-8, cy+4);
+    ctx.restore();
+
+    // divider
+    if(si<3){
+      ctx.strokeStyle='rgba(42,42,80,0.7)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(0,(stageY[si]+stageY[si+1])/2); ctx.lineTo(W,(stageY[si]+stageY[si+1])/2);
+      ctx.stroke(); ctx.setLineDash([]);
+
+      // arrow + stage label
+      const midY=(stageY[si]+stageY[si+1])/2;
+      const stageNames=['Grating Stretcher','Ti:Sapphire Amplifier','Grating Compressor'];
+      ctx.fillStyle='rgba(136,136,170,0.65)'; ctx.textAlign='center'; ctx.font='.68rem sans-serif';
+      ctx.fillText('▼ '+stageNames[si], W/2, midY+10);
+    }
+  });
+
+  // Time-bandwidth annotation
+  ctx.fillStyle='rgba(255,221,68,0.5)'; ctx.font='.68rem sans-serif'; ctx.textAlign='right';
+  ctx.fillText('Δt·Δν ≥ 1/(4π)', W-8, H-8);
+
+  // Without CPA flash (if playing stage 2)
+  if(cpaStage===2){
+    const fl=Math.sin(cpaT*8)*0.5+0.5;
+    ctx.fillStyle=`rgba(255,80,80,${fl*0.12})`;
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=`rgba(255,80,80,${fl*0.5})`;
+    ctx.font='bold .75rem sans-serif'; ctx.textAlign='center';
+    ctx.fillText('⚡ Without CPA: amplifier damage!',W/2,H-30);
+    ctx.fillStyle=`rgba(100,255,160,${fl*0.5})`;
+    ctx.fillText('✓ CPA: safely amplified',W/2,H-12);
+  }
+
+  if(anim3) raf3=requestAnimationFrame(loop3);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  // wait a tick so layout is computed
+  requestAnimationFrame(()=>{
+    initPane0();
+    document.getElementById('btnCool').classList.add('on');
+    // re-render math in about panels
+    ['about0','about1','about2','about3','about4','about5','about6','about7','about8'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&window.renderMathInElement){
+        renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+      }
+    });
+  });
+});
+
+window.addEventListener('resize',()=>{
+  if(activeTab===0&&p0){cancelAnimationFrame(raf0);initPane0();}
+  if(activeTab===1&&p1){cancelAnimationFrame(raf1);initPane1();}
+  if(activeTab===2&&p2){cancelAnimationFrame(raf2);initPane2();}
+  if(activeTab===3&&p3){cancelAnimationFrame(raf3);initPane3();}
+  if(activeTab===4&&p4){cancelAnimationFrame(raf4);initPane4();}
+  if(activeTab===5&&p5){cancelAnimationFrame(raf5);initPane5();}
+  if(activeTab===6&&p6){cancelAnimationFrame(raf6);initPane6();}
+  if(activeTab===7&&p7){cancelAnimationFrame(raf7);initPane7();}
+  if(activeTab===8&&p8){cancelAnimationFrame(raf8);initPane8();}
+});
+
+</script>
+
+<script>
+// ─── TAB 4: COHERENT & SQUEEZED STATES ───────────────────────────────────────
+let p4=null, raf4=null, anim4=true;
+let sqr=0.0, sqPhi=0.0;
+
+function updateSqr(){sqr=+document.getElementById('sqrSlider').value/10;document.getElementById('sqrVal').textContent=sqr.toFixed(1);}
+function updateSqPhi(){sqPhi=+document.getElementById('sqPhiSlider').value/100;document.getElementById('sqPhiVal').textContent=Math.round(sqPhi*180/Math.PI)+'°';}
+
+function initPane4(){
+  if(raf4) cancelAnimationFrame(raf4);
+  const {cv,ctx,W,H}=setupCanvas('c4');
+  p4={cv,ctx,W,H};
+  anim4 = true;
+  document.getElementById('btnAnim4').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim4').classList.add('on');
+  loop4();
+}
+
+function toggleAnim4(){
+  anim4 = !anim4;
+  document.getElementById('btnAnim4').textContent = anim4 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim4').classList.toggle('on',anim4);
+  if(anim4 && !raf4) loop4();
+}
+
+function loop4(){
+  if(!p4) return;
+  const {ctx,W,H}=p4;
+  ctx.clearRect(0,0,W,H);
+  const t=Date.now()*0.001*(window.animSpeed||0.1);
+  const cx=W/2, cy=H/2;
+  const scale=Math.min(W,H)*0.38;
+
+  // Draw axes
+  ctx.strokeStyle='rgba(136,136,170,0.4)'; ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(20,cy); ctx.lineTo(W-20,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,20); ctx.lineTo(cx,H-20); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(136,136,170,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('X₁',W-15,cy-5);
+  ctx.textAlign='left';
+  ctx.fillText('X₂',cx+6,18);
+
+  // Vacuum noise circle (reference)
+  const vacR=scale*0.5;  // radius = 1/2 in natural units, mapped to scale
+  ctx.beginPath(); ctx.arc(cx,cy,vacR*0.25,0,Math.PI*2);
+  ctx.strokeStyle='rgba(100,100,180,0.3)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Coherent state alpha: rotates at frequency omega — harmonic oscillation
+  const omega=0.8;
+  const alphaAbs=scale*0.55;
+  const alphaAng=t*omega;
+  const ax=cx+Math.cos(alphaAng)*alphaAbs, ay=cy-Math.sin(alphaAng)*alphaAbs;
+
+  // Draw trajectory (ghost arc)
+  ctx.beginPath(); ctx.arc(cx,cy,alphaAbs,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,221,68,0.15)'; ctx.lineWidth=1; ctx.stroke();
+
+  // Coherent state disk at alpha position (no squeezing component)
+  const diskR=vacR*0.25;  // 1/2 vacuum noise
+  const sqA=Math.exp(-sqr), sqB=Math.exp(sqr);
+  // Ellipse axes in rotated frame
+  const rA=diskR*sqA, rB=diskR*sqB;
+
+  // Squeezed state (show at same alpha position)
+  ctx.save();
+  ctx.translate(ax,ay);
+  ctx.rotate(-sqPhi);
+  // Glow
+  const grd=ctx.createRadialGradient(0,0,0,0,0,Math.max(rA,rB)*2);
+  grd.addColorStop(0,'rgba(100,200,255,0.25)');
+  grd.addColorStop(1,'rgba(100,200,255,0)');
+  ctx.fillStyle=grd;
+  ctx.beginPath(); ctx.ellipse(0,0,Math.max(rA,rB)*2,Math.max(rA,rB)*2,0,0,Math.PI*2); ctx.fill();
+  // Ellipse fill
+  ctx.beginPath(); ctx.ellipse(0,0,rA,rB,0,0,Math.PI*2);
+  ctx.fillStyle=sqr>0.05?'rgba(100,200,255,0.35)':'rgba(255,221,68,0.35)';
+  ctx.fill();
+  ctx.strokeStyle=sqr>0.05?'rgba(100,200,255,0.9)':'rgba(255,221,68,0.9)';
+  ctx.lineWidth=2; ctx.stroke();
+  ctx.restore();
+
+  // Draw alpha vector
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ax,ay);
+  ctx.strokeStyle='rgba(255,221,68,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+  // Alpha dot
+  ctx.beginPath(); ctx.arc(ax,ay,5,0,Math.PI*2);
+  ctx.fillStyle='#ffdd44'; ctx.fill();
+
+  // Noise readout labels
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('ΔX₁='+(sqA*0.5).toFixed(2),12,H-40);
+  ctx.fillText('ΔX₂='+(sqB*0.5).toFixed(2),12,H-26);
+  ctx.fillText('ΔX₁·ΔX₂='+(sqA*sqB*0.25).toFixed(3),12,H-12);
+
+  // Axes labels
+  ctx.fillStyle='rgba(100,200,255,0.7)'; ctx.textAlign='right';
+  ctx.fillText(sqr>0.05?'squeezed':'coherent',W-8,H-8);
+
+  if(anim4) raf4=requestAnimationFrame(loop4);
+}
+
+// ─── TAB 5: WIGNER FUNCTION ───────────────────────────────────────────────────
+let p5=null, raf5=null, anim5=true;
+let wignerN=0, wignerStateId='0', dampPct=0;
+let wignerDirty=true;
+
+function updateWignerState(){wignerStateId=document.getElementById('wignerState').value;wignerDirty=true;}
+function updateDamp(){dampPct=+document.getElementById('dampSlider').value;document.getElementById('dampVal').textContent=dampPct+'%';wignerDirty=true;}
+
+// Laguerre polynomial L_n(x)
+function laguerre(n,x){
+  if(n===0) return 1;
+  if(n===1) return 1-x;
+  let l0=1,l1=1-x;
+  for(let k=1;k<n;k++){
+    const l2=((2*k+1-x)*l1-k*l0)/(k+1);
+    l0=l1; l1=l2;
+  }
+  return l1;
+}
+
+// Wigner for Fock |n>
+function wignerFock(n,x,p){
+  const r2=2*(x*x+p*p);
+  const sign=n%2===0?1:-1;
+  return sign*(1/Math.PI)*Math.exp(-r2)*laguerre(n,2*r2);
+}
+
+// Wigner for coherent state |alpha> (Gaussian)
+function wignerCoherent(alphaRe,alphaIm,x,p){
+  const dx=x-alphaRe, dp=p-alphaIm;
+  return (2/Math.PI)*Math.exp(-2*(dx*dx+dp*dp));
+}
+
+// Wigner for cat state (alpha + -alpha)/sqrt(2)
+function wignerCat(alpha,x,p){
+  const norm=2*(1+Math.exp(-2*alpha*alpha));
+  // W_cat = (W(alpha) + W(-alpha) + interference) / norm_factor
+  const w1=wignerCoherent(alpha,0,x,p);
+  const w2=wignerCoherent(-alpha,0,x,p);
+  // interference term
+  const r2=2*(x*x+p*p);
+  const interf=(4/Math.PI)*Math.exp(-r2)*Math.cos(4*alpha*p);
+  return (w1+w2+interf)/(norm/(2/Math.PI));
+}
+
+function initPane5(){
+  if(raf5) cancelAnimationFrame(raf5);
+  const {cv,ctx,W,H}=setupCanvas('c5');
+  p5={cv,ctx,W,H,imgData:null};
+  wignerDirty=true;
+  anim5 = true;
+  document.getElementById('btnAnim5').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim5').classList.add('on');
+  loop5();
+}
+
+function toggleAnim5(){
+  anim5 = !anim5;
+  document.getElementById('btnAnim5').textContent = anim5 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim5').classList.toggle('on',anim5);
+  if(anim5 && !raf5) loop5();
+}
+
+function renderWigner(){
+  if(!p5||!wignerDirty) return;
+  wignerDirty=false;
+  const {ctx,W,H}=p5;
+  const id=ctx.createImageData(W,H);
+  const d=id.data;
+  const scale=3.5;  // phase space range [-scale,scale]
+  const damp=dampPct/100;
+  for(let py=0;py<H;py++){
+    for(let px=0;px<W;px++){
+      const x=(px/W*2-1)*scale;
+      const p=-(py/H*2-1)*scale;
+      let w;
+      const sid=wignerStateId;
+      if(sid==='cat'){
+        w=wignerCat(2.0,x,p);
+      } else if(sid==='sup01'){
+        // |0>+|1> normalized — Wigner = (W_0+W_1+cross)/2, cross = real part of W_01
+        // Approximate: W = (W0+W1)/2 + real interference ≈ analytic result
+        // W_{01}(x,p) = (2/pi) * sqrt(2) * 2x * exp(-2r^2)
+        const r2=2*(x*x+p*p);
+        const w0=wignerFock(0,x,p);
+        const w1=wignerFock(1,x,p);
+        const cross=(2/Math.PI)*2*Math.sqrt(2)*x*Math.exp(-r2);
+        w=(w0+w1+cross)/2;
+      } else {
+        const n=parseInt(sid);
+        w=wignerFock(n,x,p);
+      }
+      // Apply simple damping: W(x,p,t) ~ convolved with Gaussian (approx)
+      if(damp>0){
+        const dv=1+damp*4;
+        w=w/(dv*dv);  // simplified: reduce contrast
+      }
+      // Map w to color: negative=blue, positive=red/orange, zero=dark
+      const idx=(py*W+px)*4;
+      if(w>0){
+        const v=Math.min(1,w*Math.PI);
+        d[idx]  =Math.round(v*255);
+        d[idx+1]=Math.round(v*120);
+        d[idx+2]=Math.round(20);
+        d[idx+3]=255;
+      } else {
+        const v=Math.min(1,-w*Math.PI);
+        d[idx]  =Math.round(20);
+        d[idx+1]=Math.round(v*80);
+        d[idx+2]=Math.round(v*255);
+        d[idx+3]=255;
+      }
+    }
+  }
+  p5.imgData=id;
+}
+
+function loop5(){
+  if(!p5) return;
+  const {ctx,W,H}=p5;
+  renderWigner();
+  if(p5.imgData) ctx.putImageData(p5.imgData,0,0);
+
+  // Draw axes overlay
+  const cx=W/2, cy=H/2;
+  ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(20,cy); ctx.lineTo(W-20,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,20); ctx.lineTo(cx,H-20); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='12px sans-serif';
+  ctx.textAlign='center'; ctx.fillText('x',W-12,cy-5);
+  ctx.textAlign='left'; ctx.fillText('p',cx+5,16);
+
+  // Colorbar
+  const cbX=W-20, cbY=30, cbH=H-60;
+  for(let i=0;i<cbH;i++){
+    const v=1-i/cbH;
+    const c=v>0.5?`rgb(${Math.round((v*2-1)*255)},${Math.round((v*2-1)*120)},20)`:`rgb(20,${Math.round((1-v*2)*80)},${Math.round((1-v*2)*255)})`;
+    ctx.fillStyle=c; ctx.fillRect(cbX,cbY+i,10,1);
+  }
+  ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('+W',cbX-2,cbY-2); ctx.fillText('-W',cbX-2,cbY+cbH+10);
+
+  if(anim5) raf5=requestAnimationFrame(loop5);
+}
+
+// ─── TAB 6: CAVITY QED ───────────────────────────────────────────────────────
+let p6=null, raf6=null, anim6=true;
+let couplingG=15, cqedViewMode='rabi';
+
+function updateCoupling(){couplingG=+document.getElementById('couplingSlider').value;document.getElementById('couplingVal').textContent=couplingG;}
+function updateCqedView(){cqedViewMode=document.getElementById('cqedView').value;}
+
+function initPane6(){
+  if(raf6) cancelAnimationFrame(raf6);
+  const {cv,ctx,W,H}=setupCanvas('c6');
+  p6={cv,ctx,W,H,t0:Date.now()};
+  anim6 = true;
+  document.getElementById('btnAnim6').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim6').classList.add('on');
+  loop6();
+}
+
+function toggleAnim6(){
+  anim6 = !anim6;
+  document.getElementById('btnAnim6').textContent = anim6 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim6').classList.toggle('on',anim6);
+  if(anim6 && !raf6) loop6();
+}
+
+function loop6(){
+  if(!p6) return;
+  const {ctx,W,H}=p6;
+  ctx.clearRect(0,0,W,H);
+  const t=(Date.now()-p6.t0)*0.001*(window.animSpeed||0.1);
+  const cx=W/2, cy=H/2;
+  const g=couplingG;
+
+  if(cqedViewMode==='rabi'){
+    // Draw cavity mirrors
+    const mirW=16, mirH=Math.min(H*0.5,140), mirY=cy-mirH/2;
+    const mirL=cx-120, mirR=cx+120;
+    // Left mirror
+    for(let i=0;i<mirH;i+=8){
+      const alt=i%16===0?'rgba(100,180,255,0.8)':'rgba(60,120,200,0.5)';
+      ctx.fillStyle=alt; ctx.fillRect(mirL-mirW,mirY+i,mirW,8);
+    }
+    ctx.strokeStyle='rgba(100,180,255,0.9)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.rect(mirL-mirW,mirY,mirW,mirH); ctx.stroke();
+    // Right mirror
+    for(let i=0;i<mirH;i+=8){
+      const alt=i%16===0?'rgba(100,180,255,0.8)':'rgba(60,120,200,0.5)';
+      ctx.fillStyle=alt; ctx.fillRect(mirR,mirY+i,mirW,8);
+    }
+    ctx.strokeStyle='rgba(100,180,255,0.9)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.rect(mirR,mirY,mirW,mirH); ctx.stroke();
+
+    // Cavity standing wave
+    const cavL=mirL, cavR=mirR, cavW=cavR-cavL;
+    const nModes=4;
+    const photonAmp=Math.cos(g*t*0.3)*0.5+0.5;
+    for(let i=0;i<=cavW;i+=2){
+      const frac=i/cavW;
+      const field=Math.sin(frac*Math.PI*nModes)*Math.sin(t*4)*(0.3+photonAmp*0.7);
+      const yF=cy+field*mirH*0.35;
+      const alpha=0.15+photonAmp*0.6;
+      ctx.fillStyle=`rgba(255,221,68,${alpha})`;
+      ctx.fillRect(cavL+i,yF,2,2);
+    }
+    // Cavity beam glow
+    const grd=ctx.createLinearGradient(cavL,cy,cavR,cy);
+    grd.addColorStop(0,'rgba(255,221,68,0)');
+    grd.addColorStop(0.3,`rgba(255,221,68,${photonAmp*0.12})`);
+    grd.addColorStop(0.7,`rgba(255,221,68,${photonAmp*0.12})`);
+    grd.addColorStop(1,'rgba(255,221,68,0)');
+    ctx.fillStyle=grd; ctx.fillRect(cavL,cy-20,cavW,40);
+
+    // Atom
+    const atomY=cy;
+    const excitedProb=(1-Math.cos(2*g*t*0.3))/2;
+    const atomColor=`rgb(${Math.round(60+excitedProb*195)},${Math.round(200-excitedProb*120)},${Math.round(100+excitedProb*50)})`;
+    ctx.beginPath(); ctx.arc(cx,atomY,14,0,Math.PI*2);
+    ctx.fillStyle=atomColor; ctx.shadowColor=atomColor; ctx.shadowBlur=20;
+    ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1; ctx.stroke();
+    // State label
+    const stateLabel=excitedProb>0.5?'|e,0⟩':'|g,1⟩';
+    ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(stateLabel,cx,atomY+32);
+
+    // Rabi oscillation plot (inset)
+    const grX=20, grY=20, grW=Math.min(160,W*0.28), grH=80;
+    ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(grX,grY,grW,grH); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('P(e) — Rabi',grX+grW/2,grY+10);
+    ctx.beginPath();
+    for(let i=0;i<=grW;i++){
+      const tSample=t-2.5+i*(5/grW);
+      const pe=(1-Math.cos(2*g*tSample*0.3))/2;
+      const px2=grX+i, py2=grY+grH-5-pe*(grH-15);
+      i===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+    }
+    ctx.strokeStyle='rgba(255,150,60,0.9)'; ctx.lineWidth=2; ctx.stroke();
+    // current marker
+    ctx.beginPath(); ctx.arc(grX+grW*0.5,grY+grH-5-excitedProb*(grH-15),4,0,Math.PI*2);
+    ctx.fillStyle='#ffdd44'; ctx.fill();
+
+    // Labels
+    ctx.fillStyle='rgba(136,136,170,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(`g = ${g}, Ω_vac = ${(g*2).toFixed(0)}`,cx,H-12);
+
+  } else if(cqedViewMode==='spectrum'){
+    // Vacuum Rabi splitting in transmission spectrum
+    const specX=40, specY=30, specW=W-60, specH=H-80;
+    ctx.fillStyle='#0d0d1a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(specX,specY,specW,specH); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Transmission spectrum',specX+specW/2,specY-8);
+
+    // Draw two Lorentzian peaks at ±g
+    const kappa=5;
+    ctx.beginPath();
+    for(let i=0;i<=specW;i++){
+      const detuning=(i/specW-0.5)*g*5;  // freq axis
+      const t1=1/(1+Math.pow((detuning-g)/kappa,2));
+      const t2=1/(1+Math.pow((detuning+g)/kappa,2));
+      const total=t1+t2;
+      const py2=specY+specH-5-total/2*(specH-15);
+      const px2=specX+i;
+      i===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+    }
+    ctx.strokeStyle='rgba(100,200,255,0.9)'; ctx.lineWidth=2.5; ctx.stroke();
+
+    // Mark peaks
+    [-1,1].forEach(sign=>{
+      const freqFrac=(sign*g)/(g*5)+0.5;
+      const px2=specX+freqFrac*specW;
+      ctx.beginPath(); ctx.moveTo(px2,specY+specH); ctx.lineTo(px2,specY+specH-30);
+      ctx.strokeStyle='rgba(255,221,68,0.5)'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,221,68,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(sign>0?'+g':'-g', px2, specY+specH+15);
+    });
+    ctx.fillStyle='rgba(255,221,68,0.6)'; ctx.textAlign='center';
+    ctx.fillText(`Splitting = 2g = ${2*g}`,specX+specW/2,specY+specH+28);
+    ctx.fillStyle='rgba(136,136,170,0.7)'; ctx.font='12px sans-serif';
+    ctx.fillText('← frequency →',specX+specW/2,specY+specH+12);
+
+    // |±,n> labels
+    ctx.fillStyle='rgba(100,200,255,0.8)'; ctx.textAlign='left'; ctx.font='12px sans-serif';
+    ctx.fillText('|+,0⟩',specX+specW*0.72,specY+specH*0.25);
+    ctx.fillText('|-,0⟩',specX+specW*0.22,specY+specH*0.25);
+
+  } else {  // photon blockade
+    // Energy level diagram showing anharmonic ladder
+    const lvX=cx-80, lvW=160;
+    const lvls=[
+      {n:0,label:'|g,0⟩',y:H*0.82,col:'rgba(136,136,170,0.9)'},
+      {n:1,label:'|+,0⟩',y:H*0.62,col:'rgba(100,200,255,0.9)'},
+      {n:1,label:'|-,0⟩',y:H*0.54,col:'rgba(100,200,255,0.9)'},
+      {n:2,label:'|+,1⟩',y:H*0.36,col:'rgba(255,160,60,0.9)'},
+      {n:2,label:'|-,1⟩',y:H*0.30,col:'rgba(255,160,60,0.9)'},
+    ];
+    const pulse=Math.abs(Math.sin(t*2));
+    lvls.forEach((lv,i)=>{
+      ctx.beginPath(); ctx.moveTo(lvX,lv.y); ctx.lineTo(lvX+lvW,lv.y);
+      ctx.strokeStyle=lv.col; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle=lv.col; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(lv.label,lvX+lvW+6,lv.y+4);
+    });
+    // First photon arrow (resonant)
+    drawArrow(ctx,cx-20,H*0.82-4,cx-20,H*0.62+4,`rgba(255,221,68,${0.5+pulse*0.5})`,2.5);
+    ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+    ctx.fillText('1st photon',cx-25,H*0.72);
+    // Blocked 2nd photon arrow (detuned — stops partway)
+    const blockH=H*0.54-4-(H*0.36+4);
+    const blockFrac=0.45;
+    drawArrow(ctx,cx+20,H*0.54-4,cx+20,H*0.54-4+blockH*blockFrac,`rgba(255,80,80,${0.4+pulse*0.4})`,2.5);
+    ctx.fillStyle='rgba(255,80,80,0.8)'; ctx.textAlign='left';
+    ctx.fillText('2nd photon BLOCKED',cx+25,H*0.47);
+    ctx.fillText(`(detuned by g√2−g)`,cx+25,H*0.47+14);
+    // Energy gap annotation
+    const gap1=(H*0.82-H*0.62)/2;
+    const gap2=(H*0.62-H*0.36)/2;
+    ctx.strokeStyle='rgba(255,100,100,0.4)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(lvX-20,H*0.54); ctx.lineTo(lvX-20,H*0.36); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,100,100,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+    ctx.fillText('≠ hω',lvX-22,H*0.45);
+    ctx.fillStyle='rgba(136,136,170,0.7)'; ctx.textAlign='center';
+    ctx.fillText('Photon Blockade: g²/κ ≫ 1',cx,H-12);
+  }
+
+  if(anim6) raf6=requestAnimationFrame(loop6);
+}
+
+// ─── TAB 7: SINGLE PHOTON SOURCES ────────────────────────────────────────────
+let p7=null, raf7=null, anim7=true;
+let spSceneMode='spdc';
+
+function updateSpScene(){spSceneMode=document.getElementById('spScene').value;}
+
+function initPane7(){
+  if(raf7) cancelAnimationFrame(raf7);
+  const {cv,ctx,W,H}=setupCanvas('c7');
+  p7={cv,ctx,W,H,t0:Date.now(),photons:[],g2points:[]};
+  anim7 = true;
+  document.getElementById('btnAnim7').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim7').classList.add('on');
+  loop7();
+}
+
+function toggleAnim7(){
+  anim7 = !anim7;
+  document.getElementById('btnAnim7').textContent = anim7 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim7').classList.toggle('on',anim7);
+  if(anim7 && !raf7) loop7();
+}
+
+function loop7(){
+  if(!p7) return;
+  const {ctx,W,H}=p7;
+  ctx.clearRect(0,0,W,H);
+  const t=(Date.now()-p7.t0)*0.001*(window.animSpeed||0.1);
+  const cx=W/2, cy=H/2;
+
+  if(spSceneMode==='spdc'){
+    // Crystal
+    const cryX=cx-25, cryY=cy-40, cryW=50, cryH=80;
+    ctx.fillStyle='rgba(80,180,255,0.18)'; ctx.strokeStyle='rgba(80,180,255,0.6)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.rect(cryX,cryY,cryW,cryH); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(80,180,255,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('BBO',cx,cy+56);
+    ctx.fillText('χ⁽²⁾',cx,cy+70);
+
+    // Pump beam (left → right)
+    const pumpX=cx-200;
+    const pumpAlpha=0.6+Math.sin(t*8)*0.15;
+    ctx.beginPath(); ctx.moveTo(pumpX,cy); ctx.lineTo(cryX,cy);
+    ctx.strokeStyle=`rgba(180,100,255,${pumpAlpha})`; ctx.lineWidth=4;
+    ctx.shadowColor='rgba(180,100,255,0.5)'; ctx.shadowBlur=8; ctx.stroke(); ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(180,100,255,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('pump ωₚ',pumpX+50,cy-10);
+
+    // Photon pair emission (periodic)
+    const period=1.8;
+    const phase=t%period;
+    if(phase<0.05 && p7.photons.length<18){
+      // Emit new pair
+      const ang=0.25+Math.random()*0.1;
+      p7.photons.push({x:cx+cryW/2,y:cy,vx:2.5,vy:-Math.tan(ang)*2.5,col:'rgba(100,255,120,',type:'s',age:0});
+      p7.photons.push({x:cx+cryW/2,y:cy,vx:2.5,vy:Math.tan(ang)*2.5,col:'rgba(255,200,60,',type:'i',age:0});
+    }
+    p7.photons.forEach(ph=>{ph.x+=ph.vx;ph.y+=ph.vy;ph.age+=0.016;});
+    p7.photons=p7.photons.filter(ph=>ph.x<W+20&&ph.y>-20&&ph.y<H+20&&ph.age<3);
+    p7.photons.forEach(ph=>{
+      const alpha=Math.max(0,0.9-ph.age*0.25);
+      ctx.beginPath(); ctx.arc(ph.x,ph.y,5,0,Math.PI*2);
+      ctx.fillStyle=ph.col+alpha+')';
+      ctx.shadowColor=ph.col+'0.8)'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+    });
+    // Labels
+    ctx.fillStyle='rgba(100,255,120,0.8)'; ctx.textAlign='right'; ctx.font='12px sans-serif';
+    ctx.fillText('signal ωₛ',cx+W*0.3,cy-40);
+    ctx.fillStyle='rgba(255,200,60,0.8)'; ctx.textAlign='right';
+    ctx.fillText('idler ωᵢ',cx+W*0.3,cy+50);
+    ctx.fillStyle='rgba(255,221,68,0.6)'; ctx.textAlign='center'; ctx.font='12px sans-serif';
+    ctx.fillText('ωₚ = ωₛ + ωᵢ',cx,H-20);
+    ctx.fillText('kₚ = kₛ + kᵢ  (phase matching)',cx,H-6);
+
+  } else if(spSceneMode==='antibunch'){
+    // Plot g²(τ) for three source types
+    const grX=30, grY=30, grW=W-60, grH=H-80;
+    ctx.fillStyle='#0d0d1a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(grX,grY,grW,grH); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(255,221,68,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Second-order coherence g²(τ)',grX+grW/2,grY-8);
+    ctx.fillStyle='rgba(136,136,170,0.6)'; ctx.font='12px sans-serif';
+    ctx.fillText('τ →',grX+grW,grY+grH+14); ctx.fillText('g²',grX-16,grY+grH/2);
+
+    // Reference lines
+    ctx.strokeStyle='rgba(136,136,170,0.25)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    [0,1,2].forEach(v=>{
+      const y=grY+grH-v/2*(grH-10);
+      ctx.beginPath(); ctx.moveTo(grX,y); ctx.lineTo(grX+grW,y); ctx.stroke();
+      ctx.fillStyle='rgba(136,136,170,0.5)'; ctx.textAlign='right'; ctx.font='12px sans-serif';
+      ctx.fillText(v,grX-3,y+4);
+    });
+    ctx.setLineDash([]);
+
+    const curves=[
+      {label:'Coherent g²=1',f:tau=>1, col:'rgba(255,221,68,0.9)'},
+      {label:'Thermal g²=2',f:tau=>1+Math.exp(-Math.abs(tau)*0.8), col:'rgba(255,120,80,0.9)'},
+      {label:'Single photon g²→0',f:tau=>1-Math.exp(-Math.abs(tau)*1.5), col:'rgba(80,220,120,0.9)'},
+    ];
+    curves.forEach((c,ci)=>{
+      ctx.beginPath();
+      for(let i=0;i<=grW;i++){
+        const tau=(i/grW-0.5)*10;
+        const gv=c.f(tau);
+        const px2=grX+i;
+        const py2=grY+grH-gv/2*(grH-10);
+        i===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+      }
+      ctx.strokeStyle=c.col; ctx.lineWidth=2.5; ctx.stroke();
+      // Legend
+      ctx.fillStyle=c.col; ctx.textAlign='left'; ctx.font='12px sans-serif';
+      ctx.fillText(c.label,grX+5,grY+18+ci*16);
+    });
+
+    // Animated cursor
+    const tau=(Math.sin(t*0.8))*4.5;
+    const cursorX=grX+grW*(tau/10+0.5);
+    ctx.beginPath(); ctx.moveTo(cursorX,grY); ctx.lineTo(cursorX,grY+grH);
+    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1; ctx.stroke();
+
+  } else {  // HOM
+    // Hong-Ou-Mandel beamsplitter visualization
+    const bsX=cx, bsY=cy;
+    // Beamsplitter
+    ctx.save(); ctx.translate(bsX,bsY); ctx.rotate(Math.PI/4);
+    ctx.fillStyle='rgba(100,180,255,0.15)'; ctx.strokeStyle='rgba(100,180,255,0.8)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.rect(-8,-45,16,90); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle='rgba(100,180,255,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('50/50 BS',bsX+35,bsY-10);
+
+    // Photon paths — input and output
+    const pOmega=1.5;
+    const ph1=(t*pOmega)%2;  // 0→1 approach, 1→2 exit
+    const approaching=ph1<1;
+    const frac=ph1%1;
+
+    // Photon 1 (from left)
+    const ph1x=approaching?bsX-120+frac*120:bsX+frac*120;
+    const ph1y=approaching?bsY:bsY+frac*80;
+    ctx.beginPath(); ctx.arc(ph1x,ph1y,8,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,200,60,0.9)'; ctx.shadowColor='rgba(255,200,60,0.7)'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+
+    // Photon 2 (from top) — identical
+    const ph2x=approaching?bsX:bsX+frac*120;
+    const ph2y=approaching?bsY-120+frac*120:bsY+frac*80;
+    ctx.beginPath(); ctx.arc(ph2x,ph2y,8,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,200,60,0.9)'; ctx.shadowColor='rgba(255,200,60,0.7)'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+
+    // Arrows for input paths
+    ctx.strokeStyle='rgba(255,200,60,0.3)'; ctx.lineWidth=2; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(bsX-140,bsY); ctx.lineTo(bsX-8,bsY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bsX,bsY-140); ctx.lineTo(bsX,bsY-8); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Output (both photons bunch into same port)
+    ctx.strokeStyle='rgba(100,255,120,0.3)'; ctx.lineWidth=2; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(bsX+8,bsY); ctx.lineTo(bsX+140,bsY+80); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // HOM dip inset
+    const hmX=W-160, hmY=20, hmW=140, hmH=80;
+    ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(hmX,hmY,hmW,hmH); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('HOM dip (coincidences)',hmX+hmW/2,hmY+10);
+    ctx.beginPath();
+    for(let i=0;i<=hmW;i++){
+      const dt=(i/hmW-0.5)*6;
+      const coinc=1-Math.exp(-dt*dt*0.8);
+      const px2=hmX+i, py2=hmY+hmH-5-coinc*(hmH-20);
+      i===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+    }
+    ctx.strokeStyle='rgba(100,200,255,0.9)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='rgba(100,200,255,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Δt (delay)',hmX+hmW/2,hmY+hmH+12);
+
+    // Labels
+    ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.textAlign='center'; ctx.font='12px sans-serif';
+    ctx.fillText('Identical photons always exit same port',cx,H-20);
+    ctx.fillStyle='rgba(100,255,120,0.7)';
+    ctx.fillText('V = (R_no_HOM − R_HOM)/R_no_HOM → 1  (perfect indistinguishability)',cx,H-6);
+  }
+
+  if(anim7) raf7=requestAnimationFrame(loop7);
+}
+
+// ─── TAB 8: QUANTUM NETWORKS ─────────────────────────────────────────────────
+let p8=null, raf8=null, anim8=true;
+let netDist=50, netReps=3;
+let netPhotons=[];
+
+function updateDist(){netDist=+document.getElementById('distSlider').value;document.getElementById('distVal').textContent=(netDist*10)+' km';}
+function updateRep(){netReps=+document.getElementById('repSlider').value;document.getElementById('repVal').textContent=netReps;}
+
+function initPane8(){
+  if(raf8) cancelAnimationFrame(raf8);
+  const {cv,ctx,W,H}=setupCanvas('c8');
+  p8={cv,ctx,W,H,t0:Date.now()};
+  netPhotons=[];
+  anim8 = true;
+  document.getElementById('btnAnim8').textContent = '\u23f8 Pause';
+  document.getElementById('btnAnim8').classList.add('on');
+  loop8();
+}
+
+function toggleAnim8(){
+  anim8 = !anim8;
+  document.getElementById('btnAnim8').textContent = anim8 ? '\u23f8 Pause' : '\u25b6 Play';
+  document.getElementById('btnAnim8').classList.toggle('on',anim8);
+  if(anim8 && !raf8) loop8();
+}
+
+function loop8(){
+  if(!p8) return;
+  const {ctx,W,H}=p8;
+  ctx.clearRect(0,0,W,H);
+  const t=(Date.now()-p8.t0)*0.001*(window.animSpeed||0.1);
+
+  // Layout: nodes along horizontal axis
+  const nodeY=H*0.42;
+  const margin=50;
+  const totalW=W-margin*2;
+  const nNodes=netReps+2;  // Alice + repeaters + Bob
+  const nodePositions=[];
+  for(let i=0;i<nNodes;i++) nodePositions.push(margin+i*totalW/(nNodes-1));
+
+  // Draw fiber links
+  nodePositions.forEach((px,i)=>{
+    if(i<nNodes-1){
+      const nx=nodePositions[i+1];
+      ctx.beginPath(); ctx.moveTo(px,nodeY); ctx.lineTo(nx,nodeY);
+      ctx.strokeStyle='rgba(100,180,255,0.25)'; ctx.lineWidth=4; ctx.stroke();
+    }
+  });
+
+  // Entanglement links (show which segments are entangled — pulses)
+  const linkPeriod=2.2;
+  const segPhase=[];
+  nodePositions.forEach((px,i)=>{
+    if(i<nNodes-1){
+      const phase=(t/linkPeriod+i*0.4)%1;
+      segPhase.push(phase);
+      const nx=nodePositions[i+1];
+      const lpx=px+(nx-px)*phase;
+      ctx.beginPath(); ctx.arc(lpx,nodeY,5,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,221,68,0.85)';
+      ctx.shadowColor='rgba(255,221,68,0.6)'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+    }
+  });
+
+  // Draw nodes
+  nodePositions.forEach((px,i)=>{
+    const isAlice=i===0, isBob=i===nNodes-1;
+    const radius=isAlice||isBob?18:13;
+    const col=isAlice?'rgba(80,220,120,0.9)':isBob?'rgba(255,140,60,0.9)':'rgba(100,180,255,0.9)';
+    ctx.beginPath(); ctx.arc(px,nodeY,radius,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=15; ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font=`bold ${isAlice||isBob?11:9}px sans-serif`; ctx.textAlign='center';
+    ctx.fillText(isAlice?'Alice':isBob?'Bob':'R'+(i),px,nodeY+4);
+    // Memory label
+    if(!isAlice&&!isBob){
+      ctx.fillStyle='rgba(136,136,170,0.7)'; ctx.font='12px sans-serif';
+      ctx.fillText('BSM',px,nodeY+radius+12);
+    }
+  });
+
+  // Key rate plot (bottom half)
+  const grX=30, grY=H*0.62, grW=W-60, grH=H*0.32;
+  ctx.fillStyle='#0d0d1a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(grX,grY,grW,grH); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Secret key rate vs distance',grX+grW/2,grY-6);
+  ctx.fillStyle='rgba(136,136,170,0.6)'; ctx.font='12px sans-serif';
+  ctx.fillText('distance →',grX+grW,grY+grH+12);
+  ctx.fillText('log(rate)',grX-8,grY+grH/2);
+
+  const maxL=1000;  // km
+  // Direct (exponential decay) — 0.2 dB/km at 1550nm
+  ctx.beginPath();
+  for(let i=0;i<=grW;i++){
+    const L=i/grW*maxL;
+    const logR=-0.046*L/2.303;  // log10
+    const clipped=Math.max(-6,logR);
+    const py2=grY+grH-5+(clipped/6)*(grH-10);
+    i===0?ctx.moveTo(grX+i,py2):ctx.lineTo(grX+i,py2);
+  }
+  ctx.strokeStyle='rgba(255,100,80,0.9)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='rgba(255,100,80,0.8)'; ctx.textAlign='left'; ctx.font='12px sans-serif';
+  ctx.fillText('Direct (exp decay)',grX+5,grY+15);
+
+  // Repeater (polynomial — 1/L^2 per segment at fixed n_seg)
+  const n=Math.max(1,netReps+1);
+  ctx.beginPath();
+  for(let i=1;i<=grW;i++){
+    const L=i/grW*maxL;
+    const logR=-Math.log10(Math.pow(L/n*0.046*2.303,2)+1)*n*0.4;
+    const clipped=Math.max(-6,logR);
+    const py2=grY+grH-5+(clipped/6)*(grH-10);
+    i===1?ctx.moveTo(grX+i,py2):ctx.lineTo(grX+i,py2);
+  }
+  ctx.strokeStyle='rgba(80,220,120,0.9)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='rgba(80,220,120,0.8)'; ctx.textAlign='left';
+  ctx.fillText(`Repeater (${netReps} nodes)`,grX+5,grY+27);
+
+  // Current distance marker
+  const curDistFrac=netDist/100;
+  const curX=grX+curDistFrac*grW;
+  ctx.beginPath(); ctx.moveTo(curX,grY); ctx.lineTo(curX,grY+grH);
+  ctx.strokeStyle='rgba(255,221,68,0.4)'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,221,68,0.8)'; ctx.textAlign='center'; ctx.font='12px sans-serif';
+  ctx.fillText((netDist*10)+' km',curX,grY+grH+12);
+
+  // Title labels
+  ctx.fillStyle='rgba(80,220,120,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('Alice',nodePositions[0]-14,nodeY-24);
+  ctx.fillStyle='rgba(255,140,60,0.8)';
+  ctx.fillText('Bob',nodePositions[nNodes-1]-10,nodeY-24);
+  ctx.fillStyle='rgba(255,221,68,0.6)'; ctx.textAlign='center';
+  ctx.fillText(`Quantum repeater · ${netReps} intermediate nodes · distance ${netDist*10} km`,W/2,H*0.58);
+
+  if(anim8) raf8=requestAnimationFrame(loop8);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  window.animSpeed=0.1;
+  for(var i=0;i<9;i++){syncSpeedControl47(i);}
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

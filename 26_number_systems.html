@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>26 — Number Systems</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#55ccff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;padding-bottom:38px;}
+header{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--border);background:var(--bg2);}
+header a{color:var(--dim);text-decoration:none;font-size:1.3rem;transition:color .2s;}
+header a:hover{color:var(--accent);}
+.badge{background:var(--accent);color:#000;border-radius:6px;padding:3px 10px;font-weight:700;font-size:.95rem;}
+header h1{font-size:1.25rem;font-weight:600;color:var(--text);}
+header p{font-size:.82rem;color:var(--dim);}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 28px;}
+.tab{padding:11px 22px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;font-size:.93rem;transition:all .2s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover:not(.active){color:var(--text);}
+.page{display:none;padding:22px 28px;gap:18px;flex-direction:column;}
+.page.active{display:flex;}
+.row{display:flex;gap:18px;flex-wrap:wrap;}
+canvas{border:1px solid var(--border);border-radius:8px;background:#08081a;display:block;cursor:crosshair;width:740px;height:440px;max-width:100%;}
+.controls{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;min-width:200px;}
+.controls label{font-size:.83rem;color:var(--dim);}
+.controls input[type=range]{width:100%;accent-color:var(--accent);}
+.controls select,.controls input[type=text]{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:5px;font-size:.85rem;width:100%;}
+button{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.85rem;transition:all .2s;}
+button:hover{border-color:var(--accent);color:var(--accent);}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:.85rem;color:var(--text);min-height:54px;line-height:1.6;}
+.proof-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;padding:14px 8px;color:var(--dim);cursor:pointer;font-size:.82rem;letter-spacing:.06em;transition:color .2s;}
+.proof-btn:hover{color:var(--accent);}
+.proof-panel{display:none;position:fixed;right:0;top:0;height:100vh;width:340px;background:var(--bg2);border-left:1px solid var(--border);padding:22px 20px;overflow-y:auto;z-index:100;flex-direction:column;gap:14px;}
+.proof-panel.open{display:flex;}
+.proof-panel h3{color:var(--accent);font-size:1rem;margin-bottom:4px;}
+.proof-close{align-self:flex-end;background:none;border:none;color:var(--dim);font-size:1.3rem;cursor:pointer;padding:0;}
+.proof-close:hover{color:var(--accent);}
+.proof-entry{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:12px 14px;font-size:.83rem;line-height:1.7;cursor:pointer;transition:border-color .2s;}
+.proof-entry:hover{border-color:var(--accent);}
+.proof-entry.selected{border-color:var(--accent);background:#0d1a2a;}
+#proofContent{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:14px;font-size:.84rem;line-height:1.8;margin-top:6px;}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" title="Home">&#8592;</a>
+  <span class="badge">26</span>
+  <div>
+    <h1>Number Systems</h1>
+    <p>From natural numbers to p-adics — Ch. 3</p>
+  </div>
+</header>
+<div class="tabs" data-role="tab-bar" style="flex-wrap:wrap;">
+  <div class="tab active" onclick="switchTab(0)">The Number Tower</div>
+  <div class="tab" onclick="switchTab(1)">Continued Fractions</div>
+  <div class="tab" onclick="switchTab(2)">p-adic Numbers</div>
+  <div class="tab" onclick="switchTab(3)">Adeles &amp; ℚ</div>
+  <div class="tab" onclick="switchTab(4)">Surreal Numbers</div>
+  <div class="tab" onclick="switchTab(5)">Hyperreals</div>
+  <div class="tab" onclick="switchTab(6)">Number Theory &amp; Physics</div>
+</div>
+
+<!-- TAB 0: Number Tower -->
+<div class="page active" data-role="panel" id="page0">
+  <div class="row">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Zoom (reveals rational density): <span id="zoomLbl0">1.0</span>x</label>
+      <input type="range" id="zoomSlider0" min="1" max="15" value="1" step="0.5" oninput="zoomFromSlider(this.value)">
+      <label>Center x:</label>
+      <input type="range" id="centerSlider0" min="-10" max="10" value="0" step="0.1" oninput="draw0()">
+      <button id="animBtn0" onclick="toggleAnim0(this)">Animate Zoom</button>
+      <button onclick="resetView0()">Reset View</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+      <div style="font-size:.78rem;color:var(--dim);margin-top:4px;">Click on a point to inspect it. Scroll to zoom.</div>
+    </div>
+  </div>
+  <div class="info-box" id="info0">Click on a marked number to see its properties.</div>
+</div>
+
+<!-- TAB 1: Continued Fractions -->
+<div class="page" data-role="panel" id="page1">
+  <div class="row">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Constant:</label>
+      <select id="cfSelect" onchange="draw1()">
+        <option value="phi">φ = [1;1,1,1,…]</option>
+        <option value="e">e = [2;1,2,1,1,4,…]</option>
+        <option value="pi">π = [3;7,15,1,292,…]</option>
+        <option value="sqrt2">√2 = [1;2,2,2,…]</option>
+      </select>
+      <label>Show convergents up to: <span id="convLbl">8</span></label>
+      <input type="range" id="convSlider" min="1" max="12" value="8" oninput="document.getElementById('convLbl').textContent=this.value;draw1()">
+      <label>Custom number (0–10):</label>
+      <input type="text" id="customCF" placeholder="e.g. 3.14159" oninput="draw1()">
+      <button id="animBtn1" onclick="toggleAnim1(this)">Animate Convergents</button>
+      <button onclick="resetAnim1()">Reset</button>
+    </div>
+  </div>
+  <div class="info-box" id="info1">Convergents alternate above and below the true value, closing in rapidly.</div>
+</div>
+
+<!-- TAB 2: p-adic Numbers -->
+<div class="page" data-role="panel" id="page2">
+  <div class="row">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Prime p:</label>
+      <select id="pSelect" onchange="draw2()">
+        <option value="2">p = 2</option>
+        <option value="3">p = 3</option>
+        <option value="5">p = 5</option>
+        <option value="7">p = 7</option>
+      </select>
+      <label>Tree depth: <span id="depthLbl">4</span></label>
+      <input type="range" id="depthSlider" min="2" max="6" value="4" oninput="document.getElementById('depthLbl').textContent=this.value;draw2()">
+      <label>Highlight integer: <span id="hlLbl">-1</span></label>
+      <input type="range" id="hlSlider" min="-8" max="8" value="-1" oninput="document.getElementById('hlLbl').textContent=this.value;draw2()">
+      <button id="animBtn2" onclick="toggleAnim2(this)">Animate Paths</button>
+      <button onclick="resetView2()">Reset</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info2">In the 2-adic world, …1111 (all ones in binary) equals -1. Powers of p are <em>small</em>. The p-adic integers ℤ_p form a Cantor-like tree. The ultrametric inequality |x+y|_p ≤ max(|x|_p, |y|_p) is stronger than the triangle inequality.</div>
+</div>
+
+<!-- TAB 3: ADELES -->
+<div class="page" data-role="panel" id="page3">
+  <div class="row">
+    <canvas id="c3" style="width:720px;height:440px;"></canvas>
+    <div class="controls" data-role="sidebar" style="min-width:220px;">
+      <label>Rational x = a/b:</label>
+      <input type="text" id="adeleInput" value="6" placeholder="e.g. 6, 1/6, 12/5">
+      <button onclick="computeAdele()">Compute Adeles</button>
+      <label>Animate:</label>
+      <button id="adeleAnimBtn" onclick="toggleAdeleAnim(this)">Animate Product Formula</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+      <div style="margin-top:8px;font-size:.78rem;color:var(--dim);">
+        The <strong>adele ring</strong> 𝔸_ℚ = ℝ × ∏'_p ℚ_p combines all completions of ℚ simultaneously. A rational number embeds diagonally into all components. The product formula ∏_p |x|_p · |x|_∞ = 1 is a global conservation law.
+      </div>
+    </div>
+  </div>
+  <div class="info-box" id="info3">Enter a rational number to see its adelic decomposition and the product formula at work.</div>
+</div>
+
+<!-- TAB 4: SURREAL NUMBERS -->
+<div class="page" data-role="panel" id="page4">
+  <div class="row">
+    <canvas id="c4" style="width:720px;height:460px;"></canvas>
+    <div class="controls" data-role="sidebar" style="min-width:220px;">
+      <label>Tree depth (Day): <span id="surDepthLbl">3</span></label>
+      <input type="range" id="surDepth" min="1" max="4" value="3" oninput="document.getElementById('surDepthLbl').textContent=this.value;drawSurreal()">
+      <button id="surAnimBtn" onclick="toggleSurrealAnim(this)">Animate Construction</button>
+      <button onclick="resetSurreal()">Reset</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+      <div style="margin-top:8px;font-size:.78rem;color:var(--dim);">
+        Surreal numbers {L|R} are built from sets of left/right options. Day 0: {|} = 0. Day 1: {0|} = 1, {|0} = -1. Day 2: {1|} = 2, {0|1} = 1/2, {-1|0} = -1/2, ... Click nodes to explore their game-theoretic meaning.
+      </div>
+    </div>
+  </div>
+  <div class="info-box" id="info4">Click a node in the surreal tree to see its construction and game-theoretic interpretation.</div>
+</div>
+
+<!-- TAB 5: HYPERREALS -->
+<div class="page" data-role="panel" id="page5">
+  <div class="row">
+    <canvas id="c5" style="width:720px;height:440px;"></canvas>
+    <div class="controls" data-role="sidebar" style="min-width:220px;">
+      <label>Infinitesimal ε = 1/N, N:</label>
+      <input type="range" id="hyperN" min="2" max="100" value="10" oninput="drawHyperreals()">
+      <label>Function:</label>
+      <select id="hyperFunc" onchange="drawHyperreals()">
+        <option value="x2">f(x) = x²</option>
+        <option value="sinx">f(x) = sin(x)</option>
+        <option value="expx">f(x) = eˣ</option>
+      </select>
+      <label>Point x₀:</label>
+      <input type="range" id="hyperX0" min="-200" max="200" value="100" oninput="drawHyperreals()">
+      <button id="hyperAnimBtn" onclick="toggleHyperAnim(this)">Animate ε → 0</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+      <div style="margin-top:8px;font-size:.78rem;color:var(--dim);">
+        *ℝ contains infinitesimals ε with 0 &lt; ε &lt; 1/n for ALL n ∈ ℕ, and infinite numbers ω &gt; n for all n. The derivative f'(x) = st(Δf/Δx) where Δx is genuinely infinitesimal. Leibniz was right all along!
+      </div>
+    </div>
+  </div>
+  <div class="info-box" id="info5">Robinson's non-standard analysis: the derivative as a genuine ratio of infinitesimals, made rigorous via the Transfer Principle.</div>
+</div>
+
+<!-- TAB 6: NUMBER THEORY & PHYSICS -->
+<div class="page" data-role="panel" id="page6">
+  <div class="row">
+    <canvas id="c6" style="width:720px;height:500px;"></canvas>
+    <div class="controls" data-role="sidebar" style="min-width:220px;">
+      <label>Topic:</label>
+      <select id="physTopic" onchange="drawPhysics()">
+        <option value="padic_qm">p-adic Quantum Mechanics</option>
+        <option value="langlands">Langlands Program</option>
+        <option value="moonshine">Monstrous Moonshine</option>
+        <option value="elliptic">Elliptic Curves &amp; L-functions</option>
+      </select>
+      <button id="physAnimBtn" onclick="togglePhysAnim(this)">Animate</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+      <div style="margin-top:8px;font-size:.78rem;color:var(--dim);">
+        Number systems are the backbone of modern theoretical physics. p-adic fields appear in string theory amplitudes. The Langlands program unifies Galois theory, automorphic forms, and L-functions — a "grand unified theory" of mathematics. Monstrous Moonshine connects the Monster group to modular forms.
+      </div>
+    </div>
+  </div>
+  <div class="info-box" id="info6">Select a topic to explore the deep connections between number theory and fundamental physics.</div>
+</div>
+
+<button class="proof-btn" onclick="toggleProofPanel()">PROOFS &amp; THEOREMS</button>
+<div class="proof-panel" id="proofPanel">
+  <button class="proof-close" onclick="toggleProofPanel()">&#10005;</button>
+  <h3>Proofs &amp; Theorems</h3>
+  <div id="proofList"></div>
+  <div id="proofContent" style="display:none;"></div>
+</div>
+
+<script>
+// ── PROOFS ──────────────────────────────────────────────────────────────────
+const PROOF_TITLES = [
+  "Countability of \\(\\mathbb{Q}\\) vs. Uncountability of \\(\\mathbb{R}\\)",
+  "Continued Fraction of \\(\\phi\\) and Fibonacci Numbers",
+  "Best Rational Approximations (Dirichlet)",
+  "p-adic Valuation and Ostrowski's Theorem",
+  "p-adic Completion \\(\\mathbb{Q}_p\\)",
+  "Adèles \\(\\mathbb{A}_{\\mathbb{Q}}\\) and the Product Formula",
+  "Surreal Numbers: Conway's Construction",
+  "Hyperreals and the Transfer Principle",
+  "Langlands Program: A Grand Unified Theory",
+  "Monstrous Moonshine"
+];
+const PROOFS = [
+  "Cantor's theorem: $|\\mathbb{Q}|=|\\mathbb{N}|$ (countable) but $|\\mathbb{R}|>|\\mathbb{N}|$ (uncountable). The rationals are dense in $\\mathbb{R}$ yet have measure zero.",
+  "Continued fraction of $\\phi$: $\\phi = 1+\\frac{1}{1+\\frac{1}{1+\\cdots}} = [1;1,1,1,\\ldots]$. Convergents are ratios of consecutive Fibonacci numbers: $p_n/q_n = F_{n+1}/F_n$.",
+  "Best rational approximations: $|x - p/q| < 1/q^2$ has infinitely many solutions iff $x$ is irrational (Dirichlet). CF convergents are the best approximations.",
+  "p-adic valuation: $v_p(p^n \\cdot m) = n$ for $\\gcd(m,p)=1$. p-adic absolute value $|x|_p = p^{-v_p(x)}$. Ostrowski's theorem: only Archimedean norm on $\\mathbb{Q}$ is $|\\cdot|_\\infty$; all others are p-adic. The ultrametric (strong triangle) inequality holds: $|x+y|_p \\leq \\max(|x|_p, |y|_p)$.",
+  "p-adic completion: $\\mathbb{Q}_p = $ completion of $\\mathbb{Q}$ w.r.t. $|\\cdot|_p$. Every p-adic integer has a unique expansion $\\sum_{n=0}^\\infty a_n p^n$, $0\\leq a_n < p$. In $\\mathbb{Q}_2$: the sequence $1, 2, 4, 8, \\ldots$ converges to 0! And $\\ldots1111 = -1$ (geometric series $\\sum_{n=0}^\\infty 2^n = -1$ in $\\mathbb{Q}_2$).",
+  "Adèles: $\\mathbb{A}_\\mathbb{Q} = \\mathbb{R}\\times\\prod'_p \\mathbb{Q}_p$ (restricted product: all but finitely many components are in $\\mathbb{Z}_p$). Product formula: for $x \\in \\mathbb{Q}^*$, $|x|_\\infty \\cdot \\prod_p |x|_p = 1$. Example: $x=6$: $|6|_\\infty=6$, $|6|_2=1/2$, $|6|_3=1/3$, all other $|6|_p=1$. Product: $6 \\cdot \\frac{1}{2} \\cdot \\frac{1}{3} = 1$.",
+  "Surreal numbers (Conway, 1976): a surreal number is a pair $\\{L \\mid R\\}$ of sets with every element of $L$ less than every element of $R$. Day 0: $\\{\\mid\\} = 0$. Day 1: $\\{0\\mid\\} = 1$, $\\{\\mid 0\\} = -1$. Day 2: $\\{1\\mid\\} = 2$, $\\{0\\mid 1\\} = 1/2$, $\\{-1\\mid 0\\} = -1/2$. Day $\\omega$: $\\{0,1,2,\\ldots\\mid\\} = \\omega$ (first infinite surreal). Surreals include all reals, all ordinals, and infinitesimals like $1/\\omega$.",
+  "Hyperreal numbers *ℝ (Robinson, 1960s): constructed via ultrafilter on sequences of reals. Contains infinitesimals $\\varepsilon$ with $0 < \\varepsilon < 1/n$ for all $n \\in \\mathbb{N}$, and infinite elements $\\omega > n$ for all $n$. Transfer principle: any first-order statement true in $\\mathbb{R}$ is true in ${}^*\\mathbb{R}$ (and vice versa for standard statements). Derivative: $f'(x) = \\text{st}\\bigl(\\frac{f(x+\\varepsilon)-f(x)}{\\varepsilon}\\bigr)$ where $\\text{st}$ is the standard part map.",
+  "Langlands program (1967–): a web of far-reaching conjectures connecting: (1) Galois representations $\\rho: \\text{Gal}(\\bar{\\mathbb{Q}}/\\mathbb{Q}) \\to GL_n(\\mathbb{C})$; (2) Automorphic forms on $GL_n(\\mathbb{A}_\\mathbb{Q})$; (3) L-functions $L(s, \\pi)$ with Euler product $\\prod_p L_p(s,\\pi_p)$. Fermat's Last Theorem (Wiles 1995) is a consequence: the elliptic curve $y^2=x(x-a^n)(x+b^n)$ cannot be modular if $a^n+b^n=c^n$.",
+  "Monstrous Moonshine (Conway–Norton 1979, Borcherds 1992): the coefficients of the j-function $j(\\tau) = q^{-1} + 744 + 196884q + 21493760q^2 + \\ldots$ (where $q=e^{2\\pi i \\tau}$) are dimensions of representations of the Monster group $M$ (order $\\approx 8 \\times 10^{53}$). Specifically: $196884 = 196883 + 1$ where $196883$ is the smallest non-trivial Monster representation. Proved using vertex operator algebras — connecting to bosonic string theory on a $\\mathbb{Z}_2$-orbifold!"
+];
+
+function buildProofList(){
+  const el = document.getElementById('proofList');
+  el.innerHTML = '';
+  PROOF_TITLES.forEach((t,i)=>{
+    const d = document.createElement('div');
+    d.className = 'proof-entry';
+    d.innerHTML = t;
+    d.onclick = ()=> showProof(i, d);
+    el.appendChild(d);
+  });
+}
+function showProof(i, entry){
+  document.querySelectorAll('.proof-entry').forEach(e=>e.classList.remove('selected'));
+  if(entry) entry.classList.add('selected');
+  const el = document.getElementById('proofContent');
+  el.style.display = 'block';
+  el.innerHTML = PROOFS[i];
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(el,{
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });
+  }
+}
+function toggleProofPanel(){
+  const p = document.getElementById('proofPanel');
+  p.classList.toggle('open');
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────
+function _cancelAllAnims26(){
+  if(animId0){cancelAnimationFrame(animId0);animId0=null;}
+  const b0=document.getElementById('animBtn0');if(b0){b0.textContent='▶ Animate Zoom';b0.classList.remove('active');}
+  if(animId1){cancelAnimationFrame(animId1);animId1=null;}
+  const b1=document.getElementById('animBtn1');if(b1){b1.textContent='▶ Animate Convergents';b1.classList.remove('active');}
+  if(animId2){cancelAnimationFrame(animId2);animId2=null;}
+  const b2=document.getElementById('animBtn2');if(b2){b2.textContent='▶ Animate Paths';b2.classList.remove('active');}
+  if(adeleAnimId){cancelAnimationFrame(adeleAnimId);adeleAnimId=null;}
+  const ba=document.getElementById('adeleAnimBtn');if(ba){ba.textContent='▶ Animate Product Formula';ba.classList.remove('active');}
+  if(surAnimId){cancelAnimationFrame(surAnimId);surAnimId=null;}
+  const bs=document.getElementById('surAnimBtn');if(bs){bs.textContent='▶ Animate Construction';bs.classList.remove('active');}
+  if(hyperAnimId){cancelAnimationFrame(hyperAnimId);hyperAnimId=null;}
+  const bh=document.getElementById('hyperAnimBtn');if(bh){bh.textContent='▶ Animate ε → 0';bh.classList.remove('active');}
+  if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;}
+  const bp=document.getElementById('physAnimBtn');if(bp){bp.textContent='▶ Animate';bp.classList.remove('active');}
+}
+function syncSpeedControl26(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+function switchTab(i){
+  _cancelAllAnims26();
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  syncSpeedControl26(i);
+  const draws=[draw0,draw1,draw2,drawAdeles,drawSurreal,drawHyperreals,drawPhysics];
+  if(draws[i]) draws[i]();
+  // Auto-start animations
+  if(i===0){const b=document.getElementById('animBtn0');if(b)toggleAnim0(b);}
+  if(i===1){const b=document.getElementById('animBtn1');if(b)toggleAnim1(b);}
+  if(i===2){const b=document.getElementById('animBtn2');if(b)toggleAnim2(b);}
+  if(i===3){const b=document.getElementById('adeleAnimBtn');if(b)toggleAdeleAnim(b);}
+  if(i===4){const b=document.getElementById('surAnimBtn');if(b)toggleSurrealAnim(b);}
+  if(i===5){const b=document.getElementById('hyperAnimBtn');if(b)toggleHyperAnim(b);}
+  if(i===6){const b=document.getElementById('physAnimBtn');if(b)togglePhysAnim(b);}
+}
+
+// ── TAB 0: NUMBER TOWER ──────────────────────────────────────────────────
+const c0 = document.getElementById('c0');
+const ctx0 = c0.getContext('2d');
+let zoom0 = 1, pan0 = 0;
+let animId0 = null, animOffset0 = 0;
+
+const SPECIAL = [
+  {v:Math.SQRT2,  label:'√2',  color:'#ff9955', desc:'Algebraic irrational. √2=[1;2,2,2,…]. Decimal: 1.41421356…'},
+  {v:Math.sqrt(3),label:'√3',  color:'#ffcc44', desc:'Algebraic irrational. √3=[1;1,2,1,2,…]. Decimal: 1.73205080…'},
+  {v:(1+Math.sqrt(5))/2, label:'φ', color:'#55ccff', desc:'Golden ratio φ=[1;1,1,1,…]. Most irrational. φ=1.61803398…'},
+  {v:Math.PI,     label:'π',   color:'#cc55ff', desc:'Transcendental. π=[3;7,15,1,292,…]. Decimal: 3.14159265…'},
+  {v:Math.E,      label:'e',   color:'#55ff99', desc:'Transcendental. e=[2;1,2,1,1,4,…]. Decimal: 2.71828182…'},
+];
+
+function worldToScreen0(x){ return c0.offsetWidth/2 + (x - pan0) * zoom0 * 60; }
+function screenToWorld0(sx){ return (sx - c0.offsetWidth/2) / (zoom0*60) + pan0; }
+
+function draw0(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c0.offsetWidth, H=c0.offsetHeight;
+  if(!W||!H)return;
+  c0.width=W*dpr; c0.height=H*dpr;
+  ctx0.setTransform(dpr,0,0,dpr,0,0);
+  ctx0.clearRect(0,0,W,H);
+
+  // ℂ plane tint
+  const grad = ctx0.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(85,204,255,0.07)');
+  grad.addColorStop(0.5,'rgba(10,10,30,0)');
+  grad.addColorStop(1,'rgba(85,204,255,0.07)');
+  ctx0.fillStyle = grad;
+  ctx0.fillRect(0,0,W,H);
+
+  const midY = H/2;
+
+  // ℂ label
+  ctx0.font = 'bold 15px serif';
+  ctx0.fillStyle = 'rgba(85,204,255,0.4)';
+  ctx0.fillText('ℂ (complex plane)', 12, 22);
+  ctx0.strokeStyle = 'rgba(85,204,255,0.12)';
+  ctx0.setLineDash([4,6]);
+  ctx0.beginPath(); ctx0.moveTo(0,midY-80); ctx0.lineTo(W,midY-80); ctx0.stroke();
+  ctx0.beginPath(); ctx0.moveTo(0,midY+80); ctx0.lineTo(W,midY+80); ctx0.stroke();
+  ctx0.setLineDash([]);
+
+  // ℝ axis
+  ctx0.strokeStyle = '#2a2a5a';
+  ctx0.lineWidth = 1;
+  ctx0.beginPath(); ctx0.moveTo(0,midY); ctx0.lineTo(W,midY); ctx0.stroke();
+  ctx0.strokeStyle = 'rgba(85,204,255,0.55)';
+  ctx0.lineWidth = 2.5;
+  ctx0.beginPath(); ctx0.moveTo(0,midY); ctx0.lineTo(W,midY); ctx0.stroke();
+  ctx0.lineWidth = 1;
+
+  // Tick marks — integers
+  const xMin = screenToWorld0(0), xMax = screenToWorld0(W);
+  const iMin = Math.ceil(xMin-1), iMax = Math.floor(xMax+1);
+
+  // Draw integer ticks and labels
+  for(let n=iMin; n<=iMax; n++){
+    const sx = worldToScreen0(n);
+    if(sx<-20||sx>W+20) continue;
+    const isNat = n>0;
+    ctx0.strokeStyle = isNat ? '#5599aa' : (n===0?'#aaaacc':'#aa5588');
+    ctx0.lineWidth = n===0?2:1.5;
+    ctx0.beginPath(); ctx0.moveTo(sx,midY-10); ctx0.lineTo(sx,midY+10); ctx0.stroke();
+    ctx0.fillStyle = isNat ? '#5599aa' : (n===0?'#aaaacc':'#aa5588');
+    ctx0.font = '12px monospace';
+    ctx0.textAlign='center';
+    ctx0.fillText(n, sx, midY+22);
+    // dot for integer
+    ctx0.beginPath(); ctx0.arc(sx,midY,3.5,0,Math.PI*2);
+    ctx0.fillStyle = isNat ? '#55ccff' : (n===0?'#ffffff':'#ff88cc');
+    ctx0.fill();
+  }
+
+  // Rational ticks (show only if zoomed enough)
+  if(zoom0 > 3){
+    for(let n=iMin; n<=iMax; n++){
+      for(let d=2; d<=8; d++){
+        const v = n + 1/d;
+        if(v<xMin||v>xMax) continue;
+        const sx = worldToScreen0(v);
+        ctx0.strokeStyle = 'rgba(150,220,150,0.5)';
+        ctx0.lineWidth=1;
+        ctx0.beginPath(); ctx0.moveTo(sx,midY-5); ctx0.lineTo(sx,midY+5); ctx0.stroke();
+      }
+    }
+  }
+
+  // Special irrational points
+  SPECIAL.forEach(sp=>{
+    const sx = worldToScreen0(sp.v);
+    if(sx<0||sx>W) return;
+    // Glow
+    const g = ctx0.createRadialGradient(sx,midY,0,sx,midY,14);
+    g.addColorStop(0,sp.color+'cc');
+    g.addColorStop(1,sp.color+'00');
+    ctx0.beginPath(); ctx0.arc(sx,midY,14,0,Math.PI*2);
+    ctx0.fillStyle=g; ctx0.fill();
+    ctx0.beginPath(); ctx0.arc(sx,midY,5,0,Math.PI*2);
+    ctx0.fillStyle=sp.color; ctx0.fill();
+    ctx0.fillStyle=sp.color;
+    ctx0.font='bold 12px serif';
+    ctx0.textAlign='center';
+    ctx0.fillText(sp.label, sx, midY-18);
+  });
+
+  // Legend
+  const legends=[
+    {color:'#55ccff',label:'ℕ (naturals)'},
+    {color:'#ff88cc',label:'ℤ (integers)'},
+    {color:'#88ee88',label:'ℚ (rationals)'},
+    {color:'#ff9955',label:'irrationals'},
+    {color:'rgba(85,204,255,0.3)',label:'ℂ (complex)'},
+  ];
+  legends.forEach((lg,i)=>{
+    ctx0.fillStyle=lg.color;
+    ctx0.beginPath(); ctx0.arc(18,H-80+i*16,5,0,Math.PI*2); ctx0.fill();
+    ctx0.fillStyle=lg.color;
+    ctx0.font='12px sans-serif'; ctx0.textAlign='left';
+    ctx0.fillText(lg.label, 30, H-76+i*16);
+  });
+
+  document.getElementById('zoomLbl0').textContent = zoom0.toFixed(1);
+}
+
+function zoomFromSlider(v){
+  zoom0 = parseFloat(v);
+  pan0 = parseFloat(document.getElementById('centerSlider0').value);
+  draw0();
+}
+
+function resetView0(){
+  zoom0=1; pan0=0;
+  document.getElementById('zoomSlider0').value=1;
+  document.getElementById('centerSlider0').value=0;
+  draw0();
+}
+
+// Click to inspect
+c0.addEventListener('click', e=>{
+  const rect = c0.getBoundingClientRect();
+  const sx = e.clientX - rect.left;
+  const wx = screenToWorld0(sx);
+  let best = null, bestD = Infinity;
+  SPECIAL.forEach(sp=>{
+    const d = Math.abs(worldToScreen0(sp.v)-sx);
+    if(d<20 && d<bestD){bestD=d; best=sp;}
+  });
+  // Check integers
+  const ni = Math.round(wx);
+  if(Math.abs(worldToScreen0(ni)-sx)<12 && !best){
+    const typ = ni>0?'Natural number (ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ)': ni===0?'Zero (ℤ ⊂ ℚ ⊂ ℝ)':'Negative integer (ℤ ⊂ ℚ ⊂ ℝ)';
+    document.getElementById('info0').textContent = `${ni}: ${typ}`;
+    return;
+  }
+  if(best){
+    document.getElementById('info0').textContent = `${best.label} ≈ ${best.v.toFixed(10)}  |  ${best.desc}`;
+  } else {
+    document.getElementById('info0').textContent = `x ≈ ${wx.toFixed(6)} — click a marked point to inspect`;
+  }
+});
+
+// Scroll zoom
+c0.addEventListener('wheel', e=>{
+  e.preventDefault();
+  zoom0 = Math.max(0.5, Math.min(15, zoom0*(e.deltaY<0?1.15:0.87)));
+  document.getElementById('zoomSlider0').value = zoom0;
+  draw0();
+},{passive:false});
+
+function toggleAnim0(btn){
+  if(animId0){cancelAnimationFrame(animId0);animId0=null;btn.textContent='▶ Animate Zoom';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){
+    animOffset0 += 0.015*(window.animSpeed||0.1);
+    zoom0 = 1 + 14 * (0.5 - 0.5*Math.cos(animOffset0 * 0.4));
+    zoom0 = Math.max(1, Math.min(15, zoom0));
+    document.getElementById('zoomSlider0').value = zoom0;
+    draw0();
+    animId0 = requestAnimationFrame(frame);
+  }
+  animId0 = requestAnimationFrame(frame);
+}
+
+// ── TAB 1: CONTINUED FRACTIONS ──────────────────────────────────────────
+const c1 = document.getElementById('c1');
+const ctx1 = c1.getContext('2d');
+let animId1=null, animOffset1=0, convStep1=1;
+
+const CF_DATA = {
+  phi:   {val:(1+Math.sqrt(5))/2, terms:[1,1,1,1,1,1,1,1,1,1,1,1], name:'φ', color:'#55ccff'},
+  e:     {val:Math.E, terms:[2,1,2,1,1,4,1,1,6,1,1,8], name:'e', color:'#55ff99'},
+  pi:    {val:Math.PI, terms:[3,7,15,1,292,1,1,1,2,1,3,1], name:'π', color:'#cc55ff'},
+  sqrt2: {val:Math.SQRT2, terms:[1,2,2,2,2,2,2,2,2,2,2,2], name:'√2', color:'#ffcc44'},
+};
+
+function cfConvergents(terms, n){
+  const res=[];
+  let p0=1,p1=terms[0],q0=0,q1=1;
+  res.push({p:p1,q:q1,n:0});
+  for(let i=1;i<n && i<terms.length;i++){
+    const a=terms[i];
+    const p2=a*p1+p0, q2=a*q1+q0;
+    res.push({p:p2,q:q2,n:i});
+    p0=p1;p1=p2;q0=q1;q1=q2;
+  }
+  return res;
+}
+
+function computeCF(x, n){
+  const terms=[];
+  for(let i=0;i<n;i++){
+    const a=Math.floor(x);
+    terms.push(a);
+    const frac=x-a;
+    if(frac<1e-10) break;
+    x=1/frac;
+  }
+  return terms;
+}
+
+function draw1(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c1.offsetWidth, H=c1.offsetHeight;
+  if(!W||!H)return;
+  c1.width=W*dpr; c1.height=H*dpr;
+  ctx1.setTransform(dpr,0,0,dpr,0,0);
+  ctx1.clearRect(0,0,W,H);
+
+  const sel = document.getElementById('cfSelect').value;
+  const nConv = parseInt(document.getElementById('convSlider').value);
+  const custom = document.getElementById('customCF').value.trim();
+
+  let cfDat = CF_DATA[sel];
+  let terms = cfDat.terms;
+  let target = cfDat.val;
+  let name = cfDat.name;
+  let col = cfDat.color;
+
+  if(custom && !isNaN(parseFloat(custom))){
+    target = parseFloat(custom);
+    terms = computeCF(target, 14);
+    name = custom;
+    col = '#ffaa55';
+  }
+
+  const convs = cfConvergents(terms, Math.min(nConv, convStep1+1));
+  const showN = convStep1 >= nConv ? convs.length : Math.min(convStep1+1, convs.length);
+
+  // CF staircase diagram (top half)
+  const stairH = H*0.45, stairTop=30, stairLeft=40, stairW=W-80;
+  ctx1.strokeStyle='rgba(85,204,255,0.15)';
+  ctx1.strokeRect(stairLeft,stairTop,stairW,stairH);
+
+  // Draw staircase
+  const colors=['#ff5555','#ffaa44','#ffff44','#88ff44','#44ffaa','#44aaff','#aa44ff','#ff44aa','#ff8888','#88ffff','#ffff88','#ff88ff'];
+  const boxW = stairW / Math.max(showN, 1);
+  let depth = 0;
+  const termShow = terms.slice(0, showN+1);
+  // Draw nested fraction boxes
+  function drawBox(level, x0, y0, w, h, termIdx){
+    if(termIdx >= termShow.length || level > showN) return;
+    const a = termShow[termIdx];
+    const clr = colors[termIdx % colors.length];
+    ctx1.strokeStyle = clr+'cc';
+    ctx1.lineWidth=1.5;
+    ctx1.strokeRect(x0+2,y0+2,w-4,h-4);
+    ctx1.fillStyle=clr+'22';
+    ctx1.fillRect(x0+2,y0+2,w-4,h-4);
+    ctx1.fillStyle=clr;
+    ctx1.font=`bold ${Math.min(14,w*0.4)}px monospace`;
+    ctx1.textAlign='center';
+    const label = termIdx===0 ? `${a}` : `1/${a}+…`;
+    if(w>30) ctx1.fillText(termIdx===0?`a₀=${a}`:`a${termIdx}=${a}`, x0+w/2, y0+h*0.55);
+    if(termIdx+1 < termShow.length && w>40){
+      drawBox(level+1, x0+w*0.5, y0+h*0.6, w*0.45, h*0.35, termIdx+1);
+    }
+  }
+  drawBox(0, stairLeft, stairTop, stairW*0.9, stairH*0.9, 0);
+
+  // Number line (bottom half)
+  const lineY = stairTop + stairH + 60;
+  const lineLeft = 60, lineRight = W-60;
+  ctx1.strokeStyle = '#3a3a6a';
+  ctx1.lineWidth=1;
+  ctx1.beginPath(); ctx1.moveTo(lineLeft,lineY); ctx1.lineTo(lineRight,lineY); ctx1.stroke();
+  ctx1.strokeStyle='#55ccff88';
+  ctx1.lineWidth=2;
+  ctx1.beginPath(); ctx1.moveTo(lineLeft,lineY); ctx1.lineTo(lineRight,lineY); ctx1.stroke();
+
+  // Determine range
+  const vals = convs.map(c=>c.p/c.q);
+  const lo = Math.min(target, ...vals) - 0.15;
+  const hi = Math.max(target, ...vals) + 0.15;
+  const toSX = v => lineLeft + (v-lo)/(hi-lo)*(lineRight-lineLeft);
+
+  // True value
+  const tsx = toSX(target);
+  ctx1.strokeStyle=col;
+  ctx1.lineWidth=2;
+  ctx1.setLineDash([5,4]);
+  ctx1.beginPath(); ctx1.moveTo(tsx,lineY-50); ctx1.lineTo(tsx,lineY+30); ctx1.stroke();
+  ctx1.setLineDash([]);
+  ctx1.fillStyle=col;
+  ctx1.font='bold 13px serif';
+  ctx1.textAlign='center';
+  ctx1.fillText(name, tsx, lineY-56);
+
+  // Convergents
+  const shown = cfConvergents(terms, showN);
+  shown.forEach((cv,i)=>{
+    const v=cv.p/cv.q;
+    const sx=toSX(v);
+    if(sx<lineLeft-10||sx>lineRight+10) return;
+    const above = i%2===0;
+    const yOff = above ? -26 : 22;
+    ctx1.strokeStyle=colors[i%colors.length];
+    ctx1.lineWidth=1.5;
+    ctx1.beginPath(); ctx1.moveTo(sx,lineY+(above?-10:10)); ctx1.lineTo(sx,lineY+yOff); ctx1.stroke();
+    ctx1.beginPath(); ctx1.arc(sx,lineY,4,0,Math.PI*2);
+    ctx1.fillStyle=colors[i%colors.length];
+    ctx1.fill();
+    ctx1.fillStyle=colors[i%colors.length];
+    ctx1.font='12px monospace';
+    ctx1.textAlign='center';
+    ctx1.fillText(`${cv.p}/${cv.q}`, sx, lineY+yOff+(above?-4:12));
+  });
+
+  // Error display
+  if(shown.length>0){
+    const last=shown[shown.length-1];
+    const err=Math.abs(target - last.p/last.q);
+    ctx1.fillStyle='#c0c0ea';
+    ctx1.font='12px monospace';
+    ctx1.textAlign='left';
+    ctx1.fillText(`Last convergent: ${last.p}/${last.q}  |  error: ${err.toExponential(3)}`, lineLeft, H-14);
+  }
+
+  // CF expansion text
+  ctx1.fillStyle=col;
+  ctx1.font='13px monospace';
+  ctx1.textAlign='left';
+  ctx1.fillText(`[${terms.slice(0,Math.min(8,terms.length)).join('; ')}…]`, 60, H-34);
+}
+
+let animId1b=null;
+function toggleAnim1(btn){
+  if(animId1b){clearInterval(animId1b);animId1b=null;btn.textContent='▶ Animate Convergents';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  convStep1=0;
+  animId1b=setInterval(()=>{
+    convStep1++;
+    draw1();
+    if(convStep1>=12){clearInterval(animId1b);animId1b=null;btn.textContent='▶ Animate Convergents';btn.classList.remove('active');}
+  },700);
+}
+function resetAnim1(){
+  if(animId1b){clearInterval(animId1b);animId1b=null;}
+  convStep1=99;
+  const btn=document.getElementById('animBtn1');
+  if(btn){btn.textContent='▶ Animate Convergents';btn.classList.remove('active');}
+  draw1();
+}
+
+// ── TAB 2: p-ADIC NUMBERS ────────────────────────────────────────────────
+const c2 = document.getElementById('c2');
+const ctx2 = c2.getContext('2d');
+let animId2=null, animOffset2=0;
+
+function pAdicValuation(n, p){
+  if(n===0) return Infinity;
+  n=Math.abs(n);
+  let v=0;
+  while(n%p===0){v++;n=Math.floor(n/p);}
+  return v;
+}
+
+function intToBaseP(n, p, depth){
+  if(n<0) n = n + Math.pow(p, depth+2); // two's-complement-like
+  const digits=[];
+  for(let i=0;i<depth;i++){digits.push(n%p);n=Math.floor(n/p);}
+  return digits; // LSB first
+}
+
+function draw2(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c2.offsetWidth, H=c2.offsetHeight;
+  if(!W||!H)return;
+  c2.width=W*dpr; c2.height=H*dpr;
+  ctx2.setTransform(dpr,0,0,dpr,0,0);
+  ctx2.clearRect(0,0,W,H);
+
+  const p = parseInt(document.getElementById('pSelect').value);
+  const depth = parseInt(document.getElementById('depthSlider').value);
+  const hlN = parseInt(document.getElementById('hlSlider').value);
+
+  // Draw p-adic tree
+  const treeW = W*0.62, treeH = H-60;
+  const rootX = treeW/2, rootY = 40;
+  const levelH = (treeH-50)/(depth);
+
+  // Recursive tree drawing
+  function drawTree(x, y, level, digit_path, branchW){
+    if(level >= depth) return;
+    const childY = y + levelH;
+    const spacing = branchW / p;
+    for(let d=0;d<p;d++){
+      const cx = x - branchW/2 + spacing*(d+0.5);
+      const newPath = [...digit_path, d];
+      // Check if this path matches hlN
+      let matchLen=0;
+      const hlDigits = intToBaseP(hlN, p, depth);
+      let isHl=true;
+      for(let k=0;k<newPath.length;k++){
+        if(newPath[k]!==hlDigits[k]){isHl=false;break;}
+      }
+      const bright = isHl ? 1 : 0.3;
+      const hue = (d/p)*300;
+      ctx2.strokeStyle = isHl
+        ? `hsl(${hue},80%,65%)`
+        : `hsla(${hue},50%,45%,0.4)`;
+      ctx2.lineWidth = isHl ? 2.5 : 1;
+      ctx2.beginPath(); ctx2.moveTo(x,y); ctx2.lineTo(cx,childY); ctx2.stroke();
+      // Node
+      ctx2.beginPath(); ctx2.arc(cx,childY,isHl?5:3,0,Math.PI*2);
+      ctx2.fillStyle = isHl ? `hsl(${hue},80%,65%)` : `hsla(${hue},50%,45%,0.5)`;
+      ctx2.fill();
+      // Label at leaf
+      if(level===depth-2){
+        ctx2.fillStyle=isHl?`hsl(${hue},80%,70%)`:'#55558a';
+        ctx2.font='12px monospace';
+        ctx2.textAlign='center';
+        ctx2.fillText(d, cx, childY+13);
+      }
+      drawTree(cx, childY, level+1, newPath, spacing);
+    }
+  }
+  // Root node
+  ctx2.beginPath(); ctx2.arc(rootX,rootY,6,0,Math.PI*2);
+  ctx2.fillStyle='#c0c0ea'; ctx2.fill();
+  ctx2.fillStyle='#c0c0ea'; ctx2.font='12px sans-serif'; ctx2.textAlign='center';
+  ctx2.fillText('ℤ_'+p, rootX, rootY-12);
+  drawTree(rootX, rootY, 0, [], treeW*0.9);
+
+  // Right panel: p-adic properties
+  const px2 = treeW+20;
+  ctx2.fillStyle='#3a3a6a';
+  ctx2.fillRect(px2, 10, W-px2-10, H-20);
+  ctx2.strokeStyle='var(--border,#1c1c44)';
+  ctx2.strokeRect(px2,10,W-px2-10,H-20);
+
+  const hlDigits = intToBaseP(hlN, p, depth+2);
+  ctx2.fillStyle='#55ccff';
+  ctx2.font='bold 13px monospace';
+  ctx2.textAlign='left';
+  ctx2.fillText(`n = ${hlN}`, px2+14, 36);
+  ctx2.fillStyle='#c0c0ea';
+  ctx2.font='12px monospace';
+  const pBase = hlDigits.slice(0,depth+2).reverse().join('');
+  ctx2.fillText(`Base-${p}: …${pBase}`, px2+14, 56);
+  const vp = pAdicValuation(hlN, p);
+  ctx2.fillText(`v_${p}(${hlN}) = ${vp===Infinity?'∞':vp}`, px2+14, 76);
+  const norm = vp===Infinity ? 0 : Math.pow(p,-vp);
+  ctx2.fillText(`|${hlN}|_${p} = ${norm===0?'0':norm.toFixed(4)}`, px2+14, 96);
+
+  ctx2.fillStyle='#88aacc';
+  ctx2.font='12px monospace';
+  ctx2.fillText('Ultrametric:', px2+14, 124);
+  ctx2.fillText(`|x+y|_p ≤ max(|x|_p,|y|_p)`, px2+14, 140);
+
+  // Show: ...111 = -1 in p-adic
+  ctx2.fillStyle='#ffcc55';
+  ctx2.font='12px monospace';
+  ctx2.fillText('…111 (base '+p+') = -1', px2+14, 165);
+  ctx2.fillStyle='#888aaa';
+  ctx2.font='12px sans-serif';
+  const geom = `1+${p}+${p*p}+… = 1/(1-${p})`;
+  ctx2.fillText(geom, px2+14, 181);
+
+  // p-adic norm table
+  ctx2.fillStyle='#55ccff';
+  ctx2.font='12px monospace';
+  ctx2.fillText('n  |n|_'+p, px2+14, 206);
+  [-3,-2,-1,0,1,2,3,4,5,6].forEach((n,i)=>{
+    const vv = pAdicValuation(n,p);
+    const nm = vv===Infinity?0:Math.pow(p,-vv);
+    ctx2.fillStyle = Math.abs(n)===Math.abs(hlN)?'#ffcc55':'#88aacc';
+    ctx2.fillText(`${String(n).padStart(2)} → ${nm.toFixed(3)}`, px2+14, 222+i*15);
+  });
+}
+
+function resetView2(){
+  document.getElementById('depthSlider').value=4;
+  document.getElementById('hlSlider').value=-1;
+  document.getElementById('depthLbl').textContent=4;
+  document.getElementById('hlLbl').textContent=-1;
+  if(animId2){cancelAnimationFrame(animId2);animId2=null;document.getElementById('animBtn2').textContent='Animate Paths';}
+  draw2();
+}
+
+function toggleAnim2(btn){
+  if(animId2){cancelAnimationFrame(animId2);animId2=null;btn.textContent='▶ Animate Paths';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){
+    animOffset2 += 0.02*(window.animSpeed||0.1);
+    const n = Math.round(Math.sin(animOffset2)*6);
+    document.getElementById('hlSlider').value=n;
+    document.getElementById('hlLbl').textContent=n;
+    draw2();
+    animId2=requestAnimationFrame(frame);
+  }
+  animId2=requestAnimationFrame(frame);
+}
+
+// ── TAB 3: ADELES ────────────────────────────────────────────────────────
+const c3 = document.getElementById('c3');
+const ctx3 = c3.getContext('2d');
+let adeleAnimId = null, adeleT = 0;
+
+function parseRational(s){
+  s = s.trim();
+  if(s.includes('/')){
+    const parts = s.split('/');
+    const n = parseInt(parts[0],10), d = parseInt(parts[1],10);
+    if(!isNaN(n)&&!isNaN(d)&&d!==0) return {num:n,den:d,val:n/d};
+  }
+  const v = parseFloat(s);
+  if(!isNaN(v)){
+    // approximate as fraction with den up to 100
+    for(let d=1;d<=120;d++){
+      const n = Math.round(v*d);
+      if(Math.abs(n/d-v)<1e-9) return {num:n,den:d,val:v};
+    }
+    return {num:Math.round(v),den:1,val:Math.round(v)};
+  }
+  return null;
+}
+
+function pAdicValQ(num,den,p){
+  // v_p(num/den) = v_p(num) - v_p(den)
+  return pAdicValuation(num,p) - pAdicValuation(den,p);
+}
+function pAdicNormQ(num,den,p){
+  if(num===0) return 0;
+  const v = pAdicValQ(num,den,p);
+  return Math.pow(p,-v);
+}
+
+const SMALL_PRIMES = [2,3,5,7,11,13,17,19,23,29,31];
+
+function drawAdeles(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c3.offsetWidth, H=c3.offsetHeight;
+  if(!W||!H) return;
+  c3.width=W*dpr; c3.height=H*dpr;
+  ctx3.setTransform(dpr,0,0,dpr,0,0);
+  ctx3.clearRect(0,0,W,H);
+
+  const inp = document.getElementById('adeleInput').value || '6';
+  const rat = parseRational(inp);
+  if(!rat){ ctx3.fillStyle='#ff5555'; ctx3.font='14px sans-serif'; ctx3.fillText('Invalid input',30,50); return; }
+  const {num, den, val} = rat;
+
+  // Title
+  ctx3.fillStyle='#55ccff';
+  ctx3.font='bold 15px monospace';
+  ctx3.textAlign='left';
+  ctx3.fillText('Adelic decomposition of x = ' + (den===1?num:num+'/'+den), 18, 26);
+
+  // Draw product formula bar
+  const primes = SMALL_PRIMES.filter(p=>{ const v=pAdicValQ(num,den,p); return v!==0; });
+  // Include all primes for display, highlight non-trivial ones
+  const showPrimes = SMALL_PRIMES.slice(0,9);
+
+  const barY = 60, barH = 38;
+  const cellW = (W - 100) / (showPrimes.length + 1);
+  const startX = 50;
+
+  // ℝ cell
+  const infNorm = Math.abs(val);
+  ctx3.strokeStyle='#55ccff';
+  ctx3.lineWidth=2;
+  ctx3.strokeRect(startX, barY, cellW, barH);
+  ctx3.fillStyle='rgba(85,204,255,0.15)';
+  ctx3.fillRect(startX, barY, cellW, barH);
+  ctx3.fillStyle='#55ccff';
+  ctx3.font='bold 12px monospace';
+  ctx3.textAlign='center';
+  ctx3.fillText('|x|_∞', startX+cellW/2, barY+14);
+  ctx3.fillText(infNorm.toFixed(4), startX+cellW/2, barY+30);
+
+  // p-adic cells
+  let product = infNorm;
+  showPrimes.forEach((p,i)=>{
+    const norm = pAdicNormQ(num,den,p);
+    const v = (num===0) ? Infinity : pAdicValQ(num,den,p);
+    const isNonTrivial = v !== 0;
+    product *= norm;
+    const cx = startX + cellW*(i+1);
+    ctx3.strokeStyle = isNonTrivial ? '#ff9955' : '#2a2a5a';
+    ctx3.lineWidth = isNonTrivial ? 2 : 1;
+    ctx3.strokeRect(cx, barY, cellW, barH);
+    ctx3.fillStyle = isNonTrivial ? 'rgba(255,153,85,0.15)' : 'rgba(30,30,60,0.3)';
+    ctx3.fillRect(cx, barY, cellW, barH);
+    ctx3.fillStyle = isNonTrivial ? '#ff9955' : '#55558a';
+    ctx3.font = 'bold 12px monospace';
+    ctx3.textAlign='center';
+    ctx3.fillText('|x|_'+p, cx+cellW/2, barY+14);
+    ctx3.fillText(norm===0?'0':norm.toFixed(3), cx+cellW/2, barY+30);
+  });
+
+  // Product formula result
+  ctx3.fillStyle = Math.abs(product-1)<0.001 ? '#55ff99' : '#ff5555';
+  ctx3.font='bold 13px monospace';
+  ctx3.textAlign='left';
+  ctx3.fillText('∏_p |x|_p × |x|_∞ = ' + product.toFixed(6) + (Math.abs(product-1)<0.01?' ✓ = 1':''), 50, barY+barH+22);
+
+  // Draw the adele ring schematic
+  const schY = barY + barH + 50;
+  ctx3.fillStyle='#c0c0ea';
+  ctx3.font='13px monospace';
+  ctx3.textAlign='left';
+  ctx3.fillText('𝔸_ℚ = ℝ  ×  ∏\'_p ℚ_p   (restricted product)', 50, schY);
+
+  // Diagonal embedding visualization
+  const diagY = schY + 30;
+  ctx3.fillStyle='#7788aa';
+  ctx3.font='12px monospace';
+  ctx3.fillText('x embeds diagonally: x ↦ (x_∞, x_2, x_3, x_5, x_7, ...)', 50, diagY);
+
+  // Circle diagram showing all completions
+  const cx0=W/2, cy0=diagY+90, R=70;
+  ctx3.strokeStyle='rgba(85,204,255,0.2)';
+  ctx3.lineWidth=1;
+  ctx3.beginPath(); ctx3.arc(cx0,cy0,R,0,Math.PI*2); ctx3.stroke();
+
+  // Center = ℚ
+  ctx3.beginPath(); ctx3.arc(cx0,cy0,8,0,Math.PI*2);
+  ctx3.fillStyle='#ffffff'; ctx3.fill();
+  ctx3.fillStyle='#000'; ctx3.font='bold 12px sans-serif'; ctx3.textAlign='center';
+  ctx3.fillText('ℚ',cx0,cy0+4);
+
+  // Completions around circle
+  const completions = ['ℝ','ℚ₂','ℚ₃','ℚ₅','ℚ₇','ℚ₁₁','ℚ₁₃'];
+  const colors3 = ['#55ccff','#ff9955','#55ff99','#cc55ff','#ffcc44','#ff5588','#44ffcc'];
+  completions.forEach((name,i)=>{
+    const angle = (i/completions.length)*Math.PI*2 - Math.PI/2;
+    const ex = cx0 + R*Math.cos(angle), ey = cy0 + R*Math.sin(angle);
+    // Draw spoke
+    ctx3.strokeStyle=colors3[i]+'88';
+    ctx3.lineWidth=2;
+    ctx3.beginPath(); ctx3.moveTo(cx0,cy0); ctx3.lineTo(ex,ey); ctx3.stroke();
+    // Node
+    ctx3.beginPath(); ctx3.arc(ex,ey,10,0,Math.PI*2);
+    ctx3.fillStyle=colors3[i]; ctx3.fill();
+    ctx3.fillStyle='#000'; ctx3.font='bold 12px sans-serif'; ctx3.textAlign='center';
+    ctx3.fillText(name,ex,ey+3);
+  });
+
+  // Langlands mention
+  const langY = cy0 + R + 30;
+  ctx3.fillStyle='#aa88ff';
+  ctx3.font='12px monospace';
+  ctx3.textAlign='left';
+  ctx3.fillText('Langlands program: automorphic forms on GL_n(𝔸_ℚ) ↔ Galois representations', 30, langY);
+  ctx3.fillStyle='#7766aa';
+  ctx3.font='12px monospace';
+  ctx3.fillText('L-functions: L(s,π) = ∏_p L_p(s,π_p) × L_∞(s,π_∞)  — unifying all number theory', 30, langY+18);
+
+  // Animate: spinning pulse on the product formula bar
+  if(adeleT>0){
+    const t=adeleT;
+    showPrimes.forEach((p,i)=>{
+      const phase = t*2-i*0.4;
+      const alpha = Math.max(0, Math.sin(phase)*0.5+0.5);
+      const cx2=startX+cellW*(i+1);
+      ctx3.strokeStyle=`rgba(255,153,85,${alpha})`;
+      ctx3.lineWidth=2+alpha*2;
+      ctx3.strokeRect(cx2+1,barY+1,cellW-2,barH-2);
+    });
+  }
+
+  document.getElementById('info3').textContent =
+    'x = '+(den===1?num:num+'/'+den)+
+    ' | |x|_∞ = '+infNorm.toFixed(4)+
+    ' | |x|_2 = '+pAdicNormQ(num,den,2).toFixed(4)+
+    ' | |x|_3 = '+pAdicNormQ(num,den,3).toFixed(4)+
+    ' | |x|_5 = '+pAdicNormQ(num,den,5).toFixed(4)+
+    ' | ∏|x|_p·|x|_∞ ≈ '+product.toFixed(6);
+}
+
+function computeAdele(){ drawAdeles(); }
+
+function toggleAdeleAnim(btn){
+  if(adeleAnimId){ cancelAnimationFrame(adeleAnimId); adeleAnimId=null; btn.textContent='▶ Animate Product Formula'; btn.classList.remove('active'); adeleT=0; return; }
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){ adeleT+=0.04*(window.animSpeed||0.1); drawAdeles(); adeleAnimId=requestAnimationFrame(frame); }
+  adeleAnimId=requestAnimationFrame(frame);
+}
+
+// ── TAB 4: SURREAL NUMBERS ───────────────────────────────────────────────
+const c4 = document.getElementById('c4');
+const ctx4 = c4.getContext('2d');
+let surAnimId=null, surAnimDay=1, surAnimDir=1;
+let surSelectedNode=null;
+
+// Surreal number tree: each node has value, notation {L|R}, day, x,y coords
+function buildSurrealTree(maxDay){
+  // We build it level by level
+  // Day 0: 0 = {|}
+  // Day 1: 1={0|}, -1={|0}
+  // Day 2: 2={1|}, 1/2={0|1}, -1/2={-1|0}, -2={|-1}
+  // Day 3: 3={2|},3/2={1|2},3/4={1/2|1},1/4={0|1/2},-1/4={-1/2|0},-3/4={-1|-1/2},-3/2={-2|-1},-3={|-2}
+  const nodes = [
+    {v:0, day:0, notation:'{|}', game:'Zero: second player wins any game. Neither player has a move.', parent:null},
+  ];
+  if(maxDay>=1){
+    nodes.push({v:1,  day:1, notation:'{0|}', game:'One: Left (player) is ahead by 1 move. Like having 1 extra move.', parent:0});
+    nodes.push({v:-1, day:1, notation:'{|0}', game:'Minus one: Right (opponent) is ahead by 1 move.', parent:0});
+  }
+  if(maxDay>=2){
+    nodes.push({v:2,    day:2, notation:'{1|}',   game:'Two: Left ahead by 2. Equivalent to 2 free moves.', parent:1});
+    nodes.push({v:0.5,  day:2, notation:'{0|1}',  game:'Half: game worth half a move to Left.', parent:1});
+    nodes.push({v:-0.5, day:2, notation:'{-1|0}', game:'Minus half: half a move advantage to Right.', parent:2});
+    nodes.push({v:-2,   day:2, notation:'{|-1}',  game:'Minus two: Right ahead by 2 moves.', parent:2});
+  }
+  if(maxDay>=3){
+    nodes.push({v:3,      day:3, notation:'{2|}',    game:'Three: 3 free moves for Left.', parent:3});
+    nodes.push({v:1.5,    day:3, notation:'{1|2}',   game:'Three halves: between 1 and 2.', parent:3});
+    nodes.push({v:0.75,   day:3, notation:'{1/2|1}', game:'Three quarters: between 1/2 and 1.', parent:4});
+    nodes.push({v:0.25,   day:3, notation:'{0|1/2}', game:'One quarter: between 0 and 1/2.', parent:4});
+    nodes.push({v:-0.25,  day:3, notation:'{-1/2|0}',game:'Minus quarter: between -1/2 and 0.', parent:5});
+    nodes.push({v:-0.75,  day:3, notation:'{-1|-1/2}',game:'Minus three quarters.', parent:5});
+    nodes.push({v:-1.5,   day:3, notation:'{-2|-1}', game:'Minus three halves.', parent:6});
+    nodes.push({v:-3,     day:3, notation:'{|-2}',   game:'Minus three: 3 free moves for Right.', parent:6});
+  }
+  if(maxDay>=4){
+    // Day 4 adds half-integers and quarter-integers
+    const d4 = [
+      {v:4,     notation:'{3|}',       game:'Four.'},
+      {v:2.5,   notation:'{2|3}',      game:'Five halves.'},
+      {v:1.75,  notation:'{3/2|2}',    game:'Seven quarters.'},
+      {v:1.25,  notation:'{1|3/2}',    game:'Five quarters.'},
+      {v:0.875, notation:'{3/4|1}',    game:'Seven eighths.'},
+      {v:0.625, notation:'{1/2|3/4}',  game:'Five eighths.'},
+      {v:0.375, notation:'{1/4|1/2}',  game:'Three eighths.'},
+      {v:0.125, notation:'{0|1/4}',    game:'One eighth.'},
+      {v:-0.125,notation:'{-1/4|0}',   game:'Minus one eighth.'},
+      {v:-0.375,notation:'{-1/2|-1/4}',game:'Minus three eighths.'},
+      {v:-0.625,notation:'{-3/4|-1/2}',game:'Minus five eighths.'},
+      {v:-0.875,notation:'{-1|-3/4}',  game:'Minus seven eighths.'},
+      {v:-1.25, notation:'{-3/2|-1}',  game:'Minus five quarters.'},
+      {v:-1.75, notation:'{-2|-3/2}',  game:'Minus seven quarters.'},
+      {v:-2.5,  notation:'{-3|-2}',    game:'Minus five halves.'},
+      {v:-4,    notation:'{|-3}',      game:'Minus four.'},
+    ];
+    d4.forEach(n=>nodes.push({...n, day:4, parent:null}));
+  }
+  return nodes;
+}
+
+function drawSurreal(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c4.offsetWidth, H=c4.offsetHeight;
+  if(!W||!H) return;
+  c4.width=W*dpr; c4.height=H*dpr;
+  ctx4.setTransform(dpr,0,0,dpr,0,0);
+  ctx4.clearRect(0,0,W,H);
+
+  const maxDay = parseInt(document.getElementById('surDepth').value);
+  const nodes = buildSurrealTree(maxDay);
+
+  // Assign positions: each day is a row, nodes sorted by value
+  const dayNodes = {};
+  nodes.forEach((n,i)=>{
+    n.idx=i;
+    if(!dayNodes[n.day]) dayNodes[n.day]=[];
+    dayNodes[n.day].push(n);
+  });
+  Object.values(dayNodes).forEach(arr=>arr.sort((a,b)=>a.v-b.v));
+
+  const topMargin=50, bottomMargin=60;
+  const usableH = H - topMargin - bottomMargin;
+  const dayCount = maxDay+1;
+  const levelH = usableH/Math.max(dayCount,1);
+
+  nodes.forEach(n=>{
+    const dayArr = dayNodes[n.day];
+    const posInDay = dayArr.indexOf(n);
+    const countInDay = dayArr.length;
+    n.x = (W*(posInDay+1))/(countInDay+1);
+    n.y = topMargin + n.day*levelH + levelH*0.4;
+  });
+
+  // Draw edges
+  nodes.forEach(n=>{
+    if(n.parent!==null && nodes[n.parent]){
+      const par=nodes[n.parent];
+      ctx4.strokeStyle='rgba(100,100,180,0.4)';
+      ctx4.lineWidth=1.5;
+      ctx4.beginPath(); ctx4.moveTo(par.x,par.y); ctx4.lineTo(n.x,n.y); ctx4.stroke();
+    }
+  });
+
+  // Color by day
+  const dayColors=['#ffffff','#55ccff','#55ff99','#ff9955','#cc55ff'];
+
+  nodes.forEach(n=>{
+    const col=dayColors[n.day]||'#888888';
+    const isSel = surSelectedNode && surSelectedNode.idx===n.idx;
+    const r=isSel?9:6;
+
+    // Glow for selected
+    if(isSel){
+      const g=ctx4.createRadialGradient(n.x,n.y,0,n.x,n.y,20);
+      g.addColorStop(0,col+'cc'); g.addColorStop(1,col+'00');
+      ctx4.beginPath(); ctx4.arc(n.x,n.y,20,0,Math.PI*2);
+      ctx4.fillStyle=g; ctx4.fill();
+    }
+
+    ctx4.beginPath(); ctx4.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx4.fillStyle=isSel?col:'#000';
+    ctx4.fill();
+    ctx4.strokeStyle=col;
+    ctx4.lineWidth=isSel?2.5:1.5;
+    ctx4.stroke();
+
+    // Label
+    ctx4.fillStyle=col;
+    ctx4.font=(isSel?'bold ':'')+Math.min(12,Math.max(8,180/Math.pow(2,n.day)))+'px monospace';
+    ctx4.textAlign='center';
+    // Format value nicely
+    const vstr = Number.isInteger(n.v)?String(n.v):n.v.toFixed(n.day<=2?1:3).replace(/\.?0+$/,'');
+    ctx4.fillText(vstr, n.x, n.y-r-3);
+  });
+
+  // Day labels on left
+  for(let d=0;d<=maxDay;d++){
+    const y=topMargin + d*levelH + levelH*0.4;
+    ctx4.fillStyle='#55558a';
+    ctx4.font='12px monospace';
+    ctx4.textAlign='right';
+    ctx4.fillText('Day '+d+':',44,y+4);
+  }
+
+  // Title
+  ctx4.fillStyle='#55ccff';
+  ctx4.font='bold 14px monospace';
+  ctx4.textAlign='left';
+  ctx4.fillText('Surreal Number Tree — Conway\'s Construction', 50, 24);
+
+  // Special labels at bottom
+  ctx4.fillStyle='#aa88ff';
+  ctx4.font='12px monospace';
+  ctx4.textAlign='left';
+  ctx4.fillText('ω = {0,1,2,3,...|} — first infinite surreal (born day ω)', 50, H-42);
+  ctx4.fillText('1/ω = {0|1,1/2,1/4,...} — first positive infinitesimal', 50, H-26);
+  ctx4.fillText('No|rton: every surreal is {born on first day that fits between its L and R sets}', 50, H-10);
+
+  // Store node coords for clicking
+  c4._nodes = nodes;
+}
+
+c4.addEventListener('click', e=>{
+  const nodes = c4._nodes;
+  if(!nodes) return;
+  const rect=c4.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const dpr=window.devicePixelRatio||1;
+  const sx=mx*(c4.width/(rect.width*dpr||1))/dpr;
+  const sy=my*(c4.height/(rect.height*dpr||1))/dpr;
+  let best=null, bestD=Infinity;
+  nodes.forEach(n=>{
+    const d=Math.hypot(sx-n.x,sy-n.y);
+    if(d<bestD){bestD=d;best=n;}
+  });
+  if(best && bestD<24){
+    surSelectedNode=best;
+    drawSurreal();
+    const vstr=Number.isInteger(best.v)?String(best.v):best.v.toFixed(4);
+    document.getElementById('info4').textContent=
+      best.notation+' = '+vstr+' (Day '+best.day+') — '+best.game;
+  }
+});
+
+function toggleSurrealAnim(btn){
+  if(surAnimId){cancelAnimationFrame(surAnimId);surAnimId=null;btn.textContent='▶ Animate Construction';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  surAnimDay=0;
+  function frame(){
+    document.getElementById('surDepth').value=surAnimDay;
+    document.getElementById('surDepthLbl').textContent=surAnimDay;
+    drawSurreal();
+    surAnimDay++;
+    if(surAnimDay>4){surAnimDay=0;}
+    surAnimId=setTimeout(()=>{surAnimId=requestAnimationFrame(frame);},900);
+  }
+  surAnimId=requestAnimationFrame(frame);
+}
+function resetSurreal(){
+  if(surAnimId){cancelAnimationFrame(surAnimId);surAnimId=null;}
+  surSelectedNode=null;
+  const btn=document.getElementById('surAnimBtn');
+  if(btn){btn.textContent='▶ Animate Construction';btn.classList.remove('active');}
+  document.getElementById('surDepthLbl').textContent=3;
+  drawSurreal();
+}
+
+// ── TAB 5: HYPERREALS ────────────────────────────────────────────────────
+const c5=document.getElementById('c5');
+const ctx5=c5.getContext('2d');
+let hyperAnimId=null, hyperT=0;
+
+function drawHyperreals(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c5.offsetWidth, H=c5.offsetHeight;
+  if(!W||!H) return;
+  c5.width=W*dpr; c5.height=H*dpr;
+  ctx5.setTransform(dpr,0,0,dpr,0,0);
+  ctx5.clearRect(0,0,W,H);
+
+  const N=parseInt(document.getElementById('hyperN').value);
+  const eps=1/N;
+  const funcKey=document.getElementById('hyperFunc').value;
+  const x0raw=parseInt(document.getElementById('hyperX0').value)/100;
+
+  function f(x){ return funcKey==='x2'?x*x : funcKey==='sinx'?Math.sin(x) : Math.exp(x); }
+  function fName(){ return funcKey==='x2'?'x²' : funcKey==='sinx'?'sin(x)' : 'eˣ'; }
+  function dfExact(x){ return funcKey==='x2'?2*x : funcKey==='sinx'?Math.cos(x) : Math.exp(x); }
+
+  const x0=x0raw;
+  const Dy=f(x0+eps)-f(x0);
+  const slope=Dy/eps;
+  const stSlope=dfExact(x0);
+
+  // Panel 1: Hyperreal number line (schematic)
+  const lineY=H*0.18;
+  ctx5.fillStyle='#55ccff';
+  ctx5.font='bold 13px monospace';
+  ctx5.textAlign='left';
+  ctx5.fillText('*ℝ — The Hyperreal Number Line', 18, lineY-22);
+
+  // Draw line
+  ctx5.strokeStyle='#3355aa';
+  ctx5.lineWidth=2;
+  ctx5.beginPath(); ctx5.moveTo(30,lineY); ctx5.lineTo(W-30,lineY); ctx5.stroke();
+
+  // Regions: -∞ region, std negative, 0 halo, std positive, +∞ region
+  const regions=[
+    {label:'-Ω (infinite negative)', x:40, color:'#ff5555'},
+    {label:'ℤ⁻', x:W*0.2, color:'#ff88cc'},
+    {label:'0-halo (infinitesimals)', x:W*0.5, color:'#55ff99'},
+    {label:'ℤ⁺', x:W*0.72, color:'#88ccff'},
+    {label:'+Ω (infinite positive)', x:W-60, color:'#ffaa44'},
+  ];
+  regions.forEach(r=>{
+    ctx5.fillStyle=r.color;
+    ctx5.beginPath(); ctx5.arc(r.x,lineY,5,0,Math.PI*2); ctx5.fill();
+    ctx5.font='12px monospace'; ctx5.textAlign='center';
+    ctx5.fillText(r.label,r.x,lineY-12);
+  });
+
+  // Zoom into 0-halo
+  const haloX=W*0.5, haloY=lineY, haloR=36;
+  ctx5.strokeStyle='#55ff99';
+  ctx5.lineWidth=1.5;
+  ctx5.setLineDash([4,3]);
+  ctx5.beginPath(); ctx5.arc(haloX,haloY,haloR,0,Math.PI*2); ctx5.stroke();
+  ctx5.setLineDash([]);
+  ctx5.fillStyle='#55ff99';
+  ctx5.font='12px monospace'; ctx5.textAlign='center';
+  ctx5.fillText('0<ε<1/n ∀n', haloX, haloY+haloR+12);
+  // epsilon dot
+  const epsX=haloX+haloR*0.3;
+  ctx5.beginPath(); ctx5.arc(epsX,haloY,3,0,Math.PI*2);
+  ctx5.fillStyle='#ffff55'; ctx5.fill();
+  ctx5.fillStyle='#ffff55'; ctx5.font='12px monospace'; ctx5.textAlign='center';
+  ctx5.fillText('ε=1/'+N,epsX,haloY+14);
+
+  // Panel 2: Derivative as genuine ratio
+  const graphTop=lineY+60, graphBot=H-80;
+  const graphL=60, graphR=W-80;
+  const gW=graphR-graphL, gH=graphBot-graphTop;
+
+  ctx5.fillStyle='#c0c0ea';
+  ctx5.font='bold 12px monospace';
+  ctx5.textAlign='left';
+  ctx5.fillText('f(x) = '+fName()+'  at x₀ = '+x0.toFixed(2), graphL, graphTop-12);
+
+  // Function range
+  const xRange=2.0;
+  const xMin2=x0-xRange, xMax2=x0+xRange;
+  const toGX=x=>(x-xMin2)/xRange/2*gW+graphL;
+  const fVals=[]; for(let i=0;i<80;i++){const x=xMin2+i/(79)*2*xRange; fVals.push({x,y:f(x)});}
+  const fMin=Math.min(...fVals.map(p=>p.y)), fMax=Math.max(...fVals.map(p=>p.y));
+  const fRange=fMax-fMin||1;
+  const toGY=v=>graphTop+gH-(v-fMin)/fRange*gH;
+
+  // Axes
+  ctx5.strokeStyle='#2a2a5a'; ctx5.lineWidth=1;
+  ctx5.beginPath(); ctx5.moveTo(graphL,graphTop); ctx5.lineTo(graphL,graphBot); ctx5.stroke();
+  ctx5.beginPath(); ctx5.moveTo(graphL,graphBot); ctx5.lineTo(graphR,graphBot); ctx5.stroke();
+
+  // Function curve
+  ctx5.strokeStyle='#55ccff'; ctx5.lineWidth=2;
+  ctx5.beginPath();
+  fVals.forEach((p,i)=>{ const gx=toGX(p.x),gy=toGY(p.y); i===0?ctx5.moveTo(gx,gy):ctx5.lineTo(gx,gy); });
+  ctx5.stroke();
+
+  // x0, x0+eps points
+  const gx0=toGX(x0), gy0=toGY(f(x0));
+  const gxe=toGX(x0+eps), gye=toGY(f(x0+eps));
+
+  // Δx line
+  ctx5.strokeStyle='#ffcc44'; ctx5.lineWidth=2;
+  ctx5.setLineDash([5,4]);
+  ctx5.beginPath(); ctx5.moveTo(gx0,gy0); ctx5.lineTo(gxe,gy0); ctx5.stroke(); // Δx
+  ctx5.beginPath(); ctx5.moveTo(gxe,gy0); ctx5.lineTo(gxe,gye); ctx5.stroke(); // Δy
+  ctx5.setLineDash([]);
+
+  // Secant line
+  const secLen=gW*0.35;
+  const slope2d=slope*(gH/fRange)/(gW/(xRange*2));
+  ctx5.strokeStyle='#ff9955'; ctx5.lineWidth=2;
+  ctx5.beginPath();
+  ctx5.moveTo(gx0-secLen/2, gy0+secLen/2*slope2d);
+  ctx5.lineTo(gx0+secLen/2, gy0-secLen/2*slope2d);
+  ctx5.stroke();
+
+  // Dots
+  ctx5.beginPath(); ctx5.arc(gx0,gy0,5,0,Math.PI*2); ctx5.fillStyle='#ffcc44'; ctx5.fill();
+  ctx5.beginPath(); ctx5.arc(gxe,gye,5,0,Math.PI*2); ctx5.fillStyle='#ffcc44'; ctx5.fill();
+
+  // Labels
+  ctx5.fillStyle='#ffcc44'; ctx5.font='12px monospace'; ctx5.textAlign='center';
+  ctx5.fillText('x₀',gx0,graphBot+14);
+  ctx5.fillText('x₀+ε',gxe,graphBot+14);
+  ctx5.fillStyle='#ffcc44'; ctx5.textAlign='left';
+  ctx5.fillText('Δx=ε=1/'+N,gxe+4,(gy0+gye)/2-4);
+
+  // Results box
+  const resX=graphR+8, resY=graphTop;
+  ctx5.fillStyle='#0d1a2a';
+  ctx5.fillRect(resX-4,resY,W-resX,gH);
+  ctx5.strokeStyle='#1c2c4a'; ctx5.lineWidth=1;
+  ctx5.strokeRect(resX-4,resY,W-resX,gH);
+  ctx5.fillStyle='#55ccff'; ctx5.font='bold 12px monospace'; ctx5.textAlign='left';
+  ctx5.fillText('Δy/Δx =',resX,resY+18);
+  ctx5.fillStyle='#ff9955';
+  ctx5.fillText(slope.toFixed(6),resX,resY+34);
+  ctx5.fillStyle='#55ff99'; ctx5.font='bold 12px monospace';
+  ctx5.fillText('st(Δy/Δx) =',resX,resY+56);
+  ctx5.fillStyle='#55ff99';
+  ctx5.fillText(stSlope.toFixed(6),resX,resY+72);
+  ctx5.fillStyle='#888aaa'; ctx5.font='12px monospace';
+  ctx5.fillText("f'(x₀) exact =",resX,resY+92);
+  ctx5.fillText(stSlope.toFixed(6),resX,resY+106);
+  ctx5.fillStyle='rgba(85,255,153,0.6)'; ctx5.font='bold 12px monospace';
+  ctx5.fillText('Error = '+(Math.abs(slope-stSlope)).toExponential(2),resX,resY+124);
+
+  // Transfer principle
+  ctx5.fillStyle='#c0c0ea'; ctx5.font='12px monospace'; ctx5.textAlign='left';
+  ctx5.fillText('Transfer Principle: ∀ first-order φ: ℝ ⊨ φ ⟺ *ℝ ⊨ φ*', graphL, graphBot+18);
+  ctx5.fillStyle='#7788aa'; ctx5.font='12px monospace';
+  ctx5.fillText('Leibniz\' infinitesimals were rigorous all along — Robinson 1960s', graphL, graphBot+35);
+  ctx5.fillText('ε = 1/'+N+'  |  ε is infinitesimal means: ε < 1/n for all finite n', graphL, graphBot+50);
+}
+
+function toggleHyperAnim(btn){
+  if(hyperAnimId){cancelAnimationFrame(hyperAnimId);hyperAnimId=null;btn.textContent='▶ Animate ε → 0';btn.classList.remove('active');hyperT=0;return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  hyperT=2;
+  function frame(){
+    hyperT+=0.025*(window.animSpeed||0.1);
+    const N=Math.max(2,Math.min(100,Math.round(2+98*(0.5+0.5*Math.sin(hyperT)))));
+    document.getElementById('hyperN').value=N;
+    drawHyperreals();
+    hyperAnimId=requestAnimationFrame(frame);
+  }
+  hyperAnimId=requestAnimationFrame(frame);
+}
+
+// ── TAB 6: NUMBER THEORY & PHYSICS ───────────────────────────────────────
+const c6=document.getElementById('c6');
+const ctx6=c6.getContext('2d');
+let physAnimId=null, physT=0;
+
+function drawPhysics(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c6.offsetWidth, H=c6.offsetHeight;
+  if(!W||!H) return;
+  c6.width=W*dpr; c6.height=H*dpr;
+  ctx6.setTransform(dpr,0,0,dpr,0,0);
+  ctx6.clearRect(0,0,W,H);
+
+  const topic=document.getElementById('physTopic').value;
+  if(topic==='padic_qm') drawPadicQM(W,H);
+  else if(topic==='langlands') drawLanglands(W,H);
+  else if(topic==='moonshine') drawMoonshine(W,H);
+  else if(topic==='elliptic') drawElliptic(W,H);
+}
+
+function drawPadicQM(W,H){
+  ctx6.fillStyle='#55ccff';
+  ctx6.font='bold 15px monospace';
+  ctx6.textAlign='left';
+  ctx6.fillText('p-adic Quantum Mechanics (Vladimirov–Volovich, 1987)', 18, 28);
+
+  const text=[
+    'Standard QM: wavefunctions ψ: ℝ → ℂ, Schrödinger eqn on ℝ (spacetime = ℝ⁴)',
+    'p-adic QM: replace ℝ with ℚ_p as the number field for spacetime coordinates.',
+    'p-adic free particle: ψ_n(x) = |x|_p^n (characters of ℚ_p)',
+    'p-adic Schrödinger: -(D^α ψ)(x) = E·ψ(x)  where D^α = Vladimirov operator',
+    'p-adic string amplitude: A(k₁,...,k_n) = ∫_ℚ_p ... (Koba–Nielsen integral)',
+    'Freund–Olson: adelic string amplitude = ∏_p A_p(k) = A_∞(k) (product formula!)',
+    'This gave: the ordinary string amplitude is related to p-adic ones via adeles.',
+    'Manin (1991): p-adic Mumford curves as models of string worldsheets.',
+    'Key: the p-adic metric naturally produces an ultrametric geometry on spacetime.',
+    'Ultrametric ≡ all triangles are isoceles → hierarchical (tree) structure of space.'
+  ];
+
+  const t=physT;
+  text.forEach((line,i)=>{
+    const bright = physAnimId? Math.max(0.3, Math.sin(t-i*0.3)*0.35+0.65) : 1;
+    ctx6.fillStyle=`rgba(${i%2?'180,200,255':'100,220,180'},${bright})`;
+    ctx6.font=(i===0?'bold ':'')+Math.min(12,11)+'px monospace';
+    ctx6.textAlign='left';
+    ctx6.fillText(line, 30, 58+i*28);
+  });
+
+  // Diagram: ℝ vs ℚ_p geometry
+  const dX=W/2+20, dY=100;
+  ctx6.fillStyle='#7788aa';
+  ctx6.font='12px monospace';
+  ctx6.textAlign='center';
+  ctx6.fillText('Standard (Archimedean) triangle', dX+W/4-50, dY);
+  ctx6.strokeStyle='#55ccff'; ctx6.lineWidth=2;
+  ctx6.beginPath();
+  ctx6.moveTo(dX+W/4-80,dY+80);
+  ctx6.lineTo(dX+W/4,dY+20);
+  ctx6.lineTo(dX+W/4+40,dY+80);
+  ctx6.closePath(); ctx6.stroke();
+
+  ctx6.fillStyle='#7788aa'; ctx6.textAlign='center';
+  ctx6.fillText('p-adic ultrametric triangle', dX+W/4-50, dY+120);
+  ctx6.fillText('(all isoceles!)', dX+W/4-50, dY+134);
+  ctx6.strokeStyle='#ff9955'; ctx6.lineWidth=2;
+  // Isoceles triangle
+  const tx=dX+W/4-80, ty=dY+200;
+  ctx6.beginPath();
+  ctx6.moveTo(tx,ty+50); ctx6.lineTo(tx+60,ty); ctx6.lineTo(tx+120,ty+50);
+  ctx6.closePath(); ctx6.stroke();
+  // Label sides
+  ctx6.fillStyle='#ff9955'; ctx6.font='12px monospace';
+  ctx6.fillText('r',tx+60,ty+60);
+  ctx6.fillText('r',tx+10,ty+30);
+  ctx6.fillText('≤r',tx+110,ty+30);
+
+  document.getElementById('info6').textContent='p-adic QM replaces ℝ with ℚ_p as the coordinate field. The ultrametric inequality gives spacetime a tree-like hierarchy. Adelic string amplitudes satisfy a product formula over all primes.';
+}
+
+function drawLanglands(W,H){
+  ctx6.fillStyle='#aa88ff';
+  ctx6.font='bold 15px monospace';
+  ctx6.textAlign='left';
+  ctx6.fillText('The Langlands Program — "Grand Unified Theory" of Mathematics', 18, 28);
+
+  // Three pillars
+  const pillars=[
+    {label:'Galois\nRepresentations', desc:'ρ: Gal(Q̄/Q)→GL_n(C)\nSymmetries of\nalgebraic numbers', color:'#55ccff', x:W*0.18},
+    {label:'Automorphic\nForms', desc:'f on GL_n(𝔸_Q)\nHolomorphic modular\nforms, Maass forms', color:'#55ff99', x:W*0.5},
+    {label:'L-functions', desc:'L(s,π)=∏_p L_p(s,π_p)\nAnalytic continuation,\nfunctional equations', color:'#ff9955', x:W*0.82},
+  ];
+  const pillarY=80, pillarH=140;
+  pillars.forEach(p=>{
+    ctx6.strokeStyle=p.color;
+    ctx6.lineWidth=2;
+    ctx6.strokeRect(p.x-70,pillarY,140,pillarH);
+    ctx6.fillStyle=p.color+'22';
+    ctx6.fillRect(p.x-70,pillarY,140,pillarH);
+    ctx6.fillStyle=p.color;
+    ctx6.font='bold 12px monospace'; ctx6.textAlign='center';
+    p.label.split('\n').forEach((ln,i)=>ctx6.fillText(ln,p.x,pillarY+20+i*16));
+    ctx6.fillStyle='#aaaacc'; ctx6.font='12px monospace';
+    p.desc.split('\n').forEach((ln,i)=>ctx6.fillText(ln,p.x,pillarY+65+i*14));
+
+    // Animate pulse
+    if(physAnimId){
+      const alpha=Math.max(0,Math.sin(physT*1.5+pillars.indexOf(p))*0.4+0.4);
+      ctx6.strokeStyle=p.color;
+      ctx6.globalAlpha=alpha;
+      ctx6.lineWidth=3;
+      ctx6.strokeRect(p.x-72,pillarY-2,144,pillarH+4);
+      ctx6.globalAlpha=1;
+    }
+  });
+
+  // Connecting arrows
+  ctx6.strokeStyle='rgba(200,200,255,0.5)'; ctx6.lineWidth=2;
+  ctx6.beginPath(); ctx6.moveTo(W*0.18+70,pillarY+pillarH/2); ctx6.lineTo(W*0.5-70,pillarY+pillarH/2); ctx6.stroke();
+  ctx6.beginPath(); ctx6.moveTo(W*0.5+70,pillarY+pillarH/2); ctx6.lineTo(W*0.82-70,pillarY+pillarH/2); ctx6.stroke();
+  ctx6.fillStyle='rgba(200,200,255,0.7)'; ctx6.font='12px monospace'; ctx6.textAlign='center';
+  ctx6.fillText('Langlands\ncorrespondence', W*0.34, pillarY+pillarH/2-8);
+  ctx6.fillText('Euler product\nexpansion', W*0.66, pillarY+pillarH/2-8);
+
+  // Consequences
+  const consY=pillarY+pillarH+30;
+  ctx6.fillStyle='#c0c0ea'; ctx6.font='bold 12px monospace'; ctx6.textAlign='left';
+  ctx6.fillText('Consequences of the Langlands Program:', 30, consY);
+  const cons=[
+    'Fermat\'s Last Theorem (Wiles 1995): elliptic curves are modular',
+    'Sato–Tate conjecture (proved 2011): distribution of |E(𝔽_p)| for elliptic curves',
+    'Fundamental Lemma (Ngô 2010, Fields Medal): key identity in harmonic analysis on p-adic groups',
+    'Geometric Langlands: replaces Gal(Q̄/Q) with π₁ of a curve, connects to 4D gauge theory',
+    'Kapustin–Witten (2007): Langlands duality = S-duality in N=4 super Yang–Mills theory!',
+    'L-functions encode prime-counting information (Riemann hypothesis is one case)',
+  ];
+  cons.forEach((c2,i)=>{
+    ctx6.fillStyle=i%2?'#88aacc':'#aaccee';
+    ctx6.font='12px monospace';
+    ctx6.fillText('• '+c2, 30, consY+20+i*18);
+  });
+
+  document.getElementById('info6').textContent='Langlands program: Galois representations ↔ Automorphic forms ↔ L-functions. Proved cases include Fermat\'s Last Theorem and Sato-Tate. Geometric Langlands connects to 4D gauge theory (Kapustin-Witten 2007).';
+}
+
+function drawMoonshine(W,H){
+  ctx6.fillStyle='#ffcc44';
+  ctx6.font='bold 15px monospace';
+  ctx6.textAlign='left';
+  ctx6.fillText('Monstrous Moonshine — Monster Group meets Modular Forms', 18, 28);
+
+  // j-function coefficients
+  const jCoeffs=[
+    {n:-1, c:1, desc:'Pole'},
+    {n:0,  c:744, desc:'Constant'},
+    {n:1,  c:196884, desc:'= 196883 + 1 (dim of smallest non-trivial rep + 1)'},
+    {n:2,  c:21493760, desc:'= 21296876 + 196883 + 1'},
+    {n:3,  c:864299970, desc:'sum of first few Monster rep dims'},
+    {n:4,  c:20245856256, desc:'...and so on'},
+  ];
+
+  const tableX=30, tableY=55;
+  ctx6.fillStyle='#ffcc44'; ctx6.font='bold 12px monospace'; ctx6.textAlign='left';
+  ctx6.fillText('j(τ) = q⁻¹ + 744 + 196884·q + 21493760·q² + ...  (q = e^{2πiτ})', tableX, tableY);
+
+  jCoeffs.forEach((row,i)=>{
+    const y=tableY+25+i*28;
+    const hl = physAnimId && Math.floor(physT*0.5)%jCoeffs.length===i;
+    ctx6.fillStyle=hl?'#ffff55':'#ffcc44';
+    ctx6.font=(hl?'bold ':'')+Math.min(11,11)+'px monospace';
+    ctx6.fillText('c('+row.n+') = '+row.c.toLocaleString(), tableX, y);
+    ctx6.fillStyle=hl?'#ffffaa':'#888860';
+    ctx6.font='12px monospace';
+    if(row.desc) ctx6.fillText('  ← '+row.desc, tableX+160, y);
+  });
+
+  // Monster group info
+  const monY=tableY+jCoeffs.length*28+20;
+  ctx6.fillStyle='#ff9955'; ctx6.font='bold 12px monospace'; ctx6.textAlign='left';
+  ctx6.fillText('Monster Group M — the largest sporadic simple group', 30, monY);
+  ctx6.fillStyle='#aaaacc'; ctx6.font='12px monospace';
+  ctx6.fillText('|M| = 2⁴⁶·3²⁰·5⁹·7⁶·11²·13³·17·19·23·29·31·41·47·59·71', 30, monY+16);
+  ctx6.fillText('     ≈ 8.08 × 10⁵³ elements', 30, monY+30);
+  ctx6.fillText('196883 = smallest faithful representation dimension', 30, monY+48);
+  ctx6.fillText('196884 = 196883 + 1 (McKay\'s observation, 1978)', 30, monY+63);
+
+  // Connection diagram
+  const cX=W*0.72, cY=H*0.35;
+  ctx6.strokeStyle='rgba(255,200,80,0.3)'; ctx6.lineWidth=1;
+  ctx6.beginPath(); ctx6.arc(cX,cY,80,0,Math.PI*2); ctx6.stroke();
+
+  const nodes6=[
+    {label:'Monster\nGroup M', color:'#ff9955', angle:-Math.PI/2, r:0},
+    {label:'j-function\nj(τ)', color:'#ffcc44', angle:Math.PI/6, r:80},
+    {label:'Vertex\nOperator\nAlgebra', color:'#55ff99', angle:5*Math.PI/6, r:80},
+    {label:'Bosonic\nString\nTheory', color:'#55ccff', angle:Math.PI/2+Math.PI, r:80},
+  ];
+
+  // Center node
+  ctx6.beginPath(); ctx6.arc(cX,cY,22,0,Math.PI*2);
+  ctx6.fillStyle='#ff9955'; ctx6.fill();
+  ctx6.fillStyle='#000'; ctx6.font='bold 12px monospace'; ctx6.textAlign='center';
+  ctx6.fillText('M',cX,cY-3);
+  ctx6.fillText('Monster',cX,cY+7);
+
+  nodes6.slice(1).forEach(n=>{
+    const nx=cX+n.r*Math.cos(n.angle), ny=cY+n.r*Math.sin(n.angle);
+    ctx6.strokeStyle=n.color+'88'; ctx6.lineWidth=2;
+    ctx6.beginPath(); ctx6.moveTo(cX,cY); ctx6.lineTo(nx,ny); ctx6.stroke();
+    ctx6.beginPath(); ctx6.arc(nx,ny,18,0,Math.PI*2);
+    ctx6.fillStyle=n.color; ctx6.fill();
+    ctx6.fillStyle='#000'; ctx6.font='12px monospace'; ctx6.textAlign='center';
+    n.label.split('\n').forEach((ln,i)=>ctx6.fillText(ln,nx,ny-5+i*9));
+  });
+
+  // Borcherds note
+  ctx6.fillStyle='#aa88ff'; ctx6.font='12px monospace'; ctx6.textAlign='left';
+  ctx6.fillText('Borcherds (1992, Fields Medal): proved via vertex algebras + string theory', 30, H-50);
+  ctx6.fillText('Witten (2007): 3D pure gravity on AdS₃ has Monster symmetry!', 30, H-34);
+  ctx6.fillText('Thompson, McKay, Conway, Norton conjectured 1978–1979.', 30, H-18);
+
+  document.getElementById('info6').textContent='Moonshine: the j-function expansion coefficients 1, 196884, 21493760,... are sums of Monster group representation dimensions. Proved by Borcherds using vertex operator algebras — connecting to bosonic string theory on a Z₂ orbifold.';
+}
+
+function drawElliptic(W,H){
+  ctx6.fillStyle='#55ff99';
+  ctx6.font='bold 15px monospace';
+  ctx6.textAlign='left';
+  ctx6.fillText('Elliptic Curves over Finite Fields & L-functions', 18, 28);
+
+  // Draw elliptic curve y² = x³ - x + 1 over ℝ
+  const gL=50,gR=W*0.55,gT=55,gB=H-100;
+  const gW2=gR-gL, gH2=gB-gT;
+  const xMin=-2.5,xMax=3,yMin=-4,yMax=4;
+  const toGX2=x=>(x-xMin)/(xMax-xMin)*gW2+gL;
+  const toGY2=y=>(yMax-y)/(yMax-yMin)*gH2+gT;
+
+  // Axes
+  ctx6.strokeStyle='#2a2a5a'; ctx6.lineWidth=1;
+  ctx6.beginPath(); ctx6.moveTo(gL,toGY2(0)); ctx6.lineTo(gR,toGY2(0)); ctx6.stroke();
+  ctx6.beginPath(); ctx6.moveTo(toGX2(0),gT); ctx6.lineTo(toGX2(0),gB); ctx6.stroke();
+
+  // Curve: y² = x³ - x + 1
+  ctx6.strokeStyle='#55ff99'; ctx6.lineWidth=2;
+  for(let branch=0;branch<=1;branch++){
+    ctx6.beginPath(); let first=true;
+    for(let ix=0;ix<300;ix++){
+      const x=xMin+ix/299*(xMax-xMin);
+      const rhs=x*x*x-x+1;
+      if(rhs<0) continue;
+      const y=(branch===0?1:-1)*Math.sqrt(rhs);
+      if(y<yMin||y>yMax) continue;
+      const gx=toGX2(x), gy=toGY2(y);
+      if(first){ctx6.moveTo(gx,gy);first=false;}else ctx6.lineTo(gx,gy);
+    }
+    ctx6.stroke();
+  }
+
+  ctx6.fillStyle='#55ff99'; ctx6.font='12px monospace'; ctx6.textAlign='left';
+  ctx6.fillText('y² = x³ - x + 1 over ℝ', gL, gT-10);
+
+  // Points over 𝔽_p for small p
+  const pList=[2,3,5,7,11,13];
+  const rhs2=(x,p)=>((x*x*x-x+1)%p+p)%p;
+  const isQR=(n,p)=>{ if(n===0)return true; for(let y=0;y<p;y++)if((y*y%p)===n)return true; return false; };
+  const countPoints=(p)=>{let cnt=0;for(let x=0;x<p;x++){const r=rhs2(x,p);if(r===0)cnt++;else if(isQR(r,p))cnt+=2;}return cnt+1; };// +1 for point at infinity
+
+  const tableX2=gR+30, tableY2=gT;
+  ctx6.fillStyle='#55ff99'; ctx6.font='bold 12px monospace'; ctx6.textAlign='left';
+  ctx6.fillText('Points |E(𝔽_p)|:', tableX2, tableY2);
+  pList.forEach((p,i)=>{
+    const cnt=countPoints(p);
+    const ap=p+1-cnt; // Frobenius trace
+    const y=tableY2+20+i*24;
+    ctx6.fillStyle=['#55ccff','#55ff99','#ff9955','#cc55ff','#ffcc44','#ff5588'][i];
+    ctx6.font='12px monospace';
+    ctx6.fillText('p='+p+': |E|='+cnt+'  a_p='+ap, tableX2, y);
+  });
+
+  // L-function
+  ctx6.fillStyle='#c0c0ea'; ctx6.font='12px monospace';
+  ctx6.fillText('L(E,s) = ∏_p (1-a_p·p^{-s}+p^{1-2s})^{-1}', tableX2, tableY2+pList.length*24+28);
+  ctx6.fillText('= ∑_n a_n n^{-s}  (Dirichlet series)', tableX2, tableY2+pList.length*24+44);
+  ctx6.fillStyle='#7788aa';
+  ctx6.fillText('BSD Conjecture: rank(E(ℚ)) = ord_{s=1} L(E,s)', tableX2, tableY2+pList.length*24+64);
+  ctx6.fillText('(Millennium Prize — $1M!)', tableX2, tableY2+pList.length*24+80);
+
+  // Wiles-Fermat connection
+  ctx6.fillStyle='#ffcc44'; ctx6.font='bold 12px monospace';
+  ctx6.fillText('Shimura–Taniyama–Weil: every E/ℚ is modular', tableX2, tableY2+pList.length*24+108);
+  ctx6.fillStyle='#aaaacc'; ctx6.font='12px monospace';
+  ctx6.fillText('L(E,s) = L(f,s) for a modular form f of weight 2', tableX2, tableY2+pList.length*24+124);
+  ctx6.fillText('⟹ Fermat\'s Last Theorem (Wiles 1995)', tableX2, tableY2+pList.length*24+140);
+
+  // Animate: highlight points on curve for selected p
+  if(physAnimId){
+    const p=pList[Math.floor(physT*0.7)%pList.length];
+    for(let x=0;x<p;x++){
+      const r=rhs2(x,p);
+      for(let y=0;y<p;y++){
+        if((y*y%p)===r){
+          const fx=x<p/2?x:x-p;
+          const fy=y<p/2?y:y-p;
+          if(fx>=xMin&&fx<=xMax&&fy>=yMin&&fy<=yMax){
+            ctx6.beginPath(); ctx6.arc(toGX2(fx),toGY2(fy),5,0,Math.PI*2);
+            ctx6.fillStyle='rgba(255,200,80,0.8)'; ctx6.fill();
+          }
+        }
+      }
+    }
+    ctx6.fillStyle='#ffcc44'; ctx6.font='bold 12px monospace'; ctx6.textAlign='left';
+    ctx6.fillText('𝔽_'+p+' points highlighted', gL, gB+15);
+  }
+
+  document.getElementById('info6').textContent='Elliptic curve y²=x³-x+1. The L-function L(E,s) encodes the number of points |E(𝔽_p)| for every prime p. The Birch & Swinnerton-Dyer conjecture (unsolved, $1M prize) connects the rank of E(ℚ) to the order of vanishing of L(E,s) at s=1.';
+}
+
+function togglePhysAnim(btn){
+  if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');physT=0;drawPhysics();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){physT+=0.05*(window.animSpeed||0.1);drawPhysics();physAnimId=requestAnimationFrame(frame);}
+  physAnimId=requestAnimationFrame(frame);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.animSpeed=0.1;
+window.zoomX=1;
+buildProofList();
+requestAnimationFrame(()=>{ draw0(); draw1(); draw2(); drawAdeles(); drawSurreal(); drawHyperreals(); drawPhysics(); });
+
+window.addEventListener('resize',()=>{
+  const active=[...document.querySelectorAll('.page')].findIndex(p=>p.classList.contains('active'));
+  const draws=[draw0,draw1,draw2,drawAdeles,drawSurreal,drawHyperreals,drawPhysics];
+  if(active>=0&&draws[active]) draws[active]();
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

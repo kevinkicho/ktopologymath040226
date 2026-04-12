@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>58 — Dark Energy & Hubble Tension</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0f;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+header{padding:18px 28px;border-bottom:1px solid #222240}
+header h1{font-size:1.25rem;font-weight:600;color:#66aaff}
+header p{font-size:.82rem;color:#8888aa;margin-top:3px}
+.tabs{display:flex;gap:0;border-bottom:1px solid #222240;background:#0d0d18}
+.tab-btn{padding:10px 22px;background:none;border:none;color:#8888aa;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;transition:.2s}
+.tab-btn.active{color:#66aaff;border-bottom-color:#66aaff}
+.tab-btn:hover:not(.active){color:#bbbbdd}
+.tab-pane{display:none;padding:22px 28px}
+.tab-pane.active{display:flex;flex-direction:column;gap:16px}
+canvas{display:block;border-radius:6px;background:#0d0d1a;border:1px solid #1a1a38}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.82rem;color:#aaaacc}
+.controls label{display:flex;align-items:center;gap:6px}
+.controls input[type=range]{accent-color:#66aaff;width:110px}
+.controls select{background:#141428;color:#e8e8f0;border:1px solid #333;border-radius:4px;padding:3px 7px}
+.readout{font-family:monospace;background:#111128;border:1px solid #1e1e42;border-radius:4px;padding:8px 12px;font-size:.8rem;line-height:1.6;color:#ccccee;white-space:pre}
+.info{font-size:.82rem;color:#9999bb;line-height:1.55;max-width:720px}
+.legend-row{display:flex;flex-wrap:wrap;gap:14px;font-size:.78rem;color:#9999bb;align-items:center}
+.leg-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px}
+body{padding-bottom:38px}
+</style>
+</head>
+<body>
+<header style="display:flex;align-items:baseline;gap:18px;flex-wrap:wrap">
+  <a href="/" style="font-size:.78rem;color:#8888aa;text-decoration:none;white-space:nowrap;margin-right:6px" onmouseover="this.style.color='#66aaff'" onmouseout="this.style.color='#8888aa'">← Dashboard</a>
+  <div>
+    <h1>Module 58 — Dark Energy &amp; Hubble Tension</h1>
+    <p>Type Ia supernovae · ΛCDM cosmology · H₀ tension (~5σ discrepancy)</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(1)">1 · Hubble Diagram (SN Ia)</button>
+  <button class="tab-btn" onclick="switchTab(2)">2 · Scale Factor a(t)</button>
+  <button class="tab-btn" onclick="switchTab(3)">3 · H₀ Tension</button>
+  <button class="tab-btn" onclick="switchTab(4)">4 · Equation of State w(z)</button>
+  <button class="tab-btn" onclick="switchTab(5)">5 · SNe Ia &amp; Hubble Tension</button>
+  <button class="tab-btn" onclick="switchTab(6)">6 · BAO &amp; Large-Scale Structure</button>
+  <button class="tab-btn" onclick="switchTab(7)">7 · Cosmological Constant Problem</button>
+  <button class="tab-btn" onclick="switchTab(8)">8 · Future Surveys</button>
+</div>
+
+<div id="pane1" class="tab-pane active" data-role="panel">
+  <div class="info">Type Ia supernovae are "standard candles" — their intrinsic luminosity is known, so measured brightness gives distance. Plotting distance modulus μ vs redshift z revealed accelerating expansion (1998, Nobel 2011). Deviations from the empty-universe line reveal dark energy.</div>
+  <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+    <label>Ω_Λ <input type="range" id="omL" min="0" max="1" step="0.01" value="0.7"> <span id="omLv">0.70</span></label>
+    <label>Ω_m <input type="range" id="omM" min="0" max="1" step="0.01" value="0.3"> <span id="omMv">0.30</span></label>
+    <label>H₀ <input type="range" id="H0s" min="60" max="80" step="0.5" value="70"> <span id="H0sv">70</span> km/s/Mpc</label>
+    <button id="demoBtn1" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Play</button>
+  </div>
+  <canvas id="cv1" width="820" height="440"></canvas>
+  <div class="readout" id="ro1">μ at z=0.5: —   z=1.0: —</div>
+</div>
+
+<div id="pane2" class="tab-pane" data-role="panel">
+  <div class="info">The scale factor a(t) describes how the universe expands. In a matter-only universe a∝t^(2/3); with dark energy (Ω_Λ>0) the expansion accelerates — a(t) curves upward. The inflection point marks when dark energy began dominating.</div>
+  <div class="controls" data-role="sidebar">
+    <label>Ω_Λ <input type="range" id="omL2" min="0" max="0.99" step="0.01" value="0.7"> <span id="omL2v">0.70</span></label>
+    <label>Ω_m <input type="range" id="omM2" min="0.01" max="1" step="0.01" value="0.3"> <span id="omM2v">0.30</span></label>
+    <label><input type="checkbox" id="showNow" checked> Mark today</label>
+    <label><input type="checkbox" id="showInfl" checked> Mark inflection</label>
+    <button id="animBtn2" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate</button>
+  </div>
+  <canvas id="cv2" width="820" height="440"></canvas>
+  <div class="readout" id="ro2">Age of universe: —   Inflection at: —</div>
+</div>
+
+<div id="pane3" class="tab-pane" data-role="panel">
+  <div class="info">Different measurement methods yield inconsistent values of H₀. Early-universe methods (CMB+BAO from Planck) give ~67 km/s/Mpc; late-universe distance ladders (Cepheids+SN Ia from SH0ES) give ~73. The tension is ~5σ — either a systematic or new physics.</div>
+  <div class="controls" data-role="sidebar">
+    <button id="pauseBtn3" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Play</button>
+  </div>
+  <canvas id="cv3" width="820" height="480"></canvas>
+  <div class="legend-row">
+    <span><span class="leg-dot" style="background:#4488ff"></span>Early-universe (CMB/BAO)</span>
+    <span><span class="leg-dot" style="background:#ff6644"></span>Late-universe (distance ladder)</span>
+    <span><span class="leg-dot" style="background:#88ff88"></span>Intermediate methods</span>
+  </div>
+</div>
+
+<!-- ══════════════ Tab 4: Equation of State w(z) ══════════════ -->
+<div id="pane4" class="tab-pane" data-role="panel">
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:300px">
+      <div class="controls" data-role="sidebar">
+        <label>w₀ <input type="range" id="w0s" min="-1.5" max="-0.5" step="0.01" value="-1"> <span id="w0v">-1.00</span></label>
+        <label>wₐ <input type="range" id="was" min="-1" max="1" step="0.01" value="0"> <span id="wav">0.00</span></label>
+        <label>
+          <select id="wmodel">
+            <option value="lcdm">Λ (w=-1 fixed)</option>
+            <option value="quint">Quintessence (w=-0.9)</option>
+            <option value="phantom">Phantom (w=-1.2)</option>
+            <option value="cpl">CPL custom</option>
+          </select>
+        </label>
+        <button id="animBtn4" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate CPL</button>
+      </div>
+      <canvas id="cv4a" width="560" height="280"></canvas>
+      <canvas id="cv4b" width="560" height="220"></canvas>
+      <div class="readout" id="ro4">w at z=0: —   w at z=1: —   H(z=1)/H₀: —</div>
+    </div>
+    <div style="width:260px;font-size:.8rem;line-height:1.65;color:#aaaacc">
+      <div style="color:#66aaff;font-weight:600;margin-bottom:8px">Equation of State &amp; CPL</div>
+      <div style="margin-bottom:7px">The dark energy equation of state <em>w = p/ρ</em> determines expansion history. A cosmological constant has <em>w = −1</em> exactly. Deviations signal new physics.</div>
+      <div style="color:#ffcc44;margin:6px 0 2px">CPL parametrization:</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px">w(a) = w₀ + wₐ(1−a)</div>
+      <div style="margin-bottom:6px">Chevallier-Polarski-Linder form. <em>a=1/(1+z)</em> is the scale factor. At z=0, w=w₀; at high z, w→w₀+wₐ.</div>
+      <div style="color:#ffcc44;margin:6px 0 2px">Hubble parameter:</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px;font-size:.75rem">H²(z)/H₀² = Ωm(1+z)³ + Ωde·f(z)</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px;font-size:.75rem">f(z) = (1+z)^(3(1+w₀+wₐ))·e^(−3wₐz/(1+z))</div>
+      <div style="color:#88ff88;margin:8px 0 3px">Key constraints (2024):</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li>Planck 2018: w₀ = −1.03 ± 0.03</li>
+        <li>DESI 2024: w₀ = −0.99 ± 0.05</li>
+        <li><strong style="color:#ff8844">DESI+CMB+BAO: w₀wₐ tension with Λ at 3.9σ</strong></li>
+      </ul>
+      <div style="color:#88ff88;margin:8px 0 3px">Dark energy models:</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li><em>Quintessence</em>: scalar field, V(φ)∝φ⁻ⁿ, w &gt; −1, thawing/freezing</li>
+        <li><em>Phantom field</em>: w &lt; −1, kinetic term wrong sign, leads to Big Rip</li>
+        <li><em>k-essence</em>: non-canonical kinetic term</li>
+        <li><em>Axion</em>: ultralight, fuzzy dark energy</li>
+      </ul>
+      <div style="color:#9999bb;font-size:.75rem">Big Rip (w&lt;−1): scale factor diverges in finite time t_rip = t₀ + 2/(3|1+w|H₀√Ωde). For w=−1.2, t_rip−t₀ ≈ 22 Gyr.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ Tab 5: SNe Ia deep dive & Hubble Tension ══════════════ -->
+<div id="pane5" class="tab-pane" data-role="panel">
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:300px">
+      <div class="controls" data-role="sidebar">
+        <label>Ω_Λ <input type="range" id="omL5" min="0" max="1" step="0.01" value="0.7"> <span id="omL5v">0.70</span></label>
+        <label>Ω_m <input type="range" id="omM5" min="0.01" max="1" step="0.01" value="0.3"> <span id="omM5v">0.30</span></label>
+        <label>H₀ <input type="range" id="H05" min="60" max="80" step="0.5" value="70"> <span id="H05v">70.0</span></label>
+        <button id="animBtn5" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Discovery replay</button>
+      </div>
+      <canvas id="cv5a" width="560" height="300"></canvas>
+      <canvas id="cv5b" width="560" height="200"></canvas>
+      <div class="readout" id="ro5">Δμ residual at z=0.5: —   H₀ tension: —σ</div>
+    </div>
+    <div style="width:260px;font-size:.8rem;line-height:1.65;color:#aaaacc">
+      <div style="color:#66aaff;font-weight:600;margin-bottom:8px">Type Ia Supernovae</div>
+      <div style="margin-bottom:7px">SNe Ia are <em>standardizable candles</em> — not intrinsically identical, but their peak luminosity correlates tightly with decline rate (Phillips relation, 1993). After correction, σ ≈ 0.15 mag.</div>
+      <div style="color:#ffcc44;margin:6px 0 2px">Distance modulus:</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px">μ = 5 log₁₀(d_L / 10 pc)</div>
+      <div style="margin-bottom:6px">Luminosity distance d_L = (1+z)·d_C where d_C = (c/H₀)∫dz/E(z).</div>
+      <div style="color:#ffcc44;margin:6px 0 2px">Phillips relation:</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px">M_B = −19.3 + 0.784(Δm₁₅−1.1)</div>
+      <div style="color:#88ff88;margin:8px 0 3px">1998 Discovery:</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li>Perlmutter (SCP) &amp; Riess/Schmidt (HZT) independently found SNe Ia at z~0.5 appeared ~0.25 mag fainter than expected</li>
+        <li>Conclusion: expansion is <em>accelerating</em>, Ω_Λ ≈ 0.7</li>
+        <li>Nobel Prize 2011: Perlmutter, Riess, Schmidt</li>
+      </ul>
+      <div style="color:#88ff88;margin:8px 0 3px">Hubble Tension (2024):</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li>Planck CMB: H₀ = 67.4 ± 0.5</li>
+        <li>SH0ES (Cepheids+SNe): H₀ = 73.0 ± 1.0</li>
+        <li>Tension: <strong style="color:#ff8844">~5.0σ</strong> — highly significant</li>
+        <li>Early dark energy, interacting dark energy, or systematics?</li>
+      </ul>
+      <div style="color:#9999bb;font-size:.75rem">Distance ladder: Geometric parallax → Cepheid PLR → SNe Ia → H₀. Each rung multiplies uncertainties. JWST Cepheid re-analysis (2023) confirms SH0ES with reduced scatter.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ Tab 6: BAO & Large-Scale Structure ══════════════ -->
+<div id="pane6" class="tab-pane" data-role="panel">
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:300px">
+      <div class="controls" data-role="sidebar">
+        <label>Sound horizon r_s <input type="range" id="rsSlider" min="120" max="170" step="1" value="147"> <span id="rsv">147</span> Mpc</label>
+        <label>
+          <select id="baosurvey">
+            <option value="all">All surveys</option>
+            <option value="boss">BOSS DR12</option>
+            <option value="eboss">eBOSS DR16</option>
+            <option value="desi">DESI 2024</option>
+          </select>
+        </label>
+        <button id="animBtn6" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate BAO shell</button>
+      </div>
+      <canvas id="cv6a" width="560" height="250"></canvas>
+      <canvas id="cv6b" width="560" height="240"></canvas>
+      <div class="readout" id="ro6">BAO peak at: — Mpc   D_V(z=0.51)/r_s: —</div>
+    </div>
+    <div style="width:260px;font-size:.8rem;line-height:1.65;color:#aaaacc">
+      <div style="color:#66aaff;font-weight:600;margin-bottom:8px">Baryon Acoustic Oscillations</div>
+      <div style="margin-bottom:7px">Before recombination (z~1100), photon-baryon plasma oscillated as sound waves. At recombination these waves froze, leaving a characteristic scale — the <em>sound horizon</em> r_s ≈ 147 Mpc — imprinted in galaxy clustering.</div>
+      <div style="color:#ffcc44;margin:6px 0 2px">Sound horizon:</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px;font-size:.75rem">r_s = ∫₀^t_rec c_s dt/a = ∫₀^z_rec c_s dz/H(z)</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px;font-size:.75rem">c_s = c/√(3(1 + 3Ωb/4Ωγ))</div>
+      <div style="margin-bottom:6px">The BAO peak in ξ(r) at ~100 h⁻¹ Mpc is a <em>standard ruler</em> — its angular size or redshift separation measures D_A(z) or H(z) directly.</div>
+      <div style="color:#88ff88;margin:8px 0 3px">Survey timeline:</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li>2dFGRS (2005): first hint of BAO</li>
+        <li>SDSS (2005, Eisenstein et al.): first 3.4σ detection</li>
+        <li>BOSS DR12 (2016): 1% D_A precision</li>
+        <li>eBOSS DR16 (2020): quasars at z~1.5</li>
+        <li><strong style="color:#66aaff">DESI 2024</strong>: 5.7M galaxies, best BAO yet</li>
+        <li>Euclid (2023–): 1.5 billion galaxy survey</li>
+      </ul>
+      <div style="color:#88ff88;margin:8px 0 3px">S₈ tension:</div>
+      <div style="font-size:.75rem">Weak lensing surveys (DES, HSC, KiDS) measure S₈ = σ₈√(Ωm/0.3) ≈ 0.76, while Planck CMB predicts S₈ ≈ 0.83. ~2–3σ tension — possible sign of modified gravity or massive neutrinos.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ Tab 7: Cosmological Constant Problem ══════════════ -->
+<div id="pane7" class="tab-pane" data-role="panel">
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:300px">
+      <div class="controls" data-role="sidebar">
+        <label>
+          <select id="ccpView">
+            <option value="orders">120 Orders of Magnitude</option>
+            <option value="vacuum">Vacuum Fluctuations</option>
+            <option value="solutions">Proposed Solutions</option>
+          </select>
+        </label>
+        <button id="animBtn7" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate</button>
+      </div>
+      <canvas id="cv7" width="560" height="480"></canvas>
+      <div class="readout" id="ro7">QFT prediction: ~10⁹⁴ g/cm³   Observed: ~10⁻²⁹ g/cm³   Ratio: 10¹²³</div>
+    </div>
+    <div style="width:260px;font-size:.8rem;line-height:1.65;color:#aaaacc">
+      <div style="color:#66aaff;font-weight:600;margin-bottom:8px">The Cosmological Constant Problem</div>
+      <div style="margin-bottom:7px">Quantum field theory predicts every field contributes zero-point energy to the vacuum. Summing all modes up to the Planck scale gives a vacuum energy density <em>120 orders of magnitude</em> larger than observed — "the worst prediction in physics."</div>
+      <div style="color:#ffcc44;margin:6px 0 2px">QFT estimate:</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px;font-size:.75rem">ρ_vac ≈ M_Pl⁴/(16π²) ≈ 2×10⁷⁴ GeV⁴</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px;font-size:.75rem">ρ_obs ≈ (2.3×10⁻³ eV)⁴ ≈ 2×10⁻¹¹ GeV⁴</div>
+      <div style="color:#ffcc44;margin:6px 0 2px">The Weinberg bound (1987):</div>
+      <div style="margin-bottom:6px">Anthropic argument: if |Λ| ≳ 100×ρ_matter at matter domination, galaxies cannot form. This predicts Λ within ~2 orders of ρ_matter — the first anthropic prediction confirmed by observation.</div>
+      <div style="color:#88ff88;margin:8px 0 3px">Proposed solutions:</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li><em>SUSY</em>: cancels bosons vs fermions, but still ΔΛ ∝ M_SUSY⁴ (60 orders off)</li>
+        <li><em>String landscape</em>: 10⁵⁰⁰ vacua, anthropic selection</li>
+        <li><em>Sequestering</em>: local/global separation of vacuum energy</li>
+        <li><em>Degravitation</em>: vacuum energy doesn't gravitate</li>
+        <li><em>Self-tuning</em>: dynamical cancellation mechanism</li>
+      </ul>
+      <div style="color:#9999bb;font-size:.75rem">Λ = 8πG ρ_vac/c⁴. Current value: Λ ≈ 1.1×10⁻⁵² m⁻². Equivalent energy scale: (2.3 meV)⁴ — the scale of neutrino masses. Coincidence?</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ Tab 8: Future Surveys ══════════════ -->
+<div id="pane8" class="tab-pane" data-role="panel">
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:300px">
+      <div class="controls" data-role="sidebar">
+        <label>
+          <select id="surveyView">
+            <option value="timeline">Survey Timeline</option>
+            <option value="forecast">w₀-wₐ Forecast</option>
+            <option value="probes">Probe Comparison</option>
+          </select>
+        </label>
+        <button id="animBtn8" style="background:#1a1a38;color:#66aaff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate</button>
+      </div>
+      <canvas id="cv8" width="560" height="480"></canvas>
+      <div class="readout" id="ro8">Figure of merit (area⁻¹ in w₀-wₐ): —</div>
+    </div>
+    <div style="width:260px;font-size:.8rem;line-height:1.65;color:#aaaacc">
+      <div style="color:#66aaff;font-weight:600;margin-bottom:8px">Next-Generation Dark Energy Surveys</div>
+      <div style="color:#88ff88;margin:6px 0 3px">Active / Recent:</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li><strong style="color:#66aaff">DESI</strong>: 5000-fiber spectrograph, 14,000 deg², 40M galaxy spectra by 2026. Year-1 (2024): 5.7M spectra, best BAO to date.</li>
+        <li><strong style="color:#ff8844">Euclid</strong>: ESA space telescope (launched Jul 2023), 1.5B galaxies, weak lensing + spectroscopic BAO. DR1: 2024.</li>
+      </ul>
+      <div style="color:#88ff88;margin:6px 0 3px">Upcoming:</div>
+      <ul style="padding-left:16px;margin-bottom:6px">
+        <li><strong style="color:#88ff88">Vera Rubin / LSST</strong>: first light 2024, 10-yr cadence, photometric SNe Ia at high-z, weak lensing tomography</li>
+        <li><strong style="color:#ffcc44">Roman Space Telescope</strong>: grism spectroscopy, high-z SNe Ia, microlensing, launch ~2026</li>
+        <li><strong style="color:#cc88ff">CMB-S4</strong>: next-gen CMB, lensing + BBN, constrains early dark energy</li>
+        <li><strong style="color:#88ddff">LISA / ET</strong>: gravitational wave standard sirens — independent H₀ probe</li>
+      </ul>
+      <div style="color:#ffcc44;margin:6px 0 2px">Figure of Merit (FoM):</div>
+      <div style="font-family:monospace;background:#111128;padding:5px 8px;border-radius:4px;margin-bottom:6px;font-size:.75rem">FoM = 1/√det(Cov(w₀,wₐ))</div>
+      <div style="font-size:.75rem;margin-bottom:6px">Higher FoM = tighter constraints in w₀-wₐ plane. DESI Year-5 + Euclid combination: FoM &gt; 500 (compared to Planck alone ~50).</div>
+      <div style="color:#9999bb;font-size:.75rem">21cm intensity mapping (CHIME, HIRAX, SKA): maps HI emission across z=0.8–2.5, cross-correlated with galaxy surveys for BAO. Independent of galaxy formation biases.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims58();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims58(){
+  if(typeof raf1!=='undefined' && raf1){cancelAnimationFrame(raf1);raf1=null;}
+  if(typeof raf2!=='undefined' && raf2){cancelAnimationFrame(raf2);raf2=null;}
+  if(typeof raf2anim!=='undefined' && raf2anim){cancelAnimationFrame(raf2anim);raf2anim=null;}
+  if(typeof raf3!=='undefined' && raf3){cancelAnimationFrame(raf3);raf3=null;}
+}
+
+
+// ─── Shared cosmology utilities ───────────────────────────────────────────────
+// Comoving distance via trapezoidal integration: d_C = (c/H0) ∫ dz/E(z)
+function Ez(z, omL, omM) {
+  const omK = 1 - omL - omM;
+  return Math.sqrt(omM * (1 + z) ** 3 + omK * (1 + z) ** 2 + omL);
+}
+function comovingDist(z, omL, omM, H0, steps = 400) {
+  const c = 299792.458; // km/s
+  let sum = 0, dz = z / steps;
+  for (let i = 0; i < steps; i++) {
+    const z1 = (i + 0.5) * dz;
+    sum += 1 / Ez(z1, omL, omM);
+  }
+  return (c / H0) * sum * dz; // Mpc
+}
+function distModulus(z, omL, omM, H0) {
+  if (z <= 0) return 0;
+  const dC = comovingDist(z, omL, omM, H0);
+  const dL = (1 + z) * dC; // luminosity distance in Mpc
+  return 5 * Math.log10(dL * 1e6 / 10); // μ = 5 log10(dL/10pc)
+}
+
+// ─── SN Ia data (Union2.1 representative subset) ─────────────────────────────
+const snData = [
+  {z:0.014,mu:33.2},{z:0.024,mu:34.6},{z:0.030,mu:35.1},{z:0.040,mu:35.8},
+  {z:0.052,mu:36.5},{z:0.065,mu:37.0},{z:0.080,mu:37.6},{z:0.095,mu:38.0},
+  {z:0.115,mu:38.5},{z:0.140,mu:39.0},{z:0.170,mu:39.5},{z:0.200,mu:39.9},
+  {z:0.240,mu:40.4},{z:0.280,mu:40.7},{z:0.330,mu:41.1},{z:0.390,mu:41.5},
+  {z:0.450,mu:41.9},{z:0.520,mu:42.2},{z:0.600,mu:42.6},{z:0.700,mu:43.0},
+  {z:0.800,mu:43.3},{z:0.900,mu:43.6},{z:1.010,mu:43.9},{z:1.100,mu:44.1},
+  {z:1.200,mu:44.3},{z:1.400,mu:44.7},{z:1.600,mu:45.0},{z:1.900,mu:45.4}
+];
+// Add scatter
+const rng = (function(){let s=42;return function(){s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff}})();
+const snScattered = snData.map(d=>({z:d.z,mu:d.mu+(rng()-0.5)*0.6}));
+
+// ─── Tab 1: Hubble Diagram ────────────────────────────────────────────────────
+let raf1 = null;
+let paused1 = false;
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
+  cv.style.width = '820px'; cv.style.height = '440px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 440;
+
+  // Auto-demo animation state
+  let demoRunning = false, demoT = 0;
+  const demoSteps = [
+    { dur:60,  omL:0,   omM:0,   H0:70, tip:'Empty universe: Ω_Λ=0, Ω_m=0. SN data lies ABOVE this — farther than expected!' },
+    { dur:80,  omL:0,   omM:1,   H0:70, tip:'Matter-only universe (Ω_m=1): also below the data — gravity alone predicts too little distance.' },
+    { dur:80,  omL:0.7, omM:0.3, H0:70, tip:'ΛCDM (Ω_Λ=0.7, Ω_m=0.3): dark energy accelerates expansion → supernovae appear farther away.' },
+    { dur:60,  omL:0.7, omM:0.3, H0:73, tip:'H₀=73 (SH0ES): shifts the curve — tension with CMB value of 67.4.' },
+    { dur:60,  omL:0.7, omM:0.3, H0:67.4, tip:'H₀=67.4 (Planck CMB): slightly different. The 5σ Hubble tension shows here.' },
+  ];
+  let demoStepIdx = 0, demoStepT = 0;
+  let activeTip = '';
+
+  document.getElementById('demoBtn1').onclick = () => {
+    paused1 = !paused1;
+    document.getElementById('demoBtn1').textContent = paused1 ? '▶ Play' : '⏸ Pause';
+    if (paused1) { demoRunning = false; }
+  };
+
+  const omLEl = document.getElementById('omL');
+  const omMEl = document.getElementById('omM');
+  const H0El  = document.getElementById('H0s');
+  const omLvEl = document.getElementById('omLv');
+  const omMvEl = document.getElementById('omMv');
+  const H0vEl  = document.getElementById('H0sv');
+
+  function getParams() {
+    const omL = +omLEl.value, omM = +omMEl.value, H0 = +H0El.value;
+    omLvEl.textContent = omL.toFixed(2);
+    omMvEl.textContent = omM.toFixed(2);
+    H0vEl.textContent  = H0.toFixed(1);
+    return {omL, omM, H0};
+  }
+
+  const pad = {l:60, r:30, t:30, b:50};
+  const pW = W - pad.l - pad.r, pH = H - pad.t - pad.b;
+
+  // z range: 0.01 → 2.0 (log scale for x)
+  const zMin = 0.01, zMax = 2.0;
+  function zToX(z) { return pad.l + (Math.log10(z) - Math.log10(zMin)) / (Math.log10(zMax) - Math.log10(zMin)) * pW; }
+  // μ range: 32 → 46
+  const muMin = 32, muMax = 46;
+  function muToY(mu) { return pad.t + (1 - (mu - muMin) / (muMax - muMin)) * pH; }
+
+  function draw() {
+    const {omL, omM, H0} = getParams();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d0d1a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid & axes
+    ctx.strokeStyle = '#1a1a38'; ctx.lineWidth = 1;
+    const zTicks = [0.01,0.02,0.05,0.1,0.2,0.5,1.0,2.0];
+    zTicks.forEach(z => {
+      const x = zToX(z);
+      ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t+pH); ctx.stroke();
+      ctx.fillStyle='#666688'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(z.toString(), x, pad.t+pH+16);
+    });
+    const muTicks = [32,34,36,38,40,42,44,46];
+    muTicks.forEach(mu => {
+      const y = muToY(mu);
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+pW, y); ctx.stroke();
+      ctx.fillStyle='#666688'; ctx.font='12px monospace'; ctx.textAlign='right';
+      ctx.fillText(mu, pad.l-8, y+4);
+    });
+    // Axis labels
+    ctx.fillStyle='#9999bb'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Redshift z', pad.l + pW/2, H-6);
+    ctx.save(); ctx.translate(14, pad.t + pH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Distance modulus μ', 0, 0); ctx.restore();
+
+    // Empty universe line (Ω_m=0, Ω_Λ=0)
+    ctx.strokeStyle = '#444466'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    let first = true;
+    for (let i = 0; i <= 200; i++) {
+      const t = i / 200;
+      const z = Math.pow(10, Math.log10(zMin) + t * Math.log10(zMax/zMin));
+      const mu = distModulus(z, 0, 0, 70);
+      const x = zToX(z), y = muToY(mu);
+      first ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      first = false;
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Matter-only line (Ω_m=1, Ω_Λ=0)
+    ctx.strokeStyle = '#446688'; ctx.lineWidth = 1.5; ctx.setLineDash([3,5]);
+    ctx.beginPath(); first = true;
+    for (let i = 0; i <= 200; i++) {
+      const t = i / 200;
+      const z = Math.pow(10, Math.log10(zMin) + t * Math.log10(zMax/zMin));
+      const mu = distModulus(z, 0, 1, 70);
+      const x = zToX(z), y = muToY(mu);
+      first ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      first = false;
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // ΛCDM model line
+    ctx.strokeStyle = '#66aaff'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); first = true;
+    for (let i = 0; i <= 200; i++) {
+      const t = i / 200;
+      const z = Math.pow(10, Math.log10(zMin) + t * Math.log10(zMax/zMin));
+      const mu = distModulus(z, omL, omM, H0);
+      const x = zToX(z), y = muToY(mu);
+      first ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      first = false;
+    }
+    ctx.stroke();
+
+    // SN Ia data points
+    snScattered.forEach(d => {
+      if (d.z < zMin || d.z > zMax) return;
+      const x = zToX(d.z), y = muToY(d.mu);
+      ctx.beginPath(); ctx.arc(x, y, 3.5, 0, 2*Math.PI);
+      ctx.fillStyle = '#ffcc44'; ctx.fill();
+      ctx.strokeStyle = '#aa8800'; ctx.lineWidth = 0.5; ctx.stroke();
+    });
+
+    // Legend
+    const lx = pad.l + pW - 200, ly = pad.t + 16;
+    const items = [
+      {col:'#444466', dash:[4,4], label:'Empty universe'},
+      {col:'#446688', dash:[3,5], label:'Matter-only'},
+      {col:'#66aaff', dash:[], label:`ΛCDM (Ω_Λ=${omL.toFixed(2)})`},
+      {col:'#ffcc44', dot:true, label:'SN Ia data'},
+    ];
+    items.forEach((it, i) => {
+      const y = ly + i*20;
+      if (it.dot) {
+        ctx.beginPath(); ctx.arc(lx+10, y, 4, 0, 2*Math.PI);
+        ctx.fillStyle=it.col; ctx.fill();
+      } else {
+        ctx.strokeStyle=it.col; ctx.lineWidth=2; ctx.setLineDash(it.dash);
+        ctx.beginPath(); ctx.moveTo(lx, y); ctx.lineTo(lx+20, y); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.fillStyle='#aaaacc'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(it.label, lx+26, y+4);
+    });
+
+    // Demo animation: smoothly update sliders
+    if (demoRunning && demoStepIdx < demoSteps.length) {
+      const step = demoSteps[demoStepIdx];
+      activeTip = step.tip;
+      const frac = Math.min(demoStepT / step.dur, 1);
+      const prev = demoStepIdx > 0 ? demoSteps[demoStepIdx-1] : {omL:0.7,omM:0.3,H0:70};
+      const lerp = (a,b) => a + (b-a)*frac;
+      omLEl.value = lerp(prev.omL, step.omL);
+      omMEl.value = lerp(prev.omM, step.omM);
+      H0El.value  = lerp(prev.H0,  step.H0);
+      demoStepT++;
+      if (demoStepT >= step.dur) { demoStepIdx++; demoStepT = 0; }
+      if (demoStepIdx >= demoSteps.length) { demoRunning = false; document.getElementById('demoBtn1').textContent='▶ Auto-demo'; }
+    }
+
+    // Tooltip overlay
+    if (activeTip) {
+      const tipW = Math.min(460, W - 80);
+      const tipX = 40, tipY = H - 90;
+      ctx.fillStyle='rgba(10,10,30,0.88)';
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(tipX,tipY,tipW,60,6) : ctx.rect(tipX,tipY,tipW,60);
+      ctx.fill();
+      ctx.strokeStyle='#66aaff44'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='#66aaff'; ctx.font='12px sans-serif';
+      // word wrap
+      const words2 = activeTip.split(' ');
+      let ln='', ly=tipY+18;
+      words2.forEach(w=>{
+        const tt=ln+w+' ';
+        if(ctx.measureText(tt).width>tipW-16&&ln){ctx.fillText(ln,tipX+8,ly);ly+=15;ln=w+' ';}else ln=tt;
+      });
+      if(ln)ctx.fillText(ln,tipX+8,ly);
+    }
+
+    // Readout
+    const mu05 = distModulus(0.5, omL, omM, H0).toFixed(2);
+    const mu10 = distModulus(1.0, omL, omM, H0).toFixed(2);
+    document.getElementById('ro1').textContent = `μ at z=0.5: ${mu05}   μ at z=1.0: ${mu10}`;
+
+    if (!paused1) {
+      raf1 = requestAnimationFrame(draw);
+    }
+  }
+
+  [omLEl,omMEl,H0El].forEach(el => el.addEventListener('input', draw));
+  paused1 = false;
+  document.getElementById('demoBtn1').textContent = '⏸ Pause';
+  draw();
+  return {
+    stop() { if (raf1) cancelAnimationFrame(raf1); raf1=null; paused1=true; },
+    start() { paused1=false; document.getElementById('demoBtn1').textContent = '⏸ Pause'; draw(); }
+  };
+}
+
+// ─── Tab 2: Scale Factor a(t) ─────────────────────────────────────────────────
+let raf2 = null;
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
+  cv.style.width = '820px'; cv.style.height = '440px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 440;
+
+  const omL2El = document.getElementById('omL2');
+  const omM2El = document.getElementById('omM2');
+
+  function getP() {
+    const omL = +omL2El.value, omM = +omM2El.value;
+    document.getElementById('omL2v').textContent = omL.toFixed(2);
+    document.getElementById('omM2v').textContent = omM.toFixed(2);
+    return {omL, omM};
+  }
+
+  // Integrate Friedmann: da/dt = H0*a*E(1/a-1, omL, omM)
+  // Use normalized time τ = H0*t; a goes 0 → 2
+  function computeScaleFactor(omL, omM, steps=2000) {
+    // E(a) = sqrt(omM/a^3 + omK/a^2 + omL)
+    const omK = 1 - omL - omM;
+    const aDot = (a) => {
+      if (a <= 0) return 0;
+      const E2 = omM / a**3 + omK / a**2 + omL;
+      return E2 > 0 ? a * Math.sqrt(E2) : 0; // da/dτ = a * E(a)  (actually a*E where E = H/H0)
+    };
+    // Actually da/dτ = H/H0 * a but H/H0 = sqrt(sum_i Omega_i * a^{-3(1+wi)})
+    // = sqrt(omM/a^3 + omK/a^2 + omL)
+    // So da/dτ = sqrt(omM/a + omK + omL*a^2)
+    const aDot2 = (a) => {
+      if (a <= 0) return 0;
+      const v = omM / a + omK + omL * a**2;
+      return v > 0 ? Math.sqrt(v) : 0;
+    };
+
+    // Integrate backward from a=1 to find τ_0 (age), then forward
+    const da = 0.001;
+    let tau0 = 0;
+    for (let a = 1; a > da; a -= da) tau0 += da / aDot2(a);
+
+    // Now forward integration from a_init to a_max
+    const tauMax = tau0 * 2.5;
+    const dt = tauMax / steps;
+    let a = 1e-4;
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const tau = i * dt - tau0; // shift so tau=0 is Big Bang
+      pts.push({tau, a});
+      a += aDot2(a) * dt;
+      a = Math.max(a, 1e-6);
+    }
+    // Find tau_0 (where a=1)
+    let tau_today = 0;
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i-1].a <= 1 && pts[i].a >= 1) {
+        tau_today = pts[i-1].tau + (1 - pts[i-1].a) / (pts[i].a - pts[i-1].a) * dt;
+        break;
+      }
+    }
+    // Find inflection: d²a/dτ² = 0 → Ω_Λ*a - Ω_m/(2*a²) = 0 → a_infl = (Ω_m/(2*Ω_Λ))^(1/3)
+    let tau_infl = null;
+    if (omL > 0 && omM > 0) {
+      const a_infl = (omM / (2 * omL)) ** (1/3);
+      if (a_infl < 2) {
+        for (let i = 1; i < pts.length; i++) {
+          if (pts[i-1].a <= a_infl && pts[i].a >= a_infl) {
+            tau_infl = pts[i-1].tau + (a_infl - pts[i-1].a) / (pts[i].a - pts[i-1].a) * dt;
+            break;
+          }
+        }
+      }
+    }
+    return {pts, tau0, tau_today, tau_infl};
+  }
+
+  function draw() {
+    const {omL, omM} = getP();
+    const {pts, tau0, tau_today, tau_infl} = computeScaleFactor(omL, omM);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+
+    const pad = {l:60, r:30, t:30, b:50};
+    const pW = W - pad.l - pad.r, pH = H - pad.t - pad.b;
+
+    // τ range: tau_today-1 → tau_today*1.5 (normalized to Gyr: 1 H0^-1 ≈ 9.78/0.7 Gyr ≈ 14 Gyr)
+    const H0 = 70; // km/s/Mpc
+    const H0inv_Gyr = 977.8 / H0; // 1/H0 in Gyr
+    const tMin_Gyr = -tau0 * H0inv_Gyr * 0.05;
+    const tMax_Gyr = tau0 * H0inv_Gyr * 1.9;
+    const aMax = 2.2;
+
+    function tauToX(tau) {
+      const t_Gyr = (tau + tau0) * H0inv_Gyr; // age since Big Bang
+      return pad.l + (t_Gyr - tMin_Gyr) / (tMax_Gyr - tMin_Gyr) * pW;
+    }
+    function aToY(a) { return pad.t + (1 - a / aMax) * pH; }
+
+    // Grid
+    ctx.strokeStyle='#1a1a38'; ctx.lineWidth=1;
+    for (let t=0; t<20; t+=2) {
+      const x = pad.l + (t - tMin_Gyr) / (tMax_Gyr - tMin_Gyr) * pW;
+      if (x < pad.l || x > pad.l+pW) continue;
+      ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t+pH); ctx.stroke();
+      ctx.fillStyle='#666688'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(t+' Gyr', x, pad.t+pH+16);
+    }
+    [0,0.5,1,1.5,2].forEach(a => {
+      const y = aToY(a);
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+pW, y); ctx.stroke();
+      ctx.fillStyle='#666688'; ctx.font='12px monospace'; ctx.textAlign='right';
+      ctx.fillText(a.toFixed(1), pad.l-8, y+4);
+    });
+
+    ctx.fillStyle='#9999bb'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Cosmic time (Gyr)', pad.l+pW/2, H-6);
+    ctx.save(); ctx.translate(14, pad.t+pH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Scale factor a(t)', 0, 0); ctx.restore();
+
+    // Matter-only reference (omL=0, omM=1)
+    ctx.strokeStyle='#446688'; ctx.lineWidth=1.5; ctx.setLineDash([3,5]);
+    const {pts:ptsM, tau0:tau0M} = computeScaleFactor(0, 1);
+    ctx.beginPath(); let first=true;
+    ptsM.forEach(({tau,a})=>{
+      const x = pad.l + ((tau+tau0M)*H0inv_Gyr - tMin_Gyr)/(tMax_Gyr-tMin_Gyr)*pW;
+      const y = aToY(a);
+      if (x<pad.l-5||x>pad.l+pW+5||y<pad.t-5||y>pad.t+pH+5){first=true;return;}
+      first?ctx.moveTo(x,y):ctx.lineTo(x,y); first=false;
+    });
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // ΛCDM curve
+    ctx.strokeStyle='#66aaff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); first=true;
+    pts.forEach(({tau,a})=>{
+      const x = tauToX(tau), y = aToY(a);
+      if (x<pad.l-5||x>pad.l+pW+5||y<pad.t-5||y>pad.t+pH+5){first=true;return;}
+      first?ctx.moveTo(x,y):ctx.lineTo(x,y); first=false;
+    });
+    ctx.stroke();
+
+    // Mark today
+    if (document.getElementById('showNow').checked) {
+      const xNow = tauToX(tau_today); // tau_today is already relative shift
+      // Actually tauToX expects tau from our pts array where tau=0 is Big Bang offset
+      // Let me recalculate: tau_today in the pts array is ~0 at Big Bang
+      // tauToX adds tau0 to shift so that t_Gyr = (tau+tau0)*H0inv_Gyr
+      // tau_today from computeScaleFactor is the tau value where a=1
+      const xN = tauToX(tau_today);
+      ctx.strokeStyle='#88ff88'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(xN,pad.t); ctx.lineTo(xN,pad.t+pH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#88ff88'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      const age = ((tau_today + tau0)*H0inv_Gyr).toFixed(1);
+      ctx.fillText(`Today (${age} Gyr)`, xN+4, pad.t+16);
+      ctx.beginPath(); ctx.arc(xN, aToY(1), 5, 0, 2*Math.PI);
+      ctx.fillStyle='#88ff88'; ctx.fill();
+    }
+
+    // Mark inflection
+    if (document.getElementById('showInfl').checked && tau_infl !== null) {
+      const xI = tauToX(tau_infl);
+      ctx.strokeStyle='#ffcc44'; ctx.lineWidth=1.5; ctx.setLineDash([2,4]);
+      ctx.beginPath(); ctx.moveTo(xI,pad.t); ctx.lineTo(xI,pad.t+pH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      const tinfl = ((tau_infl + tau0)*H0inv_Gyr).toFixed(1);
+      ctx.fillText(`Acceleration begins (${tinfl} Gyr)`, xI+4, pad.t+32);
+    }
+
+    // Readout
+    const age_Gyr = ((tau_today + tau0)*H0inv_Gyr).toFixed(2);
+    const tinfl_str = tau_infl !== null ? ((tau_infl + tau0)*H0inv_Gyr).toFixed(2)+' Gyr' : 'N/A';
+    document.getElementById('ro2').textContent = `Age of universe: ${age_Gyr} Gyr   Inflection (Ω_Λ dominance) at: ${tinfl_str}`;
+  }
+
+  [omL2El, omM2El,
+   document.getElementById('showNow'),
+   document.getElementById('showInfl')
+  ].forEach(el => el.addEventListener('change', draw));
+  [omL2El, omM2El].forEach(el => el.addEventListener('input', draw));
+  draw();
+
+  // ── Sweep animation: Ω_Λ from 0 → 0.7 → 0 (5 s each way) ──────────────────
+  let raf2anim = null, sweepStart = null, sweepDir = 1;
+  const animBtn2 = document.getElementById('animBtn2');
+  function sweepFrame(ts) {
+    if (!sweepStart) sweepStart = ts;
+    const elapsed = ts - sweepStart;
+    const duration = 5000;
+    let frac = Math.min(elapsed / duration, 1);
+    const omL = sweepDir > 0 ? frac * 0.7 : (1 - frac) * 0.7;
+    omL2El.value = omL.toFixed(2);
+    draw();
+    if (frac < 1) {
+      raf2anim = requestAnimationFrame(sweepFrame);
+    } else {
+      sweepDir = -sweepDir;   // reverse direction
+      sweepStart = null;
+      raf2anim = requestAnimationFrame(sweepFrame);
+    }
+  }
+  animBtn2.addEventListener('click', function () {
+    if (raf2anim) {
+      cancelAnimationFrame(raf2anim); raf2anim = null;
+      animBtn2.textContent = '▶ Animate';
+    } else {
+      sweepStart = null; sweepDir = 1;
+      omL2El.value = '0'; draw();
+      animBtn2.textContent = '⏸ Animate';
+      raf2anim = requestAnimationFrame(sweepFrame);
+    }
+  });
+
+  return { stop() { if (raf2anim) { cancelAnimationFrame(raf2anim); raf2anim = null; animBtn2.textContent = '▶ Animate'; } } };
+}
+
+// ─── Tab 3: H₀ Tension ───────────────────────────────────────────────────────
+let raf3 = null;
+let paused3 = false;
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
+  cv.style.width = '820px'; cv.style.height = '480px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 480;
+  let revealCount = 0;   // how many measurements are visible so far
+
+  document.getElementById('pauseBtn3').onclick = () => {
+    paused3 = !paused3;
+    document.getElementById('pauseBtn3').textContent = paused3 ? '▶ Play' : '⏸ Pause';
+    if (!paused3 && !raf3) {
+      lastRevealTime = performance.now();
+      raf3 = requestAnimationFrame(revealFrame);
+    }
+  };
+
+  // H0 measurements: {name, H0, sigma, type, year}
+  // type: 0=early (CMB/BAO), 1=late (distance ladder), 2=intermediate
+  const measurements = [
+    {name:'Planck 2018 (CMB)',      H0:67.4, s:0.5,  type:0, year:2018},
+    {name:'BOSS DR14 (BAO)',        H0:67.9, s:1.1,  type:0, year:2018},
+    {name:'DES+BAO+BBN',           H0:67.2, s:1.2,  type:0, year:2019},
+    {name:'ACT+WMAP (CMB)',        H0:67.9, s:1.5,  type:0, year:2020},
+    {name:'SPT-3G (CMB)',          H0:68.8, s:1.5,  type:0, year:2022},
+    {name:'DESI BAO 2024',         H0:68.52,s:0.62, type:0, year:2024},
+    {name:'SH0ES 2022 (Cepheid+SN)',H0:73.0, s:1.0, type:1, year:2022},
+    {name:'HST SHOES 2021',        H0:73.2, s:1.3,  type:1, year:2021},
+    {name:'H0LiCOW (lensing)',     H0:73.3, s:1.7,  type:1, year:2020},
+    {name:'Carnegie-Chicago (TRGB)',H0:69.8, s:1.7, type:2, year:2019},
+    {name:'TDCOSMO (lensing)',     H0:74.2, s:1.6,  type:1, year:2020},
+    {name:'Mira variables (HST)',  H0:73.3, s:4.0,  type:1, year:2020},
+    {name:'Megamaser (H2O)',       H0:73.9, s:3.0,  type:1, year:2020},
+    {name:'SN+TRGB (Freedman)',    H0:69.6, s:1.9,  type:2, year:2020},
+    {name:'Gravitational waves',   H0:68.0, s:4.0,  type:2, year:2021},
+    {name:'Surface brightness fluct.',H0:73.3,s:2.5,type:1, year:2021},
+    {name:'DESI+DESDDF (SN Ia)',   H0:71.8, s:3.3,  type:2, year:2024},
+  ];
+
+  const cols = ['#4488ff','#ff6644','#88ff88'];
+  const pad = {l:240, r:50, t:40, b:60};
+  const pW = W - pad.l - pad.r, pH = H - pad.t - pad.b;
+  const H0min = 60, H0max = 82;
+  function h0ToX(h) { return pad.l + (h - H0min) / (H0max - H0min) * pW; }
+  const rowH = pH / measurements.length;
+  const planckH = 67.4, planckS = 0.5;
+  const shoesH  = 73.0, shoesS  = 1.0;
+
+  function drawScene(nVisible) {
+    // Background + bands + grid (always visible)
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle='#1a1a38'; ctx.lineWidth=1;
+    [62,64,66,68,70,72,74,76,78,80].forEach(h=>{
+      const x = h0ToX(h);
+      ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+pH); ctx.stroke();
+      ctx.fillStyle='#666688'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(h, x, pad.t+pH+16);
+    });
+    ctx.fillStyle='#9999bb'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('H₀ (km/s/Mpc)', pad.l+pW/2, H-8);
+
+    ctx.fillStyle='rgba(68,136,255,0.08)';
+    ctx.fillRect(h0ToX(planckH-planckS), pad.t, h0ToX(planckH+planckS)-h0ToX(planckH-planckS), pH);
+    ctx.strokeStyle='rgba(68,136,255,0.3)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(h0ToX(planckH),pad.t); ctx.lineTo(h0ToX(planckH),pad.t+pH); ctx.stroke();
+    ctx.fillStyle='rgba(255,102,68,0.08)';
+    ctx.fillRect(h0ToX(shoesH-shoesS), pad.t, h0ToX(shoesH+shoesS)-h0ToX(shoesH-shoesS), pH);
+    ctx.strokeStyle='rgba(255,102,68,0.3)'; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(h0ToX(shoesH),pad.t); ctx.lineTo(h0ToX(shoesH),pad.t+pH); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Measurements — reveal up to nVisible
+    measurements.slice(0, nVisible).forEach((m, i) => {
+      const y = pad.t + (i + 0.5) * rowH;
+      const x0 = h0ToX(m.H0);
+      const col = cols[m.type];
+      const xL = h0ToX(m.H0 - m.s), xR = h0ToX(m.H0 + m.s);
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(xL,y); ctx.lineTo(xR,y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xL,y-4); ctx.lineTo(xL,y+4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xR,y-4); ctx.lineTo(xR,y+4); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x0, y, 5, 0, 2*Math.PI);
+      ctx.fillStyle = col; ctx.fill();
+      ctx.fillStyle='#bbbbdd'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+      ctx.fillText(`${m.name} (${m.year})`, pad.l-8, y+4);
+      ctx.fillStyle=col; ctx.textAlign='left'; ctx.font='12px monospace';
+      ctx.fillText(`${m.H0}±${m.s}`, xR+5, y+4);
+    });
+
+    // Tension label — shown only when all measurements are visible
+    if (nVisible >= measurements.length) {
+      const tension = (shoesH - planckH) / Math.sqrt(planckS**2 + shoesS**2);
+      ctx.fillStyle='#ffcc44'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(`Planck vs SH0ES tension: ${tension.toFixed(1)}σ`, pad.l, pad.t-12);
+    }
+  }
+
+  // ── Reveal animation: one measurement every 350 ms ──────────────────────────
+  let lastRevealTime = 0;
+  const REVEAL_INTERVAL = 350;
+  drawScene(0);
+  function revealFrame(ts) {
+    if (paused3) return;
+    if (ts - lastRevealTime >= REVEAL_INTERVAL) {
+      lastRevealTime = ts;
+      revealCount = Math.min(revealCount + 1, measurements.length);
+      drawScene(revealCount);
+    }
+    if (revealCount < measurements.length) {
+      raf3 = requestAnimationFrame(revealFrame);
+    } else {
+      raf3 = null;
+    }
+  }
+  paused3 = false;
+  document.getElementById('pauseBtn3').textContent = '⏸ Pause';
+  raf3 = requestAnimationFrame(revealFrame);
+
+  return { stop() { if (raf3) { cancelAnimationFrame(raf3); raf3 = null; } paused3 = false; } };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Tab 4: Equation of State w(z) / CPL ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+function initTab4() {
+  // Canvas 4a: w(z) plot;  Canvas 4b: H(z)/H0 plot
+  const cva = document.getElementById('cv4a');
+  const ctxa = cva.getContext('2d');
+  const cvb = document.getElementById('cv4b');
+  const ctxb = cvb.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  [cva,cvb].forEach((c,i)=>{
+    const W = 560, H = i===0?280:220;
+    c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+    c.style.width=W+'px'; c.style.height=H+'px';
+    (i===0?ctxa:ctxb).setTransform(dpr,0,0,dpr,0,0);
+  });
+
+  const w0El=document.getElementById('w0s');
+  const waEl=document.getElementById('was');
+  const modelEl=document.getElementById('wmodel');
+  const w0vEl=document.getElementById('w0v');
+  const wavEl=document.getElementById('wav');
+
+  // CPL: w(a) = w0 + wa*(1-a),  a=1/(1+z)
+  function wOfZ(z, w0, wa) { const a=1/(1+z); return w0+wa*(1-a); }
+
+  // dark energy density factor f(z): ρ_de(z)/ρ_de(0)
+  // ln f = 3∫₀ᶻ (1+w(z'))/(1+z') dz'
+  function deFactorCPL(z, w0, wa, steps=200) {
+    let integral=0, dz=z/steps;
+    for(let i=0;i<steps;i++){
+      const zp=(i+0.5)*dz;
+      integral+=(1+wOfZ(zp,w0,wa))/(1+zp)*dz;
+    }
+    return Math.exp(3*integral);
+  }
+
+  // E(z) = H(z)/H0 including dark energy with CPL
+  function EzCPL(z, w0, wa, omM=0.3) {
+    const omDE=1-omM;
+    return Math.sqrt(omM*(1+z)**3 + omDE*deFactorCPL(z,w0,wa));
+  }
+
+  // Animation state for CPL sweep
+  let animRaf=null, animT=0, animRunning=false;
+  const animBtn=document.getElementById('animBtn4');
+  animBtn.onclick=()=>{
+    animRunning=!animRunning;
+    animBtn.textContent=animRunning?'⏸ Animate CPL':'▶ Animate CPL';
+    if(animRunning && !animRaf) animRaf=requestAnimationFrame(animFrame);
+  };
+  function animFrame(){
+    if(!animRunning){animRaf=null;return;}
+    animT+=0.008*(window.animSpeed||0.1);
+    const wa_val=Math.sin(animT)*0.6;
+    waEl.value=wa_val.toFixed(2);
+    wavEl.textContent=wa_val.toFixed(2);
+    draw4();
+    animRaf=requestAnimationFrame(animFrame);
+  }
+
+  function getW0Wa(){
+    const sel=modelEl.value;
+    let w0,wa;
+    if(sel==='lcdm'){w0=-1;wa=0;}
+    else if(sel==='quint'){w0=-0.9;wa=0;}
+    else if(sel==='phantom'){w0=-1.2;wa=0;}
+    else{w0=+w0El.value;wa=+waEl.value;}
+    w0vEl.textContent=(+w0El.value).toFixed(2);
+    wavEl.textContent=(+waEl.value).toFixed(2);
+    return {w0,wa};
+  }
+
+  function draw4(){
+    const {w0,wa}=getW0Wa();
+    const W=560,H=280;
+    // ─ Plot 4a: w(z) ─
+    ctxa.clearRect(0,0,W,H);
+    ctxa.fillStyle='#0d0d1a'; ctxa.fillRect(0,0,W,H);
+    const pad={l:52,r:20,t:25,b:40};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+    const zMin=0,zMax=3, wMin=-1.5,wMax=-0.4;
+    const zX=z=>pad.l+(z-zMin)/(zMax-zMin)*pW;
+    const wY=w=>pad.t+(1-(w-wMin)/(wMax-wMin))*pH;
+
+    // grid
+    ctxa.strokeStyle='#1a1a38'; ctxa.lineWidth=1;
+    [0,0.5,1,1.5,2,2.5,3].forEach(z=>{
+      const x=zX(z);
+      ctxa.beginPath();ctxa.moveTo(x,pad.t);ctxa.lineTo(x,pad.t+pH);ctxa.stroke();
+      ctxa.fillStyle='#666688';ctxa.font='12px monospace';ctxa.textAlign='center';
+      ctxa.fillText(z,x,pad.t+pH+14);
+    });
+    [-1.5,-1.3,-1.1,-0.9,-0.7,-0.5].forEach(w=>{
+      const y=wY(w);
+      ctxa.beginPath();ctxa.moveTo(pad.l,y);ctxa.lineTo(pad.l+pW,y);ctxa.stroke();
+      ctxa.fillStyle='#666688';ctxa.font='12px monospace';ctxa.textAlign='right';
+      ctxa.fillText(w.toFixed(1),pad.l-5,y+3);
+    });
+    // w=-1 line
+    ctxa.strokeStyle='#33334a';ctxa.lineWidth=1;ctxa.setLineDash([4,4]);
+    ctxa.beginPath();ctxa.moveTo(pad.l,wY(-1));ctxa.lineTo(pad.l+pW,wY(-1));ctxa.stroke();
+    ctxa.setLineDash([]);
+    ctxa.fillStyle='#444466';ctxa.font='12px sans-serif';ctxa.textAlign='left';
+    ctxa.fillText('w = −1 (Λ)',pad.l+4,wY(-1)-4);
+
+    // three reference models
+    const models=[
+      {w0:-1,wa:0,col:'#4466ff',dash:[],lbl:'Λ (w=−1)'},
+      {w0:-0.9,wa:0,col:'#44cc88',dash:[4,4],lbl:'Quintessence (w=−0.9)'},
+      {w0:-1.2,wa:0,col:'#ff6644',dash:[3,5],lbl:'Phantom (w=−1.2)'},
+    ];
+    models.forEach(m=>{
+      ctxa.strokeStyle=m.col;ctxa.lineWidth=1.5;ctxa.setLineDash(m.dash);
+      ctxa.beginPath();
+      for(let i=0;i<=100;i++){
+        const z=zMin+i*(zMax-zMin)/100;
+        const w=wOfZ(z,m.w0,m.wa);
+        const x=zX(z),y=wY(Math.max(wMin,Math.min(wMax,w)));
+        i===0?ctxa.moveTo(x,y):ctxa.lineTo(x,y);
+      }
+      ctxa.stroke();ctxa.setLineDash([]);
+    });
+
+    // CPL user curve
+    ctxa.strokeStyle='#ffcc44';ctxa.lineWidth=2.5;
+    ctxa.beginPath();
+    for(let i=0;i<=200;i++){
+      const z=zMin+i*(zMax-zMin)/200;
+      const w=wOfZ(z,w0,wa);
+      const x=zX(z),y=wY(Math.max(wMin,Math.min(wMax,w)));
+      i===0?ctxa.moveTo(x,y):ctxa.lineTo(x,y);
+    }
+    ctxa.stroke();
+
+    // labels
+    ctxa.fillStyle='#9999bb';ctxa.font='12px sans-serif';ctxa.textAlign='center';
+    ctxa.fillText('Redshift z',pad.l+pW/2,H-4);
+    ctxa.save();ctxa.translate(12,pad.t+pH/2);ctxa.rotate(-Math.PI/2);
+    ctxa.fillText('w(z) = p/ρ',0,0);ctxa.restore();
+    // legend
+    const lx=pad.l+pW-170, ly=pad.t+8;
+    [...models,{w0,wa,col:'#ffcc44',dash:[],lbl:`CPL (w₀=${w0.toFixed(2)},wₐ=${wa.toFixed(2)})`}]
+    .forEach((m,i)=>{
+      ctxa.strokeStyle=m.col;ctxa.lineWidth=2;ctxa.setLineDash(m.dash||[]);
+      ctxa.beginPath();ctxa.moveTo(lx,ly+i*16);ctxa.lineTo(lx+18,ly+i*16);ctxa.stroke();
+      ctxa.setLineDash([]);
+      ctxa.fillStyle='#aaaacc';ctxa.font='12px sans-serif';ctxa.textAlign='left';
+      ctxa.fillText(m.lbl,lx+22,ly+i*16+3);
+    });
+
+    // ─ Plot 4b: H(z)/H0 ─
+    const Hb=220;
+    ctxb.clearRect(0,0,W,Hb);
+    ctxb.fillStyle='#0d0d1a';ctxb.fillRect(0,0,W,Hb);
+    const pad2={l:52,r:20,t:20,b:38};
+    const pW2=W-pad2.l-pad2.r, pH2=Hb-pad2.t-pad2.b;
+    const EMax=4;
+    const zX2=z=>pad2.l+(z-zMin)/(zMax-zMin)*pW2;
+    const EY=E=>pad2.t+(1-E/EMax)*pH2;
+
+    ctxb.strokeStyle='#1a1a38';ctxb.lineWidth=1;
+    [0,0.5,1,1.5,2,2.5,3].forEach(z=>{
+      const x=zX2(z);ctxb.beginPath();ctxb.moveTo(x,pad2.t);ctxb.lineTo(x,pad2.t+pH2);ctxb.stroke();
+      ctxb.fillStyle='#666688';ctxb.font='12px monospace';ctxb.textAlign='center';ctxb.fillText(z,x,pad2.t+pH2+14);
+    });
+    [1,2,3,4].forEach(E=>{
+      const y=EY(E);ctxb.beginPath();ctxb.moveTo(pad2.l,y);ctxb.lineTo(pad2.l+pW2,y);ctxb.stroke();
+      ctxb.fillStyle='#666688';ctxb.font='12px monospace';ctxb.textAlign='right';ctxb.fillText(E,pad2.l-5,y+3);
+    });
+
+    models.forEach(m=>{
+      ctxb.strokeStyle=m.col;ctxb.lineWidth=1.5;ctxb.setLineDash(m.dash);
+      ctxb.beginPath();
+      for(let i=0;i<=100;i++){
+        const z=i*(zMax-zMin)/100;
+        const E=EzCPL(z,m.w0,m.wa);
+        const x=zX2(z),y=EY(Math.min(EMax,E));
+        i===0?ctxb.moveTo(x,y):ctxb.lineTo(x,y);
+      }
+      ctxb.stroke();ctxb.setLineDash([]);
+    });
+    ctxb.strokeStyle='#ffcc44';ctxb.lineWidth=2.5;
+    ctxb.beginPath();
+    for(let i=0;i<=200;i++){
+      const z=i*(zMax-zMin)/200;
+      const E=EzCPL(z,w0,wa);
+      const x=zX2(z),y=EY(Math.min(EMax,E));
+      i===0?ctxb.moveTo(x,y):ctxb.lineTo(x,y);
+    }
+    ctxb.stroke();
+    ctxb.fillStyle='#9999bb';ctxb.font='12px sans-serif';ctxb.textAlign='center';
+    ctxb.fillText('Redshift z',pad2.l+pW2/2,Hb-4);
+    ctxb.save();ctxb.translate(12,pad2.t+pH2/2);ctxb.rotate(-Math.PI/2);
+    ctxb.fillText('H(z)/H₀',0,0);ctxb.restore();
+
+    const w0_val=wOfZ(0,w0,wa);
+    const w1_val=wOfZ(1,w0,wa);
+    const Hz1=EzCPL(1,w0,wa).toFixed(3);
+    document.getElementById('ro4').textContent=`w at z=0: ${w0_val.toFixed(3)}   w at z=1: ${w1_val.toFixed(3)}   H(z=1)/H₀: ${Hz1}`;
+  }
+
+  [w0El,waEl].forEach(el=>el.addEventListener('input',draw4));
+  modelEl.addEventListener('change',draw4);
+  draw4();
+  return { stop(){if(animRaf){cancelAnimationFrame(animRaf);animRaf=null;animRunning=false;animBtn.textContent='▶ Animate CPL';}} };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Tab 5: SNe Ia deep dive & Hubble Tension ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+function initTab5() {
+  const cva=document.getElementById('cv5a');
+  const ctxa=cva.getContext('2d');
+  const cvb=document.getElementById('cv5b');
+  const ctxb=cvb.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  [[cva,300],[cvb,200]].forEach(([c,Hh])=>{
+    c.width=Math.round(560*dpr); c.height=Math.round(Hh*dpr);
+    c.style.width='560px'; c.style.height=Hh+'px';
+    c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  });
+
+  const omL5El=document.getElementById('omL5');
+  const omM5El=document.getElementById('omM5');
+  const H05El=document.getElementById('H05');
+
+  // Hubble diagram data (extended union2.1 style)
+  const snFull=[
+    {z:0.014,mu:33.2},{z:0.024,mu:34.6},{z:0.030,mu:35.1},{z:0.040,mu:35.8},
+    {z:0.052,mu:36.5},{z:0.065,mu:37.0},{z:0.080,mu:37.6},{z:0.095,mu:38.0},
+    {z:0.115,mu:38.5},{z:0.140,mu:39.0},{z:0.170,mu:39.5},{z:0.200,mu:39.9},
+    {z:0.240,mu:40.4},{z:0.280,mu:40.7},{z:0.330,mu:41.1},{z:0.390,mu:41.5},
+    {z:0.450,mu:41.9},{z:0.520,mu:42.2},{z:0.600,mu:42.6},{z:0.700,mu:43.0},
+    {z:0.800,mu:43.3},{z:0.900,mu:43.6},{z:1.010,mu:43.9},{z:1.100,mu:44.1},
+    {z:1.200,mu:44.3},{z:1.400,mu:44.7},{z:1.600,mu:45.0},{z:1.900,mu:45.4}
+  ];
+  const rng5=(function(){let s=99;return function(){s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff}})();
+  const snFull5=snFull.map(d=>({z:d.z,mu:d.mu+(rng5()-0.5)*0.55}));
+
+  // 1998 Perlmutter/Riess highlight points (higher z)
+  const sn1998=[
+    {z:0.35,mu:41.3},{z:0.46,mu:42.0},{z:0.57,mu:42.4},
+    {z:0.62,mu:42.6},{z:0.83,mu:43.3},{z:0.97,mu:43.8}
+  ];
+
+  // Animation: discovery replay
+  let animRaf5=null, animT5=0, animRunning5=false, revealIdx=0;
+  const animBtn5=document.getElementById('animBtn5');
+  animBtn5.onclick=()=>{
+    animRunning5=!animRunning5;
+    if(animRunning5){revealIdx=0;animT5=0;animBtn5.textContent='⏸ Discovery replay';animRaf5=requestAnimationFrame(af5);}
+    else{cancelAnimationFrame(animRaf5);animRaf5=null;animBtn5.textContent='▶ Discovery replay';}
+  };
+  let lastReveal5=0;
+  function af5(ts){
+    if(!animRunning5){return;}
+    if(ts-lastReveal5>120){
+      lastReveal5=ts;
+      revealIdx=Math.min(revealIdx+1,snFull5.length);
+      draw5(revealIdx);
+    }
+    if(revealIdx<snFull5.length) animRaf5=requestAnimationFrame(af5);
+    else{animRunning5=false;animBtn5.textContent='▶ Discovery replay';}
+  }
+
+  function draw5(nReveal){
+    if(nReveal===undefined) nReveal=snFull5.length;
+    const omL=+omL5El.value, omM=+omM5El.value, H0=+H05El.value;
+    document.getElementById('omL5v').textContent=omL.toFixed(2);
+    document.getElementById('omM5v').textContent=omM.toFixed(2);
+    document.getElementById('H05v').textContent=H0.toFixed(1);
+
+    // ─ Plot 5a: Hubble diagram + residuals ─
+    const W=560,Ha=300;
+    ctxa.clearRect(0,0,W,Ha); ctxa.fillStyle='#0d0d1a'; ctxa.fillRect(0,0,W,Ha);
+    const pad={l:58,r:20,t:25,b:40};
+    const pW=W-pad.l-pad.r,pH=Ha-pad.t-pad.b;
+    const zMin=0.01,zMax=2.0,muMin=32,muMax=46;
+    const zX=z=>pad.l+(Math.log10(z)-Math.log10(zMin))/(Math.log10(zMax/zMin))*pW;
+    const muY=mu=>pad.t+(1-(mu-muMin)/(muMax-muMin))*pH;
+
+    // grid
+    ctxa.strokeStyle='#1a1a38';ctxa.lineWidth=1;
+    [0.02,0.05,0.1,0.2,0.5,1.0,2.0].forEach(z=>{
+      const x=zX(z);ctxa.beginPath();ctxa.moveTo(x,pad.t);ctxa.lineTo(x,pad.t+pH);ctxa.stroke();
+      ctxa.fillStyle='#666688';ctxa.font='12px monospace';ctxa.textAlign='center';ctxa.fillText(z,x,pad.t+pH+14);
+    });
+    [32,34,36,38,40,42,44,46].forEach(mu=>{
+      const y=muY(mu);ctxa.beginPath();ctxa.moveTo(pad.l,y);ctxa.lineTo(pad.l+pW,y);ctxa.stroke();
+      ctxa.fillStyle='#666688';ctxa.font='12px monospace';ctxa.textAlign='right';ctxa.fillText(mu,pad.l-5,y+3);
+    });
+
+    // model lines
+    const modelDefs=[
+      {omL:0,omM:0,H0:70,col:'#444466',dash:[4,4],lbl:'Empty'},
+      {omL:0,omM:1,H0:70,col:'#446688',dash:[3,5],lbl:'Matter-only'},
+      {omL,omM,H0,col:'#66aaff',dash:[],lbl:'ΛCDM'}
+    ];
+    modelDefs.forEach(m=>{
+      ctxa.strokeStyle=m.col;ctxa.lineWidth=m.dash.length?1.5:2.5;ctxa.setLineDash(m.dash);
+      ctxa.beginPath();let first=true;
+      for(let i=0;i<=200;i++){
+        const t=i/200;
+        const z=Math.pow(10,Math.log10(zMin)+t*Math.log10(zMax/zMin));
+        const mu=distModulus(z,m.omL,m.omM,m.H0);
+        const x=zX(z),y=muY(mu);
+        first?ctxa.moveTo(x,y):ctxa.lineTo(x,y);first=false;
+      }
+      ctxa.stroke();ctxa.setLineDash([]);
+    });
+
+    // Data points
+    snFull5.slice(0,nReveal).forEach(d=>{
+      if(d.z<zMin||d.z>zMax)return;
+      ctxa.beginPath();ctxa.arc(zX(d.z),muY(d.mu),3,0,2*Math.PI);
+      ctxa.fillStyle='#ffcc44aa';ctxa.fill();
+    });
+    // 1998 discovery points (larger)
+    sn1998.forEach(d=>{
+      ctxa.beginPath();ctxa.arc(zX(d.z),muY(d.mu),5,0,2*Math.PI);
+      ctxa.fillStyle='#ff4444';ctxa.strokeStyle='#ff8888';ctxa.lineWidth=1;
+      ctxa.fill();ctxa.stroke();
+    });
+
+    ctxa.fillStyle='#9999bb';ctxa.font='12px sans-serif';ctxa.textAlign='center';
+    ctxa.fillText('Redshift z',pad.l+pW/2,Ha-4);
+    ctxa.save();ctxa.translate(13,pad.t+pH/2);ctxa.rotate(-Math.PI/2);
+    ctxa.fillText('Distance modulus μ',0,0);ctxa.restore();
+    ctxa.fillStyle='#ff4444';ctxa.font='12px sans-serif';ctxa.textAlign='left';
+    ctxa.fillText('● 1998 discovery SNe',pad.l+4,pad.t+14);
+    ctxa.fillStyle='#ffcc44';ctxa.fillText('● Union2.1 sample',pad.l+4,pad.t+28);
+
+    // ─ Plot 5b: H0 histogram ─
+    const Hb=200;
+    ctxb.clearRect(0,0,W,Hb);ctxb.fillStyle='#0d0d1a';ctxb.fillRect(0,0,W,Hb);
+    const pad2={l:58,r:20,t:20,b:35};
+    const pW2=W-pad2.l-pad2.r,pH2=Hb-pad2.t-pad2.b;
+    // Gaussian distributions
+    const H0min=60,H0max=80;
+    const planckH=67.4,planckS=0.5;
+    const shoesH=73.0,shoesS=1.0;
+    const h0X=h=>pad2.l+(h-H0min)/(H0max-H0min)*pW2;
+    const gaussian=(x,mu,sigma)=>Math.exp(-0.5*((x-mu)/sigma)**2)/(sigma*Math.sqrt(2*Math.PI));
+    const normFactor=pH2*0.7*2.5;// scale to pixels
+
+    // Planck band
+    ctxb.fillStyle='rgba(68,136,255,0.12)';
+    ctxb.fillRect(h0X(planckH-2*planckS),pad2.t,h0X(planckH+2*planckS)-h0X(planckH-2*planckS),pH2);
+    // SH0ES band
+    ctxb.fillStyle='rgba(255,102,68,0.12)';
+    ctxb.fillRect(h0X(shoesH-2*shoesS),pad2.t,h0X(shoesH+2*shoesS)-h0X(shoesH-2*shoesS),pH2);
+
+    // Gaussian curves
+    const curves=[
+      {mu:planckH,s:planckS,col:'#4488ff',lbl:'Planck CMB 67.4±0.5'},
+      {mu:shoesH,s:shoesS,col:'#ff6644',lbl:'SH0ES 73.0±1.0'},
+      {mu:+H05El.value,s:1.5,col:'#ffcc4488',lbl:''},
+    ];
+    curves.forEach(c=>{
+      ctxb.strokeStyle=c.col;ctxb.lineWidth=2;
+      ctxb.beginPath();let first=true;
+      for(let i=0;i<=300;i++){
+        const h=H0min+i*(H0max-H0min)/300;
+        const y=pad2.t+pH2-gaussian(h,c.mu,c.s)*normFactor;
+        const x=h0X(h);
+        first?ctxb.moveTo(x,y):ctxb.lineTo(x,y);first=false;
+      }
+      ctxb.stroke();
+    });
+    // tension sigma label
+    const tension=(shoesH-planckH)/Math.sqrt(planckS**2+shoesS**2);
+    ctxb.fillStyle='#ffcc44';ctxb.font='bold 12px sans-serif';ctxb.textAlign='center';
+    ctxb.fillText(`Tension: ${tension.toFixed(1)}σ`,h0X((planckH+shoesH)/2),pad2.t+16);
+    // arrow between peaks
+    ctxb.strokeStyle='#ffcc44';ctxb.lineWidth=1.5;
+    ctxb.beginPath();ctxb.moveTo(h0X(planckH),pad2.t+30);ctxb.lineTo(h0X(shoesH),pad2.t+30);ctxb.stroke();
+    ctxb.fillStyle='#4488ff';ctxb.font='12px sans-serif';ctxb.textAlign='center';
+    ctxb.fillText('Planck',h0X(planckH),pad2.t+pH2-4);
+    ctxb.fillStyle='#ff6644';
+    ctxb.fillText('SH0ES',h0X(shoesH),pad2.t+pH2-4);
+    // grid
+    ctxb.strokeStyle='#1a1a38';ctxb.lineWidth=1;
+    [62,64,66,68,70,72,74,76,78].forEach(h=>{
+      const x=h0X(h);ctxb.beginPath();ctxb.moveTo(x,pad2.t);ctxb.lineTo(x,pad2.t+pH2);ctxb.stroke();
+      ctxb.fillStyle='#666688';ctxb.font='12px monospace';ctxb.textAlign='center';ctxb.fillText(h,x,pad2.t+pH2+14);
+    });
+    ctxb.fillStyle='#9999bb';ctxb.font='12px sans-serif';ctxb.textAlign='center';
+    ctxb.fillText('H₀ (km/s/Mpc)',pad2.l+pW2/2,Hb-3);
+
+    const mu_lcdm=distModulus(0.5,omL,omM,H0);
+    const mu_empty=distModulus(0.5,0,0,70);
+    document.getElementById('ro5').textContent=`Δμ residual at z=0.5: ${(mu_lcdm-mu_empty).toFixed(3)} mag   H₀ tension: ${tension.toFixed(2)}σ`;
+  }
+
+  [omL5El,omM5El,H05El].forEach(el=>el.addEventListener('input',()=>draw5()));
+  draw5();
+  return {stop(){if(animRaf5){cancelAnimationFrame(animRaf5);animRaf5=null;animRunning5=false;animBtn5.textContent='▶ Discovery replay';}}};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Tab 6: BAO & Large-Scale Structure ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+function initTab6() {
+  const cva=document.getElementById('cv6a');
+  const ctxa=cva.getContext('2d');
+  const cvb=document.getElementById('cv6b');
+  const ctxb=cvb.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  [[cva,250],[cvb,240]].forEach(([c,Hh])=>{
+    c.width=Math.round(560*dpr);c.height=Math.round(Hh*dpr);
+    c.style.width='560px';c.style.height=Hh+'px';
+    c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  });
+
+  const rsEl=document.getElementById('rsSlider');
+  const surveyEl=document.getElementById('baosurvey');
+
+  // BAO: ξ(r) two-point correlation with a bump at r_s
+  function xi(r, rs){
+    const smooth=0.015*Math.exp(-0.5*((r-80)/40)**2); // broadband
+    const peak=0.004*Math.exp(-0.5*((r-rs)/8)**2);    // BAO peak
+    return smooth+peak;
+  }
+
+  // BAO measurements from surveys: {z, DV_over_rs, err, survey, col}
+  const baoData=[
+    {z:0.10,DV:2.98,err:0.17,survey:'boss',lbl:'MGS z=0.1',col:'#4488ff'},
+    {z:0.32,DV:8.47,err:0.17,survey:'boss',lbl:'BOSS z=0.32',col:'#4488ff'},
+    {z:0.51,DV:13.77,err:0.15,survey:'boss',lbl:'BOSS z=0.51',col:'#4488ff'},
+    {z:0.61,DV:16.55,err:0.16,survey:'boss',lbl:'BOSS z=0.61',col:'#4488ff'},
+    {z:0.70,DV:17.86,err:0.33,survey:'eboss',lbl:'eBOSS z=0.70',col:'#88ff88'},
+    {z:0.85,DV:21.0,err:0.5,survey:'eboss',lbl:'eBOSS z=0.85',col:'#88ff88'},
+    {z:1.48,DV:30.7,err:0.7,survey:'eboss',lbl:'eBOSS QSO z=1.48',col:'#88ff88'},
+    {z:0.295,DV:7.93,err:0.15,survey:'desi',lbl:'DESI BGS z=0.30',col:'#ffcc44'},
+    {z:0.510,DV:13.62,err:0.25,survey:'desi',lbl:'DESI LRG z=0.51',col:'#ffcc44'},
+    {z:0.706,DV:17.65,err:0.30,survey:'desi',lbl:'DESI LRG z=0.71',col:'#ffcc44'},
+    {z:0.930,DV:21.71,err:0.28,survey:'desi',lbl:'DESI LRG z=0.93',col:'#ffcc44'},
+    {z:1.317,DV:27.79,err:0.69,survey:'desi',lbl:'DESI ELG z=1.32',col:'#ffcc44'},
+    {z:1.491,DV:30.21,err:0.79,survey:'desi',lbl:'DESI QSO z=1.49',col:'#ffcc44'},
+  ];
+
+  // ΛCDM prediction: D_V(z)/r_s
+  function DV_LCDM(z, rs_Mpc){
+    // D_V = [ (c*z/H(z)) * d_C² ]^(1/3)
+    const c=299792.458,H0=68,omM=0.3,omL=0.7;
+    const dC=comovingDist(z,omL,omM,H0);
+    const Hz=H0*Ez(z,omL,omM);
+    const dv=Math.pow((c*z/Hz)*dC**2,1/3);
+    return dv/rs_Mpc;
+  }
+
+  // BAO shell animation
+  let animRaf6=null,animT6=0,animRunning6=false;
+  const animBtn6=document.getElementById('animBtn6');
+  animBtn6.onclick=()=>{
+    animRunning6=!animRunning6;
+    animBtn6.textContent=animRunning6?'⏸ Animate BAO shell':'▶ Animate BAO shell';
+    if(animRunning6 && !animRaf6) animRaf6=requestAnimationFrame(af6);
+  };
+  function af6(ts){
+    if(!animRunning6){animRaf6=null;return;}
+    animT6+=0.012*(window.animSpeed||0.1);
+    draw6();
+    animRaf6=requestAnimationFrame(af6);
+  }
+
+  function draw6(){
+    const rs=+rsEl.value;
+    const survey=surveyEl.value;
+    document.getElementById('rsv').textContent=rs;
+
+    // ─ Plot 6a: ξ(r) correlation function with animated BAO bump ─
+    const W=560,Ha=250;
+    ctxa.clearRect(0,0,W,Ha);ctxa.fillStyle='#0d0d1a';ctxa.fillRect(0,0,W,Ha);
+    const pad={l:58,r:20,t:25,b:38};
+    const pW=W-pad.l-pad.r,pH=Ha-pad.t-pad.b;
+    const rMin=20,rMax=200,xiMin=-0.002,xiMax=0.022;
+    const rX=r=>pad.l+(r-rMin)/(rMax-rMin)*pW;
+    const xiY=v=>pad.t+(1-(v-xiMin)/(xiMax-xiMin))*pH;
+
+    ctxa.strokeStyle='#1a1a38';ctxa.lineWidth=1;
+    [40,60,80,100,120,140,160,180].forEach(r=>{
+      const x=rX(r);ctxa.beginPath();ctxa.moveTo(x,pad.t);ctxa.lineTo(x,pad.t+pH);ctxa.stroke();
+      ctxa.fillStyle='#666688';ctxa.font='12px monospace';ctxa.textAlign='center';ctxa.fillText(r,x,pad.t+pH+14);
+    });
+    // y=0 line
+    ctxa.strokeStyle='#33334a';ctxa.lineWidth=1;ctxa.setLineDash([3,3]);
+    ctxa.beginPath();ctxa.moveTo(pad.l,xiY(0));ctxa.lineTo(pad.l+pW,xiY(0));ctxa.stroke();ctxa.setLineDash([]);
+
+    // Draw ξ(r)
+    ctxa.strokeStyle='#66aaff';ctxa.lineWidth=2.5;
+    ctxa.beginPath();let first=true;
+    for(let i=0;i<=300;i++){
+      const r=rMin+i*(rMax-rMin)/300;
+      const v=xi(r,rs);
+      const x=rX(r),y=xiY(Math.max(xiMin,Math.min(xiMax,v)));
+      first?ctxa.moveTo(x,y):ctxa.lineTo(x,y);first=false;
+    }
+    ctxa.stroke();
+
+    // Animated pulsing BAO peak marker
+    const peakX=rX(rs);
+    const pulse=0.7+0.3*Math.sin(animT6*2);
+    ctxa.strokeStyle=`rgba(255,204,68,${pulse})`;ctxa.lineWidth=2;ctxa.setLineDash([4,4]);
+    ctxa.beginPath();ctxa.moveTo(peakX,pad.t);ctxa.lineTo(peakX,pad.t+pH);ctxa.stroke();ctxa.setLineDash([]);
+    ctxa.fillStyle='#ffcc44';ctxa.font='12px sans-serif';ctxa.textAlign='center';
+    ctxa.fillText(`BAO peak at ${rs} Mpc`,peakX,pad.t+12);
+
+    ctxa.fillStyle='#9999bb';ctxa.font='12px sans-serif';ctxa.textAlign='center';
+    ctxa.fillText('Separation r (Mpc/h)',pad.l+pW/2,Ha-4);
+    ctxa.save();ctxa.translate(13,pad.t+pH/2);ctxa.rotate(-Math.PI/2);
+    ctxa.fillText('ξ(r) correlation',0,0);ctxa.restore();
+    ctxa.fillStyle='#8888bb';ctxa.font='12px sans-serif';ctxa.textAlign='left';
+    ctxa.fillText('Two-point correlation function ξ(r) — BAO bump is the frozen sound horizon',pad.l,pad.t+pH-4);
+
+    // ─ Plot 6b: D_V(z)/r_s measurements ─
+    const Hb=240;
+    ctxb.clearRect(0,0,W,Hb);ctxb.fillStyle='#0d0d1a';ctxb.fillRect(0,0,W,Hb);
+    const pad2={l:58,r:20,t:20,b:35};
+    const pW2=W-pad2.l-pad2.r,pH2=Hb-pad2.t-pad2.b;
+    const zMin=0,zMax=1.8,DMin=0,DMax=38;
+    const zX2=z=>pad2.l+(z-zMin)/(zMax-zMin)*pW2;
+    const DY=d=>pad2.t+(1-(d-DMin)/(DMax-DMin))*pH2;
+
+    ctxb.strokeStyle='#1a1a38';ctxb.lineWidth=1;
+    [0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6].forEach(z=>{
+      const x=zX2(z);ctxb.beginPath();ctxb.moveTo(x,pad2.t);ctxb.lineTo(x,pad2.t+pH2);ctxb.stroke();
+      ctxb.fillStyle='#666688';ctxb.font='12px monospace';ctxb.textAlign='center';ctxb.fillText(z.toFixed(1),x,pad2.t+pH2+14);
+    });
+    [0,5,10,15,20,25,30,35].forEach(d=>{
+      const y=DY(d);ctxb.beginPath();ctxb.moveTo(pad2.l,y);ctxb.lineTo(pad2.l+pW2,y);ctxb.stroke();
+      ctxb.fillStyle='#666688';ctxb.font='12px monospace';ctxb.textAlign='right';ctxb.fillText(d,pad2.l-5,y+3);
+    });
+
+    // ΛCDM line
+    ctxb.strokeStyle='#ffffff44';ctxb.lineWidth=1.5;
+    ctxb.beginPath();first=true;
+    for(let i=1;i<=100;i++){
+      const z=0.05+i*(zMax-0.05)/100;
+      const D=DV_LCDM(z,rs);
+      const x=zX2(z),y=DY(Math.min(DMax,D));
+      first?ctxb.moveTo(x,y):ctxb.lineTo(x,y);first=false;
+    }
+    ctxb.stroke();
+
+    // Data points
+    const vis=survey==='all'?baoData:baoData.filter(d=>d.survey===survey);
+    vis.forEach(d=>{
+      const x=zX2(d.z),y=DY(d.DV);
+      const errPx=(d.err/(DMax-DMin))*pH2;
+      ctxb.strokeStyle=d.col;ctxb.lineWidth=2;
+      ctxb.beginPath();ctxb.moveTo(x,y-errPx);ctxb.lineTo(x,y+errPx);ctxb.stroke();
+      ctxb.beginPath();ctxb.arc(x,y,4,0,2*Math.PI);
+      ctxb.fillStyle=d.col;ctxb.fill();
+    });
+
+    ctxb.fillStyle='#9999bb';ctxb.font='12px sans-serif';ctxb.textAlign='center';
+    ctxb.fillText('Redshift z',pad2.l+pW2/2,Hb-3);
+    ctxb.save();ctxb.translate(13,pad2.t+pH2/2);ctxb.rotate(-Math.PI/2);
+    ctxb.fillText('D_V(z)/r_s',0,0);ctxb.restore();
+    // legend
+    [{col:'#4488ff',lbl:'BOSS'},{col:'#88ff88',lbl:'eBOSS'},{col:'#ffcc44',lbl:'DESI 2024'},{col:'#ffffff44',lbl:'ΛCDM'}]
+    .forEach((l,i)=>{
+      const lx=pad2.l+pW2-155+i*38;
+      ctxb.fillStyle=l.col;ctxb.font='12px sans-serif';ctxb.textAlign='center';
+      ctxb.fillText(l.lbl,lx,pad2.t+12);
+    });
+
+    const dv51=DV_LCDM(0.51,rs);
+    document.getElementById('ro6').textContent=`BAO peak at: ${rs} Mpc   D_V(z=0.51)/r_s (ΛCDM): ${dv51.toFixed(2)}`;
+  }
+
+  rsEl.addEventListener('input',draw6);
+  surveyEl.addEventListener('change',draw6);
+  draw6();
+  return {stop(){if(animRaf6){cancelAnimationFrame(animRaf6);animRaf6=null;animRunning6=false;animBtn6.textContent='▶ Animate BAO shell';}}};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Tab 7: Cosmological Constant Problem ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+function initTab7() {
+  const cv=document.getElementById('cv7');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(560*dpr);cv.height=Math.round(480*dpr);
+  cv.style.width='560px';cv.style.height='480px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=560,H=480;
+
+  const viewEl=document.getElementById('ccpView');
+  let animRaf7=null,animT7=0,animRunning7=false;
+  const animBtn7=document.getElementById('animBtn7');
+  animBtn7.onclick=()=>{
+    animRunning7=!animRunning7;
+    animBtn7.textContent=animRunning7?'⏸ Animate':'▶ Animate';
+    if(animRunning7 && !animRaf7) animRaf7=requestAnimationFrame(af7);
+  };
+  function af7(){
+    if(!animRunning7){animRaf7=null;return;}
+    animT7+=0.025*(window.animSpeed||0.1);
+    draw7();
+    animRaf7=requestAnimationFrame(af7);
+  }
+
+  // Virtual particle pair positions (deterministic)
+  const numPairs=18;
+  const pairs=Array.from({length:numPairs},(_, i)=>{
+    const seed=(i*7+3)*137;
+    const lcg=(s)=>{let v=(s*1664525+1013904223)&0xffffffff;return(v>>>0)/0xffffffff};
+    const r1=lcg(seed),r2=lcg(seed+1),r3=lcg(seed+2),r4=lcg(seed+3);
+    return {x0:0.1+r1*0.8, y0:0.1+r2*0.8, phase:r3*Math.PI*2, freq:0.5+r4*1.5, lifetime:0.4+r3*0.5};
+  });
+
+  function draw7(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+    const view=viewEl.value;
+
+    if(view==='orders'){
+      // ─ 120 orders of magnitude bar chart ─
+      const pad={l:80,r:40,t:40,b:50};
+      const pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;
+      const items=[
+        {lbl:'QFT (Planck)',log:94,col:'#ff4444'},
+        {lbl:'Electroweak',log:72,col:'#ff8844'},
+        {lbl:'QCD/SUSY',log:45,col:'#ffcc44'},
+        {lbl:'Neutrino scale',log:14,col:'#88ff88'},
+        {lbl:'Observed Λ',log:-29,col:'#66aaff'},
+      ];
+      const logMin=-30,logMax=100;
+      const logX=v=>pad.l+(v-logMin)/(logMax-logMin)*pW;
+      const barH=pH/items.length*0.55;
+      const barGap=pH/items.length;
+
+      ctx.fillStyle='#1a1a38';
+      ctx.fillRect(pad.l,pad.t,pW,pH);
+      // grid lines
+      ctx.strokeStyle='#222244';ctx.lineWidth=1;
+      [-30,-20,-10,0,10,20,30,40,50,60,70,80,90,100].forEach(v=>{
+        const x=logX(v);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+        ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='center';
+        ctx.fillText(v>0?'+'+v:v,x,pad.t+pH+13);
+      });
+      ctx.fillStyle='#9999bb';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('log₁₀(ρ_vac / g·cm⁻³)',pad.l+pW/2,H-6);
+
+      items.forEach((it,i)=>{
+        const y=pad.t+i*barGap+barGap*0.2;
+        const x0=logX(logMin),x1=logX(it.log);
+        // Animated width for emphasis
+        const anim=(animRunning7&&it.lbl==='Observed Λ')?
+          0.5+0.5*Math.sin(animT7*2):1;
+        ctx.fillStyle=it.col+'44';
+        ctx.fillRect(x0,y,Math.max(2,(x1-x0)*anim),barH);
+        ctx.strokeStyle=it.col;ctx.lineWidth=2;
+        ctx.strokeRect(x0,y,Math.max(2,(x1-x0)*anim),barH);
+        ctx.fillStyle=it.col;ctx.font='bold 12px sans-serif';ctx.textAlign='left';
+        ctx.fillText(it.lbl,pad.l+4,y+barH*0.68);
+        ctx.fillStyle='#ccccee';ctx.font='12px monospace';ctx.textAlign='right';
+        ctx.fillText(`10^${it.log}`,logX(it.log)-4,y+barH*0.68);
+      });
+
+      // Discrepancy arrow
+      const yObs=pad.t+(items.length-1)*barGap+barGap*0.2+barH/2;
+      const yQFT=pad.t+0*barGap+barGap*0.2+barH/2;
+      ctx.strokeStyle='#ff4444aa';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(logX(-29),yObs);ctx.lineTo(logX(-29),yQFT);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ff8888';ctx.font='bold 12px sans-serif';ctx.textAlign='left';
+      ctx.fillText('123 orders!',logX(-29)+6,(yObs+yQFT)/2);
+
+      ctx.fillStyle='#66aaff';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('The cosmological constant problem: worst fine-tuning in physics',pad.l+pW/2,pad.t-12);
+
+    } else if(view==='vacuum'){
+      // ─ Vacuum fluctuation animation ─
+      ctx.fillStyle='#0a0a14';ctx.fillRect(0,0,W,H);
+      // Title
+      ctx.fillStyle='#66aaff';ctx.font='14px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Quantum Vacuum Fluctuations',W/2,28);
+      ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';
+      ctx.fillText('Virtual particle-antiparticle pairs constantly appear and annihilate',W/2,46);
+
+      pairs.forEach((p,idx)=>{
+        const t=animT7+p.phase;
+        const cycle=(t*p.freq)%(2*Math.PI);
+        const alpha=Math.sin(cycle)*0.5+0.5;
+        const cx=p.x0*W, cy=p.y0*H;
+        const spread=15*(1-alpha)+2;
+        if(alpha<0.05) return;
+
+        // Particle (matter)
+        const r=8*(alpha<0.5?alpha*2:2-alpha*2);
+        ctx.beginPath();ctx.arc(cx-spread,cy,Math.max(1,r),0,2*Math.PI);
+        ctx.fillStyle=`rgba(68,136,255,${alpha*0.9})`;ctx.fill();
+        // Antiparticle
+        ctx.beginPath();ctx.arc(cx+spread,cy,Math.max(1,r),0,2*Math.PI);
+        ctx.fillStyle=`rgba(255,100,68,${alpha*0.9})`;ctx.fill();
+        // Connection line
+        ctx.strokeStyle=`rgba(200,200,255,${alpha*0.3})`;ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(cx-spread,cy);ctx.lineTo(cx+spread,cy);ctx.stroke();
+      });
+
+      // Energy label
+      ctx.fillStyle='rgba(255,204,68,0.8)';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Each mode k contributes ½ħω(k) zero-point energy',W/2,H-20);
+      ctx.fillText('Sum over all modes → ρ_vac ~ M_Pl⁴/(16π²) ≈ 10⁹⁴ g/cm³',W/2,H-6);
+
+    } else {
+      // ─ Proposed solutions comparison ─
+      const solutions=[
+        {name:'SUSY cancellation',status:'Partial',color:'#ffcc44',pct:50,desc:'Cancels bosons vs. fermions — reduces by 60 orders, still 60 off'},
+        {name:'String landscape',status:'Speculative',color:'#ff8844',pct:30,desc:'10⁵⁰⁰ vacua; anthropic selection. Not predictive'},
+        {name:'Sequestering',status:'Research',color:'#88cc44',pct:40,desc:'Separates local vs. global vacuum contributions'},
+        {name:'Degravitation',status:'Research',color:'#44aaff',pct:35,desc:'Modified gravity: vacuum energy doesn\'t gravitate fully'},
+        {name:'Anthropic bound',status:'Confirmed',color:'#44ff88',pct:70,desc:'Weinberg 1987: Λ must allow galaxy formation — within 2 orders'},
+        {name:'Self-tuning',status:'Challenged',color:'#cc88ff',pct:20,desc:'Dynamical scalar cancels Λ — theorem obstacles'},
+      ];
+
+      ctx.fillStyle='#66aaff';ctx.font='14px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Proposed Solutions to the CC Problem',W/2,26);
+
+      const cardH=65, cardW=W-60, startY=45;
+      solutions.forEach((s,i)=>{
+        const y=startY+i*(cardH+6);
+        const barFrac=animRunning7?Math.min(1,(animT7-i*0.4)*1.5):s.pct/100;
+        const bf=Math.max(0,Math.min(1,barFrac));
+        ctx.fillStyle='#0f0f24';ctx.fillRect(30,y,cardW,cardH);
+        ctx.strokeStyle=s.color+'88';ctx.lineWidth=1;
+        ctx.strokeRect(30,y,cardW,cardH);
+        ctx.fillStyle=s.color+'22';
+        ctx.fillRect(30,y,cardW*bf,cardH);
+        ctx.fillStyle=s.color;ctx.font='bold 12px sans-serif';ctx.textAlign='left';
+        ctx.fillText(s.name,40,y+18);
+        ctx.fillStyle='#888899';ctx.font='12px sans-serif';
+        ctx.fillText(s.desc,40,y+33);
+        ctx.fillStyle=s.color;ctx.font='12px sans-serif';ctx.textAlign='right';
+        ctx.fillText(`[${s.status}]`,W-38,y+18);
+        ctx.fillText(`${s.pct}% viable`,W-38,y+33);
+        // Progress bar
+        ctx.fillStyle=s.color+'66';ctx.fillRect(40,y+44,cardW-20,8);
+        ctx.fillStyle=s.color;ctx.fillRect(40,y+44,(cardW-20)*bf,8);
+      });
+    }
+  }
+
+  viewEl.addEventListener('change',draw7);
+  draw7();
+  return {stop(){if(animRaf7){cancelAnimationFrame(animRaf7);animRaf7=null;animRunning7=false;animBtn7.textContent='▶ Animate';}}};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Tab 8: Future Surveys ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+function initTab8() {
+  const cv=document.getElementById('cv8');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(560*dpr);cv.height=Math.round(480*dpr);
+  cv.style.width='560px';cv.style.height='480px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=560,H=480;
+
+  const viewEl=document.getElementById('surveyView');
+  let animRaf8=null,animT8=0,animRunning8=false;
+  const animBtn8=document.getElementById('animBtn8');
+  animBtn8.onclick=()=>{
+    animRunning8=!animRunning8;
+    animBtn8.textContent=animRunning8?'⏸ Animate':'▶ Animate';
+    if(animRunning8 && !animRaf8){animT8=0;animRaf8=requestAnimationFrame(af8);}
+  };
+  function af8(){
+    if(!animRunning8){animRaf8=null;return;}
+    animT8+=0.02*(window.animSpeed||0.1);
+    draw8();
+    animRaf8=requestAnimationFrame(af8);
+  }
+
+  const surveys=[
+    {name:'BOSS/eBOSS',start:2008,end:2019,col:'#4488ff',probes:'BAO, RSD',galaxies:'1.5M / 0.5M QSO'},
+    {name:'DES',start:2013,end:2019,col:'#88ff88',probes:'WL, clustering',galaxies:'300M photo'},
+    {name:'DESI',start:2021,end:2026,col:'#ffcc44',probes:'BAO, RSD',galaxies:'40M spectro'},
+    {name:'Euclid',start:2023,end:2030,col:'#ff8844',probes:'WL + spectro BAO',galaxies:'1.5B photo'},
+    {name:'Rubin/LSST',start:2024,end:2034,col:'#cc88ff',probes:'WL, SNe, LSS',galaxies:'20B photo'},
+    {name:'Roman',start:2026,end:2032,col:'#88ddff',probes:'SNe Ia, grism',galaxies:'200M spectro'},
+    {name:'CMB-S4',start:2029,end:2035,col:'#ff6688',probes:'CMB lens, BBN',galaxies:'CMB maps'},
+  ];
+
+  // w0-wa forecast ellipses (semi-axes in w0,wa space, centered on -1,0)
+  const forecasts=[
+    {name:'Planck 2018',sw0:0.06,swa:0.3,col:'#4488ff',alpha:0.5,fom:50},
+    {name:'DESI Year-1',sw0:0.04,swa:0.2,col:'#ffcc44',alpha:0.5,fom:120},
+    {name:'Euclid Full',sw0:0.02,swa:0.08,col:'#ff8844',alpha:0.5,fom:700},
+    {name:'DESI + Euclid',sw0:0.015,swa:0.06,col:'#88ff88',alpha:0.6,fom:1200},
+    {name:'DESI+Euclid+Roman',sw0:0.010,swa:0.04,col:'#ffffff',alpha:0.7,fom:2500},
+  ];
+
+  const probeTypes=[
+    {name:'DESI BAO',strength:92,col:'#ffcc44',desc:'40M spectra, z=0.05–1.6, 5-year survey'},
+    {name:'Euclid WL',strength:88,col:'#ff8844',desc:'1.5B galaxies, shape+shear maps'},
+    {name:'Rubin SNe Ia',strength:75,col:'#cc88ff',desc:'Thousands of high-z SNe, photometric'},
+    {name:'Roman grism',strength:80,col:'#88ddff',desc:'Space-based, high-z spectroscopy'},
+    {name:'CMB-S4 lensing',strength:70,col:'#ff6688',desc:'CMB lensing potential, E-modes'},
+    {name:'GW sirens',strength:55,col:'#88ff88',desc:'LISA/ET H0, model-independent'},
+    {name:'21cm (SKA/CHIME)',strength:65,col:'#aaaaff',desc:'HI intensity mapping z=0.5–3'},
+  ];
+
+  function draw8(){
+    ctx.clearRect(0,0,W,H);ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+    const view=viewEl.value;
+
+    if(view==='timeline'){
+      const pad={l:120,r:20,t:40,b:35};
+      const pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;
+      const yStart=2005,yEnd=2036;
+      const tX=yr=>pad.l+(yr-yStart)/(yEnd-yStart)*pW;
+      const barH=pH/surveys.length*0.55;
+      const barGap=pH/surveys.length;
+
+      // grid
+      ctx.strokeStyle='#1a1a38';ctx.lineWidth=1;
+      for(let y=2005;y<=2036;y+=5){
+        const x=tX(y);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+        ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText(y,x,pad.t+pH+16);
+      }
+      // "today" line 2026
+      const xNow=tX(2026);
+      ctx.strokeStyle='#ff888844';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(xNow,pad.t);ctx.lineTo(xNow,pad.t+pH);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#ff8888';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('2026',xNow,pad.t-4);
+
+      // animated data collection scan line
+      const scanT=(animT8*30+yStart)%(yEnd-yStart)+yStart;
+      if(animRunning8){
+        const xs=tX(scanT);
+        ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(xs,pad.t);ctx.lineTo(xs,pad.t+pH);ctx.stroke();
+      }
+
+      surveys.forEach((s,i)=>{
+        const y=pad.t+i*barGap+barGap*0.22;
+        const x0=tX(s.start),x1=tX(s.end);
+        ctx.fillStyle=s.col+'33';ctx.fillRect(x0,y,x1-x0,barH);
+        ctx.strokeStyle=s.col;ctx.lineWidth=2;ctx.strokeRect(x0,y,x1-x0,barH);
+        ctx.fillStyle=s.col;ctx.font='bold 12px sans-serif';ctx.textAlign='right';
+        ctx.fillText(s.name,pad.l-6,y+barH*0.65);
+        ctx.fillStyle='#9999bb';ctx.font='12px sans-serif';ctx.textAlign='left';
+        ctx.fillText(s.galaxies,x0+4,y+barH*0.65);
+      });
+      ctx.fillStyle='#66aaff';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Dark Energy Survey Timeline',W/2,pad.t-14);
+
+    } else if(view==='forecast'){
+      // w0-wa plane with constraint ellipses
+      const pad={l:60,r:40,t:40,b:50};
+      const pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;
+      const w0min=-1.4,w0max=-0.6,wamin=-0.6,wamax=0.6;
+      const w0X=w=>pad.l+(w-w0min)/(w0max-w0min)*pW;
+      const waY=wa=>pad.t+(1-(wa-wamin)/(wamax-wamin))*pH;
+
+      // grid
+      ctx.strokeStyle='#1a1a38';ctx.lineWidth=1;
+      [-1.4,-1.2,-1.0,-0.8,-0.6].forEach(w=>{
+        const x=w0X(w);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+        ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='center';ctx.fillText(w.toFixed(1),x,pad.t+pH+14);
+      });
+      [-0.6,-0.4,-0.2,0,0.2,0.4,0.6].forEach(wa=>{
+        const y=waY(wa);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pW,y);ctx.stroke();
+        ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='right';ctx.fillText(wa.toFixed(1),pad.l-5,y+3);
+      });
+      // Λ point
+      ctx.strokeStyle='#555577';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(w0X(-1),pad.t);ctx.lineTo(w0X(-1),pad.t+pH);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(pad.l,waY(0));ctx.lineTo(pad.l+pW,waY(0));ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#88aaff';ctx.font='12px sans-serif';ctx.textAlign='left';
+      ctx.fillText('Λ (-1,0)',w0X(-1)+4,waY(0)-6);
+
+      // Draw ellipses (from biggest to smallest)
+      [...forecasts].reverse().forEach(f=>{
+        const cx=w0X(-1),cy=waY(0);
+        const rx=(f.sw0/(w0max-w0min))*pW*2;
+        const ry=(f.swa/(wamax-wamin))*pH*2;
+        const scale=animRunning8?Math.max(0.3,1-animT8*0.05):1;
+        ctx.beginPath();ctx.ellipse(cx,cy,rx*scale,ry*scale,0,0,2*Math.PI);
+        ctx.strokeStyle=f.col;ctx.lineWidth=2;ctx.stroke();
+        ctx.fillStyle=f.col+'22';ctx.fill();
+      });
+
+      // Legend
+      forecasts.forEach((f,i)=>{
+        const lx=pad.l+4,ly=pad.t+8+i*18;
+        ctx.strokeStyle=f.col;ctx.lineWidth=2;
+        ctx.beginPath();ctx.ellipse(lx+10,ly,10,5,0,0,2*Math.PI);ctx.stroke();
+        ctx.fillStyle='#aaaacc';ctx.font='12px sans-serif';ctx.textAlign='left';
+        ctx.fillText(`${f.name} (FoM≈${f.fom})`,lx+24,ly+3);
+      });
+
+      ctx.fillStyle='#9999bb';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('w₀',pad.l+pW/2,H-5);
+      ctx.save();ctx.translate(13,pad.t+pH/2);ctx.rotate(-Math.PI/2);ctx.fillText('wₐ',0,0);ctx.restore();
+      ctx.fillStyle='#66aaff';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Forecast w₀-wₐ Constraints (95% confidence)',W/2,pad.t-12);
+
+    } else {
+      // Probe comparison bar chart
+      const pad={l:140,r:40,t:45,b:35};
+      const pW=W-pad.l-pad.r,pH=H-pad.t-pad.b;
+      const barH=pH/probeTypes.length*0.5;
+      const barGap=pH/probeTypes.length;
+
+      ctx.fillStyle='#66aaff';ctx.font='13px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Dark Energy Probe Capability (2025–2035)',W/2,28);
+
+      probeTypes.forEach((p,i)=>{
+        const y=pad.t+i*barGap+barGap*0.22;
+        const animFrac=animRunning8?Math.min(1,(animT8-i*0.2)):1;
+        const barW=pW*(p.strength/100)*Math.max(0,animFrac);
+        ctx.fillStyle=p.col+'33';ctx.fillRect(pad.l,y,pW,barH);
+        ctx.fillStyle=p.col+'99';ctx.fillRect(pad.l,y,barW,barH);
+        ctx.strokeStyle=p.col;ctx.lineWidth=1.5;ctx.strokeRect(pad.l,y,pW,barH);
+        ctx.fillStyle=p.col;ctx.font='bold 12px sans-serif';ctx.textAlign='right';
+        ctx.fillText(p.name,pad.l-8,y+barH*0.7);
+        ctx.fillStyle='#aaaacc';ctx.font='9.5px sans-serif';ctx.textAlign='left';
+        ctx.fillText(p.desc,pad.l+4,y+barH*0.68);
+        ctx.fillStyle='#ccccee';ctx.font='12px monospace';ctx.textAlign='right';
+        ctx.fillText(p.strength+'%',W-pad.r-4,y+barH*0.7);
+      });
+      ctx.fillStyle='#9999bb';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Relative constraining power on dark energy EOS',W/2,H-6);
+    }
+
+    // FoM readout
+    const fomNow=forecasts[forecasts.length-1].fom;
+    document.getElementById('ro8').textContent=`Figure of merit (1/σ(w₀)σ(wₐ)): DESI+Euclid+Roman combined ≈ ${fomNow} (vs Planck ≈ 50)`;
+  }
+
+  viewEl.addEventListener('change',draw8);
+  draw8();
+  return {stop(){if(animRaf8){cancelAnimationFrame(animRaf8);animRaf8=null;animRunning8=false;animBtn8.textContent='▶ Animate';}}};
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+let currentTab = 1;
+const tabHandlers = {1: null, 2: null, 3: null, 4: null, 5: null, 6: null, 7: null, 8: null};
+
+window.switchTab = function(n) {
+  if (tabHandlers[currentTab]) tabHandlers[currentTab].stop();
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
+  document.querySelectorAll('.tab-pane').forEach((p,i)=>p.classList.toggle('active',i===n-1));
+  currentTab = n;
+  if (n===1) { if (!tabHandlers[1]) tabHandlers[1] = initTab1(); else tabHandlers[1].start(); }
+  else if (n===2) tabHandlers[2] = initTab2();
+  else if (n===3) tabHandlers[3] = initTab3();
+  else if (n===4) tabHandlers[4] = initTab4();
+  else if (n===5) tabHandlers[5] = initTab5();
+  else if (n===6) tabHandlers[6] = initTab6();
+  else if (n===7) tabHandlers[7] = initTab7();
+  else if (n===8) tabHandlers[8] = initTab8();
+};
+
+// init first tab
+tabHandlers[1] = initTab1();
+
+window.animSpeed=0.1;
+
+window.addEventListener('resize', () => {
+  clearTimeout(window._resizeTimer58);
+  window._resizeTimer58 = setTimeout(() => { switchTab(currentTab); }, 60);
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

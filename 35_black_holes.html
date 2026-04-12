@@ -1,0 +1,2889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>35 · Black Holes &amp; Penrose Diagrams</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#ff6644;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0a08}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--dim);line-height:1.7}
+.info-box .val{color:var(--accent);font-weight:600}
+/* Pane 0 */
+#pane0{display:none}
+#pane0.active{display:flex;flex-direction:row}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
+.side-panel{width:300px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:12px}
+.side-panel h3{font-size:.9rem;color:var(--accent);margin-bottom:4px}
+.eq-list{list-style:none;padding:0;margin:0}
+.eq-list li{font-size:.78rem;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.eq-list li span{color:var(--accent)}
+.side-text{font-size:.75rem;color:var(--dim);line-height:1.65;margin-top:4px}
+/* Pane 1 */
+#pane1{display:none}
+#pane1.active{display:flex;flex-direction:row}
+.p1-left{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
+.p1-right{width:310px;display:flex;flex-direction:column;padding:12px;gap:8px;overflow:hidden;border-left:1px solid var(--border)}
+/* Pane 2 */
+#pane2{display:none}
+#pane2.active{display:flex;flex-direction:row}
+.p2-left{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
+.p2-side{width:300px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:10px}
+.law-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px}
+.law-card .law-num{font-size:.7rem;color:var(--accent);margin-bottom:3px;font-weight:700;letter-spacing:.05em}
+.law-card .law-body{font-size:.78rem;color:var(--text);line-height:1.6}
+/* Panes 3-7 shared */
+#pane3,#pane4,#pane5,#pane6,#pane7{display:none}
+#pane3.active,#pane4.active,#pane5.active,#pane6.active,#pane7.active{display:flex;flex-direction:row}
+.px-left{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
+.px-side{width:320px;min-width:230px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:10px}
+.fact-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-top:2px}
+.fact-card .fact-title{font-size:.72rem;color:var(--accent);font-weight:700;letter-spacing:.05em;margin-bottom:3px}
+.fact-card .fact-body{font-size:.77rem;color:var(--text);line-height:1.6}
+body{padding-bottom:38px}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 32–34</span>
+  <div class="title-block">
+    <h1>Black Holes &amp; Penrose Diagrams</h1>
+    <p>Causal structure, event horizons, Hawking radiation — Penrose's greatest geometric invention</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Penrose Diagrams</div>
+  <div class="tab" onclick="switchTab(1)">Collapse &amp; Hawking Radiation</div>
+  <div class="tab" onclick="switchTab(2)">Black Hole Thermodynamics</div>
+  <div class="tab" onclick="switchTab(3)">Conformal Diagrams+</div>
+  <div class="tab" onclick="switchTab(4)">Hawking Radiation+</div>
+  <div class="tab" onclick="switchTab(5)">Kerr Ergosphere</div>
+  <div class="tab" onclick="switchTab(6)">GW Signatures</div>
+  <div class="tab" onclick="switchTab(7)">BH Thermodynamics+</div>
+</div>
+
+<div id="main">
+
+<!-- TAB 0 -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button class="active-btn" id="bst0" onclick="setSpacetime(0)">Minkowski</button>
+      <button id="bst1" onclick="setSpacetime(1)">Schwarzschild</button>
+      <button id="bst2" onclick="setSpacetime(2)">Reissner-Nordström</button>
+      <button id="bst3" onclick="setSpacetime(3)">Kerr</button>
+      <button id="bst4" onclick="setSpacetime(4)">de Sitter</button>
+      <button id="bst5" onclick="setSpacetime(5)">Anti-de Sitter</button>
+      <button onclick="resetRays()">↺ Clear Rays</button>
+      <button id="btnAnimP0" class="animBtn" onclick="togglePenroseAnim()">▶ Animate</button>
+    </div>
+    <div class="info-box" id="hoverLabel">Click canvas to shoot a null ray &nbsp;|&nbsp; Hover for coordinate info</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Penrose–Carter Diagrams</h3>
+    <div class="side-text">A <em style="color:var(--text)">conformal compactification</em> maps all of spacetime (including infinities) into a finite bounded region, preserving causal structure. Null rays always travel at 45°.</div>
+    <ul class="eq-list">
+      <li><span>$r_s = 2GM/c^2$</span> — Schwarzschild radius</li>
+      <li><span>$T_H = \hbar c^3 / (8\pi G M k_B)$</span> — Hawking temperature</li>
+      <li><span>$ds^2 = -(1-r_s/r)c^2dt^2 + ...$</span> — Schwarzschild metric</li>
+    </ul>
+    <div class="side-text"><strong style="color:var(--text)">Kruskal coordinates:</strong> $T^2 - X^2 = (1 - r/r_s)e^{r/r_s}$. The maximal extension reveals four regions: exterior (I), black hole interior (II), white hole (III), second exterior (IV).</div>
+    <div class="side-text"><strong style="color:var(--text)">Causal boundaries:</strong> $i^+$ = future timelike infinity, $i^-$ = past timelike infinity, $i^0$ = spacelike infinity, $\mathscr{J}^+$ = future null infinity, $\mathscr{J}^-$ = past null infinity.</div>
+    <div class="side-text"><strong style="color:var(--text)">Event horizon:</strong> The boundary of the causal past of $\mathscr{J}^+$ — no signal from inside can reach outside. A global, teleological concept requiring knowledge of the entire future.</div>
+    <div class="side-text"><strong style="color:var(--text)">Singularity:</strong> $r = 0$ in Schwarzschild — spacelike, shown as a jagged line at the top. Every future-directed timelike/null curve inside the horizon hits it.</div>
+  </div>
+</div>
+
+<!-- TAB 1 -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="p1-left">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>M₀ (solar masses)</label>
+      <input type="range" id="massSlider" min="1" max="100" value="30" oninput="onMassChange()">
+      <span id="massVal">30</span>
+      <button id="btnCollapse" onclick="doCollapse()">Collapse</button>
+      <button id="btnEvap" onclick="doEvaporate()" disabled>Evaporate</button>
+      <button onclick="resetTab1()">↺ Reset</button>
+      <span style="margin-left:8px;color:var(--dim);font-size:.75rem">M: <span class="val" id="mReadout">—</span> M☉</span>
+      <span style="color:var(--dim);font-size:.75rem">T_H: <span class="val" id="tReadout">—</span> nK</span>
+    </div>
+  </div>
+  <div class="p1-right">
+    <div style="font-size:.8rem;color:var(--accent);margin-bottom:2px">T_H vs M &amp; Lifetime</div>
+    <canvas id="c1b" style="flex:0 0 200px;min-height:0;width:100%"></canvas>
+    <div class="side-panel" data-role="sidebar" style="width:100%;border-left:none;border-top:1px solid var(--border);flex:1;padding:10px 12px;gap:8px">
+      <h3>Hawking Radiation</h3>
+      <div class="side-text">Near the event horizon, quantum vacuum fluctuations produce virtual particle–antiparticle pairs. Occasionally one falls in (negative energy w.r.t. infinity) and the other escapes — carrying real energy away from the black hole.</div>
+      <ul class="eq-list">
+        <li><span>$S_{BH} = k_B A / (4\ell_P^2)$</span> — Bekenstein–Hawking entropy</li>
+        <li><span>$L \propto M^{-2}$</span> — Hawking luminosity</li>
+        <li><span>$\tau \sim M^3$</span> — evaporation lifetime</li>
+      </ul>
+      <div class="side-text"><strong style="color:var(--text)">Information paradox:</strong> Pure state collapses → mixed thermal radiation? Unitarity violated? Hawking (1976) vs modern view: information scrambled, released near Page time $t_P \sim M^3/2$.</div>
+      <div class="side-text"><strong style="color:var(--text)">Firewall paradox (AMPS, 2012):</strong> Monogamy of entanglement forces a choice — smooth horizon or unitarity. No consensus yet; one of Penrose's deep concerns about quantum gravity.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2 -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="p2-left">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Mass M</label>
+      <input type="range" id="kerrM" min="20" max="100" value="60" oninput="drawTab2()">
+      <span id="kerrMVal">60</span>
+      <label>Spin a/M</label>
+      <input type="range" id="kerrA" min="0" max="99" value="50" oninput="drawTab2()">
+      <span id="kerrAVal">0.50</span>
+      <button id="btnMerge" onclick="doMerge()">Merge BHs</button>
+      <button onclick="resetTab2()">↺ Reset</button>
+      <span style="font-size:.75rem;color:var(--dim)">Click ergosphere to extract energy (Penrose process)</span>
+    </div>
+  </div>
+  <div class="p2-side">
+    <h3>Kerr Geometry</h3>
+    <div class="side-text">Rotating black holes described by mass $M$ and spin $a = J/M$ (with $a \le M$ in geometrized units). The <em style="color:var(--text)">ergosphere</em> is a region where no observer can remain stationary — frame dragging becomes superluminal.</div>
+    <ul class="eq-list">
+      <li><span>$r_\pm = M \pm \sqrt{M^2 - a^2}$</span> — horizons</li>
+      <li><span>$r_{erg} = M + \sqrt{M^2 - a^2\cos^2\theta}$</span> — ergosphere</li>
+      <li><span>$A = 8\pi M r_+$</span> — Kerr horizon area</li>
+    </ul>
+    <h3 style="margin-top:4px">Four Laws of BH Thermodynamics</h3>
+    <div class="law-card">
+      <div class="law-num">ZEROTH LAW</div>
+      <div class="law-body">Surface gravity $\kappa$ is constant over the horizon — analogous to temperature uniformity in thermal equilibrium.</div>
+    </div>
+    <div class="law-card">
+      <div class="law-num">FIRST LAW</div>
+      <div class="law-body">$dM = \dfrac{\kappa}{8\pi}dA + \Omega\, dJ + \Phi\, dQ$</div>
+    </div>
+    <div class="law-card">
+      <div class="law-num">SECOND LAW</div>
+      <div class="law-body">$dA \ge 0$ — the horizon area never decreases (classically). Hawking's area theorem, 1971. Analogue of entropy increase.</div>
+    </div>
+    <div class="law-card">
+      <div class="law-num">THIRD LAW</div>
+      <div class="law-body">$\kappa \to 0$ is unattainable in finite steps — extremal black holes ($a = M$) cannot be reached.</div>
+    </div>
+    <div class="side-text"><strong style="color:var(--text)">Penrose process:</strong> A particle splits inside the ergosphere; one fragment has negative energy, falls in, the other escapes with energy $> $ original. Maximum extraction: $\approx 29\%$ of total mass ($1 - 1/\sqrt{2}$).</div>
+    <div class="side-text"><strong style="color:var(--text)">Irreducible mass:</strong> $M_{irr} = \sqrt{A/(16\pi)}$. The Penrose process reduces $J$ but $M_{irr}$ can only increase.</div>
+  </div>
+</div>
+
+<!-- TAB 3: CONFORMAL DIAGRAMS+ -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="px-left">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button class="active-btn" id="p3bt0" onclick="p3SetType(0)">Schwarzschild</button>
+      <button id="p3bt1" onclick="p3SetType(1)">Reissner-Nordström</button>
+      <button id="p3bt2" onclick="p3SetType(2)">Kerr</button>
+      <button id="p3bt3" onclick="p3SetType(3)">OS Collapse</button>
+      <button id="p3animBtn" class="animBtn" onclick="p3ToggleAnim()">▶ Animate</button>
+      <button onclick="p3ClearRays()">↺ Clear</button>
+    </div>
+    <div class="info-box" id="p3info">Click diagram to shoot null rays through the chosen spacetime.</div>
+  </div>
+  <div class="px-side">
+    <h3>Conformal Compactification</h3>
+    <div class="side-text">A conformal transformation $g_{\mu\nu}\to\Omega^2 g_{\mu\nu}$ preserves angles and hence the 45° null-ray structure, but squeezes infinite spacetime into a bounded diamond. Light cones remain at 45° everywhere.</div>
+    <ul class="eq-list">
+      <li><span>$r_s = 2GM/c^2$</span> — Schwarzschild radius</li>
+      <li><span>$r_\pm = M \pm \sqrt{M^2-Q^2}$</span> — RN horizons</li>
+      <li><span>$r_\pm = M \pm \sqrt{M^2-a^2}$</span> — Kerr horizons</li>
+    </ul>
+    <div class="fact-card">
+      <div class="fact-title">SPACELIKE vs TIMELIKE SINGULARITY</div>
+      <div class="fact-body">Schwarzschild $r=0$ is <em>spacelike</em> — drawn as a horizontal jagged bar, unavoidable for all interior observers. Kerr/RN $r=0$ is <em>timelike</em> — drawn vertically, allowing timelike curves to avoid it (though Cauchy horizon instability likely forecloses this).</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">CAUCHY HORIZON INSTABILITY</div>
+      <div class="fact-body">The inner horizon $r_-$ of RN/Kerr is a Cauchy horizon: initial data does not uniquely determine evolution beyond it. Penrose's <strong>Strong Cosmic Censorship</strong> (SCC) conjecture: generic perturbations make it singular (blue-shift instability, Dafermos-Luk 2017 partial result).</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">OPPENHEIMER-SNYDER COLLAPSE</div>
+      <div class="fact-body">Homogeneous dust collapse (1939): the star interior matches a closed FLRW universe; exterior is Schwarzschild. No white hole or second exterior in the physical diagram — those are artefacts of the eternal maximally extended Schwarzschild solution.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">COSMIC CENSORSHIP (PENROSE 1969)</div>
+      <div class="fact-body">Weak form: no naked singularities visible from $\mathscr{J}^+$. Strong form: every inextendible spacetime satisfying the dominant energy condition is globally hyperbolic. Both remain open conjectures despite major progress.</div>
+    </div>
+    <div class="side-text"><strong style="color:var(--text)">Topology changes:</strong> Traversable wormholes (Einstein-Rosen bridges in eternal Schwarzschild) would require exotic matter violating energy conditions. ER = EPR (Maldacena-Susskind): entangled black holes are connected by a non-traversable wormhole.</div>
+  </div>
+</div>
+
+<!-- TAB 4: HAWKING RADIATION+ -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="px-left">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>BH Mass (M☉)</label>
+      <input type="range" id="p4mass" min="1" max="60" value="20" oninput="p4OnMass()">
+      <span id="p4massVal">20</span>
+      <button id="p4evapBtn" onclick="p4ToggleEvap()">▶ Evaporate</button>
+      <button onclick="p4Reset()">↺ Reset</button>
+      <span style="margin-left:6px;font-size:.75rem;color:var(--dim)">T: <span class="val" id="p4T">—</span> nK &nbsp; τ: <span class="val" id="p4tau">—</span> ×10⁶⁷ yr</span>
+    </div>
+  </div>
+  <div class="px-side">
+    <h3>Hawking Radiation (1974)</h3>
+    <div class="side-text">Hawking's QFT-in-curved-spacetime calculation: the Bogoliubov transformation between in-vacuum (past null infinity) and out-vacuum (future null infinity) is non-trivial, mixing positive and negative frequency modes. The black hole radiates as a blackbody at $T_H$.</div>
+    <ul class="eq-list">
+      <li><span>$T_H = \dfrac{\hbar c^3}{8\pi G M k_B}$</span></li>
+      <li><span>$t_{evap} \approx \dfrac{5120\pi G^2 M^3}{\hbar c^4}$</span></li>
+      <li><span>$L_{Hawk} \propto \hbar c^6/(G^2 M^2)$</span></li>
+    </ul>
+    <div class="fact-card">
+      <div class="fact-title">BOGOLIUBOV TRANSFORMATION</div>
+      <div class="fact-body">In-modes $\{f_\omega\}$ and out-modes $\{p_\omega\}$ are related by $\hat a_{out} = \alpha \hat a_{in} + \beta^* \hat a^\dagger_{in}$. When $\beta\ne0$, particles are created. The thermal spectrum arises from the exact Bogolubov coefficients $|\beta_{\omega\omega'}|^2 = (e^{2\pi\omega/\kappa}-1)^{-1}$.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">GREYBODY FACTORS</div>
+      <div class="fact-body">The BH is not a perfect blackbody; the potential barrier around the horizon partially reflects outgoing modes, yielding greybody factors $\Gamma_\ell(\omega)$ — frequency-dependent transmission coefficients. Affects spectrum shape significantly for small BHs.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">INFORMATION PARADOX</div>
+      <div class="fact-body">If a pure quantum state collapses to a BH and then evaporates to mixed thermal radiation, unitarity is violated. Hawking (1976) accepted this; modern consensus (via AdS/CFT) says information must be preserved — released near the Page time $t_{Page} \approx t_{evap}/2$ via subtle correlations.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">FIREWALL PARADOX (AMPS 2012)</div>
+      <div class="fact-body">Almheiri, Marolf, Polchinski, Sully: monogamy of entanglement forces a choice — either (a) the horizon is smooth (infalling observer sees nothing special) or (b) early and late Hawking radiation are maximally entangled (unitarity). You cannot have both. One resolution requires "ER = EPR" or non-locality.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">ISLAND FORMULA (2019)</div>
+      <div class="fact-body">$S_{rad} = \min\operatorname{ext}_{\mathcal{I}}\left[S_{bulk}(\mathcal{R}\cup\mathcal{I}) + \frac{A(\partial\mathcal{I})}{4G\hbar}\right]$. An "island" region inside the BH contributes to the radiation entropy, reproducing the Page curve and restoring unitarity in JT gravity models (Penington; Almheiri et al.).</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: KERR ERGOSPHERE -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="px-left">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Spin a/M</label>
+      <input type="range" id="p5spin" min="0" max="99" value="70" oninput="p5Draw()">
+      <span id="p5spinVal">0.70</span>
+      <label>Mass M</label>
+      <input type="range" id="p5mass" min="20" max="100" value="60" oninput="p5Draw()">
+      <span id="p5massVal">60</span>
+      <button id="p5geodBtn" onclick="p5ToggleGeodesic()">▶ Inspiral</button>
+      <button onclick="p5ClickPenrose()">Penrose Process</button>
+      <button onclick="p5Reset()">↺ Reset</button>
+    </div>
+    <div class="info-box" id="p5info">Click ergosphere region to trigger Penrose process energy extraction.</div>
+  </div>
+  <div class="px-side">
+    <h3>Kerr Geometry (1963)</h3>
+    <div class="side-text">Roy Kerr's exact vacuum solution for a rotating mass: the unique (by uniqueness theorems) stationary, axisymmetric BH solution. Described by mass $M$ and angular momentum $J=aM$ with $|a|\le M$ (geometrized units $G=c=1$).</div>
+    <ul class="eq-list">
+      <li><span>$ds^2 = -\left(1-\frac{r_s r}{\rho^2}\right)dt^2 - \frac{2r_s r a\sin^2\theta}{\rho^2}dt\,d\phi + ...$</span></li>
+      <li><span>$r_\pm = M \pm \sqrt{M^2-a^2}$</span> — horizons</li>
+      <li><span>$r_{erg}(\theta) = M + \sqrt{M^2 - a^2\cos^2\theta}$</span></li>
+      <li><span>$r_{ISCO} = r_{ISCO}(a)$</span> — varies 1M to 9M</li>
+    </ul>
+    <div class="fact-card">
+      <div class="fact-title">ERGOSPHERE</div>
+      <div class="fact-body">Between $r_+$ and $r_{erg}(\theta)$: the static limit surface where $g_{tt}=0$. Inside, no observer can remain stationary — they are dragged in the rotation direction at $v>c$ relative to infinity. Physical objects can exist here (unlike inside $r_+$); hence energy extraction is possible.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">PENROSE PROCESS</div>
+      <div class="fact-body">A particle enters ergosphere with energy $E_0>0$, splits; fragment 1 has $E_1<0$ (negative energy states exist in ergosphere), falls into BH. Fragment 2 escapes with $E_2 = E_0-E_1 > E_0$. The extracted energy comes from rotational kinetic energy; maximum efficiency: $1-1/\sqrt{2}\approx 29\%$ of irreducible mass.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">BLANDFORD-ZNAJEK MECHANISM</div>
+      <div class="fact-body">Electromagnetic analog of the Penrose process: magnetic field lines threading the horizon extract rotational energy via Poynting flux, powering relativistic jets in AGN and GRBs. Efficiency can exceed the Penrose process mechanically. Key mechanism in M87* jet (EHT, 2019).</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">ISCO (INNERMOST STABLE CIRCULAR ORBIT)</div>
+      <div class="fact-body">$r_{ISCO} = 6M$ for Schwarzschild, $r_{ISCO} \to M$ for maximally prograde Kerr, $r_{ISCO} \to 9M$ for maximally retrograde. ISCO spin determines radiative efficiency: $\eta = 1-\sqrt{1-2/(3r_{ISCO}/M)}$, up to 42% for extremal Kerr vs 6% for Schwarzschild.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">FRAME DRAGGING (LENSE-THIRRING)</div>
+      <div class="fact-body">Angular velocity of ZAMOs (zero-angular-momentum observers): $\Omega_{LT} = -g_{t\phi}/g_{\phi\phi} = 2Mar/(r^2+a^2)^2+...$. Measured by Gravity Probe B (2011) in Earth's field: 37.2 mas/yr (geodetic) + 6.6 mas/yr (frame drag). For stellar-mass BHs, GW spin measurements (LIGO) probe this.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: GRAVITATIONAL WAVE SIGNATURES -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="px-left">
+    <canvas id="c6"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>M₁ (M☉)</label>
+      <input type="range" id="p6m1" min="5" max="80" value="36" oninput="p6Update()">
+      <span id="p6m1Val">36</span>
+      <label>M₂ (M☉)</label>
+      <input type="range" id="p6m2" min="5" max="80" value="29" oninput="p6Update()">
+      <span id="p6m2Val">29</span>
+      <button id="p6animBtn" class="animBtn" onclick="p6ToggleAnim()">▶ Animate</button>
+      <button onclick="p6Reset()">↺ Reset</button>
+      <span style="font-size:.75rem;color:var(--dim)">ℳ: <span class="val" id="p6chirpM">—</span> M☉ &nbsp; f_merge: <span class="val" id="p6fmerge">—</span> Hz</span>
+    </div>
+  </div>
+  <div class="px-side">
+    <h3>Gravitational Wave Signatures</h3>
+    <div class="side-text">LIGO's first detection (GW150914, Sept 14 2015): a 0.2-second chirp reaching 150 Hz, from 36+29 → 62 M☉ merger at 410 Mpc. Three solar masses radiated as gravitational waves — the brightest observed event in the universe at that moment.</div>
+    <ul class="eq-list">
+      <li><span>$\dot P = -\dfrac{32G^4}{5c^5}\dfrac{m_1^2 m_2^2(m_1+m_2)}{r^5}$</span></li>
+      <li><span>$\mathcal{M} = \dfrac{(m_1 m_2)^{3/5}}{(m_1+m_2)^{1/5}}$</span> — chirp mass</li>
+      <li><span>$f_{chirp}(t) \propto \mathcal{M}^{-5/8}(t_c-t)^{-3/8}$</span></li>
+    </ul>
+    <div class="fact-card">
+      <div class="fact-title">THREE PHASES</div>
+      <div class="fact-body"><strong>Inspiral:</strong> PN (post-Newtonian) regime; frequency sweeps up as $f\propto (t_c-t)^{-3/8}$. <strong>Merger:</strong> fully non-linear NR; amplitude peaks. <strong>Ringdown:</strong> perturbed final BH radiates quasinormal modes; dominant QNM $f_{220} = (c^3/2\pi GM_{fin})\times 0.373(1-0.32\chi^{0.57})$.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">QUADRUPOLE FORMULA</div>
+      <div class="fact-body">$h_+ = \frac{4G}{c^4 r}\frac{d^2 I_{xx}}{dt^2}$ where $I_{ij}$ is the trace-free quadrupole. For circular orbit: $h = (4G\mathcal{M}/c^2 r)(G\mathcal{M}\pi f/c^3)^{2/3}$. GW150914 peak strain $\sim 10^{-21}$ — Earth deformed by $\sim 10^{-18}$ m.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">GW150914 PARAMETERS</div>
+      <div class="fact-body">$m_1=36_{-4}^{+5}M_\odot$, $m_2=29_{-4}^{+4}M_\odot$, $M_{fin}=62_{-4}^{+4}M_\odot$, $\chi_{eff}\approx-0.06$, $d_L=410_{-180}^{+160}$ Mpc, $z\approx0.09$. Radiated energy: $3.0^{+0.5}_{-0.5}M_\odot c^2 \approx 5\times10^{47}$ J.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">QUASINORMAL MODES (RINGDOWN)</div>
+      <div class="fact-body">Perturbed Kerr BH has discrete complex frequencies $\omega_{lmn} = \omega_R + i\omega_I$. Real part = oscillation, imaginary = damping. The (2,2,0) mode dominates. BH spectroscopy: measuring multiple QNMs tests no-hair theorem (Dreyer et al. 2004, now achievable with LIGO O3).</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">LIGO / VIRGO / KAGRA</div>
+      <div class="fact-body">As of O3 (2021): 90 confirmed events in GWTC-3. Mass gap events (GW190814: 23+2.6 M☉), neutron star mergers (GW170817 — multi-messenger), intermediate mass BH hints. LISA (2035): mHz band, massive BH mergers, EMRIs. Einstein Telescope: 10× sensitivity.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: BH THERMODYNAMICS + INFORMATION -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="px-left">
+    <canvas id="c7"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Plot</label>
+      <button class="active-btn" id="p7bt0" onclick="p7SetMode(0)">S vs M</button>
+      <button id="p7bt1" onclick="p7SetMode(1)">Page Curve</button>
+      <button id="p7bt2" onclick="p7SetMode(2)">Four Laws</button>
+      <button id="p7animBtn" class="animBtn" onclick="p7ToggleAnim()">▶ Animate</button>
+      <button onclick="p7Reset()">↺ Reset</button>
+    </div>
+  </div>
+  <div class="px-side">
+    <h3>BH Thermodynamics &amp; Information</h3>
+    <div class="side-text">Bekenstein (1972) proposed $S_{BH}\propto A$ on entropic grounds; Hawking (1974) confirmed with $T_H=\kappa/2\pi$ (in units $\hbar=k_B=1$), fixing the coefficient: $S_{BH} = k_B A/(4\ell_P^2)$.</div>
+    <ul class="eq-list">
+      <li><span>$S_{BH} = \dfrac{k_B A}{4\ell_P^2} = \dfrac{4\pi k_B G M^2}{\hbar c}$</span></li>
+      <li><span>$T_H = \dfrac{\hbar c^3}{8\pi G M k_B}$</span></li>
+      <li><span>$S_{Bek} \le \dfrac{2\pi E R}{\hbar c}$</span> — Bekenstein bound</li>
+    </ul>
+    <div class="fact-card">
+      <div class="fact-title">FOUR LAWS OF BH MECHANICS</div>
+      <div class="fact-body">
+        <strong>0th:</strong> $\kappa=\mathrm{const}$ on horizon (analogue: $T$=const in equilibrium).<br>
+        <strong>1st:</strong> $dM = \frac{\kappa}{8\pi}dA + \Omega\,dJ + \Phi\,dQ$ (analogue: $dE=TdS+...$).<br>
+        <strong>2nd:</strong> $dA\ge0$ classically (analogue: $dS\ge0$). Hawking 1971.<br>
+        <strong>3rd:</strong> $\kappa\to0$ unattainable in finite steps. Extremal BH $a=M$ is the limit.
+      </div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">PAGE CURVE &amp; PAGE TIME</div>
+      <div class="fact-body">Don Page (1993): if evaporation is unitary, the entanglement entropy $S_{rad}$ of Hawking radiation first rises (BH emits entangled pairs), peaks at Page time $t_{Page}\approx t_{evap}/2$ when $S_{rad}=S_{BH}$, then decreases back to zero as the BH disappears. This is the purification curve of a unitary process.</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">HOLOGRAPHIC PRINCIPLE</div>
+      <div class="fact-body">'t Hooft and Susskind (1993): the maximum entropy in a region is $A/4\ell_P^2$ — determined by the bounding surface area, not volume. Implies the universe's degrees of freedom live on a lower-dimensional boundary. Realized precisely in AdS/CFT (Maldacena 1997).</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">GENERALIZED SECOND LAW</div>
+      <div class="fact-body">Bekenstein: $S_{total} = S_{matter} + S_{BH}$ never decreases. Consistent with Hawking radiation: as BH loses mass ($S_{BH}$ decreases), emitted radiation entropy increases by a larger amount. Proven for semiclassical gravity by Wall (2011).</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-title">SUSSKIND'S "BLACK HOLE WARS"</div>
+      <div class="fact-body">20-year debate (1976–2004): Hawking argued information is destroyed; Susskind and 't Hooft insisted unitarity holds. Resolved by AdS/CFT (Maldacena): a CFT is manifestly unitary; its bulk dual BH must also be unitary. Hawking conceded in 2004. The precise mechanism of information release remains unsolved.</div>
+    </div>
+    <div class="side-text"><strong style="color:var(--text)">Island formula (2019):</strong> Penington; Almheiri et al. — using replica wormholes in JT gravity, reproduces the Page curve exactly from gravitational path integral, without invoking string theory explicitly.</div>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ============================================================
+// UTILITIES
+// ============================================================
+function lerp(a,b,t){return a+(b-a)*t}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function glow(ctx,color,blur){ctx.shadowColor=color;ctx.shadowBlur=blur}
+function noGlow(ctx){ctx.shadowBlur=0}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(i){
+  _cancelAllAnims35();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  syncSpeedControl35(i);
+  if(i===0){if(penroseAnimOn&&!penroseAnimId)penroseAnimFrame();else drawTab0();togglePenroseAnim();}
+  if(i===1) drawTab1();
+  if(i===2) drawTab2();
+  if(i===3){p3Draw();p3ToggleAnim();}
+  if(i===4) p4Draw();
+  if(i===5){p5Draw();p5ToggleGeodesic();}
+  if(i===6){p6Draw();p6ToggleAnim();}
+  if(i===7){p7Draw();p7ToggleAnim();}
+}
+
+function syncSpeedControl35(i){
+  for(var j=0;j<8;j++){
+    var spd=document.getElementById('globalSpeed'+j);
+    if(spd){spd.value=window.animSpeed||0.1;document.getElementById('globalSpeedVal'+j).textContent=(window.animSpeed||0.1).toFixed(2);}
+  }
+}
+
+function _cancelAllAnims35(){
+  if(penroseAnimId){ cancelAnimationFrame(penroseAnimId); penroseAnimId=null; }
+  if(p3AnimId){ cancelAnimationFrame(p3AnimId); p3AnimId=null; }
+  if(p4AnimId){ cancelAnimationFrame(p4AnimId); p4AnimId=null; }
+  if(p5AnimId){ cancelAnimationFrame(p5AnimId); p5AnimId=null; }
+  if(p6AnimId){ cancelAnimationFrame(p6AnimId); p6AnimId=null; }
+  if(p7AnimId){ cancelAnimationFrame(p7AnimId); p7AnimId=null; }
+  const btns = ['btnAnimP0','p3animBtn','p6animBtn','p7animBtn'];
+  btns.forEach(id => {
+    const b = document.getElementById(id);
+    if(b){ b.textContent='▶ Animate'; b.classList.remove('active-btn'); }
+  });
+}
+
+// ============================================================
+// TAB 0 — PENROSE DIAGRAMS
+// ============================================================
+let spacetimeType = 0; // 0=Mink, 1=Schw, 2=RN, 3=Kerr, 4=dS, 5=AdS
+let nullRays = [];      // array of {x0,y0,dir} in diagram coords [-1,1]
+let hoverPos = null;
+
+const SPACETIME_NAMES = ['Minkowski','Schwarzschild (Kruskal)','Reissner–Nordström','Kerr (equatorial)','de Sitter','Anti-de Sitter'];
+
+function setSpacetime(i){
+  spacetimeType = i;
+  nullRays = [];
+  ['bst0','bst1','bst2','bst3','bst4','bst5'].forEach((id,j)=>{
+    document.getElementById(id).classList.toggle('active-btn',j===i);
+  });
+  drawTab0();
+}
+
+function resetRays(){nullRays=[];drawTab0();}
+
+// ---- Pane 0 continuous null-ray animation ----
+let penroseAnimId = null;
+let penroseAnimOn = false;
+let penroseAnimTimer = 0; // frames since last auto-shot
+
+function togglePenroseAnim(){
+  penroseAnimOn = !penroseAnimOn;
+  const btn = document.getElementById('btnAnimP0');
+  btn.textContent = penroseAnimOn ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('active-btn', penroseAnimOn);
+  if(penroseAnimOn){
+    penroseAnimTimer = 0;
+    penroseAnimFrame();
+  } else {
+    if(penroseAnimId){ cancelAnimationFrame(penroseAnimId); penroseAnimId=null; }
+  }
+}
+
+function autoShootRay(){
+  // Shoot from a random point outside the singularity region
+  // In diagram coords: inside diamond |u|+|v| <= 1
+  // For Schwarzschild (type 1): shoot from region I (u>0, |v|<u)
+  // For others: anywhere in diamond
+  let u, v;
+  if(spacetimeType===1){
+    // Exterior region I: u in [0.1,0.9], |v| < u*0.9
+    u = 0.15 + Math.random()*0.7;
+    v = (Math.random()*2-1)*u*0.85;
+  } else if(spacetimeType===4){
+    // de Sitter: left half (observer region)
+    u = -0.5 + Math.random()*0.5;
+    v = (Math.random()*2-1)*(1-Math.abs(u))*0.9;
+  } else {
+    // Generic: random point in diamond, biased toward lower half (past)
+    u = (Math.random()*2-1)*0.8;
+    v = -0.8 + Math.random()*0.7;
+    if(Math.abs(u)+Math.abs(v)>0.95){ u*=0.7; v*=0.7; }
+  }
+  nullRays.push({u,v});
+  if(nullRays.length>10) nullRays.shift();
+}
+
+function penroseAnimFrame(){
+  if(!penroseAnimOn){ penroseAnimId=null; return; }
+  penroseAnimTimer++;
+  // Every ~90 frames (~1.5s at 60fps) shoot a new ray
+  if(penroseAnimTimer >= 90){
+    penroseAnimTimer = 0;
+    autoShootRay();
+  }
+  drawTab0();
+  penroseAnimId = requestAnimationFrame(penroseAnimFrame);
+}
+
+// Map canvas pixel -> diagram coord [-1,1]
+function canvasToNorm(cv,x,y){
+  const W=cv.clientWidth, H=cv.clientHeight;
+  return {u:(x/W)*2-1, v:1-(y/H)*2};
+}
+
+function drawTab0(){
+  const cv=document.getElementById('c0');
+  const W=cv.clientWidth||cv.offsetWidth||700;
+  const H=cv.clientHeight||cv.offsetHeight||400;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  ctx.fillStyle='#06060f';
+  ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, cy=H/2;
+  // Diamond half-size
+  const R=Math.min(W,H)*0.42;
+
+  // Coordinate transform: diagram uv in [-1,1] -> canvas
+  function toC(u,v){return{x:cx+u*R, y:cy-v*R};}
+  function fromC(px,py){return{u:(px-cx)/R, v:(cy-py)/R};}
+
+  // Draw null grid (45° lines)
+  ctx.save();
+  ctx.strokeStyle='rgba(255,102,68,0.07)';
+  ctx.lineWidth=0.5;
+  ctx.beginPath();
+  for(let s=-2;s<=2;s+=0.25){
+    // u+v = s
+    const p1=toC(-1,s+1), p2=toC(1,s-1);
+    ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+    // u-v = s
+    const q1=toC(-1,-s-1), q2=toC(1,-s+1);
+    ctx.moveTo(q1.x,q1.y); ctx.lineTo(q2.x,q2.y);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // Clip to diamond
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy);
+  ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy);
+  ctx.closePath();
+  ctx.clip();
+
+  // Fill regions based on spacetime type
+  if(spacetimeType===1){
+    // Schwarzschild: 4 Kruskal regions
+    // Region I: right (exterior)
+    ctx.beginPath();
+    ctx.moveTo(cx,cy); ctx.lineTo(cx+R,cy); ctx.lineTo(cx,cy-R);
+    ctx.closePath();
+    ctx.fillStyle='rgba(20,40,80,0.7)'; ctx.fill();
+    // Region II: top (future interior / BH)
+    ctx.beginPath();
+    ctx.moveTo(cx,cy); ctx.lineTo(cx,cy-R); ctx.lineTo(cx-R,cy);
+    ctx.closePath();
+    ctx.fillStyle='rgba(60,10,10,0.7)'; ctx.fill();
+    // Region III: bottom (white hole)
+    ctx.beginPath();
+    ctx.moveTo(cx,cy); ctx.lineTo(cx+R,cy); ctx.lineTo(cx,cy+R);
+    ctx.closePath();
+    ctx.fillStyle='rgba(10,40,10,0.5)'; ctx.fill();
+    // Region IV: left (other exterior)
+    ctx.beginPath();
+    ctx.moveTo(cx,cy); ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy);
+    ctx.closePath();
+    ctx.fillStyle='rgba(20,40,80,0.4)'; ctx.fill();
+  } else if(spacetimeType===4){
+    // de Sitter: cosmological horizon
+    ctx.fillStyle='rgba(10,40,60,0.6)';
+    ctx.fillRect(cx-R,cy-R,2*R,2*R);
+  } else if(spacetimeType===5){
+    // Anti-de Sitter: timelike boundary
+    ctx.fillStyle='rgba(30,10,60,0.6)';
+    ctx.fillRect(cx-R,cy-R,2*R,2*R);
+  } else {
+    ctx.fillStyle='rgba(10,20,50,0.5)';
+    ctx.fillRect(cx-R,cy-R,2*R,2*R);
+  }
+  ctx.restore();
+
+  // Draw conformal boundary (diamond)
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy);
+  ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy);
+  ctx.closePath();
+  if(spacetimeType===5){
+    // AdS: left boundary is timelike
+    ctx.strokeStyle='rgba(180,100,255,0.9)';
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+    // Draw left edge bolder
+    ctx.beginPath();
+    ctx.moveTo(cx-R,cy); ctx.lineTo(cx,cy-R); ctx.moveTo(cx-R,cy); ctx.lineTo(cx,cy+R);
+    glow(ctx,'#aa44ff',10);
+    ctx.strokeStyle='rgba(200,120,255,1)';
+    ctx.lineWidth=3;
+    ctx.stroke();
+    noGlow(ctx);
+  } else {
+    ctx.strokeStyle='rgba(180,180,255,0.5)';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Event horizons
+  ctx.save();
+  if(spacetimeType===1||spacetimeType===2||spacetimeType===3){
+    // Diagonal lines through center
+    ctx.beginPath();
+    ctx.moveTo(cx-R,cy); ctx.lineTo(cx,cy-R); // NW horizon
+    ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy); // NE but flip
+    // Actually draw H+: from (cx-R,cy) to (cx,cy-R) and (cx,cy-R) to (cx+R,cy)
+    // Horizons are the diagonals at u=±v
+    ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy); // top-right
+    ctx.moveTo(cx,cy-R); ctx.lineTo(cx-R,cy); // top-left
+    glow(ctx,'#ff6644',16);
+    ctx.strokeStyle='#ff6644';
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+    noGlow(ctx);
+    if(spacetimeType===2){
+      // Inner horizon at ~0.5
+      const frac=0.5;
+      ctx.beginPath();
+      const h1a=toC(-frac,0), h1b=toC(0,frac), h2a=toC(frac,0), h2b=toC(0,frac);
+      ctx.moveTo(cx-R*frac,cy); ctx.lineTo(cx,cy-R*frac);
+      ctx.moveTo(cx+R*frac,cy); ctx.lineTo(cx,cy-R*frac);
+      glow(ctx,'#ffaa44',10);
+      ctx.strokeStyle='#ffaa44';
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+      noGlow(ctx);
+    }
+  } else if(spacetimeType===4){
+    // Cosmological horizon: vertical center line
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R); ctx.lineTo(cx,cy+R);
+    glow(ctx,'#44ddff',14);
+    ctx.strokeStyle='#44ddff';
+    ctx.lineWidth=2;
+    ctx.stroke();
+    noGlow(ctx);
+  }
+  ctx.restore();
+
+  // Singularity (jagged line at top for Schwarzschild/RN/Kerr)
+  if(spacetimeType>=1&&spacetimeType<=3){
+    ctx.save();
+    const sy=cy-R+R*0.08;
+    const x0=cx-R*0.6, x1=cx+R*0.6;
+    ctx.beginPath();
+    ctx.moveTo(x0,sy);
+    const nZags=18;
+    for(let k=0;k<=nZags;k++){
+      const xz=lerp(x0,x1,k/nZags);
+      const yz=sy+(k%2===0?-6:6);
+      ctx.lineTo(xz,yz);
+    }
+    glow(ctx,'#ff2200',18);
+    ctx.strokeStyle='#ff4422';
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+    noGlow(ctx);
+    ctx.restore();
+    // Singularity label
+    ctx.fillStyle='#ff6644';
+    ctx.font='bold 12px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText('singularity r=0',cx,sy-14);
+  }
+
+  // Draw horizons for Kerr (ring singularity — more complex)
+  if(spacetimeType===3){
+    // Cauchy horizon inner
+    ctx.save();
+    const frac2=0.38;
+    ctx.beginPath();
+    ctx.moveTo(cx-R*frac2,cy); ctx.lineTo(cx,cy-R*frac2);
+    ctx.moveTo(cx+R*frac2,cy); ctx.lineTo(cx,cy-R*frac2);
+    ctx.moveTo(cx-R*frac2,cy); ctx.lineTo(cx,cy+R*frac2);
+    ctx.moveTo(cx+R*frac2,cy); ctx.lineTo(cx,cy+R*frac2);
+    glow(ctx,'#ffcc44',10);
+    ctx.strokeStyle='#ffcc44';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+    noGlow(ctx);
+    ctx.restore();
+  }
+
+  // Draw shot null rays
+  ctx.save();
+  for(const ray of nullRays){
+    const startC=toC(ray.u,ray.v);
+    glow(ctx,'#88ffcc',12);
+    ctx.strokeStyle='rgba(100,255,200,0.85)';
+    ctx.lineWidth=1.5;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    ctx.moveTo(startC.x,startC.y);
+    // two 45° directions
+    for(const sign of[1,-1]){
+      // u+sign*v = const means ray goes at 45°
+      // Parameterize: u(t)=ray.u+t, v(t)=ray.v+sign*t; clip to diamond |u|+|v|<=1
+      let tMax=2;
+      const p=toC(ray.u+tMax,ray.v+sign*tMax);
+      ctx.moveTo(startC.x,startC.y);
+      ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke();
+    noGlow(ctx);
+    ctx.setLineDash([]);
+    // dot at origin
+    ctx.beginPath();
+    ctx.arc(startC.x,startC.y,4,0,Math.PI*2);
+    ctx.fillStyle='#88ffcc';
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Labels for infinity points
+  ctx.save();
+  ctx.font='13px Segoe UI';
+  ctx.textAlign='center';
+  // i+
+  ctx.fillStyle='#c0c0ea';
+  ctx.fillText('i⁺',cx,cy-R-10);
+  // i-
+  ctx.fillText('i⁻',cx,cy+R+16);
+  // i0 left and right
+  ctx.textAlign='right';
+  ctx.fillText('i⁰',cx-R-6,cy+4);
+  ctx.textAlign='left';
+  ctx.fillText('i⁰',cx+R+6,cy+4);
+  // J+ and J-
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(180,180,255,0.7)';
+  ctx.save();
+  ctx.translate(cx+R*0.55,cy-R*0.5);
+  ctx.rotate(-Math.PI/4);
+  ctx.fillText('𝒥⁺',0,0);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(cx+R*0.55,cy+R*0.5);
+  ctx.rotate(Math.PI/4);
+  ctx.fillText('𝒥⁻',0,0);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(cx-R*0.55,cy-R*0.5);
+  ctx.rotate(Math.PI/4);
+  ctx.fillText('𝒥⁺',0,0);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(cx-R*0.55,cy+R*0.5);
+  ctx.rotate(-Math.PI/4);
+  ctx.fillText('𝒥⁻',0,0);
+  ctx.restore();
+
+  // Schwarzschild region labels
+  if(spacetimeType===1){
+    ctx.font='bold 13px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(100,160,255,0.85)';
+    ctx.fillText('I  (exterior)',cx+R*0.42,cy+4);
+    ctx.fillStyle='rgba(220,80,80,0.9)';
+    ctx.fillText('II  (black hole)',cx,cy-R*0.35);
+    ctx.fillStyle='rgba(80,160,80,0.85)';
+    ctx.fillText('III  (white hole)',cx,cy+R*0.35);
+    ctx.fillStyle='rgba(100,160,255,0.7)';
+    ctx.fillText('IV',cx-R*0.42,cy+4);
+  }
+
+  // Title
+  ctx.textAlign='left';
+  ctx.font='bold 13px Segoe UI';
+  ctx.fillStyle='rgba(255,102,68,0.9)';
+  ctx.fillText(SPACETIME_NAMES[spacetimeType], 16, 22);
+  ctx.restore();
+
+  // Hover dot
+  if(hoverPos){
+    const hc=toC(hoverPos.u,hoverPos.v);
+    ctx.beginPath();
+    ctx.arc(hc.x,hc.y,5,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,200,100,0.8)';
+    ctx.fill();
+  }
+}
+
+// Mouse events for tab 0
+window.addEventListener('load',()=>{
+  const cv=document.getElementById('c0');
+  cv.addEventListener('click',e=>{
+    const rect=cv.getBoundingClientRect();
+    const x=e.clientX-rect.left, y=e.clientY-rect.top;
+    const W=cv.clientWidth, H=cv.clientHeight;
+    const u=(x/W)*2-1, v=1-(y/H)*2;
+    // Only inside diamond
+    if(Math.abs(u)+Math.abs(v)<=1.02){
+      nullRays.push({u,v});
+      if(nullRays.length>8) nullRays.shift();
+      drawTab0();
+    }
+  });
+  cv.addEventListener('mousemove',e=>{
+    const rect=cv.getBoundingClientRect();
+    const x=e.clientX-rect.left, y=e.clientY-rect.top;
+    const W=cv.clientWidth, H=cv.clientHeight;
+    const u=(x/W)*2-1, v=1-(y/H)*2;
+    if(Math.abs(u)+Math.abs(v)<=1.02){
+      hoverPos={u,v};
+      document.getElementById('hoverLabel').innerHTML=
+        `Conformal coords: (U,V) = (${u.toFixed(2)}, ${v.toFixed(2)}) &nbsp;|&nbsp; Click to shoot a null geodesic`;
+    } else {
+      hoverPos=null;
+      document.getElementById('hoverLabel').innerHTML='Click inside the diamond to shoot a null ray &nbsp;|&nbsp; Hover for coordinate info';
+    }
+    drawTab0();
+  });
+  cv.addEventListener('mouseleave',()=>{ hoverPos=null; drawTab0(); });
+});
+
+// ============================================================
+// TAB 1 — COLLAPSE & HAWKING RADIATION
+// ============================================================
+let collapsePhase = 0; // 0=star, 1=collapsing, 2=collapsed, 3=evaporating
+let collapseM = 30;    // solar masses
+let currentM = 30;
+let targetM = 30;
+let starRadius = 0;    // in pixels
+let horizonR = 0;
+let particles = [];
+let animId1 = null;
+let evapAnimId = null;
+let evapSpeed = 0;
+
+const T_SCALE = 6.17e-8; // T_H in nK for 1 solar mass -> ~62nK (scaled display)
+
+function hawkingT(m){ return 62/m; } // nK, normalized so 1 solar mass = 62nK
+function hawkingL(m){ return 1/(m*m); } // arbitrary units
+
+function onMassChange(){
+  collapseM = +document.getElementById('massSlider').value;
+  document.getElementById('massVal').textContent = collapseM;
+  if(collapsePhase===0){ currentM=collapseM; targetM=collapseM; }
+  drawTab1();
+}
+
+function doCollapse(){
+  if(collapsePhase>=2) return;
+  collapsePhase=1;
+  targetM=collapseM;
+  document.getElementById('btnCollapse').disabled=true;
+  document.getElementById('btnEvap').disabled=true;
+  cancelAnimationFrame(animId1);
+  let prog=0;
+  function step(){
+    prog+=0.008*(window.animSpeed||0.1);
+    starRadius=Math.max(0,1-prog);
+    if(prog>=1){
+      collapsePhase=2;
+      starRadius=0;
+      document.getElementById('btnEvap').disabled=false;
+      drawTab1();
+      // Spawn initial Hawking particles
+      spawnHawking();
+      animId1=requestAnimationFrame(hawkingLoop);
+      return;
+    }
+    drawTab1();
+    animId1=requestAnimationFrame(step);
+  }
+  animId1=requestAnimationFrame(step);
+}
+
+function doEvaporate(){
+  if(collapsePhase!==2&&collapsePhase!==3) return;
+  collapsePhase=3;
+  document.getElementById('btnEvap').textContent='Evaporating...';
+  document.getElementById('btnEvap').disabled=true;
+}
+
+function resetTab1(){
+  cancelAnimationFrame(animId1);
+  animId1=null;
+  collapsePhase=0;
+  currentM=collapseM=30;
+  starRadius=1;
+  particles=[];
+  document.getElementById('massSlider').value=30;
+  document.getElementById('massVal').textContent=30;
+  document.getElementById('btnCollapse').disabled=false;
+  document.getElementById('btnEvap').disabled=true;
+  document.getElementById('btnEvap').textContent='Evaporate';
+  drawTab1();
+}
+
+function spawnHawking(){
+  // Spawn particle pair near horizon
+  const cv=document.getElementById('c1');
+  const W=cv.clientWidth||600, H=cv.clientHeight||350;
+  const cx=W*0.38, cy=H/2;
+  const hR=computeHorizonPx(W,H);
+  for(let i=0;i<2;i++){
+    const angle=Math.random()*Math.PI*2;
+    const r=hR+2;
+    particles.push({
+      x:cx+Math.cos(angle)*r,
+      y:cy+Math.sin(angle)*r,
+      vx:Math.cos(angle)*(i===0?-1:1)*0.8,
+      vy:Math.sin(angle)*(i===0?-1:1)*0.8,
+      type:i===0?'in':'out', // in=falls in, out=escapes
+      alpha:1, age:0, angle, hR, cx, cy
+    });
+  }
+}
+
+function computeHorizonPx(W,H){
+  const scale=Math.min(W,H)*0.35;
+  return (currentM/100)*scale*0.8+8;
+}
+
+function hawkingLoop(){
+  const cv=document.getElementById('c1');
+  const W=cv.clientWidth||600, H=cv.clientHeight||350;
+  const hR=computeHorizonPx(W,H);
+  // Evaporate mass slowly
+  if(collapsePhase===3&&currentM>0.5){
+    currentM=Math.max(0.5, currentM-0.04);
+    if(currentM<=0.5){ collapsePhase=4; }
+  }
+  // Update particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.age++;
+    if(p.type==='in'){
+      // Accelerate inward
+      const dx=p.cx-p.x, dy=p.cy-p.y;
+      const d=Math.sqrt(dx*dx+dy*dy)+0.01;
+      p.vx+=dx/d*0.15; p.vy+=dy/d*0.15;
+    } else {
+      // Slow outward
+      p.vx*=0.98; p.vy*=0.98;
+    }
+    p.alpha=Math.max(0,1-p.age/60);
+    if(p.age>60||p.alpha<=0) particles.splice(i,1);
+  }
+  // Spawn new pairs periodically
+  if(Math.random()<0.12&&collapsePhase>=2) spawnHawking();
+  drawTab1();
+  animId1=requestAnimationFrame(hawkingLoop);
+}
+
+function drawTab1(){
+  const cv=document.getElementById('c1');
+  const W=cv.clientWidth||cv.offsetWidth||600;
+  const H=cv.clientHeight||cv.offsetHeight||350;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  ctx.fillStyle='#06060f';
+  ctx.fillRect(0,0,W,H);
+
+  const cx=W*0.38, cy=H/2;
+  const scale=Math.min(W,H)*0.35;
+  const hR=computeHorizonPx(W,H);
+  const maxStarR=(collapseM/100)*scale*1.4+30;
+
+  // ---- LEFT SIDE: collapse animation ----
+  if(collapsePhase===0){
+    // Draw star
+    const rStar=maxStarR;
+    const g=ctx.createRadialGradient(cx,cy,rStar*0.2,cx,cy,rStar);
+    g.addColorStop(0,'rgba(255,220,100,0.95)');
+    g.addColorStop(0.6,'rgba(255,100,30,0.8)');
+    g.addColorStop(1,'rgba(200,30,10,0)');
+    glow(ctx,'#ffaa44',40);
+    ctx.beginPath();
+    ctx.arc(cx,cy,rStar,0,Math.PI*2);
+    ctx.fillStyle=g;
+    ctx.fill();
+    noGlow(ctx);
+    ctx.fillStyle='rgba(255,200,100,0.7)';
+    ctx.font='12px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(`Star: M = ${collapseM} M☉, R = ${(maxStarR).toFixed(0)}px`,cx,cy+rStar+20);
+    ctx.fillText(`r_s = ${(collapseM*2.95/1000).toFixed(3)} km`,cx,cy+rStar+36);
+  } else if(collapsePhase===1){
+    // Collapsing
+    const rStar=maxStarR*starRadius;
+    if(rStar>2){
+      const g2=ctx.createRadialGradient(cx,cy,rStar*0.1,cx,cy,rStar);
+      g2.addColorStop(0,'rgba(255,220,100,0.95)');
+      g2.addColorStop(1,'rgba(200,30,10,0)');
+      glow(ctx,'#ffaa44',30);
+      ctx.beginPath(); ctx.arc(cx,cy,rStar,0,Math.PI*2);
+      ctx.fillStyle=g2; ctx.fill();
+      noGlow(ctx);
+    }
+    // Event horizon forming
+    glow(ctx,'#ff6644',20);
+    ctx.beginPath(); ctx.arc(cx,cy,hR,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,100,68,0.9)'; ctx.lineWidth=2; ctx.stroke();
+    noGlow(ctx);
+    ctx.fillStyle='rgba(255,100,68,0.7)';
+    ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('Event horizon forming...',cx,cy+hR+18);
+  } else if(collapsePhase>=2){
+    // Black hole
+    const bhR=hR;
+    // Black disk
+    const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,bhR*1.8);
+    bg.addColorStop(0,'rgba(0,0,0,1)');
+    bg.addColorStop(0.7,'rgba(10,5,20,0.8)');
+    bg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,bhR*1.8,0,Math.PI*2);
+    ctx.fillStyle=bg; ctx.fill();
+    // Photon sphere glow
+    glow(ctx,'#ff8844',25);
+    ctx.beginPath(); ctx.arc(cx,cy,bhR*1.5,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,120,40,0.4)'; ctx.lineWidth=3; ctx.stroke();
+    noGlow(ctx);
+    // Event horizon
+    glow(ctx,'#ff6644',20);
+    ctx.beginPath(); ctx.arc(cx,cy,bhR,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,80,50,1)'; ctx.lineWidth=2.5; ctx.stroke();
+    noGlow(ctx);
+    // Accretion disk suggestion
+    ctx.save();
+    ctx.translate(cx,cy); ctx.scale(1,0.28);
+    const ag=ctx.createRadialGradient(0,0,bhR,0,0,bhR*2.2);
+    ag.addColorStop(0,'rgba(255,150,30,0.6)');
+    ag.addColorStop(0.5,'rgba(255,80,10,0.3)');
+    ag.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.arc(0,0,bhR*2.2,0,Math.PI*2);
+    ctx.arc(0,0,bhR,0,Math.PI*2,true);
+    ctx.fillStyle=ag; ctx.fill();
+    ctx.restore();
+
+    // Hawking particles
+    for(const p of particles){
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,3,0,Math.PI*2);
+      if(p.type==='in'){
+        glow(ctx,'#ff4422',8);
+        ctx.fillStyle=`rgba(255,60,30,${p.alpha})`;
+      } else {
+        glow(ctx,'#44ffee',12);
+        ctx.fillStyle=`rgba(80,255,230,${p.alpha})`;
+      }
+      ctx.fill();
+      noGlow(ctx);
+    }
+
+    // M and T readout
+    const T=hawkingT(currentM);
+    document.getElementById('mReadout').textContent=currentM.toFixed(1);
+    document.getElementById('tReadout').textContent=T.toFixed(2);
+    ctx.fillStyle='rgba(180,180,255,0.8)';
+    ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(`M = ${currentM.toFixed(1)} M☉  |  T_H = ${T.toFixed(2)} nK`,cx,cy+bhR*1.8+28);
+    if(collapsePhase>=3){
+      ctx.fillStyle='rgba(100,255,200,0.8)';
+      ctx.fillText('Hawking radiation evaporating...',cx,cy+bhR*1.8+46);
+    }
+  }
+
+  // Label
+  ctx.fillStyle='rgba(255,102,68,0.8)';
+  ctx.font='bold 12px Segoe UI';
+  ctx.textAlign='left';
+  ctx.fillText('Gravitational Collapse',14,22);
+
+  // ---- RIGHT SIDE: mini Penrose diagram of collapse ----
+  const px=W*0.72, py=H*0.5, pr=Math.min(W*0.22,H*0.44);
+  ctx.save();
+  // Diamond outline
+  ctx.beginPath();
+  ctx.moveTo(px,py-pr); ctx.lineTo(px+pr,py);
+  ctx.lineTo(px,py+pr); ctx.lineTo(px-pr,py);
+  ctx.closePath();
+  ctx.strokeStyle='rgba(180,180,255,0.3)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.fillStyle='rgba(10,20,50,0.5)'; ctx.fill();
+  // Interior region (collapsed)
+  if(collapsePhase>=1){
+    ctx.beginPath();
+    // Left side = star surface worldline (vertical-ish line near left)
+    ctx.moveTo(px-pr*0.3,py+pr); ctx.lineTo(px-pr*0.3,py-pr*0.3);
+    ctx.lineTo(px,py-pr);
+    ctx.closePath();
+    ctx.fillStyle='rgba(60,10,10,0.6)'; ctx.fill();
+  }
+  // Singularity
+  if(collapsePhase>=1){
+    ctx.beginPath();
+    const sy2=py-pr+pr*0.1;
+    for(let k=0;k<=12;k++){
+      const xz=lerp(px-pr*0.3,px+pr*0.05,k/12);
+      ctx.lineTo(xz,sy2+(k%2===0?-4:4));
+    }
+    glow(ctx,'#ff2200',12);
+    ctx.strokeStyle='#ff4422'; ctx.lineWidth=2; ctx.stroke();
+    noGlow(ctx);
+  }
+  // Horizon line
+  if(collapsePhase>=1){
+    ctx.beginPath();
+    ctx.moveTo(px-pr*0.3,py-pr*0.3); ctx.lineTo(px,py-pr);
+    glow(ctx,'#ff6644',12);
+    ctx.strokeStyle='#ff6644'; ctx.lineWidth=2; ctx.stroke();
+    noGlow(ctx);
+  }
+  ctx.fillStyle='rgba(180,180,255,0.6)';
+  ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('Collapse diagram',px,py+pr+14);
+  ctx.restore();
+
+  // Draw T_H vs M curve in side canvas
+  drawTab1Curves();
+}
+
+function drawTab1Curves(){
+  const cv=document.getElementById('c1b');
+  const W=cv.clientWidth||cv.offsetWidth||280;
+  const H=cv.clientHeight||cv.offsetHeight||200;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#06060f';
+  ctx.fillRect(0,0,W,H);
+
+  const pad=32;
+  const Mmax=collapseM*1.1+1;
+
+  // T_H ~ 1/M curve
+  ctx.beginPath();
+  glow(ctx,'#ff6644',6);
+  ctx.strokeStyle='#ff6644';
+  ctx.lineWidth=1.5;
+  for(let i=0;i<=80;i++){
+    const m=lerp(0.1,Mmax,i/80);
+    const T=hawkingT(m);
+    const Tmax=hawkingT(0.1);
+    const x=pad+((m-0.1)/(Mmax-0.1))*(W-pad*2);
+    const y=(H-pad)-(T/Tmax)*(H-pad*2);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  noGlow(ctx);
+  // Dot at current M
+  if(collapsePhase>=2){
+    const T=hawkingT(currentM);
+    const Tmax=hawkingT(0.1);
+    const xd=pad+((currentM-0.1)/(Mmax-0.1))*(W-pad*2);
+    const yd=(H-pad)-(T/Tmax)*(H-pad*2);
+    ctx.beginPath(); ctx.arc(xd,yd,5,0,Math.PI*2);
+    glow(ctx,'#ff6644',12);
+    ctx.fillStyle='#ff6644'; ctx.fill();
+    noGlow(ctx);
+  }
+  ctx.fillStyle='rgba(180,180,255,0.6)';
+  ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('T_H ∝ 1/M',pad+2,pad-6);
+  ctx.fillText('M →',W-pad-24,H-8);
+  ctx.strokeStyle='rgba(180,180,255,0.2)';
+  ctx.lineWidth=1;
+  ctx.strokeRect(pad,pad,W-pad*2,H-pad*2);
+}
+
+// ============================================================
+// TAB 2 — KERR & BH THERMODYNAMICS
+// ============================================================
+let mergePhase = 0;
+let mergeProg = 0;
+let mergeAnimId = null;
+let penroseParticles2 = [];
+
+function drawTab2(){
+  const cv=document.getElementById('c2');
+  const W=cv.clientWidth||cv.offsetWidth||600;
+  const H=cv.clientHeight||cv.offsetHeight||380;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  const M=+document.getElementById('kerrM').value;
+  const aSpin=(+document.getElementById('kerrA').value)/100*M;
+  document.getElementById('kerrMVal').textContent=M;
+  document.getElementById('kerrAVal').textContent=(aSpin/M).toFixed(2);
+
+  ctx.fillStyle='#06060f';
+  ctx.fillRect(0,0,W,H);
+
+  if(mergePhase>0){
+    drawMerge(ctx,W,H,M,aSpin);
+    return;
+  }
+
+  const cx=W*0.42, cy=H*0.5;
+  const scale=Math.min(W,H)*0.32;
+
+  // Compute radii (geometrized, normalized to M=1 display scale)
+  const mN=scale; // scale factor
+  const rPlus=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*scale*0.9;
+  const rMinus=(M-Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*scale*0.9;
+  const rErgEq=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin*0)))/100*scale*0.9; // equatorial ergosphere = r_+ for max, 2M for a=0
+  const rErgEqFull=(M+Math.sqrt(M*M))/100*scale*0.9; // ergosphere at equator = 2M/... simplified: use 2M for display
+  // Ergosphere semi-major (equatorial) vs semi-minor (polar)
+  const ergEq=M/100*scale*1.6; // 2M normalized
+  const ergPol=rPlus;           // touches horizon at poles
+  // A = 8*pi*M*r+
+  const area=(8*Math.PI*M*rPlus).toFixed(1);
+
+  // Background starfield
+  ctx.save();
+  ctx.fillStyle='rgba(200,200,255,0.08)';
+  for(let i=0;i<80;i++){
+    const sx=(Math.sin(i*137.5)*0.5+0.5)*W;
+    const sy=(Math.cos(i*97.3)*0.5+0.5)*H;
+    ctx.beginPath(); ctx.arc(sx,sy,0.8,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+
+  // Ergosphere (oblate ellipse)
+  const erg_a=ergEq*1.0;
+  const erg_b=ergPol*1.0;
+  ctx.save();
+  ctx.translate(cx,cy);
+  const ergGrad=ctx.createRadialGradient(0,0,Math.min(erg_a,erg_b)*0.3,0,0,Math.max(erg_a,erg_b));
+  ergGrad.addColorStop(0,'rgba(80,40,150,0.35)');
+  ergGrad.addColorStop(1,'rgba(40,10,80,0)');
+  ctx.scale(1,erg_b/erg_a);
+  ctx.beginPath(); ctx.arc(0,0,erg_a,0,Math.PI*2);
+  ctx.fillStyle=ergGrad; ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.scale(1,erg_b/erg_a);
+  glow(ctx,'#aa44ff',12);
+  ctx.beginPath(); ctx.arc(0,0,erg_a,0,Math.PI*2);
+  ctx.strokeStyle='rgba(170,80,255,0.7)'; ctx.lineWidth=1.5;
+  ctx.setLineDash([5,4]); ctx.stroke();
+  ctx.setLineDash([]);
+  noGlow(ctx);
+  ctx.restore();
+
+  // Outer event horizon
+  glow(ctx,'#ff6644',20);
+  ctx.beginPath(); ctx.arc(cx,cy,rPlus,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,0.98)'; ctx.fill();
+  ctx.strokeStyle='#ff6644'; ctx.lineWidth=2.5; ctx.stroke();
+  noGlow(ctx);
+
+  // Inner Cauchy horizon
+  if(rMinus>3&&aSpin>0){
+    glow(ctx,'#ffaa44',10);
+    ctx.beginPath(); ctx.arc(cx,cy,rMinus,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,170,68,0.7)'; ctx.lineWidth=1.5; ctx.stroke();
+    noGlow(ctx);
+  }
+
+  // Ring singularity (equatorial)
+  const rRing=rMinus*0.5+2;
+  if(aSpin>0&&rRing>2){
+    glow(ctx,'#ff2200',14);
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,rRing,rRing*0.2,0,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,40,10,0.9)'; ctx.lineWidth=2.5; ctx.stroke();
+    noGlow(ctx);
+  }
+
+  // Penrose process particles
+  for(const p of penroseParticles2){
+    ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2);
+    if(p.type==='in'){
+      glow(ctx,'#ff2200',10); ctx.fillStyle=`rgba(255,50,20,${p.alpha})`;
+    } else if(p.type==='out'){
+      glow(ctx,'#44ff88',14); ctx.fillStyle=`rgba(60,255,140,${p.alpha})`;
+    } else {
+      glow(ctx,'#ffee44',10); ctx.fillStyle=`rgba(255,240,60,${p.alpha})`;
+    }
+    ctx.fill(); noGlow(ctx);
+  }
+
+  // Labels
+  ctx.save();
+  ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText(`r₊ = ${rPlus.toFixed(1)}  outer horizon`,cx+rPlus+8,cy);
+  ctx.fillStyle='rgba(170,80,255,0.8)';
+  ctx.fillText(`ergosphere (r_erg at eq)`,cx+erg_a+8,cy-erg_b*0.3);
+  if(aSpin>0&&rMinus>3){
+    ctx.fillStyle='rgba(255,170,68,0.7)';
+    ctx.fillText(`r₋ = ${rMinus.toFixed(1)}  Cauchy horizon`,cx+rMinus+8,cy+16);
+  }
+  ctx.fillStyle='rgba(180,180,255,0.55)'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(`Kerr BH: M=${M}, a/M=${(aSpin/M).toFixed(2)}`,cx,H-16);
+  ctx.fillStyle='rgba(255,200,100,0.7)'; ctx.font='12px Segoe UI';
+  ctx.fillText(`Area A = ${area} (arb. units)`,cx,H-34);
+  ctx.restore();
+
+  // Second law visual
+  ctx.save();
+  const bx=W*0.78, by=H*0.25, br=26;
+  ctx.font='12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle='rgba(180,180,255,0.5)';
+  ctx.fillText('Second Law: dA ≥ 0',bx,by-br-8);
+  glow(ctx,'#ff6644',8);
+  ctx.beginPath(); ctx.arc(bx-br-2,by,br*0.6,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,102,68,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(bx+br+2,by,br*0.7,0,Math.PI*2);
+  ctx.stroke(); noGlow(ctx);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='rgba(255,200,100,0.5)';
+  ctx.fillText('BH1',bx-br-2,by+br*0.6+12);
+  ctx.fillText('BH2',bx+br+2,by+br*0.7+12);
+  // Arrow
+  ctx.fillStyle='rgba(100,255,150,0.6)';
+  ctx.fillText('→ merge →',bx,by+6);
+  const bigR=br*0.95;
+  ctx.beginPath(); ctx.arc(bx,by+br*1.8,bigR,0,Math.PI*2);
+  glow(ctx,'#44ff88',8);
+  ctx.strokeStyle='rgba(100,255,150,0.7)'; ctx.lineWidth=1.5; ctx.stroke();
+  noGlow(ctx);
+  ctx.fillStyle='rgba(100,255,150,0.5)';
+  ctx.fillText('A_final > A₁+A₂',bx,by+br*1.8+bigR+12);
+  ctx.restore();
+}
+
+function doMerge(){
+  mergePhase=1; mergeProg=0;
+  cancelAnimationFrame(mergeAnimId);
+  function step(){
+    mergeProg+=0.012*(window.animSpeed||0.1);
+    if(mergeProg>=1){ mergePhase=2; drawTab2(); return; }
+    drawTab2();
+    mergeAnimId=requestAnimationFrame(step);
+  }
+  mergeAnimId=requestAnimationFrame(step);
+}
+
+function resetTab2(){
+  cancelAnimationFrame(mergeAnimId);
+  mergePhase=0; mergeProg=0;
+  penroseParticles2=[];
+  drawTab2();
+}
+
+function drawMerge(ctx,W,H,M,aSpin){
+  ctx.fillStyle='rgba(180,180,255,0.7)';
+  ctx.font='bold 14px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('Black Hole Merger — Area Theorem',W/2,30);
+
+  const cx=W/2, cy=H/2;
+  const r1=40, r2=50, rfinal=Math.sqrt(r1*r1+r2*r2)*1.15;
+  const sep=lerp(120,0,Math.min(1,mergeProg*1.5));
+  const fade=clamp((mergeProg-0.5)*3,0,1);
+  const growFade=clamp((mergeProg-0.6)*2.5,0,1);
+
+  if(fade<1){
+    // Two BHs approaching
+    glow(ctx,'#ff6644',15);
+    ctx.beginPath(); ctx.arc(cx-sep,cy,r1,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,0.97)'; ctx.fill();
+    ctx.strokeStyle='#ff6644'; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+sep,cy,r2,0,Math.PI*2);
+    ctx.fill(); ctx.stroke();
+    noGlow(ctx);
+    // Areas label
+    ctx.fillStyle='rgba(255,102,68,0.7)';
+    ctx.font='12px Segoe UI';
+    ctx.fillText(`A₁ = π·${r1}² = ${(Math.PI*r1*r1).toFixed(0)}`,cx-sep,cy+r1+16);
+    ctx.fillText(`A₂ = π·${r2}² = ${(Math.PI*r2*r2).toFixed(0)}`,cx+sep,cy+r2+16);
+    ctx.fillStyle='rgba(180,255,180,0.6)';
+    ctx.fillText(`A₁+A₂ = ${(Math.PI*r1*r1+Math.PI*r2*r2).toFixed(0)}`,cx,cy-80);
+  }
+  if(growFade>0){
+    // Merged BH
+    glow(ctx,'#44ff88',20);
+    ctx.beginPath(); ctx.arc(cx,cy,rfinal*growFade,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,0.97)'; ctx.fill();
+    ctx.strokeStyle='rgba(100,255,150,0.9)'; ctx.lineWidth=2.5; ctx.stroke();
+    noGlow(ctx);
+    ctx.fillStyle='rgba(100,255,150,0.8)';
+    ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(`A_final = π·r² = ${(Math.PI*rfinal*rfinal).toFixed(0)} > A₁+A₂`,cx,cy+rfinal*growFade+30);
+    ctx.fillStyle='rgba(180,255,180,0.6)'; ctx.font='12px Segoe UI';
+    ctx.fillText('Second Law satisfied ✓',cx,cy+rfinal*growFade+50);
+  }
+  // Gravitational wave ripples
+  if(mergeProg>0.4&&mergeProg<0.9){
+    const waveR=(mergeProg-0.4)*W*1.5;
+    glow(ctx,'#88aaff',8);
+    ctx.beginPath(); ctx.arc(cx,cy,waveR,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(100,150,255,${(0.9-mergeProg)*2})`; ctx.lineWidth=2; ctx.stroke();
+    noGlow(ctx);
+  }
+}
+
+// Click Penrose process for Tab 2
+window.addEventListener('load',()=>{
+  const cv2=document.getElementById('c2');
+  cv2.addEventListener('click',e=>{
+    if(mergePhase>0) return;
+    const rect=cv2.getBoundingClientRect();
+    const x=e.clientX-rect.left, y=e.clientY-rect.top;
+    const W=cv2.clientWidth, H=cv2.clientHeight;
+    const cx=W*0.42, cy=H*0.5;
+    const M=+document.getElementById('kerrM').value;
+    const aSpin=(+document.getElementById('kerrA').value)/100*M;
+    const ergEq=M/100*Math.min(W,H)*0.32*1.6;
+    const rPlus=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*Math.min(W,H)*0.32*0.9;
+    const dx=x-cx, dy=y-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>rPlus&&dist<ergEq){
+      // Inside ergosphere, outside horizon — Penrose process!
+      const angle=Math.atan2(dy,dx);
+      // Original particle
+      penroseParticles2.push({x,y,vx:0,vy:0,type:'orig',alpha:1,age:0,cx,cy});
+      // Falling fragment
+      penroseParticles2.push({x,y,vx:(cx-x)*0.06,vy:(cy-y)*0.06,type:'in',alpha:1,age:0,cx,cy});
+      // Escaping fragment (opposite direction with boost)
+      penroseParticles2.push({x,y,vx:(x-cx)*0.09,vy:(y-cy)*0.09,type:'out',alpha:1,age:0,cx,cy});
+      // Animate
+      cancelAnimationFrame(mergeAnimId);
+      function pLoop(){
+        for(let i=penroseParticles2.length-1;i>=0;i--){
+          const p=penroseParticles2[i];
+          p.x+=p.vx; p.y+=p.vy; p.age++;
+          if(p.type==='in'){const ddx=p.cx-p.x,ddy=p.cy-p.y,dd=Math.sqrt(ddx*ddx+ddy*ddy)+1;p.vx+=ddx/dd*0.1;p.vy+=ddy/dd*0.1;}
+          p.alpha=Math.max(0,1-p.age/80);
+          if(p.age>80) penroseParticles2.splice(i,1);
+        }
+        drawTab2();
+        if(penroseParticles2.length>0) mergeAnimId=requestAnimationFrame(pLoop);
+      }
+      mergeAnimId=requestAnimationFrame(pLoop);
+    }
+  });
+});
+
+// ============================================================
+// TAB 3 — CONFORMAL DIAGRAMS+ (Schwarzschild / RN / Kerr / OS Collapse)
+// ============================================================
+let p3Type = 0; // 0=Schw, 1=RN, 2=Kerr, 3=OS
+let p3Rays = [];
+let p3AnimId = null;
+let p3AnimOn = false;
+let p3AnimTimer = 0;
+const P3_NAMES = ['Schwarzschild (Kruskal maximal)','Reissner-Nordström (charged)','Kerr (rotating)','Oppenheimer-Snyder collapse'];
+
+function p3SetType(t){
+  p3Type=t;
+  p3Rays=[];
+  ['p3bt0','p3bt1','p3bt2','p3bt3'].forEach((id,j)=>
+    document.getElementById(id).classList.toggle('active-btn',j===t));
+  p3Draw();
+}
+
+function p3ClearRays(){ p3Rays=[]; p3Draw(); }
+
+function p3ToggleAnim(){
+  p3AnimOn=!p3AnimOn;
+  const btn = document.getElementById('p3animBtn');
+  btn.textContent = p3AnimOn ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('active-btn', p3AnimOn);
+  if(p3AnimOn){ p3AnimTimer=0; p3AnimLoop(); }
+  else if(p3AnimId){ cancelAnimationFrame(p3AnimId); p3AnimId=null; }
+}
+
+function p3AnimLoop(){
+  if(!p3AnimOn){ p3AnimId=null; return; }
+  p3AnimTimer++;
+  if(p3AnimTimer>=80){ p3AnimTimer=0; p3ShootAutoRay(); }
+  p3Draw();
+  p3AnimId=requestAnimationFrame(p3AnimLoop);
+}
+
+function p3ShootAutoRay(){
+  // Shoot from exterior region
+  const u=0.1+Math.random()*0.7;
+  const v=(Math.random()*2-1)*u*0.8;
+  p3Rays.push({u,v});
+  if(p3Rays.length>12) p3Rays.shift();
+}
+
+function p3Draw(){
+  const cv=document.getElementById('c3');
+  const W=cv.clientWidth||cv.offsetWidth||700;
+  const H=cv.clientHeight||cv.offsetHeight||400;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#06060f';
+  ctx.fillRect(0,0,W,H);
+
+  // For OS collapse: two panels side by side; for others: single diamond
+  if(p3Type===3){
+    p3DrawOSCollapse(ctx,W,H);
+    return;
+  }
+
+  const cx=W/2, cy=H/2;
+  const R=Math.min(W,H)*0.40;
+  function toC(u,v){return{x:cx+u*R,y:cy-v*R};}
+
+  // Null grid
+  ctx.save();
+  ctx.strokeStyle='rgba(255,102,68,0.06)';
+  ctx.lineWidth=0.5;
+  ctx.beginPath();
+  for(let s=-2;s<=2;s+=0.2){
+    const p1=toC(-1,s+1),p2=toC(1,s-1);
+    ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+    const q1=toC(-1,-s-1),q2=toC(1,-s+1);
+    ctx.moveTo(q1.x,q1.y); ctx.lineTo(q2.x,q2.y);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // Clip to diamond
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy);
+  ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy);
+  ctx.closePath(); ctx.clip();
+
+  if(p3Type===0){
+    // Schwarzschild: four regions
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R,cy); ctx.lineTo(cx,cy-R); ctx.closePath();
+    ctx.fillStyle='rgba(20,40,100,0.65)'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,cy-R); ctx.lineTo(cx-R,cy); ctx.closePath();
+    ctx.fillStyle='rgba(70,10,10,0.65)'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+R,cy); ctx.lineTo(cx,cy+R); ctx.closePath();
+    ctx.fillStyle='rgba(10,50,10,0.5)'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy); ctx.closePath();
+    ctx.fillStyle='rgba(20,40,100,0.35)'; ctx.fill();
+  } else if(p3Type===1){
+    // RN: multiple blocks — simplify to 3 visible regions
+    ctx.fillStyle='rgba(10,30,80,0.6)'; ctx.fillRect(cx-R,cy-R,2*R,2*R);
+    // Inner region between horizons
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.5); ctx.lineTo(cx+R*0.5,cy); ctx.lineTo(cx,cy+R*0.5); ctx.lineTo(cx-R*0.5,cy);
+    ctx.closePath(); ctx.fillStyle='rgba(80,30,10,0.6)'; ctx.fill();
+    // Inner core (beyond Cauchy horizon)
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.28); ctx.lineTo(cx+R*0.28,cy); ctx.lineTo(cx,cy+R*0.28); ctx.lineTo(cx-R*0.28,cy);
+    ctx.closePath(); ctx.fillStyle='rgba(40,10,60,0.7)'; ctx.fill();
+  } else if(p3Type===2){
+    // Kerr: similar to RN
+    ctx.fillStyle='rgba(10,30,80,0.6)'; ctx.fillRect(cx-R,cy-R,2*R,2*R);
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.55); ctx.lineTo(cx+R*0.55,cy); ctx.lineTo(cx,cy+R*0.55); ctx.lineTo(cx-R*0.55,cy);
+    ctx.closePath(); ctx.fillStyle='rgba(60,20,80,0.55)'; ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.3); ctx.lineTo(cx+R*0.3,cy); ctx.lineTo(cx,cy+R*0.3); ctx.lineTo(cx-R*0.3,cy);
+    ctx.closePath(); ctx.fillStyle='rgba(20,10,60,0.7)'; ctx.fill();
+  }
+  ctx.restore();
+
+  // Diamond boundary
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy); ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy);
+  ctx.closePath();
+  ctx.strokeStyle='rgba(180,180,255,0.45)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.restore();
+
+  // Horizons
+  if(p3Type===0){
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx-R,cy); ctx.lineTo(cx,cy-R);
+    ctx.moveTo(cx+R,cy); ctx.lineTo(cx,cy-R);
+    ctx.moveTo(cx-R,cy); ctx.lineTo(cx,cy+R);
+    ctx.moveTo(cx+R,cy); ctx.lineTo(cx,cy+R);
+    glow(ctx,'#ff6644',16); ctx.strokeStyle='#ff6644'; ctx.lineWidth=2.5; ctx.stroke();
+    noGlow(ctx); ctx.restore();
+    // Labels
+    ctx.save(); ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(100,160,255,0.85)'; ctx.fillText('I (exterior)',cx+R*0.45,cy+4);
+    ctx.fillStyle='rgba(220,60,60,0.9)'; ctx.fillText('II (BH interior)',cx,cy-R*0.32);
+    ctx.fillStyle='rgba(60,160,60,0.8)'; ctx.fillText('III (white hole)',cx,cy+R*0.32);
+    ctx.fillStyle='rgba(100,160,255,0.6)'; ctx.fillText('IV',cx-R*0.45,cy+4);
+    ctx.restore();
+  } else if(p3Type===1){
+    // Outer horizon
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.5); ctx.lineTo(cx+R*0.5,cy);
+    ctx.moveTo(cx,cy-R*0.5); ctx.lineTo(cx-R*0.5,cy);
+    ctx.moveTo(cx,cy+R*0.5); ctx.lineTo(cx+R*0.5,cy);
+    ctx.moveTo(cx,cy+R*0.5); ctx.lineTo(cx-R*0.5,cy);
+    glow(ctx,'#ff6644',14); ctx.strokeStyle='#ff6644'; ctx.lineWidth=2; ctx.stroke(); noGlow(ctx);
+    // Inner Cauchy horizon
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.28); ctx.lineTo(cx+R*0.28,cy);
+    ctx.moveTo(cx,cy-R*0.28); ctx.lineTo(cx-R*0.28,cy);
+    ctx.moveTo(cx,cy+R*0.28); ctx.lineTo(cx+R*0.28,cy);
+    ctx.moveTo(cx,cy+R*0.28); ctx.lineTo(cx-R*0.28,cy);
+    glow(ctx,'#ffaa44',10); ctx.strokeStyle='#ffaa44'; ctx.lineWidth=1.5;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]); noGlow(ctx);
+    ctx.restore();
+    // Labels
+    ctx.save(); ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.fillText('r₊ outer horizon',cx+R*0.32,cy-R*0.32);
+    ctx.fillStyle='rgba(255,170,68,0.8)'; ctx.fillText('r₋ Cauchy horizon (SCC!)',cx,cy-R*0.1);
+    // Timelike singularity — vertical line at left
+    ctx.restore();
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx-R,cy-R*0.28); ctx.lineTo(cx-R,cy+R*0.28);
+    glow(ctx,'#ff2200',14); ctx.strokeStyle='#ff4422'; ctx.lineWidth=2.5; ctx.stroke(); noGlow(ctx);
+    ctx.fillStyle='#ff6644'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText('r=0 (timelike)',cx-R+4,cy-R*0.32);
+    ctx.restore();
+  } else if(p3Type===2){
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.55); ctx.lineTo(cx+R*0.55,cy);
+    ctx.moveTo(cx,cy-R*0.55); ctx.lineTo(cx-R*0.55,cy);
+    ctx.moveTo(cx,cy+R*0.55); ctx.lineTo(cx+R*0.55,cy);
+    ctx.moveTo(cx,cy+R*0.55); ctx.lineTo(cx-R*0.55,cy);
+    glow(ctx,'#ff6644',14); ctx.strokeStyle='#ff6644'; ctx.lineWidth=2; ctx.stroke(); noGlow(ctx);
+    // Cauchy horizon
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.3); ctx.lineTo(cx+R*0.3,cy);
+    ctx.moveTo(cx,cy-R*0.3); ctx.lineTo(cx-R*0.3,cy);
+    ctx.moveTo(cx,cy+R*0.3); ctx.lineTo(cx+R*0.3,cy);
+    ctx.moveTo(cx,cy+R*0.3); ctx.lineTo(cx-R*0.3,cy);
+    glow(ctx,'#ffcc44',10); ctx.strokeStyle='#ffcc44'; ctx.lineWidth=1.5;
+    ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]); noGlow(ctx);
+    // Ring singularity (timelike) at center
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-R*0.15); ctx.lineTo(cx,cy+R*0.15);
+    glow(ctx,'#ff2200',12); ctx.strokeStyle='#ff4422'; ctx.lineWidth=3; ctx.stroke(); noGlow(ctx);
+    ctx.fillStyle='#ff6644'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('ring singularity (timelike)',cx,cy-R*0.18);
+    ctx.restore();
+    ctx.save(); ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,102,68,0.75)'; ctx.fillText('r₊ (event horizon)',cx+R*0.35,cy-R*0.4);
+    ctx.fillStyle='rgba(255,204,68,0.75)'; ctx.fillText('r₋ Cauchy horizon',cx+R*0.2,cy-R*0.15);
+    ctx.restore();
+  }
+
+  // Schwarzschild singularity (spacelike, top)
+  if(p3Type===0){
+    ctx.save();
+    const sy=cy-R+R*0.07;
+    const x0=cx-R*0.65,x1=cx+R*0.65;
+    ctx.beginPath(); ctx.moveTo(x0,sy);
+    for(let k=0;k<=20;k++){ const xz=lerp(x0,x1,k/20); ctx.lineTo(xz,sy+(k%2===0?-5:5)); }
+    glow(ctx,'#ff2200',16); ctx.strokeStyle='#ff4422'; ctx.lineWidth=2.5; ctx.stroke(); noGlow(ctx);
+    ctx.fillStyle='#ff6644'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('r=0 singularity (spacelike)',cx,sy-12);
+    ctx.restore();
+  }
+
+  // Null rays
+  ctx.save();
+  for(const ray of p3Rays){
+    const startC=toC(ray.u,ray.v);
+    glow(ctx,'#88ffcc',12);
+    ctx.strokeStyle='rgba(100,255,200,0.8)'; ctx.lineWidth=1.5;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    for(const sign of[1,-1]){
+      ctx.moveTo(startC.x,startC.y);
+      const p=toC(ray.u+2,ray.v+sign*2);
+      ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke(); noGlow(ctx); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(startC.x,startC.y,4,0,Math.PI*2);
+    ctx.fillStyle='#88ffcc'; ctx.fill();
+  }
+  ctx.restore();
+
+  // Labels & infinity
+  ctx.save();
+  ctx.font='12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle='#c0c0ea';
+  ctx.fillText('i⁺',cx,cy-R-10);
+  ctx.fillText('i⁻',cx,cy+R+16);
+  ctx.textAlign='right'; ctx.fillText('i⁰',cx-R-6,cy+4);
+  ctx.textAlign='left'; ctx.fillText('i⁰',cx+R+6,cy+4);
+  ctx.font='bold 13px Segoe UI'; ctx.fillStyle='rgba(255,102,68,0.9)';
+  ctx.fillText(P3_NAMES[p3Type],14,22);
+  ctx.restore();
+}
+
+function p3DrawOSCollapse(ctx,W,H){
+  // Two panel: left = physical collapse diagram, right = exterior Schwarzschild
+  const cx=W*0.32, cy=H*0.5;
+  const R=Math.min(H*0.44,W*0.28);
+  function toC(u,v){return{x:cx+u*R,y:cy-v*R};}
+
+  ctx.save();
+  // Null grid
+  ctx.strokeStyle='rgba(255,102,68,0.05)'; ctx.lineWidth=0.5;
+  ctx.beginPath();
+  for(let s=-2;s<=2;s+=0.25){
+    const p1=toC(-1,s+1),p2=toC(1,s-1);
+    ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // Clip to diamond
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy);
+  ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy);
+  ctx.closePath(); ctx.clip();
+
+  // Exterior region (right of star worldline)
+  ctx.beginPath();
+  ctx.moveTo(cx+R*0.05,cy+R); ctx.lineTo(cx+R,cy);
+  ctx.lineTo(cx,cy-R); ctx.lineTo(cx+R*0.05,cy-R);
+  ctx.closePath(); ctx.fillStyle='rgba(20,40,100,0.6)'; ctx.fill();
+
+  // Interior region (collapsed star)
+  ctx.beginPath();
+  ctx.moveTo(cx-R,cy); ctx.lineTo(cx+R*0.05,cy+R);
+  ctx.lineTo(cx+R*0.05,cy-R); ctx.lineTo(cx,cy-R);
+  ctx.closePath(); ctx.fillStyle='rgba(50,10,10,0.5)'; ctx.fill();
+
+  ctx.restore();
+
+  // Diamond boundary
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx,cy-R); ctx.lineTo(cx+R,cy);
+  ctx.lineTo(cx,cy+R); ctx.lineTo(cx-R,cy);
+  ctx.closePath();
+  ctx.strokeStyle='rgba(180,180,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.restore();
+
+  // Star worldline (vertical-ish, slightly right of left)
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx+R*0.05,cy+R); ctx.lineTo(cx+R*0.05,cy-R*0.55);
+  ctx.strokeStyle='rgba(255,200,100,0.8)'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // Event horizon (diagonal from where star crosses rs)
+  ctx.beginPath();
+  ctx.moveTo(cx+R*0.05,cy-R*0.0); ctx.lineTo(cx+R,cy-R*1.0);
+  // Clipped to diamond, use the right approach
+  ctx.moveTo(cx+R*0.05,cy-R*0.0); ctx.lineTo(cx,cy-R);
+  glow(ctx,'#ff6644',14); ctx.strokeStyle='#ff6644'; ctx.lineWidth=2; ctx.stroke(); noGlow(ctx);
+
+  // Singularity (spacelike, at top)
+  const sY=cy-R+R*0.08;
+  ctx.beginPath(); ctx.moveTo(cx-R*0.5,sY);
+  for(let k=0;k<=14;k++){ ctx.lineTo(lerp(cx-R*0.5,cx+R*0.1,k/14),sY+(k%2===0?-4:4)); }
+  glow(ctx,'#ff2200',14); ctx.strokeStyle='#ff4422'; ctx.lineWidth=2.5; ctx.stroke(); noGlow(ctx);
+  ctx.restore();
+
+  // Labels
+  ctx.save();
+  ctx.font='12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle='#c0c0ea';
+  ctx.fillText('i⁺',cx,cy-R-10); ctx.fillText('i⁻',cx,cy+R+16);
+  ctx.textAlign='right'; ctx.fillText('i⁰',cx-R-6,cy+4);
+  ctx.textAlign='left'; ctx.fillText('i⁰',cx+R+6,cy+4);
+  ctx.fillStyle='rgba(255,200,100,0.8)'; ctx.font='12px Segoe UI';
+  ctx.fillText('star surface',cx+R*0.05+4,cy+R*0.5);
+  ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.fillText('event horizon',cx+R*0.5,cy-R*0.4);
+  ctx.fillStyle='#ff6644'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('r=0 (spacelike)',cx-R*0.2,sY-12);
+  ctx.fillStyle='rgba(100,160,255,0.8)'; ctx.font='12px Segoe UI';
+  ctx.fillText('exterior (Schwarzschild)',cx+R*0.6,cy+R*0.2);
+  ctx.fillStyle='rgba(200,100,80,0.7)';
+  ctx.fillText('interior',cx-R*0.25,cy+R*0.1);
+  ctx.font='bold 13px Segoe UI'; ctx.fillStyle='rgba(255,102,68,0.9)'; ctx.textAlign='left';
+  ctx.fillText('Oppenheimer-Snyder Collapse (1939)',14,22);
+
+  // Right panel: info text
+  const tx=W*0.68, tw=W*0.3;
+  ctx.fillStyle='rgba(180,180,255,0.7)'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('Key features:',tx,60);
+  ctx.fillStyle='rgba(140,140,200,0.7)'; ctx.font='12px Segoe UI';
+  const lines=[
+    '• No white hole region',
+    '• No second exterior (region IV)',
+    '• Star interior = closed FLRW',
+    '• Exterior = Schwarzschild',
+    '• Singularity is spacelike',
+    '• Horizon forms before star',
+    '  reaches r=0 (global concept)',
+    '• Physical collapse, not the',
+    '  eternal Kruskal extension',
+  ];
+  lines.forEach((l,i)=>ctx.fillText(l,tx,82+i*16));
+  ctx.restore();
+}
+
+// Mouse click for tab 3
+window.addEventListener('load',()=>{
+  const cv3=document.getElementById('c3');
+  cv3.addEventListener('click',e=>{
+    if(p3Type===3) return;
+    const rect=cv3.getBoundingClientRect();
+    const x=e.clientX-rect.left,y=e.clientY-rect.top;
+    const W=cv3.clientWidth,H=cv3.clientHeight;
+    const u=(x/W)*2-1,v=1-(y/H)*2;
+    if(Math.abs(u)+Math.abs(v)<=1.02){
+      p3Rays.push({u,v});
+      if(p3Rays.length>10) p3Rays.shift();
+      p3Draw();
+    }
+  });
+});
+
+// ============================================================
+// TAB 4 — HAWKING RADIATION+ (deep visualization)
+// ============================================================
+let p4Mass = 20;
+let p4Evaping = false;
+let p4AnimId = null;
+let p4Pairs = []; // {x,y,vx,vy,type,alpha,age}
+let p4Frame = 0;
+
+function p4OnMass(){
+  p4Mass=+document.getElementById('p4mass').value;
+  document.getElementById('p4massVal').textContent=p4Mass;
+  p4UpdateReadouts();
+  p4Draw();
+}
+
+function p4UpdateReadouts(){
+  const T=(62/p4Mass).toFixed(3);
+  const tau=(p4Mass*p4Mass*p4Mass*2.1).toFixed(1); // in units of 10^67 yr for solar masses
+  document.getElementById('p4T').textContent=T;
+  document.getElementById('p4tau').textContent=tau;
+}
+
+function p4ToggleEvap(){
+  p4Evaping=!p4Evaping;
+  document.getElementById('p4evapBtn').textContent=p4Evaping?'⏸ Pause':'▶ Evaporate';
+  if(p4Evaping&&!p4AnimId){ p4AnimId=requestAnimationFrame(p4Loop); }
+  else if(!p4Evaping&&p4AnimId){ cancelAnimationFrame(p4AnimId); p4AnimId=null; }
+}
+
+function p4Reset(){
+  p4Evaping=false;
+  if(p4AnimId){ cancelAnimationFrame(p4AnimId); p4AnimId=null; }
+  p4Mass=+document.getElementById('p4mass').value;
+  p4Pairs=[];
+  p4Frame=0;
+  document.getElementById('p4evapBtn').textContent='▶ Evaporate';
+  p4UpdateReadouts();
+  p4Draw();
+}
+
+function p4SpawnPair(cx,cy,hR){
+  const angle=Math.random()*Math.PI*2;
+  const r=hR+3;
+  p4Pairs.push(
+    {x:cx+Math.cos(angle)*r,y:cy+Math.sin(angle)*r,vx:-Math.cos(angle)*0.6,vy:-Math.sin(angle)*0.6,type:'in',alpha:1,age:0,cx,cy},
+    {x:cx+Math.cos(angle)*r,y:cy+Math.sin(angle)*r,vx:Math.cos(angle)*1.1,vy:Math.sin(angle)*1.1,type:'out',alpha:1,age:0,cx,cy}
+  );
+}
+
+function p4Loop(){
+  p4Frame++;
+  // Slowly shrink BH when evaporating
+  if(p4Evaping && p4Mass>0.5){
+    p4Mass=Math.max(0.5,p4Mass-0.015);
+    document.getElementById('p4massVal').textContent=p4Mass.toFixed(2);
+    p4UpdateReadouts();
+  }
+  const cv=document.getElementById('c4');
+  const W=cv.clientWidth||600,H=cv.clientHeight||370;
+  const cx=W*0.42,cy=H*0.5;
+  const hR=p4HorizonR(W,H);
+  // Spawn pairs
+  if(p4Frame%18===0) p4SpawnPair(cx,cy,hR);
+  // Update
+  for(let i=p4Pairs.length-1;i>=0;i--){
+    const p=p4Pairs[i];
+    p.x+=p.vx; p.y+=p.vy; p.age++;
+    if(p.type==='in'){const dx=p.cx-p.x,dy=p.cy-p.y,d=Math.sqrt(dx*dx+dy*dy)+0.1;p.vx+=dx/d*0.18;p.vy+=dy/d*0.18;}
+    else{p.vx*=0.97;p.vy*=0.97;}
+    p.alpha=Math.max(0,1-p.age/55);
+    if(p.age>55) p4Pairs.splice(i,1);
+  }
+  p4Draw();
+  if(p4Evaping||(p4Pairs.length>0)) p4AnimId=requestAnimationFrame(p4Loop);
+  else p4AnimId=null;
+}
+
+function p4HorizonR(W,H){ return (p4Mass/60)*Math.min(W,H)*0.32+12; }
+
+function p4Draw(){
+  const cv=document.getElementById('c4');
+  const W=cv.clientWidth||cv.offsetWidth||600;
+  const H=cv.clientHeight||cv.offsetHeight||370;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#06060f'; ctx.fillRect(0,0,W,H);
+
+  const cx=W*0.38,cy=H*0.5;
+  const hR=p4HorizonR(W,H);
+
+  // Starfield
+  ctx.save();
+  ctx.fillStyle='rgba(200,200,255,0.07)';
+  for(let i=0;i<60;i++){ctx.beginPath();ctx.arc((Math.sin(i*137.5)*0.5+0.5)*W,(Math.cos(i*97.3)*0.5+0.5)*H,0.7,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+
+  // Black hole disk
+  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,hR*1.7);
+  bg.addColorStop(0,'rgba(0,0,0,1)');
+  bg.addColorStop(0.7,'rgba(8,4,18,0.85)');
+  bg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.arc(cx,cy,hR*1.7,0,Math.PI*2);
+  ctx.fillStyle=bg; ctx.fill();
+
+  // Photon sphere
+  glow(ctx,'#ff8844',20);
+  ctx.beginPath(); ctx.arc(cx,cy,hR*1.5,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,120,40,0.35)'; ctx.lineWidth=3; ctx.stroke(); noGlow(ctx);
+
+  // Event horizon
+  glow(ctx,'#ff6644',22);
+  ctx.beginPath(); ctx.arc(cx,cy,hR,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,80,50,1)'; ctx.lineWidth=2.5; ctx.stroke(); noGlow(ctx);
+
+  // Virtual pair label area near horizon
+  ctx.save();
+  const lx=cx+hR+14,ly=cy-8;
+  ctx.fillStyle='rgba(100,255,200,0.65)'; ctx.font='12px Segoe UI';
+  ctx.fillText('Hawking quanta (escape)',lx,ly);
+  ctx.fillStyle='rgba(255,80,50,0.65)';
+  ctx.fillText('negative-energy partner (falls in)',lx,ly+16);
+  ctx.restore();
+
+  // Pairs
+  for(const p of p4Pairs){
+    ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2);
+    if(p.type==='in'){glow(ctx,'#ff4422',8);ctx.fillStyle=`rgba(255,60,30,${p.alpha})`;}
+    else{glow(ctx,'#44ffee',12);ctx.fillStyle=`rgba(80,255,230,${p.alpha})`;}
+    ctx.fill(); noGlow(ctx);
+  }
+
+  // Right side: T_H vs M curve + Page curve
+  const px=W*0.70,py2=H*0.12,pw=W*0.26,ph=H*0.78;
+  p4DrawCurves(ctx,px,py2,pw,ph);
+
+  // T_H readout
+  ctx.save();
+  ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('Hawking Radiation Visualization',14,22);
+  ctx.fillStyle='rgba(180,180,255,0.7)'; ctx.font='12px Segoe UI';
+  ctx.fillText(`M = ${(+p4Mass).toFixed(2)} M☉  |  T_H = ${(62/p4Mass).toFixed(2)} nK`,14,42);
+  ctx.restore();
+}
+
+function p4DrawCurves(ctx,x,y,w,h){
+  const pad=28;
+  const Mmax=62;
+  // Background
+  ctx.fillStyle='rgba(10,10,30,0.6)';
+  ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle='rgba(255,102,68,0.15)'; ctx.lineWidth=1;
+  ctx.strokeRect(x+pad,y+pad,w-pad*2,h/2-pad*1.5);
+  ctx.strokeRect(x+pad,y+h/2,w-pad*2,h/2-pad);
+
+  // T_H vs M
+  glow(ctx,'#ff6644',5);
+  ctx.beginPath(); ctx.strokeStyle='#ff6644'; ctx.lineWidth=1.5;
+  for(let i=1;i<=80;i++){
+    const m=lerp(0.5,Mmax,i/80);
+    const T=62/m;
+    const Tmax=62/0.5;
+    const px2=x+pad+(m-0.5)/(Mmax-0.5)*(w-pad*2);
+    const py3=y+h/2-pad*1.5-(T/Tmax)*(h/2-pad*2);
+    if(i===1)ctx.moveTo(px2,py3);else ctx.lineTo(px2,py3);
+  }
+  ctx.stroke(); noGlow(ctx);
+  // Dot at current M
+  const Tm=62/p4Mass,Tmax=62/0.5;
+  const xd=x+pad+(p4Mass-0.5)/(Mmax-0.5)*(w-pad*2);
+  const yd=y+h/2-pad*1.5-(Tm/Tmax)*(h/2-pad*2);
+  glow(ctx,'#ff6644',10);
+  ctx.beginPath(); ctx.arc(xd,yd,4,0,Math.PI*2); ctx.fillStyle='#ff6644'; ctx.fill(); noGlow(ctx);
+  ctx.fillStyle='rgba(180,180,255,0.6)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('T_H ∝ 1/M',x+pad+2,y+pad-4);
+
+  // Page curve (bottom half)
+  const pY=y+h/2;
+  glow(ctx,'#44ddff',5);
+  ctx.beginPath(); ctx.strokeStyle='#44ddff'; ctx.lineWidth=1.5;
+  for(let i=0;i<=80;i++){
+    const t=i/80;
+    // Entropy rises, peaks at t=0.5, falls to 0
+    const S = t<0.5 ? Math.sin(t*Math.PI)*0.95+0.05 : Math.sin(t*Math.PI)*0.95+0.05;
+    const px3=x+pad+t*(w-pad*2);
+    const py4=pY+h/2-pad-(S*(h/2-pad*2));
+    if(i===0)ctx.moveTo(px3,py4);else ctx.lineTo(px3,py4);
+  }
+  ctx.stroke(); noGlow(ctx);
+  // Page time marker
+  ctx.save();
+  ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(x+pad+(w-pad*2)*0.5,pY); ctx.lineTo(x+pad+(w-pad*2)*0.5,pY+h/2-pad);
+  ctx.strokeStyle='rgba(255,200,100,0.5)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  ctx.fillStyle='rgba(255,200,100,0.65)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('Page time',x+pad+(w-pad*2)*0.5,pY+8);
+  ctx.fillStyle='rgba(68,221,255,0.7)';
+  ctx.fillText('S_rad (Page curve)',x+w/2,pY+14);
+  ctx.fillStyle='rgba(180,180,255,0.5)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('t →',x+w-pad-14,pY+h/2-8);
+}
+
+// ============================================================
+// TAB 5 — KERR ERGOSPHERE (deep, animated inspiral + Penrose process)
+// ============================================================
+let p5AnimId = null;
+let p5GeodesicOn = false;
+let p5GeodesicAngle = 0;
+let p5GeodesicR = 0;
+let p5PenroseParticles = [];
+
+function p5Draw(){
+  const M=+document.getElementById('p5mass').value;
+  const aFrac=(+document.getElementById('p5spin').value)/100;
+  document.getElementById('p5massVal').textContent=M;
+  document.getElementById('p5spinVal').textContent=aFrac.toFixed(2);
+  const aSpin=aFrac*M;
+
+  const cv=document.getElementById('c5');
+  const W=cv.clientWidth||cv.offsetWidth||600;
+  const H=cv.clientHeight||cv.offsetHeight||400;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#06060f'; ctx.fillRect(0,0,W,H);
+
+  const cx=W*0.42, cy=H*0.5;
+  const scale=Math.min(W,H)*0.30;
+  const mN=M/100;
+
+  // Radii (geometrized, normalized to display)
+  const rPl=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*scale*0.9;
+  const rMi=(M-Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*scale*0.9;
+  const ergEqR=2*M/100*scale*0.9; // r_erg at equator = M + sqrt(M^2) = 2M
+  const ergPolR=rPl;               // touches horizon at poles
+
+  // ISCO (prograde)
+  // Approximate: r_ISCO ~ 6M*(1 - 2/3*a/M) for small spin
+  const rISCO_geom=6*M*(1-0.643*aFrac)/100*scale*0.9;
+  const rISCO_label=(6*(1-0.643*aFrac)).toFixed(2);
+
+  // Starfield
+  ctx.save(); ctx.fillStyle='rgba(200,200,255,0.07)';
+  for(let i=0;i<80;i++){ctx.beginPath();ctx.arc((Math.sin(i*137.5)*0.5+0.5)*W,(Math.cos(i*97.3)*0.5+0.5)*H,0.7,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+
+  // Ergosphere (oblate)
+  const ea=ergEqR, eb=ergPolR;
+  ctx.save(); ctx.translate(cx,cy);
+  const ergG=ctx.createRadialGradient(0,0,Math.min(ea,eb)*0.3,0,0,Math.max(ea,eb));
+  ergG.addColorStop(0,'rgba(80,30,160,0.3)'); ergG.addColorStop(1,'rgba(40,10,80,0)');
+  ctx.scale(1,eb/ea);
+  ctx.beginPath(); ctx.arc(0,0,ea,0,Math.PI*2);
+  ctx.fillStyle=ergG; ctx.fill(); ctx.restore();
+
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(1,eb/ea);
+  glow(ctx,'#aa44ff',12);
+  ctx.beginPath(); ctx.arc(0,0,ea,0,Math.PI*2);
+  ctx.strokeStyle='rgba(170,80,255,0.8)'; ctx.lineWidth=1.8;
+  ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]); noGlow(ctx); ctx.restore();
+
+  // ISCO circle
+  if(rISCO_geom>rPl+2){
+    glow(ctx,'#44ffcc',6);
+    ctx.beginPath(); ctx.arc(cx,cy,rISCO_geom,0,Math.PI*2);
+    ctx.strokeStyle='rgba(60,255,200,0.5)'; ctx.lineWidth=1.2;
+    ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]); noGlow(ctx);
+    ctx.fillStyle='rgba(60,255,200,0.6)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText(`ISCO r=${rISCO_label}M`,cx+rISCO_geom+4,cy-8);
+  }
+
+  // Outer horizon
+  glow(ctx,'#ff6644',22);
+  ctx.beginPath(); ctx.arc(cx,cy,rPl,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,0.98)'; ctx.fill();
+  ctx.strokeStyle='#ff6644'; ctx.lineWidth=2.5; ctx.stroke(); noGlow(ctx);
+
+  // Inner Cauchy horizon
+  if(rMi>3&&aSpin>0){
+    glow(ctx,'#ffaa44',10);
+    ctx.beginPath(); ctx.arc(cx,cy,rMi,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,170,68,0.7)'; ctx.lineWidth=1.5; ctx.stroke(); noGlow(ctx);
+  }
+
+  // Ring singularity
+  if(aSpin>0&&rMi>4){
+    glow(ctx,'#ff2200',14);
+    ctx.beginPath(); ctx.ellipse(cx,cy,rMi*0.5,rMi*0.12,0,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,40,10,0.9)'; ctx.lineWidth=2.5; ctx.stroke(); noGlow(ctx);
+  }
+
+  // Inspiral geodesic arc
+  if(p5GeodesicOn&&p5GeodesicR>rPl){
+    ctx.save();
+    ctx.strokeStyle='rgba(255,220,80,0.7)'; ctx.lineWidth=1.5;
+    ctx.setLineDash([3,2]);
+    ctx.beginPath();
+    const steps=120;
+    for(let i=0;i<=steps;i++){
+      const angle=p5GeodesicAngle-i*0.08;
+      const r=p5GeodesicR-i*(p5GeodesicR-rPl*1.05)/steps;
+      if(r<=rPl) break;
+      const px=cx+Math.cos(angle)*r, py=cy+Math.sin(angle)*r;
+      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+    // Particle dot
+    const pdx=cx+Math.cos(p5GeodesicAngle)*p5GeodesicR;
+    const pdy=cy+Math.sin(p5GeodesicAngle)*p5GeodesicR;
+    glow(ctx,'#ffee44',12);
+    ctx.beginPath(); ctx.arc(pdx,pdy,5,0,Math.PI*2);
+    ctx.fillStyle='#ffee44'; ctx.fill(); noGlow(ctx);
+  }
+
+  // Penrose process particles
+  for(const p of p5PenroseParticles){
+    ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2);
+    if(p.type==='in'){glow(ctx,'#ff2200',10);ctx.fillStyle=`rgba(255,50,20,${p.alpha})`;}
+    else if(p.type==='out'){glow(ctx,'#44ff88',14);ctx.fillStyle=`rgba(60,255,140,${p.alpha})`;}
+    else{glow(ctx,'#ffee44',10);ctx.fillStyle=`rgba(255,240,60,${p.alpha})`;}
+    ctx.fill(); noGlow(ctx);
+  }
+
+  // Labels
+  ctx.save();
+  ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText(`r₊=${rPl.toFixed(0)}px  event horizon`,cx+rPl+8,cy-2);
+  ctx.fillStyle='rgba(170,80,255,0.85)';
+  ctx.fillText(`ergosphere (r_erg=${(2*M/100).toFixed(2)}M at eq)`,cx+ea+8,cy-eb*0.2);
+  if(aSpin>0&&rMi>4){ctx.fillStyle='rgba(255,170,68,0.75)';ctx.fillText(`r₋ Cauchy horizon`,cx+rMi+8,cy+14);}
+  // Frame drag arrows
+  ctx.fillStyle='rgba(170,80,255,0.5)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('⟳ frame dragging',cx,cy-ea-10);
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='rgba(255,102,68,0.9)'; ctx.textAlign='left';
+  ctx.fillText(`Kerr BH  M=${M}  a/M=${aFrac.toFixed(2)}`,14,22);
+  ctx.restore();
+
+  // Right panel: Blandford-Znajek / efficiency info
+  const bx=W*0.78,by=H*0.1;
+  ctx.save();
+  ctx.fillStyle='rgba(180,180,255,0.7)'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('Max Penrose efficiency',bx,by);
+  const eff=(1-1/Math.sqrt(2))*100;
+  ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.font='bold 14px Segoe UI';
+  ctx.fillText(`${eff.toFixed(1)}%`,bx,by+22);
+  ctx.fillStyle='rgba(140,140,200,0.65)'; ctx.font='12px Segoe UI';
+  ctx.fillText('(1 − 1/√2) of M_irr',bx,by+36);
+
+  // Spinning efficiency bar
+  const barW=80,barH=12;
+  const effFrac=aFrac*(1-1/Math.sqrt(2));
+  ctx.fillStyle='rgba(40,10,80,0.6)';
+  ctx.fillRect(bx-barW/2,by+48,barW,barH);
+  glow(ctx,'#aa44ff',6);
+  ctx.fillStyle='rgba(170,80,255,0.8)';
+  ctx.fillRect(bx-barW/2,by+48,barW*aFrac,barH);
+  noGlow(ctx);
+  ctx.fillStyle='rgba(180,180,255,0.5)'; ctx.font='12px Segoe UI';
+  ctx.fillText(`spin: a/M=${aFrac.toFixed(2)}`,bx,by+72);
+  ctx.restore();
+}
+
+function p5ToggleGeodesic(){
+  p5GeodesicOn=!p5GeodesicOn;
+  document.getElementById('p5geodBtn').textContent=p5GeodesicOn?'⏸ Stop':'▶ Inspiral';
+  if(p5GeodesicOn){
+    const cv=document.getElementById('c5');
+    const W=cv.clientWidth||600,H=cv.clientHeight||400;
+    const M=+document.getElementById('p5mass').value;
+    const aFrac=(+document.getElementById('p5spin').value)/100;
+    const aSpin=aFrac*M;
+    const rPl=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*Math.min(W,H)*0.30*0.9;
+    p5GeodesicR=Math.min(W,H)*0.30*0.9*1.8;
+    p5GeodesicAngle=0;
+    p5AnimLoop();
+  } else {
+    if(p5AnimId){cancelAnimationFrame(p5AnimId);p5AnimId=null;}
+  }
+}
+
+function p5AnimLoop(){
+  if(!p5GeodesicOn){p5AnimId=null;return;}
+  const cv=document.getElementById('c5');
+  const W=cv.clientWidth||600,H=cv.clientHeight||400;
+  const M=+document.getElementById('p5mass').value;
+  const aFrac=(+document.getElementById('p5spin').value)/100;
+  const aSpin=aFrac*M;
+  const rPl=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*Math.min(W,H)*0.30*0.9;
+  p5GeodesicAngle+=0.04*(1+aFrac*0.5*(window.animSpeed||0.1)); // frame dragging boosts angular velocity
+  p5GeodesicR=Math.max(rPl*1.02,p5GeodesicR-0.22);
+  if(p5GeodesicR<=rPl*1.02){
+    // Restart
+    p5GeodesicR=Math.min(W,H)*0.30*0.9*1.85;
+  }
+  // Update penrose particles
+  for(let i=p5PenroseParticles.length-1;i>=0;i--){
+    const p=p5PenroseParticles[i];
+    p.x+=p.vx; p.y+=p.vy; p.age++;
+    if(p.type==='in'){const dx=p.cx-p.x,dy=p.cy-p.y,d=Math.sqrt(dx*dx+dy*dy)+1;p.vx+=dx/d*0.1;p.vy+=dy/d*0.1;}
+    p.alpha=Math.max(0,1-p.age/80);
+    if(p.age>80) p5PenroseParticles.splice(i,1);
+  }
+  p5Draw();
+  p5AnimId=requestAnimationFrame(p5AnimLoop);
+}
+
+function p5ClickPenrose(){
+  const cv=document.getElementById('c5');
+  const W=cv.clientWidth||600,H=cv.clientHeight||400;
+  const cx=W*0.42,cy=H*0.5;
+  const M=+document.getElementById('p5mass').value;
+  const aFrac=(+document.getElementById('p5spin').value)/100;
+  const aSpin=aFrac*M;
+  const scale=Math.min(W,H)*0.30;
+  const rPl=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*scale*0.9;
+  const ea=2*M/100*scale*0.9;
+  // Spawn at random ergosphere point
+  const angle=Math.random()*Math.PI*2;
+  const r=(rPl+ea)/2;
+  const x=cx+Math.cos(angle)*r,y=cy+Math.sin(angle)*r;
+  p5PenroseParticles.push({x,y,vx:0,vy:0,type:'orig',alpha:1,age:0,cx,cy});
+  p5PenroseParticles.push({x,y,vx:(cx-x)*0.06,vy:(cy-y)*0.06,type:'in',alpha:1,age:0,cx,cy});
+  p5PenroseParticles.push({x,y,vx:(x-cx)*0.09,vy:(y-cy)*0.09,type:'out',alpha:1,age:0,cx,cy});
+  if(!p5AnimId){
+    p5GeodesicOn=true;
+    p5AnimLoop();
+  }
+}
+
+function p5Reset(){
+  p5GeodesicOn=false;
+  if(p5AnimId){cancelAnimationFrame(p5AnimId);p5AnimId=null;}
+  p5PenroseParticles=[];
+  document.getElementById('p5geodBtn').textContent='▶ Inspiral';
+  p5Draw();
+}
+
+window.addEventListener('load',()=>{
+  const cv5=document.getElementById('c5');
+  cv5.addEventListener('click',e=>{
+    const rect=cv5.getBoundingClientRect();
+    const x=e.clientX-rect.left,y=e.clientY-rect.top;
+    const W=cv5.clientWidth,H=cv5.clientHeight;
+    const cx=W*0.42,cy=H*0.5;
+    const M=+document.getElementById('p5mass').value;
+    const aFrac=(+document.getElementById('p5spin').value)/100;
+    const aSpin=aFrac*M;
+    const scale=Math.min(W,H)*0.30;
+    const rPl=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*scale*0.9;
+    const ea=2*M/100*scale*0.9;
+    const eb=(M+Math.sqrt(Math.max(0,M*M-aSpin*aSpin)))/100*scale*0.9;
+    const dx=x-cx,dy=y-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>rPl&&dist<ea*1.05){
+      const angle=Math.atan2(dy,dx);
+      p5PenroseParticles.push({x,y,vx:0,vy:0,type:'orig',alpha:1,age:0,cx,cy});
+      p5PenroseParticles.push({x,y,vx:(cx-x)*0.06,vy:(cy-y)*0.06,type:'in',alpha:1,age:0,cx,cy});
+      p5PenroseParticles.push({x,y,vx:(x-cx)*0.09,vy:(y-cy)*0.09,type:'out',alpha:1,age:0,cx,cy});
+      document.getElementById('p5info').textContent='Penrose process triggered — fragment with E<0 falls in, boosted fragment escapes!';
+      if(!p5AnimId){p5GeodesicOn=true;p5AnimLoop();}
+    }
+  });
+});
+
+// ============================================================
+// TAB 6 — GRAVITATIONAL WAVE SIGNATURES
+// ============================================================
+let p6AnimId = null;
+let p6Playing = false;
+let p6Phase = 0; // 0=ready, running
+let p6Time = 0;
+
+function p6Update(){
+  const m1=+document.getElementById('p6m1').value;
+  const m2=+document.getElementById('p6m2').value;
+  document.getElementById('p6m1Val').textContent=m1;
+  document.getElementById('p6m2Val').textContent=m2;
+  const chirpM=Math.pow(m1*m2,0.6)/Math.pow(m1+m2,0.2);
+  document.getElementById('p6chirpM').textContent=chirpM.toFixed(1);
+  const fmerge=(1/(6*Math.PI*Math.sqrt(6))*(299792458**3)/(6.674e-11*(m1+m2)*1.989e30)/1000).toFixed(0);
+  document.getElementById('p6fmerge').textContent=fmerge;
+  p6Draw();
+}
+
+function p6ToggleAnim(){
+  p6Playing=!p6Playing;
+  const btn = document.getElementById('p6animBtn');
+  btn.textContent=p6Playing?'⏸ Pause':'▶ Animate';
+  btn.classList.toggle('active-btn', p6Playing);
+  if(p6Playing){
+    if(p6Time>1) p6Time=0;
+    p6AnimId=requestAnimationFrame(p6Loop);
+  } else {
+    if(p6AnimId){cancelAnimationFrame(p6AnimId);p6AnimId=null;}
+  }
+}
+
+function p6Reset(){
+  p6Playing=false; p6Time=0;
+  if(p6AnimId){cancelAnimationFrame(p6AnimId);p6AnimId=null;}
+  const btn = document.getElementById('p6animBtn');
+  btn.textContent='▶ Animate';
+  btn.classList.remove('active-btn');
+  p6Draw();
+}
+
+function p6Loop(){
+  p6Time+=0.004*(window.animSpeed||0.1);
+  if(p6Time>1.25){ p6Playing=false; p6Time=1.25; const btn=document.getElementById('p6animBtn'); btn.textContent='▶ Animate'; btn.classList.remove('active-btn'); p6Draw(); return; }
+  p6Draw();
+  p6AnimId=requestAnimationFrame(p6Loop);
+}
+
+function p6Draw(){
+  const cv=document.getElementById('c6');
+  const W=cv.clientWidth||cv.offsetWidth||700;
+  const H=cv.clientHeight||cv.offsetHeight||400;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#06060f'; ctx.fillRect(0,0,W,H);
+
+  const m1=+document.getElementById('p6m1').value;
+  const m2=+document.getElementById('p6m2').value;
+  const chirpM=Math.pow(m1*m2,0.6)/Math.pow(m1+m2,0.2);
+  const mTot=m1+m2;
+
+  // Panels: top = orbital animation, bottom = waveform
+  const topH=H*0.42;
+  const waveY=topH+10;
+  const waveH=H-waveY-12;
+
+  // ---- TOP: Orbital animation ----
+  const ocx=W*0.3, ocy=topH/2;
+  const sepMax=Math.min(W*0.22,topH*0.38);
+
+  // Total mass scale ratio for display
+  const r1Display=Math.max(8,Math.min(30,(m1/mTot)*sepMax*0.7));
+  const r2Display=Math.max(8,Math.min(30,(m2/mTot)*sepMax*0.7));
+
+  // Chirp phase: 0 = far apart (inspiral), ~0.85 = merger, >0.85 = ringdown
+  const tc=0.85;
+  let sep, amplitude;
+  if(p6Time<tc){
+    const u=p6Time/tc;
+    sep=lerp(sepMax,r1Display+r2Display,u*u);
+    amplitude=lerp(0.1,1.0,u*u);
+  } else {
+    sep=0; amplitude=1.0;
+  }
+
+  const orbAngle=p6Time*18*(1+p6Time*3); // accelerating
+
+  if(p6Time<tc-0.05){
+    // Two BHs orbiting
+    const x1=ocx-Math.cos(orbAngle)*sep*m2/mTot;
+    const y1=ocy-Math.sin(orbAngle)*sep*m2/mTot;
+    const x2=ocx+Math.cos(orbAngle)*sep*m1/mTot;
+    const y2=ocy+Math.sin(orbAngle)*sep*m1/mTot;
+
+    // GW ripples
+    if(p6Time>0.1){
+      const wR=(p6Time*W*0.7);
+      glow(ctx,'#88aaff',6);
+      for(let k=0;k<3;k++){
+        const wr=wR-k*50;
+        if(wr<0)continue;
+        ctx.beginPath(); ctx.arc(ocx,ocy,wr,0,Math.PI*2);
+        ctx.strokeStyle=`rgba(100,150,255,${Math.max(0,0.25-k*0.07)})`; ctx.lineWidth=1.5; ctx.stroke();
+      }
+      noGlow(ctx);
+    }
+
+    glow(ctx,'#ff6644',20);
+    ctx.beginPath(); ctx.arc(x1,y1,r1Display,0,Math.PI*2);
+    ctx.fillStyle='#000'; ctx.fill();
+    ctx.strokeStyle='#ff6644'; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x2,y2,r2Display,0,Math.PI*2);
+    ctx.fill(); ctx.stroke(); noGlow(ctx);
+    ctx.fillStyle='rgba(255,102,68,0.6)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(`${m1} M☉`,x1,y1+r1Display+12);
+    ctx.fillText(`${m2} M☉`,x2,y2+r2Display+12);
+  } else {
+    // Merged BH
+    const mFinal=m1+m2-3; // radiated mass
+    const rFinal=Math.min(40,(mFinal/mTot)*sepMax*0.8);
+    glow(ctx,'#44ff88',25);
+    ctx.beginPath(); ctx.arc(ocx,ocy,rFinal,0,Math.PI*2);
+    ctx.fillStyle='#000'; ctx.fill();
+    ctx.strokeStyle='rgba(100,255,150,0.9)'; ctx.lineWidth=2.5; ctx.stroke(); noGlow(ctx);
+    ctx.fillStyle='rgba(100,255,150,0.8)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(`${mFinal} M☉ remnant`,ocx,ocy+rFinal+16);
+    // GW ringdown ripples
+    for(let k=0;k<5;k++){
+      const wr=(p6Time-tc)*W*1.8-k*40;
+      if(wr<5) continue;
+      ctx.beginPath(); ctx.arc(ocx,ocy,wr,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(100,255,150,${Math.max(0,0.3-k*0.06)})`; ctx.lineWidth=1.2; ctx.stroke();
+    }
+  }
+
+  // Right side: orbit info
+  ctx.save();
+  const rx=W*0.62,ry=8;
+  ctx.fillStyle='rgba(180,180,255,0.7)'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('GW150914-like merger',rx,ry+14);
+  ctx.fillStyle='rgba(140,140,200,0.65)'; ctx.font='12px Segoe UI';
+  ctx.fillText(`M₁=${m1}  M₂=${m2}  M_tot=${mTot} M☉`,rx,ry+30);
+  ctx.fillText(`Chirp mass ℳ = ${chirpM.toFixed(1)} M☉`,rx,ry+46);
+  ctx.fillText(`Radiated ≈ 3 M☉c²  (${((3/mTot)*100).toFixed(0)}%)`,rx,ry+62);
+  const fNow=p6Time<tc?60*(1+Math.pow(p6Time/tc,3)*3).toFixed(0):150;
+  ctx.fillText(`f_GW ≈ ${typeof fNow==='number'?fNow:fNow} Hz`,rx,ry+78);
+  // Phase label
+  let phaseLabel='Inspiral (PN chirp)';
+  if(p6Time>=tc) phaseLabel='Ringdown (QNMs)';
+  if(p6Time>=tc-0.08&&p6Time<tc) phaseLabel='Merger (NR peak)';
+  ctx.fillStyle='rgba(255,200,100,0.8)'; ctx.font='bold 12px Segoe UI';
+  ctx.fillText(`Phase: ${phaseLabel}`,rx,ry+96);
+  ctx.restore();
+
+  // ---- BOTTOM: Waveform ----
+  const pad=30;
+  ctx.fillStyle='rgba(10,10,30,0.5)';
+  ctx.fillRect(pad,waveY,W-pad*2,waveH);
+  ctx.strokeStyle='rgba(255,102,68,0.12)'; ctx.lineWidth=1;
+  ctx.strokeRect(pad,waveY,W-pad*2,waveH);
+
+  // Time axis
+  const wCy=waveY+waveH/2;
+  ctx.strokeStyle='rgba(180,180,255,0.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,wCy); ctx.lineTo(W-pad,wCy); ctx.stroke();
+
+  // Waveform: inspiral chirp + merger + ringdown
+  glow(ctx,'#ff6644',6);
+  ctx.beginPath();
+  ctx.strokeStyle='rgba(255,102,68,0.9)'; ctx.lineWidth=1.8;
+  const nPts=W-pad*2;
+  const tMax=1.2;
+  let started=false;
+  for(let i=0;i<=nPts;i++){
+    const t=i/nPts*tMax;
+    if(p6Playing&&t>p6Time) break;
+    const px=pad+i;
+    let h=0;
+    if(t<tc){
+      const u=t/tc;
+      // Chirp: amplitude grows, frequency rises
+      const amp=lerp(0.05,1.0,Math.pow(u,2))*(waveH*0.42);
+      const freq=lerp(1,12,Math.pow(u,2.5));
+      h=Math.sin(u*freq*Math.PI*6)*amp*chirpM/40;
+    } else {
+      // Ringdown: decaying sinusoid
+      const tr=t-tc;
+      const amp=Math.exp(-tr*8)*(waveH*0.42);
+      h=Math.sin(tr*50)*amp;
+    }
+    const py=wCy-h;
+    if(!started){ctx.moveTo(px,py);started=true;}else ctx.lineTo(px,py);
+  }
+  ctx.stroke(); noGlow(ctx);
+
+  // Playhead
+  if(p6Playing||p6Time>0){
+    const phX=pad+(p6Time/tMax)*nPts;
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(phX,waveY); ctx.lineTo(phX,waveY+waveH);
+    ctx.strokeStyle='rgba(255,220,80,0.7)'; ctx.lineWidth=1.5;
+    ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+  }
+
+  // Phase labels on waveform
+  ctx.fillStyle='rgba(180,180,255,0.5)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('inspiral',pad+(tc*0.4/tMax)*nPts,waveY+12);
+  ctx.fillText('merger',pad+(tc/tMax)*nPts,waveY+12);
+  ctx.fillText('ringdown',pad+((tc+0.15)/tMax)*nPts,waveY+12);
+  // Vertical markers
+  ['merger'].forEach((l,i)=>{
+    const lx=pad+(tc/tMax)*nPts;
+    ctx.strokeStyle='rgba(100,255,150,0.3)'; ctx.lineWidth=1;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(lx,waveY); ctx.lineTo(lx,waveY+waveH);
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+
+  // Title
+  ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('Gravitational Wave Signal — BH-BH Binary Merger',14,22);
+}
+
+// ============================================================
+// TAB 7 — BH THERMODYNAMICS + INFORMATION
+// ============================================================
+let p7Mode = 0; // 0=SvsM, 1=PageCurve, 2=FourLaws
+let p7AnimId = null;
+let p7Animating = false;
+let p7T = 0; // animation parameter 0..1
+
+function p7SetMode(m){
+  p7Mode=m;
+  ['p7bt0','p7bt1','p7bt2'].forEach((id,j)=>
+    document.getElementById(id).classList.toggle('active-btn',j===m));
+  p7T=0;
+  p7Draw();
+}
+
+function p7ToggleAnim(){
+  p7Animating=!p7Animating;
+  const btn = document.getElementById('p7animBtn');
+  btn.textContent=p7Animating?'⏸ Pause':'▶ Animate';
+  btn.classList.toggle('active-btn', p7Animating);
+  if(p7Animating){ if(p7T>=1)p7T=0; p7AnimId=requestAnimationFrame(p7AnimLoop); }
+  else if(p7AnimId){ cancelAnimationFrame(p7AnimId); p7AnimId=null; }
+}
+
+function p7Reset(){
+  p7Animating=false; p7T=0;
+  if(p7AnimId){cancelAnimationFrame(p7AnimId);p7AnimId=null;}
+  const btn = document.getElementById('p7animBtn');
+  btn.textContent='▶ Animate';
+  btn.classList.remove('active-btn');
+  p7Draw();
+}
+
+function p7AnimLoop(){
+  if(!p7Animating){p7AnimId=null;return;}
+  p7T+=0.006*(window.animSpeed||0.1);
+  if(p7T>=1){ p7T=1; p7Animating=false; const btn=document.getElementById('p7animBtn'); btn.textContent='▶ Animate'; btn.classList.remove('active-btn'); }
+  p7Draw();
+  if(p7Animating) p7AnimId=requestAnimationFrame(p7AnimLoop);
+  else p7AnimId=null;
+}
+
+function p7Draw(){
+  const cv=document.getElementById('c7');
+  const W=cv.clientWidth||cv.offsetWidth||700;
+  const H=cv.clientHeight||cv.offsetHeight||400;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#06060f'; ctx.fillRect(0,0,W,H);
+
+  if(p7Mode===0) p7DrawSvsM(ctx,W,H);
+  else if(p7Mode===1) p7DrawPageCurve(ctx,W,H);
+  else p7DrawFourLaws(ctx,W,H);
+}
+
+function p7DrawSvsM(ctx,W,H){
+  const pad=48;
+  const Mmax=100;
+  const plotW=W-pad*2, plotH=H-pad*2;
+  const ox=pad, oy=H-pad;
+
+  // Axes
+  ctx.strokeStyle='rgba(180,180,255,0.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(ox,pad); ctx.lineTo(ox,oy); ctx.lineTo(ox+plotW,oy); ctx.stroke();
+
+  // Grid
+  ctx.setLineDash([3,4]); ctx.strokeStyle='rgba(180,180,255,0.08)'; ctx.lineWidth=1;
+  for(let g=1;g<=4;g++){
+    const gy=pad+plotH*(1-g/4);
+    ctx.beginPath(); ctx.moveTo(ox,gy); ctx.lineTo(ox+plotW,gy); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // S = k*4pi*G*M^2 / hbar*c => S ∝ M^2
+  // We normalize to S(M=Mmax)=1
+  glow(ctx,'#ff6644',8);
+  ctx.beginPath(); ctx.strokeStyle='#ff6644'; ctx.lineWidth=2.5;
+  const tStop=p7Animating||p7T>0 ? p7T : 1;
+  for(let i=0;i<=200;i++){
+    const m=lerp(0,Mmax,i/200);
+    if(m/Mmax>tStop) break;
+    const s=m*m/(Mmax*Mmax);
+    const x=ox+m/Mmax*plotW;
+    const y=oy-s*plotH;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); noGlow(ctx);
+
+  // Dot at current animation point
+  if(p7T>0&&p7T<=1){
+    const m=Mmax*Math.min(p7T,1);
+    const s=m*m/(Mmax*Mmax);
+    const xd=ox+m/Mmax*plotW, yd=oy-s*plotH;
+    glow(ctx,'#ff6644',12);
+    ctx.beginPath(); ctx.arc(xd,yd,5,0,Math.PI*2); ctx.fillStyle='#ff6644'; ctx.fill(); noGlow(ctx);
+  }
+
+  // T_H = 1/M curve (dash)
+  glow(ctx,'#44ddff',5);
+  ctx.beginPath(); ctx.strokeStyle='rgba(68,221,255,0.7)'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+  for(let i=1;i<=200;i++){
+    const m=lerp(1,Mmax,i/200);
+    if(m/Mmax>tStop) break;
+    const T=1/m;
+    const Tmax=1/1;
+    const x=ox+m/Mmax*plotW;
+    const y=oy-T/Tmax*plotH;
+    if(i===1)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.setLineDash([]); noGlow(ctx);
+
+  // Labels
+  ctx.fillStyle='rgba(255,102,68,0.8)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('S_BH ∝ M² (Bekenstein-Hawking)',ox+12,pad+22);
+  ctx.fillStyle='rgba(68,221,255,0.7)';
+  ctx.fillText('T_H ∝ 1/M',ox+12,pad+42);
+  ctx.fillStyle='rgba(180,180,255,0.5)'; ctx.font='12px Segoe UI';
+  ctx.fillText('M (solar masses) →',ox+plotW-120,oy+18);
+  ctx.save(); ctx.translate(ox-28,oy-plotH/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.fillText('Entropy / Temperature (normalized)',0,0); ctx.restore();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='rgba(255,102,68,0.9)';
+  ctx.fillText('Bekenstein-Hawking Entropy  S = k_B A / 4ℓ_P²',14,22);
+}
+
+function p7DrawPageCurve(ctx,W,H){
+  const pad=48;
+  const plotW=W-pad*2, plotH=H-pad*2;
+  const ox=pad, oy=H-pad;
+
+  // Axes
+  ctx.strokeStyle='rgba(180,180,255,0.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(ox,pad); ctx.lineTo(ox,oy); ctx.lineTo(ox+plotW,oy); ctx.stroke();
+
+  // Grid
+  ctx.setLineDash([3,4]); ctx.strokeStyle='rgba(180,180,255,0.08)';
+  for(let g=1;g<=4;g++){const gy=pad+plotH*(1-g/4);ctx.beginPath();ctx.moveTo(ox,gy);ctx.lineTo(ox+plotW,gy);ctx.stroke();}
+  ctx.setLineDash([]);
+
+  const tStop=p7T>0?p7T:1;
+
+  // Hawking's prediction: monotonically rising (broken unitarity)
+  glow(ctx,'#ff4422',4);
+  ctx.beginPath(); ctx.strokeStyle='rgba(255,80,40,0.55)'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+  for(let i=0;i<=200;i++){
+    const t=i/200;
+    if(t>tStop) break;
+    const S=t; // linear rise, radiation entropy just increases
+    const x=ox+t*plotW, y=oy-S*plotH;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.setLineDash([]); noGlow(ctx);
+
+  // Actual Page curve (unitarity)
+  glow(ctx,'#44ddff',8);
+  ctx.beginPath(); ctx.strokeStyle='#44ddff'; ctx.lineWidth=2.5;
+  for(let i=0;i<=200;i++){
+    const t=i/200;
+    if(t>tStop) break;
+    // Rises like BH entropy until Page time (~0.5), then falls
+    let S;
+    if(t<0.5) S=t*2*0.9;   // rises to ~0.9
+    else S=0.9*(1-(t-0.5)*2); // then falls to 0
+    const x=ox+t*plotW, y=oy-S*plotH;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); noGlow(ctx);
+
+  // BH entropy (decreasing during evaporation)
+  glow(ctx,'#ff6644',5);
+  ctx.beginPath(); ctx.strokeStyle='rgba(255,102,68,0.65)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  for(let i=0;i<=200;i++){
+    const t=i/200;
+    if(t>tStop) break;
+    const S=Math.pow(1-t,2); // S_BH shrinks as M^2
+    const x=ox+t*plotW, y=oy-S*plotH;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.setLineDash([]); noGlow(ctx);
+
+  // Page time vertical line
+  const pgX=ox+0.5*plotW;
+  ctx.save(); ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(pgX,pad); ctx.lineTo(pgX,oy);
+  ctx.strokeStyle='rgba(255,200,100,0.45)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.setLineDash([]); ctx.restore();
+  ctx.fillStyle='rgba(255,200,100,0.7)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('Page time',pgX,pad+14);
+
+  // Labels
+  ctx.fillStyle='rgba(68,221,255,0.85)'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('S_rad — Page curve (unitary)',ox+12,pad+22);
+  ctx.fillStyle='rgba(255,80,40,0.7)';
+  ctx.fillText('S_rad — Hawking (non-unitary)',ox+12,pad+40);
+  ctx.fillStyle='rgba(255,102,68,0.7)';
+  ctx.fillText('S_BH — decreasing',ox+12,pad+58);
+  ctx.fillStyle='rgba(180,180,255,0.5)'; ctx.font='12px Segoe UI';
+  ctx.fillText('Time (evaporation) →',ox+plotW-130,oy+18);
+  ctx.save(); ctx.translate(ox-28,oy-plotH/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.fillText('Entropy (normalized)',0,0); ctx.restore();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='rgba(255,102,68,0.9)'; ctx.textAlign='left';
+  ctx.fillText('Page Curve — Radiation Entropy During Evaporation',14,22);
+}
+
+function p7DrawFourLaws(ctx,W,H){
+  const laws=[
+    {num:'ZEROTH LAW',color:'#44ddff',
+     body:'Surface gravity κ is constant over the event horizon — analogous to temperature T being uniform in thermal equilibrium. For Kerr: κ = (r₊−r₋)/(2(r₊²+a²))'},
+    {num:'FIRST LAW',color:'#ff6644',
+     body:'dM = (κ/8π)dA + Ω dJ + Φ dQ   [G=c=ℏ=1]\nAnalogue of dE = TdS + work terms. Identifies T↔κ/2π, S↔A/4'},
+    {num:'SECOND LAW',color:'#44ff88',
+     body:'dA ≥ 0 classically (Hawking area theorem, 1971). Quantumly: generalized second law dS_total ≥ 0, where S_total = S_matter + S_BH. Proven by Wall 2011.'},
+    {num:'THIRD LAW',color:'#ffcc44',
+     body:'κ → 0 (extremal BH) cannot be reached in finite steps. Analogous to T→0 unattainability. Extremal Kerr: a=M, κ=0, rISCO=M — naked singularity limit.'},
+  ];
+  const cardH=(H-60)/4-8;
+  laws.forEach((law,i)=>{
+    const y=50+i*(cardH+8);
+    const tAnim=p7Animating||p7T>0 ? Math.min(1,Math.max(0,(p7T*4-i))) : 1;
+    ctx.globalAlpha=tAnim;
+    ctx.fillStyle='rgba(10,10,30,0.7)';
+    ctx.fillRect(14,y,W-28,cardH);
+    ctx.strokeStyle=law.color+'88'; ctx.lineWidth=1.5;
+    ctx.strokeRect(14,y,W-28,cardH);
+    // Color bar
+    glow(ctx,law.color,8);
+    ctx.fillStyle=law.color;
+    ctx.fillRect(14,y,4,cardH);
+    noGlow(ctx);
+    ctx.fillStyle=law.color;
+    ctx.font='bold 12px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText(law.num,24,y+18);
+    ctx.fillStyle='rgba(180,180,255,0.85)'; ctx.font='12px Segoe UI';
+    // Wrap text
+    const words=law.body.split('\n');
+    words.forEach((line,li)=>ctx.fillText(line,24,y+36+li*17));
+    ctx.globalAlpha=1;
+  });
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='rgba(255,102,68,0.9)'; ctx.textAlign='left';
+  ctx.fillText('Four Laws of Black Hole Mechanics',14,22);
+  ctx.fillStyle='rgba(140,140,200,0.6)'; ctx.font='12px Segoe UI';
+  ctx.fillText('Bekenstein, Bardeen, Carter, Hawking (1973)',14,38);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load',()=>{
+  starRadius=1;
+  currentM=collapseM=30;
+  drawTab0();
+  drawTab1Curves();
+  p4UpdateReadouts();
+  p6Update();
+});
+
+window.addEventListener('resize',()=>{
+  const active=document.querySelector('.pane.active');
+  if(active&&active.id==='pane0') drawTab0();
+  if(active&&active.id==='pane1') drawTab1();
+  if(active&&active.id==='pane2') drawTab2();
+  if(active&&active.id==='pane3') p3Draw();
+  if(active&&active.id==='pane4') p4Draw();
+  if(active&&active.id==='pane5') p5Draw();
+  if(active&&active.id==='pane6') p6Draw();
+  if(active&&active.id==='pane7') p7Draw();
+});
+
+// Init speed controls
+window.animSpeed=0.1;
+for(var i=0;i<8;i++){syncSpeedControl35(i);}
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

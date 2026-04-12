@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attosecond Science | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --accent:#7ec8ff;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:12px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.back{font-size:.75rem;color:var(--dim);text-decoration:none;transition:.15s}
+.back:hover{color:var(--accent)}
+h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.79rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
+.content{flex:1;display:flex;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden}
+.panel.active{display:flex}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:260px}
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+canvas{display:block;width:100%;height:100%}
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.77rem;margin-top:3px;font-family:monospace;color:var(--accent)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s;font-family:inherit}
+.btn:hover,.btn.active{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <a href="/" class="back">← Dashboard</a>
+    <h1>Attosecond Science</h1>
+    <span class="sub">2023 Nobel Physics · L'Huillier · Krausz · Agostini</span>
+  </div>
+  <div class="tabs" data-role="tab-bar">
+    <button class="tab active" onclick="switchTab(1)">High Harmonic Gen.</button>
+    <button class="tab" onclick="switchTab(2)">Pulse Train</button>
+    <button class="tab" onclick="switchTab(3)">Wave Packet</button>
+    <button class="tab" onclick="switchTab(4)">HHG Three-Step</button>
+    <button class="tab" onclick="switchTab(5)">RABBITT / Measurement</button>
+    <button class="tab" onclick="switchTab(6)">Electron Dynamics</button>
+    <button class="tab" onclick="switchTab(7)">Condensed Matter</button>
+    <button class="tab" onclick="switchTab(8)">XFEL &amp; Coherence</button>
+  </div>
+</header>
+
+<div class="content">
+  <!-- Panel 1 -->
+  <div class="panel active" id="p1">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Laser Parameters</div>
+      <label>Intensity (10¹⁴ W/cm²) <span class="val-disp" id="intDisp">3.0</span></label>
+      <input type="range" id="intSl" min="1" max="8" step="0.1" value="3"
+        oninput="intDisp.textContent=parseFloat(this.value).toFixed(1);laserInt=+this.value">
+      <label>Wavelength (nm) <span class="val-disp" id="wlDisp">800</span></label>
+      <input type="range" id="wlSl" min="400" max="1600" step="10" value="800"
+        oninput="wlDisp.textContent=this.value;laserWL=+this.value">
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="hhgPaused=!hhgPaused;this.textContent=hhgPaused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">γ (Keldysh)</span><span id="keldDisp">—</span></div>
+      <div class="vrow"><span class="vlbl">Up (eV)</span><span id="upDisp">—</span></div>
+      <div class="vrow"><span class="vlbl">Cutoff (eV)</span><span id="cutDisp">—</span></div>
+    </div>
+    <div class="main-area"><canvas id="cv1"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Three-Step Model</div>
+      <div class="eq-block">$$E_{cut} = I_p + 3.17\,U_p$$</div>
+      <div class="eq-block">$$U_p = \frac{e^2 E_0^2}{4m_e\omega^2}$$</div>
+      <div class="eq-block">$$\gamma = \omega\frac{\sqrt{2m_e I_p}}{eE_0}$$</div>
+      <div class="callout">Tunnel regime requires $\gamma &lt; 1$. At 800 nm, 3×10¹⁴ W/cm² gives $\gamma \approx 0.9$.</div>
+    </div>
+  </div>
+  <!-- Panel 2 -->
+  <div class="panel" data-role="panel" id="p2">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">View</div>
+      <button class="btn" id="freqToggleBtn" onclick="toggleFreqDomain()">→ Freq. Domain</button>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p2Paused=!p2Paused;this.textContent=p2Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="callout" style="margin-top:12px">
+        <strong>Attosecond pulse train:</strong> XUV bursts repeat every half laser cycle (~1.3 fs at 800 nm). The Fourier transform shows odd harmonics — the HHG frequency comb.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv2"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Harmonic Comb</div>
+      <div class="eq-block">$\omega_n = (2n+1)\omega_L$</div>
+      <div class="eq-block">$$\tau_{pulse} \sim \frac{1}{N_{harm}\,\omega_L}$$</div>
+      <div class="callout">Only <strong>odd harmonics</strong> appear due to the inversion symmetry of the two-color interaction each half cycle.</div>
+    </div>
+  </div>
+  <!-- Panel 3 -->
+  <div class="panel" data-role="panel" id="p3">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Time Control</div>
+      <label>t (attoseconds) <span class="val-disp" id="t3Disp">0 as</span></label>
+      <input type="range" id="t3Scrub" min="0" max="100" step="0.5" value="0"
+        oninput="t3Paused=true;scrubT=+this.value;t3Disp.textContent=(scrubT*10).toFixed(0)+' as'">
+      <div class="btn-row">
+        <button class="btn" onclick="t3Paused=!t3Paused;this.textContent=t3Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="callout" style="margin-top:12px">
+        <strong>Spreading packet:</strong> the ionized electron's wavefunction disperses in ~10 fs. Attosecond pulses capture the motion before significant spreading occurs.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv3"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Wave Packet Dynamics</div>
+      <div class="eq-block">$$|\psi(x,t)|^2 \propto e^{-(x-x_0)^2/2\sigma^2}$$</div>
+      <div class="eq-block">ADK rate: $W(E) \sim e^{-2(2I_p)^{3/2}/3E}$</div>
+      <div class="callout">The wavefunction spreads as $\sigma(t)\propto\sqrt{t}$ — quantum dispersion makes attosecond time resolution essential.</div>
+    </div>
+  </div>
+
+  <!-- Panel 4 — HHG Three-Step Deep Dive -->
+  <div class="panel" data-role="panel" id="p4">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Laser Controls</div>
+      <label>Intensity (10¹⁴ W/cm²) <span class="val-disp" id="p4IntDisp">3.0</span></label>
+      <input type="range" id="p4IntSl" min="1" max="10" step="0.1" value="3"
+        oninput="p4IntDisp.textContent=parseFloat(this.value).toFixed(1);p4LaserInt=+this.value">
+      <label>Wavelength (nm) <span class="val-disp" id="p4WlDisp">800</span></label>
+      <input type="range" id="p4WlSl" min="400" max="1600" step="10" value="800"
+        oninput="p4WlDisp.textContent=this.value;p4LaserWL=+this.value">
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p4Paused=!p4Paused;this.textContent=p4Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="p4ViewBtn" onclick="p4ToggleView()">Spectrum</button>
+      </div>
+      <div style="margin-top:8px">
+        <div class="vrow"><span class="vlbl">Up (eV)</span><span id="p4UpDisp">—</span></div>
+        <div class="vrow"><span class="vlbl">Cutoff (eV)</span><span id="p4CutDisp">—</span></div>
+        <div class="vrow"><span class="vlbl">γ Keldysh</span><span id="p4GamDisp">—</span></div>
+      </div>
+      <div class="callout" style="margin-top:4px">
+        <strong>Nobel 2023:</strong> Anne L'Huillier, Pierre Agostini, Ferenc Krausz — "for experimental methods that generate attosecond pulses of light for the study of electron dynamics in matter."
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv4"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">HHG Physics</div>
+      <div class="eq-block">$$U_p = \frac{e^2 E_0^2}{4m_e\omega^2} \approx 9.33\,I_{14}\lambda_\mu^2\;\text{eV}$$</div>
+      <div class="eq-block">$$E_{cut} = I_p + 3.17\,U_p$$</div>
+      <div class="eq-block">Phase matching: $\Delta k = k_q - q\,k_L \approx 0$</div>
+      <div class="callout">
+        <strong>Three-step model</strong> (Corkum 1993, Kulander 1993):<br>
+        1. <strong>Tunnel ionization</strong> — strong field suppresses Coulomb barrier; electron tunnels out near peak field.<br>
+        2. <strong>Free acceleration</strong> — electron quivers in laser field, gaining ponderomotive energy $U_p$.<br>
+        3. <strong>Recollision</strong> — when field reverses, electron returns and emits XUV photon up to $I_p+3.17U_p$.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Plateau:</strong> harmonics of equal intensity up to cutoff; then exponential rolloff. Only <em>odd</em> harmonics for linearly polarized light (centro-symmetric medium).
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Quasi-phase-matching</strong> in modulated waveguide selects short or long electron trajectories, enabling isolated attosecond pulse (IAP) generation with few-cycle pulses.
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 5 — RABBITT / Pulse Measurement -->
+  <div class="panel" data-role="panel" id="p5">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">RABBITT Delay</div>
+      <label>IR delay τ (fs) <span class="val-disp" id="p5TauDisp">0.00 fs</span></label>
+      <input type="range" id="p5TauSl" min="0" max="100" step="0.5" value="0"
+        oninput="p5TauDisp.textContent=(+this.value/20).toFixed(2)+' fs';p5Tau=+this.value;p5Paused=true">
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" onclick="p5Paused=!p5Paused;this.textContent=p5Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="p5ViewBtn" onclick="p5ToggleView()">Streaking</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>RABBITT</strong> — Reconstruction of Attosecond Beating By Interference of Two-photon Transitions. The sideband $S_{2q}(\tau)$ between harmonics $H_{2q-1}$ and $H_{2q+1}$ oscillates at $2\omega_{IR}$ as the IR delay sweeps.
+      </div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">φ (rad)</span><span id="p5PhiDisp">0.00</span></div>
+      <div class="vrow"><span class="vlbl">Sideband S</span><span id="p5SDisp">—</span></div>
+    </div>
+    <div class="main-area"><canvas id="cv5"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Pulse Characterization</div>
+      <div class="eq-block">$$S_{2q}(\tau) = A + B\cos(2\omega\tau + \varphi_{at})$$</div>
+      <div class="eq-block">$$\varphi_{at} = \varphi_{2q+1} - \varphi_{2q-1}$$</div>
+      <div class="eq-block">$$\tau_W = \frac{\partial\varphi}{\partial E}$$<br><small style="color:var(--dim)">Wigner time delay</small></div>
+      <div class="callout">
+        <strong>Techniques:</strong><br>
+        • <strong>RABBITT</strong> — relative phase from sideband oscillation (Paul 2001)<br>
+        • <strong>FROG-CRAB</strong> — complete pulse from streaking spectrogram (Mairesse &amp; Quéré 2005)<br>
+        • <strong>SPIDER</strong> — spectral phase interferometry<br>
+        • <strong>Streaking</strong> — attosecond streak camera maps time→momentum
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Records:</strong> 80 as (Hentschel &amp; Krausz, 2001); 43 as isolated pulse (Zhao et al., 2012). Time-bandwidth product $\Delta t\cdot\Delta\omega \geq 0.44$ (transform-limited Gaussian).
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 6 — Electron Dynamics / EWS Delay -->
+  <div class="panel" data-role="panel" id="p6">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Target Atom</div>
+      <div class="btn-row">
+        <button class="btn active" id="p6HeBtn" onclick="p6SetAtom('He',this)">He</button>
+        <button class="btn" id="p6NeBtn" onclick="p6SetAtom('Ne',this)">Ne</button>
+        <button class="btn" id="p6ArBtn" onclick="p6SetAtom('Ar',this)">Ar</button>
+      </div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">Ip (eV)</span><span id="p6IpDisp">24.6</span></div>
+      <div class="vrow"><span class="vlbl">EWS delay</span><span id="p6DelayDisp">~5 as</span></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p6Paused=!p6Paused;this.textContent=p6Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="p6ViewBtn" onclick="p6ToggleView()">Ionization</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>Attoclock</strong> (Eckle 2008): map tunnel-ionization exit time onto final electron momentum angle. Constrains "tunneling time" to &lt;1 as.
+      </div>
+      <div class="callout">
+        <strong>Schultze 2010</strong>: RABBITT in neon found 2s electrons emerge ~21 as <em>before</em> 2p electrons — direct measurement of shell-resolved photoionization delay.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv6"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">EWS Time Delay</div>
+      <div class="eq-block">$$\tau_W = \frac{\partial\varphi_{sc}(E)}{\partial E}$$</div>
+      <div class="eq-block">$$\tau_{RABBITT} = \tau_W + \tau_{cc}$$<br><small style="color:var(--dim)">continuum-continuum correction</small></div>
+      <div class="callout">
+        <strong>Eisenbud-Wigner-Smith (EWS)</strong> delay: derivative of the scattering phase shift with respect to energy. Different partial waves ($\ell=0,1,2$…) acquire different delays — measured with attosecond resolution.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Key experiments:</strong><br>
+        • Schultze et al., <em>Science</em> 328, 1658 (2010) — Ne 2s vs 2p: ~21 as<br>
+        • Klünder et al., <em>PRL</em> 106, 143002 (2011) — Ar RABBITT<br>
+        • Isinger et al., <em>Science</em> 358, 893 (2017) — angular EWS<br>
+        • Wigner, <em>Phys. Rev.</em> 98, 145 (1955) — original theory
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Tunneling time controversy:</strong> Salières-Maquet debate; attoclock suggests near-instantaneous or imaginary tunneling time — still open question.
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 7 — Condensed Matter Attosecond -->
+  <div class="panel" data-role="panel" id="p7">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Solid System</div>
+      <div class="btn-row">
+        <button class="btn active" id="p7ZnOBtn" onclick="p7SetMat('ZnO',this)">ZnO</button>
+        <button class="btn" id="p7GrBtn" onclick="p7SetMat('Gr',this)">Graphene</button>
+        <button class="btn" id="p7WSe2Btn" onclick="p7SetMat('WSe2',this)">WSe₂</button>
+      </div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">Gap (eV)</span><span id="p7GapDisp">3.3</span></div>
+      <div class="vrow"><span class="vlbl">Inversion sym.</span><span id="p7InvDisp">Broken</span></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p7Paused=!p7Paused;this.textContent=p7Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="p7ViewBtn" onclick="p7ToggleView()">Band Str.</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>Ghimire 2011:</strong> First observation of solid-state HHG from ZnO crystal. Even harmonics appear due to broken inversion symmetry — band structure is imprinted in the harmonic spectrum.
+      </div>
+      <div class="callout">
+        <strong>ATAS</strong> (Attosecond Transient Absorption) probes core-level transitions with sub-femtosecond resolution in solids.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv7"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Solid-State HHG</div>
+      <div class="eq-block">$$j(t) = \frac{e\hbar}{m}\sum_k \nabla_k\varepsilon_k\,f_k(t)$$<br><small style="color:var(--dim)">intraband current</small></div>
+      <div class="eq-block">Berry curvature: $\Omega_k = \nabla_k \times \langle u_k|\nabla_k|u_k\rangle$</div>
+      <div class="callout">
+        <strong>Two mechanisms:</strong><br>
+        • <strong>Intraband</strong>: electron wavepacket accelerated in band, nonlinear current from band curvature.<br>
+        • <strong>Interband</strong>: Zener tunneling across band gap → recombination → photon emission (analogous to gas HHG).
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Ultrafast demagnetization:</strong> Beaurepaire 1996 showed 300 fs demagnetization; attosecond science aims to resolve sub-fs spin dynamics via ultrafast MOKE (magneto-optical Kerr effect).
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>2D materials:</strong> WSe₂ and graphene host Berry curvature-driven anomalous Hall currents measurable with attosecond pulses. Prospect: attosecond electron microscopy at sub-Å resolution.
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 8 — XFEL & X-ray Coherence -->
+  <div class="panel" data-role="panel" id="p8">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">XFEL Facility</div>
+      <div class="btn-row">
+        <button class="btn active" id="p8LclsBtn" onclick="p8SetFac('LCLS',this)">LCLS</button>
+        <button class="btn" id="p8EuBtn" onclick="p8SetFac('EuXFEL',this)">EuXFEL</button>
+        <button class="btn" id="p8SaclaBtn" onclick="p8SetFac('SACLA',this)">SACLA</button>
+      </div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">Pulse (fs)</span><span id="p8PulseDisp">2–5</span></div>
+      <div class="vrow"><span class="vlbl">Photon E (keV)</span><span id="p8EnergyDisp">0.28–10</span></div>
+      <div class="vrow"><span class="vlbl">Peak bright.</span><span id="p8BrightDisp">10³³</span></div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p8Paused=!p8Paused;this.textContent=p8Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="p8ViewBtn" onclick="p8ToggleView()">Diffraction</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>SASE</strong>: Self-Amplified Spontaneous Emission. Microbunching at wavelength scale → coherent gain from 10⁻⁶ to saturation in ~40 m undulator.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv8"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">FEL Physics</div>
+      <div class="eq-block">$$\lambda_r = \frac{\lambda_u}{2\gamma^2}\left(1+\frac{K^2}{2}\right)$$<br><small style="color:var(--dim)">resonance condition, $K=eB_0\lambda_u/2\pi m_ec$</small></div>
+      <div class="eq-block">Pierce parameter: $\rho \sim \left(\frac{I/I_A}{16\gamma^3}\frac{K^2[JJ]^2}{(1+K^2/2)^2\sigma_\perp^2 k_u^2}\right)^{1/3}$</div>
+      <div class="callout">
+        <strong>Diffract before destroy</strong> (Neutze 2000): ultrashort XFEL pulse illuminates single protein molecule; scattered photons recorded before Coulomb explosion. Goal: atomic-resolution structure without crystals.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Femtosecond crystallography:</strong> Chapman et al. 2011 demonstrated serial femtosecond crystallography (SFX) with membrane proteins. Enables room-temperature structures and time-resolved snapshots.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Toward attosecond XFELs:</strong> Seeded XFELs (HGHG, EEHG) produce transform-limited pulses; planned attosecond XFEL facilities aim for &lt;100 as X-ray pulses for core-level electron dynamics.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims53();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims53(){
+  // Cancel any running animations
+}
+
+let _stops = [];
+let currentTab = 1;
+
+window.switchTab = function(n) {
+  _stops.forEach(s => s && s.stop && s.stop());
+  _stops = [];
+  currentTab = n;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
+  if(n===1) _stops.push(initTab1());
+  if(n===2) _stops.push(initTab2());
+  if(n===3) _stops.push(initTab3());
+  if(n===4) _stops.push(initTab4());
+  if(n===5) _stops.push(initTab5());
+  if(n===6) _stops.push(initTab6());
+  if(n===7) _stops.push(initTab7());
+  if(n===8) _stops.push(initTab8());
+};
+
+function fitCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.parentElement.clientWidth;
+  const H = cv.parentElement.clientHeight;
+  if(Math.round(cv.width) !== Math.round(W*dpr)) {
+    cv.width = W*dpr; cv.height = H*dpr;
+    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  }
+  return {W, H, ctx: cv.getContext('2d')};
+}
+
+// ── Tab 1 — High Harmonic Generation ─────────────────────────
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  let raf, t = 0;
+
+  window.hhgPaused = false;
+  window.laserInt = 3;
+  window.laserWL = 800;
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle = '#05050f';
+    ctx.fillRect(0, 0, W, H);
+
+    const Ip = 13.6;
+    const Up = 9.33 * window.laserInt * (window.laserWL/800)**2;
+    const gamma = Math.sqrt(Ip / (2*Up));
+    const cutoff = Ip + 3.17*Up;
+
+    document.getElementById('keldDisp').textContent = gamma.toFixed(2);
+    document.getElementById('upDisp').textContent = Up.toFixed(1);
+    document.getElementById('cutDisp').textContent = cutoff.toFixed(0) + ' eV';
+
+    const fieldY = H * 0.75;
+    const amp = 60 * Math.min(window.laserInt / 3, 2);
+    ctx.beginPath();
+    ctx.strokeStyle = '#7ec8ff';
+    ctx.lineWidth = 2;
+    for (let x = 0; x < W; x++) {
+      const phase = (x / W) * 4 * Math.PI - t * 0.04;
+      const y = fieldY + amp * Math.sin(phase);
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    const atomX = W * 0.25, atomY = H * 0.4;
+    ctx.beginPath();
+    ctx.arc(atomX, atomY, 10, 0, Math.PI*2);
+    ctx.fillStyle = '#ff8844';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(atomX, atomY, 35, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(126,200,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    const phase = (t * 0.04) % (2 * Math.PI);
+    const step = Math.floor(phase / (2*Math.PI/3));
+
+    const steps = ['1. Tunnel Ionization', '2. Free Acceleration', '3. Recollision & XUV'];
+    const stepColors = ['#ffd700', '#7ec8ff', '#ff44aa'];
+    ctx.font = 'bold 13px Segoe UI';
+    ctx.fillStyle = stepColors[step];
+    ctx.fillText(steps[step], 20, 30);
+
+    if (step === 0) {
+      const progress = (phase % (2*Math.PI/3)) / (2*Math.PI/3);
+      const ex = atomX + 40 + progress * 80;
+      ctx.beginPath();
+      ctx.arc(ex, atomY, 5, 0, Math.PI*2);
+      ctx.fillStyle = '#7ec8ff';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(atomX+35, atomY-30);
+      ctx.lineTo(atomX+35+80*progress, atomY-30+(30+10*progress));
+      ctx.strokeStyle = 'rgba(255,215,0,0.4)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    } else if (step === 1) {
+      const progress = (phase % (2*Math.PI/3)) / (2*Math.PI/3);
+      const ex = atomX + 120 + Math.sin(progress*Math.PI)*100;
+      const ey = atomY + Math.sin(progress*Math.PI*2)*30;
+      ctx.beginPath();
+      ctx.arc(ex, ey, 5, 0, Math.PI*2);
+      ctx.fillStyle = '#7ec8ff';
+      ctx.fill();
+      ctx.font = '12px monospace';
+      ctx.fillStyle = '#55558a';
+      ctx.fillText('e⁻ quiver in field', atomX+50, atomY-25);
+    } else {
+      const progress = (phase % (2*Math.PI/3)) / (2*Math.PI/3);
+      if (progress > 0.5) {
+        for (let i = 0; i < 8; i++) {
+          const angle = (i/8)*Math.PI*2;
+          const r = (progress-0.5)*2 * 120;
+          ctx.beginPath();
+          ctx.moveTo(atomX, atomY);
+          ctx.lineTo(atomX + Math.cos(angle)*r, atomY + Math.sin(angle)*r);
+          ctx.strokeStyle = `rgba(255,68,170,${1-(progress-0.5)*2})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+        ctx.font = '12px monospace';
+        ctx.fillStyle = '#ff44aa';
+        ctx.fillText('XUV photon!', atomX+20, atomY-50);
+      } else {
+        const ex = atomX + 120 - progress*2*120;
+        ctx.beginPath();
+        ctx.arc(ex, atomY, 5, 0, Math.PI*2);
+        ctx.fillStyle = '#7ec8ff';
+        ctx.fill();
+      }
+    }
+
+    if (!window.hhgPaused) t++;
+    raf = requestAnimationFrame(draw);
+  }
+
+  draw();
+  return { stop() { cancelAnimationFrame(raf); } };
+}
+
+// ── Tab 2 — Attosecond Pulse Train ───────────────────────────
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  window.showFreqDomain = false;
+  window.p2Paused = false;
+  let raf2;
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle = '#05050f';
+    ctx.fillRect(0, 0, W, H);
+
+    const pad = 60;
+    const plotW = W - pad*2, plotH = H*0.7 - pad;
+
+    if (!window.showFreqDomain) {
+      ctx.strokeStyle = '#55558a'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, pad+plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, pad+plotH); ctx.lineTo(pad+plotW, pad+plotH); ctx.stroke();
+      ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+      ctx.fillText('time (fs)', pad+plotW/2-20, pad+plotH+20);
+      ctx.fillText('I(t)', pad-35, pad+plotH/2);
+
+      const numBursts = 8;
+      for (let b = 0; b < numBursts; b++) {
+        for (let x = 0; x < plotW; x++) {
+          const xv = x / plotW * numBursts - b - 0.5;
+          const gauss = Math.exp(-xv*xv*30);
+          if (gauss > 0.01) {
+            const px = pad + x;
+            const py = pad + plotH - gauss * plotH * 0.85;
+            ctx.fillStyle = `rgba(126,200,255,${gauss})`;
+            ctx.fillRect(px, py, 1, pad+plotH-py);
+          }
+        }
+        const bx = pad + (b+0.5) * (plotW/numBursts);
+        ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+        if (b === 3) ctx.fillText('~100 as', bx-18, pad+plotH-plotH*0.9-10);
+      }
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255,136,68,0.5)'; ctx.lineWidth = 1.5;
+      for (let x = 0; x <= plotW; x++) {
+        const xn = x/plotW;
+        const env = Math.exp(-(((xn-0.5)*3)**2));
+        const py = pad + plotH - env*plotH*0.9;
+        x===0 ? ctx.moveTo(pad+x, py) : ctx.lineTo(pad+x, py);
+      }
+      ctx.stroke();
+      ctx.fillStyle='#ff8844'; ctx.font='12px monospace';
+      ctx.fillText('laser envelope', pad+plotW*0.75, pad+20);
+
+    } else {
+      ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,pad+plotH); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad,pad+plotH); ctx.lineTo(pad+plotW,pad+plotH); ctx.stroke();
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('harmonic order', pad+plotW/2-30, pad+plotH+20);
+      ctx.fillText('I(ω)', pad-30, pad+plotH/2);
+
+      const maxH = 33;
+      for (let h = 1; h <= maxH; h += 2) {
+        const hx = pad + (h/maxH)*plotW;
+        const cutN = 25;
+        const intensity = h < cutN
+          ? 0.3 + 0.7*Math.exp(-(((h-5)/8)**2))
+          : 0.05 * Math.exp(-(((h-cutN)/3)**2));
+        const hy = pad + plotH*(1-intensity*0.85);
+        ctx.fillStyle = h <= cutN ? '#7ec8ff' : 'rgba(126,200,255,0.3)';
+        ctx.fillRect(hx-3, hy, 6, pad+plotH-hy);
+        if (h%4===1) {
+          ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+          ctx.fillText('H'+h, hx-6, pad+plotH+12);
+        }
+      }
+      ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+      ctx.fillText('cutoff', pad+(25/maxH)*plotW-15, pad+10);
+      ctx.beginPath();
+      ctx.moveTo(pad+(25/maxH)*plotW, pad+15);
+      ctx.lineTo(pad+(25/maxH)*plotW, pad+plotH);
+      ctx.strokeStyle='rgba(255,215,0,0.3)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    raf2 = requestAnimationFrame(draw);
+  }
+
+  window.toggleFreqDomain = function() {
+    window.showFreqDomain = !window.showFreqDomain;
+    const btn = document.getElementById('freqToggleBtn');
+    if (btn) btn.textContent = window.showFreqDomain ? '→ Time Domain' : '→ Freq. Domain';
+  };
+
+  raf2 = requestAnimationFrame(draw);
+  return { stop() { cancelAnimationFrame(raf2); } };
+}
+
+// ── Tab 3 — Electron Wave Packet ─────────────────────────────
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  let scrubT = 0;
+  window.t3Paused = false;
+  let raf3;
+
+  function psi2(x, t) {
+    const x0 = t * 0.8;
+    const sigma = 15 + t * 0.3;
+    const k0 = 0.15;
+    return Math.exp(-(((x-x0)**2))/(2*sigma**2)) * (Math.cos(k0*(x-x0))**2);
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const pad=60, plotW=W-pad*2, plotH=H*0.55;
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,pad+plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad,pad+plotH); ctx.lineTo(pad+plotW,pad+plotH); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('position x (Å)', pad+plotW/2-40, pad+plotH+20);
+    ctx.fillText('|ψ|²', pad-25, pad+15);
+
+    ctx.beginPath();
+    ctx.strokeStyle='#7ec8ff'; ctx.lineWidth=2;
+    for (let px=0; px<=plotW; px++) {
+      const x = (px/plotW)*200 - 20;
+      const val = psi2(x, scrubT);
+      const py = pad+plotH - val*plotH*0.85;
+      px===0 ? ctx.moveTo(pad+px, py) : ctx.lineTo(pad+px, py);
+    }
+    ctx.stroke();
+
+    ctx.beginPath();
+    for (let px=0; px<=plotW; px++) {
+      const x=(px/plotW)*200-20;
+      const val=psi2(x,scrubT);
+      const py=pad+plotH-val*plotH*0.85;
+      px===0 ? ctx.moveTo(pad+px,py) : ctx.lineTo(pad+px,py);
+    }
+    ctx.lineTo(pad+plotW, pad+plotH); ctx.lineTo(pad, pad+plotH);
+    ctx.closePath();
+    ctx.fillStyle='rgba(126,200,255,0.08)'; ctx.fill();
+
+    const t_as = scrubT * 10;
+    ctx.fillStyle='#7ec8ff'; ctx.font='13px monospace';
+    ctx.fillText(`t = ${t_as.toFixed(0)} as`, pad+plotW-100, pad+20);
+
+    const rateY = H*0.78, rateH = H*0.18;
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Tunnel ionization rate W(E):', pad, rateY-8);
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad,rateY); ctx.lineTo(pad+plotW,rateY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad,rateY); ctx.lineTo(pad,rateY+rateH); ctx.stroke();
+
+    ctx.beginPath(); ctx.strokeStyle='#ff8844'; ctx.lineWidth=2;
+    for (let px=0; px<=plotW; px++) {
+      const E = (px/plotW)*0.12;
+      const Ip_au = 0.5;
+      const rate = E>0 ? Math.exp(-2*Math.pow(2*Ip_au,1.5)/(3*E)) : 0;
+      const py = rateY+rateH - Math.min(rate*rateH*500, rateH);
+      px===0 ? ctx.moveTo(pad+px,py) : ctx.lineTo(pad+px,py);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#ff8844'; ctx.font='12px monospace';
+    ctx.fillText('ADK rate', pad+plotW-60, rateY+rateH-5);
+
+    if (!window.t3Paused) {
+      scrubT = (scrubT + 0.15) % 100;
+      document.getElementById('t3Scrub').value = scrubT;
+      document.getElementById('t3Disp').textContent = (scrubT*10).toFixed(0)+' as';
+    }
+    raf3 = requestAnimationFrame(draw);
+  }
+
+  draw();
+  return { stop() { cancelAnimationFrame(raf3); } };
+}
+
+// ── Tab 4 — HHG Three-Step Deep Dive ─────────────────────────
+function initTab4() {
+  const cv = document.getElementById('cv4');
+  let raf4, t4 = 0;
+  window.p4Paused = false;
+  window.p4LaserInt = 3;
+  window.p4LaserWL = 800;
+  window.p4ShowSpectrum = false;
+
+  window.p4ToggleView = function() {
+    window.p4ShowSpectrum = !window.p4ShowSpectrum;
+    const btn = document.getElementById('p4ViewBtn');
+    if (btn) btn.textContent = window.p4ShowSpectrum ? 'Animation' : 'Spectrum';
+  };
+
+  // Electron trajectories: classical returns
+  function classicalReturn(phi0) {
+    // phi0 = birth phase (0..pi), returns [t_birth, t_return, Eret] or null
+    // dx/dt = v, dv/dt = -E0 sin(wt)  -> v(t)=v0+E0/w (cos(wt)-cos(wt0)), x(t)=...
+    // We parameterize in units where w=1, E0=1
+    const dt = 0.01;
+    let v = Math.cos(phi0); // initial velocity = E0/w * cos(phi0)
+    let x = 0;
+    let t = phi0;
+    const tmax = phi0 + 3*Math.PI;
+    while (t < tmax) {
+      v -= Math.sin(t) * dt;
+      x += v * dt;
+      t += dt;
+      if (x < 0 && t > phi0 + 0.1) {
+        const Eret = 0.5 * v * v;
+        return { phi0, tReturn: t, Eret };
+      }
+    }
+    return null;
+  }
+
+  function drawAnimation(W, H, ctx) {
+    const Ip = 13.6;
+    const Up = 9.33 * window.p4LaserInt * (window.p4LaserWL / 800) ** 2;
+    const gamma = Math.sqrt(Ip / (2 * Up));
+    const cutoff = Ip + 3.17 * Up;
+    document.getElementById('p4UpDisp').textContent = Up.toFixed(1) + ' eV';
+    document.getElementById('p4CutDisp').textContent = cutoff.toFixed(0) + ' eV';
+    document.getElementById('p4GamDisp').textContent = gamma.toFixed(2);
+
+    const cx = W * 0.18, cy = H * 0.42;
+    const laserAmp = 55 + 15 * (window.p4LaserInt - 3) / 7;
+    const phase = t4 * 0.035;
+
+    // Draw laser field at bottom
+    const fieldY = H * 0.82;
+    ctx.beginPath(); ctx.strokeStyle = '#3a3a6a'; ctx.lineWidth = 1;
+    ctx.moveTo(40, fieldY); ctx.lineTo(W - 20, fieldY); ctx.stroke();
+    ctx.fillStyle = '#3a3a6a'; ctx.font = '12px monospace';
+    ctx.fillText('E(t)', 8, fieldY + 4);
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(126,200,255,0.6)'; ctx.lineWidth = 1.5;
+    for (let x = 0; x < W - 60; x++) {
+      const ph = (x / (W - 60)) * 6 * Math.PI - phase;
+      const y = fieldY - laserAmp * 0.4 * Math.sin(ph);
+      x === 0 ? ctx.moveTo(40 + x, y) : ctx.lineTo(40 + x, y);
+    }
+    ctx.stroke();
+
+    // Parent ion (nucleus)
+    ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+    const ionGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 12);
+    ionGrad.addColorStop(0, '#ffaa44'); ionGrad.addColorStop(1, '#ff4422');
+    ctx.fillStyle = ionGrad; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,170,68,0.5)'; ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('Ion⁺', cx, cy + 4); ctx.textAlign = 'left';
+
+    // Coulomb barrier tilted by laser field
+    const E0_norm = Math.sin(phase); // field value at current t
+    for (let x = 0; x < W * 0.55; x++) {
+      const dx = (x - cx) / 60;
+      if (Math.abs(dx) < 0.15) continue;
+      const coulomb = dx !== 0 ? -1 / Math.abs(dx) : 0;
+      const laserTilt = -E0_norm * dx * 0.5;
+      const Vtot = coulomb + laserTilt;
+      const screenY = cy - Vtot * 55;
+      if (screenY > 20 && screenY < H * 0.75) {
+        ctx.fillStyle = `rgba(255,200,80,0.25)`;
+        ctx.fillRect(40 + x, screenY, 1, 2);
+      }
+    }
+
+    // Three-step cycle
+    const cycleLen = 180;
+    const cyclePhase = t4 % cycleLen;
+    const stepN = Math.floor(cyclePhase / (cycleLen / 3));
+    const stepProg = (cyclePhase % (cycleLen / 3)) / (cycleLen / 3);
+
+    const stepLabels = ['Step 1: Tunnel Ionization', 'Step 2: Free Acceleration', 'Step 3: Recollision → XUV'];
+    const stepCol = ['#ffd700', '#7ec8ff', '#ff44aa'];
+    ctx.font = 'bold 14px Segoe UI'; ctx.fillStyle = stepCol[stepN];
+    ctx.fillText(stepLabels[stepN], 12, 22);
+
+    if (stepN === 0) {
+      // Electron tunneling through barrier
+      const tunnelX = cx + 18 + stepProg * 55;
+      const tunnelY = cy - 10 + Math.sin(stepProg * Math.PI) * (-25);
+      // Barrier glow
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const bx = cx + 18 + i * 7;
+        const alpha = 0.6 * (1 - i / 8) * (1 - stepProg);
+        ctx.fillStyle = `rgba(255,215,0,${alpha})`;
+        ctx.fillRect(bx, cy - 35, 5, 30);
+      }
+      ctx.beginPath(); ctx.arc(tunnelX, tunnelY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#7ec8ff'; ctx.fill();
+      ctx.strokeStyle = 'rgba(126,200,255,0.5)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#7ec8ff'; ctx.font = '12px monospace';
+      ctx.fillText('e⁻ tunnels', cx + 20, cy - 50);
+    } else if (stepN === 1) {
+      // Quiver trajectory
+      const nPts = 40;
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(126,200,255,0.5)'; ctx.lineWidth = 1.5;
+      for (let i = 0; i <= nPts * stepProg; i++) {
+        const frac = i / nPts;
+        const ex = cx + 70 + Math.sin(frac * 2 * Math.PI * 1.5) * 80;
+        const ey = cy - 5 + Math.cos(frac * 2 * Math.PI * 0.8) * 30;
+        i === 0 ? ctx.moveTo(ex, ey) : ctx.lineTo(ex, ey);
+      }
+      ctx.stroke();
+      // Current electron position
+      const frac = stepProg;
+      const ex = cx + 70 + Math.sin(frac * 2 * Math.PI * 1.5) * 80;
+      const ey = cy - 5 + Math.cos(frac * 2 * Math.PI * 0.8) * 30;
+      ctx.beginPath(); ctx.arc(ex, ey, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#7ec8ff'; ctx.fill();
+      ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+      ctx.fillText('quiver in E-field', cx + 65, cy - 45);
+      // Show Up label
+      ctx.fillStyle = '#7ec8ff'; ctx.font = '12px monospace';
+      ctx.fillText(`Up = ${(9.33 * window.p4LaserInt * (window.p4LaserWL / 800) ** 2).toFixed(1)} eV`, cx + 65, cy - 30);
+    } else {
+      // Recollision
+      if (stepProg < 0.55) {
+        const ex = cx + 150 - stepProg * 2 * 140;
+        ctx.beginPath(); ctx.arc(ex, cy, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#7ec8ff'; ctx.fill();
+        ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+        ctx.fillText('returning e⁻', cx + 30, cy - 40);
+      } else {
+        // XUV burst
+        const burstAge = (stepProg - 0.55) / 0.45;
+        for (let i = 0; i < 12; i++) {
+          const angle = (i / 12) * Math.PI * 2;
+          const r = burstAge * 110;
+          const alpha = Math.max(0, 1 - burstAge * 1.4);
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+          ctx.strokeStyle = `rgba(255,68,170,${alpha * 0.8})`;
+          ctx.lineWidth = 2; ctx.stroke();
+        }
+        ctx.fillStyle = '#ff44aa'; ctx.font = 'bold 13px monospace';
+        ctx.fillText('XUV burst!', cx + 20, cy - 55);
+        ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+        ctx.fillText(`E = Ip + 3.17Up ≈ ${(Ip + 3.17 * Up).toFixed(0)} eV`, cx + 20, cy - 38);
+      }
+    }
+
+    // Trajectory map in right area
+    const tmX = W * 0.62, tmY = H * 0.1, tmW = W * 0.35, tmH = H * 0.55;
+    ctx.fillStyle = '#0b0b1e';
+    ctx.fillRect(tmX, tmY, tmW, tmH);
+    ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 1;
+    ctx.strokeRect(tmX, tmY, tmW, tmH);
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Birth phase φ₀', tmX + tmW / 2 - 40, tmY + tmH + 14);
+    ctx.save(); ctx.translate(tmX - 10, tmY + tmH / 2);
+    ctx.rotate(-Math.PI / 2); ctx.fillText('Return energy', -30, 0); ctx.restore();
+
+    // Plot classical trajectories
+    for (let phi0 = 0; phi0 < Math.PI; phi0 += 0.04) {
+      const res = classicalReturn(phi0);
+      if (res) {
+        const px = tmX + (phi0 / Math.PI) * tmW;
+        const Enorm = Math.min(res.Eret * 2 * Up / (3.17 * Up + Ip), 1);
+        const py = tmY + tmH * (1 - Enorm * 0.9);
+        const hue = 200 + phi0 * 30;
+        ctx.fillStyle = `hsl(${hue},80%,60%)`;
+        ctx.fillRect(px - 1, py - 1, 3, 3);
+      }
+    }
+    // Cutoff marker
+    ctx.strokeStyle = 'rgba(255,215,0,0.5)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tmX, tmY + tmH * 0.1);
+    ctx.lineTo(tmX + tmW, tmY + tmH * 0.1);
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+    ctx.fillText('cutoff', tmX + tmW - 38, tmY + tmH * 0.1 - 3);
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('Return map', tmX + 4, tmY + 12);
+  }
+
+  function drawSpectrum(W, H, ctx) {
+    const Ip = 13.6;
+    const Up = 9.33 * window.p4LaserInt * (window.p4LaserWL / 800) ** 2;
+    const cutoff = Ip + 3.17 * Up;
+    document.getElementById('p4UpDisp').textContent = Up.toFixed(1) + ' eV';
+    document.getElementById('p4CutDisp').textContent = cutoff.toFixed(0) + ' eV';
+
+    const pad = 55, plotW = W - pad * 2, plotH = H * 0.78 - pad;
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, pad + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad, pad + plotH); ctx.lineTo(pad + plotW, pad + plotH); ctx.stroke();
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Photon energy (eV)', pad + plotW / 2 - 60, pad + plotH + 20);
+    ctx.fillText('log I(ω)', pad - 48, pad + plotH / 2);
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('HHG Spectrum — Plateau & Cutoff', pad, pad - 10);
+
+    const maxE = Math.max(cutoff * 1.4, 150);
+    const nHarm = Math.floor(maxE / (1240 / window.p4LaserWL));
+
+    for (let h = 1; h <= nHarm; h += 2) {
+      const photE = h * (1240 / window.p4LaserWL);
+      if (photE > maxE) break;
+      const px = pad + (photE / maxE) * plotW;
+      let logI;
+      if (photE < Ip) {
+        logI = 0;
+      } else if (photE <= cutoff) {
+        logI = 0.85 - 0.3 * Math.exp(-(((photE - Ip) / (cutoff * 0.2)) ** 2));
+      } else {
+        logI = 0.85 * Math.exp(-(((photE - cutoff) / (Up * 0.6)) ** 2)) * 0.12;
+      }
+      const barH = logI * plotH * 0.88;
+      const hue = photE < cutoff ? 200 : 290;
+      ctx.fillStyle = `hsl(${hue},80%,${55 + 20 * logI}%)`;
+      ctx.fillRect(px - 2, pad + plotH - barH, 4, barH);
+    }
+
+    // Cutoff line
+    const cutX = pad + (cutoff / maxE) * plotW;
+    ctx.strokeStyle = 'rgba(255,215,0,0.6)'; ctx.setLineDash([5, 5]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cutX, pad); ctx.lineTo(cutX, pad + plotH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+    ctx.fillText(`cutoff ${cutoff.toFixed(0)} eV`, cutX + 4, pad + 16);
+
+    // Ip line
+    const ipX = pad + (Ip / maxE) * plotW;
+    ctx.strokeStyle = 'rgba(255,136,68,0.4)'; ctx.setLineDash([3, 5]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(ipX, pad); ctx.lineTo(ipX, pad + plotH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ff8844'; ctx.font = '12px monospace';
+    ctx.fillText('Ip', ipX + 3, pad + plotH - 6);
+
+    // Energy axis ticks
+    for (let e = 0; e <= maxE; e += 20) {
+      const ex = pad + (e / maxE) * plotW;
+      ctx.fillStyle = '#2a2a55'; ctx.fillRect(ex, pad + plotH, 1, 5);
+      if (e % 40 === 0) { ctx.fillStyle = '#55558a'; ctx.font = '12px monospace'; ctx.fillText(e, ex - 8, pad + plotH + 14); }
+    }
+  }
+
+  function draw() {
+    const { W, H, ctx } = fitCanvas(cv);
+    ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+    if (window.p4ShowSpectrum) {
+      drawSpectrum(W, H, ctx);
+    } else {
+      drawAnimation(W, H, ctx);
+    }
+    if (!window.p4Paused) t4 += (window.animSpeed || 0.1);
+    raf4 = requestAnimationFrame(draw);
+  }
+
+  draw();
+  return { stop() { cancelAnimationFrame(raf4); } };
+}
+
+// ── Tab 5 — RABBITT / Pulse Measurement ──────────────────────
+function initTab5() {
+  const cv = document.getElementById('cv5');
+  let raf5, t5 = 0;
+  window.p5Paused = false;
+  window.p5Tau = 0;
+  window.p5ShowStreaking = false;
+
+  window.p5ToggleView = function() {
+    window.p5ShowStreaking = !window.p5ShowStreaking;
+    const btn = document.getElementById('p5ViewBtn');
+    if (btn) btn.textContent = window.p5ShowStreaking ? 'RABBITT' : 'Streaking';
+  };
+
+  function drawRABBITT(W, H, ctx) {
+    const tau = window.p5Tau / 20; // normalized delay in rad
+    const omega = 1;
+    const phiAt = 0.8; // attosecond phase offset
+
+    const padL = 65, padT = 40, padB = 50;
+    const plotW = W - padL - 20;
+    const halfH = (H - padT - padB) * 0.45;
+
+    // ── Top: XUV + IR photon energy diagram ──
+    const diag_cx = padL + plotW * 0.22, diag_cy = padT + halfH * 0.5;
+    // XUV harmonics
+    const harmonics = [15, 17, 19, 21];
+    harmonics.forEach((h, i) => {
+      const ex = padL + plotW * (0.05 + i * 0.12);
+      const ey1 = diag_cy + halfH * 0.4;
+      const ey2 = diag_cy - halfH * 0.3 - h * 2;
+      ctx.strokeStyle = 'rgba(126,200,255,0.7)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(ex, ey1); ctx.lineTo(ex, ey2); ctx.stroke();
+      // arrowhead
+      ctx.fillStyle = '#7ec8ff';
+      ctx.beginPath(); ctx.moveTo(ex - 4, ey2 + 8); ctx.lineTo(ex + 4, ey2 + 8); ctx.lineTo(ex, ey2); ctx.fill();
+      ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+      ctx.fillText('H' + h, ex - 7, ey1 + 14);
+    });
+
+    // Sidebands
+    const sbHarms = [16, 18, 20];
+    sbHarms.forEach((h, i) => {
+      const sbTau = window.p5Paused ? tau : t5 * 0.02;
+      const A = 0.3, B = 0.7;
+      const S = A + B * Math.cos(2 * omega * sbTau + phiAt + i * 0.4);
+      const ex = padL + plotW * (0.11 + i * 0.12);
+      const ey1 = diag_cy + halfH * 0.4;
+      const ey2 = diag_cy - halfH * 0.3 - h * 2;
+      const alpha = Math.max(0.05, S);
+      ctx.strokeStyle = `rgba(255,68,170,${alpha})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(ex, ey1); ctx.lineTo(ex, ey2); ctx.stroke();
+      ctx.fillStyle = `rgba(255,68,170,${alpha})`;
+      ctx.beginPath(); ctx.moveTo(ex - 3, ey2 + 6); ctx.lineTo(ex + 3, ey2 + 6); ctx.lineTo(ex, ey2); ctx.fill();
+      ctx.fillStyle = `rgba(255,100,180,${alpha})`; ctx.font = 'bold 12px monospace';
+      ctx.fillText('SB' + h, ex - 9, ey1 + 14);
+    });
+
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('XUV harmonics + IR sidebands', padL, padT + 12);
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('(pink = sideband intensity ∝ cos(2ωτ + φ_at))', padL, padT + 25);
+
+    // ── Bottom: S(τ) oscillation curve ──
+    const plotY2 = padT + halfH + 30, plotH2 = H - plotY2 - padB;
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, plotY2); ctx.lineTo(padL, plotY2 + plotH2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, plotY2 + plotH2); ctx.lineTo(padL + plotW, plotY2 + plotH2); ctx.stroke();
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('IR delay τ (half-cycles)', padL + plotW / 2 - 60, plotY2 + plotH2 + 16);
+    ctx.fillText('S(τ)', padL - 30, plotY2 + plotH2 / 2);
+
+    // Draw S(tau) curve
+    ctx.beginPath(); ctx.strokeStyle = '#ff44aa'; ctx.lineWidth = 2;
+    for (let px = 0; px < plotW; px++) {
+      const tauX = (px / plotW) * 4 * Math.PI;
+      const S = 0.3 + 0.7 * Math.cos(2 * tauX + phiAt);
+      const py = plotY2 + plotH2 * (1 - (S + 0.3) / 1.6);
+      px === 0 ? ctx.moveTo(padL + px, py) : ctx.lineTo(padL + px, py);
+    }
+    ctx.stroke();
+
+    // Current delay marker
+    const curTau = window.p5Paused ? tau : t5 * 0.02;
+    const curTauMod = curTau % (4 * Math.PI);
+    const markerX = padL + (curTauMod / (4 * Math.PI)) * plotW;
+    const S_cur = 0.3 + 0.7 * Math.cos(2 * curTauMod + phiAt);
+    const markerY = plotY2 + plotH2 * (1 - (S_cur + 0.3) / 1.6);
+    ctx.beginPath(); ctx.arc(markerX, markerY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffd700'; ctx.fill();
+
+    // Update displays
+    const phiDisp = document.getElementById('p5PhiDisp');
+    const sDisp = document.getElementById('p5SDisp');
+    if (phiDisp) phiDisp.textContent = (curTauMod % (2 * Math.PI)).toFixed(2) + ' rad';
+    if (sDisp) sDisp.textContent = S_cur.toFixed(3);
+
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('RABBITT: Sideband S(τ) = A + B·cos(2ωτ + φ_at)', padL, plotY2 - 8);
+
+    // Draw formula overlay
+    ctx.fillStyle = 'rgba(255,215,0,0.7)'; ctx.font = '12px monospace';
+    ctx.fillText(`τ = ${(curTauMod / (2 * Math.PI)).toFixed(2)} T_IR`, padL + plotW - 110, plotY2 + 16);
+  }
+
+  function drawStreaking(W, H, ctx) {
+    const padL = 55, padT = 40;
+    const plotW = W - padL - 20, plotH = H - padT - 60;
+
+    // Attosecond streak camera geometry
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('Attosecond Streak Camera', padL, padT - 10);
+
+    // XUV pulse → ionizes atom → IR field streaks electrons
+    // Draw XUV pulse
+    const xuvX = padL + plotW * 0.12;
+    ctx.fillStyle = 'rgba(255,68,170,0.15)';
+    ctx.fillRect(xuvX - 15, padT + 20, 30, plotH * 0.5);
+    ctx.strokeStyle = '#ff44aa'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let y = 0; y < plotH * 0.5; y++) {
+      const g = Math.exp(-((y - plotH * 0.25) ** 2) / (plotH * 0.04) ** 2);
+      const x = xuvX + g * 30 * Math.sin(y * 0.5 + t5 * 0.05);
+      y === 0 ? ctx.moveTo(x, padT + 20 + y) : ctx.lineTo(x, padT + 20 + y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#ff44aa'; ctx.font = '12px monospace';
+    ctx.fillText('XUV\npulse', xuvX + 20, padT + plotH * 0.18);
+
+    // Atom
+    const atomX = padL + plotW * 0.35, atomY = padT + plotH * 0.28;
+    ctx.beginPath(); ctx.arc(atomX, atomY, 10, 0, Math.PI * 2);
+    const ag = ctx.createRadialGradient(atomX, atomY, 2, atomX, atomY, 10);
+    ag.addColorStop(0, '#ffaa44'); ag.addColorStop(1, '#ff4422');
+    ctx.fillStyle = ag; ctx.fill();
+
+    // IR field
+    const irY = padT + plotH * 0.65;
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(126,200,255,0.5)'; ctx.lineWidth = 1.5;
+    for (let x = 0; x < plotW; x++) {
+      const ph = (x / plotW) * 4 * Math.PI - t5 * 0.03;
+      const y = irY + 35 * Math.sin(ph);
+      x === 0 ? ctx.moveTo(padL + x, y) : ctx.lineTo(padL + x, y);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#7ec8ff'; ctx.font = '12px monospace';
+    ctx.fillText('IR streaking field', padL + plotW * 0.05, irY + 52);
+
+    // Electrons streaked to detector
+    const detX = padL + plotW * 0.82;
+    const nEl = 8;
+    for (let i = 0; i < nEl; i++) {
+      const delay = i / nEl;
+      const irPhase = delay * 2 * Math.PI + t5 * 0.03;
+      const kick = Math.sin(irPhase) * 40;
+      const elpX = atomX + (detX - atomX) * ((t5 * 0.012 + delay) % 1);
+      const elpY = atomY + kick * Math.min(1, (t5 * 0.012 + delay) % 1);
+      ctx.beginPath(); ctx.arc(elpX, elpY, 3, 0, Math.PI * 2);
+      const alpha = 0.4 + 0.6 * ((t5 * 0.012 + delay) % 1);
+      ctx.fillStyle = `rgba(126,200,255,${alpha})`; ctx.fill();
+    }
+
+    // Detector
+    ctx.fillStyle = '#1a1a44';
+    ctx.fillRect(detX, padT + 20, 8, plotH * 0.5);
+    ctx.strokeStyle = '#7ec8ff'; ctx.lineWidth = 1;
+    ctx.strokeRect(detX, padT + 20, 8, plotH * 0.5);
+    ctx.fillStyle = '#7ec8ff'; ctx.font = '12px monospace';
+    ctx.fillText('Detector', detX + 12, padT + plotH * 0.28);
+
+    // Spectrogram schematic
+    const sgX = padL + plotW * 0.52, sgY = padT + plotH * 0.5, sgW = plotW * 0.28, sgH = plotH * 0.4;
+    ctx.fillStyle = '#0b0b1e'; ctx.fillRect(sgX, sgY, sgW, sgH);
+    ctx.strokeStyle = '#1c1c44'; ctx.strokeRect(sgX, sgY, sgW, sgH);
+    for (let ix = 0; ix < sgW; ix += 2) {
+      for (let iy = 0; iy < sgH; iy += 2) {
+        const tx = ix / sgW, ty = iy / sgH;
+        const energy = ty;
+        const delay_sg = tx;
+        const kicked = energy + 0.3 * Math.sin(delay_sg * 2 * Math.PI + t5 * 0.03);
+        const inPulse = Math.exp(-((kicked - 0.55) ** 2) / 0.02) * Math.exp(-((tx - 0.5) ** 2) / 0.08);
+        if (inPulse > 0.02) {
+          const alpha = Math.min(1, inPulse * 3);
+          ctx.fillStyle = `rgba(126,200,255,${alpha * 0.9})`;
+          ctx.fillRect(sgX + ix, sgY + sgH - iy, 2, 2);
+        }
+      }
+    }
+    ctx.fillStyle = '#c0c0ea'; ctx.font = '12px monospace';
+    ctx.fillText('Streaking spectrogram', sgX, sgY - 5);
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('delay →', sgX + sgW * 0.3, sgY + sgH + 12);
+    ctx.save(); ctx.translate(sgX - 12, sgY + sgH * 0.5);
+    ctx.rotate(-Math.PI / 2); ctx.fillText('energy →', -20, 0); ctx.restore();
+  }
+
+  function draw() {
+    const { W, H, ctx } = fitCanvas(cv);
+    ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+    if (window.p5ShowStreaking) {
+      drawStreaking(W, H, ctx);
+    } else {
+      drawRABBITT(W, H, ctx);
+    }
+    if (!window.p5Paused) t5 += (window.animSpeed || 0.1);
+    raf5 = requestAnimationFrame(draw);
+  }
+
+  draw();
+  return { stop() { cancelAnimationFrame(raf5); } };
+}
+
+// ── Tab 6 — Electron Dynamics / EWS Delay ────────────────────
+function initTab6() {
+  const cv = document.getElementById('cv6');
+  let raf6, t6 = 0;
+  window.p6Paused = false;
+  window.p6Atom = 'He';
+  window.p6ShowIonization = false;
+
+  const atomData = {
+    He: { Ip: 24.6, delay: '~5 as', color: '#7ec8ff', shells: ['1s'] },
+    Ne: { Ip: 21.6, delay: '~21 as (2s vs 2p)', color: '#ff8844', shells: ['2s', '2p'] },
+    Ar: { Ip: 15.8, delay: '~32 as (3s vs 3p)', color: '#ffd700', shells: ['3s', '3p'] }
+  };
+
+  window.p6SetAtom = function(atom, btn) {
+    window.p6Atom = atom;
+    document.querySelectorAll('#p6HeBtn,#p6NeBtn,#p6ArBtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = atomData[atom];
+    document.getElementById('p6IpDisp').textContent = d.Ip + ' eV';
+    document.getElementById('p6DelayDisp').textContent = d.delay;
+  };
+
+  window.p6ToggleView = function() {
+    window.p6ShowIonization = !window.p6ShowIonization;
+    const btn = document.getElementById('p6ViewBtn');
+    if (btn) btn.textContent = window.p6ShowIonization ? 'EWS Phase' : 'Ionization';
+  };
+
+  function drawEWSPhase(W, H, ctx) {
+    const d = atomData[window.p6Atom];
+    const padL = 65, padT = 40, padB = 50;
+    const plotW = W - padL - 20, halfH = (H - padT - padB) * 0.42;
+
+    // Phase shift vs energy
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('Scattering Phase Shift φ(E) — ' + window.p6Atom, padL, padT - 8);
+
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + halfH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, padT + halfH); ctx.lineTo(padL + plotW, padT + halfH); ctx.stroke();
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Photon energy (eV)', padL + plotW / 2 - 55, padT + halfH + 16);
+    ctx.fillText('φ(E)', padL - 28, padT + halfH / 2);
+
+    // Draw s and p phase shifts (schematic)
+    const shells = d.shells;
+    const shellColors = ['#7ec8ff', '#ff8844', '#ffd700'];
+    shells.forEach((sh, si) => {
+      ctx.beginPath(); ctx.strokeStyle = shellColors[si]; ctx.lineWidth = 2;
+      for (let px = 0; px < plotW; px++) {
+        const E = d.Ip + (px / plotW) * 80;
+        const ell = si; // 0 for s, 1 for p
+        // Schematic phase: Coulomb + short-range, simplified
+        const phaseVal = Math.PI * (ell + 0.5) - Math.sqrt(2 * d.Ip / E) * 0.8 - ell * 0.3 / Math.sqrt(E - d.Ip + 1);
+        const py = padT + halfH * (1 - (phaseVal / (Math.PI * 2) + 0.5) * 0.85);
+        px === 0 ? ctx.moveTo(padL + px, py) : ctx.lineTo(padL + px, py);
+      }
+      ctx.stroke();
+      // Label
+      const labelX = padL + plotW * 0.88;
+      const E_l = d.Ip + 0.88 * 80;
+      const ell = si;
+      const pv = Math.PI * (ell + 0.5) - Math.sqrt(2 * d.Ip / E_l) * 0.8 - ell * 0.3 / Math.sqrt(E_l - d.Ip + 1);
+      const py_l = padT + halfH * (1 - (pv / (Math.PI * 2) + 0.5) * 0.85);
+      ctx.fillStyle = shellColors[si]; ctx.font = '12px monospace';
+      ctx.fillText(sh, labelX, py_l - 4);
+    });
+
+    // EWS delay = d(phi)/dE diagram
+    const delayY = padT + halfH + 30, delayH = H - delayY - padB;
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, delayY); ctx.lineTo(padL, delayY + delayH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, delayY + delayH); ctx.lineTo(padL + plotW, delayY + delayH); ctx.stroke();
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Photon energy (eV)', padL + plotW / 2 - 55, delayY + delayH + 16);
+    ctx.fillText('τ_W (as)', padL - 38, delayY + delayH / 2);
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('EWS time delay τ_W = ∂φ/∂E', padL, delayY - 8);
+
+    shells.forEach((sh, si) => {
+      ctx.beginPath(); ctx.strokeStyle = shellColors[si]; ctx.lineWidth = 2;
+      for (let px = 2; px < plotW - 2; px++) {
+        const E = d.Ip + (px / plotW) * 80;
+        const ell = si;
+        const dE = 0.5;
+        function phi(e) { return Math.PI * (ell + 0.5) - Math.sqrt(2 * d.Ip / e) * 0.8 - ell * 0.3 / Math.sqrt(e - d.Ip + 1); }
+        const tauW_au = (phi(E + dE) - phi(E - dE)) / (2 * dE); // atomic units
+        const tauW_as = tauW_au * 24.2; // 1 au = 24.2 as
+        const py = delayY + delayH * (1 - Math.max(0, Math.min(1, (tauW_as + 10) / 100)));
+        px === 2 ? ctx.moveTo(padL + px, py) : ctx.lineTo(padL + px, py);
+      }
+      ctx.stroke();
+    });
+
+    // Delta tau annotation
+    if (shells.length >= 2) {
+      const annotX = padL + plotW * 0.4;
+      const E_ann = d.Ip + 0.4 * 80;
+      ctx.strokeStyle = 'rgba(255,215,0,0.6)'; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(annotX, delayY + 10); ctx.lineTo(annotX, delayY + delayH * 0.85); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+      ctx.fillText('Δτ = ' + d.delay, annotX + 4, delayY + delayH * 0.35);
+    }
+  }
+
+  function drawIonization(W, H, ctx) {
+    const padL = 55, padT = 35;
+    const plotW = W - padL - 20, plotH = H - padT - 55;
+    const d = atomData[window.p6Atom];
+
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('Classical Trajectory Map — ' + window.p6Atom + ' (Ip = ' + d.Ip + ' eV)', padL, padT - 8);
+
+    // Laser field
+    const fieldY = padT + plotH * 0.75;
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(126,200,255,0.4)'; ctx.lineWidth = 1.5;
+    for (let x = 0; x < plotW; x++) {
+      const ph = (x / plotW) * 4 * Math.PI;
+      const y = fieldY - 45 * Math.sin(ph);
+      x === 0 ? ctx.moveTo(padL + x, y) : ctx.lineTo(padL + x, y);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, fieldY); ctx.lineTo(padL + plotW, fieldY); ctx.stroke();
+    ctx.fillStyle = '#3a3a6a'; ctx.font = '12px monospace';
+    ctx.fillText('E(t)', padL - 25, fieldY + 4);
+
+    // Trajectories for electrons born at different phases
+    const nTraj = 18;
+    for (let i = 0; i < nTraj; i++) {
+      const phi0 = (i / nTraj) * Math.PI;
+      // Classical: x(t) = v0*(t-t0) + (cos(t)-cos(t0)) where E0=1,w=1
+      const v0 = Math.cos(phi0);
+      const t0 = phi0;
+      const tEnd = phi0 + 3 * Math.PI;
+      const dt = 0.04;
+      let x = 0, v = v0, prevX = 0;
+      let returned = false;
+      const trajPts = [[phi0, 0]];
+      for (let tt = phi0 + dt; tt < tEnd && !returned; tt += dt) {
+        v -= Math.sin(tt) * dt;
+        x += v * dt;
+        trajPts.push([tt, x]);
+        if (x < 0 && tt > phi0 + 0.1) {
+          returned = true;
+          const Eret = 0.5 * v * v;
+          // Draw a dot for returning electron
+          const px = padL + (phi0 / Math.PI) * plotW;
+          const py = padT + plotH * 0.5 * (1 - Eret / 3.2);
+          ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI * 2);
+          const hue = 200 + Eret * 20;
+          ctx.fillStyle = `hsl(${hue},80%,60%)`; ctx.fill();
+          break;
+        }
+      }
+      // Draw trajectory in x-t
+      if (trajPts.length > 2) {
+        const maxX = 4;
+        ctx.beginPath(); ctx.strokeStyle = `rgba(126,200,255,0.15)`; ctx.lineWidth = 1;
+        trajPts.forEach(([tt, xx], idx) => {
+          const px2 = padL + ((tt - phi0) / (3 * Math.PI)) * plotW * 0.42 + (phi0 / Math.PI) * plotW * 0.55;
+          const py2 = padT + plotH * 0.3 * (0.5 - xx / maxX);
+          idx === 0 ? ctx.moveTo(px2, py2) : ctx.lineTo(px2, py2);
+        });
+        ctx.stroke();
+      }
+    }
+
+    // Axes for return energy map
+    const mapX = padL, mapY = padT;
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(mapX, mapY); ctx.lineTo(mapX, mapY + plotH * 0.55); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(mapX, mapY + plotH * 0.55); ctx.lineTo(mapX + plotW, mapY + plotH * 0.55); ctx.stroke();
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Birth phase φ₀ (rad)', mapX + plotW / 2 - 55, mapY + plotH * 0.55 + 14);
+    ctx.save(); ctx.translate(mapX - 12, mapY + plotH * 0.27);
+    ctx.rotate(-Math.PI / 2); ctx.fillText('Return energy (Up)', -50, 0); ctx.restore();
+    ctx.fillStyle = '#c0c0ea'; ctx.font = '12px monospace';
+    ctx.fillText('Electron return energies (classical, color = E_ret)', mapX, mapY - 4);
+
+    // 3.17 Up cutoff
+    ctx.strokeStyle = 'rgba(255,215,0,0.5)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+    const cutlineY = mapY + plotH * 0.5 * (1 - 3.17 / 3.2);
+    ctx.beginPath(); ctx.moveTo(mapX, cutlineY); ctx.lineTo(mapX + plotW, cutlineY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+    ctx.fillText('3.17 Up cutoff', mapX + plotW - 90, cutlineY - 3);
+  }
+
+  function draw() {
+    const { W, H, ctx } = fitCanvas(cv);
+    ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+    if (window.p6ShowIonization) {
+      drawIonization(W, H, ctx);
+    } else {
+      drawEWSPhase(W, H, ctx);
+    }
+    if (!window.p6Paused) t6 += (window.animSpeed || 0.1);
+    raf6 = requestAnimationFrame(draw);
+  }
+
+  // Initialize display
+  const d = atomData[window.p6Atom];
+  document.getElementById('p6IpDisp').textContent = d.Ip + ' eV';
+  document.getElementById('p6DelayDisp').textContent = d.delay;
+
+  draw();
+  return { stop() { cancelAnimationFrame(raf6); } };
+}
+
+// ── Tab 7 — Condensed Matter Attosecond ──────────────────────
+function initTab7() {
+  const cv = document.getElementById('cv7');
+  let raf7, t7 = 0;
+  window.p7Paused = false;
+  window.p7Material = 'ZnO';
+  window.p7ShowBands = false;
+
+  const matData = {
+    ZnO: { gap: 3.3, inv: 'Broken', color: '#ff8844', evenHarm: true, bloch: true },
+    Gr:  { gap: 0.0, inv: 'Present (+ valley)', color: '#7ec8ff', evenHarm: false, bloch: false },
+    WSe2:{ gap: 1.7, inv: 'Broken (+ SOC)', color: '#ffd700', evenHarm: true, bloch: true }
+  };
+
+  window.p7SetMat = function(mat, btn) {
+    window.p7Material = mat;
+    document.querySelectorAll('#p7ZnOBtn,#p7GrBtn,#p7WSe2Btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = matData[mat];
+    document.getElementById('p7GapDisp').textContent = d.gap + ' eV';
+    document.getElementById('p7InvDisp').textContent = d.inv;
+  };
+
+  window.p7ToggleView = function() {
+    window.p7ShowBands = !window.p7ShowBands;
+    const btn = document.getElementById('p7ViewBtn');
+    if (btn) btn.textContent = window.p7ShowBands ? 'HHG Spectrum' : 'Band Str.';
+  };
+
+  function drawBandStructure(W, H, ctx) {
+    const d = matData[window.p7Material];
+    const padL = 65, padT = 40, padB = 50;
+    const plotW = W - padL - 20, plotH = H - padT - padB;
+
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('Band Structure + Wavepacket — ' + window.p7Material, padL, padT - 8);
+
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL + plotW / 2, padT + plotH + 5); ctx.lineTo(padL + plotW / 2, padT - 5); ctx.stroke();
+    ctx.fillStyle = '#3a3a6a'; ctx.font = '12px monospace';
+    ctx.fillText('-π/a', padL - 22, padT + plotH + 14);
+    ctx.fillText('0', padL + plotW / 2 - 5, padT + plotH + 14);
+    ctx.fillText('+π/a', padL + plotW - 20, padT + plotH + 14);
+    ctx.fillText('k (BZ)', padL + plotW / 2 - 20, padT + plotH + 28);
+    ctx.save(); ctx.translate(padL - 15, padT + plotH / 2);
+    ctx.rotate(-Math.PI / 2); ctx.fillText('Energy (eV)', -30, 0); ctx.restore();
+
+    const gapEv = d.gap;
+    const E_VB_top = -1.0, E_CB_bot = E_VB_top + gapEv;
+    const Erange = 10;
+    function eToY(e) { return padT + plotH * (1 - (e + Erange / 2) / Erange); }
+    function kToX(kn) { return padL + (kn + 0.5) * plotW; } // kn in [-0.5, 0.5]
+
+    // Valence band
+    ctx.beginPath(); ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.5;
+    for (let px = 0; px <= plotW; px++) {
+      const kn = px / plotW - 0.5;
+      const E = E_VB_top - 1.5 * (1 - Math.cos(kn * 2 * Math.PI)) - 0.4 * (1 - Math.cos(kn * 4 * Math.PI));
+      px === 0 ? ctx.moveTo(padL + px, eToY(E)) : ctx.lineTo(padL + px, eToY(E));
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#ff8844'; ctx.font = '12px monospace';
+    ctx.fillText('VB', padL + plotW - 18, eToY(E_VB_top) + 14);
+
+    // Conduction band
+    ctx.beginPath(); ctx.strokeStyle = '#7ec8ff'; ctx.lineWidth = 2.5;
+    for (let px = 0; px <= plotW; px++) {
+      const kn = px / plotW - 0.5;
+      const E = E_CB_bot + 2.0 * (1 - Math.cos(kn * 2 * Math.PI)) + 0.6 * (1 - Math.cos(kn * 4 * Math.PI));
+      px === 0 ? ctx.moveTo(padL + px, eToY(E)) : ctx.lineTo(padL + px, eToY(E));
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#7ec8ff'; ctx.font = '12px monospace';
+    ctx.fillText('CB', padL + plotW - 18, eToY(E_CB_bot + 1.5) - 4);
+
+    // Gap label
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.setLineDash([3, 4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, eToY(E_VB_top)); ctx.lineTo(padL + plotW, eToY(E_VB_top)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, eToY(E_CB_bot)); ctx.lineTo(padL + plotW, eToY(E_CB_bot)); ctx.stroke();
+    ctx.setLineDash([]);
+    if (gapEv > 0.3) {
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '12px monospace';
+      ctx.fillText('Eg = ' + gapEv + ' eV', padL + 6, (eToY(E_VB_top) + eToY(E_CB_bot)) / 2 + 4);
+    }
+
+    // Bloch wavepacket animation
+    if (d.bloch) {
+      const kCent = ((t7 * 0.008) % 1) - 0.5;
+      const kPx = kToX(kCent);
+      const E_wp = E_CB_bot + 2.0 * (1 - Math.cos(kCent * 2 * Math.PI)) + 0.6 * (1 - Math.cos(kCent * 4 * Math.PI));
+      const ePx = eToY(E_wp);
+      // Wavepacket spread in k
+      const spread = 0.06;
+      for (let dk = -3; dk <= 3; dk++) {
+        const kk = kCent + dk * spread;
+        const kPx2 = kToX(kk);
+        const alpha = Math.exp(-(dk * dk) / 2);
+        const E2 = E_CB_bot + 2.0 * (1 - Math.cos(kk * 2 * Math.PI)) + 0.6 * (1 - Math.cos(kk * 4 * Math.PI));
+        ctx.beginPath(); ctx.arc(kPx2, eToY(E2), 5 * alpha, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(126,200,255,${alpha * 0.8})`; ctx.fill();
+      }
+      ctx.fillStyle = '#c0c0ea'; ctx.font = '12px monospace';
+      ctx.fillText('Bloch WP (Zener tunneling → interband)', padL + 4, padT + 16);
+      // Zener tunnel arrow when near gap
+      if (Math.abs(kCent) < 0.05) {
+        ctx.strokeStyle = 'rgba(255,215,0,0.7)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(kPx, eToY(E_VB_top));
+        ctx.lineTo(kPx, eToY(E_CB_bot));
+        ctx.stroke();
+        ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+        ctx.fillText('Zener\ntunnel', kPx + 5, eToY((E_VB_top + E_CB_bot) / 2));
+      }
+    } else {
+      // Graphene: Dirac cone
+      ctx.beginPath(); ctx.strokeStyle = '#7ec8ff'; ctx.lineWidth = 1.5;
+      const diracX = kToX(0), diracY = eToY(0);
+      for (let px = 0; px <= plotW; px++) {
+        const kn = px / plotW - 0.5;
+        const E_dirac_c = Math.abs(kn) * 6;
+        px === 0 ? ctx.moveTo(padL + px, eToY(E_dirac_c)) : ctx.lineTo(padL + px, eToY(E_dirac_c));
+      }
+      ctx.stroke();
+      ctx.beginPath(); ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 1.5;
+      for (let px = 0; px <= plotW; px++) {
+        const kn = px / plotW - 0.5;
+        const E_dirac_v = -Math.abs(kn) * 6;
+        px === 0 ? ctx.moveTo(padL + px, eToY(E_dirac_v)) : ctx.lineTo(padL + px, eToY(E_dirac_v));
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#c0c0ea'; ctx.font = '12px monospace';
+      ctx.fillText('Dirac cone — massless carriers', padL + 4, padT + 16);
+    }
+  }
+
+  function drawHHGSpectrum(W, H, ctx) {
+    const d = matData[window.p7Material];
+    const padL = 65, padT = 40, padB = 50;
+    const plotW = W - padL - 20, plotH = H - padT - padB;
+
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('Solid-State HHG Spectrum — ' + window.p7Material, padL, padT - 8);
+
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH); ctx.stroke();
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Harmonic order', padL + plotW / 2 - 40, padT + plotH + 16);
+    ctx.fillText('log I(ω)', padL - 45, padT + plotH / 2);
+
+    const maxOrd = 25;
+    for (let h = 1; h <= maxOrd; h++) {
+      const isOdd = h % 2 === 1;
+      const isEven = h % 2 === 0;
+      // Show even harmonics only for broken inversion symmetry
+      if (isEven && !d.evenHarm) continue;
+
+      const px = padL + (h / maxOrd) * plotW;
+      // Intensities: odd harmonics stronger; near-gap resonances enhanced
+      const gapOrd = Math.round(d.gap / (1240 / 800));
+      let intensity;
+      if (isOdd) {
+        intensity = 0.7 * Math.exp(-h / 8) + 0.25 * Math.exp(-((h - gapOrd) ** 2) / 4);
+      } else {
+        intensity = 0.3 * Math.exp(-h / 6) + 0.15 * Math.exp(-((h - gapOrd) ** 2) / 5);
+      }
+
+      const barH = Math.max(2, intensity * plotH * 0.88);
+      ctx.fillStyle = isOdd ? d.color : `rgba(255,215,0,0.8)`;
+      ctx.fillRect(px - 3, padT + plotH - barH, 6, barH);
+      if (h <= 20 && h % 3 === 1) {
+        ctx.fillStyle = '#3a3a6a'; ctx.font = '12px monospace';
+        ctx.fillText('H' + h, px - 6, padT + plotH + 12);
+      }
+    }
+
+    // Legend
+    ctx.fillStyle = d.color; ctx.fillRect(padL + 8, padT + 16, 10, 10);
+    ctx.fillStyle = '#c0c0ea'; ctx.font = '12px monospace'; ctx.fillText('Odd harmonics', padL + 22, padT + 25);
+    if (d.evenHarm) {
+      ctx.fillStyle = 'rgba(255,215,0,0.8)'; ctx.fillRect(padL + 8, padT + 30, 10, 10);
+      ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace'; ctx.fillText('Even harmonics (broken inversion)', padL + 22, padT + 39);
+    }
+
+    // Gap position indicator
+    const gapOrdF = d.gap / (1240 / 800);
+    if (gapOrdF >= 1 && gapOrdF <= maxOrd) {
+      const gapX = padL + (gapOrdF / maxOrd) * plotW;
+      ctx.strokeStyle = 'rgba(255,68,170,0.5)'; ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(gapX, padT); ctx.lineTo(gapX, padT + plotH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ff44aa'; ctx.font = '12px monospace';
+      ctx.fillText('Eg', gapX + 3, padT + 16);
+    }
+
+    // Bloch oscillation note
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Intraband (Bloch) + Interband (Zener) contributions', padL, padT + plotH - 8);
+  }
+
+  function draw() {
+    const { W, H, ctx } = fitCanvas(cv);
+    ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+    if (window.p7ShowBands) {
+      drawBandStructure(W, H, ctx);
+    } else {
+      drawHHGSpectrum(W, H, ctx);
+    }
+    if (!window.p7Paused) t7 += (window.animSpeed || 0.1);
+    raf7 = requestAnimationFrame(draw);
+  }
+
+  // Init display
+  const d = matData[window.p7Material];
+  document.getElementById('p7GapDisp').textContent = d.gap + ' eV';
+  document.getElementById('p7InvDisp').textContent = d.inv;
+
+  draw();
+  return { stop() { cancelAnimationFrame(raf7); } };
+}
+
+// ── Tab 8 — XFEL & X-ray Coherence ───────────────────────────
+function initTab8() {
+  const cv = document.getElementById('cv8');
+  let raf8, t8 = 0;
+  window.p8Paused = false;
+  window.p8Facility = 'LCLS';
+  window.p8ShowDiffraction = false;
+
+  const facData = {
+    LCLS:   { pulse: '2–5', energy: '0.28–10', bright: '10³³', color: '#7ec8ff', year: 2009, loc: 'SLAC, USA' },
+    EuXFEL: { pulse: '2–100', energy: '0.25–25', bright: '10³³', color: '#ffd700', year: 2017, loc: 'Hamburg, DE' },
+    SACLA:  { pulse: '2–10', energy: '4–15', bright: '10³³', color: '#ff8844', year: 2011, loc: 'Harima, JP' }
+  };
+
+  window.p8SetFac = function(fac, btn) {
+    window.p8Facility = fac;
+    document.querySelectorAll('#p8LclsBtn,#p8EuBtn,#p8SaclaBtn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = facData[fac];
+    document.getElementById('p8PulseDisp').textContent = d.pulse + ' fs';
+    document.getElementById('p8EnergyDisp').textContent = d.energy + ' keV';
+    document.getElementById('p8BrightDisp').textContent = d.bright;
+  };
+
+  window.p8ToggleView = function() {
+    window.p8ShowDiffraction = !window.p8ShowDiffraction;
+    const btn = document.getElementById('p8ViewBtn');
+    if (btn) btn.textContent = window.p8ShowDiffraction ? 'XFEL Layout' : 'Diffraction';
+  };
+
+  function drawXFELLayout(W, H, ctx) {
+    const d = facData[window.p8Facility];
+    const padL = 30, padT = 45;
+    const layoutW = W - padL * 2, layoutH = H - padT - 55;
+    const centerY = padT + layoutH * 0.42;
+
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('XFEL Layout: ' + window.p8Facility + ' (' + d.loc + ', ' + d.year + ')', padL, padT - 8);
+
+    // ── Electron gun ──
+    const gunX = padL + layoutW * 0.04;
+    ctx.fillStyle = '#2a2a55'; ctx.fillRect(gunX - 15, centerY - 18, 30, 36);
+    ctx.strokeStyle = '#7ec8ff'; ctx.lineWidth = 1.5; ctx.strokeRect(gunX - 15, centerY - 18, 30, 36);
+    ctx.fillStyle = '#7ec8ff'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('e⁻', gunX, centerY + 4);
+    ctx.fillText('gun', gunX, centerY + 14);
+    ctx.textAlign = 'left';
+
+    // ── Linac ──
+    const linacX = padL + layoutW * 0.1, linacW = layoutW * 0.22;
+    ctx.fillStyle = '#1a1a3a'; ctx.fillRect(linacX, centerY - 10, linacW, 20);
+    ctx.strokeStyle = '#3a3a6a'; ctx.lineWidth = 1; ctx.strokeRect(linacX, centerY - 10, linacW, 20);
+    // RF cavities
+    for (let i = 0; i < 12; i++) {
+      const cx2 = linacX + (i / 11) * linacW;
+      ctx.beginPath(); ctx.arc(cx2, centerY, 8, 0, Math.PI * 2);
+      ctx.strokeStyle = '#3a5a7a'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Linear Accelerator (~1 km)', linacX + linacW / 2 - 70, centerY - 16);
+    ctx.fillText(`γ ~ 10,000 (E ≈ 5–15 GeV)`, linacX + linacW / 2 - 65, centerY + 24);
+
+    // ── Undulator ──
+    const undX = padL + layoutW * 0.37, undW = layoutW * 0.38;
+    // Alternating magnets
+    for (let i = 0; i < 22; i++) {
+      const mx = undX + (i / 21) * undW;
+      const polarity = i % 2;
+      ctx.fillStyle = polarity ? '#1a3a1a' : '#1a1a3a';
+      ctx.fillRect(mx - 4, centerY - (polarity ? 20 : 2), 8, 18);
+      ctx.strokeStyle = polarity ? '#44aa44' : '#4444aa';
+      ctx.lineWidth = 0.5; ctx.strokeRect(mx - 4, centerY - (polarity ? 20 : 2), 8, 18);
+    }
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Undulator (alternating B, period λ_u ~ 2–4 cm)', undX, centerY - 26);
+
+    // Electron bunch with sinusoidal path
+    const eBunchX = undX + ((t8 * 0.4) % undW);
+    const eBunchY = centerY + 4 * Math.sin((eBunchX - undX) / undW * 22 * Math.PI);
+    ctx.beginPath(); ctx.arc(eBunchX, eBunchY, 5, 0, Math.PI * 2);
+    const eg = ctx.createRadialGradient(eBunchX, eBunchY, 1, eBunchX, eBunchY, 5);
+    eg.addColorStop(0, '#ffffff'); eg.addColorStop(1, 'rgba(126,200,255,0.2)');
+    ctx.fillStyle = eg; ctx.fill();
+
+    // X-ray beam emitted
+    const xrayX = undX + undW + 10;
+    const xrayEndX = padL + layoutW * 0.92;
+    // Coherent X-ray beam (grows due to SASE)
+    const satPhase = Math.min(1, (eBunchX - undX) / (undW * 0.6));
+    ctx.beginPath(); ctx.strokeStyle = `rgba(255,68,170,${0.3 + satPhase * 0.6})`; ctx.lineWidth = satPhase * 3 + 1;
+    ctx.moveTo(xrayX, centerY); ctx.lineTo(xrayEndX, centerY); ctx.stroke();
+    // Beam cone (collimated)
+    ctx.beginPath();
+    ctx.moveTo(xrayX, centerY);
+    ctx.lineTo(xrayEndX, centerY - 6);
+    ctx.lineTo(xrayEndX, centerY + 6);
+    ctx.closePath();
+    ctx.fillStyle = `rgba(255,68,170,${0.08 + satPhase * 0.1})`; ctx.fill();
+
+    ctx.fillStyle = '#ff44aa'; ctx.font = '12px monospace';
+    ctx.fillText('Coherent X-ray pulse', xrayX + 10, centerY - 14);
+    ctx.fillText(`~${d.pulse} fs, ${d.energy} keV`, xrayX + 10, centerY - 2);
+
+    // SASE gain curve
+    const gainX = undX, gainY = padT + layoutH * 0.72, gainW = undW, gainH = layoutH * 0.22;
+    ctx.fillStyle = '#0b0b1e'; ctx.fillRect(gainX, gainY, gainW, gainH);
+    ctx.strokeStyle = '#1c1c44'; ctx.strokeRect(gainX, gainY, gainW, gainH);
+    ctx.beginPath(); ctx.strokeStyle = '#ff44aa'; ctx.lineWidth = 1.5;
+    for (let px = 0; px < gainW; px++) {
+      const z = px / gainW;
+      const I_sase = 1e-6 * Math.exp(z * 9) * (1 + 0.3 * Math.sin(z * 20 + t8 * 0.05));
+      const Inorm = Math.min(1, Math.log10(I_sase + 1e-7) / 3 + 1);
+      const py = gainY + gainH * (1 - Inorm * 0.88);
+      px === 0 ? ctx.moveTo(gainX + px, py) : ctx.lineTo(gainX + px, py);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#c0c0ea'; ctx.font = '12px monospace';
+    ctx.fillText('SASE gain (log scale)', gainX + 4, gainY + 12);
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('undulator distance z →', gainX + gainW / 2 - 55, gainY + gainH + 12);
+
+    // Pierce param note
+    ctx.fillStyle = '#3a3a6a'; ctx.font = '12px monospace';
+    ctx.fillText('Pierce param ρ ~ 10⁻³–10⁻⁴; gain length L_g = λ_u/(4π√3 ρ)', padL, padT + layoutH + 14);
+  }
+
+  function drawDiffraction(W, H, ctx) {
+    const d = facData[window.p8Facility];
+    const padL = 50, padT = 40, padB = 55;
+    const plotW = W - padL - 20, plotH = H - padT - padB;
+
+    ctx.fillStyle = '#c0c0ea'; ctx.font = 'bold 12px monospace';
+    ctx.fillText('Single-Particle Imaging & Bragg Diffraction', padL, padT - 8);
+
+    // Protein molecule (random atoms)
+    const molX = padL + plotW * 0.22, molY = padT + plotH * 0.4;
+    const atomPositions = [
+      [0,0],[20,-15],[35,5],[15,22],[-10,28],[30,28],[-25,12],[-30,-8],[5,-32],[28,-28]
+    ];
+    atomPositions.forEach(([dx, dy], i) => {
+      const ax = molX + dx, ay = molY + dy;
+      ctx.beginPath(); ctx.arc(ax, ay, 4, 0, Math.PI * 2);
+      const c = ['#7ec8ff','#ff8844','#ff4422','#ffd700','#44ff88'][i % 5];
+      ctx.fillStyle = c; ctx.fill();
+      // Bonds
+      if (i > 0) {
+        const [px2, py2] = atomPositions[Math.floor(i * 0.6)];
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+        ctx.moveTo(molX + px2, molY + py2);
+        ctx.lineTo(ax, ay); ctx.stroke();
+      }
+    });
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('Single molecule', padL + plotW * 0.12, padT + plotH * 0.75);
+
+    // Incoming X-ray beam
+    const beamY = molY - 12;
+    const beamX1 = padL + 10, beamX2 = molX - 20;
+    ctx.beginPath();
+    const beamGrad = ctx.createLinearGradient(beamX1, 0, beamX2, 0);
+    beamGrad.addColorStop(0, 'rgba(255,68,170,0.05)');
+    beamGrad.addColorStop(1, 'rgba(255,68,170,0.7)');
+    ctx.strokeStyle = beamGrad; ctx.lineWidth = 3;
+    ctx.moveTo(beamX1, beamY); ctx.lineTo(beamX2, beamY); ctx.stroke();
+    ctx.fillStyle = '#ff44aa'; ctx.font = '12px monospace';
+    ctx.fillText('XFEL pulse\n(' + d.pulse + ' fs)', padL + 15, beamY - 14);
+
+    // Scattered photons → diffraction pattern
+    const detX = padL + plotW * 0.62, detY = padT + plotH * 0.08;
+    const detW = plotW * 0.36, detH = plotH * 0.84;
+    ctx.fillStyle = '#050510'; ctx.fillRect(detX, detY, detW, detH);
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1; ctx.strokeRect(detX, detY, detW, detH);
+
+    // Bragg diffraction spots on detector
+    const braggSpots = [
+      [0.5, 0.5, 1.0], [0.3, 0.5, 0.5], [0.7, 0.5, 0.5],
+      [0.5, 0.28, 0.5], [0.5, 0.72, 0.5], [0.35, 0.35, 0.3],
+      [0.65, 0.35, 0.3], [0.35, 0.65, 0.3], [0.65, 0.65, 0.3],
+      [0.2, 0.5, 0.2], [0.8, 0.5, 0.2], [0.5, 0.15, 0.2],
+    ];
+    const pulse_phase = (t8 * 0.012) % (2 * Math.PI);
+    braggSpots.forEach(([fx, fy, I]) => {
+      const sx = detX + fx * detW, sy = detY + fy * detH;
+      const flicker = 0.7 + 0.3 * Math.sin(pulse_phase + fx * 10 + fy * 7);
+      const radius = 3 + I * 8;
+      const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius);
+      sg.addColorStop(0, `rgba(255,200,200,${I * flicker})`);
+      sg.addColorStop(0.3, `rgba(126,200,255,${I * flicker * 0.7})`);
+      sg.addColorStop(1, 'transparent');
+      ctx.beginPath(); ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = sg; ctx.fill();
+    });
+    ctx.fillStyle = '#c0c0ea'; ctx.font = '12px monospace';
+    ctx.fillText('Diffraction\npattern', detX + 4, detY + 14);
+
+    // Scatter lines from molecule to detector
+    [[0.3, 0.3], [0.5, 0.28], [0.7, 0.35], [0.5, 0.5]].forEach(([fx, fy]) => {
+      const sx = detX + fx * detW, sy = detY + fy * detH;
+      const age = ((t8 * 0.012) % 1);
+      ctx.beginPath(); ctx.strokeStyle = `rgba(255,200,100,0.12)`; ctx.lineWidth = 1;
+      ctx.moveTo(molX + 5, molY + 5); ctx.lineTo(sx, sy); ctx.stroke();
+    });
+
+    // Timeline: diffract before destroy
+    const tlY = padT + plotH * 0.88, tlX = padL;
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(tlX, tlY); ctx.lineTo(tlX + plotW, tlY); ctx.stroke();
+    const events = [
+      [0.05, '#ff44aa', 'XFEL\npulse'],
+      [0.18, '#ffd700', 'Diffraction\nrecorded'],
+      [0.38, '#ff4422', 'Coulomb\nexplosion'],
+      [0.65, '#55558a', 'Molecule\ndestroyed']
+    ];
+    events.forEach(([fx, col, label]) => {
+      const ex2 = tlX + fx * plotW;
+      ctx.beginPath(); ctx.arc(ex2, tlY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = col; ctx.fill();
+      ctx.fillStyle = col; ctx.font = '12px monospace';
+      ctx.fillText(label, ex2 - 20, tlY + 14);
+    });
+    ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+    ctx.fillText('"Diffract before destroy" (Neutze 2000)', tlX, tlY - 12);
+    ctx.fillText('time →', tlX + plotW - 40, tlY - 5);
+  }
+
+  function draw() {
+    const { W, H, ctx } = fitCanvas(cv);
+    ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+    if (window.p8ShowDiffraction) {
+      drawDiffraction(W, H, ctx);
+    } else {
+      drawXFELLayout(W, H, ctx);
+    }
+    if (!window.p8Paused) t8 += (window.animSpeed || 0.1);
+    raf8 = requestAnimationFrame(draw);
+  }
+
+  // Init display
+  const d = facData[window.p8Facility];
+  document.getElementById('p8PulseDisp').textContent = d.pulse + ' fs';
+  document.getElementById('p8EnergyDisp').textContent = d.energy + ' keV';
+  document.getElementById('p8BrightDisp').textContent = d.bright;
+
+  draw();
+  return { stop() { cancelAnimationFrame(raf8); } };
+}
+
+window.animSpeed=0.1;
+switchTab(1);
+window.addEventListener('resize', () => { _stops.forEach(s=>s&&s.stop&&s.stop()); _stops=[]; switchTab(currentTab); });
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

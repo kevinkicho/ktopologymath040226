@@ -1,0 +1,2018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>18 · Infinity & Cantor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05050f;color:#dde8ff;font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;padding-bottom:38px}
+header{padding:18px 32px;display:flex;align-items:center;gap:20px;border-bottom:1px solid rgba(170,187,255,0.25);background:rgba(5,5,20,0.9)}
+.back{color:#aabbff;text-decoration:none;font-size:1.1rem;opacity:.7;transition:opacity .2s}.back:hover{opacity:1}
+h1{font-family:'Orbitron',sans-serif;font-size:1.55rem;color:#aabbff;text-shadow:0 0 20px #aabbff88}
+.subtitle{font-size:.8rem;opacity:.55;margin-left:auto}
+.tabs{display:flex;gap:0;border-bottom:1px solid rgba(170,187,255,0.2);background:rgba(10,10,30,0.8);padding:0 24px;flex-shrink:0;overflow-x:auto}
+.tab{padding:12px 22px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.85rem;color:#aabbff99;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:#aabbff;border-bottom-color:#aabbff;text-shadow:0 0 10px #aabbff88}
+.tab:hover:not(.active){color:#aabbffcc}
+.workspace{display:flex;height:calc(100vh - 145px);overflow:hidden}
+.sidebar{width:240px;min-width:200px;background:rgba(10,10,28,0.95);border-right:1px solid rgba(170,187,255,0.15);padding:18px 14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.sidebar.right{border-right:none;border-left:1px solid rgba(170,187,255,0.15)}
+.main-area{flex:1;position:relative;background:#06060f;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+label{font-size:.75rem;color:#aabbff99;display:block;margin-bottom:3px}
+input[type=range]{width:100%;accent-color:#aabbff;cursor:pointer}
+.val{color:#aabbff;font-size:.8rem;text-align:right}
+button{background:rgba(170,187,255,0.1);border:1px solid rgba(170,187,255,0.35);color:#aabbff;padding:7px 12px;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.78rem;width:100%;transition:all .2s}
+button:hover{background:rgba(170,187,255,0.22);box-shadow:0 0 10px #aabbff44}
+button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
+.info-box{background:rgba(170,187,255,0.06);border:1px solid rgba(170,187,255,0.2);border-radius:6px;padding:10px;font-size:.72rem;line-height:1.55;color:#bbccff;overflow:hidden;word-break:break-word}
+.sep{height:1px;background:rgba(170,187,255,0.15);margin:4px 0}
+.proof-panel{position:fixed;bottom:0;left:0;right:0;height:54px;background:rgba(8,8,20,0.97);border-top:1px solid rgba(170,187,255,0.3);transition:height .35s ease;z-index:100;overflow:hidden}
+.proof-panel.open{height:340px}
+.proof-header{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer}
+.proof-header h3{color:#aabbff;font-family:'Orbitron',sans-serif;font-size:.8rem;flex:1}
+.proof-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px}
+.ptab{background:rgba(170,187,255,0.08);border:1px solid rgba(170,187,255,0.28);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.72rem;color:#aabbff99;white-space:nowrap;transition:all .2s}
+.ptab.active,.ptab:hover{background:rgba(170,187,255,0.22);color:#aabbff}
+.proof-content{padding:4px 24px 20px;overflow-y:auto;max-height:260px;font-size:.83rem;line-height:1.75;color:#ccd8ff}
+.pan-mode canvas{cursor:grab}
+.pan-mode canvas:active{cursor:grabbing}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← back</a>
+  <h1>18 · Infinity & Cantor</h1>
+  <span class="subtitle">Road to Reality Ch. 16 — Cardinality, Diagonalization & Gödel</span>
+</header>
+<div class="tabs" data-role="tab-bar" style="flex-wrap:wrap">
+  <div class="tab active" onclick="switchTab(0)">Cantor's Infinities</div>
+  <div class="tab" onclick="switchTab(1)">Diagonal Argument</div>
+  <div class="tab" onclick="switchTab(2)">Gödel & Incompleteness</div>
+  <div class="tab" onclick="switchTab(3)">Diagonal: Reals & Power Sets</div>
+  <div class="tab" onclick="switchTab(4)">Cardinal Arithmetic & CH</div>
+  <div class="tab" onclick="switchTab(5)">Ordinal Numbers</div>
+  <div class="tab" onclick="switchTab(6)">Large Cardinals</div>
+  <div class="tab" onclick="switchTab(7)">Infinity in Physics</div>
+</div>
+
+<!-- TAB 0: CANTOR -->
+<div id="panel0" class="workspace" data-role="panel">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">$|\mathbb{N}| = \aleph_0$<br>$|\mathbb{R}| = \mathfrak{c} = 2^{\aleph_0} > \aleph_0$</div>
+    <div class="sep"></div>
+    <label>Bijection demo</label>
+    <button onclick="setBij(0)" id="bBtn0">ℕ ↔ ℤ (even/odd)</button>
+    <button onclick="setBij(1)" id="bBtn1">ℕ ↔ ℕ² (Cantor pair)</button>
+    <button onclick="setBij(2)" id="bBtn2">ℕ ↔ ℚ (zigzag)</button>
+    <button onclick="setBij(3)" id="bBtn3">(0,1) ↔ ℝ (tan)</button>
+    <div class="sep"></div>
+    <label>Steps shown <span class="val" id="v_steps">20</span></label>
+    <input type="range" id="bijSteps" min="5" max="50" step="5" value="20" oninput="drawCantor()">
+    <label>Anim speed <span class="val" id="v_animspd">3</span></label>
+    <input type="range" id="animSpd" min="1" max="10" step="1" value="3" oninput="document.getElementById('v_animspd').textContent=this.value">
+    <div class="sep"></div>
+    <button id="bijAnimBtn" class="btn" onclick="animBij()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" id="bijInfo" style="font-size:.7rem;line-height:1.65">
+      Select a bijection above
+    </div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="cantorC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Cardinal numbers:</b><br>
+      $\aleph_0 = |\mathbb{N}|$<br>
+      $\aleph_1 = 2^{\aleph_0}$ (CH)<br><br>
+      <b>Countable sets:</b><br>
+      $\mathbb{N},\mathbb{Z},\mathbb{Q}$<br>
+      Any finite union<br><br>
+      <b>Uncountable:</b><br>
+      $\mathbb{R},\mathbb{C},[0,1]$<br>
+      $\mathcal{P}(\mathbb{N})$<br><br>
+      <b>Continuum hyp:</b><br>
+      Independent of ZFC
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: DIAGONAL -->
+<div id="panel1" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Cantor's diagonal argument shows no surjection $f:\mathbb{N}\to\{0,1\}^\mathbb{N}$ exists.</div>
+    <div class="sep"></div>
+    <button onclick="genTable()">↻ New random table</button>
+    <button id="diagAnimBtn" class="btn" onclick="animDiag()">▶ Animate diagonal</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.7rem;line-height:1.65">
+      <b>Construction:</b><br>
+      List all sequences.<br>Flip diagonal bit:<br>$d_n = 1 - f(n)_n$<br>The sequence $(d_n)$<br>differs from every row.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" id="diagInfo" style="font-size:.72rem;line-height:1.6">
+      Anti-diagonal:<br>…
+    </div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="diagC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Proof sketch:</b><br>
+      Suppose $f:\mathbb{N}\to[0,1]$ surjective. Write each $f(n)$ in binary. Define $d_n = 1-\text{bit}_n(f(n))$. Then the number $d = 0.d_1d_2d_3\ldots$ satisfies $d \neq f(n)$ for all $n$ (differs at $n$th digit). Contradiction.<br><br>
+      <b>Same proof shows:</b><br>
+      $|\mathcal{P}(S)| > |S|$ for any set $S$.
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: GÖDEL -->
+<div id="panel2" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Gödel: Any consistent formal system strong enough to encode arithmetic contains true unprovable statements.</div>
+    <div class="sep"></div>
+    <label>Gödel numbering base <span class="val" id="v_gbase">2</span></label>
+    <input type="range" id="gbase" min="2" max="10" step="1" value="2" oninput="drawGodel()">
+    <div class="sep"></div>
+    <button onclick="setGView(0)" id="gvBtn0">Provability landscape</button>
+    <button onclick="setGView(1)" id="gvBtn1">Self-reference web</button>
+    <button onclick="setGView(2)" id="gvBtn2">Halting problem</button>
+    <div class="sep"></div>
+    <button id="godelAnimBtn" class="btn" onclick="animGodel()">▶ Animate</button>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="godelC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>1st Incompleteness:</b><br>
+      ∃ statement $G$ s.t.<br>
+      $G \Leftrightarrow \neg\text{Provable}(G)$<br><br>
+      <b>2nd Incompleteness:</b><br>
+      $T \nvdash \text{Con}(T)$<br>
+      (consistency unprovable from within)<br><br>
+      <b>Gödel numbering:</b><br>
+      Encodes syntax as<br>arithmetic via primes:<br>
+      $\ulcorner\phi\urcorner = \prod p_i^{a_i}$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: DIAGONAL ARGUMENT — REALS & POWER SETS -->
+<div id="panel3" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box" style="font-size:.72rem;line-height:1.65">
+      <b>Cantor (1891):</b><br>
+      No list of reals in [0,1] can be complete. The diagonal number $d$ (changing each digit) is missing.
+    </div>
+    <div class="sep"></div>
+    <button onclick="diagRealView=0;drawDiagReals()">Real decimal list</button>
+    <button onclick="diagRealView=1;drawDiagReals()">Power set argument</button>
+    <div class="sep"></div>
+    <button id="diagRealAnimBtn" class="btn" onclick="animDiagReals()">▶ Animate diagonal</button>
+    <button onclick="genDiagReals()">↻ New random list</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.68rem;line-height:1.6;color:#ffcc88;font-style:italic">
+      "No one shall expel us from the paradise that Cantor has created." — Hilbert
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" id="diagRealInfo" style="font-size:.7rem;line-height:1.6">Diagonal number d will appear here.</div>
+  </div>
+  <div class="main-area"><canvas id="diagRealC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.75">
+      <b>Step 1:</b> List all reals<br>
+      $f(1)=0.d_{1,1}d_{1,2}d_{1,3}\ldots$<br>
+      $f(2)=0.d_{2,1}d_{2,2}d_{2,3}\ldots$<br>
+      $\vdots$<br>
+      <b>Step 2:</b> Define diagonal:<br>
+      $d_n \neq d_{n,n}$<br>
+      <b>Step 3:</b> $d=0.d_1d_2d_3\ldots$ differs from every $f(n)$ at position $n$.<br><br>
+      <b>Power set version:</b><br>
+      Suppose $f:S\to\mathcal{P}(S)$. Let<br>
+      $D=\{x:x\notin f(x)\}$<br>
+      Then $D\notin\text{im}(f)$.<br><br>
+      Gives tower:<br>
+      $|\mathbb{N}|&lt;|\mathcal{P}(\mathbb{N})|&lt;|\mathcal{P}^2(\mathbb{N})|&lt;\cdots$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: CARDINAL ARITHMETIC & CH -->
+<div id="panel4" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box" style="font-size:.72rem;line-height:1.65">
+      <b>Cardinal arithmetic:</b><br>
+      $\aleph_0+\aleph_0=\aleph_0$<br>
+      $\aleph_0\times\aleph_0=\aleph_0$<br>
+      $2^{\aleph_0}=\mathfrak{c}$<br>
+      CH: $\mathfrak{c}=\aleph_1$?
+    </div>
+    <div class="sep"></div>
+    <button onclick="cardView=0;drawCardinal()">Cardinal hierarchy</button>
+    <button onclick="cardView=1;drawCardinal()">Cantor pairing anim</button>
+    <button onclick="cardView=2;drawCardinal()">CH & forcing</button>
+    <div class="sep"></div>
+    <button id="cardAnimBtn" class="btn" onclick="animCardinal()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.68rem;line-height:1.65">
+      <b>Gödel 1940:</b> CH consistent with ZFC (universe L).<br><br>
+      <b>Cohen 1963:</b> ¬CH consistent with ZFC (forcing).<br><br>
+      CH is <b>independent</b> of ZFC.
+    </div>
+  </div>
+  <div class="main-area"><canvas id="cardC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.75">
+      <b>Cantor pairing:</b><br>
+      $\pi(n,m)=\frac{(n+m)(n+m+1)}{2}+m$<br><br>
+      <b>GCH:</b><br>
+      $2^{\aleph_\alpha}=\aleph_{\alpha+1}$<br><br>
+      <b>König's theorem:</b><br>
+      $\text{cf}(2^{\aleph_0})&gt;\aleph_0$<br>
+      so $\mathfrak{c}\neq\aleph_\omega$<br><br>
+      <b>Beth numbers:</b><br>
+      $\beth_0=\aleph_0$<br>
+      $\beth_{\alpha+1}=2^{\beth_\alpha}$<br>
+      $\beth_\omega=\sup_n\beth_n$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: ORDINAL NUMBERS -->
+<div id="panel5" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box" style="font-size:.72rem;line-height:1.65">
+      Ordinals: well-ordered sets up to isomorphism. Each ordinal = set of all smaller ordinals.
+    </div>
+    <div class="sep"></div>
+    <button onclick="ordView=0;drawOrdinal()">Ordinal staircase</button>
+    <button onclick="ordView=1;drawOrdinal()">ω-arithmetic</button>
+    <button onclick="ordView=2;drawOrdinal()">ε₀ fixed point</button>
+    <div class="sep"></div>
+    <button id="ordAnimBtn" class="btn" onclick="animOrdinal()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.69rem;line-height:1.65">
+      <b>ε₀:</b> smallest ordinal s.t.<br>
+      $\varepsilon_0=\omega^{\varepsilon_0}$<br><br>
+      <b>Proof theory:</b> PA proves all statements with proofs of ordinal $&lt;\varepsilon_0$ (Gentzen).
+    </div>
+  </div>
+  <div class="main-area"><canvas id="ordC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.75">
+      <b>Key ordinals:</b><br>
+      $0,1,2,\ldots,\omega$<br>
+      $\omega+1,\ldots,\omega\cdot2$<br>
+      $\omega^2,\ldots,\omega^\omega$<br>
+      $\ldots,\varepsilon_0$<br><br>
+      <b>Non-commutativity:</b><br>
+      $\omega+1\neq 1+\omega$<br>
+      $2\cdot\omega\neq\omega\cdot2$<br><br>
+      <b>Veblen hierarchy:</b><br>
+      $\varphi_0(\alpha)=\omega^\alpha$<br>
+      $\varphi_1(\alpha)=\varepsilon_\alpha$<br>
+      $\Gamma_0=$ Feferman-Schütte
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: LARGE CARDINALS -->
+<div id="panel6" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box" style="font-size:.72rem;line-height:1.65">
+      Large cardinal axioms extend ZFC, placing cardinals so large they reflect the entire universe $V$.
+    </div>
+    <div class="sep"></div>
+    <button onclick="lcView=0;drawLargeCard()">Hierarchy ladder</button>
+    <button onclick="lcView=1;drawLargeCard()">Cumulative universe V</button>
+    <button onclick="lcView=2;drawLargeCard()">Measurable & V≠L</button>
+    <div class="sep"></div>
+    <button id="lcAnimBtn" class="btn" onclick="animLargeCard()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.69rem;line-height:1.65">
+      <b>Scott 1961:</b> A measurable cardinal implies $V\neq L$ — the constructible universe is too small.<br><br>
+      <b>Woodin cardinals</b> imply projective determinacy (all projective sets have nice regularity properties).
+    </div>
+  </div>
+  <div class="main-area"><canvas id="lcC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.75">
+      <b>Hierarchy (weakest→strongest):</b><br>
+      Inaccessible<br>
+      Mahlo<br>
+      Weakly compact<br>
+      Measurable<br>
+      Strong<br>
+      Woodin<br>
+      Supercompact<br>
+      Huge<br>
+      $\vdots$<br><br>
+      <b>Cumulative universe:</b><br>
+      $V_0=\emptyset$<br>
+      $V_{\alpha+1}=\mathcal{P}(V_\alpha)$<br>
+      $V_\lambda=\bigcup_{\beta&lt;\lambda}V_\beta$<br>
+      $V=\bigcup_\alpha V_\alpha$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: INFINITY IN PHYSICS -->
+<div id="panel7" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box" style="font-size:.72rem;line-height:1.65">
+      Where does infinity appear in physics, and how is it tamed?
+    </div>
+    <div class="sep"></div>
+    <button onclick="physView=0;drawPhysics()">QFT Renormalization</button>
+    <button onclick="physView=1;drawPhysics()">Bekenstein Bound</button>
+    <button onclick="physView=2;drawPhysics()">Penrose's singularities</button>
+    <button onclick="physView=3;drawPhysics()">Holographic principle</button>
+    <div class="sep"></div>
+    <button id="physAnimBtn" class="btn" onclick="animPhysics()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.69rem;line-height:1.65">
+      <b>Bekenstein bound:</b><br>
+      $S\leq\frac{2\pi kRE}{\hbar c}$<br>
+      Finite information in any bounded region.
+    </div>
+  </div>
+  <div class="main-area"><canvas id="physC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.75">
+      <b>Penrose:</b> spacetime singularities are <em>actual</em> infinities (not just potential). The BKL conjecture: generic singularities are spacelike, oscillatory.<br><br>
+      <b>Holography (Maldacena):</b> $d+1$ bulk ↔ $d$ boundary CFT. Finite boundary degrees of freedom encode the bulk.<br><br>
+      <b>Renormalization group:</b> UV divergences are absorbed into running coupling constants. The Wilson effective action integrates out modes above cutoff $\Lambda$.
+    </div>
+  </div>
+</div>
+
+<div class="proof-panel" id="proofPanel">
+  <div class="proof-header" onclick="toggleProof()">
+    <span style="color:#aabbff;font-size:1.1rem">▲</span>
+    <h3>Proofs & Theory</h3>
+    <span style="font-size:.75rem;color:#aabbff88">click to expand</span>
+  </div>
+  <div class="proof-tabs">
+    <div class="ptab active" onclick="showProof(0)">Cantor's Theorem</div>
+    <div class="ptab" onclick="showProof(1)">Diagonal Argument</div>
+    <div class="ptab" onclick="showProof(2)">Cantor-Schroeder-Bernstein</div>
+    <div class="ptab" onclick="showProof(3)">Gödel Incompleteness</div>
+    <div class="ptab" onclick="showProof(4)">Continuum Hypothesis</div>
+  </div>
+  <div class="proof-content" id="proofContent"></div>
+</div>
+
+<script>
+  window.animSpeed=0.1;
+const PROOFS=[
+  {title:"Cantor's Theorem: |P(S)| > |S|",body:`
+**Theorem:** For any set $S$, the power set $\\mathcal{P}(S)$ has strictly greater cardinality than $S$.
+**Proof:** Suppose $f: S \\to \\mathcal{P}(S)$ is any function. Define $D = \\{x \\in S : x \\notin f(x)\\}$.
+If $f$ were surjective, then $D = f(d)$ for some $d \\in S$.
+- If $d \\in D$: then $d \\notin f(d) = D$, contradiction.
+- If $d \\notin D$: then $d \\in f(d) = D$, contradiction.
+Therefore $f$ cannot be surjective, so $|\\mathcal{P}(S)| > |S|$.
+This gives an infinite tower: $\\aleph_0 < 2^{\\aleph_0} < 2^{2^{\\aleph_0}} < \\cdots$`},
+  {title:"Cantor's Diagonal Argument",body:`
+**Theorem:** $\\mathbb{R}$ is uncountable — there is no surjection $f:\\mathbb{N}\\to\\mathbb{R}$.
+**Proof** (for $[0,1]$ in binary): Suppose $f$ is a list $f(1), f(2), \\ldots$ of real numbers in $[0,1]$. Write each in binary: $f(n) = 0.b_{n,1}b_{n,2}b_{n,3}\\ldots$
+Define $d_n = 1 - b_{n,n}$ (flip the diagonal digit). Set $d = 0.d_1 d_2 d_3\\ldots$
+For every $n$: $d$ differs from $f(n)$ at position $n$, so $d \\neq f(n)$.
+Thus $d$ is not in the list, so $f$ is not surjective. Contradiction. $\\square$`},
+  {title:"Cantor-Schroeder-Bernstein Theorem",body:`
+**Theorem:** If $|A| \\leq |B|$ and $|B| \\leq |A|$, then $|A| = |B|$.
+More precisely: if injections $f:A\\hookrightarrow B$ and $g:B\\hookrightarrow A$ exist, then a bijection $h:A\\to B$ exists.
+**Proof sketch:** Define $h(x) = f(x)$ if $x$ can be traced back through alternating $f^{-1},g^{-1}$ steps to an element of $A$ (or infinitely), and $h(x) = g^{-1}(x)$ otherwise.
+This avoids the Axiom of Choice. The theorem underlies many cardinality comparisons.
+**Application:** $|\\mathbb{R}| = |(0,1)| = |\\mathbb{R}^2|$ — all intervals and $\\mathbb{R}^n$ have the same cardinality $\\mathfrak{c}$.`},
+  {title:"Gödel's Incompleteness Theorems",body:`
+Let $T$ be a consistent formal system containing Peano arithmetic.
+**First Incompleteness Theorem:** There exists a sentence $G$ such that:
+$$G \\Leftrightarrow \\neg\\text{Provable}_T(\\ulcorner G\\urcorner)$$
+$G$ says "I am not provable." If $T \\vdash G$, then $G$ is false → $T$ is inconsistent. If $T \\vdash \\neg G$, then $G$ is true → $T$ is $\\omega$-inconsistent. So neither $G$ nor $\\neg G$ is provable.
+**Gödel numbering** encodes formulas as natural numbers: $\\ulcorner \\phi \\urcorner = p_1^{a_1} p_2^{a_2}\\cdots$ using prime factorization, making provability an arithmetic predicate.
+**Second Incompleteness:** $T \\nvdash \\text{Con}(T)$ — a consistent system cannot prove its own consistency.`},
+  {title:"Continuum Hypothesis",body:`
+The **Continuum Hypothesis** (CH): $2^{\\aleph_0} = \\aleph_1$ (no cardinal strictly between $|\\mathbb{N}|$ and $|\\mathbb{R}|$).
+**Independence from ZFC:**
+- **Gödel (1940):** CH is consistent with ZFC (constructible universe $L$)
+- **Cohen (1963):** $\\neg$CH is consistent with ZFC (forcing method)
+So CH is **independent** — it can neither be proved nor disproved from ZFC axioms.
+The **Generalized CH**: $2^{\\aleph_\\alpha} = \\aleph_{\\alpha+1}$ for all ordinals $\\alpha$.
+This connects to Penrose's discussion of mathematical truth vs. formal provability, and whether Platonist or formalist views better describe mathematical reality.`}
+];
+
+let activeTab=0;
+const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+function togglePan(){panMode=!panMode;document.querySelectorAll('.panBtn').forEach(b=>{b.classList.toggle('active',panMode);b.textContent=panMode?'✋ On':'✋ Pan';});document.body.classList.toggle('pan-mode',panMode);}
+function resetPan(){pans[activeTab].x=0;pans[activeTab].y=0;redrawTab();}
+function _addPan(canvas,idx,fn){
+  canvas.addEventListener('mousedown',e=>{if(!panMode)return;_panDrag=true;_panTab=idx;_panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;e.preventDefault();},{passive:false});
+  canvas.addEventListener('mousemove',e=>{if(!_panDrag||_panTab!==idx)return;pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;fn();});
+  canvas.addEventListener('mouseup',()=>_panDrag=false);
+  canvas.addEventListener('mouseleave',()=>_panDrag=false);
+}
+function _cancelAllAnims18(){
+  if(bijAnimId){clearTimeout(bijAnimId);bijAnimId=null;}
+  const bijBtn=document.getElementById('bijAnimBtn');
+  if(bijBtn){bijBtn.textContent='▶ Animate';bijBtn.classList.remove('active');}
+  if(diagAnimId){cancelAnimationFrame(diagAnimId);diagAnimId=null;}
+  const diagBtn=document.getElementById('diagAnimBtn');
+  if(diagBtn){diagBtn.textContent='▶ Animate diagonal';diagBtn.classList.remove('active');}
+  if(godelAnimId){cancelAnimationFrame(godelAnimId);godelAnimId=null;}
+  const godelBtn=document.getElementById('godelAnimBtn');
+  if(godelBtn){godelBtn.textContent='▶ Animate';godelBtn.classList.remove('active');}
+  if(diagRealAnimId){cancelAnimationFrame(diagRealAnimId);diagRealAnimId=null;}
+  const diagRealBtn=document.getElementById('diagRealAnimBtn');
+  if(diagRealBtn){diagRealBtn.textContent='▶ Animate diagonal';diagRealBtn.classList.remove('active');}
+  if(cardAnimId){cancelAnimationFrame(cardAnimId);cardAnimId=null;}
+  const cardBtn=document.getElementById('cardAnimBtn');
+  if(cardBtn){cardBtn.textContent='▶ Animate';cardBtn.classList.remove('active');}
+  if(ordAnimId){cancelAnimationFrame(ordAnimId);ordAnimId=null;}
+  const ordBtn=document.getElementById('ordAnimBtn');
+  if(ordBtn){ordBtn.textContent='▶ Animate';ordBtn.classList.remove('active');}
+  if(lcAnimId){cancelAnimationFrame(lcAnimId);lcAnimId=null;}
+  const lcBtn=document.getElementById('lcAnimBtn');
+  if(lcBtn){lcBtn.textContent='▶ Animate';lcBtn.classList.remove('active');}
+  if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;}
+  const physBtn=document.getElementById('physAnimBtn');
+  if(physBtn){physBtn.textContent='▶ Animate';physBtn.classList.remove('active');}
+}
+function switchTab(t){
+  _cancelAllAnims18();
+  activeTab=t;
+  ['panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7'].forEach((id,i)=>document.getElementById(id).style.display=i===t?'flex':'none');
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===t));
+  redrawTab();
+  // Auto-start animations for all tabs
+  if(t===0)animBij();
+  if(t===1)animDiag();
+  if(t===2)animGodel();
+  if(t===3)animDiagReals();
+  if(t===4)animCardinal();
+  if(t===5)animOrdinal();
+  if(t===6)animLargeCard();
+  if(t===7)animPhysics();
+}
+function redrawTab(){if(activeTab===0)drawCantor();else if(activeTab===1)drawDiag();else if(activeTab===2)drawGodel();else if(activeTab===3)drawDiagReals();else if(activeTab===4)drawCardinal();else if(activeTab===5)drawOrdinal();else if(activeTab===6)drawLargeCard();else if(activeTab===7)drawPhysics();}
+
+const cantorC=document.getElementById('cantorC');
+const diagC=document.getElementById('diagC');
+const godelC=document.getElementById('godelC');
+const diagRealC=document.getElementById('diagRealC');
+const cardC=document.getElementById('cardC');
+const ordC=document.getElementById('ordC');
+const lcC=document.getElementById('lcC');
+const physC=document.getElementById('physC');
+const caCtx=cantorC.getContext('2d');
+const dCtx=diagC.getContext('2d');
+const gCtx=godelC.getContext('2d');
+const drCtx=diagRealC.getContext('2d');
+const ccCtx=cardC.getContext('2d');
+const ocCtx=ordC.getContext('2d');
+const lcCtx=lcC.getContext('2d');
+const phCtx=physC.getContext('2d');
+
+function resizeCanvas(c){const r=c.getBoundingClientRect();if(c.width!==Math.floor(r.width)||c.height!==Math.floor(r.height)){c.width=Math.floor(r.width);c.height=Math.floor(r.height);}}
+
+// ── TAB 0: CANTOR BIJECTIONS ──
+let bijIdx=0, bijAnimId=null, bijStep=0;
+const BIJ_DESCS=[
+  '|ℤ| = |ℕ|: map 0→0, 1→1, -1→2, 2→3, -2→4, … (interleave positives/negatives)',
+  '|ℕ²| = |ℕ|: Cantor pairing — traverse grid by diagonals',
+  '|ℚ| = |ℕ|: zigzag through p/q grid, skip duplicates',
+  '|(0,1)| = |ℝ|: bijection via tan(π(x−½)), a homeomorphism'
+];
+function setBij(i){bijIdx=i;['bBtn0','bBtn1','bBtn2','bBtn3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));document.getElementById('bijInfo').textContent=BIJ_DESCS[i];drawCantor();}
+function animBij(){
+  const btn=document.getElementById('bijAnimBtn');
+  if(bijAnimId){clearTimeout(bijAnimId);bijAnimId=null;bijStep=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawCantor();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  bijStep=0;
+  function frame(){
+    bijStep++;drawCantor();
+    if(bijStep<parseInt(document.getElementById('bijSteps').value)){
+      const spd=parseInt(document.getElementById('animSpd').value);
+      const delay=Math.round(550/spd); // speed 3 ≈ 183ms/step, speed 10 ≈ 55ms/step
+      bijAnimId=setTimeout(frame,delay);
+    }else{bijAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');}
+  }
+  frame();
+}
+
+function drawCantor(){
+  resizeCanvas(cantorC);
+  const W=cantorC.width,H=cantorC.height;
+  caCtx.setTransform(1,0,0,1,0,0);
+  caCtx.fillStyle='#06060f';caCtx.fillRect(0,0,W,H);
+  caCtx.setTransform(1,0,0,1,pans[0].x,pans[0].y);
+
+  const N=parseInt(document.getElementById('bijSteps').value);
+  const showN=bijAnimId?bijStep:N;
+  const cx=W/2,cy=H/2;
+
+  if(bijIdx===0){
+    // ℕ ↔ ℤ
+    const yN=cy-H*0.2,yZ=cy+H*0.2;
+    const dx=Math.min(W*0.7/Math.max(N,1),50);
+    const startX=cx-dx*(N-1)/2;
+    caCtx.fillStyle='rgba(170,187,255,0.6)';caCtx.font='12px Share Tech Mono';
+    caCtx.textAlign='center';
+    caCtx.fillText('ℕ (domain)',startX-30,yN-20);
+    caCtx.fillText('ℤ (codomain)',startX-30,yZ+25);
+    for(let n=0;n<Math.min(showN,N);n++){
+      const x=startX+n*dx;
+      let z;if(n===0)z=0;else if(n%2===1)z=(n+1)/2;else z=-n/2;
+      caCtx.fillStyle='#aabbff';
+      caCtx.fillText(n,x,yN);
+      caCtx.fillStyle='#ffcc66';
+      caCtx.fillText(z,x,yZ+15);
+      // Arc
+      const zIdx=(z>=0?z*2:-(z*2-1));
+      const xt=startX+zIdx*dx;
+      caCtx.strokeStyle=`hsl(${(n*25)%360},70%,60%)`;caCtx.lineWidth=1.5;
+      caCtx.beginPath();caCtx.moveTo(x,yN+5);
+      const mid=yN+H*0.12;
+      caCtx.quadraticCurveTo((x+x)/2,mid,x,yZ);
+      caCtx.stroke();
+      caCtx.beginPath();caCtx.arc(x,yN,3,0,Math.PI*2);caCtx.fillStyle='#aabbff';caCtx.fill();
+      caCtx.beginPath();caCtx.arc(x,yZ,3,0,Math.PI*2);caCtx.fillStyle='#ffcc66';caCtx.fill();
+    }
+    caCtx.textAlign='left';
+  }else if(bijIdx===1){
+    // ℕ² grid with Cantor pairing path
+    const gridSz=Math.min(Math.floor(Math.sqrt(N*2)),10);
+    const cellW=Math.min((W*0.65)/gridSz,50);
+    const ox=cx-gridSz*cellW/2, oy=cy-gridSz*cellW/2;
+    // Draw grid
+    for(let i=0;i<=gridSz;i++){
+      caCtx.strokeStyle='rgba(170,187,255,0.15)';caCtx.lineWidth=1;
+      caCtx.beginPath();caCtx.moveTo(ox+i*cellW,oy);caCtx.lineTo(ox+i*cellW,oy+gridSz*cellW);caCtx.stroke();
+      caCtx.beginPath();caCtx.moveTo(ox,oy+i*cellW);caCtx.lineTo(ox+gridSz*cellW,oy+i*cellW);caCtx.stroke();
+    }
+    // Draw Cantor pairing path
+    let cnt=0;let px2=-1,py2=-1;
+    outer:for(let d=0;d<gridSz*2;d++){
+      for(let k=0;k<=d;k++){
+        const i=d%2===0?k:d-k, j=d%2===0?d-k:k;
+        if(i>=gridSz||j>=gridSz)continue;
+        const x=ox+(i+0.5)*cellW,y=oy+(j+0.5)*cellW;
+        if(cnt<showN){
+          if(px2>=0){
+            caCtx.strokeStyle=`hsl(${cnt*15},70%,60%)`;caCtx.lineWidth=1.5;
+            caCtx.beginPath();caCtx.moveTo(px2,py2);caCtx.lineTo(x,y);caCtx.stroke();
+          }
+          caCtx.fillStyle=`hsl(${cnt*15},70%,60%)`;
+          caCtx.beginPath();caCtx.arc(x,y,4,0,Math.PI*2);caCtx.fill();
+          caCtx.font='12px Share Tech Mono';caCtx.textAlign='center';
+          caCtx.fillText(cnt,x,y-6);
+          caCtx.fillStyle='rgba(200,200,255,0.5)';
+          caCtx.fillText(`(${i},${j})`,x,y+8);
+          px2=x;py2=y;cnt++;
+        }
+        if(cnt>=N)break outer;
+      }
+    }
+    caCtx.textAlign='left';
+    caCtx.fillStyle='rgba(170,187,255,0.6)';caCtx.font='12px Share Tech Mono';
+    caCtx.fillText('|ℕ²| = |ℕ|: Cantor pairing traverses ℕ² diagonally',ox,oy-10);
+  }else if(bijIdx===2){
+    // ℚ zigzag
+    const gridSz=Math.min(Math.floor(Math.sqrt(N*1.5))+1,8);
+    const cellW=Math.min((W*0.6)/gridSz,50);
+    const ox=cx-gridSz*cellW/2, oy=cy-gridSz*cellW/2;
+    for(let i=0;i<=gridSz;i++){caCtx.strokeStyle='rgba(170,187,255,0.15)';caCtx.lineWidth=1;caCtx.beginPath();caCtx.moveTo(ox+i*cellW,oy);caCtx.lineTo(ox+i*cellW,oy+gridSz*cellW);caCtx.stroke();caCtx.beginPath();caCtx.moveTo(ox,oy+i*cellW);caCtx.lineTo(ox+gridSz*cellW,oy+i*cellW);caCtx.stroke();}
+    let cnt=0;let prevX=-1,prevY=-1;
+    outer2:for(let d=1;d<gridSz*2;d++){
+      for(let k=1;k<=d;k++){
+        const p=d%2===0?k:d+1-k, q=d%2===0?d+1-k:k;
+        if(p>gridSz||q>gridSz)continue;
+        // Skip if gcd(p,q)>1 to avoid duplicates
+        let a=p,b=q;while(b){let t=b;b=a%b;a=t;}
+        if(a>1)continue;
+        if(cnt<showN){
+          const x=ox+(p-0.5)*cellW,y=oy+(q-0.5)*cellW;
+          if(prevX>=0){caCtx.strokeStyle=`hsl(${cnt*20},70%,60%)`;caCtx.lineWidth=1.5;caCtx.beginPath();caCtx.moveTo(prevX,prevY);caCtx.lineTo(x,y);caCtx.stroke();}
+          caCtx.fillStyle=`hsl(${cnt*20},70%,60%)`;caCtx.beginPath();caCtx.arc(x,y,4,0,Math.PI*2);caCtx.fill();
+          caCtx.font='12px Share Tech Mono';caCtx.textAlign='center';
+          caCtx.fillStyle='rgba(200,220,255,0.7)';caCtx.fillText(`${p}/${q}`,x,y);
+          prevX=x;prevY=y;cnt++;
+        }
+        if(cnt>=N)break outer2;
+      }
+    }
+    caCtx.textAlign='left';
+    caCtx.fillStyle='rgba(170,187,255,0.6)';caCtx.font='12px Share Tech Mono';
+    caCtx.fillText('|ℚ| = |ℕ|: enumerate p/q grid by diagonals, skip non-reduced fractions',ox,oy-12);
+  }else{
+    // tan bijection
+    const ox=cx-W*0.38,ow=W*0.76;
+    caCtx.strokeStyle='rgba(170,187,255,0.3)';caCtx.lineWidth=1;
+    // Draw (0,1) line
+    caCtx.beginPath();caCtx.moveTo(ox,cy-H*0.25);caCtx.lineTo(ox+ow,cy-H*0.25);caCtx.stroke();
+    // Draw ℝ line
+    caCtx.beginPath();caCtx.moveTo(ox,cy+H*0.25);caCtx.lineTo(ox+ow,cy+H*0.25);caCtx.stroke();
+    caCtx.fillStyle='rgba(170,187,255,0.5)';caCtx.font='12px Share Tech Mono';caCtx.textAlign='center';
+    caCtx.fillText('(0, 1)',cx,cy-H*0.25-15);
+    caCtx.fillText('ℝ',cx,cy+H*0.25+20);
+    // Draw correspondence arcs
+    for(let n=0;n<showN;n++){
+      const t=n/showN;
+      const x=ox+t*ow;
+      const val=Math.tan(Math.PI*(t-0.5));
+      const mappedX=cx+(val/(Math.abs(val)+5))*ow*0.4;
+      caCtx.strokeStyle=`hsl(${n*360/showN},70%,60%)`;caCtx.lineWidth=1;
+      caCtx.beginPath();caCtx.moveTo(x,cy-H*0.25+4);
+      caCtx.quadraticCurveTo(cx,cy,mappedX,cy+H*0.25-4);
+      caCtx.stroke();
+      caCtx.fillStyle=`hsl(${n*360/showN},70%,60%)`;
+      caCtx.beginPath();caCtx.arc(x,cy-H*0.25,2,0,Math.PI*2);caCtx.fill();
+      caCtx.beginPath();caCtx.arc(mappedX,cy+H*0.25,2,0,Math.PI*2);caCtx.fill();
+    }
+    caCtx.textAlign='left';
+    caCtx.fillStyle='rgba(170,187,255,0.6)';caCtx.font='12px Share Tech Mono';
+    caCtx.fillText('|(0,1)| = |ℝ|: bijection via tan(π(x-½))',ox,cy-H*0.38);
+  }
+
+  caCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 1: DIAGONAL ──
+let diagTable=null, diagAnimId=null, diagStep=0;
+const DIM=12;
+function genTable(){
+  diagTable=Array.from({length:DIM},()=>Array.from({length:DIM},()=>Math.random()<0.5?0:1));
+  diagStep=0;
+  drawDiag();
+}
+function animDiag(){
+  const btn=document.getElementById('diagAnimBtn');
+  if(diagAnimId){cancelAnimationFrame(diagAnimId);diagAnimId=null;diagStep=0;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');drawDiag();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  diagStep=0;
+  function frame(){diagStep=Math.min(diagStep+1,DIM);drawDiag();if(diagStep<DIM)diagAnimId=requestAnimationFrame(()=>setTimeout(frame,80));else{diagAnimId=null;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');}}
+  frame();
+}
+function drawDiag(){
+  if(!diagTable)genTable();
+  resizeCanvas(diagC);
+  const W=diagC.width,H=diagC.height;
+  dCtx.setTransform(1,0,0,1,0,0);
+  dCtx.fillStyle='#06060f';dCtx.fillRect(0,0,W,H);
+  dCtx.setTransform(1,0,0,1,pans[1].x,pans[1].y);
+
+  const cell=Math.min(Math.floor((Math.min(W,H)-80)/DIM),42);
+  const ox=(W-DIM*cell)/2, oy=(H-DIM*cell)/2;
+
+  // Draw table
+  for(let r=0;r<DIM;r++){
+    for(let c=0;c<DIM;c++){
+      const x=ox+c*cell,y=oy+r*cell;
+      const onDiag=(r===c);
+      const isShown=c<diagStep;
+      const bit=diagTable[r][c];
+      dCtx.fillStyle=onDiag&&isShown?`rgba(255,100,100,0.3)`:`rgba(170,187,255,${bit?0.12:0.04})`;
+      dCtx.fillRect(x+1,y+1,cell-2,cell-2);
+      dCtx.fillStyle=onDiag&&isShown?'#ff6666':bit?'#aabbff':'#556688';
+      dCtx.font=`${Math.min(cell-4,18)}px Share Tech Mono`;
+      dCtx.textAlign='center';dCtx.textBaseline='middle';
+      dCtx.fillText(bit,x+cell/2,y+cell/2);
+    }
+    // Row label
+    dCtx.fillStyle='rgba(170,187,255,0.4)';dCtx.font='12px Share Tech Mono';dCtx.textAlign='right';
+    dCtx.fillText(`f(${r+1})`,ox-4,oy+r*cell+cell/2);
+  }
+  // Column labels
+  for(let c=0;c<DIM;c++){
+    dCtx.fillStyle='rgba(170,187,255,0.4)';dCtx.font='12px Share Tech Mono';dCtx.textAlign='center';
+    dCtx.fillText(`${c+1}`,ox+c*cell+cell/2,oy-6);
+  }
+
+  // Anti-diagonal row
+  const antiDiag=diagTable.map((row,i)=>1-row[i]);
+  const by=oy+DIM*cell+20;
+  dCtx.fillStyle='rgba(255,200,50,0.8)';dCtx.font='12px Share Tech Mono';dCtx.textAlign='right';
+  dCtx.fillText('d =',ox-4,by+cell/2);
+  for(let c=0;c<DIM;c++){
+    const x=ox+c*cell;
+    const isShown=c<diagStep;
+    dCtx.fillStyle=isShown?'rgba(255,200,50,0.3)':'rgba(170,187,255,0.05)';
+    dCtx.fillRect(x+1,by+1,cell-2,cell-2);
+    dCtx.fillStyle=isShown?'#ffcc44':'#334455';
+    dCtx.font=`${Math.min(cell-4,18)}px Share Tech Mono`;
+    dCtx.textAlign='center';dCtx.textBaseline='middle';
+    if(isShown)dCtx.fillText(antiDiag[c],x+cell/2,by+cell/2);
+  }
+
+  document.getElementById('diagInfo').innerHTML=
+    `Anti-diagonal d:<br>${antiDiag.join(' ')}<br><br>d differs from row ${diagStep} at position ${diagStep}: bit flipped from ${diagStep>0?diagTable[diagStep-1][diagStep-1]:'?'} to ${diagStep>0?antiDiag[diagStep-1]:'?'}`;
+
+  dCtx.textAlign='left';dCtx.textBaseline='alphabetic';
+  dCtx.fillStyle='rgba(170,187,255,0.7)';dCtx.font='13px Share Tech Mono';
+  dCtx.fillText('Each row = one sequence in the supposed list. Anti-diagonal is not in any row.',ox,oy-22);
+  dCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 2: GÖDEL ──
+let gView=0, godelAnimId=null, godelT=0;
+function setGView(i){gView=i;['gvBtn0','gvBtn1','gvBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawGodel();}
+function animGodel(){
+  const btn=document.getElementById('godelAnimBtn');
+  if(godelAnimId){cancelAnimationFrame(godelAnimId);godelAnimId=null;godelT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawGodel();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  godelT=0;
+  function frame(){godelT+=0.02*(window.animSpeed||1);drawGodel();godelAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawGodel(){
+  resizeCanvas(godelC);
+  const W=godelC.width,H=godelC.height;
+  gCtx.setTransform(1,0,0,1,0,0);
+  gCtx.fillStyle='#06060f';gCtx.fillRect(0,0,W,H);
+  gCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
+
+  const cx=W/2,cy=H/2;
+  const gbase=parseInt(document.getElementById('gbase').value);
+  document.getElementById('v_gbase').textContent=gbase;
+
+  if(gView===0){
+    // Provability landscape: nested regions
+    // True statements (big ellipse), Provable (inner), Unprovable true (gap)
+    const rx=W*0.38,ry=H*0.38;
+    // True statements
+    gCtx.beginPath();gCtx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+    gCtx.fillStyle='rgba(100,120,220,0.12)';gCtx.fill();
+    gCtx.strokeStyle='rgba(170,187,255,0.6)';gCtx.lineWidth=2;gCtx.stroke();
+    gCtx.fillStyle='rgba(170,187,255,0.7)';gCtx.font='13px Share Tech Mono';gCtx.textAlign='center';
+    gCtx.fillText('True statements',cx,cy-ry+20);
+
+    // Provable (inner)
+    const rx2=rx*0.65,ry2=ry*0.65;
+    gCtx.beginPath();gCtx.ellipse(cx,cy,rx2,ry2,0,0,Math.PI*2);
+    gCtx.fillStyle='rgba(80,200,120,0.15)';gCtx.fill();
+    gCtx.strokeStyle='rgba(80,200,120,0.7)';gCtx.lineWidth=2;gCtx.stroke();
+    gCtx.fillStyle='rgba(80,200,120,0.8)';gCtx.font='12px Share Tech Mono';
+    gCtx.fillText('Provable from T',cx,cy+10);
+
+    // Gödel sentence G (in gap)
+    const Gx=cx+rx*0.82,Gy=cy-ry*0.1;
+    const pulse=0.8+0.2*Math.sin(godelT*3);
+    gCtx.beginPath();gCtx.arc(Gx,Gy,18*pulse,0,Math.PI*2);
+    gCtx.fillStyle='rgba(255,200,50,0.35)';gCtx.fill();
+    gCtx.strokeStyle='#ffcc44';gCtx.lineWidth=2;gCtx.stroke();
+    gCtx.fillStyle='#ffcc44';gCtx.font='bold 14px Share Tech Mono';gCtx.textAlign='center';
+    gCtx.fillText('G',Gx,Gy+5);
+
+    // Con(T)
+    const Cx2=cx+rx*0.78,Cy=cy+ry*0.25;
+    gCtx.beginPath();gCtx.arc(Cx2,Cy,14,0,Math.PI*2);gCtx.fillStyle='rgba(255,100,100,0.3)';gCtx.fill();
+    gCtx.strokeStyle='#ff6666';gCtx.lineWidth=1.5;gCtx.stroke();
+    gCtx.fillStyle='#ff6666';gCtx.font='12px Share Tech Mono';gCtx.fillText('Con(T)',Cx2,Cy+4);
+
+    // False
+    const Fx=cx-rx*0.5,Fy=cy+ry*0.75;
+    gCtx.beginPath();gCtx.arc(Fx,Fy,35,0,Math.PI*2);gCtx.fillStyle='rgba(100,50,50,0.3)';gCtx.fill();
+    gCtx.strokeStyle='rgba(200,80,80,0.5)';gCtx.lineWidth=1.5;gCtx.stroke();
+    gCtx.fillStyle='rgba(200,80,80,0.7)';gCtx.font='12px Share Tech Mono';gCtx.fillText('False',Fx,Fy);
+
+    // Labels
+    gCtx.fillStyle='rgba(255,200,50,0.8)';gCtx.font='12px Share Tech Mono';
+    gCtx.fillText('G: true but not provable (Gödel sentence)',Gx+24,Gy);
+    gCtx.fillStyle='rgba(255,100,100,0.7)';
+    gCtx.fillText('Con(T): consistent but unprovable from T',Cx2+18,Cy);
+
+  }else if(gView===1){
+    // Self-reference web
+    const stmts=[
+      {label:'G: "I am not provable"',x:cx,y:cy-H*0.32,color:'#ffcc44'},
+      {label:'Provable(G)?',x:cx+W*0.28,y:cy-H*0.12,color:'#ff6666'},
+      {label:'¬Provable(G)?',x:cx-W*0.28,y:cy-H*0.12,color:'#44aaff'},
+      {label:'Consistent(T)',x:cx,y:cy+H*0.2,color:'#44ff88'},
+      {label:'Arithmetic',x:cx,y:cy+H*0.38,color:'#aabbff'}
+    ];
+    const edges=[[0,1,'if T proves G...'],[0,2,'if T proves ¬G...'],[1,3,'→ inconsistent!'],[2,3,'→ ω-inconsistent'],[3,4,'encodes itself']];
+    edges.forEach(([a,b,lbl])=>{
+      const s=stmts[a],t=stmts[b];
+      const t2=(Math.sin(godelT*2)*0.5+0.5);
+      gCtx.strokeStyle=`rgba(170,187,255,0.5)`;gCtx.lineWidth=1.5;gCtx.setLineDash([8,5]);
+      gCtx.beginPath();gCtx.moveTo(s.x,s.y);gCtx.lineTo(t.x,t.y);gCtx.stroke();
+      gCtx.setLineDash([]);
+      const mx=(s.x+t.x)/2,my=(s.y+t.y)/2;
+      gCtx.fillStyle='rgba(200,200,255,0.4)';gCtx.font='12px Share Tech Mono';gCtx.textAlign='center';
+      gCtx.fillText(lbl,mx,my-6);
+    });
+    stmts.forEach(({label,x,y,color})=>{
+      const pulse=0.9+0.1*Math.sin(godelT*2+x);
+      gCtx.beginPath();gCtx.arc(x,y,50*pulse,0,Math.PI*2);
+      gCtx.fillStyle=color+'22';gCtx.fill();gCtx.strokeStyle=color+'88';gCtx.lineWidth=2;gCtx.stroke();
+      gCtx.fillStyle=color;gCtx.font='12px Share Tech Mono';gCtx.textAlign='center';
+      gCtx.fillText(label,x,y+4);
+    });
+    gCtx.textAlign='left';
+  }else{
+    // Halting problem analogy
+    const Px=cx-W*0.3, Hx=cx, Ox=cx+W*0.32, By=cy;
+    const bw=W*0.2,bh=H*0.15;
+    const boxes=[
+      {label:'Program K',x:Px,y:By,w:bw,h:bh,color:'#aabbff'},
+      {label:'Halts(K,K)?',x:Hx,y:By,w:bw,h:bh,color:'#ffcc44'},
+      {label:'Opposite',x:Ox,y:By,w:W*0.15,h:bh,color:'#44ff88'}
+    ];
+
+    // Animate: token travels P→H→O→loops back→contradiction
+    // godelT cycles 0→4: 0-1=P→H, 1-2=H→O, 2-3=O arcs back to P, 3-4=contradiction flash
+    const phase = godelAnimId ? godelT % 4 : -1;
+
+    // Draw feedback arc (O back to P) — always visible
+    gCtx.strokeStyle='rgba(255,100,100,0.4)';gCtx.lineWidth=2;gCtx.setLineDash([6,4]);
+    gCtx.beginPath();
+    gCtx.moveTo(Ox+W*0.075,By-bh/2);
+    gCtx.bezierCurveTo(Ox+W*0.075,By-H*0.28, Px-W*0.075,By-H*0.28, Px-W*0.075,By-bh/2);
+    gCtx.stroke();gCtx.setLineDash([]);
+    gCtx.fillStyle='rgba(255,100,100,0.6)';gCtx.font='12px Share Tech Mono';gCtx.textAlign='center';
+    gCtx.fillText('if halts → loop forever',cx,By-H*0.25);
+    gCtx.fillText('if loops → halt  ← CONTRADICTION',cx,By-H*0.3);
+
+    // Draw boxes
+    boxes.forEach(({label,x,y,w,h,color})=>{
+      const glow = godelAnimId && (
+        (phase<1&&label==='Program K')||(phase>=1&&phase<2&&label==='Halts(K,K)?')||(phase>=2&&phase<3&&label==='Opposite')
+      );
+      gCtx.fillStyle=glow?color+'44':color+'18';gCtx.fillRect(x-w/2,y-h/2,w,h);
+      gCtx.strokeStyle=glow?color:color+'66';gCtx.lineWidth=glow?3:1.5;gCtx.strokeRect(x-w/2,y-h/2,w,h);
+      if(glow){gCtx.shadowColor=color;gCtx.shadowBlur=18;}
+      gCtx.fillStyle=color;gCtx.font='bold 12px Share Tech Mono';gCtx.textAlign='center';
+      gCtx.fillText(label,x,y+5);gCtx.shadowBlur=0;
+    });
+
+    // Forward arrows
+    gCtx.strokeStyle='rgba(170,187,255,0.5)';gCtx.lineWidth=2;
+    gCtx.beginPath();gCtx.moveTo(Px+bw/2,By);gCtx.lineTo(Hx-bw/2,By);gCtx.stroke();
+    gCtx.beginPath();gCtx.moveTo(Hx+bw/2,By);gCtx.lineTo(Ox-W*0.075,By);gCtx.stroke();
+
+    // Animated token
+    if(phase>=0){
+      let tx,ty;
+      if(phase<1){// P → H
+        tx=Px+bw/2+(Hx-bw/2-(Px+bw/2))*phase;ty=By;
+      }else if(phase<2){// H → O
+        tx=Hx+bw/2+(Ox-W*0.075-(Hx+bw/2))*(phase-1);ty=By;
+      }else if(phase<3){// O arcs back to P (contradiction path)
+        const t2=phase-2;
+        tx=Ox+W*0.075+(Px-W*0.075-Ox-W*0.075)*t2;
+        ty=By-bh/2-H*0.15*Math.sin(t2*Math.PI);
+      }else{// flash contradiction
+        const flash=Math.sin(godelT*12)>0;
+        if(flash){
+          gCtx.fillStyle='rgba(255,50,50,0.25)';gCtx.fillRect(0,0,W,H);
+          gCtx.fillStyle='#ff4444';gCtx.font='bold 22px Orbitron';gCtx.textAlign='center';
+          gCtx.fillText('CONTRADICTION',cx,cy-bh);
+        }
+        tx=Px;ty=By;
+      }
+      gCtx.beginPath();gCtx.arc(tx,ty,9,0,Math.PI*2);
+      gCtx.fillStyle='#ff8844';gCtx.fill();
+      gCtx.strokeStyle='#ffcc44';gCtx.lineWidth=2;gCtx.stroke();
+    }
+
+    // Static labels
+    gCtx.fillStyle='rgba(255,200,50,0.75)';gCtx.font='12px Share Tech Mono';gCtx.textAlign='center';
+    gCtx.fillText('K = program that does opposite of what Halts(K,K) says',cx,cy+H*0.18);
+    gCtx.fillStyle='rgba(170,187,255,0.5)';gCtx.font='12px Share Tech Mono';
+    gCtx.fillText('∴ No program can decide the Halting Problem — same diagonal as Cantor & Gödel',cx,cy+H*0.27);
+  }
+
+  gCtx.textAlign='left';gCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 3: DIAGONAL ARGUMENT — REALS & POWER SETS ──
+let diagRealView=0, diagRealAnimId=null, diagRealStep=0, diagRealTable=null;
+const DR_DIGITS=10, DR_ROWS=10;
+function genDiagReals(){
+  // Each row: random decimal digits 0-9
+  diagRealTable=Array.from({length:DR_ROWS},()=>Array.from({length:DR_DIGITS},()=>Math.floor(Math.random()*10)));
+  diagRealStep=0;
+  updateDiagRealInfo();
+  drawDiagReals();
+}
+function updateDiagRealInfo(){
+  if(!diagRealTable)return;
+  const diagDigits=diagRealTable.map((row,i)=>row[i]);
+  const antiDigits=diagDigits.map(d=>(d+5)%10);
+  const el=document.getElementById('diagRealInfo');
+  const shown=Math.min(diagRealStep,DR_DIGITS);
+  let txt='Diagonal digits: '+diagDigits.slice(0,shown).join(', ');
+  txt+='\nd = 0.'+antiDigits.slice(0,shown).join('')+'...';
+  txt+='\n\nd differs from row n at position n.';
+  el.textContent=txt;
+}
+function animDiagReals(){
+  const btn=document.getElementById('diagRealAnimBtn');
+  if(diagRealAnimId){cancelAnimationFrame(diagRealAnimId);diagRealAnimId=null;diagRealStep=0;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');drawDiagReals();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  diagRealStep=0;
+  function frame(){
+    diagRealStep=Math.min(diagRealStep+1,DR_DIGITS);
+    updateDiagRealInfo();
+    drawDiagReals();
+    if(diagRealStep<DR_DIGITS)diagRealAnimId=requestAnimationFrame(()=>setTimeout(frame,120));
+    else{diagRealAnimId=null;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');}
+  }
+  frame();
+}
+function drawDiagReals(){
+  if(!diagRealTable)genDiagReals();
+  resizeCanvas(diagRealC);
+  const W=diagRealC.width,H=diagRealC.height;
+  drCtx.setTransform(1,0,0,1,0,0);
+  drCtx.fillStyle='#06060f';drCtx.fillRect(0,0,W,H);
+
+  if(diagRealView===0){
+    // Real decimal list visualization
+    const cellW=Math.min(Math.floor((W*0.72)/DR_DIGITS),44);
+    const cellH=Math.min(Math.floor((H*0.75)/DR_ROWS),38);
+    const ox=(W-DR_DIGITS*cellW)/2+10;
+    const oy=60;
+
+    // Title
+    drCtx.fillStyle='rgba(170,187,255,0.85)';
+    drCtx.font='bold 13px Share Tech Mono';
+    drCtx.textAlign='center';
+    drCtx.fillText("Cantor's Diagonal Argument — Real Numbers in [0,1]",W/2,30);
+    drCtx.font='12px Share Tech Mono';
+    drCtx.fillStyle='rgba(170,187,255,0.5)';
+    drCtx.fillText('Each row is a real number (decimal expansion). Click a row to highlight.',W/2,48);
+
+    // Column headers (digit positions)
+    for(let c=0;c<DR_DIGITS;c++){
+      drCtx.fillStyle='rgba(170,187,255,0.45)';
+      drCtx.font='12px Share Tech Mono';
+      drCtx.textAlign='center';
+      drCtx.fillText('d'+subscript(c+1),ox+c*cellW+cellW/2,oy-6);
+    }
+
+    for(let r=0;r<DR_ROWS;r++){
+      // Row label
+      drCtx.fillStyle='rgba(170,187,255,0.5)';
+      drCtx.font='12px Share Tech Mono';
+      drCtx.textAlign='right';
+      drCtx.fillText('f('+String(r+1)+') = 0.',ox-4,oy+r*cellH+cellH*0.65);
+
+      for(let c=0;c<DR_DIGITS;c++){
+        const x=ox+c*cellW;
+        const y=oy+r*cellH;
+        const onDiag=(r===c);
+        const diagRevealed=c<diagRealStep;
+        let bg;
+        if(onDiag&&diagRevealed) bg='rgba(255,100,80,0.35)';
+        else if(onDiag) bg='rgba(255,100,80,0.12)';
+        else bg='rgba(170,187,255,0.05)';
+        drCtx.fillStyle=bg;
+        drCtx.fillRect(x+1,y+1,cellW-2,cellH-2);
+        if(onDiag){
+          drCtx.strokeStyle=diagRevealed?'rgba(255,100,80,0.8)':'rgba(255,100,80,0.3)';
+          drCtx.lineWidth=1.5;
+          drCtx.strokeRect(x+1,y+1,cellW-2,cellH-2);
+        }
+        const digit=diagRealTable[r][c];
+        drCtx.fillStyle=onDiag&&diagRevealed?'#ff7766':onDiag?'rgba(255,120,100,0.5)':'rgba(170,200,255,0.7)';
+        drCtx.font=`${Math.min(cellH-6,16)}px Share Tech Mono`;
+        drCtx.textAlign='center';
+        drCtx.textBaseline='middle';
+        drCtx.fillText(digit,x+cellW/2,y+cellH/2);
+        drCtx.textBaseline='alphabetic';
+      }
+    }
+
+    // Draw diagonal line
+    if(diagRealStep>0){
+      drCtx.strokeStyle='rgba(255,150,80,0.6)';
+      drCtx.lineWidth=2;
+      drCtx.setLineDash([6,4]);
+      drCtx.beginPath();
+      for(let s=0;s<Math.min(diagRealStep,DR_ROWS);s++){
+        const px=ox+s*cellW+cellW/2;
+        const py=oy+s*cellH+cellH/2;
+        if(s===0)drCtx.moveTo(px,py);
+        else drCtx.lineTo(px,py);
+      }
+      drCtx.stroke();
+      drCtx.setLineDash([]);
+    }
+
+    // Anti-diagonal row
+    const antiY=oy+DR_ROWS*cellH+18;
+    drCtx.fillStyle='rgba(255,200,50,0.8)';
+    drCtx.font='12px Share Tech Mono';
+    drCtx.textAlign='right';
+    drCtx.fillText('d = 0.',ox-4,antiY+cellH*0.65);
+    for(let c=0;c<DR_DIGITS;c++){
+      const x=ox+c*cellW;
+      const shown=c<diagRealStep;
+      const antiDigit=(diagRealTable[c][c]+5)%10;
+      drCtx.fillStyle=shown?'rgba(255,200,50,0.3)':'rgba(170,187,255,0.03)';
+      drCtx.fillRect(x+1,antiY+1,cellW-2,cellH-2);
+      if(shown){
+        drCtx.strokeStyle='rgba(255,200,50,0.7)';
+        drCtx.lineWidth=1.5;
+        drCtx.strokeRect(x+1,antiY+1,cellW-2,cellH-2);
+        drCtx.fillStyle='#ffcc44';
+        drCtx.font=`${Math.min(cellH-6,16)}px Share Tech Mono`;
+        drCtx.textAlign='center';
+        drCtx.textBaseline='middle';
+        drCtx.fillText(antiDigit,x+cellW/2,antiY+cellH/2);
+        drCtx.textBaseline='alphabetic';
+      }
+    }
+    // Note
+    drCtx.fillStyle='rgba(255,200,50,0.7)';
+    drCtx.font='12px Share Tech Mono';
+    drCtx.textAlign='left';
+    drCtx.fillText('d = anti-diagonal: d differs from f(n) at position n  →  d is NOT in the list  →  no surjection exists  →  |ℝ| > |ℕ|',ox,antiY+cellH+16);
+    drCtx.textAlign='left';
+
+  } else {
+    // Power set argument
+    const cx=W/2, cy=H/2;
+    drCtx.fillStyle='rgba(170,187,255,0.85)';
+    drCtx.font='bold 13px Share Tech Mono';
+    drCtx.textAlign='center';
+    drCtx.fillText("Cantor's Theorem: |P(S)| > |S| for any set S",W/2,32);
+
+    // Draw S as row of elements
+    const elems=['a','b','c','d','e'];
+    const eR=22, eY=cy-H*0.2, eSpacing=W*0.12;
+    const eStartX=cx-eSpacing*(elems.length-1)/2;
+    drCtx.fillStyle='rgba(100,130,220,0.15)';
+    drCtx.beginPath();
+    drCtx.roundRect(eStartX-50,eY-35,eSpacing*(elems.length-1)+100,70,12);
+    drCtx.fill();
+    drCtx.strokeStyle='rgba(170,187,255,0.4)';drCtx.lineWidth=1.5;drCtx.stroke();
+    drCtx.fillStyle='rgba(170,187,255,0.6)';drCtx.font='12px Share Tech Mono';
+    drCtx.textAlign='left';drCtx.fillText('S = {',eStartX-48,eY+5);
+    elems.forEach((e,i)=>{
+      const ex=eStartX+i*eSpacing;
+      drCtx.beginPath();drCtx.arc(ex,eY,eR,0,Math.PI*2);
+      drCtx.fillStyle='rgba(170,187,255,0.15)';drCtx.fill();
+      drCtx.strokeStyle='rgba(170,187,255,0.5)';drCtx.lineWidth=1.5;drCtx.stroke();
+      drCtx.fillStyle='#aabbff';drCtx.font='bold 13px Share Tech Mono';
+      drCtx.textAlign='center';drCtx.fillText(e,ex,eY+5);
+    });
+    drCtx.fillStyle='rgba(170,187,255,0.6)';drCtx.font='12px Share Tech Mono';
+    drCtx.textAlign='right';drCtx.fillText('}',eStartX+eSpacing*(elems.length-1)+48,eY+5);
+
+    // Draw f(x) arrows pointing down to some subsets
+    const subsets=['{a}','{b,c}','{a,d}','{c,e}','{a,b,c,d,e}'];
+    const sY=cy+H*0.12;
+    elems.forEach((e,i)=>{
+      const ex=eStartX+i*eSpacing;
+      const sx=eStartX+i*eSpacing;
+      drCtx.strokeStyle=`hsl(${i*60},70%,60%)`;drCtx.lineWidth=1.5;
+      drCtx.setLineDash([5,4]);
+      drCtx.beginPath();drCtx.moveTo(ex,eY+eR+2);drCtx.lineTo(sx,sY-18);drCtx.stroke();
+      drCtx.setLineDash([]);
+      // Arrowhead
+      drCtx.beginPath();drCtx.moveTo(sx,sY-18);drCtx.lineTo(sx-5,sY-26);drCtx.lineTo(sx+5,sY-26);drCtx.closePath();
+      drCtx.fillStyle=`hsl(${i*60},70%,60%)`;drCtx.fill();
+      // Subset box
+      const sw=60,sh=26;
+      // Check if e is in its own image
+      const inOwn=(e===subsets[i].charAt(1))||subsets[i].includes(e);
+      drCtx.fillStyle=inOwn?'rgba(80,200,80,0.2)':'rgba(255,80,80,0.2)';
+      drCtx.fillRect(sx-sw/2,sY-sh/2,sw,sh);
+      drCtx.strokeStyle=inOwn?'rgba(80,220,80,0.7)':'rgba(255,80,80,0.7)';
+      drCtx.lineWidth=1.5;drCtx.strokeRect(sx-sw/2,sY-sh/2,sw,sh);
+      drCtx.fillStyle=inOwn?'#88ee88':'#ff8888';
+      drCtx.font='12px Share Tech Mono';drCtx.textAlign='center';
+      drCtx.fillText(subsets[i],sx,sY+4);
+      // membership label
+      drCtx.fillStyle='rgba(200,220,255,0.5)';drCtx.font='12px Share Tech Mono';
+      drCtx.fillText(inOwn?'a∈f(a)':'a∉f(a)',sx,sY+sh/2+14);
+    });
+
+    // D set construction
+    const dY=cy+H*0.38;
+    drCtx.fillStyle='rgba(255,200,50,0.8)';
+    drCtx.font='12px Share Tech Mono';drCtx.textAlign='center';
+    drCtx.fillText('D = { x ∈ S  :  x ∉ f(x) }  — the "diagonal" set',W/2,dY);
+    drCtx.fillStyle='rgba(255,100,80,0.8)';
+    drCtx.font='12px Share Tech Mono';
+    drCtx.fillText('If D = f(d) for some d, then:',W/2,dY+22);
+    drCtx.fillStyle='rgba(255,150,80,0.7)';
+    drCtx.fillText('d ∈ D  ⟺  d ∉ f(d) = D     ← CONTRADICTION',W/2,dY+40);
+    drCtx.fillStyle='rgba(100,220,255,0.8)';
+    drCtx.fillText('∴  |P(S)| > |S|  for every set S',W/2,dY+62);
+    drCtx.fillStyle='rgba(170,187,255,0.5)';
+    drCtx.font='12px Share Tech Mono';
+    drCtx.fillText('This generates an infinite tower: |ℕ| < |P(ℕ)| < |P²(ℕ)| < ...',W/2,dY+80);
+  }
+  drCtx.setTransform(1,0,0,1,0,0);
+}
+// Click handler to highlight rows
+diagRealC.addEventListener('click',function(e){
+  if(!diagRealTable)return;
+  resizeCanvas(diagRealC);
+  const cellH=Math.min(Math.floor((diagRealC.height*0.75)/DR_ROWS),38);
+  const oy=60;
+  const rect=diagRealC.getBoundingClientRect();
+  const my=e.clientY-rect.top;
+  const row=Math.floor((my-oy)/cellH);
+  if(row>=0&&row<DR_ROWS){
+    diagRealStep=row+1;
+    updateDiagRealInfo();
+    drawDiagReals();
+  }
+});
+function subscript(n){const map={'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','10':'₁₀'};return map[String(n)]||String(n);}
+
+// ── TAB 4: CARDINAL ARITHMETIC & CH ──
+let cardView=0, cardAnimId=null, cardT=0;
+function animCardinal(){
+  const btn=document.getElementById('cardAnimBtn');
+  if(cardAnimId){cancelAnimationFrame(cardAnimId);cardAnimId=null;cardT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawCardinal();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  cardT=0;
+  function frame(){cardT+=0.018*(window.animSpeed||1);drawCardinal();cardAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawCardinal(){
+  resizeCanvas(cardC);
+  const W=cardC.width,H=cardC.height;
+  ccCtx.setTransform(1,0,0,1,0,0);
+  ccCtx.fillStyle='#06060f';ccCtx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+
+  if(cardView===0){
+    // Cardinal hierarchy diagram
+    ccCtx.fillStyle='rgba(170,187,255,0.85)';
+    ccCtx.font='bold 14px Share Tech Mono';
+    ccCtx.textAlign='center';
+    ccCtx.fillText('Cardinal Hierarchy',W/2,28);
+
+    const levels=[
+      {label:'ℵ₀ = |ℕ| = |ℤ| = |ℚ|',desc:'Countably infinite',color:'#66aaff',y:0.18},
+      {label:'2^ℵ₀ = 𝔠 = |ℝ| = |ℂ|',desc:'Continuum',color:'#88ffcc',y:0.35},
+      {label:'2^𝔠 = |P(ℝ)|',desc:'Power of continuum',color:'#ffaa66',y:0.52},
+      {label:'2^(2^𝔠) = ...',desc:'Next power set',color:'#ff88cc',y:0.69},
+    ];
+    const barW=W*0.5;
+    levels.forEach(({label,desc,color,y})=>{
+      const lx=cx-barW/2, ly=H*y;
+      const fade=0.7+0.3*Math.sin(cardT*1.5+y*4);
+      ccCtx.fillStyle=color+'33';
+      ccCtx.fillRect(lx,ly,barW,H*0.1);
+      ccCtx.strokeStyle=color;ccCtx.lineWidth=2;
+      ccCtx.strokeRect(lx,ly,barW,H*0.1);
+      ccCtx.fillStyle=color;
+      ccCtx.font='bold 13px Share Tech Mono';
+      ccCtx.textAlign='center';
+      ccCtx.globalAlpha=fade;
+      ccCtx.fillText(label,cx,ly+H*0.056);
+      ccCtx.globalAlpha=0.55;
+      ccCtx.font='12px Share Tech Mono';
+      ccCtx.fillText(desc,cx,ly+H*0.085);
+      ccCtx.globalAlpha=1;
+    });
+    // Vertical arrows
+    for(let i=0;i<levels.length-1;i++){
+      const ay=H*levels[i].y+H*0.1+2;
+      const by=H*levels[i+1].y-2;
+      ccCtx.strokeStyle='rgba(170,187,255,0.4)';ccCtx.lineWidth=1.5;
+      ccCtx.beginPath();ccCtx.moveTo(cx,ay);ccCtx.lineTo(cx,by);ccCtx.stroke();
+      ccCtx.fillStyle='rgba(170,187,255,0.4)';
+      ccCtx.beginPath();ccCtx.moveTo(cx,by);ccCtx.lineTo(cx-6,by-12);ccCtx.lineTo(cx+6,by-12);ccCtx.closePath();ccCtx.fill();
+      ccCtx.fillStyle='rgba(200,220,255,0.5)';
+      ccCtx.font='12px Share Tech Mono';ccCtx.textAlign='right';
+      ccCtx.fillText('2^(·)',cx-8,(ay+by)/2);
+    }
+
+    // CH annotation
+    const chX=cx+barW/2+14, chY1=H*0.18+H*0.05, chY2=H*0.35+H*0.05;
+    ccCtx.strokeStyle='rgba(255,200,50,0.7)';ccCtx.lineWidth=1.5;
+    ccCtx.setLineDash([4,4]);
+    ccCtx.beginPath();ccCtx.moveTo(chX,chY1);ccCtx.lineTo(chX+20,chY1);
+    ccCtx.lineTo(chX+20,chY2);ccCtx.lineTo(chX,chY2);ccCtx.stroke();
+    ccCtx.setLineDash([]);
+    ccCtx.fillStyle='rgba(255,200,50,0.85)';
+    ccCtx.font='bold 12px Share Tech Mono';ccCtx.textAlign='left';
+    ccCtx.fillText('CH?',chX+24,(chY1+chY2)/2+4);
+    ccCtx.font='12px Share Tech Mono';ccCtx.fillStyle='rgba(255,200,50,0.6)';
+    ccCtx.fillText('ℵ₁ = 2^ℵ₀?',chX+24,(chY1+chY2)/2+18);
+    ccCtx.fillText('Undecidable!',chX+24,(chY1+chY2)/2+30);
+
+    // Arithmetic facts
+    const factsY=H*0.84;
+    const facts=['ℵ₀ + ℵ₀ = ℵ₀','ℵ₀ × ℵ₀ = ℵ₀','ℵ₀! = 2^ℵ₀','n + ℵ₀ = ℵ₀ for finite n'];
+    ccCtx.fillStyle='rgba(170,187,255,0.7)';
+    ccCtx.font='12px Share Tech Mono';ccCtx.textAlign='center';
+    facts.forEach((f,i)=>ccCtx.fillText(f,cx-W*0.28+i*W*0.19,factsY));
+
+  } else if(cardView===1){
+    // Cantor pairing function animation
+    ccCtx.fillStyle='rgba(170,187,255,0.85)';
+    ccCtx.font='bold 13px Share Tech Mono';
+    ccCtx.textAlign='center';
+    ccCtx.fillText('Cantor Pairing Function: ℕ×ℕ → ℕ',W/2,28);
+    ccCtx.font='12px Share Tech Mono';ccCtx.fillStyle='rgba(170,187,255,0.5)';
+    ccCtx.fillText('π(n,m) = (n+m)(n+m+1)/2 + m',W/2,46);
+
+    const gridN=8;
+    const cellS=Math.min(Math.floor(Math.min(W,H)*0.7/gridN),48);
+    const ox=cx-gridN*cellS/2;
+    const oy=60;
+
+    // Draw grid
+    for(let i=0;i<=gridN;i++){
+      ccCtx.strokeStyle='rgba(170,187,255,0.12)';ccCtx.lineWidth=1;
+      ccCtx.beginPath();ccCtx.moveTo(ox+i*cellS,oy);ccCtx.lineTo(ox+i*cellS,oy+gridN*cellS);ccCtx.stroke();
+      ccCtx.beginPath();ccCtx.moveTo(ox,oy+i*cellS);ccCtx.lineTo(ox+gridN*cellS,oy+i*cellS);ccCtx.stroke();
+    }
+
+    // Fill cells with pairing values
+    const maxStep=cardAnimId?Math.floor((cardT%(gridN*gridN*0.5+10))*2.5):gridN*gridN;
+    let drawn=0;
+    for(let diag=0;diag<gridN*2;diag++){
+      for(let k=0;k<=diag;k++){
+        const n=diag%2===0?k:diag-k;
+        const m=diag%2===0?diag-k:k;
+        if(n>=gridN||m>=gridN)continue;
+        const pval=Math.floor((n+m)*(n+m+1)/2)+m;
+        if(drawn<=maxStep){
+          const x=ox+n*cellS, y=oy+m*cellS;
+          const hue=(pval*17)%360;
+          ccCtx.fillStyle=`hsla(${hue},60%,45%,0.35)`;
+          ccCtx.fillRect(x+1,y+1,cellS-2,cellS-2);
+          ccCtx.fillStyle=`hsl(${hue},80%,70%)`;
+          ccCtx.font=`${Math.min(cellS-8,13)}px Share Tech Mono`;
+          ccCtx.textAlign='center';ccCtx.textBaseline='middle';
+          ccCtx.fillText(pval,x+cellS/2,y+cellS/2);
+          ccCtx.textBaseline='alphabetic';
+        }
+        drawn++;
+      }
+    }
+    // Axis labels
+    ccCtx.fillStyle='rgba(170,187,255,0.45)';
+    for(let i=0;i<gridN;i++){
+      ccCtx.font='12px Share Tech Mono';ccCtx.textAlign='center';
+      ccCtx.fillText(i,ox+i*cellS+cellS/2,oy-5);
+      ccCtx.textAlign='right';
+      ccCtx.fillText(i,ox-4,oy+i*cellS+cellS/2+4);
+    }
+    ccCtx.fillStyle='rgba(170,187,255,0.6)';ccCtx.font='12px Share Tech Mono';
+    ccCtx.textAlign='right';ccCtx.fillText('m',ox-14,oy+gridN*cellS/2+5);
+    ccCtx.textAlign='center';ccCtx.fillText('n',ox+gridN*cellS/2,oy-18);
+    ccCtx.textAlign='left';
+    ccCtx.fillStyle='rgba(100,220,255,0.7)';ccCtx.font='12px Share Tech Mono';
+    ccCtx.fillText('Every pair (n,m) gets a unique natural number  →  |ℕ×ℕ| = |ℕ|',ox,oy+gridN*cellS+20);
+
+  } else {
+    // CH & forcing
+    ccCtx.fillStyle='rgba(170,187,255,0.85)';
+    ccCtx.font='bold 14px Share Tech Mono';
+    ccCtx.textAlign='center';
+    ccCtx.fillText('Continuum Hypothesis: 2^ℵ₀ = ℵ₁?',W/2,32);
+
+    // Two universe panels
+    const pw=W*0.37,ph=H*0.5,pyTop=H*0.15;
+    const lx=cx-W*0.42, rx=cx+W*0.04;
+
+    // L panel
+    const pulse=0.9+0.1*Math.sin(cardT*2);
+    ccCtx.fillStyle='rgba(80,120,220,0.1)';
+    ccCtx.fillRect(lx,pyTop,pw,ph);
+    ccCtx.strokeStyle='rgba(100,140,255,0.6)';ccCtx.lineWidth=2;
+    ccCtx.strokeRect(lx,pyTop,pw,ph);
+    ccCtx.fillStyle='rgba(100,140,255,0.8)';
+    ccCtx.font='bold 12px Share Tech Mono';ccCtx.textAlign='center';
+    ccCtx.fillText('Gödel\'s Universe L',lx+pw/2,pyTop+22);
+    ccCtx.font='12px Share Tech Mono';ccCtx.fillStyle='rgba(150,180,255,0.7)';
+    const lLines=['Constructible sets','CH holds: 2^ℵ₀ = ℵ₁','GCH holds','V = L (minimal universe)','1940: consistent with ZFC'];
+    lLines.forEach((l,i)=>ccCtx.fillText(l,lx+pw/2,pyTop+48+i*22));
+
+    // ¬CH panel
+    ccCtx.fillStyle='rgba(220,80,80,0.1)';
+    ccCtx.fillRect(rx,pyTop,pw,ph);
+    ccCtx.strokeStyle='rgba(255,100,100,0.6)';ccCtx.lineWidth=2;
+    ccCtx.strokeRect(rx,pyTop,pw,ph);
+    ccCtx.fillStyle='rgba(255,120,120,0.8)';
+    ccCtx.font='bold 12px Share Tech Mono';ccCtx.textAlign='center';
+    ccCtx.fillText('Cohen\'s Forcing Model',rx+pw/2,pyTop+22);
+    ccCtx.font='12px Share Tech Mono';ccCtx.fillStyle='rgba(255,180,180,0.7)';
+    const rLines=['Force 2^ℵ₀ = ℵ₂ (or ℵ₄, ...)','¬CH holds','Many uncountable cardinals','between ℵ₀ and 𝔠','1963: ¬CH consistent with ZFC'];
+    rLines.forEach((l,i)=>ccCtx.fillText(l,rx+pw/2,pyTop+48+i*22));
+
+    // ZFC in middle
+    ccCtx.fillStyle='rgba(255,200,50,0.85)';
+    ccCtx.font='bold 13px Share Tech Mono';ccCtx.textAlign='center';
+    ccCtx.fillText('ZFC',cx,pyTop+ph*0.5+5);
+    ccCtx.font='12px Share Tech Mono';ccCtx.fillStyle='rgba(255,200,50,0.5)';
+    ccCtx.fillText('CH independent',cx,pyTop+ph*0.5+22);
+
+    // Bottom explanation
+    const by2=pyTop+ph+24;
+    ccCtx.fillStyle='rgba(170,187,255,0.65)';
+    ccCtx.font='12px Share Tech Mono';ccCtx.textAlign='center';
+    ccCtx.fillText('Neither "2^ℵ₀ = ℵ₁" nor "2^ℵ₀ ≠ ℵ₁" can be proved from ZFC alone.',W/2,by2);
+    ccCtx.fillText('This is analogous to the independence of the parallel postulate from Euclidean geometry.',W/2,by2+18);
+    ccCtx.fillStyle='rgba(200,255,200,0.6)';
+    ccCtx.fillText('Large cardinal axioms can decide some questions, but not all.',W/2,by2+38);
+  }
+  ccCtx.textAlign='left';ccCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 5: ORDINAL NUMBERS ──
+let ordView=0, ordAnimId=null, ordT=0;
+function animOrdinal(){
+  const btn=document.getElementById('ordAnimBtn');
+  if(ordAnimId){cancelAnimationFrame(ordAnimId);ordAnimId=null;ordT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawOrdinal();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  ordT=0;
+  function frame(){ordT+=0.015*(window.animSpeed||1);drawOrdinal();ordAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawOrdinal(){
+  resizeCanvas(ordC);
+  const W=ordC.width,H=ordC.height;
+  ocCtx.setTransform(1,0,0,1,0,0);
+  ocCtx.fillStyle='#06060f';ocCtx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+
+  if(ordView===0){
+    // Ordinal staircase
+    ocCtx.fillStyle='rgba(170,187,255,0.85)';
+    ocCtx.font='bold 13px Share Tech Mono';
+    ocCtx.textAlign='center';
+    ocCtx.fillText('The Ordinal Staircase: 0, 1, 2, ..., ω, ω+1, ..., ω², ..., ω^ω, ..., ε₀',W/2,26);
+
+    const ords=[
+      {label:'0',desc:'empty set {}'},
+      {label:'1',desc:'{0}'},
+      {label:'2',desc:'{0,1}'},
+      {label:'3',desc:'{0,1,2}'},
+      {label:'...',desc:''},
+      {label:'ω',desc:'first infinite ordinal',big:true},
+      {label:'ω+1',desc:'ω ∪ {ω}'},
+      {label:'ω+2',desc:''},
+      {label:'...',desc:''},
+      {label:'ω·2',desc:'ω+ω',big:true},
+      {label:'...',desc:''},
+      {label:'ω²',desc:'ω·ω',big:true},
+      {label:'...',desc:''},
+      {label:'ω^ω',desc:'tower',big:true},
+      {label:'...',desc:''},
+      {label:'ε₀',desc:'ω^ε₀ = ε₀',big:true,special:true},
+    ];
+    const barH=24, barGap=4;
+    const totalH=(barH+barGap)*ords.length;
+    const startY=H*0.08;
+    const barW=W*0.55;
+    const bx=cx-barW/2;
+
+    ords.forEach(({label,desc,big,special},i)=>{
+      const y=startY+i*(barH+barGap);
+      const anim=ordAnimId?0.5+0.5*Math.sin(ordT*2+i*0.3):0.7;
+      const w2=big?barW:barW*(0.4+0.1*i/ords.length);
+      const hue=special?50:(big?200:170);
+      const sat=special?90:(big?60:40);
+      ocCtx.fillStyle=`hsla(${hue},${sat}%,50%,${special?0.25:0.1})`;
+      ocCtx.fillRect(bx,y,w2,barH);
+      ocCtx.strokeStyle=special?`rgba(255,200,50,${anim})`:big?`rgba(100,200,255,${anim*0.8})`:`rgba(170,187,255,${anim*0.4})`;
+      ocCtx.lineWidth=special?2:big?1.5:1;
+      ocCtx.strokeRect(bx,y,w2,barH);
+      ocCtx.fillStyle=special?'#ffcc44':big?'#88ddff':'rgba(170,187,255,0.8)';
+      ocCtx.font=`${big||special?12:10}px Share Tech Mono`;
+      ocCtx.textAlign='left';
+      ocCtx.fillText(label,bx+8,y+barH*0.68);
+      if(desc){
+        ocCtx.fillStyle='rgba(170,187,255,0.4)';
+        ocCtx.font='12px Share Tech Mono';
+        ocCtx.textAlign='right';
+        ocCtx.fillText(desc,bx+w2-6,y+barH*0.68);
+      }
+    });
+
+    // ε₀ explanation
+    ocCtx.fillStyle='rgba(255,200,50,0.7)';
+    ocCtx.font='12px Share Tech Mono';ocCtx.textAlign='right';
+    ocCtx.fillText('ε₀ = smallest solution to ω^α = α (fixed point of α ↦ ω^α)',bx+barW,startY+ords.length*(barH+barGap)+18);
+    ocCtx.fillStyle='rgba(170,200,255,0.55)';
+    ocCtx.font='12px Share Tech Mono';
+    ocCtx.fillText('PA (Peano Arithmetic) can prove all theorems with proofs of ordinal < ε₀ (Gentzen 1936)',bx+barW,startY+ords.length*(barH+barGap)+36);
+
+  } else if(ordView===1){
+    // ω arithmetic non-commutativity
+    ocCtx.fillStyle='rgba(170,187,255,0.85)';
+    ocCtx.font='bold 13px Share Tech Mono';
+    ocCtx.textAlign='center';
+    ocCtx.fillText('Ordinal Arithmetic: Addition is NOT commutative!',W/2,28);
+
+    const rowH=H*0.13, gap=H*0.04;
+    const examples=[
+      {left:'1 + ω',right:'= ω',note:'(counting 1 then ω more = ω)',color:'#88ffcc'},
+      {left:'ω + 1',right:'= ω+1 ≠ ω',note:'(ω then one more step)',color:'#ff8888'},
+      {left:'2 · ω',right:'= ω',note:'(ω pairs = ω)',color:'#88ffcc'},
+      {left:'ω · 2',right:'= ω+ω ≠ ω',note:'(two copies of ω)',color:'#ff8888'},
+      {left:'ω^2 = ω·ω',right:'> ω',note:'(ω copies of ω)',color:'#ffcc44'},
+    ];
+    const startY=H*0.14;
+    examples.forEach(({left,right,note,color},i)=>{
+      const y=startY+i*(rowH+gap);
+      const anim=ordAnimId?0.5+0.5*Math.sin(ordT*1.5+i):0.7;
+      ocCtx.fillStyle=color+'22';
+      ocCtx.fillRect(W*0.1,y,W*0.8,rowH);
+      ocCtx.strokeStyle=color;ocCtx.lineWidth=1.5;
+      ocCtx.globalAlpha=anim;
+      ocCtx.strokeRect(W*0.1,y,W*0.8,rowH);
+      ocCtx.globalAlpha=1;
+      ocCtx.fillStyle=color;
+      ocCtx.font='bold 14px Share Tech Mono';ocCtx.textAlign='left';
+      ocCtx.fillText(left,W*0.15,y+rowH*0.55);
+      ocCtx.fillText(right,W*0.38,y+rowH*0.55);
+      ocCtx.fillStyle='rgba(200,220,255,0.5)';
+      ocCtx.font='12px Share Tech Mono';
+      ocCtx.fillText(note,W*0.62,y+rowH*0.55);
+    });
+
+    const noteY=startY+examples.length*(rowH+gap)+10;
+    ocCtx.fillStyle='rgba(170,187,255,0.5)';
+    ocCtx.font='12px Share Tech Mono';ocCtx.textAlign='center';
+    ocCtx.fillText('Key insight: ordinal addition is defined by concatenation of well-orders.',W/2,noteY);
+    ocCtx.fillText('1 + ω means "first 1, then ω" — which is order-isomorphic to ω alone.',W/2,noteY+16);
+    ocCtx.fillText('ω + 1 means "first ω, then 1" — which adds a new last element.',W/2,noteY+32);
+
+  } else {
+    // ε₀ fixed point visualization
+    ocCtx.fillStyle='rgba(170,187,255,0.85)';
+    ocCtx.font='bold 13px Share Tech Mono';
+    ocCtx.textAlign='center';
+    ocCtx.fillText('ε₀: Fixed Point of α ↦ ω^α',W/2,28);
+
+    const steps=[
+      {label:'ω⁰ = 1'},
+      {label:'ω¹ = ω'},
+      {label:'ω^ω'},
+      {label:'ω^(ω^ω)'},
+      {label:'ω^(ω^(ω^ω))'},
+      {label:'⋮'},
+      {label:'ε₀ = ω^ε₀',special:true},
+    ];
+    const sx=W*0.15, sw=W*0.7;
+    const sh=H*0.07;
+    const startY=H*0.1;
+    const totalSteps=steps.length;
+    steps.forEach(({label,special},i)=>{
+      const frac=(i+1)/totalSteps;
+      const w=sw*frac;
+      const y=startY+i*(H*0.78/totalSteps);
+      const anim=ordAnimId?0.5+0.5*Math.sin(ordT*1.5+i*0.5):0.7;
+      ocCtx.fillStyle=special?`rgba(255,200,50,0.25)`:`rgba(100,150,255,${0.05+0.05*frac})`;
+      ocCtx.fillRect(sx,y,w,sh-4);
+      ocCtx.strokeStyle=special?`rgba(255,200,50,${anim})`:`rgba(150,170,255,${anim*0.5})`;
+      ocCtx.lineWidth=special?2.5:1.5;
+      ocCtx.strokeRect(sx,y,w,sh-4);
+      ocCtx.fillStyle=special?'#ffcc44':'rgba(170,200,255,0.8)';
+      ocCtx.font=`${special?13:11}px Share Tech Mono`;
+      ocCtx.textAlign='left';
+      ocCtx.fillText(label,sx+10,y+(sh-4)*0.68);
+      // Arrow down
+      if(i<steps.length-1&&label!=='⋮'){
+        const ay=y+sh-2, by2=startY+(i+1)*(H*0.78/totalSteps);
+        const ax=sx+w/2;
+        ocCtx.strokeStyle='rgba(100,150,255,0.3)';ocCtx.lineWidth=1;
+        ocCtx.beginPath();ocCtx.moveTo(ax,ay);ocCtx.lineTo(ax,by2);ocCtx.stroke();
+        ocCtx.fillStyle='rgba(100,150,255,0.3)';
+        ocCtx.beginPath();ocCtx.moveTo(ax,by2);ocCtx.lineTo(ax-4,by2-8);ocCtx.lineTo(ax+4,by2-8);ocCtx.closePath();ocCtx.fill();
+      }
+    });
+    const bottomY=startY+totalSteps*(H*0.78/totalSteps)+12;
+    ocCtx.fillStyle='rgba(255,200,50,0.7)';
+    ocCtx.font='12px Share Tech Mono';ocCtx.textAlign='center';
+    ocCtx.fillText('ε₀ = sup{ ω, ω^ω, ω^(ω^ω), ... } is the limit of this tower.',W/2,bottomY);
+    ocCtx.fillStyle='rgba(170,187,255,0.55)';
+    ocCtx.font='12px Share Tech Mono';
+    ocCtx.fillText('The Veblen function: φ₀(α) = ω^α,  φ₁(α) = ε_α (α-th fixed point),  φ₂(α) = ζ_α, ...',W/2,bottomY+17);
+    ocCtx.fillText('Γ₀ (Feferman-Schütte ordinal) = first fixed point of α ↦ φ_α(0)',W/2,bottomY+33);
+  }
+  ocCtx.textAlign='left';ocCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 6: LARGE CARDINALS ──
+let lcView=0, lcAnimId=null, lcT=0;
+function animLargeCard(){
+  const btn=document.getElementById('lcAnimBtn');
+  if(lcAnimId){cancelAnimationFrame(lcAnimId);lcAnimId=null;lcT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawLargeCard();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  lcT=0;
+  function frame(){lcT+=0.016*(window.animSpeed||1);drawLargeCard();lcAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawLargeCard(){
+  resizeCanvas(lcC);
+  const W=lcC.width,H=lcC.height;
+  lcCtx.setTransform(1,0,0,1,0,0);
+  lcCtx.fillStyle='#06060f';lcCtx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+
+  if(lcView===0){
+    // Hierarchy ladder
+    lcCtx.fillStyle='rgba(170,187,255,0.85)';
+    lcCtx.font='bold 13px Share Tech Mono';
+    lcCtx.textAlign='center';
+    lcCtx.fillText('Large Cardinal Hierarchy (weakest → strongest)',W/2,26);
+
+    const cards=[
+      {name:'Inaccessible',desc:'κ is uncountable, regular, strong limit',color:'#66aaff'},
+      {name:'Mahlo',desc:'stationary class of inaccessibles below κ',color:'#77bbff'},
+      {name:'Weakly compact',desc:'κ→(κ)² (Ramsey-type partition property)',color:'#88ccff'},
+      {name:'Measurable',desc:'non-principal κ-complete ultrafilter on κ',color:'#88ffcc'},
+      {name:'Strong',desc:'κ is j-strong for all embeddings j:V→M',color:'#aaff88'},
+      {name:'Woodin',desc:'for all f: κ→κ, ∃ strong cardinal below κ',color:'#ffcc66'},
+      {name:'Supercompact',desc:'ultra-power embeddings with great closure',color:'#ffaa44'},
+      {name:'Huge',desc:'j:V→M with M closed under j(κ)-sequences',color:'#ff7766'},
+    ];
+    const barH=H*0.08, gap=H*0.008;
+    const startY=H*0.1;
+    const barW=W*0.8;
+    const bx=cx-barW/2;
+
+    cards.forEach(({name,desc,color},i)=>{
+      const y=startY+i*(barH+gap);
+      const frac=(cards.length-i)/cards.length;
+      const w=barW*frac;
+      const anim=lcAnimId?0.5+0.5*Math.sin(lcT*1.5+i*0.4):0.7;
+      lcCtx.fillStyle=color+'22';
+      lcCtx.fillRect(bx,y,w,barH);
+      lcCtx.strokeStyle=color;lcCtx.lineWidth=1.5;
+      lcCtx.globalAlpha=anim;
+      lcCtx.strokeRect(bx,y,w,barH);
+      lcCtx.globalAlpha=1;
+      lcCtx.fillStyle=color;
+      lcCtx.font='bold 12px Share Tech Mono';
+      lcCtx.textAlign='left';
+      lcCtx.fillText(name,bx+8,y+barH*0.55);
+      lcCtx.fillStyle='rgba(200,220,255,0.45)';
+      lcCtx.font='12px Share Tech Mono';
+      lcCtx.fillText(desc,bx+8,y+barH*0.82);
+    });
+
+    const noteY=startY+cards.length*(barH+gap)+12;
+    lcCtx.fillStyle='rgba(170,187,255,0.55)';
+    lcCtx.font='12px Share Tech Mono';lcCtx.textAlign='center';
+    lcCtx.fillText('Each level is unprovable from any weaker level. Consistency strength forms a well-order.',W/2,noteY);
+    lcCtx.fillText('Scott (1961): measurable → V≠L. Woodin cardinals → projective determinacy.',W/2,noteY+16);
+
+  } else if(lcView===1){
+    // Cumulative universe V
+    lcCtx.fillStyle='rgba(170,187,255,0.85)';
+    lcCtx.font='bold 13px Share Tech Mono';
+    lcCtx.textAlign='center';
+    lcCtx.fillText('The Cumulative Hierarchy: V = ∪ Vα',W/2,26);
+
+    // Draw V as a triangle/cone growing upward
+    const tipX=cx, tipY=H*0.9;
+    const maxW=W*0.75;
+    const totalH=H*0.78;
+
+    // Draw levels
+    const numLevels=14;
+    const labels=['V₀=∅','V₁={∅}','V₂','V₃','V₄','...','Vω','Vω+1','...','Vκ (inacc)','...','Vκ (meas)','...','V=∪Vα'];
+    const specialLevels=[9,11,13];
+    for(let i=0;i<numLevels;i++){
+      const frac=i/(numLevels-1);
+      const ly=tipY-totalH*frac;
+      const lw=maxW*frac;
+      const isSpecial=specialLevels.includes(i);
+      const anim=lcAnimId?0.3+0.7*((Math.sin(lcT*1.2+i*0.2)*0.5+0.5)):0.5;
+      const hue=isSpecial?50:(160+i*10)%360;
+      lcCtx.fillStyle=`hsla(${hue},60%,50%,${isSpecial?0.2:0.06})`;
+      lcCtx.fillRect(cx-lw/2,ly-6,lw,8);
+      lcCtx.strokeStyle=`hsla(${hue},70%,60%,${isSpecial?anim:anim*0.4})`;
+      lcCtx.lineWidth=isSpecial?2:1;
+      lcCtx.beginPath();lcCtx.moveTo(cx-lw/2,ly-2);lcCtx.lineTo(cx+lw/2,ly-2);lcCtx.stroke();
+      lcCtx.fillStyle=isSpecial?`hsl(${hue},90%,70%)`:`rgba(170,187,255,${0.3+0.3*frac})`;
+      lcCtx.font=`${isSpecial?11:9}px Share Tech Mono`;
+      lcCtx.textAlign='left';
+      lcCtx.fillText(labels[i],cx+lw/2+6,ly+3);
+    }
+    // Draw triangle outline
+    lcCtx.strokeStyle='rgba(170,187,255,0.2)';lcCtx.lineWidth=1.5;
+    lcCtx.beginPath();lcCtx.moveTo(tipX,tipY);lcCtx.lineTo(cx-maxW/2,tipY-totalH);lcCtx.stroke();
+    lcCtx.beginPath();lcCtx.moveTo(tipX,tipY);lcCtx.lineTo(cx+maxW/2,tipY-totalH);lcCtx.stroke();
+
+    // Reflection annotation
+    lcCtx.fillStyle='rgba(255,200,50,0.7)';
+    lcCtx.font='12px Share Tech Mono';lcCtx.textAlign='left';
+    lcCtx.fillText('Large cardinals = "reflection points" where Vκ ≡ V (local ≅ global)',W*0.04,H*0.08);
+    lcCtx.font='12px Share Tech Mono';lcCtx.fillStyle='rgba(170,187,255,0.5)';
+    lcCtx.fillText('Vα+1 = P(Vα)   |Vα| = beth_α   V = ∪α Vα',W*0.04,H*0.13);
+
+  } else {
+    // Measurable & V≠L
+    lcCtx.fillStyle='rgba(170,187,255,0.85)';
+    lcCtx.font='bold 13px Share Tech Mono';
+    lcCtx.textAlign='center';
+    lcCtx.fillText('Measurable Cardinals and V ≠ L',W/2,26);
+
+    const bw=W*0.35,bh=H*0.38,topY=H*0.12;
+    // V box
+    lcCtx.fillStyle='rgba(80,120,200,0.1)';
+    lcCtx.fillRect(W*0.08,topY,bw,bh);
+    lcCtx.strokeStyle='rgba(100,160,255,0.7)';lcCtx.lineWidth=2;
+    lcCtx.strokeRect(W*0.08,topY,bw,bh);
+    lcCtx.fillStyle='rgba(100,160,255,0.8)';
+    lcCtx.font='bold 12px Share Tech Mono';lcCtx.textAlign='center';
+    lcCtx.fillText('The Universe V',W*0.08+bw/2,topY+20);
+    lcCtx.font='12px Share Tech Mono';lcCtx.fillStyle='rgba(150,180,255,0.7)';
+    const vLines=['All sets','V = ∪ Vα','Contains all ordinals','Satisfies ZFC','Measurable cardinals live here'];
+    vLines.forEach((l,i)=>lcCtx.fillText(l,W*0.08+bw/2,topY+42+i*20));
+
+    // L box
+    lcCtx.fillStyle='rgba(120,80,200,0.1)';
+    lcCtx.fillRect(W*0.57,topY,bw,bh);
+    lcCtx.strokeStyle='rgba(150,100,255,0.7)';lcCtx.lineWidth=2;
+    lcCtx.strokeRect(W*0.57,topY,bw,bh);
+    lcCtx.fillStyle='rgba(180,140,255,0.8)';
+    lcCtx.font='bold 12px Share Tech Mono';lcCtx.textAlign='center';
+    lcCtx.fillText('Gödel\'s L (V=L)',W*0.57+bw/2,topY+20);
+    lcCtx.font='12px Share Tech Mono';lcCtx.fillStyle='rgba(180,150,255,0.7)';
+    const lLines2=['Constructible sets only','L ⊂ V  (L is minimal)','CH holds in L','GCH holds in L','NO measurable cardinals!'];
+    lLines2.forEach((l,i)=>lcCtx.fillText(l,W*0.57+bw/2,topY+42+i*20));
+
+    // Arrows
+    lcCtx.strokeStyle='rgba(255,100,100,0.6)';lcCtx.lineWidth=2.5;
+    lcCtx.beginPath();
+    lcCtx.moveTo(W*0.08+bw+8,topY+bh/2);
+    lcCtx.lineTo(W*0.57-8,topY+bh/2);
+    lcCtx.stroke();
+    const mx=W*0.08+bw+8+(W*0.57-8-(W*0.08+bw+8))/2;
+    lcCtx.fillStyle='rgba(255,80,80,0.9)';
+    lcCtx.font='bold 12px Share Tech Mono';lcCtx.textAlign='center';
+    lcCtx.fillText('⊋',mx,topY+bh/2+5);
+    lcCtx.font='12px Share Tech Mono';lcCtx.fillStyle='rgba(255,120,120,0.7)';
+    lcCtx.fillText('V strictly contains L',mx,topY+bh/2+20);
+    lcCtx.fillText('if measurable ∃',mx,topY+bh/2+34);
+
+    // Scott theorem box
+    const stY=topY+bh+20;
+    lcCtx.fillStyle='rgba(255,200,50,0.15)';
+    lcCtx.fillRect(W*0.15,stY,W*0.7,H*0.16);
+    lcCtx.strokeStyle='rgba(255,200,50,0.6)';lcCtx.lineWidth=1.5;
+    lcCtx.strokeRect(W*0.15,stY,W*0.7,H*0.16);
+    lcCtx.fillStyle='rgba(255,200,50,0.9)';
+    lcCtx.font='bold 12px Share Tech Mono';lcCtx.textAlign='center';
+    lcCtx.fillText('Scott\'s Theorem (1961)',W/2,stY+20);
+    lcCtx.font='12px Share Tech Mono';lcCtx.fillStyle='rgba(255,230,150,0.75)';
+    lcCtx.fillText('If κ is a measurable cardinal, then V ≠ L.',W/2,stY+40);
+    lcCtx.fillText('Proof: a measurable cardinal carries a non-trivial elementary embedding j:V→M,',W/2,stY+57);
+    lcCtx.fillText('which implies sets not in L must exist in V.',W/2,stY+73);
+  }
+  lcCtx.textAlign='left';lcCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 7: INFINITY IN PHYSICS ──
+let physView=0, physAnimId=null, physT=0;
+function animPhysics(){
+  const btn=document.getElementById('physAnimBtn');
+  if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;physT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawPhysics();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  physT=0;
+  function frame(){physT+=0.02*(window.animSpeed||1);drawPhysics();physAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawPhysics(){
+  resizeCanvas(physC);
+  const W=physC.width,H=physC.height;
+  phCtx.setTransform(1,0,0,1,0,0);
+  phCtx.fillStyle='#06060f';phCtx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+
+  if(physView===0){
+    // QFT Renormalization
+    phCtx.fillStyle='rgba(170,187,255,0.85)';
+    phCtx.font='bold 14px Share Tech Mono';
+    phCtx.textAlign='center';
+    phCtx.fillText('Renormalization in Quantum Field Theory',W/2,28);
+
+    // Draw divergent series
+    const seriesX=W*0.08, seriesW=W*0.55;
+    const seriesY=H*0.18;
+    phCtx.fillStyle='rgba(170,187,255,0.6)';
+    phCtx.font='12px Share Tech Mono';phCtx.textAlign='left';
+    phCtx.fillText('Naive loop integral diverges:',seriesX,seriesY);
+    phCtx.fillStyle='rgba(255,100,80,0.85)';
+    phCtx.font='13px Share Tech Mono';
+    phCtx.fillText('Σ = ∫₀^∞ d⁴k / (k²+m²)  →  ∞  (UV divergence)',seriesX,seriesY+24);
+
+    // Animate partial sums
+    const nTerms=Math.min(Math.floor(physT*3)+1,20);
+    const barX=seriesX, barY=seriesY+50, barMaxH=H*0.22, barW2=Math.min(seriesW/22,22);
+    let runSum=0;
+    for(let n=1;n<=20;n++){
+      const x=barX+(n-1)*barW2*1.1;
+      const term=n*n*0.8;// simulated divergence
+      const bh=Math.min(term/120*barMaxH,barMaxH);
+      const shown=(n<=nTerms);
+      phCtx.fillStyle=shown?`hsl(${30-n*1.5},80%,60%)`:'rgba(100,100,150,0.2)';
+      phCtx.fillRect(x,barY+barMaxH-bh,barW2-1,bh);
+      if(n<=10){
+        phCtx.fillStyle='rgba(200,200,255,0.4)';phCtx.font='12px Share Tech Mono';
+        phCtx.textAlign='center';phCtx.fillText('n='+n,x+barW2/2,barY+barMaxH+12);
+      }
+      if(shown)runSum+=term;
+    }
+    phCtx.fillStyle='rgba(255,100,80,0.8)';
+    phCtx.font='12px Share Tech Mono';phCtx.textAlign='left';
+    phCtx.fillText('Sum grows without bound → divergent (purple = large n)',seriesX,barY+barMaxH+28);
+
+    // Cutoff and renormalization
+    const renX=W*0.08, renY=H*0.62;
+    phCtx.fillStyle='rgba(100,220,100,0.15)';
+    phCtx.fillRect(renX,renY,W*0.84,H*0.28);
+    phCtx.strokeStyle='rgba(100,220,100,0.5)';phCtx.lineWidth=1.5;
+    phCtx.strokeRect(renX,renY,W*0.84,H*0.28);
+    phCtx.fillStyle='rgba(100,220,100,0.85)';
+    phCtx.font='bold 12px Share Tech Mono';phCtx.textAlign='center';
+    phCtx.fillText('Renormalization: Taming the Infinity',W/2,renY+20);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(150,220,150,0.75)';
+    const renLines=[
+      'Step 1 (Regularization): Introduce UV cutoff Λ  →  Σ(Λ) = ∫₀^Λ d⁴k/(k²+m²) finite',
+      'Step 2 (Renormalization): Absorb Λ-dependence into "bare" coupling constants g₀(Λ)',
+      'Step 3 (Running coupling): Physical coupling g(μ) varies with energy scale μ',
+      'Step 4 (Renormalization group): β(g) = μ ∂g/∂μ governs how g runs with scale',
+      'Result: predictions for S-matrix elements finite, Λ-independent, experimentally perfect',
+    ];
+    renLines.forEach((l,i)=>phCtx.fillText(l,W/2,renY+40+i*17));
+
+  } else if(physView===1){
+    // Bekenstein Bound
+    phCtx.fillStyle='rgba(170,187,255,0.85)';
+    phCtx.font='bold 14px Share Tech Mono';
+    phCtx.textAlign='center';
+    phCtx.fillText('Bekenstein Bound: Finite Information in Bounded Regions',W/2,28);
+
+    // Draw sphere
+    const sR=Math.min(W,H)*0.18;
+    const sX=cx*0.55, sY=cy*0.9;
+    const sGrad=phCtx.createRadialGradient(sX-sR*0.3,sY-sR*0.3,sR*0.1,sX,sY,sR);
+    sGrad.addColorStop(0,'rgba(100,150,255,0.3)');
+    sGrad.addColorStop(1,'rgba(50,80,200,0.05)');
+    phCtx.fillStyle=sGrad;
+    phCtx.beginPath();phCtx.arc(sX,sY,sR,0,Math.PI*2);phCtx.fill();
+    phCtx.strokeStyle='rgba(150,180,255,0.6)';phCtx.lineWidth=2;phCtx.stroke();
+    // Animate energy dots inside sphere
+    for(let i=0;i<12;i++){
+      const angle=physT*0.8+i*Math.PI*2/12;
+      const r2=sR*(0.3+0.4*((i*7)%10/10));
+      const dx=r2*Math.cos(angle), dy=r2*Math.sin(angle);
+      phCtx.beginPath();phCtx.arc(sX+dx,sY+dy,3,0,Math.PI*2);
+      phCtx.fillStyle=`hsl(${i*30},80%,60%)`;phCtx.fill();
+    }
+    // R and E labels
+    phCtx.strokeStyle='rgba(255,200,50,0.6)';phCtx.lineWidth=1.5;phCtx.setLineDash([4,4]);
+    phCtx.beginPath();phCtx.moveTo(sX,sY);phCtx.lineTo(sX+sR,sY);phCtx.stroke();
+    phCtx.setLineDash([]);
+    phCtx.fillStyle='rgba(255,200,50,0.8)';phCtx.font='12px Share Tech Mono';
+    phCtx.textAlign='center';phCtx.fillText('R',sX+sR/2,sY-8);
+    phCtx.fillText('E = total energy',sX,sY+sR+18);
+
+    // The formula
+    const formY=cy*0.25;
+    phCtx.fillStyle='rgba(255,220,100,0.9)';
+    phCtx.font='bold 16px Share Tech Mono';
+    phCtx.fillText('S  ≤  2πkRE / ℏc',W*0.55,formY);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(200,220,255,0.7)';
+    const bkLines=[
+      'k = Boltzmann constant',
+      'R = radius of bounding sphere',
+      'E = total energy (incl. rest mass)',
+      'ℏ = reduced Planck constant',
+      'c = speed of light',
+    ];
+    bkLines.forEach((l,i)=>phCtx.fillText(l,W*0.52,formY+25+i*18));
+
+    // Implications
+    const impY=H*0.64;
+    phCtx.fillStyle='rgba(100,220,100,0.15)';
+    phCtx.fillRect(W*0.08,impY,W*0.84,H*0.28);
+    phCtx.strokeStyle='rgba(100,220,100,0.4)';phCtx.lineWidth=1.5;phCtx.strokeRect(W*0.08,impY,W*0.84,H*0.28);
+    phCtx.fillStyle='rgba(100,220,120,0.85)';
+    phCtx.font='bold 12px Share Tech Mono';phCtx.textAlign='center';
+    phCtx.fillText('Implications',W/2,impY+18);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(150,230,170,0.75)';
+    const iLines=[
+      'Any bounded region with finite energy contains only finite information (entropy)',
+      'Black hole entropy S = A/(4ℓP²) saturates the bound (holographic principle)',
+      'The universe\'s information content is finite despite spatial extent',
+      'Limits computational density: no physical computer can store infinite information',
+    ];
+    iLines.forEach((l,i)=>phCtx.fillText(l,W/2,impY+36+i*17));
+
+  } else if(physView===2){
+    // Penrose's singularities
+    phCtx.fillStyle='rgba(170,187,255,0.85)';
+    phCtx.font='bold 14px Share Tech Mono';
+    phCtx.textAlign='center';
+    phCtx.fillText('Penrose on Infinity in Physics: Singularities',W/2,28);
+
+    // Penrose diagram of black hole
+    const pdX=W*0.08, pdY=H*0.08, pdW=W*0.42, pdH=H*0.72;
+    // Draw Penrose (conformal) diagram
+    phCtx.fillStyle='rgba(20,20,50,0.5)';
+    phCtx.fillRect(pdX,pdY,pdW,pdH);
+    phCtx.strokeStyle='rgba(170,187,255,0.3)';phCtx.lineWidth=1;
+    phCtx.strokeRect(pdX,pdY,pdW,pdH);
+    // Singularity
+    const singY=pdY+pdH*0.12;
+    phCtx.fillStyle='rgba(255,80,80,0.8)';
+    phCtx.fillRect(pdX+pdW*0.15,singY,pdW*0.7,8);
+    phCtx.font='12px Share Tech Mono';phCtx.textAlign='center';
+    phCtx.fillStyle='rgba(255,80,80,0.9)';
+    phCtx.fillText('Singularity (r=0)',pdX+pdW/2,singY-5);
+    phCtx.fillStyle='rgba(255,80,80,0.5)';
+    phCtx.font='12px Share Tech Mono';
+    phCtx.fillText('Actual infinity: curvature K → ∞',pdX+pdW/2,singY+20);
+    // Event horizon
+    const ehY1=pdY+pdH*0.15, ehY2=pdY+pdH*0.85;
+    phCtx.strokeStyle='rgba(255,200,50,0.6)';phCtx.lineWidth=2;phCtx.setLineDash([]);
+    phCtx.beginPath();phCtx.moveTo(pdX+pdW*0.15,ehY1);phCtx.lineTo(pdX+pdW*0.85,ehY2);phCtx.stroke();
+    phCtx.fillStyle='rgba(255,200,50,0.7)';phCtx.font='12px Share Tech Mono';
+    phCtx.fillText('Event horizon',pdX+pdW*0.6,pdY+pdH*0.55);
+    // Infalling worldline
+    const wt=(physT*0.3)%1;
+    const wX=pdX+pdW*(0.3+wt*0.4), wY=pdY+pdH*(0.9-wt*0.78);
+    phCtx.fillStyle='rgba(100,200,255,0.9)';
+    phCtx.beginPath();phCtx.arc(wX,wY,5,0,Math.PI*2);phCtx.fill();
+    phCtx.fillStyle='rgba(100,200,255,0.5)';phCtx.font='12px Share Tech Mono';
+    phCtx.fillText('infalling observer',wX+8,wY);
+    // Labels
+    phCtx.fillStyle='rgba(170,187,255,0.4)';phCtx.font='12px Share Tech Mono';
+    phCtx.fillText('Future null infinity ℐ⁺',pdX+pdW*0.02,pdY+pdH*0.15);
+    phCtx.fillText('Past null infinity ℐ⁻',pdX+pdW*0.02,pdY+pdH*0.88);
+
+    // Right panel: actual vs potential infinity
+    const rpX=W*0.55, rpY=H*0.1, rpW=W*0.4;
+    phCtx.fillStyle='rgba(255,200,50,0.8)';
+    phCtx.font='bold 12px Share Tech Mono';phCtx.textAlign='left';
+    phCtx.fillText('Penrose\'s Distinction:',rpX,rpY);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(255,150,100,0.85)';
+    phCtx.fillText('Actual ∞ (singularity):',rpX,rpY+24);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(200,180,255,0.7)';
+    const aLines=[
+      'Curvature invariants K→∞',
+      'Geodesics terminate',
+      'Spacetime is genuinely',
+      '  incomplete (not just large)',
+      'BKL conjecture: generic',
+      '  singularity is spacelike,',
+      '  oscillatory (chaotic)',
+    ];
+    aLines.forEach((l,i)=>phCtx.fillText(l,rpX+10,rpY+42+i*16));
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(100,220,255,0.85)';
+    phCtx.fillText('Potential ∞ (unbounded):',rpX,rpY+180);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(150,220,255,0.7)';
+    const pLines=[
+      'Spacetime extends forever',
+      'Asymptotically flat',
+      'Physical quantities finite',
+      '  at each point',
+      'Example: flat Minkowski space',
+    ];
+    pLines.forEach((l,i)=>phCtx.fillText(l,rpX+10,rpY+198+i*16));
+    phCtx.fillStyle='rgba(170,187,255,0.55)';phCtx.font='12px Share Tech Mono';
+    phCtx.fillText('"Spacetime singularities represent a failure',rpX,rpY+310);
+    phCtx.fillText('of spacetime itself." — Penrose',rpX,rpY+326);
+
+  } else {
+    // Holographic principle
+    phCtx.fillStyle='rgba(170,187,255,0.85)';
+    phCtx.font='bold 14px Share Tech Mono';
+    phCtx.textAlign='center';
+    phCtx.fillText('The Holographic Principle & AdS/CFT',W/2,28);
+
+    // Draw bulk cylinder
+    const bcX=cx*0.6, bcY=H*0.16, bcR=Math.min(cx*0.5,H*0.32);
+    const bcH=H*0.58;
+    // Bulk
+    phCtx.fillStyle='rgba(50,80,180,0.12)';
+    phCtx.fillRect(bcX-bcR,bcY,bcR*2,bcH);
+    phCtx.strokeStyle='rgba(100,130,230,0.4)';phCtx.lineWidth=1.5;
+    phCtx.strokeRect(bcX-bcR,bcY,bcR*2,bcH);
+    // Animate bulk field waves
+    for(let y2=0;y2<bcH;y2+=12){
+      const wave=Math.sin(y2*0.08+physT*1.5)*bcR*0.3;
+      phCtx.strokeStyle=`rgba(100,150,255,${0.1+0.08*Math.sin(y2*0.05+physT)})`;
+      phCtx.lineWidth=1;
+      phCtx.beginPath();phCtx.moveTo(bcX-bcR+2,bcY+y2);phCtx.lineTo(bcX+wave,bcY+y2);phCtx.stroke();
+    }
+    // Boundary (right edge)
+    phCtx.strokeStyle='rgba(255,200,50,0.8)';phCtx.lineWidth=3;
+    phCtx.beginPath();phCtx.moveTo(bcX+bcR,bcY);phCtx.lineTo(bcX+bcR,bcY+bcH);phCtx.stroke();
+    // Boundary label
+    phCtx.fillStyle='rgba(255,200,50,0.85)';phCtx.font='bold 12px Share Tech Mono';phCtx.textAlign='center';
+    phCtx.fillText('Boundary CFT',bcX+bcR,bcY-8);
+    phCtx.fillText('(d dimensions)',bcX+bcR,bcY-8+14);
+    phCtx.fillStyle='rgba(100,130,230,0.7)';
+    phCtx.fillText('Bulk AdS',bcX-bcR/2,bcY+bcH/2);
+    phCtx.fillText('(d+1 dimensions)',bcX-bcR/2,bcY+bcH/2+15);
+
+    // Correspondence arrows
+    for(let i=0;i<5;i++){
+      const ay=bcY+bcH*(0.15+i*0.18);
+      const anim=0.5+0.5*Math.sin(physT*2+i);
+      phCtx.strokeStyle=`rgba(100,220,200,${anim*0.6})`;phCtx.lineWidth=1.5;
+      phCtx.setLineDash([4,4]);
+      phCtx.beginPath();phCtx.moveTo(bcX-bcR+5,ay);phCtx.lineTo(bcX+bcR-3,ay);phCtx.stroke();
+      phCtx.setLineDash([]);
+    }
+
+    // Right column explanations
+    const rX=W*0.08, rY=H*0.1;
+    phCtx.fillStyle='rgba(255,200,50,0.8)';
+    phCtx.font='bold 12px Share Tech Mono';phCtx.textAlign='left';
+    phCtx.fillText('Maldacena\'s AdS/CFT (1997):',rX,rY);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(200,220,255,0.7)';
+    const mLines=[
+      'Type IIB string theory on AdS₅×S⁵',
+      '≅ N=4 Super-Yang-Mills on ℝ⁴',
+      '',
+      'Bulk gravity ↔ boundary gauge theory',
+      'Black holes ↔ thermal states in CFT',
+      'Radial direction ↔ energy scale (RG flow)',
+    ];
+    mLines.forEach((l,i)=>phCtx.fillText(l,rX,rY+20+i*16));
+
+    const holY=H*0.56;
+    phCtx.fillStyle='rgba(100,220,200,0.8)';
+    phCtx.font='bold 12px Share Tech Mono';
+    phCtx.fillText('Why "Holographic"?',rX,holY);
+    phCtx.font='12px Share Tech Mono';phCtx.fillStyle='rgba(150,230,210,0.7)';
+    const hLines=[
+      'Degrees of freedom in bulk (d+1 dim)',
+      'are encoded on boundary (d dim)',
+      '',
+      'Black hole entropy S = A/4ℓP²',
+      'scales as AREA, not volume',
+      '',
+      'Implication: Nature stores information',
+      'as a 2D hologram, not 3D — finite!',
+    ];
+    hLines.forEach((l,i)=>phCtx.fillText(l,rX,holY+18+i*16));
+  }
+  phCtx.textAlign='left';phCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── PROOF PANEL ──
+let proofOpen=false;
+function toggleProof(){proofOpen=!proofOpen;document.getElementById('proofPanel').classList.toggle('open',proofOpen);document.querySelector('.proof-header span').textContent=proofOpen?'▼':'▲';}
+function showProof(i){
+  document.querySelectorAll('.ptab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  const p=PROOFS[i];
+  document.getElementById('proofContent').innerHTML=`<h4 style="color:#aabbff;margin-bottom:8px">${p.title}</h4>${p.body}`;
+  if(typeof renderMathInElement === 'function'){
+    renderMathInElement(document.getElementById('proofContent'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }
+  if(!proofOpen)toggleProof();
+}
+showProof(0);
+
+_addPan(cantorC,0,drawCantor);
+_addPan(diagC,1,drawDiag);
+_addPan(godelC,2,drawGodel);
+
+setBij(0);genTable();setGView(0);
+genDiagReals();
+window.addEventListener('resize',()=>redrawTab());
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>
+

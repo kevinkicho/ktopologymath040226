@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>24 · Loop Quantum Gravity</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#44ffaa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 12px;overflow-x:auto;flex-shrink:0}
+.tab{padding:9px 15px;cursor:pointer;font-size:.8rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+.canvas-area{flex:1;display:flex;flex-direction:column;background:var(--bg);padding:12px;gap:8px;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:rgba(68,255,170,0.1)}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--dim);line-height:1.7}
+.info-box .val{color:var(--accent);font-weight:600}
+.proof-panel{width:320px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.proof-header{padding:10px 14px;font-size:.8rem;color:var(--dim);border-bottom:1px solid var(--border)}
+.proof-list{overflow-y:auto;flex:1}
+.proof-item{padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:.75rem;color:var(--dim);transition:.15s;line-height:1.5}
+.proof-item:hover{background:var(--bg3);color:var(--text)}
+.proof-item.active{background:var(--bg3);color:var(--accent)}
+.proof-content{padding:12px 14px;font-size:.8rem;line-height:1.8;color:var(--text);border-top:2px solid var(--accent);overflow-y:auto;max-height:140px}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.legend-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:2px 0}
+.legend-swatch{height:5px;border-radius:2px;display:inline-block;vertical-align:middle}
+.mode-btn{padding:4px 10px;font-size:.76rem}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">&#8592; Back</a>
+  <span class="badge">24</span>
+  <div class="title-block">
+    <h1>Loop Quantum Gravity</h1>
+    <p>Discrete spacetime, spin networks, and quantum geometry &#8212; Ch. 32</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active"  onclick="switchTab(0)">Spin Networks</div>
+  <div class="tab"         onclick="switchTab(1)">Spin Foam (3D)</div>
+  <div class="tab"         onclick="switchTab(2)">Area &amp; Volume</div>
+  <div class="tab"         onclick="switchTab(3)">SN Builder</div>
+  <div class="tab"         onclick="switchTab(4)">Ashtekar Variables</div>
+  <div class="tab"         onclick="switchTab(5)">Background Indep.</div>
+</div>
+
+<div id="main">
+
+<!-- TAB 0: SPIN NETWORKS -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,0)">▶ Animate</button>
+      <button onclick="resetView(0)">Reset View</button>
+      <span style="font-size:.76rem;color:var(--dim)">Click edge to cycle spin j. Drag to pan. Scroll to zoom.</span>
+      <label style="font-size:.78rem;color:var(--dim)">Zoom:</label>
+      <input type="range" id="zoom0" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal0').textContent=(+this.value).toFixed(1);zooms[0]=window.zoomX;draw0()">
+      <span id="zoomVal0" style="font-size:.78rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.78rem;color:var(--dim)">Global:</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="legend-row" id="spinLegend0"></div>
+    <div class="info-box">
+      Surface area: <span class="val" id="areaVal">&#8212;</span> &nbsp;|&nbsp;
+      Crossing edges: <span class="val" id="crossVal">&#8212;</span> &nbsp;|&nbsp;
+      $A = 8\pi\gamma\ell_P^2\sum_i\sqrt{j_i(j_i+1)}$
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header">Proofs &amp; Notes</div>
+    <div class="proof-list" id="proofList"></div>
+    <div class="proof-content" id="proofContent"></div>
+  </div>
+</div>
+
+<!-- TAB 1: SPIN FOAM -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,1)">▶ Animate</button>
+      <button onclick="resetView(1)">Reset View</button>
+      <label>Rotation</label>
+      <input type="range" id="rotSlider" min="0" max="628" value="60" oninput="draw1()">
+      <label>Tilt</label>
+      <input type="range" id="tiltSlider" min="10" max="80" value="35" oninput="draw1()">
+      <label style="font-size:.78rem;color:var(--dim)">Zoom:</label>
+      <input type="range" id="zoom1" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal1').textContent=(+this.value).toFixed(1);zooms[1]=window.zoomX;draw1()">
+      <span id="zoomVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.78rem;color:var(--dim)">Global:</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Spin foam: oriented 2-complex. Faces carry spin $j$; edges carry intertwiners; vertices carry EPRL amplitudes.
+      $Z = \sum_{\text{foams}}\prod_f(2j_f+1)\prod_v A_v^{\text{EPRL}}$.
+      Yellow slice = intermediate spin-network at time $t\in[0,1]$.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header">Proofs &amp; Notes</div>
+    <div class="proof-list" id="proofList1"></div>
+    <div class="proof-content" id="proofContent1"></div>
+  </div>
+</div>
+
+<!-- TAB 2: AREA & VOLUME -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-area">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,2)">▶ Animate</button>
+      <button onclick="resetView(2)">Reset View</button>
+      <label>&#947; (Barbero-Immirzi)</label>
+      <input type="range" id="gammaSlider" min="10" max="100" value="27" oninput="draw2()">
+      <span id="gammaVal">0.27</span>
+      <label>j_max</label>
+      <input type="range" id="jmaxSlider" min="2" max="10" value="5" oninput="draw2()">
+      <span id="jmaxVal">5</span>
+      <label style="font-size:.78rem;color:var(--dim)">Zoom:</label>
+      <input type="range" id="zoom2" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal2').textContent=(+this.value).toFixed(1);zooms[2]=window.zoomX;draw2()">
+      <span id="zoomVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.78rem;color:var(--dim)">Global:</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Area eigenvalues: $A_n = 8\pi\gamma\ell_P^2\sqrt{j(j+1)}$ &nbsp;|&nbsp;
+      $\ell_P \approx 1.616\times10^{-35}$ m &nbsp;|&nbsp;
+      $\gamma\approx 0.274$ from BH entropy.
+      Bar chart shows first 10 eigenvalues. Animation shows continuous surface dissolving into discrete patches.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header">Proofs &amp; Notes</div>
+    <div class="proof-list" id="proofList2"></div>
+    <div class="proof-content" id="proofContent2"></div>
+  </div>
+</div>
+
+<!-- TAB 3: SPIN NETWORK BUILDER -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="mode-btn active-btn" id="modeNodeBtn" onclick="setBuilderMode('node')">Add Node</button>
+      <button class="mode-btn" id="modeEdgeBtn" onclick="setBuilderMode('edge')">Add Edge</button>
+      <button class="mode-btn" id="modeMoveBtn" onclick="setBuilderMode('move')">Move Node</button>
+      <button onclick="clearBuilder()">Clear</button>
+      <button onclick="builderAddExample()">Load Example</button>
+      <label>Edge spin j:</label>
+      <select id="edgeSpinSel" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:.78rem">
+        <option value="0.5">1/2</option>
+        <option value="1" selected>1</option>
+        <option value="1.5">3/2</option>
+        <option value="2">2</option>
+      </select>
+      <label style="font-size:.78rem;color:var(--dim)">Zoom:</label>
+      <input type="range" id="zoom3" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal3').textContent=(+this.value).toFixed(1);zooms[3]=window.zoomX;draw3()">
+      <span id="zoomVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.78rem;color:var(--dim)">Global:</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="legend-row" id="spinLegendB"></div>
+    <div class="info-box">
+      <b>Interactive Spin Network Builder.</b>
+      <b>Add Node</b>: click canvas.
+      <b>Add Edge</b>: click node A then node B (uses selected spin $j$). Thickness $\propto 2j+1$.
+      <b>Move</b>: drag nodes.
+      3-valent nodes show Clebsch-Gordan coupling check: $|j_1-j_2|\le j_3\le j_1+j_2$ and $j_1+j_2+j_3\in\mathbb{Z}$.
+      Area: $A=8\pi\gamma\ell_P^2\sum_i\sqrt{j_i(j_i+1)}$.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header">Proofs &amp; Notes</div>
+    <div class="proof-list" id="proofList3"></div>
+    <div class="proof-content" id="proofContent3"></div>
+  </div>
+</div>
+
+<!-- TAB 4: ASHTEKAR VARIABLES -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,4)">▶ Animate</button>
+      <button onclick="resetView(4)">Reset View</button>
+      <label>&#947;</label>
+      <input type="range" id="gammaSlider4" min="5" max="150" value="27" oninput="draw4()">
+      <span id="gammaVal4">0.27</span>
+      <label style="font-size:.78rem;color:var(--dim)">Zoom:</label>
+      <input type="range" id="zoom4" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal4').textContent=(+this.value).toFixed(1);zooms[4]=window.zoomX;draw4()">
+      <span id="zoomVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.78rem;color:var(--dim)">Global:</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Ashtekar connection: $A^i_a = \Gamma^i_a + \gamma K^i_a$. &nbsp;
+      Densitized triad: $E^a_i = \sqrt{\det q}\,e^a_i$ encodes spatial metric $q_{ab}=e^i_a e^j_b\delta_{ij}$.
+      Holonomy: $h_e = \mathcal{P}\exp\!\int_e A$. &nbsp;
+      Flux: $F_{S} = \int_S E^a_i\,\tau^i\,n_a\,d^2\sigma$.
+      These are the conjugate pair of LQG: $\{A^i_a(x),E^b_j(y)\}=\gamma\delta^i_j\delta^b_a\delta^3(x-y)$.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header">Proofs &amp; Notes</div>
+    <div class="proof-list" id="proofList4"></div>
+    <div class="proof-content" id="proofContent4"></div>
+  </div>
+</div>
+
+<!-- TAB 5: BACKGROUND INDEPENDENCE -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,5)">▶ Animate</button>
+      <button onclick="resetView(5)">Reset View</button>
+      <label>Dissolution</label>
+      <input type="range" id="dissSlider" min="0" max="100" value="0" oninput="dissManual()">
+      <span id="dissVal">0%</span>
+      <label style="font-size:.78rem;color:var(--dim)">Zoom:</label>
+      <input type="range" id="zoom5" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal5').textContent=(+this.value).toFixed(1);zooms[5]=window.zoomX;draw5()">
+      <span id="zoomVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.78rem;color:var(--dim)">Global:</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      <b>Background independence:</b> LQG has no fixed metric. Smooth manifold emerges from spin network by coarse-graining.
+      Unlike perturbative QG (gravitons on flat $\eta_{\mu\nu}$), LQG quantises geometry itself.
+      $\mathcal{H}_{kin}$ is spanned by spin-network states; no background metric is assumed.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header">Proofs &amp; Notes</div>
+    <div class="proof-list" id="proofList5"></div>
+    <div class="proof-content" id="proofContent5"></div>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ============================================================
+// PROOFS (static strings, KaTeX rendered via textContent + renderMathInElement)
+// ============================================================
+const PROOFS = [
+  "Ashtekar variables: $A_a^i = \\Gamma_a^i + \\gamma K_a^i$ (connection) and $E^a_i$ (densitized triad). GR rewritten as SU(2) gauge theory. Poisson bracket: $\\{A^i_a(x), E^b_j(y)\\} = \\gamma\\delta^i_j\\delta^b_a\\delta^3(x-y)$.",
+  "Area spectrum: $\\hat{A}_S |s\\rangle = 8\\pi\\gamma\\ell_P^2 \\sum_{p\\in S\\cap s}\\sqrt{j_p(j_p+1)}\\,|s\\rangle$. Minimum non-zero area $A_{\\min}=4\\pi\\sqrt{3}\\,\\gamma\\ell_P^2$ at $j=\\tfrac{1}{2}$.",
+  "Spin network basis: solutions to the Gauss constraint. Edges carry SU(2) reps $j\\in\\{\\tfrac{1}{2},1,\\tfrac{3}{2},\\ldots\\}$; vertices carry intertwiners $\\iota\\in\\mathrm{Inv}(\\bigotimes_e V^{j_e})$.",
+  "Spin foam amplitude: $Z = \\sum_{\\text{foams}} \\prod_f(2j_f+1) \\prod_e A_e \\prod_v A_v^{\\mathrm{EPRL}}$. EPRL vertex reproduces Regge GR in the semiclassical limit $\\hbar\\to 0$.",
+  "Barbero-Immirzi parameter $\\gamma\\approx 0.2735$: fixed by matching $S_{BH}=A/(4\\ell_P^2)$ via counting spin-network punctures on the black-hole horizon.",
+  "LQG vs strings: LQG is background-independent and quantises geometry directly. String theory requires a background and yields gravitons as excitations. LQG gives discrete area/volume spectra.",
+  "Holonomy-flux algebra: $[\\hat{h}_e, \\hat{F}_{S,f}] = i\\gamma\\ell_P^2\\,\\chi_j(\\sigma^i/2)\\hat{h}_e\\cdot\\delta_{e\\cap S}$. Hilbert space is a projective limit of $L^2(\\mathrm{SU}(2)^N)$ with the Ashtekar-Lewandowski measure.",
+  "Clebsch-Gordan at 3-valent vertices: admissible iff (i) $j_1+j_2+j_3\\in\\mathbb{Z}$ and (ii) $|j_i-j_k|\\le j_m\\le j_i+j_k$ for each permutation. The intertwiner space is 1-dimensional for 3-valent nodes."
+];
+const PROOF_TITLES = [
+  "Ashtekar Variables",
+  "Area Spectrum",
+  "Spin Network Basis",
+  "Spin Foam Amplitude",
+  "Barbero-Immirzi gamma",
+  "LQG vs Strings",
+  "Holonomy-Flux Algebra",
+  "Clebsch-Gordan Coupling"
+];
+
+const PROOF_LIST_IDS    = ['proofList','proofList1','proofList2','proofList3','proofList4','proofList5'];
+const PROOF_CONTENT_IDS = ['proofContent','proofContent1','proofContent2','proofContent3','proofContent4','proofContent5'];
+
+function buildProofLists(){
+  PROOF_LIST_IDS.forEach((lid,ti)=>{
+    const el=document.getElementById(lid);
+    if(!el) return;
+    PROOF_TITLES.forEach((title,i)=>{
+      const div=document.createElement('div');
+      div.className='proof-item';
+      div.textContent=i+'. '+title;
+      div.addEventListener('click',()=>showProof(i,ti));
+      el.appendChild(div);
+    });
+  });
+}
+
+function showProof(i,tabIdx){
+  const contentId=PROOF_CONTENT_IDS[tabIdx];
+  const listId=PROOF_LIST_IDS[tabIdx];
+  const el=document.getElementById(contentId);
+  if(!el) return;
+  // Safe: set as textContent so KaTeX auto-render can find $...$ patterns in text nodes
+  el.textContent=PROOFS[i];
+  document.querySelectorAll('#'+listId+' .proof-item').forEach((d,j)=>d.classList.toggle('active',j===i));
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(el,{
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });
+  }
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function syncSpeedControl24(){
+  var zoomSlider=document.getElementById('zoom'+activeTab);
+  if(zoomSlider){window.zoomX=+zoomSlider.value;document.getElementById('zoomVal'+activeTab).textContent=(+zoomSlider.value).toFixed(1);}
+}
+function _cancelAllAnims24(){
+  animIds.forEach((id,j)=>{
+    if(id){cancelAnimationFrame(id);animIds[j]=null;}
+  });
+  document.querySelectorAll('.animBtn').forEach(b=>{
+    b.classList.remove('active');
+    b.textContent='▶ Animate';
+  });
+}
+function switchTab(i){
+  _cancelAllAnims24();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  syncSpeedControl24();
+  [draw0,draw1,draw2,draw3,draw4,draw5][i]();
+  // Auto-start animations
+  if(i===0)toggleAnim(document.querySelector('.animBtn'),0);
+  else if(i===1)toggleAnim(document.querySelectorAll('.animBtn')[1],1);
+  else if(i===2)toggleAnim(document.querySelectorAll('.animBtn')[2],2);
+  else if(i===4)toggleAnim(document.querySelectorAll('.animBtn')[4],4);
+  else if(i===5)toggleAnim(document.querySelectorAll('.animBtn')[5],5);
+}
+
+// ============================================================
+// ANIMATION STATE
+// ============================================================
+const animIds=[null,null,null,null,null,null];
+const animOffsets=[0,0,0,0,0,0];
+function toggleAnim(btn,i){
+  if(animIds[i]){cancelAnimationFrame(animIds[i]);animIds[i]=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  const draws=[draw0,draw1,draw2,draw3,draw4,draw5];
+  function frame(){animOffsets[i]+=0.018*(window.animSpeed||0.1);draws[i]();animIds[i]=requestAnimationFrame(frame);}
+  animIds[i]=requestAnimationFrame(frame);
+}
+
+// ============================================================
+// PAN / ZOOM
+// ============================================================
+const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+const zooms=[1,1,1,1,1,1];
+function resetView(i){pans[i]={x:0,y:0};zooms[i]=1;[draw0,draw1,draw2,draw3,draw4,draw5][i]();}
+function makePanZoom(cvId,ti,drawFn){
+  const cv=document.getElementById(cvId);
+  let drag={active:false,sx:0,sy:0,px:0,py:0};
+  cv.addEventListener('mousedown',e=>{drag={active:true,sx:e.clientX,sy:e.clientY,px:pans[ti].x,py:pans[ti].y};});
+  cv.addEventListener('mousemove',e=>{if(!drag.active)return;pans[ti].x=drag.px+(e.clientX-drag.sx);pans[ti].y=drag.py+(e.clientY-drag.sy);drawFn();});
+  cv.addEventListener('mouseup',()=>{drag.active=false;});
+  cv.addEventListener('wheel',e=>{e.preventDefault();zooms[ti]=Math.max(0.2,Math.min(8,zooms[ti]*(e.deltaY<0?1.1:0.91)));drawFn();},{passive:false});
+}
+
+// ============================================================
+// SPIN COLOUR / LABEL CONSTANTS
+// ============================================================
+const SPIN_VALS=[0.5,1,1.5,2];
+const SPIN_COLORS=['#44ffaa','#22ddff','#ffdd44','#ff88aa'];
+const SPIN_LABELS=['1/2','1','3/2','2'];
+
+function buildSpinLegend(cid){
+  const c=document.getElementById(cid);
+  if(!c) return;
+  SPIN_VALS.forEach((j,i)=>{
+    const sw=document.createElement('span');
+    sw.className='legend-swatch';
+    sw.style.cssText='width:'+(2*j+1)*6+'px;background:'+SPIN_COLORS[i]+';height:5px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:2px';
+    const lbl=document.createElement('span');
+    lbl.style.cssText='font-size:.72rem;color:'+SPIN_COLORS[i]+';margin-right:10px';
+    lbl.textContent='j='+SPIN_LABELS[i]+' (2j+1='+(2*j+1)+', A\u221d'+Math.sqrt(j*(j+1)).toFixed(3)+')';
+    c.appendChild(sw);
+    c.appendChild(lbl);
+  });
+}
+
+// ============================================================
+// TAB 0 — SPIN NETWORKS
+// ============================================================
+const N0=700,H0=440;
+const nodes0=[
+  {x:120,y:100},{x:240,y:80},{x:360,y:110},{x:480,y:90},{x:580,y:130},
+  {x:80,y:220},{x:180,y:200},{x:300,y:190},{x:420,y:210},{x:540,y:200},{x:640,y:240},
+  {x:100,y:330},{x:220,y:310},{x:340,y:300},{x:460,y:320},{x:580,y:310},
+  {x:150,y:400},{x:340,y:390},{x:500,y:400},{x:620,y:380}
+];
+const edges0=[
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[1,6],[2,7],[3,8],[4,9],[4,10],
+  [5,6],[6,7],[7,8],[8,9],[9,10],
+  [5,11],[6,12],[7,13],[8,14],[9,15],[10,15],
+  [11,12],[12,13],[13,14],[14,15],
+  [11,16],[13,17],[15,18],[18,19],
+  [16,17],[17,18],[19,10],
+  [1,7],[3,9],[6,12],[8,14]
+];
+const edgeSpins0=edges0.map(()=>Math.floor(Math.random()*4));
+const SURFACE_Y=240;
+
+function cgAdmissible(j1,j2,j3){
+  const sumInt=((j1+j2+j3)*2)%2<0.01;
+  return sumInt && j3>=Math.abs(j1-j2)-0.001 && j3<=j1+j2+0.001;
+}
+
+function draw0(){
+  const cv=document.getElementById('c0');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const fs=Math.min(W/N0,H/H0)*0.92;
+  const ox=(W-N0*fs)/2,oy=(H-H0*fs)/2;
+  ctx.save();
+  ctx.translate(ox+pans[0].x,oy+pans[0].y);
+  ctx.scale(fs*zooms[0],fs*zooms[0]);
+
+  // Surface
+  ctx.save();
+  ctx.strokeStyle='rgba(255,255,100,0.5)';ctx.lineWidth=2;ctx.setLineDash([8,5]);
+  ctx.beginPath();ctx.moveTo(0,SURFACE_Y);ctx.lineTo(N0,SURFACE_Y);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,100,0.12)';ctx.fillRect(0,SURFACE_Y-1,N0,3);
+  ctx.fillStyle='rgba(255,255,100,0.75)';ctx.font='12px monospace';
+  ctx.fillText('Surface S  (area operator acts here)',8,SURFACE_Y-7);
+  ctx.restore();
+
+  let areaSum=0,crossCount=0;
+  const crossingEdges=new Set();
+  edges0.forEach((e,ei)=>{
+    const a=nodes0[e[0]],b=nodes0[e[1]];
+    if(Math.min(a.y,b.y)<SURFACE_Y && Math.max(a.y,b.y)>SURFACE_Y){
+      crossingEdges.add(ei);
+      const j=SPIN_VALS[edgeSpins0[ei]];
+      areaSum+=Math.sqrt(j*(j+1));
+      crossCount++;
+    }
+  });
+
+  edges0.forEach((e,ei)=>{
+    const a=nodes0[e[0]],b=nodes0[e[1]];
+    const j=SPIN_VALS[edgeSpins0[ei]];
+    const col=SPIN_COLORS[edgeSpins0[ei]];
+    const isCross=crossingEdges.has(ei);
+    ctx.save();
+    ctx.strokeStyle=isCross?'#ffee44':col;
+    ctx.lineWidth=isCross?(2*j+1)*1.5:(2*j+1)*0.85;
+    ctx.globalAlpha=isCross?1:0.65;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    if(animOffsets[0]>0){
+      const t=(animOffsets[0]*0.6+ei*0.27)%1;
+      const px=a.x+(b.x-a.x)*t,py=a.y+(b.y-a.y)*t;
+      ctx.globalAlpha=0.85;ctx.fillStyle=col;
+      ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill();
+    }
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    ctx.globalAlpha=0.95;ctx.fillStyle='#fff';ctx.font='bold 12px monospace';
+    ctx.fillText(SPIN_LABELS[edgeSpins0[ei]],mx+2,my-3);
+    ctx.restore();
+  });
+
+  nodes0.forEach((n,ni)=>{
+    const glow=animOffsets[0]>0?0.5+0.5*Math.sin(animOffsets[0]*3+ni*0.7):0;
+    ctx.save();
+    if(glow>0){ctx.shadowBlur=14*glow;ctx.shadowColor='#44ffaa';}
+    ctx.fillStyle='#44ffaa';ctx.strokeStyle='#fff';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(n.x,n.y,5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.restore();
+
+    // CG check at 3-valent nodes
+    const adj=edges0.filter(e=>e[0]===ni||e[1]===ni);
+    if(adj.length===3){
+      const sp=adj.map(e=>SPIN_VALS[edgeSpins0[edges0.indexOf(e)]]);
+      const ok=cgAdmissible(sp[0],sp[1],sp[2]);
+      ctx.save();
+      ctx.fillStyle=ok?'rgba(68,255,170,0.8)':'rgba(255,80,80,0.9)';
+      ctx.font='12px monospace';
+      ctx.fillText(ok?'\u2713':'\u2717',n.x+7,n.y-7);
+      ctx.restore();
+    }
+  });
+
+  ctx.restore();
+  const gamma=0.274;
+  document.getElementById('areaVal').textContent=(8*Math.PI*gamma*areaSum).toFixed(4)+' \u2113_P\u00b2';
+  document.getElementById('crossVal').textContent=crossCount;
+}
+
+document.getElementById('c0').addEventListener('click',e=>{
+  const cv=document.getElementById('c0');
+  const rect=cv.getBoundingClientRect();
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  const fs=Math.min(W/N0,H/H0)*0.92;
+  const ox=(W-N0*fs)/2,oy=(H-H0*fs)/2;
+  const mx=(e.clientX-rect.left-ox-pans[0].x)/(fs*zooms[0]);
+  const my=(e.clientY-rect.top-oy-pans[0].y)/(fs*zooms[0]);
+  let best=-1,bestD=Infinity;
+  edges0.forEach((ed,ei)=>{
+    const a=nodes0[ed[0]],b=nodes0[ed[1]];
+    const dx=b.x-a.x,dy=b.y-a.y;
+    const tt=Math.max(0,Math.min(1,((mx-a.x)*dx+(my-a.y)*dy)/(dx*dx+dy*dy)));
+    const d=Math.hypot(mx-a.x-tt*dx,my-a.y-tt*dy);
+    if(d<bestD){bestD=d;best=ei;}
+  });
+  if(best>=0&&bestD<14){edgeSpins0[best]=(edgeSpins0[best]+1)%4;draw0();}
+});
+makePanZoom('c0',0,draw0);
+
+// ============================================================
+// TAB 1 — SPIN FOAM 3D
+// ============================================================
+const snBot=[{x:-150,y:80},{x:0,y:100},{x:150,y:80},{x:-80,y:0},{x:80,y:10}];
+const snTop=[{x:-130,y:-80},{x:20,y:-90},{x:160,y:-70},{x:-60,y:-150},{x:90,y:-140}];
+const edgesBot=[[0,1],[1,2],[0,3],[1,3],[1,4],[2,4],[3,4]];
+const edgesTop=[[0,1],[1,2],[0,3],[1,3],[1,4],[2,4],[3,4]];
+const foamFaces=[[0,1,5,6],[1,2,7,6],[0,3,8,5],[3,4,9,8],[4,2,7,9]];
+const foamSpins=[1,1.5,0.5,1,2];
+
+function project3D(x,y,z,rot,tilt){
+  const cr=Math.cos(rot),sr=Math.sin(rot);
+  const ct=Math.cos(tilt),st=Math.sin(tilt);
+  const x2=x*cr-z*sr,z2=x*sr+z*cr;
+  const y2=y*ct-z2*st,z3=y*st+z2*ct;
+  const sc=340/(z3+600);
+  return {sx:x2*sc,sy:y2*sc,depth:z3};
+}
+
+function draw1(){
+  const cv=document.getElementById('c1');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const rot=(parseFloat(document.getElementById('rotSlider').value)/100)+animOffsets[1]*0.35;
+  const tilt=parseFloat(document.getElementById('tiltSlider').value)*Math.PI/180;
+  const sweepT=animOffsets[1]>0?(Math.sin(animOffsets[1]*0.9)*0.5+0.5):null;
+
+  ctx.save();
+  ctx.translate(W/2+pans[1].x,H/2+pans[1].y);
+  ctx.scale(zooms[1],zooms[1]);
+
+  function projB(i){return project3D(snBot[i].x,snBot[i].y,0,rot,tilt);}
+  function projT(i){return project3D(snTop[i].x,snTop[i].y,220,rot,tilt);}
+
+  // Foam faces
+  const faceColors=['rgba(68,255,170,0.18)','rgba(34,221,255,0.15)','rgba(255,200,68,0.18)','rgba(255,100,150,0.13)','rgba(180,100,255,0.18)'];
+  const faceStroke=['#44ffaa88','#22ddff88','#ffcc4488','#ff648888','#bb88ff88'];
+  foamFaces.forEach((f,fi)=>{
+    const pb0=projB(f[0]),pb1=projB(f[1]),pt0=projT(f[2]-5),pt1=projT(f[3]-5);
+    const pulse=animOffsets[1]>0?0.5+0.5*Math.sin(animOffsets[1]*2+fi):1;
+    ctx.save();
+    ctx.globalAlpha=0.7*pulse;
+    ctx.fillStyle=faceColors[fi];ctx.strokeStyle=faceStroke[fi];ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(pb0.sx,pb0.sy);ctx.lineTo(pb1.sx,pb1.sy);
+    ctx.lineTo(pt0.sx,pt0.sy);ctx.lineTo(pt1.sx,pt1.sy);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    const cx=(pb0.sx+pb1.sx+pt0.sx+pt1.sx)/4;
+    const cy=(pb0.sy+pb1.sy+pt0.sy+pt1.sy)/4;
+    ctx.globalAlpha=0.7;ctx.fillStyle='rgba(255,255,255,0.55)';ctx.font='12px monospace';
+    ctx.fillText('j='+foamSpins[fi],cx-10,cy+3);
+    ctx.restore();
+  });
+
+  // Time-sweep intermediate slice
+  if(sweepT!==null){
+    ctx.save();
+    ctx.strokeStyle='rgba(255,220,50,0.9)';ctx.lineWidth=2;ctx.setLineDash([5,3]);
+    for(let i=0;i<5;i++){
+      const pb=projB(i),pt=projT(i);
+      const sx=pb.sx+(pt.sx-pb.sx)*sweepT,sy=pb.sy+(pt.sy-pb.sy)*sweepT;
+      edgesBot.forEach(ed=>{
+        if(ed[0]===i){
+          const qb=projB(ed[1]),qt=projT(ed[1]);
+          const ex=qb.sx+(qt.sx-qb.sx)*sweepT,ey=qb.sy+(qt.sy-qb.sy)*sweepT;
+          ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+        }
+      });
+      ctx.fillStyle='#ffdd33';
+      ctx.beginPath();ctx.arc(sx,sy,5,0,Math.PI*2);ctx.fill();
+    }
+    ctx.setLineDash([]);
+    const p0b=projB(0),p0t=projT(0);
+    ctx.fillStyle='rgba(255,220,50,0.9)';ctx.font='bold 12px monospace';
+    ctx.fillText('t = '+sweepT.toFixed(2),p0b.sx+(p0t.sx-p0b.sx)*sweepT-60,p0b.sy+(p0t.sy-p0b.sy)*sweepT);
+    ctx.restore();
+  }
+
+  // Bottom network
+  ctx.save();
+  edgesBot.forEach(e=>{const a=projB(e[0]),b=projB(e[1]);ctx.strokeStyle='#44ffaa';ctx.lineWidth=2.5;ctx.globalAlpha=0.95;ctx.beginPath();ctx.moveTo(a.sx,a.sy);ctx.lineTo(b.sx,b.sy);ctx.stroke();});
+  snBot.forEach((_,i)=>{const p=projB(i);ctx.fillStyle='#44ffaa';ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.sx,p.sy,5,0,Math.PI*2);ctx.fill();ctx.stroke();});
+  ctx.restore();
+
+  // Top network
+  ctx.save();
+  edgesTop.forEach(e=>{const a=projT(e[0]),b=projT(e[1]);ctx.strokeStyle='#22ddff';ctx.lineWidth=2.5;ctx.globalAlpha=0.95;ctx.beginPath();ctx.moveTo(a.sx,a.sy);ctx.lineTo(b.sx,b.sy);ctx.stroke();});
+  snTop.forEach((_,i)=>{const p=projT(i);ctx.fillStyle='#22ddff';ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.sx,p.sy,5,0,Math.PI*2);ctx.fill();ctx.stroke();});
+  ctx.restore();
+
+  // Vertical connectors
+  ctx.save();
+  ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1;
+  for(let i=0;i<5;i++){const pb=projB(i),pt=projT(i);ctx.beginPath();ctx.moveTo(pb.sx,pb.sy);ctx.lineTo(pt.sx,pt.sy);ctx.stroke();}
+  ctx.setLineDash([]);ctx.restore();
+
+  const bL=projB(2),tL=projT(2);
+  ctx.fillStyle='rgba(68,255,170,0.85)';ctx.font='bold 12px monospace';ctx.fillText('t = 0',bL.sx+12,bL.sy+4);
+  ctx.fillStyle='rgba(34,221,255,0.85)';ctx.fillText('t = 1',tL.sx+12,tL.sy+4);
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='12px monospace';
+  ctx.fillText('EPRL vertex amplitude',-W/2+14,-H/2+18);
+  ctx.fillStyle='rgba(255,220,50,0.4)';ctx.font='12px monospace';
+  ctx.fillText('Yellow = interpolated SN slice',-W/2+14,-H/2+32);
+  ctx.restore();
+}
+makePanZoom('c1',1,draw1);
+
+// ============================================================
+// TAB 2 — AREA & VOLUME QUANTIZATION
+// ============================================================
+function draw2(){
+  const cv=document.getElementById('c2');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const gamma=parseFloat(document.getElementById('gammaSlider').value)/100;
+  const jmax=parseInt(document.getElementById('jmaxSlider').value);
+  document.getElementById('gammaVal').textContent=gamma.toFixed(2);
+  document.getElementById('jmaxVal').textContent=jmax;
+
+  ctx.save();
+  ctx.translate(pans[2].x,pans[2].y);
+  ctx.scale(zooms[2],zooms[2]);
+
+  const spins=[];
+  for(let j=0.5;j<=jmax;j+=0.5) spins.push(j);
+  const areaVals=spins.map(j=>8*Math.PI*gamma*Math.sqrt(j*(j+1)));
+  const maxArea=areaVals[areaVals.length-1]||1;
+
+  // --- Bar chart (first <=10 eigenvalues) ---
+  const show10=spins.slice(0,Math.min(10,spins.length));
+  const area10=show10.map(j=>8*Math.PI*gamma*Math.sqrt(j*(j+1)));
+  const maxA10=area10[area10.length-1]||1;
+  const barW=28,barGap=8;
+  const chartX=55,chartY=H-60,chartH=Math.min(270,H-140);
+
+  ctx.fillStyle='rgba(68,255,170,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('Area spectrum — first '+show10.length+' eigenvalues',chartX,chartY-chartH-16);
+
+  ctx.strokeStyle='rgba(68,255,170,0.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(chartX-4,chartY-chartH);ctx.lineTo(chartX-4,chartY+2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(chartX-4,chartY+2);ctx.lineTo(chartX+(barW+barGap)*show10.length+4,chartY+2);ctx.stroke();
+
+  // Minimum area reference line
+  const minH=(area10[0]/maxA10)*chartH;
+  ctx.save();ctx.strokeStyle='rgba(255,220,50,0.45)';ctx.lineWidth=1;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(chartX-4,chartY-minH);ctx.lineTo(chartX+(barW+barGap)*show10.length+4,chartY-minH);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,220,50,0.6)';ctx.font='12px monospace';
+  ctx.fillText('A_min (j=1/2)',chartX+(barW+barGap)*show10.length+6,chartY-minH+4);
+  ctx.restore();
+
+  show10.forEach((j,i)=>{
+    const bh=(area10[i]/maxA10)*chartH;
+    const bx=chartX+i*(barW+barGap);
+    const by=chartY-bh;
+    const isHL=animOffsets[2]>0 && Math.floor(animOffsets[2]*1.3)%show10.length===i;
+    const col=isHL?'#ffffff':SPIN_COLORS[i%4];
+    ctx.save();
+    ctx.fillStyle=col;ctx.globalAlpha=isHL?1:0.7;
+    ctx.fillRect(bx,by,barW,bh);
+    ctx.strokeStyle=col;ctx.lineWidth=1;ctx.strokeRect(bx,by,barW,bh);
+    ctx.fillStyle=isHL?'#000':'rgba(255,255,255,0.8)';ctx.font='12px monospace';
+    const jlbl=j%1===0?String(j):j.toFixed(1);
+    ctx.fillText(jlbl,bx+barW/2-8,chartY+14);
+    ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='12px monospace';
+    ctx.fillText(area10[i].toFixed(2),bx-2,by-3);
+    ctx.restore();
+  });
+
+  // --- Quantization animation: smooth surface -> discrete patches ---
+  if(animOffsets[2]>0){
+    const phase=animOffsets[2]*0.45;
+    const nP=9;
+    const px0=chartX,py0=35,pw=Math.min(350,(barW+barGap)*show10.length+20),ph=55;
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='12px monospace';
+    ctx.fillText('Continuous surface \u2192 quantised area patches',px0,py0-8);
+
+    const smoothA=Math.max(0,1-phase*0.8);
+    if(smoothA>0){
+      ctx.save();ctx.globalAlpha=smoothA;
+      ctx.strokeStyle='rgba(100,180,255,0.7)';ctx.lineWidth=1.5;
+      ctx.beginPath();
+      for(let x=0;x<=pw;x++){
+        const wy=py0+ph/2+Math.sin(x*0.045+phase)*11+Math.sin(x*0.12)*5;
+        x===0?ctx.moveTo(px0+x,wy):ctx.lineTo(px0+x,wy);
+      }
+      ctx.stroke();ctx.restore();
+    }
+
+    const discA=Math.min(1,Math.max(0,phase-0.15));
+    for(let pi=0;pi<nP;pi++){
+      const lit=Math.min(1,Math.max(0,phase*1.8-pi*0.2));
+      const si=pi%4;
+      ctx.save();ctx.globalAlpha=discA*lit*0.75;
+      ctx.fillStyle=SPIN_COLORS[si];
+      const ppw=pw/nP;
+      ctx.fillRect(px0+pi*ppw,py0+4,ppw-2,ph-8);
+      ctx.strokeStyle=SPIN_COLORS[si];ctx.lineWidth=1.5;
+      ctx.strokeRect(px0+pi*ppw,py0+4,ppw-2,ph-8);
+      ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='12px monospace';
+      ctx.fillText('j='+SPIN_LABELS[si],px0+pi*ppw+2,py0+ph/2+4);
+      ctx.restore();
+    }
+  }
+
+  // --- Ladder (right side) ---
+  const ax=W-180,ay=chartY,aH=chartH;
+  ctx.fillStyle='rgba(68,255,170,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('Energy ladder',ax-14,ay-aH-16);
+  ctx.fillStyle='rgba(68,255,170,0.25)';ctx.fillRect(ax-2,ay-aH,4,aH);
+
+  spins.forEach((j,i)=>{
+    const y=ay-(areaVals[i]/maxArea)*aH;
+    const isHL=animOffsets[2]>0 && Math.floor(animOffsets[2]*1.3)%spins.length===i;
+    ctx.save();
+    ctx.strokeStyle=isHL?'#fff':'#44ffaa';ctx.lineWidth=isHL?3:1.5;ctx.globalAlpha=isHL?1:0.6;
+    ctx.beginPath();ctx.moveTo(ax-18,y);ctx.lineTo(ax+18,y);ctx.stroke();
+    ctx.fillStyle=isHL?'#fff':'#44ffaa';ctx.font=isHL?'bold 9px monospace':'9px monospace';
+    ctx.fillText('j='+j,ax+22,y+4);
+    ctx.fillStyle='rgba(68,255,170,0.45)';ctx.font='12px monospace';
+    ctx.fillText(areaVals[i].toFixed(2),ax-75,y+4);
+    ctx.restore();
+  });
+  ctx.strokeStyle='rgba(68,255,170,0.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(ax-18,ay);ctx.lineTo(ax+18,ay);ctx.stroke();
+  ctx.fillStyle='rgba(68,255,170,0.5)';ctx.font='12px monospace';
+  ctx.fillText('j=0: A=0',ax+22,ay+4);
+
+  ctx.fillStyle='rgba(68,255,170,0.55)';ctx.font='12px monospace';
+  ctx.fillText('A_j = 8\u03c0\u03b3\u2113_P\u00b2\u221a(j(j+1))  [\u2113_P\u22481.616\u00d710\u207b\u00b3\u2075m]',chartX,chartY+26);
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='12px monospace';
+  ctx.fillText('8\u03c0\u03b3 = '+(8*Math.PI*gamma).toFixed(4),chartX,chartY+41);
+
+  ctx.restore();
+}
+makePanZoom('c2',2,draw2);
+
+// ============================================================
+// TAB 3 — INTERACTIVE SPIN NETWORK BUILDER
+// ============================================================
+let bNodes=[];
+let bEdges=[];
+let bMode='node';
+let bEdgeFirst=-1;
+let bMoveIdx=-1,bMoveDx=0,bMoveDy=0;
+
+function setBuilderMode(m){
+  bMode=m; bEdgeFirst=-1; bMoveIdx=-1;
+  ['node','edge','move'].forEach(mm=>{
+    const btn=document.getElementById('mode'+mm.charAt(0).toUpperCase()+mm.slice(1)+'Btn');
+    if(btn) btn.classList.toggle('active-btn',mm===m);
+  });
+}
+
+function clearBuilder(){bNodes=[];bEdges=[];bEdgeFirst=-1;draw3();}
+
+function builderAddExample(){
+  clearBuilder();
+  bNodes=[
+    {x:200,y:120},{x:380,y:120},{x:290,y:250},{x:150,y:270},{x:430,y:270},{x:290,y:380}
+  ];
+  bEdges=[
+    {a:0,b:1,si:1},{a:0,b:2,si:0},{a:1,b:2,si:2},
+    {a:2,b:3,si:1},{a:2,b:4,si:0},{a:3,b:5,si:3},
+    {a:4,b:5,si:1},{a:0,b:3,si:2},{a:1,b:4,si:0}
+  ];
+  draw3();
+}
+
+function draw3(){
+  const cv=document.getElementById('c3');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(pans[3].x,pans[3].y);
+  ctx.scale(zooms[3],zooms[3]);
+
+  // Draw edges
+  bEdges.forEach(ed=>{
+    const a=bNodes[ed.a],b=bNodes[ed.b];
+    if(!a||!b) return;
+    const j=SPIN_VALS[ed.si];
+    const col=SPIN_COLORS[ed.si];
+    ctx.save();
+    ctx.strokeStyle=col;ctx.lineWidth=(2*j+1)*1.2;ctx.globalAlpha=0.8;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    ctx.globalAlpha=1;ctx.fillStyle='#fff';ctx.font='bold 12px monospace';
+    ctx.fillText('j='+SPIN_LABELS[ed.si],mx+3,my-5);
+    ctx.fillStyle=col;ctx.font='12px monospace';
+    ctx.fillText('\u221a(j(j+1))='+Math.sqrt(j*(j+1)).toFixed(3),mx+3,my+8);
+    ctx.restore();
+  });
+
+  // Draw nodes with valence + CG check
+  bNodes.forEach((n,ni)=>{
+    const isFirst=(bEdgeFirst===ni);
+    const adj=bEdges.filter(e=>e.a===ni||e.b===ni);
+    ctx.save();
+    ctx.fillStyle=isFirst?'#ffdd33':'#44ffaa';ctx.strokeStyle='#fff';ctx.lineWidth=2;
+    if(isFirst){ctx.shadowBlur=14;ctx.shadowColor='#ffdd33';}
+    ctx.beginPath();ctx.arc(n.x,n.y,7,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.6)';ctx.font='12px monospace';
+    ctx.fillText(ni,n.x+9,n.y+4);
+    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='12px monospace';
+    ctx.fillText('val='+adj.length,n.x+9,n.y+15);
+    if(adj.length===3){
+      const sp=adj.map(e=>SPIN_VALS[e.si]);
+      const ok=cgAdmissible(sp[0],sp[1],sp[2]);
+      ctx.fillStyle=ok?'rgba(68,255,170,0.85)':'rgba(255,80,80,0.9)';
+      ctx.font='bold 12px monospace';
+      ctx.fillText(ok?'CG \u2713':'CG \u2717 forbidden',n.x+9,n.y+27);
+    }
+    ctx.restore();
+  });
+
+  // Selection ring
+  if(bEdgeFirst>=0 && bNodes[bEdgeFirst]){
+    const n=bNodes[bEdgeFirst];
+    ctx.save();ctx.strokeStyle='#ffdd33';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.arc(n.x,n.y,12,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  }
+
+  // Area total
+  const gamma=0.274;
+  let aS=0;
+  bEdges.forEach(e=>{const j=SPIN_VALS[e.si];aS+=Math.sqrt(j*(j+1));});
+  ctx.fillStyle='rgba(68,255,170,0.8)';ctx.font='12px monospace';
+  ctx.fillText('Total area: A = '+(8*Math.PI*gamma*aS).toFixed(4)+' \u2113_P\u00b2',10,H-28);
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='12px monospace';
+  ctx.fillText('Nodes: '+bNodes.length+'   Edges: '+bEdges.length,10,H-14);
+
+  // Mode hint
+  ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='12px monospace';
+  const hints={'node':'Click canvas to add a node','edge':'Click first node, then second to add edge','move':'Drag a node to move it'};
+  ctx.fillText(hints[bMode]||'',10,18);
+
+  ctx.restore();
+}
+
+function b3coord(e){
+  const cv=document.getElementById('c3');
+  const rect=cv.getBoundingClientRect();
+  return {x:(e.clientX-rect.left-pans[3].x)/zooms[3],y:(e.clientY-rect.top-pans[3].y)/zooms[3]};
+}
+function nearNode(x,y,th){
+  th=th||18; let best=-1,bd=Infinity;
+  bNodes.forEach((n,i)=>{const d=Math.hypot(n.x-x,n.y-y);if(d<bd){bd=d;best=i;}});
+  return bd<th?best:-1;
+}
+
+const cv3=document.getElementById('c3');
+cv3.addEventListener('mousedown',e=>{
+  if(e.button!==0) return;
+  const {x,y}=b3coord(e);
+  if(bMode==='node'){bNodes.push({x,y});draw3();}
+  else if(bMode==='edge'){
+    const ni=nearNode(x,y);
+    if(ni<0) return;
+    if(bEdgeFirst<0){bEdgeFirst=ni;draw3();}
+    else{
+      if(ni!==bEdgeFirst){
+        const sv=parseFloat(document.getElementById('edgeSpinSel').value);
+        const si=SPIN_VALS.indexOf(sv);
+        bEdges.push({a:bEdgeFirst,b:ni,si:si<0?1:si});
+      }
+      bEdgeFirst=-1;draw3();
+    }
+  } else if(bMode==='move'){
+    const ni=nearNode(x,y,22);
+    if(ni>=0){bMoveIdx=ni;bMoveDx=x-bNodes[ni].x;bMoveDy=y-bNodes[ni].y;}
+  }
+});
+cv3.addEventListener('mousemove',e=>{
+  if(bMode==='move'&&bMoveIdx>=0){const {x,y}=b3coord(e);bNodes[bMoveIdx].x=x-bMoveDx;bNodes[bMoveIdx].y=y-bMoveDy;draw3();}
+});
+cv3.addEventListener('mouseup',()=>{bMoveIdx=-1;});
+makePanZoom('c3',3,draw3);
+
+// ============================================================
+// TAB 4 — ASHTEKAR VARIABLES
+// ============================================================
+function draw4(){
+  const cv=document.getElementById('c4');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const gamma=parseFloat(document.getElementById('gammaSlider4').value)/100;
+  document.getElementById('gammaVal4').textContent=gamma.toFixed(2);
+  const t=animOffsets[4];
+
+  ctx.save();
+  ctx.translate(pans[4].x,pans[4].y);
+  ctx.scale(zooms[4],zooms[4]);
+
+  const pw=W/3;
+
+  // Panel backgrounds
+  [0,1,2].forEach(i=>{
+    ctx.fillStyle='rgba(255,255,255,0.0'+(i%2===0?'5':'3')+')';
+    ctx.fillRect(pw*i+2,0,pw-4,H);
+  });
+
+  // --- Panel 1: Triad e^i_a ---
+  const p1x=pw*0.5,p1y=H*0.48;
+  ctx.fillStyle='rgba(68,255,170,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('Triad  e\u1d52\u1d43',p1x-40,26);
+  ctx.fillStyle='rgba(255,255,255,0.45)';ctx.font='12px monospace';
+  ctx.fillText('q_ab = e\u2071_a e\u02b2_b \u03b4_ij',p1x-50,42);
+  ctx.fillText('E\u1d43_i = \u221a(det q) e\u1d43_i  (densitized)',p1x-70,56);
+
+  const axLen=65;
+  const triadAxes=[
+    {dx:1,dy:0,col:'#ff7777',lbl:'e\u00b9'},
+    {dx:0,dy:-1,col:'#77ff77',lbl:'e\u00b2'},
+    {dx:-0.55,dy:-0.55,col:'#7799ff',lbl:'e\u00b3'}
+  ];
+  triadAxes.forEach((ax,i)=>{
+    const wobble=Math.sin(t*1.4+i*2.0)*7;
+    const ex=ax.dx*axLen+Math.cos(t*0.9+i)*wobble*0.4;
+    const ey=ax.dy*axLen+Math.sin(t*0.9+i)*wobble*0.4;
+    ctx.save();
+    ctx.strokeStyle=ax.col;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(p1x,p1y);ctx.lineTo(p1x+ex,p1y+ey);ctx.stroke();
+    const ang=Math.atan2(ey,ex);
+    ctx.fillStyle=ax.col;
+    ctx.beginPath();ctx.moveTo(p1x+ex,p1y+ey);
+    ctx.lineTo(p1x+ex-9*Math.cos(ang-0.4),p1y+ey-9*Math.sin(ang-0.4));
+    ctx.lineTo(p1x+ex-9*Math.cos(ang+0.4),p1y+ey-9*Math.sin(ang+0.4));
+    ctx.closePath();ctx.fill();
+    ctx.fillStyle=ax.col;ctx.font='bold 12px monospace';
+    ctx.fillText(ax.lbl,p1x+ex+5,p1y+ey+5);
+    ctx.restore();
+  });
+  // Deformation ellipse showing metric
+  const deform=0.6+0.4*Math.sin(t*0.7);
+  ctx.save();ctx.strokeStyle='rgba(68,255,170,0.2)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.ellipse(p1x,p1y,axLen*deform,axLen*(1.8-deform)*0.4,t*0.25,0,Math.PI*2);
+  ctx.stroke();ctx.setLineDash([]);ctx.restore();
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='12px monospace';
+  ctx.fillText('det(q)=(det e)\u00b2',p1x-50,p1y+85);
+
+  // --- Panel 2: Connection A^i_a ---
+  const p2x=pw+pw*0.5,p2y=H*0.48;
+  ctx.fillStyle='rgba(34,221,255,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('Ashtekar Connection',p2x-80,26);
+  ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='12px monospace';
+  ctx.fillText('A\u1d43_i = \u0393\u1d43_i + \u03b3 K\u1d43_i',p2x-65,42);
+  ctx.fillStyle='rgba(180,255,100,0.7)';ctx.font='12px monospace';
+  ctx.fillText('\u0393\u1d43_i = spin connection',p2x-80,57);
+  ctx.fillText('K\u1d43_i = extrinsic curvature',p2x-80,70);
+  ctx.fillText('\u03b3 = '+gamma.toFixed(2)+' (Barbero-Immirzi)',p2x-80,83);
+
+  // Curve with parallel-transported frame
+  const cPts=[];
+  for(let k=0;k<=40;k++){
+    const s=k/40;
+    cPts.push({x:p2x-100+200*s,y:p2y-20+45*Math.sin(s*Math.PI*2+t*0.7)});
+  }
+  ctx.save();
+  ctx.strokeStyle='rgba(34,221,255,0.65)';ctx.lineWidth=2;
+  ctx.beginPath();cPts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+
+  const fIdx=Math.floor(((t*0.45)%1)*40);
+  const fp=cPts[fIdx]||cPts[0];
+  const fAng=t*1.3+Math.sin(t*0.5)*0.6;
+  ctx.strokeStyle='#ffaa22';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(fp.x,fp.y);
+  ctx.lineTo(fp.x+24*Math.cos(fAng),fp.y+24*Math.sin(fAng));ctx.stroke();
+  ctx.fillStyle='#ffaa22';ctx.font='12px monospace';
+  ctx.fillText('h_e',fp.x+26*Math.cos(fAng),fp.y+26*Math.sin(fAng));
+  ctx.restore();
+
+  ctx.fillStyle='rgba(34,221,255,0.6)';ctx.font='12px monospace';
+  ctx.fillText('edge e',p2x-100,p2y-20+60);
+  ctx.fillStyle='rgba(255,170,34,0.85)';ctx.font='12px monospace';
+  ctx.fillText('h_e = P exp(\u222b_e A)',p2x-85,p2y+70);
+
+  // SU(2) gauge group circle
+  ctx.save();
+  ctx.strokeStyle='rgba(255,100,200,0.45)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.arc(p2x,p2y+28,36,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,100,200,0.5)';ctx.font='12px monospace';
+  ctx.fillText('SU(2)',p2x-15,p2y+32);
+  ctx.fillStyle='#ff80cc';ctx.beginPath();
+  ctx.arc(p2x+36*Math.cos(t*1.5),p2y+28+36*Math.sin(t*1.5),4,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+
+  // --- Panel 3: Quantum operators ---
+  const p3x=pw*2+pw*0.5,p3y=H*0.48;
+  ctx.fillStyle='rgba(255,150,80,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('Quantum Operators',p3x-80,26);
+  ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='12px monospace';
+  ctx.fillText('\u0125_e |s\u27e9 = j-rep matrix \u00d7 |s\u27e9',p3x-95,42);
+  ctx.fillText('\u0124_{S,f} |s\u27e9 = 8\u03c0\u03b3\u2113_P\u00b2\u00d7\u03c3^i|s\u27e9',p3x-95,56);
+
+  const qN=[{x:p3x-72,y:p3y-30},{x:p3x,y:p3y-30},{x:p3x+72,y:p3y-30}];
+  const qSp=[1,1.5];
+  qN.forEach(n=>{ctx.fillStyle='#44ffaa';ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(n.x,n.y,6,0,Math.PI*2);ctx.fill();ctx.stroke();});
+  qSp.forEach((j,i)=>{
+    const a=qN[i],b=qN[i+1];
+    const glow=Math.sin(t*2+i*1.5)*0.5+0.5;
+    ctx.save();ctx.strokeStyle=SPIN_COLORS[i];ctx.lineWidth=(2*j+1)*1.2;
+    ctx.shadowBlur=10*glow;ctx.shadowColor=SPIN_COLORS[i];
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='12px monospace';
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    ctx.fillText('j='+SPIN_LABELS[i],mx-12,my-8);ctx.restore();
+  });
+
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='12px monospace';
+  ctx.fillText('{h_e, F_S} = \u03b3\u2113_P\u00b2\u00d7\u03b4(e\u2229S)',p3x-95,p3y+28);
+  ctx.fillText('Dirac quantisation: ',p3x-95,p3y+42);
+  ctx.fillText('{ , } \u2192 (1/i\u0127)[ , ]',p3x-95,p3y+54);
+  ctx.fillStyle='rgba(68,255,170,0.55)';ctx.font='12px monospace';
+  ctx.fillText('A (2 edges):',p3x-95,p3y+78);
+  const av=(8*Math.PI*gamma*(Math.sqrt(1*2)+Math.sqrt(1.5*2.5))).toFixed(4);
+  ctx.fillStyle='rgba(68,255,170,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText(av+' \u2113_P\u00b2',p3x-95,p3y+92);
+
+  // Panel dividers
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pw,0);ctx.lineTo(pw,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(pw*2,0);ctx.lineTo(pw*2,H);ctx.stroke();
+
+  ctx.restore();
+}
+makePanZoom('c4',4,draw4);
+
+// ============================================================
+// TAB 5 — BACKGROUND INDEPENDENCE
+// ============================================================
+let dissProgress=0;
+
+function dissManual(){
+  dissProgress=parseFloat(document.getElementById('dissSlider').value)/100;
+  document.getElementById('dissVal').textContent=Math.round(dissProgress*100)+'%';
+  draw5();
+}
+
+function draw5(){
+  const cv=document.getElementById('c5');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const t=animOffsets[5];
+  let p=dissProgress;
+  if(animIds[5]!==null){
+    p=0.5+0.5*Math.sin(t*0.5);
+    document.getElementById('dissSlider').value=String(Math.round(p*100));
+    document.getElementById('dissVal').textContent=Math.round(p*100)+'%';
+  }
+
+  ctx.save();
+  ctx.translate(pans[5].x,pans[5].y);
+  ctx.scale(zooms[5],zooms[5]);
+
+  const hW=W/2;
+
+  // LEFT: Perturbative QG
+  ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fillRect(0,0,hW-4,H);
+  ctx.fillStyle='rgba(255,100,100,0.85)';ctx.font='bold 12px monospace';
+  ctx.fillText('Perturbative QG',16,26);
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='12px monospace';
+  ctx.fillText('Fixed background \u03b7_\u03bc\u03bd',16,42);
+  ctx.fillText('g_\u03bc\u03bd = \u03b7_\u03bc\u03bd + h_\u03bc\u03bd',16,55);
+
+  // Flat grid
+  const gA=Math.max(0,1-p*0.75);
+  ctx.save();ctx.strokeStyle='rgba(160,160,255,'+gA.toFixed(2)+')';ctx.lineWidth=0.8;
+  const gSt=28,gX=14,gY=72,gW=hW-28,gH2=H-110;
+  for(let c=0;c*gSt<=gW;c++){ctx.beginPath();ctx.moveTo(gX+c*gSt,gY);ctx.lineTo(gX+c*gSt,gY+gH2);ctx.stroke();}
+  for(let r=0;r<=9;r++){ctx.beginPath();ctx.moveTo(gX,gY+r*gH2/9);ctx.lineTo(gX+gW,gY+r*gH2/9);ctx.stroke();}
+  ctx.restore();
+
+  // Graviton ripple
+  const gcx=hW/2,gcy=H*0.45;
+  ctx.save();ctx.strokeStyle='rgba(255,100,100,0.5)';ctx.lineWidth=1.5;
+  for(let r=20;r<130;r+=22){
+    const a=Math.max(0,Math.sin((r-t*28)%130/130*Math.PI*2))*(1-p*0.5);
+    ctx.globalAlpha=a;
+    ctx.beginPath();ctx.arc(gcx,gcy,r,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+  ctx.fillStyle='rgba(255,100,100,0.5)';ctx.font='12px monospace';
+  ctx.fillText('graviton h_\u03bc\u03bd',gcx-32,gcy-130);
+
+  ctx.fillStyle='rgba(255,100,100,0.4)';ctx.font='12px monospace';
+  ctx.fillText('\u2022 Requires background metric',16,H-96);
+  ctx.fillText('\u2022 Non-renormalizable at 2-loop',16,H-82);
+  ctx.fillText('\u2022 Background-dependent S-matrix',16,H-68);
+  ctx.fillText('\u2022 Geometry fixed, not quantised',16,H-54);
+
+  // RIGHT: LQG
+  ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fillRect(hW+4,0,hW-4,H);
+  ctx.fillStyle='rgba(68,255,170,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('Loop Quantum Gravity',hW+16,26);
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='12px monospace';
+  ctx.fillText('No background. Geom \u2208 quantum state.',hW+16,42);
+  ctx.fillText('\u210b_kin = span{|s\u27e9} spin-network states',hW+16,55);
+
+  // Smooth manifold fading
+  const smA=Math.max(0,1-p*2);
+  if(smA>0){
+    ctx.save();ctx.globalAlpha=smA;
+    ctx.strokeStyle='rgba(80,160,255,0.65)';ctx.lineWidth=1.4;
+    const sx=hW+14,sy=72,sw=hW-28,sh=H-130;
+    for(let c=0;c<=8;c++){
+      ctx.beginPath();
+      for(let r=0;r<=16;r++){
+        const rx=sx+c*sw/8,ry=sy+r*sh/16+Math.sin(c*0.85+r*0.55+t*0.3)*10;
+        r===0?ctx.moveTo(rx,ry):ctx.lineTo(rx,ry);
+      }ctx.stroke();
+    }
+    for(let r=0;r<=6;r++){
+      ctx.beginPath();
+      for(let c=0;c<=24;c++){
+        const rx=sx+c*sw/24+Math.sin(r*1.1+c*0.4+t*0.4)*8;
+        const ry=sy+r*sh/6;
+        c===0?ctx.moveTo(rx,ry):ctx.lineTo(rx,ry);
+      }ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Spin network appearing
+  const snA=Math.min(1,p*1.6);
+  if(snA>0){
+    const snN=[
+      {x:hW+55,y:95},{x:hW+155,y:88},{x:hW+255,y:108},{x:hW+110,y:175},
+      {x:hW+220,y:185},{x:hW+65,y:265},{x:hW+175,y:255},{x:hW+290,y:245},
+      {x:hW+125,y:355},{x:hW+255,y:342}
+    ];
+    const snE=[[0,1,0],[1,2,1],[0,3,2],[1,3,1],[1,4,0],[2,4,3],[3,5,1],[3,6,0],[4,6,2],[4,7,1],[5,8,3],[6,8,0],[6,9,2],[7,9,1]];
+    ctx.save();ctx.globalAlpha=snA;
+    snE.forEach(([a,b,si])=>{
+      const na=snN[a],nb=snN[b];const j=SPIN_VALS[si];
+      ctx.strokeStyle=SPIN_COLORS[si];ctx.lineWidth=(2*j+1)*0.9;
+      ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);ctx.stroke();
+      const mx=(na.x+nb.x)/2,my=(na.y+nb.y)/2;
+      ctx.fillStyle='rgba(255,255,255,0.55)';ctx.font='12px monospace';
+      ctx.fillText(SPIN_LABELS[si],mx+2,my-3);
+    });
+    snN.forEach(n=>{ctx.fillStyle='#44ffaa';ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(n.x,n.y,5,0,Math.PI*2);ctx.fill();ctx.stroke();});
+    ctx.restore();
+  }
+
+  ctx.fillStyle='rgba(68,255,170,0.4)';ctx.font='12px monospace';
+  ctx.fillText('\u2022 No preferred background',hW+16,H-96);
+  ctx.fillText('\u2022 Geometry is a quantum observable',hW+16,H-82);
+  ctx.fillText('\u2022 Diffeomorphism-invariant by construction',hW+16,H-68);
+  ctx.fillText('\u2022 Smooth spacetime = coarse-graining limit',hW+16,H-54);
+
+  // Divider
+  ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(hW,0);ctx.lineTo(hW,H);ctx.stroke();
+
+  // Central arrow
+  const ay2=H/2;
+  ctx.save();
+  ctx.strokeStyle='rgba(68,255,170,0.6)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(hW-36,ay2);ctx.lineTo(hW+36,ay2);ctx.stroke();
+  ctx.fillStyle='rgba(68,255,170,0.8)';
+  ctx.beginPath();ctx.moveTo(hW+36,ay2);ctx.lineTo(hW+24,ay2-6);ctx.lineTo(hW+24,ay2+6);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='bold 12px monospace';
+  ctx.fillText('LQG',hW-14,ay2-10);
+  ctx.restore();
+
+  ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font='bold 12px monospace';
+  ctx.fillText('Dissolution: '+Math.round(p*100)+'%',hW-58,H-16);
+
+  ctx.restore();
+}
+makePanZoom('c5',5,draw5);
+
+// ============================================================
+// INIT
+// ============================================================
+window.animSpeed=0.1;
+window.zoomX=1;
+buildProofLists();
+buildSpinLegend('spinLegend0');
+buildSpinLegend('spinLegendB');
+requestAnimationFrame(()=>{draw0();draw1();draw2();draw3();draw4();draw5();});
+
+window.addEventListener('resize',()=>{
+  const active=[...document.querySelectorAll('.pane')].findIndex(p=>p.classList.contains('active'));
+  if(active===0) draw0();
+  if(active===1) draw1();
+  if(active===2) draw2();
+  if(active===3) draw3();
+  if(active===4) draw4();
+  if(active===5) draw5();
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+<script src="auto-start.js"></script>
+</body>
+</html>

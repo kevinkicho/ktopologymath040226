@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17 · Fiber Bundles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05050f;color:#ffe0ff;font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden}
+header{padding:18px 32px;display:flex;align-items:center;gap:20px;border-bottom:1px solid rgba(255,85,204,0.25);background:rgba(5,5,20,0.9)}
+.back{color:#ff55cc;text-decoration:none;font-size:1.1rem;opacity:.7;transition:opacity .2s}.back:hover{opacity:1}
+h1{font-family:'Orbitron',sans-serif;font-size:1.55rem;color:#ff55cc;text-shadow:0 0 20px #ff55cc88}
+.subtitle{font-size:.8rem;opacity:.55;margin-left:auto}
+.tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,85,204,0.2);background:rgba(10,10,30,0.8);padding:0 24px;flex-shrink:0;overflow-x:auto}
+.tab{padding:12px 22px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.85rem;color:#ff55cc99;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:#ff55cc;border-bottom-color:#ff55cc;text-shadow:0 0 10px #ff55cc88}
+.tab:hover:not(.active){color:#ff55cccc}
+.workspace{display:flex;height:calc(100vh - 145px);overflow:hidden}
+.sidebar{width:240px;min-width:200px;background:rgba(10,10,28,0.95);border-right:1px solid rgba(255,85,204,0.15);padding:18px 14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.sidebar.right{border-right:none;border-left:1px solid rgba(255,85,204,0.15)}
+.main-area{flex:1;position:relative;background:#06060f;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+label{font-size:.75rem;color:#ff55cc99;display:block;margin-bottom:3px}
+input[type=range]{width:100%;accent-color:#ff55cc;cursor:pointer}
+.val{color:#ff55cc;font-size:.8rem;text-align:right}
+button{background:rgba(255,85,204,0.1);border:1px solid rgba(255,85,204,0.35);color:#ff55cc;padding:7px 12px;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.78rem;width:100%;transition:all .2s}
+button:hover{background:rgba(255,85,204,0.22);box-shadow:0 0 10px #ff55cc44}
+button.active{background:rgba(255,85,204,0.3);box-shadow:0 0 14px #ff55cc66}
+.info-box{background:rgba(255,85,204,0.06);border:1px solid rgba(255,85,204,0.2);border-radius:6px;padding:10px;font-size:.72rem;line-height:1.55;color:#ffaaee}
+.sep{height:1px;background:rgba(255,85,204,0.15);margin:4px 0}
+.proof-panel{position:fixed;bottom:0;left:0;right:0;height:54px;background:rgba(8,8,20,0.97);border-top:1px solid rgba(255,85,204,0.3);transition:height .35s ease;z-index:100;overflow:hidden}
+.proof-panel.open{height:340px}
+.proof-header{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer}
+.proof-header h3{color:#ff55cc;font-family:'Orbitron',sans-serif;font-size:.8rem;flex:1}
+.proof-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px}
+.ptab{background:rgba(255,85,204,0.08);border:1px solid rgba(255,85,204,0.28);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.72rem;color:#ff55cc99;white-space:nowrap;transition:all .2s}
+.ptab.active,.ptab:hover{background:rgba(255,85,204,0.22);color:#ff55cc}
+.proof-content{padding:4px 24px 20px;overflow-y:auto;max-height:260px;font-size:.83rem;line-height:1.75;color:#ffddff}
+.pan-mode canvas{cursor:grab}
+.pan-mode canvas:active{cursor:grabbing}
+body{padding-bottom:38px}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← back</a>
+  <h1>17 · Fiber Bundles</h1>
+  <span class="subtitle">Road to Reality Ch. 15 — Bundles, Connections & Holonomy</span>
+</header>
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Möbius Band</div>
+  <div class="tab" onclick="switchTab(1)">Hopf Fibration</div>
+  <div class="tab" onclick="switchTab(2)">Connection & Holonomy</div>
+  <div class="tab" onclick="switchTab(3)">U(1) Gauge / A-B</div>
+  <div class="tab" onclick="switchTab(4)">SU(2) Yang-Mills</div>
+  <div class="tab" onclick="switchTab(5)">Chern Classes</div>
+</div>
+
+<!-- TAB 0: MÖBIUS -->
+<div id="panel0" class="workspace" data-role="panel">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Möbius band: non-trivial $\mathbb{R}$-bundle over $S^1$. One full loop twists fiber by 180°.</div>
+    <div class="sep"></div>
+    <label>Twist (half-turns) <span class="val" id="v_twist">1</span></label>
+    <input type="range" id="twistN" min="0" max="4" step="1" value="1" oninput="updateMobius()">
+    <label>Tube width <span class="val" id="v_tw">0.50</span></label>
+    <input type="range" id="tubeW" min="0.1" max="1.5" step="0.05" value="0.5" oninput="updateMobius()">
+    <label>View angle X <span class="val" id="v_rx">0.40</span></label>
+    <input type="range" id="mRx" min="-1.5" max="1.5" step="0.05" value="0.4" oninput="updateMobius()">
+    <label>View angle Y <span class="val" id="v_ry">0.60</span></label>
+    <input type="range" id="mRy" min="-3.14" max="3.14" step="0.05" value="0.6" oninput="updateMobius()">
+    <div class="sep"></div>
+    <button id="mobAnimBtn" class="btn" onclick="animMobius()">▶ Rotate</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.7rem;line-height:1.7">
+      Orientable: n even<br>Non-orientable: n odd<br><br>Euler char: $\chi=0$<br>(single edge when n=1)
+    </div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="mobC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Fiber bundle</b> $(E,B,F,\pi)$:<br>
+      $E$ = total space<br>
+      $B$ = base space<br>
+      $F$ = fiber<br>
+      $\pi: E\to B$ = projection<br><br>
+      Trivial bundle: $E=B\times F$<br>
+      Möbius: $E\neq S^1\times\mathbb{R}$<br><br>
+      Transition fn:<br>$g_{12}: U_1\cap U_2 \to G$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: HOPF -->
+<div id="panel1" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Hopf fibration:<br>$S^1 \hookrightarrow S^3 \to S^2$<br>Each fiber is a circle, non-trivially linked with every other.</div>
+    <div class="sep"></div>
+    <label>Fibers shown <span class="val" id="v_nFibers">12</span></label>
+    <input type="range" id="nFibers" min="4" max="32" step="4" value="12" oninput="drawHopf()">
+    <label>View Rx <span class="val" id="v_hRx">0.50</span></label>
+    <input type="range" id="hRx" min="-1.5" max="1.5" step="0.05" value="0.5" oninput="drawHopf()">
+    <label>View Ry <span class="val" id="v_hRy">0.30</span></label>
+    <input type="range" id="hRy" min="-3.14" max="3.14" step="0.05" value="0.3" oninput="drawHopf()">
+    <label>Stereographic scale <span class="val" id="v_stsc">1.0</span></label>
+    <input type="range" id="stsc" min="0.5" max="2.0" step="0.1" value="1" oninput="drawHopf()">
+    <div class="sep"></div>
+    <button id="hopfAnimBtn" class="btn" onclick="animHopf()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.7rem">
+      Every point on $S^2$ has exactly one fiber circle in $S^3$. Any two distinct fibers are <b>linked</b> exactly once (Hopf link).
+    </div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="hopfC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Hopf invariant:</b><br>
+      $H: \pi_3(S^2)\to\mathbb{Z}$<br>
+      The Hopf fibration generates $\pi_3(S^2)\cong\mathbb{Z}$.<br><br>
+      <b>Stereographic proj:</b><br>
+      $(x_1,x_2,x_3,x_4)\mapsto$<br>
+      $\left(\frac{x_1}{1-x_4},\frac{x_2}{1-x_4},\frac{x_3}{1-x_4}\right)$<br><br>
+      Related to spinors:<br>
+      $S^3 \cong SU(2)$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: CONNECTION -->
+<div id="panel2" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Connection = rule for parallel transport along paths. Curvature = failure of commutativity.</div>
+    <div class="sep"></div>
+    <label>Loop latitude (°) <span class="val" id="v_lat">45</span></label>
+    <input type="range" id="lat" min="5" max="85" step="5" value="45" oninput="updateConn()">
+    <label>Curvature type</label>
+    <button onclick="setCurv(0)" id="cvBtn0">Sphere (K=1)</button>
+    <button onclick="setCurv(1)" id="cvBtn1">Flat (K=0)</button>
+    <button onclick="setCurv(2)" id="cvBtn2">Hyperbolic (K<0)</button>
+    <div class="sep"></div>
+    <button id="connAnimBtn" class="btn" onclick="animConn()">▶ Animate Transport</button>
+    <div class="sep"></div>
+    <div class="info-box" id="connInfo" style="font-size:.72rem;line-height:1.65">
+      Holonomy angle:<br>…
+    </div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="connC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Levi-Civita connection:</b><br>
+      $\nabla_X Y$ preserves metric<br>and is torsion-free.<br><br>
+      <b>Curvature 2-form:</b><br>
+      $\Omega = d\omega + \omega\wedge\omega$<br><br>
+      <b>Holonomy</b> around loop $\gamma$:<br>
+      $\text{Hol}(\gamma) = \mathcal{P}\exp\!\oint_\gamma A$<br><br>
+      For sphere at latitude $\lambda$:<br>
+      $\Delta\phi = 2\pi\sin\lambda$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: U(1) GAUGE / AHARONOV-BOHM -->
+<div id="panel3" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">U(1) principal bundle over spacetime. Fiber = circle $S^1$. Connection 1-form $A_\mu$ = EM 4-potential. Phase $\Phi = \frac{e}{\hbar}\oint A_\mu dx^\mu$.</div>
+    <div class="sep"></div>
+    <label>Solenoid radius <span class="val" id="v_solR">0.18</span></label>
+    <input type="range" id="solR" min="0.05" max="0.35" step="0.01" value="0.18" oninput="drawAB()">
+    <label>Path separation <span class="val" id="v_pathSep">0.30</span></label>
+    <input type="range" id="pathSep" min="0.1" max="0.6" step="0.01" value="0.30" oninput="drawAB()">
+    <label>Flux Φ/Φ₀ <span class="val" id="v_flux">0.50</span></label>
+    <input type="range" id="abFlux" min="0" max="1" step="0.01" value="0.50" oninput="drawAB()">
+    <div class="sep"></div>
+    <button id="abAnimBtn" class="btn" onclick="animAB()">▶ Animate Paths</button>
+    <div class="sep"></div>
+    <div class="info-box" id="abInfo" style="font-size:.72rem;line-height:1.65">Phase difference: …</div>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.68rem;line-height:1.65">
+      $A_\mu$ = connection 1-form<br>
+      $F_{\mu\nu} = \partial_\mu A_\nu - \partial_\nu A_\mu$<br><br>
+      Outside solenoid:<br>$\mathbf{B}=0$ but $\mathbf{A}\neq 0$<br><br>
+      Phase shift:<br>$\Delta\Phi = \frac{e}{\hbar}\oint \mathbf{A}\cdot d\mathbf{l} = \frac{e\Phi_B}{\hbar}$
+    </div>
+  </div>
+  <div class="main-area"><canvas id="abC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Gauge bundle structure:</b><br>
+      Base: spacetime $M$<br>
+      Fiber: $U(1)\cong S^1$<br>
+      Structure group: $U(1)$<br><br>
+      <b>Aharonov-Bohm 1959:</b><br>
+      Quantum phase is physical even when $F=0$. Holonomy of $A$ around solenoid ≠ 0.<br><br>
+      <b>Wilson loop:</b><br>
+      $W(\gamma)=\exp\!\left(i\oint_\gamma A\right)$<br><br>
+      Interference fringe shift:<br>
+      $\delta = \frac{e\Phi_B}{h}$ fringes
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: SU(2) YANG-MILLS -->
+<div id="panel4" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">$SU(2)$ principal bundle. Fiber $\cong S^3$. Connection $A$ is $\mathfrak{su}(2)$-valued. Curvature $F=dA+A\wedge A$. Instanton number $k\in\mathbb{Z}$.</div>
+    <div class="sep"></div>
+    <label>Instanton scale $\rho$ <span class="val" id="v_rho">1.00</span></label>
+    <input type="range" id="ymRho" min="0.3" max="2.5" step="0.05" value="1.0" oninput="drawYM()">
+    <label>Curvature slice z <span class="val" id="v_ymZ">0.00</span></label>
+    <input type="range" id="ymZ" min="-2" max="2" step="0.1" value="0" oninput="drawYM()">
+    <label>View angle <span class="val" id="v_ymAng">0.00</span></label>
+    <input type="range" id="ymAng" min="0" max="6.28" step="0.05" value="0" oninput="drawYM()">
+    <div class="sep"></div>
+    <button id="ymAnimBtn" class="btn" onclick="animYM()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" id="ymInfo" style="font-size:.72rem;line-height:1.65">Instanton number k = 1</div>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.68rem;line-height:1.65">
+      $k = \frac{1}{8\pi^2}\int \text{tr}(F\wedge F)$<br><br>
+      BPST instanton:<br>$A_\mu = \frac{2\rho^2}{r^2(\rho^2+r^2)}\bar\eta_{\mu\nu}^a x_\nu\,T^a$<br><br>
+      Self-dual: $F=\star F$<br>Minimizes $S_{YM}$ in sector $k$
+    </div>
+  </div>
+  <div class="main-area"><canvas id="ymC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Non-abelian curvature:</b><br>
+      $F = dA + A\wedge A$<br>
+      $= \frac{1}{2}F_{\mu\nu}dx^\mu\wedge dx^\nu$<br><br>
+      <b>Yang-Mills action:</b><br>
+      $S_{YM}=\frac{1}{g^2}\int\text{tr}(F\wedge\!\star\! F)$<br><br>
+      <b>Topological charge:</b><br>
+      $Q = \frac{1}{8\pi^2}\int\text{tr}(F\wedge F)$<br>$\in \mathbb{Z}$<br><br>
+      <b>BPS bound:</b><br>
+      $S_{YM}\geq \frac{8\pi^2}{g^2}|k|$<br>equality iff $F=\pm\star F$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: CHARACTERISTIC CLASSES -->
+<div id="panel5" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Chern classes $c_k\in H^{2k}(M;\mathbb{Z})$ are topological obstructions to trivializing a bundle. First Chern class $c_1 = [F/2\pi]$ for $U(1)$ bundles.</div>
+    <div class="sep"></div>
+    <label>Winding number $n$ <span class="val" id="v_wind">1</span></label>
+    <input type="range" id="windN" min="-3" max="3" step="1" value="1" oninput="drawChern()">
+    <div class="sep"></div>
+    <button id="chAnimBtn" class="btn" onclick="animChern()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" id="chernInfo" style="font-size:.72rem;line-height:1.65">
+      $c_1 = n$ (integer winding)
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.68rem;line-height:1.65">
+      Chern-Weil:<br>$c_k = \left[\frac{i}{2\pi}F\right]^k$<br><br>
+      Pontryagin classes:<br>$p_k(E_\mathbb{R}) = (-1)^k c_{2k}(E_\mathbb{C})$<br><br>
+      Euler class:<br>$e(TM)$ integrates to $\chi(M)$
+    </div>
+  </div>
+  <div class="main-area"><canvas id="chernC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Chern-Weil theorem:</b><br>
+      Cohomology class of curvature polynomial is a topological invariant — independent of connection.<br><br>
+      <b>$c_1$ for $U(1)$ bundle:</b><br>
+      $\int_\Sigma c_1 = \frac{1}{2\pi}\int_\Sigma F = n\in\mathbb{Z}$<br><br>
+      <b>$c_2$ for $SU(2)$ bundle:</b><br>
+      $c_2 = \frac{1}{8\pi^2}\text{tr}(F\wedge F)$<br>= instanton number<br><br>
+      <b>Atiyah-Singer:</b><br>
+      $\text{ind}(D) = \int_M \hat{A}(TM)\text{ch}(E)$
+    </div>
+  </div>
+</div>
+
+<div class="proof-panel" id="proofPanel">
+  <div class="proof-header" onclick="toggleProof()">
+    <span style="color:#ff55cc;font-size:1.1rem">▲</span>
+    <h3>Proofs & Theory</h3>
+    <span style="font-size:.75rem;color:#ff55cc88">click to expand</span>
+  </div>
+  <div class="proof-tabs">
+    <div class="ptab active" onclick="showProof(0)">Fiber Bundle Def</div>
+    <div class="ptab" onclick="showProof(1)">Möbius Topology</div>
+    <div class="ptab" onclick="showProof(2)">Hopf Fibration</div>
+    <div class="ptab" onclick="showProof(3)">Connection & Curvature</div>
+    <div class="ptab" onclick="showProof(4)">Gauge Fields as Bundles</div>
+    <div class="ptab" onclick="showProof(5)">Aharonov-Bohm Effect</div>
+    <div class="ptab" onclick="showProof(6)">Yang-Mills Instantons</div>
+    <div class="ptab" onclick="showProof(7)">Characteristic Classes</div>
+  </div>
+  <div class="proof-content" id="proofContent"></div>
+</div>
+
+<script>
+  window.animSpeed=0.1;
+const PROOFS=[
+  {title:"Fiber Bundle Definition",body:`
+A **fiber bundle** is a tuple $(E, B, F, \\pi)$ where $\\pi: E \\to B$ is a continuous surjection satisfying local triviality: each point $b \\in B$ has a neighborhood $U$ with $\\pi^{-1}(U) \\cong U \\times F$ (homeomorphism compatible with projection).
+- $E$ = total space, $B$ = base space, $F$ = fiber, $G$ = structure group
+- **Sections**: maps $s: B \\to E$ with $\\pi \\circ s = \\text{id}_B$
+- **Trivial bundle**: $E = B \\times F$, exists globally
+- **Non-trivial**: transition functions $g_{ij}: U_i \\cap U_j \\to G$ cannot all be made constant
+
+Examples: Tangent bundle $TM$ (fiber = $T_pM$), frame bundle, spinor bundle, Möbius band ($F=\\mathbb{R}$, $B=S^1$, $G=\\mathbb{Z}/2$).`},
+  {title:"Möbius Band Topology",body:`
+The Möbius band is constructed from $[0,1] \\times \\mathbb{R}$ by identifying $(0,y) \\sim (1,-y)$.
+As a fiber bundle over $S^1$: the structure group is $G = \\mathbb{Z}/2 = \\{+1,-1\\}$, and the single nontrivial transition function maps $y \\mapsto -y$ around the loop.
+
+**Non-orientability**: Traversing the base circle once returns the fiber with reversed orientation.
+$$\\pi_1(B) = \\pi_1(S^1) = \\mathbb{Z}, \\quad \\text{holonomy} = (-1)^n \\text{ for } n \\text{ half-turns}$$
+The boundary of a Möbius band with 1 half-turn is a single circle (Euler char $\\chi=0$). With 0 half-turns it's a cylinder with two boundary circles.`},
+  {title:"Hopf Fibration",body:`
+The Hopf map $h: S^3 \\to S^2$ is defined via the identification of $S^3 \\subset \\mathbb{C}^2$ and $S^2 \\cong \\mathbb{CP}^1$:
+$$(z_1, z_2) \\mapsto [z_1 : z_2] \\in \\mathbb{CP}^1 \\cong S^2$$
+Each fiber $h^{-1}(p)$ is a great circle $S^1 \\subset S^3$.
+The **Hopf invariant** counts how many times one fiber links another:
+$$H(h) = 1 \\in \\mathbb{Z} \\cong \\pi_3(S^2)$$
+Any two distinct fibers form a **Hopf link** — linked exactly once, yet no individual fiber is knotted.
+The connection on this $U(1)$ principal bundle has curvature equal to the area form on $S^2$, making it the fundamental instanton.`},
+  {title:"Connection and Curvature",body:`
+A **connection** on a principal $G$-bundle is a $\\mathfrak{g}$-valued 1-form $A$ satisfying equivariance. It defines:
+- **Covariant derivative**: $D = d + A$
+- **Parallel transport**: lift of curves from $B$ to $E$
+- **Curvature**: $F = dA + A \\wedge A = DA$ (a $\\mathfrak{g}$-valued 2-form)
+
+**Holonomy** around a loop $\\gamma$ is:
+$$\\text{Hol}(\\gamma) = \\mathcal{P}\\exp\\left(-\\oint_\\gamma A\\right) \\in G$$
+where $\\mathcal{P}$ is path-ordering. By the non-abelian Stokes theorem, holonomy = $\\exp(-\\int_\\Sigma F)$ for flat connections. For the sphere at latitude $\\lambda$: $\\Delta\\phi = 2\\pi\\sin\\lambda$.`},
+  {title:"Gauge Fields as Principal Bundles",body:`
+A **gauge theory** is a connection on a principal $G$-bundle over spacetime $M$:
+- **Electromagnetic field**: $U(1)$ bundle, $A = A_\\mu dx^\\mu$ (4-potential), $F = dA$ (Faraday 2-form)
+- **Yang-Mills**: $SU(2)$ or $SU(3)$ bundle, $A$ is $\\mathfrak{su}(N)$-valued
+- **Gauge transformation**: $A \\to gAg^{-1} + g\\,dg^{-1}$, $F \\to gFg^{-1}$
+
+The Yang-Mills action: $S_{YM} = \\int_M \\text{tr}(F \\wedge \\star F)$
+
+**Instantons**: self-dual solutions $F = \\star F$ to Yang-Mills equations, minimize action in their topological sector. The BPST instanton on $S^4$ is the Hopf bundle pulled back from $S^2$.`},
+  {title:"Aharonov-Bohm Effect",body:`
+The Aharonov-Bohm effect (1959) demonstrates that the electromagnetic potential $A_\\mu$ is physically meaningful even when $F_{\\mu\\nu}=0$.
+
+**Setup**: An infinite solenoid confines magnetic flux $\\Phi_B$ to its interior. Outside: $\\mathbf{B}=0$ but $\\mathbf{A}\\neq 0$ (non-zero vector potential with zero curl).
+
+**Quantum phase**: A charged particle following path $\\gamma$ accumulates phase
+$$\\Phi = \\frac{e}{\\hbar}\\int_\\gamma A_\\mu dx^\\mu$$
+Two paths $\\gamma_1, \\gamma_2$ encircling the solenoid on opposite sides have **different phases** even though $\\mathbf{B}=0$ along each path:
+$$\\Delta\\Phi = \\frac{e}{\\hbar}\\oint A_\\mu dx^\\mu = \\frac{e\\Phi_B}{\\hbar}$$
+This is precisely the **holonomy** of the $U(1)$ connection $A$ around the solenoid. The result is gauge-invariant (only the integral around the loop matters), confirming that $A$ is a connection 1-form on a non-trivial $U(1)$ bundle over $\\mathbb{R}^2\\setminus\\{0\\}\\cong S^1$.
+
+**Topological content**: The first Chern class $c_1 = \\Phi_B/\\Phi_0 \\in \\mathbb{Z}$ (for quantized flux). The interference pattern shifts by $\\Delta\\Phi/2\\pi = e\\Phi_B/h$ fringes. Experimentally confirmed by Chambers (1960) and Tonomura (1986) with toroidal magnets.`},
+  {title:"Yang-Mills Instantons",body:`
+**Instantons** are finite-action solutions to the Euclidean Yang-Mills equations on $S^4$, classified by the second Chern class (instanton number):
+$$k = \\frac{1}{8\\pi^2}\\int_{S^4}\\text{tr}(F\\wedge F) \\in \\mathbb{Z}$$
+The **BPS bound** follows from $(F\\mp\\star F)^2\\geq 0$:
+$$S_{YM} = \\frac{1}{g^2}\\int\\text{tr}(F\\wedge\\star F) \\geq \\frac{8\\pi^2}{g^2}|k|$$
+Equality holds iff $F = \\star F$ (self-dual, $k>0$) or $F = -\\star F$ (anti-self-dual, $k<0$).
+
+**BPST instanton** ($k=1$, Belavin-Polyakov-Schwarz-Tyupkin 1975):
+$$A_\\mu^a = \\frac{2\\rho^2}{r^2(r^2+\\rho^2)}\\bar{\\eta}_{\\mu\\nu}^a x_\\nu$$
+where $\\bar{\\eta}$ is the 't Hooft symbol and $\\rho$ is the instanton size.
+
+**Physical consequences**: Instantons mediate tunneling between topologically distinct vacua $|n\\rangle$. The $\\theta$-vacuum $|\\theta\\rangle = \\sum_n e^{in\\theta}|n\\rangle$ breaks CP symmetry — the strong CP problem. Instanton contributions to path integrals explain the $U(1)_A$ anomaly and generate masses for pseudoscalar mesons.`},
+  {title:"Characteristic Classes",body:`
+**Characteristic classes** are cohomology classes attached to vector bundles that measure their topological non-triviality. They are computed from the curvature via the **Chern-Weil homomorphism**.
+
+**Chern classes** $c_k(E) \\in H^{2k}(M;\\mathbb{Z})$ for a complex vector bundle $E$:
+$$c(E) = \\det\\!\\left(I + \\frac{iF}{2\\pi}\\right) = 1 + c_1 + c_2 + \\cdots$$
+- $c_1 = \\frac{i}{2\\pi}\\text{tr}(F)$ — first Chern class, vanishes for $SU(n)$ bundles
+- $c_2 = \\frac{-1}{8\\pi^2}\\left[\\text{tr}(F\\wedge F) - \\text{tr}(F)\\wedge\\text{tr}(F)\\right]$ — second Chern class = instanton number
+
+**Pontryagin classes** $p_k(E) \\in H^{4k}(M;\\mathbb{Z})$ for real bundles:
+$$p_k(E) = (-1)^k c_{2k}(E\\otimes\\mathbb{C})$$
+The **signature theorem**: $\\text{sign}(M^{4k}) = \\int_M L(p_1,p_2,\\ldots)$ (Hirzebruch $L$-polynomial).
+
+**Euler class** $e(TM)$: integrates to the Euler characteristic $\\chi(M) = \\int_M e(TM)$ (Gauss-Bonnet-Chern theorem).
+
+**Atiyah-Singer index theorem** unifies all of these:
+$$\\text{ind}(D) = \\int_M \\hat{A}(TM)\\wedge\\text{ch}(E)$$
+relating the analytical index of a Dirac operator to topological invariants.`}
+];
+
+let activeTab=0;
+const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+
+function togglePan(){
+  panMode=!panMode;
+  document.querySelectorAll('.panBtn').forEach(b=>{b.classList.toggle('active',panMode);b.textContent=panMode?'✋ On':'✋ Pan';});
+  document.body.classList.toggle('pan-mode',panMode);
+}
+function resetPan(){pans[activeTab].x=0;pans[activeTab].y=0;redrawTab();}
+function _addPan(canvas,idx,fn){
+  canvas.addEventListener('mousedown',e=>{if(!panMode)return;_panDrag=true;_panTab=idx;_panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;e.preventDefault();},{passive:false});
+  canvas.addEventListener('mousemove',e=>{if(!_panDrag||_panTab!==idx)return;pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;fn();});
+  canvas.addEventListener('mouseup',()=>_panDrag=false);
+  canvas.addEventListener('mouseleave',()=>_panDrag=false);
+}
+function _cancelAllAnims17(){
+  if(mobAnimId){cancelAnimationFrame(mobAnimId);mobAnimId=null;}
+  const mobBtn=document.getElementById('mobAnimBtn');
+  if(mobBtn){mobBtn.textContent='▶ Rotate';mobBtn.classList.remove('active');}
+  if(hopfAnimId){cancelAnimationFrame(hopfAnimId);hopfAnimId=null;}
+  const hopfBtn=document.getElementById('hopfAnimBtn');
+  if(hopfBtn){hopfBtn.textContent='▶ Animate';hopfBtn.classList.remove('active');}
+  if(connAnimId){cancelAnimationFrame(connAnimId);connAnimId=null;}
+  const connBtn=document.getElementById('connAnimBtn');
+  if(connBtn){connBtn.textContent='▶ Animate Transport';connBtn.classList.remove('active');}
+  if(abAnimId){cancelAnimationFrame(abAnimId);abAnimId=null;}
+  const abBtn=document.getElementById('abAnimBtn');
+  if(abBtn){abBtn.textContent='▶ Animate Paths';abBtn.classList.remove('active');}
+  if(ymAnimId){cancelAnimationFrame(ymAnimId);ymAnimId=null;}
+  const ymBtn=document.getElementById('ymAnimBtn');
+  if(ymBtn){ymBtn.textContent='▶ Animate';ymBtn.classList.remove('active');}
+  if(chAnimId){cancelAnimationFrame(chAnimId);chAnimId=null;}
+  const chBtn=document.getElementById('chAnimBtn');
+  if(chBtn){chBtn.textContent='▶ Animate';chBtn.classList.remove('active');}
+}
+function switchTab(t){
+  _cancelAllAnims17();
+  activeTab=t;
+  ['panel0','panel1','panel2','panel3','panel4','panel5'].forEach((id,i)=>document.getElementById(id).style.display=i===t?'flex':'none');
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===t));
+  redrawTab();
+  // Auto-start animations for all tabs
+  if(t===0)animMobius();
+  if(t===1)animHopf();
+  if(t===2)animConn();
+  if(t===3)animAB();
+  if(t===4)animYM();
+  if(t===5)animChern();
+}
+function redrawTab(){
+  if(activeTab===0)drawMobius();
+  else if(activeTab===1)drawHopf();
+  else if(activeTab===2)drawConn();
+  else if(activeTab===3)drawAB();
+  else if(activeTab===4)drawYM();
+  else if(activeTab===5)drawChern();
+}
+
+const mobC=document.getElementById('mobC');
+const hopfC=document.getElementById('hopfC');
+const connC=document.getElementById('connC');
+const abC=document.getElementById('abC');
+const ymC=document.getElementById('ymC');
+const chernC=document.getElementById('chernC');
+const mCtx=mobC.getContext('2d');
+const hCtx=hopfC.getContext('2d');
+const cCtx=connC.getContext('2d');
+const abCtx=abC.getContext('2d');
+const ymCtx=ymC.getContext('2d');
+const chCtx=chernC.getContext('2d');
+
+function resizeCanvas(c){
+  const r=c.getBoundingClientRect();
+  if(c.width!==Math.floor(r.width)||c.height!==Math.floor(r.height)){c.width=Math.floor(r.width);c.height=Math.floor(r.height);}
+}
+
+function rot3D(p,rx,ry){
+  let[x,y,z]=p;
+  let y2=y*Math.cos(rx)-z*Math.sin(rx),z2=y*Math.sin(rx)+z*Math.cos(rx);
+  let x3=x*Math.cos(ry)+z2*Math.sin(ry),z3=-x*Math.sin(ry)+z2*Math.cos(ry);
+  return[x3,y2,z3];
+}
+function proj(p,fov=500){const[x,y,z]=p;const s=fov/(fov+z+4);return{x:x*s,y:y*s,z};}
+
+// ── TAB 0: MÖBIUS ──
+let mobAnimId=null, mobAngleOffset=0;
+function updateMobius(){
+  document.getElementById('v_twist').textContent=document.getElementById('twistN').value;
+  document.getElementById('v_tw').textContent=parseFloat(document.getElementById('tubeW').value).toFixed(2);
+  document.getElementById('v_rx').textContent=parseFloat(document.getElementById('mRx').value).toFixed(2);
+  document.getElementById('v_ry').textContent=parseFloat(document.getElementById('mRy').value).toFixed(2);
+  drawMobius();
+}
+function animMobius(){
+  const btn=document.getElementById('mobAnimBtn');
+  if(mobAnimId){cancelAnimationFrame(mobAnimId);mobAnimId=null;btn.textContent='▶ Rotate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){
+    mobAngleOffset=(mobAngleOffset+0.015 * window.animSpeed)%(2*Math.PI);
+    drawMobius();
+    mobAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+function drawMobius(){
+  resizeCanvas(mobC);
+  const W=mobC.width,H=mobC.height;
+  mCtx.setTransform(1,0,0,1,0,0);
+  mCtx.fillStyle='#06060f';mCtx.fillRect(0,0,W,H);
+  mCtx.setTransform(1,0,0,1,pans[0].x,pans[0].y);
+
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('mRx').value);
+  const ry=parseFloat(document.getElementById('mRy').value)+mobAngleOffset;
+  const halfTwists=parseInt(document.getElementById('twistN').value);
+  const W2=parseFloat(document.getElementById('tubeW').value);
+  const R=1.5;
+
+  // Generate Möbius strip quads
+  const Nu=120,Nv=24;
+  const quads=[];
+  function mPoint(u,v){
+    const angle=u*2*Math.PI;
+    const twist=halfTwists*angle/2;
+    const x=(R+v*Math.cos(twist))*Math.cos(angle);
+    const y=(R+v*Math.cos(twist))*Math.sin(angle);
+    const z=v*Math.sin(twist);
+    return[x,y,z];
+  }
+  for(let i=0;i<Nu;i++){
+    for(let j=0;j<Nv;j++){
+      const u0=i/Nu,u1=(i+1)/Nu;
+      const v0=-W2+j*(2*W2/Nv),v1=-W2+(j+1)*(2*W2/Nv);
+      const p00=mPoint(u0,v0),p10=mPoint(u1,v0),p11=mPoint(u1,v1),p01=mPoint(u0,v1);
+      const rp=[[p00,p10,p11,p01].map(p=>rot3D(p,rx,ry))];
+      const zAvg=rp[0].reduce((s,p)=>s+p[2],0)/4;
+      // Color by u (hue along strip) and v (across)
+      const hue=280+u0*120;
+      const lum=40+30*((j/Nv)-0.5)*2;
+      quads.push({pts:rp[0],z:zAvg,color:`hsl(${hue},70%,${lum}%)`});
+    }
+  }
+  quads.sort((a,b)=>a.z-b.z);
+  quads.forEach(({pts,color})=>{
+    const projs=pts.map(p=>proj(p));
+    mCtx.beginPath();
+    projs.forEach((p,i)=>{
+      const px=cx+p.x*scale,py=cy-p.y*scale;
+      if(i===0)mCtx.moveTo(px,py);else mCtx.lineTo(px,py);
+    });
+    mCtx.closePath();
+    mCtx.fillStyle=color+'cc';mCtx.fill();
+    mCtx.strokeStyle=color+'44';mCtx.lineWidth=0.3;mCtx.stroke();
+  });
+
+  // Draw red center line (base circle)
+  mCtx.beginPath();
+  for(let i=0;i<=Nu;i++){
+    const p=rot3D(mPoint(i/Nu,0),rx,ry);
+    const pr=proj(p);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    if(i===0)mCtx.moveTo(px,py);else mCtx.lineTo(px,py);
+  }
+  mCtx.strokeStyle='#ff55cc';mCtx.lineWidth=2;mCtx.stroke();
+
+  mCtx.setTransform(1,0,0,1,0,0);
+  mCtx.fillStyle='rgba(255,85,204,0.7)';mCtx.font='13px Share Tech Mono';
+  mCtx.fillText(`${halfTwists} half-twist${halfTwists===1?'':'s'} — ${halfTwists%2===0?'orientable (cylinder-like)':'non-orientable (Möbius)'}`,20,24);
+}
+
+// ── TAB 1: HOPF ──
+let hopfAnimId=null, hopfAngleOffset=0;
+function animHopf(){
+  const btn=document.getElementById('hopfAnimBtn');
+  if(hopfAnimId){cancelAnimationFrame(hopfAnimId);hopfAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){
+    hopfAngleOffset=(hopfAngleOffset+0.012 * window.animSpeed)%(2*Math.PI);
+    drawHopf();
+    hopfAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+function drawHopf(){
+  resizeCanvas(hopfC);
+  const W=hopfC.width,H=hopfC.height;
+  hCtx.setTransform(1,0,0,1,0,0);
+  hCtx.fillStyle='#06060f';hCtx.fillRect(0,0,W,H);
+  hCtx.setTransform(1,0,0,1,pans[1].x,pans[1].y);
+
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.28;
+  const rx=parseFloat(document.getElementById('hRx').value);
+  const ry=parseFloat(document.getElementById('hRy').value)+hopfAngleOffset;
+  const nF=parseInt(document.getElementById('nFibers').value);
+  const stsc=parseFloat(document.getElementById('stsc').value);
+
+  document.getElementById('v_nFibers').textContent=nF;
+  document.getElementById('v_hRx').textContent=parseFloat(document.getElementById('hRx').value).toFixed(2);
+  document.getElementById('v_hRy').textContent=parseFloat(document.getElementById('hRy').value).toFixed(2);
+  document.getElementById('v_stsc').textContent=parseFloat(document.getElementById('stsc').value).toFixed(1);
+
+  // Hopf fibration: for each point p=(θ,φ) on S², draw corresponding fiber on S³ via stereographic proj to ℝ³
+  // Fiber over (sin θ cos φ, sin θ sin φ, cos θ) ∈ S² is:
+  // { (cos(t/2)√((1+cosθ)/2), sin(t/2)√((1+cosθ)/2), cos(φ+t/2)√((1-cosθ)/2), sin(φ+t/2)√((1-cosθ)/2)) }
+  // Stereographic proj from S³ (north pole) to ℝ³: (x1,x2,x3,x4) → (x1,x2,x3)/(1-x4)
+
+  const NT=120;
+  const allLines=[];
+  for(let fi=0;fi<nF;fi++){
+    const phi=fi/nF*2*Math.PI;
+    const theta=Math.PI/4+Math.sin(phi*0.5)*Math.PI/4; // varying latitude
+    const cosT=Math.cos(theta),sinT=Math.sin(theta);
+    const a=Math.sqrt((1+cosT)/2), b=Math.sqrt((1-cosT)/2);
+    if(a<0.01||b<0.01)continue;
+
+    const pts3=[];
+    for(let i=0;i<=NT;i++){
+      const t=i/NT*2*Math.PI;
+      const x1=Math.cos(t/2)*a;
+      const x2=Math.sin(t/2)*a;
+      const x3=Math.cos(phi+t/2)*b;
+      const x4=Math.sin(phi+t/2)*b;
+      const denom=1-x4;
+      if(Math.abs(denom)<0.05)continue;
+      const sx=x1/denom*stsc,sy=x2/denom*stsc,sz=x3/denom*stsc;
+      pts3.push([sx,sy,sz]);
+    }
+    allLines.push({pts:pts3,hue:fi/nF*360});
+  }
+
+  // Z-sort by mean z after rotation
+  allLines.forEach(l=>{
+    const rpts=l.pts.map(p=>rot3D(p,rx,ry));
+    l.rpts=rpts;
+    l.zMean=rpts.reduce((s,p)=>s+p[2],0)/(rpts.length||1);
+  });
+  allLines.sort((a,b)=>a.zMean-b.zMean);
+
+  allLines.forEach(({rpts,hue})=>{
+    if(!rpts.length)return;
+    hCtx.beginPath();
+    let first=true;
+    rpts.forEach(p=>{
+      const pr=proj(p);
+      const px=cx+pr.x*scale,py=cy-pr.y*scale;
+      if(first){hCtx.moveTo(px,py);first=false;}else hCtx.lineTo(px,py);
+    });
+    hCtx.strokeStyle=`hsl(${hue},80%,60%)`;hCtx.lineWidth=1.5;hCtx.stroke();
+  });
+
+  hCtx.setTransform(1,0,0,1,0,0);
+  hCtx.fillStyle='rgba(255,85,204,0.7)';hCtx.font='13px Share Tech Mono';
+  hCtx.fillText(`Hopf fibration S³→S² — ${nF} fibers (stereographic projection to ℝ³)`,16,24);
+  hCtx.fillStyle='rgba(255,200,255,0.4)';hCtx.font='12px Share Tech Mono';
+  hCtx.fillText('Each colored circle is a fiber over one point of S²',16,42);
+}
+
+// ── TAB 2: CONNECTION ──
+let connAnimId=null,connT=0,curvType=0;
+function setCurv(i){curvType=i;['cvBtn0','cvBtn1','cvBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));updateConn();}
+function updateConn(){
+  const lat=parseFloat(document.getElementById('lat').value);
+  document.getElementById('v_lat').textContent=lat;
+  const latR=lat*Math.PI/180;
+  let holonomy=0;
+  if(curvType===0) holonomy=2*Math.PI*Math.sin(latR);
+  else if(curvType===1) holonomy=0;
+  else holonomy=-2*Math.PI*Math.sin(latR)*0.7;
+  document.getElementById('connInfo').innerHTML=
+    `Latitude: ${lat}°<br>sin(lat): ${Math.sin(latR).toFixed(4)}<br><br>Holonomy angle:<br><b style="color:#ff55cc">${(holonomy*180/Math.PI).toFixed(2)}°</b><br>(${holonomy.toFixed(4)} rad)<br><br>${curvType===0?'Gauss–Bonnet: Δφ = ∬K dA = 2π sin(lat)':curvType===1?'Flat: no holonomy':'Negative K: holonomy in opposite sense'}`;
+  drawConn();
+}
+function animConn(){
+  const btn=document.getElementById('connAnimBtn');
+  if(connAnimId){cancelAnimationFrame(connAnimId);connAnimId=null;connT=0;btn.textContent='▶ Animate Transport';btn.classList.remove('active');drawConn();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  connT=0;
+  function frame(){connT=(connT+0.008 * window.animSpeed)%1;drawConn();connAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+
+function drawConn(){
+  resizeCanvas(connC);
+  const W=connC.width,H=connC.height;
+  cCtx.setTransform(1,0,0,1,0,0);
+  cCtx.fillStyle='#06060f';cCtx.fillRect(0,0,W,H);
+  cCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
+
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const lat=parseFloat(document.getElementById('lat').value)*Math.PI/180;
+  const R=1.4;
+  const rx=0.3,ry=0.4;
+
+  // ── Draw surface depending on curvature type ──
+  const Ns=36;
+  const quads=[];
+  if(curvType===0){
+    // Sphere K>0
+    for(let i=0;i<Ns;i++){for(let j=0;j<Ns;j++){
+      const u0=i/Ns*Math.PI,u1=(i+1)/Ns*Math.PI;
+      const v0=j/Ns*2*Math.PI,v1=(j+1)/Ns*2*Math.PI;
+      const sph=(u,v)=>[R*Math.sin(u)*Math.cos(v),R*Math.cos(u),R*Math.sin(u)*Math.sin(v)];
+      const pts=[sph(u0,v0),sph(u1,v0),sph(u1,v1),sph(u0,v1)];
+      const rpts=pts.map(p=>rot3D(p,rx,ry));
+      quads.push({pts:rpts,z:rpts.reduce((s,p)=>s+p[2],0)/4,col:'rgba(100,30,160,0.5)'});
+    }}
+  }else if(curvType===1){
+    // Flat plane K=0 — draw a grid plane
+    const G=5,step=R*2/G;
+    for(let i=0;i<G*2;i++){for(let j=0;j<G*2;j++){
+      const x0=-R+i*step,x1=x0+step,z0=-R+j*step,z1=z0+step;
+      const y=-0.1; // flat at y=0
+      const pts=[[x0,y,z0],[x1,y,z0],[x1,y,z1],[x0,y,z1]];
+      const rpts=pts.map(p=>rot3D(p,rx,ry));
+      const even=(i+j)%2===0;
+      quads.push({pts:rpts,z:rpts.reduce((s,p)=>s+p[2],0)/4,col:even?'rgba(30,80,160,0.5)':'rgba(20,60,120,0.4)'});
+    }}
+  }else{
+    // Hyperbolic saddle K<0
+    for(let i=0;i<Ns;i++){for(let j=0;j<Ns;j++){
+      const u0=-1.4+i*2.8/Ns,u1=-1.4+(i+1)*2.8/Ns;
+      const v0=-1.4+j*2.8/Ns,v1=-1.4+(j+1)*2.8/Ns;
+      const sad=(u,v)=>[u*R*0.7,( u*u-v*v)*0.5,v*R*0.7];
+      const pts=[sad(u0,v0),sad(u1,v0),sad(u1,v1),sad(u0,v1)];
+      const rpts=pts.map(p=>rot3D(p,rx,ry));
+      quads.push({pts:rpts,z:rpts.reduce((s,p)=>s+p[2],0)/4,col:'rgba(20,120,60,0.5)'});
+    }}
+  }
+  quads.sort((a,b)=>a.z-b.z);
+  quads.forEach(({pts,col})=>{
+    const projs=pts.map(p=>proj(p,500));
+    cCtx.beginPath();
+    projs.forEach((p,i)=>{const px=cx+p.x*scale,py=cy-p.y*scale;if(i===0)cCtx.moveTo(px,py);else cCtx.lineTo(px,py);});
+    cCtx.closePath();cCtx.fillStyle=col;cCtx.fill();
+    cCtx.strokeStyle=col.replace('0.5','0.15').replace('0.4','0.1');cCtx.lineWidth=0.4;cCtx.stroke();
+  });
+
+  // ── Loop path on the surface ──
+  let holonomy=0;
+  if(curvType===0) holonomy=2*Math.PI*Math.sin(lat);
+  else if(curvType===2) holonomy=-2*Math.PI*Math.sin(lat)*0.8;
+  // flat: holonomy=0
+
+  // For sphere: latitude circle. For flat/hyperbolic: circular loop at same radius
+  const rLat = curvType===0 ? R*Math.sin(lat) : R*0.7*Math.sin(lat)||0.5;
+  const yLat = curvType===0 ? R*Math.cos(lat) : (curvType===1 ? -0.1 : 0);
+
+  cCtx.beginPath();
+  for(let i=0;i<=120;i++){
+    const phi=i/120*2*Math.PI;
+    const p=rot3D([rLat*Math.cos(phi),yLat,rLat*Math.sin(phi)],rx,ry);
+    const pr=proj(p,500);
+    if(i===0)cCtx.moveTo(cx+pr.x*scale,cy-pr.y*scale);
+    else cCtx.lineTo(cx+pr.x*scale,cy-pr.y*scale);
+  }
+  cCtx.strokeStyle='rgba(255,200,100,0.9)';cCtx.lineWidth=2.5;cCtx.stroke();
+
+  // ── Parallel-transported vectors along the loop ──
+  const Npt=80;
+  const progress=connT;
+  for(let i=0;i<=Math.floor(Npt*progress);i++){
+    const phi=i/Npt*2*Math.PI;
+    const accAngle=i/Npt*holonomy;
+    const tx=-Math.sin(phi),tz=Math.cos(phi);
+    const vx=tx*Math.cos(accAngle)-tz*Math.sin(accAngle);
+    const vz=tx*Math.sin(accAngle)+tz*Math.cos(accAngle);
+    const baseP=[rLat*Math.cos(phi),yLat,rLat*Math.sin(phi)];
+    const tipP=[baseP[0]+vx*0.28,baseP[1]+0.1,baseP[2]+vz*0.28];
+    const bp=rot3D(baseP,rx,ry),tp=rot3D(tipP,rx,ry);
+    const bpr=proj(bp,500),tpr=proj(tp,500);
+    const frac=i/Npt;
+    cCtx.strokeStyle=`hsl(${280+frac*120},90%,65%)`;cCtx.lineWidth=2;
+    cCtx.beginPath();
+    cCtx.moveTo(cx+bpr.x*scale,cy-bpr.y*scale);
+    cCtx.lineTo(cx+tpr.x*scale,cy-tpr.y*scale);
+    cCtx.stroke();
+  }
+
+  // ── Show start vs end arrow to highlight holonomy ──
+  if(connT>=0.98||connAnimId===null&&connT===0){
+    // Start arrow (at phi=0): white
+    const vxS=1,vzS=0; // initial direction
+    const baseS=[rLat,yLat,0];
+    const tipS=[rLat+vxS*0.35,yLat+0.1,vzS*0.35];
+    const bS=rot3D(baseS,rx,ry),tS=rot3D(tipS,rx,ry);
+    const bSp=proj(bS,500),tSp=proj(tS,500);
+    cCtx.strokeStyle='#ffffff';cCtx.lineWidth=3;
+    cCtx.beginPath();cCtx.moveTo(cx+bSp.x*scale,cy-bSp.y*scale);cCtx.lineTo(cx+tSp.x*scale,cy-tSp.y*scale);cCtx.stroke();
+    // End arrow (at phi=2π): cyan, rotated by holonomy
+    const vxE=Math.cos(holonomy),vzE=Math.sin(holonomy);
+    const tipE=[rLat+vxE*0.35,yLat+0.1,vzE*0.35];
+    const tE=rot3D(tipE,rx,ry);const tEp=proj(tE,500);
+    cCtx.strokeStyle='#00ffcc';cCtx.lineWidth=3;
+    cCtx.beginPath();cCtx.moveTo(cx+bSp.x*scale,cy-bSp.y*scale);cCtx.lineTo(cx+tEp.x*scale,cy-tEp.y*scale);cCtx.stroke();
+    // Label
+    cCtx.fillStyle='#ffffff';cCtx.font='12px Share Tech Mono';
+    cCtx.fillText('start',cx+tSp.x*scale+4,cy-tSp.y*scale);
+    cCtx.fillStyle='#00ffcc';
+    cCtx.fillText(`end (Δ=${(holonomy*180/Math.PI).toFixed(1)}°)`,cx+tEp.x*scale+4,cy-tEp.y*scale);
+  }
+
+  cCtx.setTransform(1,0,0,1,0,0);
+  const surfNames=['Sphere (K > 0)','Flat plane (K = 0)','Saddle (K < 0)'];
+  cCtx.fillStyle='rgba(255,85,204,0.8)';cCtx.font='13px Share Tech Mono';
+  cCtx.fillText(`${surfNames[curvType]} — latitude ${Math.round(lat*180/Math.PI)}° — holonomy = ${(holonomy*180/Math.PI).toFixed(1)}°`,16,24);
+  cCtx.fillStyle='rgba(255,200,255,0.45)';cCtx.font='12px Share Tech Mono';
+  cCtx.fillText(curvType===0?'positive curvature: vector rotates forward (white→cyan)'
+    :curvType===1?'zero curvature: vector returns unchanged (no holonomy)'
+    :'negative curvature: vector rotates backward',16,42);
+}
+
+// ── TAB 3: U(1) GAUGE / AHARONOV-BOHM ──
+let abAnimId=null, abT=0;
+function animAB(){
+  const btn=document.getElementById('abAnimBtn');
+  if(abAnimId){cancelAnimationFrame(abAnimId);abAnimId=null;abT=0;btn.textContent='▶ Animate Paths';btn.classList.remove('active');drawAB();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  abT=0;
+  function frame(){abT=(abT+0.006 * window.animSpeed)%1;drawAB();abAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawAB(){
+  resizeCanvas(abC);
+  const W=abC.width, H=abC.height;
+  abCtx.setTransform(1,0,0,1,0,0);
+  abCtx.fillStyle='#06060f'; abCtx.fillRect(0,0,W,H);
+  const solR=parseFloat(document.getElementById('solR').value);
+  const sep=parseFloat(document.getElementById('pathSep').value);
+  const flux=parseFloat(document.getElementById('abFlux').value);
+  document.getElementById('v_solR').textContent=solR.toFixed(2);
+  document.getElementById('v_pathSep').textContent=sep.toFixed(2);
+  document.getElementById('v_flux').textContent=flux.toFixed(2);
+  const cx=W/2, cy=H/2, scale=Math.min(W,H)*0.36;
+  // Draw vector potential field A (azimuthal, outside solenoid)
+  const gridN=14;
+  for(let ix=0;ix<gridN;ix++){
+    for(let iy=0;iy<gridN;iy++){
+      const px=(ix/(gridN-1)-0.5)*2;
+      const py=(iy/(gridN-1)-0.5)*2;
+      const r2=px*px+py*py;
+      if(r2<solR*solR*1.2||r2>1.6)continue;
+      const r=Math.sqrt(r2);
+      const Amag=flux/(2*Math.PI*r)*0.06;
+      const ax=-py/r*Amag, ay=px/r*Amag;
+      const sx=cx+px*scale, sy=cy-py*scale;
+      const ex=cx+(px+ax)*scale, ey=cy-(py+ay)*scale;
+      const alpha=Math.min(0.5,0.12/r2);
+      abCtx.strokeStyle='rgba(80,180,255,'+alpha+')';
+      abCtx.lineWidth=1;
+      abCtx.beginPath(); abCtx.moveTo(sx,sy); abCtx.lineTo(ex,ey); abCtx.stroke();
+      const ang=Math.atan2(ey-sy,ex-sx), aSize=4;
+      abCtx.fillStyle='rgba(80,180,255,'+alpha+')';
+      abCtx.beginPath();
+      abCtx.moveTo(ex,ey);
+      abCtx.lineTo(ex-aSize*Math.cos(ang-0.4),ey-aSize*Math.sin(ang-0.4));
+      abCtx.lineTo(ex-aSize*Math.cos(ang+0.4),ey-aSize*Math.sin(ang+0.4));
+      abCtx.closePath(); abCtx.fill();
+    }
+  }
+  // Solenoid
+  abCtx.beginPath(); abCtx.arc(cx,cy,solR*scale,0,2*Math.PI);
+  abCtx.fillStyle='rgba(255,100,100,0.18)'; abCtx.fill();
+  abCtx.strokeStyle='rgba(255,100,100,0.9)'; abCtx.lineWidth=2; abCtx.stroke();
+  abCtx.fillStyle='rgba(255,100,100,0.8)'; abCtx.font='12px Share Tech Mono';
+  abCtx.fillText('B',cx-5,cy-4); abCtx.fillText('!=0',cx-12,cy+8);
+  // Two paths
+  const pathR=solR+sep;
+  const progress=abT;
+  function drawPath(upper,phaseFrac,color,label){
+    const sign=upper?1:-1;
+    abCtx.beginPath();
+    for(let i=0;i<=80;i++){
+      const a=upper?(Math.PI-i/80*Math.PI):(i/80*Math.PI);
+      const x2=pathR*Math.cos(a), y2=pathR*Math.sin(a)*sign;
+      if(i===0)abCtx.moveTo(cx+x2*scale,cy-y2*scale);
+      else abCtx.lineTo(cx+x2*scale,cy-y2*scale);
+    }
+    abCtx.strokeStyle=color+'55'; abCtx.lineWidth=1.5; abCtx.stroke();
+    if(progress>0){
+      const steps=Math.floor(progress*80);
+      abCtx.beginPath();
+      for(let i=0;i<=steps;i++){
+        const a=upper?(Math.PI-i/80*Math.PI):(i/80*Math.PI);
+        const x2=pathR*Math.cos(a), y2=pathR*Math.sin(a)*sign;
+        if(i===0)abCtx.moveTo(cx+x2*scale,cy-y2*scale);
+        else abCtx.lineTo(cx+x2*scale,cy-y2*scale);
+      }
+      abCtx.strokeStyle=color; abCtx.lineWidth=2.5; abCtx.stroke();
+      const lastA=upper?(Math.PI-steps/80*Math.PI):(steps/80*Math.PI);
+      const px2=cx+pathR*Math.cos(lastA)*scale;
+      const py2=cy-pathR*Math.sin(lastA)*sign*scale;
+      const phase=phaseFrac*progress*Math.PI*2;
+      abCtx.beginPath(); abCtx.arc(px2,py2,10,0,2*Math.PI);
+      abCtx.fillStyle=color+'33'; abCtx.fill();
+      abCtx.strokeStyle=color; abCtx.lineWidth=1.5; abCtx.stroke();
+      abCtx.beginPath(); abCtx.moveTo(px2,py2);
+      abCtx.lineTo(px2+10*Math.cos(phase),py2+10*Math.sin(phase));
+      abCtx.strokeStyle=color; abCtx.lineWidth=2; abCtx.stroke();
+    }
+    abCtx.fillStyle=color; abCtx.font='12px Share Tech Mono';
+    abCtx.fillText(label, cx-pathR*scale-60, cy-sign*20);
+  }
+  drawPath(true, flux, '#00ccff', 'path 1');
+  drawPath(false, -flux, '#ffaa00', 'path 2');
+  // U(1) fiber circles at source and detector
+  function drawFiber(x,y,phase,color){
+    const r=16;
+    abCtx.beginPath(); abCtx.arc(cx+x*scale,cy-y*scale,r,0,2*Math.PI);
+    abCtx.strokeStyle=color+'88'; abCtx.lineWidth=1; abCtx.stroke();
+    abCtx.beginPath(); abCtx.moveTo(cx+x*scale,cy-y*scale);
+    abCtx.lineTo(cx+x*scale+r*Math.cos(phase),cy-y*scale+r*Math.sin(phase));
+    abCtx.strokeStyle=color; abCtx.lineWidth=2; abCtx.stroke();
+    abCtx.beginPath();
+    abCtx.arc(cx+x*scale+r*Math.cos(phase),cy-y*scale+r*Math.sin(phase),3,0,2*Math.PI);
+    abCtx.fillStyle=color; abCtx.fill();
+  }
+  drawFiber(-pathR-0.05,0,0,'#ffffff');
+  drawFiber(pathR+0.05,0, flux*Math.PI*progress,'#00ccff');
+  drawFiber(pathR+0.05,-0.12,-flux*Math.PI*progress,'#ffaa00');
+  // Interference pattern
+  const intX=pathR+0.18, phaseDiff=flux*Math.PI*2;
+  const intH2=0.7;
+  for(let iy=0;iy<60;iy++){
+    const yy=iy/60*intH2-intH2/2;
+    const intensity=0.5+0.5*Math.cos(phaseDiff+10*yy*progress);
+    const bright=Math.max(0,Math.min(1,intensity));
+    abCtx.fillStyle='rgba(255,220,100,'+(bright*0.7)+')';
+    abCtx.fillRect(cx+intX*scale, cy-yy*scale-3, 0.15*scale, 6);
+  }
+  abCtx.strokeStyle='rgba(255,220,100,0.4)'; abCtx.lineWidth=1;
+  abCtx.strokeRect(cx+intX*scale,cy-intH2/2*scale,0.15*scale,intH2*scale);
+  abCtx.fillStyle='rgba(255,220,100,0.7)'; abCtx.font='12px Share Tech Mono';
+  abCtx.fillText('screen',cx+intX*scale+2,cy-intH2/2*scale-4);
+  // Update info box via textContent
+  const pDeg=(phaseDiff*180/Math.PI).toFixed(1);
+  const abInfoEl=document.getElementById('abInfo');
+  abInfoEl.textContent='Phase diff: '+pDeg+' deg = 2pi x '+flux.toFixed(2)+' | Path 1: +'+( flux*180).toFixed(1)+'deg | Path 2: -'+(flux*180).toFixed(1)+'deg | Fringe shift: '+flux.toFixed(3);
+  abCtx.setTransform(1,0,0,1,0,0);
+  abCtx.fillStyle='rgba(255,85,204,0.8)'; abCtx.font='13px Share Tech Mono';
+  abCtx.fillText('Aharonov-Bohm Effect — U(1) gauge bundle holonomy',16,24);
+  abCtx.fillStyle='rgba(100,200,255,0.6)'; abCtx.font='12px Share Tech Mono';
+  abCtx.fillText('Blue arrows: vector potential A (B=0 outside). Circles: U(1) fibers. Right: interference.',16,42);
+}
+
+// ── TAB 4: SU(2) YANG-MILLS INSTANTON ──
+let ymAnimId=null, ymTime=0;
+function animYM(){
+  const btn=document.getElementById('ymAnimBtn');
+  if(ymAnimId){cancelAnimationFrame(ymAnimId);ymAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){if(activeTab!==4){ymAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}ymTime=(ymTime+0.018 * window.animSpeed)%(2*Math.PI);document.getElementById('ymAng').value=ymTime;document.getElementById('v_ymAng').textContent=ymTime.toFixed(2);drawYM();ymAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function hslToRgb(h,s,l){
+  let r,g,b;
+  if(s===0){r=g=b=l;}else{
+    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+    const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;
+    r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+  }
+  return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+function drawYM(){
+  resizeCanvas(ymC);
+  const W=ymC.width, H=ymC.height;
+  if(!W||!H) return;
+  ymCtx.setTransform(1,0,0,1,0,0);
+  ymCtx.fillStyle='#06060f'; ymCtx.fillRect(0,0,W,H);
+  const rho=parseFloat(document.getElementById('ymRho').value);
+  const sliceZ=parseFloat(document.getElementById('ymZ').value);
+  const ang=parseFloat(document.getElementById('ymAng').value);
+  document.getElementById('v_rho').textContent=rho.toFixed(2);
+  document.getElementById('v_ymZ').textContent=sliceZ.toFixed(2);
+  document.getElementById('v_ymAng').textContent=ang.toFixed(2);
+  const cx=W/2, cy=H/2, scale=Math.min(W,H)*0.32;
+  // BPST instanton curvature density Tr(F^2) = 96 rho^4 / (r^2+rho^2)^4
+  const imageData=ymCtx.createImageData(W,H);
+  for(let ix=0;ix<W;ix++){
+    for(let iy=0;iy<H;iy++){
+      const wx=(ix-cx)/scale, wy=(cy-iy)/scale;
+      const rx2=wx*Math.cos(ang)-wy*Math.sin(ang);
+      const ry2=wx*Math.sin(ang)+wy*Math.cos(ang);
+      const r2=rx2*rx2+ry2*ry2+sliceZ*sliceZ;
+      const rho4=rho*rho*rho*rho;
+      const denom=r2+rho*rho;
+      const density=96*rho4/(denom*denom*denom*denom);
+      const t=Math.min(1,density*rho4*0.8);
+      const hue=(1-t)*240;
+      const [rv,gv,bv]=hslToRgb(hue/360,0.9,0.1+0.5*t);
+      const idx=(iy*W+ix)*4;
+      imageData.data[idx]=rv; imageData.data[idx+1]=gv; imageData.data[idx+2]=bv;
+      imageData.data[idx+3]=Math.floor(200*t+20);
+    }
+  }
+  ymCtx.putImageData(imageData,0,0);
+  // Connection 1-form arrows
+  const arrowGrid=18;
+  for(let ix=0;ix<arrowGrid;ix++){
+    for(let iy=0;iy<arrowGrid;iy++){
+      const wx=(ix/(arrowGrid-1)-0.5)*7;
+      const wy=(iy/(arrowGrid-1)-0.5)*7;
+      const r2=wx*wx+wy*wy+sliceZ*sliceZ+0.01;
+      const rho2=rho*rho;
+      const Amag=2*rho2/(r2*(r2+rho2))*0.15;
+      const ax=-wy/Math.sqrt(r2)*Amag, ay=wx/Math.sqrt(r2)*Amag;
+      if(Math.sqrt(ax*ax+ay*ay)<0.002)continue;
+      const sx=cx+wx*scale, sy=cy-wy*scale;
+      const ex2=sx+ax*scale, ey2=sy-ay*scale;
+      const alpha2=Math.min(0.7,Amag*8);
+      ymCtx.strokeStyle='rgba(255,200,100,'+alpha2+')'; ymCtx.lineWidth=1.2;
+      ymCtx.beginPath(); ymCtx.moveTo(sx,sy); ymCtx.lineTo(ex2,ey2); ymCtx.stroke();
+    }
+  }
+  // SU(2)=S³ fiber inset diagram
+  const fiberX=W-90, fiberY=90, fiberR=50;
+  ymCtx.strokeStyle='rgba(150,100,255,0.4)'; ymCtx.lineWidth=1;
+  for(let k=0;k<5;k++){ymCtx.beginPath();ymCtx.arc(fiberX,fiberY,fiberR*(k+1)/5,0,2*Math.PI);ymCtx.stroke();}
+  const fibAng=ang*2;
+  ymCtx.beginPath();
+  ymCtx.arc(fiberX+fiberR*0.7*Math.cos(fibAng),fiberY+fiberR*0.7*Math.sin(fibAng),5,0,2*Math.PI);
+  ymCtx.fillStyle='rgba(255,100,200,0.9)'; ymCtx.fill();
+  ymCtx.fillStyle='rgba(150,100,255,0.7)'; ymCtx.font='12px Share Tech Mono';
+  ymCtx.fillText('SU(2)=S3',fiberX-26,fiberY+fiberR+14);
+  ymCtx.fillText('fiber',fiberX-12,fiberY+fiberR+25);
+  // Update info via textContent
+  document.getElementById('ymInfo').textContent='BPST instanton k=1 | rho='+rho.toFixed(2)+' | peak density: '+(96/(rho*rho*rho*rho)).toFixed(2)+' | integral Tr(F^F) = 8pi^2 | BPS bound: S >= 8pi^2/g^2';
+  // Color bar
+  ymCtx.setTransform(1,0,0,1,0,0);
+  const cbX=W-24, cbY=H*0.2, cbH=H*0.6;
+  for(let i=0;i<cbH;i++){
+    const t2=1-i/cbH;
+    const [rv2,gv2,bv2]=hslToRgb((1-t2)*240/360,0.9,0.1+0.5*t2);
+    ymCtx.fillStyle='rgb('+rv2+','+gv2+','+bv2+')';
+    ymCtx.fillRect(cbX,cbY+i,14,1);
+  }
+  ymCtx.strokeStyle='rgba(255,255,255,0.3)'; ymCtx.strokeRect(cbX,cbY,14,cbH);
+  ymCtx.fillStyle='rgba(255,255,255,0.5)'; ymCtx.font='12px Share Tech Mono';
+  ymCtx.fillText('hi',cbX-2,cbY-4); ymCtx.fillText('lo',cbX-2,cbY+cbH+10);
+  ymCtx.fillStyle='rgba(255,85,204,0.8)'; ymCtx.font='13px Share Tech Mono';
+  ymCtx.fillText('SU(2) Yang-Mills — BPST Instanton (k=1)',16,24);
+  ymCtx.fillStyle='rgba(255,200,100,0.55)'; ymCtx.font='12px Share Tech Mono';
+  ymCtx.fillText('Color: Tr(F^F) density. Yellow arrows: connection A. Upper right: SU(2)=S3 fiber.',16,42);
+}
+
+// ── TAB 5: CHARACTERISTIC CLASSES / CHERN ──
+let chAnimId=null, chTime=0;
+function animChern(){
+  const btn=document.getElementById('chAnimBtn');
+  if(chAnimId){cancelAnimationFrame(chAnimId);chAnimId=null;chTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawChern();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  chTime=0;
+  const speed=window.animSpeed * 10;
+  function frame(){chTime=(chTime+0.015*speed)%(2*Math.PI);drawChern();chAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawChern(){
+  resizeCanvas(chernC);
+  const W=chernC.width, H=chernC.height;
+  chCtx.setTransform(1,0,0,1,0,0);
+  chCtx.fillStyle='#06060f'; chCtx.fillRect(0,0,W,H);
+  const n=parseInt(document.getElementById('windN').value);
+  document.getElementById('v_wind').textContent=n;
+  document.getElementById('chernInfo').textContent='First Chern class c1 = '+n+' (winding number = '+n+') | integral F/2pi = '+n;
+  const leftCx=W*0.35;
+  // Chern-Weil diagram (right side)
+  const diag=[
+    {label:'Curvature F',x:W*0.72,y:H*0.18,color:'#ff55cc'},
+    {label:'Chern class c_k',x:W*0.72,y:H*0.45,color:'#00ccff'},
+    {label:'Topology H*(M)',x:W*0.72,y:H*0.72,color:'#aaff88'},
+  ];
+  diag.forEach(function(d){
+    const bw=140, bh=28;
+    chCtx.fillStyle=d.color+'22';
+    chCtx.fillRect(d.x-bw/2,d.y-bh/2,bw,bh);
+    chCtx.strokeStyle=d.color+'88'; chCtx.lineWidth=1.5;
+    chCtx.strokeRect(d.x-bw/2,d.y-bh/2,bw,bh);
+    chCtx.fillStyle=d.color; chCtx.font='12px Share Tech Mono';
+    chCtx.fillText(d.label,d.x-bw/2+6,d.y+4);
+  });
+  // Arrows
+  [[0,1,'Chern-Weil'],[1,2,'integration']].forEach(function(pair){
+    const from=diag[pair[0]], to=diag[pair[1]], lbl=pair[2];
+    const fx=from.x, fy=from.y+14, tx=to.x, ty=to.y-14;
+    chCtx.strokeStyle='rgba(255,255,255,0.3)'; chCtx.lineWidth=1;
+    chCtx.setLineDash([4,3]);
+    chCtx.beginPath(); chCtx.moveTo(fx,fy); chCtx.lineTo(tx,ty); chCtx.stroke();
+    chCtx.setLineDash([]);
+    chCtx.fillStyle='rgba(255,255,255,0.4)'; chCtx.font='12px Share Tech Mono';
+    chCtx.fillText(lbl,fx+6,(fy+ty)/2);
+    const aang=Math.atan2(ty-fy,tx-fx);
+    chCtx.strokeStyle='rgba(255,255,255,0.4)'; chCtx.lineWidth=1.2;
+    chCtx.beginPath();
+    chCtx.moveTo(tx,ty);
+    chCtx.lineTo(tx-8*Math.cos(aang-0.35),ty-8*Math.sin(aang-0.35));
+    chCtx.moveTo(tx,ty);
+    chCtx.lineTo(tx-8*Math.cos(aang+0.35),ty-8*Math.sin(aang+0.35));
+    chCtx.stroke();
+  });
+  // Base circle S1 with fiber circles
+  const baseR=H*0.22, baseCx=leftCx, baseCy=H*0.48;
+  chCtx.strokeStyle='rgba(255,85,204,0.7)'; chCtx.lineWidth=2;
+  chCtx.beginPath(); chCtx.arc(baseCx,baseCy,baseR,0,2*Math.PI); chCtx.stroke();
+  chCtx.fillStyle='rgba(255,85,204,0.5)'; chCtx.font='12px Share Tech Mono';
+  chCtx.fillText('S1 (base)',baseCx-28,baseCy+baseR+18);
+  const Nf=16;
+  for(let i=0;i<Nf;i++){
+    const baseAng=i/Nf*2*Math.PI;
+    const bx=baseCx+baseR*Math.cos(baseAng), by=baseCy+baseR*Math.sin(baseAng);
+    const fiberPhase=n*baseAng+chTime;
+    chCtx.strokeStyle='rgba(0,200,255,0.3)'; chCtx.lineWidth=1;
+    chCtx.beginPath(); chCtx.arc(bx,by,baseR*0.22,0,2*Math.PI); chCtx.stroke();
+    const fx2=bx+baseR*0.22*Math.cos(fiberPhase), fy2=by+baseR*0.22*Math.sin(fiberPhase);
+    chCtx.strokeStyle='hsl('+(180+i/Nf*120)+',90%,65%)'; chCtx.lineWidth=2;
+    chCtx.beginPath(); chCtx.moveTo(bx,by); chCtx.lineTo(fx2,fy2); chCtx.stroke();
+    chCtx.beginPath(); chCtx.arc(fx2,fy2,3,0,2*Math.PI);
+    chCtx.fillStyle='hsl('+(180+i/Nf*120)+',90%,65%)'; chCtx.fill();
+  }
+  chCtx.fillStyle='rgba(255,220,100,0.85)'; chCtx.font='bold 14px Share Tech Mono';
+  chCtx.fillText('c1 = '+n, baseCx-20, baseCy);
+  chCtx.fillStyle='rgba(255,220,100,0.55)'; chCtx.font='12px Share Tech Mono';
+  chCtx.fillText(Math.abs(n)+' twist'+(Math.abs(n)===1?'':'s'), baseCx-28, baseCy+18);
+  // Flux bar
+  const fluxY=H*0.85, fluxW=Math.min(W*0.55,300);
+  const fluxX=leftCx-fluxW/2, fluxH=20, maxN=3;
+  chCtx.fillStyle='rgba(255,85,204,0.12)'; chCtx.fillRect(fluxX,fluxY-fluxH/2,fluxW,fluxH);
+  chCtx.strokeStyle='rgba(255,85,204,0.4)'; chCtx.lineWidth=1; chCtx.strokeRect(fluxX,fluxY-fluxH/2,fluxW,fluxH);
+  const fillW=Math.min(1,Math.abs(n)/maxN)*fluxW;
+  chCtx.fillStyle=n>=0?'rgba(0,200,255,0.5)':'rgba(255,100,100,0.5)';
+  chCtx.fillRect(fluxX,fluxY-fluxH/2,fillW,fluxH);
+  chCtx.fillStyle='rgba(255,220,100,0.8)'; chCtx.font='12px Share Tech Mono';
+  chCtx.fillText('integral F/2pi = c1 = '+n, fluxX, fluxY-fluxH/2-6);
+  chCtx.setTransform(1,0,0,1,0,0);
+  chCtx.fillStyle='rgba(255,85,204,0.8)'; chCtx.font='13px Share Tech Mono';
+  chCtx.fillText('Characteristic Classes — Chern-Weil Theory',16,24);
+  chCtx.fillStyle='rgba(200,200,255,0.5)'; chCtx.font='12px Share Tech Mono';
+  chCtx.fillText('Left: U(1) bundle over S1, fiber hands show n-fold winding. Right: Chern-Weil diagram.',16,42);
+}
+
+// ── PROOF PANEL ──
+let proofOpen=false;
+function toggleProof(){proofOpen=!proofOpen;document.getElementById('proofPanel').classList.toggle('open',proofOpen);document.querySelector('.proof-header span').textContent=proofOpen?'▼':'▲';}
+function showProof(i){
+  document.querySelectorAll('.ptab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  const p=PROOFS[i];
+  document.getElementById('proofContent').innerHTML=`<h4 style="color:#ff55cc;margin-bottom:8px">${p.title}</h4>${p.body}`;
+  if(typeof renderMathInElement === 'function'){
+    renderMathInElement(document.getElementById('proofContent'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }
+  if(!proofOpen)toggleProof();
+}
+showProof(0);
+
+_addPan(mobC,0,drawMobius);
+_addPan(hopfC,1,drawHopf);
+_addPan(connC,2,drawConn);
+_addPan(abC,3,drawAB);
+_addPan(ymC,4,drawYM);
+_addPan(chernC,5,drawChern);
+
+updateMobius();
+drawHopf();
+setCurv(0);
+drawAB();
+drawYM();
+drawChern();
+
+window.addEventListener('resize',()=>redrawTab());
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>
+

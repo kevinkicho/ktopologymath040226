@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>19 · General Relativity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05050f;color:#ffe8cc;font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;padding-bottom:38px}
+header{padding:18px 32px;display:flex;align-items:center;gap:20px;border-bottom:1px solid rgba(255,170,34,0.25);background:rgba(5,5,20,0.9)}
+.back{color:#ffaa22;text-decoration:none;font-size:1.1rem;opacity:.7;transition:opacity .2s}.back:hover{opacity:1}
+h1{font-family:'Orbitron',sans-serif;font-size:1.55rem;color:#ffaa22;text-shadow:0 0 20px #ffaa2288}
+.subtitle{font-size:.8rem;opacity:.55;margin-left:auto}
+.tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,170,34,0.2);background:rgba(10,10,30,0.8);padding:0 24px;flex-shrink:0;overflow-x:auto}
+.tab{padding:12px 18px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.82rem;color:#ffaa2299;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:#ffaa22;border-bottom-color:#ffaa22;text-shadow:0 0 10px #ffaa2288}
+.tab:hover:not(.active){color:#ffaa22cc}
+.workspace{display:flex;height:calc(100vh - 155px);overflow:hidden}
+.sidebar{width:240px;min-width:200px;background:rgba(10,10,28,0.95);border-right:1px solid rgba(255,170,34,0.15);padding:18px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.sidebar.right{border-right:none;border-left:1px solid rgba(255,170,34,0.15)}
+.main-area{flex:1;position:relative;background:#06060f;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+label{font-size:.75rem;color:#ffaa2299;display:block;margin-bottom:3px}
+input[type=range]{width:100%;accent-color:#ffaa22;cursor:pointer}
+.val{color:#ffaa22;font-size:.8rem;text-align:right}
+button{background:rgba(255,170,34,0.1);border:1px solid rgba(255,170,34,0.35);color:#ffaa22;padding:7px 12px;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.78rem;width:100%;transition:all .2s}
+button:hover{background:rgba(255,170,34,0.22);box-shadow:0 0 10px #ffaa2244}
+button.active{background:rgba(255,170,34,0.3);box-shadow:0 0 14px #ffaa2266}
+.info-box{background:rgba(255,170,34,0.06);border:1px solid rgba(255,170,34,0.2);border-radius:6px;padding:10px;font-size:.72rem;line-height:1.55;color:#ffd088}
+.sep{height:1px;background:rgba(255,170,34,0.15);margin:4px 0}
+.proof-panel{position:fixed;bottom:0;left:0;right:0;height:54px;background:rgba(8,8,20,0.97);border-top:1px solid rgba(255,170,34,0.3);transition:height .35s ease;z-index:100;overflow:hidden}
+.proof-panel.open{height:340px}
+.proof-header{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer}
+.proof-header h3{color:#ffaa22;font-family:'Orbitron',sans-serif;font-size:.8rem;flex:1}
+.proof-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px}
+.ptab{background:rgba(255,170,34,0.08);border:1px solid rgba(255,170,34,0.28);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.72rem;color:#ffaa2299;white-space:nowrap;transition:all .2s}
+.ptab.active,.ptab:hover{background:rgba(255,170,34,0.22);color:#ffaa22}
+.proof-content{padding:4px 24px 20px;overflow-y:auto;max-height:260px;font-size:.83rem;line-height:1.75;color:#ffe0bb}
+.pan-mode canvas{cursor:grab}
+.pan-mode canvas:active{cursor:grabbing}
+.tensor-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0}
+.t-cell{background:rgba(255,170,34,0.08);border:1px solid rgba(255,170,34,0.25);border-radius:3px;padding:4px 2px;text-align:center;font-size:.68rem;cursor:pointer;transition:all .2s;line-height:1.3}
+.t-cell:hover{background:rgba(255,170,34,0.2)}
+.t-cell.on{background:rgba(255,120,34,0.35);border-color:#ff8822;color:#ffcc88;box-shadow:0 0 8px #ff882244}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">&#8592; back</a>
+  <h1>19 &middot; General Relativity</h1>
+  <span class="subtitle">Road to Reality Ch.&nbsp;17&ndash;19 &mdash; Curvature, Geodesics, Waves &amp; Penrose Diagrams</span>
+</header>
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Spacetime Curvature</div>
+  <div class="tab" onclick="switchTab(1)">Orbital Precession</div>
+  <div class="tab" onclick="switchTab(2)">Gravitational Waves</div>
+  <div class="tab" onclick="switchTab(3)">Schwarzschild Orbits</div>
+  <div class="tab" onclick="switchTab(4)">Penrose Diagrams</div>
+  <div class="tab" onclick="switchTab(5)">Einstein Tensor</div>
+  <div class="tab" onclick="switchTab(6)">Geodesic Deviation</div>
+</div>
+
+<!-- TAB 0: SPACETIME CURVATURE -->
+<div id="panel0" class="workspace" data-role="panel">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Einstein field eq:<br>$G_{\mu\nu} + \Lambda g_{\mu\nu} = \tfrac{8\pi G}{c^4} T_{\mu\nu}$<br>Curvature = energy</div>
+    <div class="sep"></div>
+    <label>Mass M <span class="val" id="v_mass">1.0</span></label>
+    <input type="range" id="mass" min="0.1" max="4" step="0.1" value="1" oninput="updateST()">
+    <label>Grid type</label>
+    <button onclick="setGrid(0)" id="gBtn0">Embedding diagram</button>
+    <button onclick="setGrid(1)" id="gBtn1">Light cones</button>
+    <button onclick="setGrid(2)" id="gBtn2">Tidal deformation</button>
+    <div class="sep"></div>
+    <label>View Rx <span class="val" id="v_stRx">0.40</span></label>
+    <input type="range" id="stRx" min="-1.5" max="1.5" step="0.05" value="0.4" oninput="updateST()">
+    <label>View Ry <span class="val" id="v_stRy">0.50</span></label>
+    <input type="range" id="stRy" min="-3.14" max="3.14" step="0.05" value="0.5" oninput="updateST()">
+    <div class="sep"></div>
+    <button id="btnST" onclick="animST(this)">&#9654; Animate</button>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9995; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="stC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Schwarzschild metric:</b><br>
+      $ds^2 = -\!\left(1\!-\!\tfrac{r_s}{r}\right)dt^2$<br>
+      $+\left(1\!-\!\tfrac{r_s}{r}\right)^{-1}dr^2$<br>
+      $+r^2 d\Omega^2$<br><br>
+      $r_s = 2GM/c^2$<br><br>
+      Event horizon: $r=r_s$<br>Singularity: $r=0$<br><br>
+      Geodesics: extremize $\int ds$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: ORBITAL PRECESSION -->
+<div id="panel1" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">GR predicts extra orbital precession beyond Newtonian.<br>Mercury: 43&Prime;/century confirmed 1915.</div>
+    <div class="sep"></div>
+    <label>M (solar masses) <span class="val" id="v_mStar">1.0</span></label>
+    <input type="range" id="mStar" min="0.1" max="5" step="0.1" value="1" oninput="updateOrbit()">
+    <label>Eccentricity e <span class="val" id="v_ecc">0.40</span></label>
+    <input type="range" id="ecc" min="0.05" max="0.85" step="0.05" value="0.4" oninput="updateOrbit()">
+    <label>Semi-latus l <span class="val" id="v_slr">5.0</span></label>
+    <input type="range" id="slr" min="2" max="20" step="0.5" value="5" oninput="updateOrbit()">
+    <label>Orbits shown <span class="val" id="v_norb">8</span></label>
+    <input type="range" id="norb" min="2" max="30" step="2" value="8" oninput="updateOrbit()">
+    <div class="sep"></div>
+    <button id="btnOrbit" onclick="animOrbit(this)">&#9654; Animate Orbit</button>
+    <div class="sep"></div>
+    <div class="info-box" id="orbitInfo" style="font-size:.72rem;line-height:1.65">Precession per orbit: &hellip;</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9995; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="orbC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>GR precession per orbit:</b><br>
+      $\Delta\phi_{GR} = \frac{6\pi G M}{c^2 l(1-e^2)}$<br><br>
+      <b>Newtonian:</b> no precession<br><br>
+      <b>Effective potential:</b><br>
+      $V_{eff} = -\frac{GM}{r} + \frac{L^2}{2r^2}$<br>
+      $-\frac{GML^2}{c^2 r^3}$ (GR correction)<br><br>
+      Mercury: $43''/\text{cy}$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: GRAVITATIONAL WAVES -->
+<div id="panel2" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Linearized GR: $h_{\mu\nu}$ propagates at $c$. Polarizations $h_+$ and $h_\times$.</div>
+    <div class="sep"></div>
+    <label>Polarization</label>
+    <button onclick="setGWPol(0)" id="gwBtn0">h+ (plus)</button>
+    <button onclick="setGWPol(1)" id="gwBtn1">h&times; (cross)</button>
+    <button onclick="setGWPol(2)" id="gwBtn2">Circular</button>
+    <div class="sep"></div>
+    <label>Frequency <span class="val" id="v_freq">1.0</span></label>
+    <input type="range" id="gwFreq" min="0.2" max="4" step="0.2" value="1" oninput="updateGW()">
+    <label>Amplitude <span class="val" id="v_amp">0.30</span></label>
+    <input type="range" id="gwAmp" min="0.05" max="0.6" step="0.05" value="0.3" oninput="updateGW()">
+    <div class="sep"></div>
+    <label>View mode</label>
+    <button onclick="setGWView(0)" id="gwView0">Ring deformation</button>
+    <button onclick="setGWView(1)" id="gwView1">Binary inspiral</button>
+    <button onclick="setGWView(2)" id="gwView2">Chirp waveform</button>
+    <div class="sep"></div>
+    <button id="btnGW" onclick="animGW(this)">&#9654; Animate</button>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9995; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="gwC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Wave equation:</b><br>
+      $\Box \bar{h}_{\mu\nu} = -\tfrac{16\pi G}{c^4} T_{\mu\nu}$<br><br>
+      <b>Quadrupole power:</b><br>
+      $\dot{E} = -\tfrac{G}{5c^5}\langle\overset{...}{Q}_{ij}^2\rangle$<br><br>
+      <b>Chirp strain:</b><br>
+      $h(t)\!\propto\! t_c^{-1/4}\cos\!\phi(t)$<br>
+      $f\!\propto\! (t_c\!-\!t)^{-3/8}$<br><br>
+      $h_+$: squeeze x, stretch y<br>
+      $h_\times$: squeeze diag
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: SCHWARZSCHILD ORBITS -->
+<div id="panel3" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Geodesics in Schwarzschild spacetime. Set E and L to explore circular, elliptical, and plunging orbits.</div>
+    <div class="sep"></div>
+    <label>Mass M <span class="val" id="v_schM">1.00</span></label>
+    <input type="range" id="schM" min="0.1" max="3" step="0.05" value="1" oninput="updateSch()">
+    <label>Angular momentum L <span class="val" id="v_schL">3.50</span></label>
+    <input type="range" id="schL" min="0" max="8" step="0.1" value="3.5" oninput="updateSch()">
+    <label>Energy E <span class="val" id="v_schE">0.950</span></label>
+    <input type="range" id="schE" min="0.7" max="1.15" step="0.005" value="0.95" oninput="updateSch()">
+    <div class="sep"></div>
+    <button onclick="setSchView(0)" id="schVBtn0">View: Orbit</button>
+    <button onclick="setSchView(1)" id="schVBtn1">View: V_eff(r)</button>
+    <div class="sep"></div>
+    <button id="btnSch" onclick="animSch(this)">&#9654; Animate Orbit</button>
+    <div class="sep"></div>
+    <div class="info-box" id="schInfo" style="font-size:.71rem;line-height:1.6">&#8230;</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9995; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="schC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Eff. potential:</b><br>
+      $V_{eff}(r) = \sqrt{\!\left(1\!-\!\tfrac{2M}{r}\right)\!\left(1\!+\!\tfrac{L^2}{r^2}\right)}$<br><br>
+      <b>Key radii:</b><br>
+      Singularity: $r=0$<br>
+      Horizon: $r=2M$<br>
+      Photon sphere: $r=3M$<br>
+      ISCO: $r=6M$<br><br>
+      $\tfrac{dr}{d\tau}=\pm\sqrt{E^2-V_{eff}^2}$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: PENROSE DIAGRAMS -->
+<div id="panel4" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Penrose (conformal) diagrams compress infinite spacetime into a finite square. Light travels at 45&deg;.</div>
+    <div class="sep"></div>
+    <label>Spacetime</label>
+    <button onclick="setPenrose(0)" id="penBtn0">Minkowski (flat)</button>
+    <button onclick="setPenrose(1)" id="penBtn1">Schwarzschild BH</button>
+    <button onclick="setPenrose(2)" id="penBtn2">de Sitter</button>
+    <button onclick="setPenrose(3)" id="penBtn3">Anti-de Sitter</button>
+    <div class="sep"></div>
+    <button onclick="togglePenCurves()" id="penCurvBtn">Light cones: ON</button>
+    <div class="sep"></div>
+    <div class="info-box" id="penRegionInfo" style="font-size:.71rem;line-height:1.6">Click a region for description.</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9995; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="penC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Conformal coords:</b><br>
+      $T = \arctan(t+r)+\arctan(t-r)$<br>
+      $X = \arctan(t+r)-\arctan(t-r)$<br><br>
+      Null (light): 45&deg; lines<br>
+      Timelike: steeper<br>
+      Spacelike: shallower<br><br>
+      $\mathscr{I}^+$: future null infinity<br>
+      $\mathscr{I}^-$: past null infinity<br>
+      $i^0$: spacelike infinity<br>
+      $i^\pm$: timelike infinity
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: EINSTEIN TENSOR BREAKDOWN -->
+<div id="panel5" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">$G_{\mu\nu}+\Lambda g_{\mu\nu} = \tfrac{8\pi G}{c^4}T_{\mu\nu}$<br>Click cells to toggle stress-energy components and see how they source curvature.</div>
+    <div class="sep"></div>
+    <label>Stress-energy $T_{\mu\nu}$ &mdash; click to toggle</label>
+    <div class="tensor-grid" id="tGrid"></div>
+    <div class="sep"></div>
+    <label>Curvature strength K <span class="val" id="v_einstK">1.0</span></label>
+    <input type="range" id="einstK" min="0.1" max="3" step="0.1" value="1" oninput="updateEinst()">
+    <label>Cosmological &Lambda; <span class="val" id="v_einstLam">0.00</span></label>
+    <input type="range" id="einstLam" min="-1" max="1" step="0.05" value="0" oninput="updateEinst()">
+    <div class="sep"></div>
+    <button id="btnEinst" onclick="animEinst(this)">&#9654; Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" id="einstComponentInfo" style="font-size:.71rem;line-height:1.6">Click a tensor cell to learn about that component.</div>
+  </div>
+  <div class="main-area"><canvas id="einstC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Einstein tensor:</b><br>
+      $G_{\mu\nu} = R_{\mu\nu} - \tfrac{1}{2}Rg_{\mu\nu}$<br><br>
+      <b>Ricci tensor:</b><br>
+      $R_{\mu\nu} = R^\rho{}_{\mu\rho\nu}$<br>
+      (trace of Riemann)<br><br>
+      <b>Ricci scalar:</b><br>
+      $R = g^{\mu\nu}R_{\mu\nu}$<br><br>
+      <b>Bianchi identity:</b><br>
+      $\nabla^\mu G_{\mu\nu} = 0$<br>
+      $\Rightarrow \nabla^\mu T_{\mu\nu}=0$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: GEODESIC DEVIATION -->
+<div id="panel6" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Two nearby geodesics: separation vector $\xi^\mu$ evolves via the geodesic deviation equation.</div>
+    <div class="sep"></div>
+    <label>Riemann curvature K <span class="val" id="v_gdevK">1.0</span></label>
+    <input type="range" id="gdevK" min="0" max="5" step="0.1" value="1" oninput="updateGDev()">
+    <label>Initial separation <span class="val" id="v_gdevXi">0.15</span></label>
+    <input type="range" id="gdevXi" min="0.02" max="0.5" step="0.01" value="0.15" oninput="updateGDev()">
+    <label>Initial velocity <span class="val" id="v_gdevV">0.00</span></label>
+    <input type="range" id="gdevV" min="-0.5" max="0.5" step="0.02" value="0" oninput="updateGDev()">
+    <div class="sep"></div>
+    <button onclick="setGDevMode(0)" id="gdevBtn0">Tidal (radial BH)</button>
+    <button onclick="setGDevMode(1)" id="gdevBtn1">Cosmological</button>
+    <button onclick="setGDevMode(2)" id="gdevBtn2">Spaghettification</button>
+    <div class="sep"></div>
+    <button id="btnGDev" onclick="animGDev(this)">&#9654; Animate</button>
+    <button onclick="resetGDev()">Reset</button>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9995; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="gdevC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Geodesic deviation:</b><br>
+      $\tfrac{D^2\xi^\mu}{d\tau^2} = -R^\mu{}_{\nu\rho\sigma}u^\nu\xi^\rho u^\sigma$<br><br>
+      $\xi^\mu$: separation vector<br>
+      $u^\mu$: 4-velocity<br><br>
+      <b>Tidal tensor:</b><br>
+      $\mathcal{E}_{ij} = -R_{0i0j}$<br><br>
+      Near BH (radial):<br>
+      $\ddot\xi_r = +K\xi_r$ (stretch)<br>
+      $\ddot\xi_\perp = -\tfrac{K}{2}\xi_\perp$ (squeeze)
+    </div>
+  </div>
+</div>
+
+<div class="proof-panel" id="proofPanel">
+  <div class="proof-header" onclick="toggleProof()">
+    <span style="color:#ffaa22;font-size:1.1rem">&#9650;</span>
+    <h3>Proofs &amp; Theory</h3>
+    <span style="font-size:.75rem;color:#ffaa2288">click to expand</span>
+  </div>
+  <div class="proof-tabs" id="proofTabsContainer"></div>
+  <div class="proof-content" id="proofContent"></div>
+</div>
+
+<script>
+  window.animSpeed=0.1;
+// ── PROOFS (static data, rendered via DOM methods, not innerHTML with user input) ──
+const PROOF_TITLES=[
+  "Einstein Field Equations",
+  "Schwarzschild Solution",
+  "Geodesic Equation",
+  "Perihelion Precession",
+  "Gravitational Waves",
+  "Penrose Diagrams",
+  "Geodesic Deviation"
+];
+const PROOF_BODIES=[
+  "The Einstein field equations relate spacetime curvature to energy-momentum: G_\\u03bc\\u03bd + \\u039bg_\\u03bc\\u03bd = (8\\u03c0G/c^4) T_\\u03bc\\u03bd. The Einstein tensor G_\\u03bc\\u03bd = R_\\u03bc\\u03bd - (1/2)Rg_\\u03bc\\u03bd. The Ricci tensor R_\\u03bc\\u03bd is a trace of Riemann; R = g^{\\u03bc\\u03bd}R_\\u03bc\\u03bd is the Ricci scalar. T_\\u03bc\\u03bd is the stress-energy tensor: T^{00}=energy density, T^{0i}=momentum flux, T^{ij}=stress. Bianchi identity: \\u2207^\\u03bc G_\\u03bc\\u03bd = 0 ensures \\u2207^\\u03bc T_\\u03bc\\u03bd = 0 (energy-momentum conservation). Weak-field limit recovers Newton's law.",
+  "The unique spherically symmetric vacuum solution (Birkhoff's theorem): ds^2 = -(1-r_s/r)dt^2 + (1-r_s/r)^{-1}dr^2 + r^2 d\\u03a9^2, where r_s=2GM/c^2. Key radii: r=2M (horizon), r=3M (photon sphere), r=6M (ISCO -- innermost stable circular orbit). Below ISCO no stable circular orbits exist. V_eff(r)=sqrt((1-2M/r)(1+L^2/r^2)) has a max (unstable photon orbit) and min (stable circular orbit) for L>sqrt(12)M.",
+  "Freely falling particles follow geodesics: d^2x^\\u03bc/d\\u03c4^2 + \\u0393^\\u03bc_\\u03bd\\u03c1 (dx^\\u03bd/d\\u03c4)(dx^\\u03c1/d\\u03c4) = 0. The Christoffel symbols \\u0393^\\u03bc_\\u03bd\\u03c1 = (1/2)g^{\\u03bc\\u03c3}(\\u2202_\\u03bd g_{\\u03c3\\u03c1}+\\u2202_\\u03c1 g_{\\u03bd\\u03c3}-\\u2202_\\u03c3 g_{\\u03bd\\u03c1}) encode the connection. Schwarzschild effective potential: V_eff(r) = -GM/r + L^2/(2r^2) - GML^2/(c^2 r^3). The GR correction -GML^2/(c^2 r^3) causes orbital precession and photon deflection.",
+  "GR precession per orbit: \\u0394\\u03c6 = 6\\u03c0GM/(c^2\\u2113), where \\u2113=a(1-e^2). Orbit equation: d^2u/d\\u03c6^2 + u = GM/L^2 + 3GM u^2/c^2. The u^2 term (absent in Newton) shifts the apsidal angle. Mercury: \\u2113=5.546\\u00d710^{10} m, e=0.206, gives 43.0''/cy -- matching Le Verrier's anomaly (1859) exactly.",
+  "Linearized GR perturbation h_\\u03bc\\u03bd satisfies \\u25a1 h_bar_\\u03bc\\u03bd = -16\\u03c0G/c^4 T_\\u03bc\\u03bd. TT gauge: h_+ stretches x while squeezing y; h_\\u00d7 does the same at 45 deg. Quadrupole formula: dE/dt = -(G/5c^5)<dddot{Q}_ij^2>. Chirp: h(t) \\u221d (t_c-t)^{-1/4} cos\\u03c6(t), f(t) \\u221d (t_c-t)^{-3/8}. GW150914 (Sept 2015): two 36+29 M_\\u2609 BHs, reached 150 Hz at merger.",
+  "A Penrose diagram maps all of spacetime into a finite square using conformal coordinates T=arctan(t+r)+arctan(t-r), X=arctan(t+r)-arctan(t-r). Light travels at 45 deg. Schwarzschild BH has four regions: I (exterior), II (black hole interior, future), III (white hole, past), IV (parallel universe). de Sitter (+Lambda): spacelike I+/I-, cosmological horizons. Anti-de Sitter (-Lambda): timelike boundary; light bounces back; used in AdS/CFT correspondence.",
+  "Geodesic deviation equation: D^2\\u03be^\\u03bc/d\\u03c4^2 = -R^\\u03bc_{\\u03bd\\u03c1\\u03c3} u^\\u03bd \\u03be^\\u03c1 u^\\u03c3. Tidal tensor: E_ij = -R_{0i0j}. Near a Schwarzschild BH: ddot{\\u03be}_r = +(2GM/r^3)\\u03be_r (radial stretch -- spaghettification); ddot{\\u03be}_perp = -(GM/r^3)\\u03be_perp (transverse compression). Volume preserved (vacuum: Ricci=0) but shape distorts: sphere becomes prolate ellipsoid pointing toward singularity."
+];
+
+// Build proof tabs from static data
+function buildProofTabs(){
+  const container=document.getElementById('proofTabsContainer');
+  PROOF_TITLES.forEach(function(title,i){
+    const btn=document.createElement('div');
+    btn.className='ptab'+(i===0?' active':'');
+    btn.textContent=title;
+    btn.onclick=function(){showProof(i);};
+    container.appendChild(btn);
+  });
+}
+
+let activeTab=0;
+const NUM_TABS=7;
+const pans=Array.from({length:NUM_TABS},function(){return{x:0,y:0};});
+const zooms=Array.from({length:NUM_TABS},function(){return 1;});
+let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+function togglePan(){panMode=!panMode;document.querySelectorAll('.panBtn').forEach(function(b){b.classList.toggle('active',panMode);b.textContent=panMode?'On':'Pan';});document.body.classList.toggle('pan-mode',panMode);}
+function resetPan(){pans[activeTab].x=0;pans[activeTab].y=0;zooms[activeTab]=1;redrawTab();}
+function _addZoom(canvas,idx,fn){
+  canvas.addEventListener('wheel',function(e){
+    e.preventDefault();
+    var factor=e.deltaY<0?1.1:0.91;
+    zooms[idx]=Math.max(0.2,Math.min(8,zooms[idx]*factor));
+    fn();
+  },{passive:false});
+}
+function _addPan(canvas,idx,fn){
+  canvas.addEventListener('mousedown',function(e){if(!panMode)return;_panDrag=true;_panTab=idx;_panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;e.preventDefault();},{passive:false});
+  canvas.addEventListener('mousemove',function(e){if(!_panDrag||_panTab!==idx)return;pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;fn();});
+  canvas.addEventListener('mouseup',function(){_panDrag=false;});
+  canvas.addEventListener('mouseleave',function(){_panDrag=false;});
+}
+function _cancelAllAnims19(){
+  if(stAnimId){cancelAnimationFrame(stAnimId);stAnimId=null;}
+  var stBtn=document.getElementById('btnST');if(stBtn){stBtn.textContent='▶ Animate';stBtn.classList.remove('active');}
+  if(orbitAnimId){cancelAnimationFrame(orbitAnimId);orbitAnimId=null;}
+  var orbitBtn=document.getElementById('btnOrbit');if(orbitBtn){orbitBtn.textContent='▶ Animate Orbit';orbitBtn.classList.remove('active');}
+  if(gwAnimId){cancelAnimationFrame(gwAnimId);gwAnimId=null;}
+  var gwBtn=document.getElementById('btnGW');if(gwBtn){gwBtn.textContent='▶ Animate';gwBtn.classList.remove('active');}
+  if(schAnimId){cancelAnimationFrame(schAnimId);schAnimId=null;}
+  var schBtn=document.getElementById('btnSch');if(schBtn){schBtn.textContent='▶ Animate Orbit';schBtn.classList.remove('active');}
+  if(einstAnimId){cancelAnimationFrame(einstAnimId);einstAnimId=null;}
+  var einstBtn=document.getElementById('btnEinst');if(einstBtn){einstBtn.textContent='▶ Animate';einstBtn.classList.remove('active');}
+  if(gdevAnimId){cancelAnimationFrame(gdevAnimId);gdevAnimId=null;}
+  var gdevBtn=document.getElementById('btnGDev');if(gdevBtn){gdevBtn.textContent='▶ Animate';gdevBtn.classList.remove('active');}
+}
+function switchTab(t){
+  _cancelAllAnims19();
+  activeTab=t;
+  for(var i=0;i<NUM_TABS;i++){var el=document.getElementById('panel'+i);if(el)el.style.display=i===t?'flex':'none';}
+  document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',i===t);});
+  redrawTab();
+  // Auto-start animations (tab 4 Penrose is static)
+  var btn;
+  if(t===0){btn=document.getElementById('stAnimBtn');if(btn)animST(btn);}
+  if(t===1){btn=document.getElementById('orbitAnimBtn');if(btn)animOrbit(btn);}
+  if(t===2){btn=document.getElementById('gwAnimBtn');if(btn)animGW(btn);}
+  if(t===3){btn=document.getElementById('schAnimBtn');if(btn)animSch(btn);}
+  if(t===5){btn=document.getElementById('einstAnimBtn');if(btn)animEinst(btn);}
+  if(t===6){btn=document.getElementById('gdevAnimBtn');if(btn)animGDev(btn);}
+}
+function redrawTab(){
+  if(activeTab===0)drawST();
+  else if(activeTab===1)drawOrbit();
+  else if(activeTab===2)drawGW();
+  else if(activeTab===3)drawSch();
+  else if(activeTab===4)drawPenrose();
+  else if(activeTab===5)drawEinst();
+  else if(activeTab===6)drawGDev();
+}
+
+var stC=document.getElementById('stC');
+var orbC=document.getElementById('orbC');
+var gwC=document.getElementById('gwC');
+var schC=document.getElementById('schC');
+var penC=document.getElementById('penC');
+var einstC=document.getElementById('einstC');
+var gdevC=document.getElementById('gdevC');
+var sCtx=stC.getContext('2d');
+var oCtx=orbC.getContext('2d');
+var gCtx=gwC.getContext('2d');
+var scCtx=schC.getContext('2d');
+var pnCtx=penC.getContext('2d');
+var enCtx=einstC.getContext('2d');
+var gdCtx=gdevC.getContext('2d');
+
+function resizeCanvas(c){var r=c.getBoundingClientRect();if(c.width!==Math.floor(r.width)||c.height!==Math.floor(r.height)){c.width=Math.floor(r.width);c.height=Math.floor(r.height);}}
+function rot3D(p,rx,ry){var x=p[0],y=p[1],z=p[2];var y2=y*Math.cos(rx)-z*Math.sin(rx),z2=y*Math.sin(rx)+z*Math.cos(rx);var x3=x*Math.cos(ry)+z2*Math.sin(ry),z3=-x*Math.sin(ry)+z2*Math.cos(ry);return[x3,y2,z3];}
+function proj(p,fov){fov=fov||500;var x=p[0],y=p[1],z=p[2];var s=fov/(fov+z+5);return{x:x*s,y:y*s,z:z};}
+
+// ── TAB 0: SPACETIME CURVATURE ──
+var stGrid=0, stAnimId=null, stAngleOffset=0;
+function setGrid(i){stGrid=i;['gBtn0','gBtn1','gBtn2'].forEach(function(id,j){document.getElementById(id).classList.toggle('active',j===i);});drawST();}
+function updateST(){
+  document.getElementById('v_mass').textContent=parseFloat(document.getElementById('mass').value).toFixed(1);
+  document.getElementById('v_stRx').textContent=parseFloat(document.getElementById('stRx').value).toFixed(2);
+  document.getElementById('v_stRy').textContent=parseFloat(document.getElementById('stRy').value).toFixed(2);
+  drawST();
+}
+function animST(btn){
+  if(stAnimId){cancelAnimationFrame(stAnimId);stAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){stAngleOffset=(stAngleOffset+0.012*(window.animSpeed||1))%(2*Math.PI);drawST();stAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawST(){
+  resizeCanvas(stC);
+  var W=stC.width,H=stC.height;
+  sCtx.setTransform(1,0,0,1,0,0);sCtx.fillStyle='#06060f';sCtx.fillRect(0,0,W,H);
+  sCtx.setTransform(1,0,0,1,pans[0].x,pans[0].y);
+  var cx=W/2,cy=H/2,scale=Math.min(W,H)*0.28*zooms[0];
+  var rx=parseFloat(document.getElementById('stRx').value);
+  var ry=parseFloat(document.getElementById('stRy').value)+stAngleOffset;
+  var M=parseFloat(document.getElementById('mass').value);
+  var rs=0.3*M;
+  if(stGrid===0){
+    var N=32,quads=[];
+    for(var i=0;i<N;i++){for(var j=0;j<N;j++){
+      var r0=rs+0.15+(i/N)*2.5,r1=rs+0.15+((i+1)/N)*2.5;
+      var phi0=j/N*2*Math.PI,phi1=(j+1)/N*2*Math.PI;
+      function flamm(r,phi){var z=2*Math.sqrt(Math.max(0,rs*(r-rs)));return[r*Math.cos(phi),r*Math.sin(phi),z-1.5];}
+      var pts=[flamm(r0,phi0),flamm(r1,phi0),flamm(r1,phi1),flamm(r0,phi1)];
+      var rpts=pts.map(function(p){return rot3D(p,rx,ry);});
+      var zAvg=rpts.reduce(function(s,p){return s+p[2];},0)/4;
+      var depth=(r0-rs)/2.5;
+      var colR=Math.floor(255*(1-depth*0.5)),colG=Math.floor(100+80*depth);
+      quads.push({pts:rpts,z:zAvg,color:'rgb('+colR+','+colG+',30)'});
+    }}
+    quads.sort(function(a,b){return a.z-b.z;});
+    quads.forEach(function(q){
+      var projs=q.pts.map(function(p){return proj(p);});
+      sCtx.beginPath();projs.forEach(function(p,i){var px=cx+p.x*scale,py=cy-p.y*scale;if(i===0)sCtx.moveTo(px,py);else sCtx.lineTo(px,py);});
+      sCtx.closePath();sCtx.fillStyle=q.color+'bb';sCtx.fill();
+      sCtx.strokeStyle=q.color+'44';sCtx.lineWidth=0.4;sCtx.stroke();
+    });
+    var eh_pts=[];
+    for(var i=0;i<=64;i++){var phi=i/64*2*Math.PI;var p=rot3D([rs*Math.cos(phi),rs*Math.sin(phi),-1.5],rx,ry);var pr=proj(p);eh_pts.push({x:cx+pr.x*scale,y:cy-pr.y*scale});}
+    sCtx.beginPath();eh_pts.forEach(function(p,i){if(i===0)sCtx.moveTo(p.x,p.y);else sCtx.lineTo(p.x,p.y);});
+    sCtx.strokeStyle='rgba(255,100,50,0.9)';sCtx.lineWidth=2.5;sCtx.stroke();
+    sCtx.fillStyle='rgba(255,100,50,0.7)';sCtx.font='12px Share Tech Mono';sCtx.textAlign='center';
+    sCtx.fillText('r_s='+rs.toFixed(2)+' (event horizon)',cx,cy+H*0.43);sCtx.textAlign='left';
+    sCtx.fillStyle='rgba(255,170,34,0.7)';sCtx.font='13px Share Tech Mono';sCtx.fillText("Flamm's paraboloid: embedding of Schwarzschild geometry",16,24);
+  }else if(stGrid===1){
+    var N2=7;
+    for(var i=0;i<N2;i++){
+      var r=rs+0.3+(i/N2)*2.5,phi=Math.PI*0.25;
+      var x=r*Math.cos(phi),y=r*Math.sin(phi);
+      var gtt=1-rs/r,coneH=0.6,semiAngle=Math.asin(Math.sqrt(1-gtt))*0.8+0.1;
+      var tip=rot3D([x,y,0],rx,ry),tipP=proj(tip);
+      var tpx=cx+tipP.x*scale,tpy=cy-tipP.y*scale;
+      var col='hsl('+(30+i*20)+',80%,55%)';
+      [-1,1].forEach(function(s){[-1,1].forEach(function(side){
+        var top=rot3D([x+side*coneH*Math.sin(semiAngle),y,s*coneH*Math.cos(semiAngle)],rx,ry);
+        var topP=proj(top);sCtx.strokeStyle=col;sCtx.lineWidth=1.5;
+        sCtx.beginPath();sCtx.moveTo(tpx,tpy);sCtx.lineTo(cx+topP.x*scale,cy-topP.y*scale);sCtx.stroke();
+      });});
+      sCtx.beginPath();sCtx.arc(tpx,tpy,4,0,Math.PI*2);sCtx.fillStyle=col;sCtx.fill();
+    }
+    sCtx.fillStyle='rgba(255,170,34,0.7)';sCtx.font='13px Share Tech Mono';sCtx.fillText('Light cones tilting toward mass (Schwarzschild geometry)',16,24);
+    sCtx.fillStyle='rgba(255,100,50,0.6)';sCtx.font='12px Share Tech Mono';sCtx.fillText('Event horizon r_s='+rs.toFixed(2)+' -- cones fully tilt at horizon',16,42);
+  }else{
+    var t=stAngleOffset,A=0.35*M*Math.sin(t),Nring=64,r0sc=scale*0.48;
+    sCtx.beginPath();
+    for(var i=0;i<=Nring;i++){var phi=i/Nring*2*Math.PI;sCtx.lineTo(cx+Math.cos(phi)*r0sc,cy+Math.sin(phi)*r0sc);}
+    sCtx.strokeStyle='rgba(255,170,34,0.15)';sCtx.lineWidth=1;sCtx.stroke();
+    sCtx.beginPath();
+    for(var i=0;i<=Nring;i++){var phi=i/Nring*2*Math.PI;var px2=cx+Math.cos(phi)*r0sc*(1+A),py2=cy+Math.sin(phi)*r0sc*(1-A);if(i===0)sCtx.moveTo(px2,py2);else sCtx.lineTo(px2,py2);}
+    sCtx.strokeStyle='#ffaa22';sCtx.lineWidth=2;sCtx.stroke();sCtx.fillStyle='rgba(255,170,34,0.07)';sCtx.fill();
+    var Ndots=16;
+    for(var i=0;i<Ndots;i++){var phi=i/Ndots*2*Math.PI;var px2=cx+Math.cos(phi)*r0sc*(1+A),py2=cy+Math.sin(phi)*r0sc*(1-A);var isR=Math.abs(Math.cos(phi))>0.7;sCtx.beginPath();sCtx.arc(px2,py2,5,0,Math.PI*2);sCtx.fillStyle=isR?'#ff6644':'#44aaff';sCtx.fill();}
+    for(var i=0;i<8;i++){var phi=i/8*2*Math.PI;var px2=cx+Math.cos(phi)*r0sc*(1+A),py2=cy+Math.sin(phi)*r0sc*(1-A);var aLen=18*M;var isR2=Math.abs(Math.cos(phi))>Math.abs(Math.sin(phi));var col2=isR2?'#ff6644':'#44aaff';var sgn=isR2?1:-1;sCtx.strokeStyle=col2;sCtx.lineWidth=2;sCtx.beginPath();sCtx.moveTo(px2,py2);sCtx.lineTo(px2+Math.cos(phi)*aLen*sgn,py2+Math.sin(phi)*aLen*sgn);sCtx.stroke();}
+    sCtx.beginPath();sCtx.arc(cx,cy,Math.max(6,rs*scale),0,Math.PI*2);sCtx.fillStyle='rgba(255,100,20,0.5)';sCtx.fill();sCtx.strokeStyle='rgba(255,100,20,0.9)';sCtx.lineWidth=2;sCtx.stroke();
+    sCtx.fillStyle='rgba(255,170,34,0.8)';sCtx.font='13px Share Tech Mono';sCtx.fillText('Tidal deformation: radial stretch (red) vs tangential squeeze (blue)',16,24);
+    sCtx.fillStyle='rgba(255,150,80,0.55)';sCtx.font='12px Share Tech Mono';sCtx.fillText('Amplitude A='+A.toFixed(3)+' -- hit Animate',16,42);
+  }
+  sCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 1: ORBITAL PRECESSION ──
+var orbitAnimId=null,orbitPhi=0;
+function updateOrbit(){
+  document.getElementById('v_mStar').textContent=parseFloat(document.getElementById('mStar').value).toFixed(1);
+  document.getElementById('v_ecc').textContent=parseFloat(document.getElementById('ecc').value).toFixed(2);
+  document.getElementById('v_slr').textContent=parseFloat(document.getElementById('slr').value).toFixed(1);
+  document.getElementById('v_norb').textContent=document.getElementById('norb').value;
+  var M=parseFloat(document.getElementById('mStar').value);
+  var e=parseFloat(document.getElementById('ecc').value);
+  var l=parseFloat(document.getElementById('slr').value);
+  var norb=document.getElementById('norb').value;
+  var precPerOrbit=6*Math.PI*M/(l*(1-e*e));
+  document.getElementById('orbitInfo').textContent=
+    'GR prec/orbit: '+(precPerOrbit*180/Math.PI).toFixed(4)+'deg ('+precPerOrbit.toFixed(6)+' rad) | '+
+    'l='+l.toFixed(1)+' e='+e.toFixed(2)+' | '+
+    'Total ('+norb+' orbits): '+(precPerOrbit*180/Math.PI*parseInt(norb)).toFixed(3)+'deg';
+  drawOrbit();
+}
+function animOrbit(btn){
+  if(orbitAnimId){cancelAnimationFrame(orbitAnimId);orbitAnimId=null;orbitPhi=0;drawOrbit();btn.textContent='▶ Animate Orbit';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){orbitPhi+=0.03*(window.animSpeed||1);drawOrbit();orbitAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawOrbit(){
+  resizeCanvas(orbC);
+  var W=orbC.width,H=orbC.height;
+  oCtx.setTransform(1,0,0,1,0,0);oCtx.fillStyle='#06060f';oCtx.fillRect(0,0,W,H);
+  oCtx.setTransform(1,0,0,1,pans[1].x,pans[1].y);
+  var cx=W/2,cy=H/2;
+  var M=parseFloat(document.getElementById('mStar').value);
+  var e=parseFloat(document.getElementById('ecc').value);
+  var l=parseFloat(document.getElementById('slr').value);
+  var Norb=parseInt(document.getElementById('norb').value);
+  var precPerOrbit=6*Math.PI*M/(l*(1-e*e));
+  var scale=Math.min(W,H)/(l*2.5)*zooms[1];
+  oCtx.beginPath();oCtx.arc(cx,cy,10,0,Math.PI*2);oCtx.fillStyle='#ffcc44';oCtx.fill();
+  oCtx.beginPath();oCtx.arc(cx,cy,18,0,Math.PI*2);oCtx.fillStyle='rgba(255,200,50,0.2)';oCtx.fill();
+  var NptsPerOrb=200,totalPts=NptsPerOrb*Norb;
+  oCtx.beginPath();
+  for(var i=0;i<=totalPts;i++){
+    var phi=i/NptsPerOrb*2*Math.PI,orbitN=Math.floor(i/NptsPerOrb),periAngle=orbitN*precPerOrbit;
+    var r=l/(1+e*Math.cos(phi)),totalAngle=phi+periAngle;
+    var x=cx+r*Math.cos(totalAngle)*scale,y=cy-r*Math.sin(totalAngle)*scale;
+    if(i===0)oCtx.moveTo(x,y);else oCtx.lineTo(x,y);
+  }
+  oCtx.strokeStyle='rgba(255,170,34,0.5)';oCtx.lineWidth=1.5;oCtx.stroke();
+  oCtx.beginPath();
+  for(var i=0;i<=NptsPerOrb;i++){
+    var phi=i/NptsPerOrb*2*Math.PI,r=l/(1+e*Math.cos(phi));
+    var x=cx+r*Math.cos(phi)*scale,y=cy-r*Math.sin(phi)*scale;
+    if(i===0)oCtx.moveTo(x,y);else oCtx.lineTo(x,y);
+  }
+  oCtx.strokeStyle='rgba(100,100,255,0.3)';oCtx.lineWidth=1;oCtx.setLineDash([6,4]);oCtx.stroke();oCtx.setLineDash([]);
+  if(orbitAnimId||orbitPhi>0){
+    var orbitN=Math.floor(orbitPhi/(2*Math.PI)),phi2=orbitPhi%(2*Math.PI),periAngle=orbitN*precPerOrbit;
+    var r=l/(1+e*Math.cos(phi2)),totalAngle=phi2+periAngle;
+    var px=cx+r*Math.cos(totalAngle)*scale,py=cy-r*Math.sin(totalAngle)*scale;
+    oCtx.beginPath();oCtx.arc(px,py,7,0,Math.PI*2);oCtx.fillStyle='#88ccff';oCtx.fill();
+    oCtx.beginPath();
+    for(var i=0;i<=30;i++){
+      var trail=orbitPhi-i*0.05;if(trail<0)break;
+      var on=Math.floor(trail/(2*Math.PI)),tp=trail%(2*Math.PI),pa=on*precPerOrbit;
+      var tr=l/(1+e*Math.cos(tp)),ta=tp+pa;
+      var tx=cx+tr*Math.cos(ta)*scale,ty=cy-tr*Math.sin(ta)*scale;
+      if(i===0)oCtx.moveTo(tx,ty);else oCtx.lineTo(tx,ty);
+    }
+    oCtx.strokeStyle='rgba(136,204,255,0.4)';oCtx.lineWidth=2;oCtx.stroke();
+  }
+  for(var n=0;n<Norb;n++){
+    var angle=n*precPerOrbit,r=l/(1+e);
+    var px=cx+r*Math.cos(angle)*scale,py=cy-r*Math.sin(angle)*scale;
+    oCtx.beginPath();oCtx.arc(px,py,3,0,Math.PI*2);oCtx.fillStyle='#ff6644';oCtx.fill();
+  }
+  oCtx.fillStyle='rgba(255,170,34,0.7)';oCtx.font='12px Share Tech Mono';oCtx.fillText('GR orbit (amber) vs Newtonian (blue dashed) -- red = perihelion',16,24);
+  oCtx.fillStyle='rgba(255,100,60,0.7)';oCtx.font='12px Share Tech Mono';oCtx.fillText('Precession/orbit: '+(precPerOrbit*180/Math.PI).toFixed(4)+'deg',16,42);
+  oCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 2: GRAVITATIONAL WAVES ──
+var gwPol=0,gwAnimId=null,gwT=0,gwView=0;
+function setGWPol(i){gwPol=i;['gwBtn0','gwBtn1','gwBtn2'].forEach(function(id,j){document.getElementById(id).classList.toggle('active',j===i);});drawGW();}
+function setGWView(i){gwView=i;['gwView0','gwView1','gwView2'].forEach(function(id,j){document.getElementById(id).classList.toggle('active',j===i);});drawGW();}
+function updateGW(){
+  document.getElementById('v_freq').textContent=parseFloat(document.getElementById('gwFreq').value).toFixed(1);
+  document.getElementById('v_amp').textContent=parseFloat(document.getElementById('gwAmp').value).toFixed(2);
+  drawGW();
+}
+function animGW(btn){
+  if(gwAnimId){cancelAnimationFrame(gwAnimId);gwAnimId=null;gwT=0;drawGW();btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){gwT+=0.04*(window.animSpeed||1);drawGW();gwAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawGW(){
+  resizeCanvas(gwC);
+  var W=gwC.width,H=gwC.height;
+  gCtx.setTransform(1,0,0,1,0,0);gCtx.fillStyle='#06060f';gCtx.fillRect(0,0,W,H);
+  gCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
+  var cx=W/2,cy=H/2,scale=Math.min(W,H)*0.22*zooms[2];
+  var freq=parseFloat(document.getElementById('gwFreq').value);
+  var amp=parseFloat(document.getElementById('gwAmp').value);
+  if(gwView===1){
+    var r=Math.max(0.3,1.5-gwT*0.04),phi=gwT*freq*3;
+    var x1=cx+r*scale*Math.cos(phi),y1=cy+r*scale*Math.sin(phi);
+    var x2=cx-r*scale*Math.cos(phi),y2=cy-r*scale*Math.sin(phi);
+    for(var i=1;i<=60;i++){
+      var rt=Math.max(0.3,1.5-(gwT-i*0.04)*0.04),pt=(gwT-i*0.04)*freq*3,a=0.5*(1-i/60);
+      gCtx.beginPath();gCtx.arc(cx+rt*scale*Math.cos(pt),cy+rt*scale*Math.sin(pt),8*(1-i/80),0,Math.PI*2);gCtx.fillStyle='rgba(255,170,34,'+a+')';gCtx.fill();
+      gCtx.beginPath();gCtx.arc(cx-rt*scale*Math.cos(pt),cy-rt*scale*Math.sin(pt),8*(1-i/80),0,Math.PI*2);gCtx.fillStyle='rgba(100,180,255,'+a+')';gCtx.fill();
+    }
+    gCtx.beginPath();gCtx.arc(x1,y1,12,0,Math.PI*2);gCtx.fillStyle='#ffaa22';gCtx.fill();
+    gCtx.beginPath();gCtx.arc(x2,y2,12,0,Math.PI*2);gCtx.fillStyle='#44aaff';gCtx.fill();
+    for(var i=1;i<=5;i++){var rwave=i*scale*0.7+gwT*scale*0.5;gCtx.beginPath();gCtx.arc(cx,cy,rwave,0,Math.PI*2);gCtx.strokeStyle='rgba(255,170,34,'+(0.4/i)+')';gCtx.lineWidth=2;gCtx.stroke();}
+    gCtx.fillStyle='rgba(255,170,34,0.7)';gCtx.font='13px Share Tech Mono';gCtx.fillText('Binary black hole inspiral -- GW chirp signal',16,24);
+    gCtx.fillStyle='rgba(255,150,50,0.5)';gCtx.font='12px Share Tech Mono';gCtx.fillText('f='+freq.toFixed(1)+' x base  r='+r.toFixed(2),16,42);
+  }else if(gwView===2){
+    var Npts=W-40,tc=gwT+60;
+    gCtx.strokeStyle='rgba(255,170,34,0.18)';gCtx.lineWidth=1;gCtx.beginPath();gCtx.moveTo(20,cy);gCtx.lineTo(W-20,cy);gCtx.stroke();
+    gCtx.beginPath();var phase=0;
+    for(var ix=0;ix<Npts;ix++){
+      var t2=ix/Npts*tc,tau=Math.max(0.5,tc-t2);
+      var env=Math.pow(tau,-0.25)*0.25,fInst=freq*0.5*Math.pow(tau/tc,-0.375);
+      phase+=fInst*0.04;
+      var hy=cy-env*scale*amp*4*Math.cos(phase);
+      if(ix===0)gCtx.moveTo(20+ix,hy);else gCtx.lineTo(20+ix,hy);
+    }
+    gCtx.strokeStyle='#ffaa22';gCtx.lineWidth=1.5;gCtx.stroke();
+    gCtx.beginPath();
+    for(var ix=0;ix<Npts;ix++){var t2=ix/Npts*tc,tau=Math.max(0.5,tc-t2),env=Math.pow(tau,-0.25)*0.25,hy=cy-env*scale*amp*4;if(ix===0)gCtx.moveTo(20+ix,hy);else gCtx.lineTo(20+ix,hy);}
+    gCtx.strokeStyle='rgba(255,100,50,0.35)';gCtx.lineWidth=1;gCtx.stroke();
+    gCtx.beginPath();
+    for(var ix=0;ix<Npts;ix++){var t2=ix/Npts*tc,tau=Math.max(0.5,tc-t2),env=Math.pow(tau,-0.25)*0.25,hy=cy+env*scale*amp*4;if(ix===0)gCtx.moveTo(20+ix,hy);else gCtx.lineTo(20+ix,hy);}
+    gCtx.strokeStyle='rgba(255,100,50,0.35)';gCtx.lineWidth=1;gCtx.stroke();
+    gCtx.fillStyle='rgba(255,170,34,0.8)';gCtx.font='13px Share Tech Mono';gCtx.fillText('GW Chirp: h(t) ~ (t_c-t)^{-1/4} cos(phi(t))',16,24);
+    gCtx.fillStyle='rgba(255,150,80,0.55)';gCtx.font='12px Share Tech Mono';gCtx.fillText('f(t) ~ (t_c-t)^{-3/8} -- frequency sweeps up to merger',16,42);
+    gCtx.fillStyle='rgba(255,100,50,0.6)';gCtx.font='12px Share Tech Mono';gCtx.fillText('Merger -->',W-110,cy-8);
+  }else{
+    var N=32,h=amp*Math.sin(gwT*freq*2);
+    gCtx.beginPath();gCtx.arc(cx,cy,scale,0,Math.PI*2);gCtx.strokeStyle='rgba(255,170,34,0.15)';gCtx.lineWidth=1;gCtx.stroke();
+    function gwDXY(phi3){
+      if(gwPol===0)return{dx:scale*(1+h)*Math.cos(phi3),dy:scale*(1-h)*Math.sin(phi3)};
+      if(gwPol===1){var s=h*2;return{dx:scale*Math.cos(phi3)+scale*s*Math.sin(phi3),dy:scale*Math.sin(phi3)+scale*s*Math.cos(phi3)};}
+      var hp=amp*Math.sin(gwT*freq*2),hc=amp*Math.cos(gwT*freq*2);
+      return{dx:scale*(1+hp)*Math.cos(phi3)+scale*hc*Math.sin(phi3),dy:scale*(1-hp)*Math.sin(phi3)+scale*hc*Math.cos(phi3)};
+    }
+    gCtx.beginPath();
+    for(var i=0;i<=N;i++){var phi3=i/N*2*Math.PI,dxy=gwDXY(phi3);if(i===0)gCtx.moveTo(cx+dxy.dx,cy+dxy.dy);else gCtx.lineTo(cx+dxy.dx,cy+dxy.dy);}
+    gCtx.closePath();gCtx.strokeStyle='#ffaa22';gCtx.lineWidth=2.5;gCtx.stroke();gCtx.fillStyle='rgba(255,170,34,0.08)';gCtx.fill();
+    for(var i=0;i<N;i++){var phi3=i/N*2*Math.PI,dxy=gwDXY(phi3);gCtx.beginPath();gCtx.arc(cx+dxy.dx,cy+dxy.dy,4,0,Math.PI*2);gCtx.fillStyle='hsl('+(i*360/N)+',80%,60%)';gCtx.fill();}
+    var waveX=cx+scale*1.6;gCtx.strokeStyle='rgba(100,200,255,0.4)';gCtx.lineWidth=1.5;gCtx.beginPath();
+    for(var i=0;i<80;i++){var wt=gwT-i*0.08,wy=cy+amp*scale*0.6*Math.sin(wt*freq*2)*Math.exp(-i*0.02);if(i===0)gCtx.moveTo(waveX+i*4,wy);else gCtx.lineTo(waveX+i*4,wy);}
+    gCtx.stroke();
+    var polNames=['h+ (plus)','hx (cross)','Circular'];
+    gCtx.fillStyle='rgba(255,170,34,0.7)';gCtx.font='13px Share Tech Mono';gCtx.fillText('GW: '+polNames[gwPol]+' polarization',16,24);
+    gCtx.fillStyle='rgba(255,150,50,0.5)';gCtx.font='12px Share Tech Mono';gCtx.fillText('h='+h.toFixed(4)+'  (exaggerated)',16,42);
+  }
+  gCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 3: SCHWARZSCHILD ORBITS ──
+var schView=0,schAnimId=null,schPhi=0,schR=0,schDR=0;
+function setSchView(i){schView=i;['schVBtn0','schVBtn1'].forEach(function(id,j){document.getElementById(id).classList.toggle('active',j===i);});updateSch();}
+function updateSch(){
+  document.getElementById('v_schM').textContent=parseFloat(document.getElementById('schM').value).toFixed(2);
+  document.getElementById('v_schL').textContent=parseFloat(document.getElementById('schL').value).toFixed(2);
+  document.getElementById('v_schE').textContent=parseFloat(document.getElementById('schE').value).toFixed(3);
+  var M=parseFloat(document.getElementById('schM').value);
+  var L=parseFloat(document.getElementById('schL').value);
+  var E=parseFloat(document.getElementById('schE').value);
+  var rISCO=6*M,rPhoton=3*M,rH=2*M;
+  var desc='';
+  if(L<Math.sqrt(12)*M){
+    desc='L < sqrt(12)M: no stable circular orbit. Plunging trajectory into BH.';
+  }else{
+    var vmax=-Infinity,vmin=Infinity,rmaxV=rH+0.01,rminV=rH+0.01;
+    for(var r=rH+0.01;r<100*M;r+=0.05*M){
+      var v2=(1-2*M/r)*(1+L*L/(r*r));if(v2<0)continue;
+      var v=Math.sqrt(v2);
+      if(v>vmax){vmax=v;rmaxV=r;}if(r>3*M&&v<vmin){vmin=v;rminV=r;}
+    }
+    if(E>=vmax){desc='Plunging orbit -- E exceeds V_eff max ('+vmax.toFixed(4)+'). Particle falls into BH.';}
+    else if(Math.abs(E-vmin)<0.01){desc='Near-circular orbit at r~'+rminV.toFixed(2)+'M (V_eff minimum).';}
+    else if(E<1){desc='Bound elliptical orbit. Two turning points (E<1).';}
+    else{desc='Hyperbolic (unbound) orbit (E>=1).';}
+  }
+  desc+=' ISCO='+rISCO.toFixed(1)+', photon sphere='+rPhoton.toFixed(1)+', horizon='+rH.toFixed(1);
+  document.getElementById('schInfo').textContent=desc;
+  drawSch();
+}
+function animSch(btn){
+  if(schAnimId){cancelAnimationFrame(schAnimId);schAnimId=null;schPhi=0;schR=0;schDR=0;drawSch();btn.textContent='▶ Animate Orbit';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  var M=parseFloat(document.getElementById('schM').value);
+  var L=parseFloat(document.getElementById('schL').value);
+  var E=parseFloat(document.getElementById('schE').value);
+  var r0=100*M;
+  for(var r=2.01*M;r<200*M;r+=0.1*M){
+    var v2=(1-2*M/r)*(1+L*L/(r*r));if(v2<0)continue;
+    if(E<=Math.sqrt(v2)){r0=r;break;}
+  }
+  schR=r0;schDR=0;schPhi=0;
+  function integrate(){
+    var M2=parseFloat(document.getElementById('schM').value);
+    var L2=parseFloat(document.getElementById('schL').value);
+    var E2=parseFloat(document.getElementById('schE').value);
+    var dtau=0.15;
+    for(var step=0;step<4;step++){
+      var r=schR;if(r<=2.01*M2){schR=2.05*M2;schDR=Math.abs(schDR)*0.5;break;}
+      var veff2=(1-2*M2/r)*(1+L2*L2/(r*r));
+      var rdot2=E2*E2-veff2;
+      if(rdot2<0){schDR=-schDR*0.7;}else{schDR=(schDR<0?-1:1)*Math.sqrt(rdot2);}
+      schR+=schDR*dtau;if(schR<2.01*M2)schR=2.02*M2;
+      schPhi+=L2/(schR*schR)*dtau;
+    }
+    drawSch();schAnimId=requestAnimationFrame(integrate);
+  }
+  integrate();
+}
+function drawSch(){
+  resizeCanvas(schC);
+  var W=schC.width,H=schC.height;
+  scCtx.setTransform(1,0,0,1,0,0);scCtx.fillStyle='#06060f';scCtx.fillRect(0,0,W,H);
+  var M=parseFloat(document.getElementById('schM').value);
+  var L=parseFloat(document.getElementById('schL').value);
+  var E=parseFloat(document.getElementById('schE').value);
+  var rISCO=6*M,rPhoton=3*M,rH=2*M;
+  if(schView===1){
+    scCtx.setTransform(1,0,0,1,pans[3].x,pans[3].y);
+    var marginL=70,marginB=50,plotW=W-marginL-30,plotH=H-marginB-30;
+    var rMax=25*M,rMin=2.05*M;
+    function toScreen(r,v){return{x:marginL+((r-rMin)/(rMax-rMin))*plotW,y:30+plotH-(v-0.5)/(1.5-0.5)*plotH};}
+    scCtx.strokeStyle='rgba(255,170,34,0.1)';scCtx.lineWidth=0.5;
+    for(var v=0.5;v<=1.5;v+=0.1){var p=toScreen(rMin,v);scCtx.beginPath();scCtx.moveTo(p.x,p.y);scCtx.lineTo(marginL+plotW,p.y);scCtx.stroke();}
+    for(var ri=5;ri<=25;ri+=5){var p=toScreen(ri*M,0.5);scCtx.beginPath();scCtx.moveTo(p.x,30);scCtx.lineTo(p.x,30+plotH);scCtx.stroke();}
+    scCtx.beginPath();var first=true;
+    for(var ri=0;ri<400;ri++){
+      var r=rMin+(ri/400)*(rMax-rMin),v2=(1-2*M/r)*(1+L*L/(r*r));if(v2<=0)continue;
+      var v=Math.sqrt(v2),p=toScreen(r,v);
+      if(first){scCtx.moveTo(p.x,p.y);first=false;}else scCtx.lineTo(p.x,p.y);
+    }
+    scCtx.strokeStyle='#ffaa22';scCtx.lineWidth=2.5;scCtx.stroke();
+    var pE0=toScreen(rMin,E),pE1=toScreen(rMax,E);
+    scCtx.beginPath();scCtx.moveTo(pE0.x,pE0.y);scCtx.lineTo(pE1.x,pE1.y);scCtx.strokeStyle='#88ccff';scCtx.lineWidth=1.5;scCtx.setLineDash([6,4]);scCtx.stroke();scCtx.setLineDash([]);
+    [{r:rH,c:'#ff4444',n:'2M'},{r:rPhoton,c:'#ff8844',n:'3M'},{r:rISCO,c:'#44ff88',n:'6M ISCO'}].forEach(function(item){
+      if(item.r<rMax){var p0=toScreen(item.r,0.5),p1=toScreen(item.r,1.5);scCtx.beginPath();scCtx.moveTo(p0.x,p0.y);scCtx.lineTo(p1.x,p1.y);scCtx.strokeStyle=item.c;scCtx.lineWidth=1;scCtx.setLineDash([4,3]);scCtx.stroke();scCtx.setLineDash([]);scCtx.fillStyle=item.c;scCtx.font='12px Share Tech Mono';scCtx.fillText(item.n,p0.x+2,30+plotH-4);}
+    });
+    scCtx.fillStyle='rgba(255,170,34,0.7)';scCtx.font='12px Share Tech Mono';scCtx.fillText('V_eff',2,50);scCtx.fillText('r',marginL+plotW/2,H-8);
+    scCtx.fillText('Effective Potential V_eff(r) = sqrt((1-2M/r)(1+L^2/r^2))',16,16);
+    scCtx.fillStyle='rgba(136,204,255,0.7)';scCtx.fillText('E='+E.toFixed(3),marginL+plotW-80,pE0.y-6);
+  }else{
+    scCtx.setTransform(1,0,0,1,pans[3].x,pans[3].y);
+    var maxR=15*M,scale=Math.min(W,H)*0.4/maxR*zooms[3],cx=W/2,cy=H/2;
+    [{r:rH,c:'rgba(255,60,60,0.7)'},{r:rPhoton,c:'rgba(255,140,40,0.5)'},{r:rISCO,c:'rgba(80,200,100,0.4)'}].forEach(function(item){
+      scCtx.beginPath();scCtx.arc(cx,cy,item.r*scale,0,Math.PI*2);scCtx.strokeStyle=item.c;scCtx.lineWidth=1.5;scCtx.stroke();
+    });
+    scCtx.beginPath();scCtx.arc(cx,cy,rH*scale,0,Math.PI*2);scCtx.fillStyle='rgba(0,0,0,0.9)';scCtx.fill();
+    // Geodesic trail
+    var Nsteps=3000,dtau=0.2,r=Math.max(2.05*M,schAnimId?schR:12*M);
+    var drdt=schDR||0,phi2=schAnimId?schPhi:0,trail=[];
+    for(var i=0;i<Nsteps;i++){
+      var veff2=(1-2*M/r)*(1+L*L/(r*r)),rdot2=E*E-veff2;
+      if(rdot2<0){drdt=-drdt*0.5;if(Math.abs(drdt)<0.0001)break;}else{drdt=(drdt>=0?1:-1)*Math.sqrt(rdot2);}
+      r+=drdt*dtau;if(r<2.05*M){r=2.05*M;drdt=0;break;}if(r>60*M)break;
+      phi2+=L/(r*r)*dtau;
+      trail.push({x:cx+r*Math.cos(phi2)*scale,y:cy-r*Math.sin(phi2)*scale});
+    }
+    if(trail.length>1){scCtx.beginPath();trail.forEach(function(p,i){if(i===0)scCtx.moveTo(p.x,p.y);else scCtx.lineTo(p.x,p.y);});scCtx.strokeStyle='rgba(255,170,34,0.55)';scCtx.lineWidth=1.5;scCtx.stroke();}
+    if(schAnimId&&schR>2.05*M){
+      var px=cx+schR*Math.cos(schPhi)*scale,py=cy-schR*Math.sin(schPhi)*scale;
+      scCtx.beginPath();scCtx.arc(px,py,7,0,Math.PI*2);scCtx.fillStyle='#88ccff';scCtx.fill();scCtx.strokeStyle='#fff';scCtx.lineWidth=1.5;scCtx.stroke();
+    }
+    [{c:'rgba(255,60,60,0.7)',n:'Horizon r=2M'},{c:'rgba(255,140,40,0.5)',n:'Photon sphere r=3M'},{c:'rgba(80,200,100,0.4)',n:'ISCO r=6M'}].forEach(function(item,i){
+      scCtx.fillStyle=item.c;scCtx.fillRect(16,24+i*18,12,10);scCtx.fillStyle='rgba(255,200,120,0.8)';scCtx.font='12px Share Tech Mono';scCtx.fillText(item.n,32,33+i*18);
+    });
+    scCtx.fillStyle='rgba(255,170,34,0.7)';scCtx.font='12px Share Tech Mono';scCtx.fillText('Schwarzschild geodesic M='+M.toFixed(2)+' L='+L.toFixed(2)+' E='+E.toFixed(3),16,H-20);
+  }
+  scCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 4: PENROSE DIAGRAMS ──
+var penroseType=0,penShowCurves=true;
+var PENROSE_REGION_DATA=[
+  [{name:'Minkowski Spacetime',desc:'Flat spacetime (no gravity). ds^2=-dt^2+dx^2. Entire spacetime causally connected.'}],
+  [
+    {name:'Region I: Exterior',desc:'Exterior r>2M. Observers can send and receive signals freely. Static Schwarzschild coords cover this region.'},
+    {name:'Region II: Black Hole Interior',desc:'Inside horizon r<2M (future). All future paths hit the singularity. Nothing escapes back to Region I.'},
+    {name:'Region III: White Hole',desc:'Time-reversed black hole -- things can only exit, not enter. Not thought to be physically realized.'},
+    {name:'Region IV: Parallel Exterior',desc:'Second external universe connected via Einstein-Rosen bridge (wormhole). No causal contact with Region I possible.'}
+  ],
+  [{name:'de Sitter Space',desc:'Positive Lambda: exponential expansion. Cosmological horizons -- observers in opposite corners cannot communicate. Models inflationary epoch and future of our universe.'}],
+  [{name:'Anti-de Sitter Space',desc:'Negative Lambda: timelike boundary. Light reaches infinity and returns. Used in AdS/CFT: quantum gravity in AdS = CFT on the boundary.'}]
+];
+function setPenrose(t){penroseType=t;['penBtn0','penBtn1','penBtn2','penBtn3'].forEach(function(id,j){document.getElementById(id).classList.toggle('active',j===t);});drawPenrose();}
+function togglePenCurves(){penShowCurves=!penShowCurves;document.getElementById('penCurvBtn').textContent='Light cones: '+(penShowCurves?'ON':'OFF');drawPenrose();}
+function drawPenrose(){
+  resizeCanvas(penC);
+  var W=penC.width,H=penC.height;
+  pnCtx.setTransform(1,0,0,1,0,0);pnCtx.fillStyle='#06060f';pnCtx.fillRect(0,0,W,H);
+  pnCtx.setTransform(1,0,0,1,pans[4].x,pans[4].y);
+  var cx=W/2,cy=H/2,S=Math.min(W,H)*0.38*zooms[4];
+  if(penroseType===0){
+    var top={x:cx,y:cy-S},bot={x:cx,y:cy+S},lft={x:cx-S,y:cy},rgt={x:cx+S,y:cy};
+    pnCtx.beginPath();pnCtx.moveTo(top.x,top.y);pnCtx.lineTo(rgt.x,rgt.y);pnCtx.lineTo(bot.x,bot.y);pnCtx.lineTo(lft.x,lft.y);pnCtx.closePath();
+    pnCtx.fillStyle='rgba(30,50,120,0.4)';pnCtx.fill();pnCtx.strokeStyle='rgba(100,150,255,0.8)';pnCtx.lineWidth=2;pnCtx.stroke();
+    if(penShowCurves){
+      pnCtx.strokeStyle='rgba(255,220,80,0.25)';pnCtx.lineWidth=1;
+      for(var k=-4;k<=4;k++){var off=k*S/4;pnCtx.beginPath();pnCtx.moveTo(cx+off,cy-S+Math.abs(off));pnCtx.lineTo(cx+off+S-Math.abs(off),cy);pnCtx.stroke();pnCtx.beginPath();pnCtx.moveTo(cx+off,cy-S+Math.abs(off));pnCtx.lineTo(cx+off-S+Math.abs(off),cy);pnCtx.stroke();}
+      pnCtx.strokeStyle='rgba(180,100,255,0.3)';pnCtx.lineWidth=1;
+      for(var k=-3;k<=3;k++){pnCtx.beginPath();for(var t=0;t<=80;t++){var T=(t/80-0.5)*2*S,X=k*S/4*(1-(T/S)*(T/S));pnCtx.lineTo(cx+X,cy-T);}pnCtx.stroke();}
+    }
+    pnCtx.fillStyle='rgba(255,220,80,0.9)';pnCtx.font='bold 13px Share Tech Mono';pnCtx.textAlign='center';
+    pnCtx.fillText('i+ (future timelike inf.)',cx,cy-S-8);pnCtx.fillText('i- (past timelike inf.)',cx,cy+S+16);
+    pnCtx.textAlign='left';pnCtx.fillText('i0 (spacelike inf.)',cx+S+6,cy+4);
+    pnCtx.fillStyle='rgba(100,150,255,0.8)';pnCtx.font='12px Share Tech Mono';
+    pnCtx.fillText('I+ (future null inf.)',cx+12,cy-S/2);pnCtx.fillText('I- (past null inf.)',cx+12,cy+S/2);
+    pnCtx.fillStyle='rgba(255,170,34,0.7)';pnCtx.textAlign='center';pnCtx.font='12px Share Tech Mono';pnCtx.fillText('Minkowski (flat) Penrose diagram',cx,20);
+  }else if(penroseType===1){
+    var half=S;var top2={x:cx,y:cy-half},bot2={x:cx,y:cy+half},lft2={x:cx-half,y:cy},rgt2={x:cx+half,y:cy};
+    var singY_top=cy-half+12,singY_bot=cy+half-12;
+    pnCtx.beginPath();pnCtx.moveTo(cx,cy);pnCtx.lineTo(rgt2.x,rgt2.y);pnCtx.lineTo(top2.x,top2.y);pnCtx.closePath();pnCtx.fillStyle='rgba(30,80,200,0.3)';pnCtx.fill();
+    pnCtx.beginPath();pnCtx.moveTo(cx,cy);pnCtx.lineTo(rgt2.x,rgt2.y);pnCtx.lineTo(bot2.x,bot2.y);pnCtx.closePath();pnCtx.fillStyle='rgba(30,80,200,0.3)';pnCtx.fill();
+    pnCtx.beginPath();pnCtx.moveTo(top2.x,top2.y);pnCtx.lineTo(cx,cy);pnCtx.lineTo(lft2.x,lft2.y);pnCtx.closePath();pnCtx.fillStyle='rgba(200,30,30,0.3)';pnCtx.fill();
+    pnCtx.beginPath();pnCtx.moveTo(bot2.x,bot2.y);pnCtx.lineTo(cx,cy);pnCtx.lineTo(lft2.x,lft2.y);pnCtx.closePath();pnCtx.fillStyle='rgba(30,200,80,0.2)';pnCtx.fill();
+    pnCtx.beginPath();pnCtx.moveTo(cx,cy);pnCtx.lineTo(lft2.x,lft2.y);pnCtx.lineTo(top2.x,top2.y);pnCtx.closePath();pnCtx.fillStyle='rgba(100,30,200,0.25)';pnCtx.fill();
+    pnCtx.beginPath();pnCtx.moveTo(cx,cy);pnCtx.lineTo(lft2.x,lft2.y);pnCtx.lineTo(bot2.x,bot2.y);pnCtx.closePath();pnCtx.fillStyle='rgba(100,30,200,0.25)';pnCtx.fill();
+    pnCtx.beginPath();pnCtx.moveTo(cx-half/1.5,singY_top);pnCtx.lineTo(cx+half/1.5,singY_top);pnCtx.strokeStyle='rgba(255,50,50,0.9)';pnCtx.lineWidth=3;pnCtx.setLineDash([8,4]);pnCtx.stroke();pnCtx.setLineDash([]);
+    pnCtx.beginPath();pnCtx.moveTo(cx-half/1.5,singY_bot);pnCtx.lineTo(cx+half/1.5,singY_bot);pnCtx.strokeStyle='rgba(80,220,120,0.7)';pnCtx.lineWidth=2;pnCtx.setLineDash([8,4]);pnCtx.stroke();pnCtx.setLineDash([]);
+    pnCtx.beginPath();pnCtx.moveTo(lft2.x,lft2.y);pnCtx.lineTo(top2.x,top2.y);pnCtx.moveTo(cx,cy);pnCtx.lineTo(top2.x,top2.y);pnCtx.strokeStyle='rgba(255,180,40,0.8)';pnCtx.lineWidth=2;pnCtx.stroke();
+    pnCtx.beginPath();pnCtx.moveTo(lft2.x,lft2.y);pnCtx.lineTo(bot2.x,bot2.y);pnCtx.moveTo(cx,cy);pnCtx.lineTo(bot2.x,bot2.y);pnCtx.strokeStyle='rgba(255,180,40,0.4)';pnCtx.lineWidth=2;pnCtx.stroke();
+    pnCtx.beginPath();pnCtx.moveTo(top2.x,top2.y);pnCtx.lineTo(rgt2.x,rgt2.y);pnCtx.lineTo(bot2.x,bot2.y);pnCtx.lineTo(lft2.x,lft2.y);pnCtx.closePath();pnCtx.strokeStyle='rgba(100,150,255,0.6)';pnCtx.lineWidth=1.5;pnCtx.stroke();
+    if(penShowCurves){
+      pnCtx.strokeStyle='rgba(255,220,80,0.2)';pnCtx.lineWidth=1;
+      for(var k=-2;k<=2;k++){var x0=cx+k*half/3;pnCtx.beginPath();pnCtx.moveTo(x0,cy);pnCtx.lineTo(Math.min(rgt2.x,x0+half/2),Math.max(singY_top,cy-half/2));pnCtx.stroke();pnCtx.beginPath();pnCtx.moveTo(x0,cy);pnCtx.lineTo(Math.max(lft2.x,x0-half/2),Math.max(singY_top,cy-half/2));pnCtx.stroke();}
+    }
+    pnCtx.font='bold 12px Share Tech Mono';pnCtx.textAlign='center';
+    pnCtx.fillStyle='rgba(100,150,255,0.9)';pnCtx.fillText('I: Exterior',cx+half*0.55,cy);
+    pnCtx.fillStyle='rgba(255,100,100,0.9)';pnCtx.fillText('II: Black hole',cx,cy-half*0.45);
+    pnCtx.fillStyle='rgba(100,220,120,0.9)';pnCtx.fillText('III: White hole',cx,cy+half*0.45);
+    pnCtx.fillStyle='rgba(180,100,255,0.9)';pnCtx.fillText('IV: Parallel universe',cx-half*0.55,cy);
+    pnCtx.fillStyle='rgba(255,50,50,0.9)';pnCtx.font='12px Share Tech Mono';pnCtx.fillText('singularity (r=0)',cx,singY_top-4);
+    pnCtx.fillStyle='rgba(255,180,40,0.8)';pnCtx.fillText('event horizon H+',cx+half*0.3,cy-half*0.28);
+    pnCtx.fillStyle='rgba(255,170,34,0.7)';pnCtx.font='12px Share Tech Mono';pnCtx.fillText('Schwarzschild BH -- Kruskal-Szekeres conformal diagram',cx,16);
+  }else if(penroseType===2){
+    var s2=S*0.85;
+    pnCtx.beginPath();pnCtx.rect(cx-s2,cy-s2,2*s2,2*s2);pnCtx.fillStyle='rgba(20,100,80,0.3)';pnCtx.fill();pnCtx.strokeStyle='rgba(80,220,150,0.7)';pnCtx.lineWidth=2;pnCtx.stroke();
+    pnCtx.beginPath();pnCtx.moveTo(cx-s2,cy-s2);pnCtx.lineTo(cx+s2,cy+s2);pnCtx.moveTo(cx+s2,cy-s2);pnCtx.lineTo(cx-s2,cy+s2);pnCtx.strokeStyle='rgba(255,180,40,0.8)';pnCtx.lineWidth=2;pnCtx.setLineDash([6,3]);pnCtx.stroke();pnCtx.setLineDash([]);
+    pnCtx.beginPath();pnCtx.moveTo(cx-s2,cy-s2);pnCtx.lineTo(cx+s2,cy-s2);pnCtx.strokeStyle='rgba(255,50,50,0.8)';pnCtx.lineWidth=3;pnCtx.setLineDash([8,4]);pnCtx.stroke();pnCtx.setLineDash([]);
+    pnCtx.beginPath();pnCtx.moveTo(cx-s2,cy+s2);pnCtx.lineTo(cx+s2,cy+s2);pnCtx.strokeStyle='rgba(80,180,255,0.8)';pnCtx.lineWidth=3;pnCtx.setLineDash([8,4]);pnCtx.stroke();pnCtx.setLineDash([]);
+    if(penShowCurves){pnCtx.strokeStyle='rgba(255,220,80,0.2)';pnCtx.lineWidth=1;for(var k=-3;k<=3;k++){var x0=cx+k*s2/3;pnCtx.beginPath();pnCtx.moveTo(x0,cy-s2);pnCtx.lineTo(Math.min(cx+s2,x0+2*s2),cy+s2);pnCtx.stroke();pnCtx.beginPath();pnCtx.moveTo(x0,cy-s2);pnCtx.lineTo(Math.max(cx-s2,x0-2*s2),cy+s2);pnCtx.stroke();}}
+    pnCtx.font='12px Share Tech Mono';pnCtx.textAlign='center';
+    pnCtx.fillStyle='rgba(255,50,50,0.9)';pnCtx.fillText('I+ (spacelike, future)',cx,cy-s2-6);
+    pnCtx.fillStyle='rgba(80,180,255,0.9)';pnCtx.fillText('I- (spacelike, past)',cx,cy+s2+16);
+    pnCtx.fillStyle='rgba(255,180,40,0.8)';pnCtx.fillText('cosmological horizons',cx+s2/2,cy-s2/3);
+    pnCtx.fillStyle='rgba(80,220,150,0.8)';pnCtx.fillText('de Sitter bulk',cx,cy);
+    pnCtx.fillStyle='rgba(255,170,34,0.7)';pnCtx.font='12px Share Tech Mono';pnCtx.fillText('de Sitter Space (+Lambda) -- exponential expansion',cx,16);
+  }else{
+    var s3=S*0.8,bW=s3*1.2,bX=cx-s3*0.6;
+    pnCtx.beginPath();pnCtx.rect(bX,cy-s3,bW,2*s3);pnCtx.fillStyle='rgba(80,20,120,0.35)';pnCtx.fill();
+    pnCtx.beginPath();pnCtx.moveTo(bX,cy-s3);pnCtx.lineTo(bX,cy+s3);pnCtx.moveTo(bX+bW,cy-s3);pnCtx.lineTo(bX+bW,cy+s3);pnCtx.strokeStyle='rgba(200,100,255,0.9)';pnCtx.lineWidth=3;pnCtx.stroke();
+    pnCtx.beginPath();pnCtx.moveTo(bX,cy-s3);pnCtx.lineTo(bX+bW,cy-s3);pnCtx.moveTo(bX,cy+s3);pnCtx.lineTo(bX+bW,cy+s3);pnCtx.strokeStyle='rgba(100,200,255,0.5)';pnCtx.lineWidth=1.5;pnCtx.setLineDash([6,4]);pnCtx.stroke();pnCtx.setLineDash([]);
+    if(penShowCurves){
+      pnCtx.strokeStyle='rgba(255,220,80,0.3)';pnCtx.lineWidth=1;
+      for(var k=0;k<6;k++){
+        var x=bX+bW*0.2,y=cy-s3+k*s3/3,dx=0.7,dy=0.7;
+        pnCtx.beginPath();pnCtx.moveTo(x,y);
+        for(var i=0;i<30;i++){x+=dx*s3/10;y+=dy*s3/10;if(x<=bX){x=bX;dx=-dx;}if(x>=bX+bW){x=bX+bW;dx=-dx;}if(y<cy-s3||y>cy+s3)break;pnCtx.lineTo(x,y);}
+        pnCtx.stroke();
+      }
+    }
+    pnCtx.font='12px Share Tech Mono';pnCtx.textAlign='center';
+    pnCtx.fillStyle='rgba(200,100,255,0.9)';pnCtx.fillText('timelike boundary (AdS bdry)',bX+3,cy);
+    pnCtx.fillStyle='rgba(180,130,255,0.8)';pnCtx.fillText('AdS bulk',cx,cy);
+    pnCtx.fillStyle='rgba(100,200,255,0.7)';pnCtx.fillText('i+',cx,cy-s3-6);pnCtx.fillText('i-',cx,cy+s3+14);
+    pnCtx.fillStyle='rgba(255,170,34,0.7)';pnCtx.font='12px Share Tech Mono';pnCtx.fillText('Anti-de Sitter Space (-Lambda) -- timelike boundary, AdS/CFT',cx,16);
+  }
+  pnCtx.setTransform(1,0,0,1,0,0);
+}
+penC.addEventListener('click',function(e){
+  var rect=penC.getBoundingClientRect();
+  var mx=e.clientX-rect.left-pans[4].x,my=e.clientY-rect.top-pans[4].y;
+  var W=penC.width,H=penC.height,cx=W/2,cy=H/2;
+  var regions=PENROSE_REGION_DATA[penroseType];
+  var found=null;
+  if(penroseType===1){var dx=mx-cx,dy=my-cy;found=Math.abs(dx)>Math.abs(dy)?(dx>0?regions[0]:regions[3]):(dy<0?regions[1]:regions[2]);}
+  else{found=regions[0];}
+  if(found){document.getElementById('penRegionInfo').textContent=found.name+': '+found.desc;}
+});
+
+// ── TAB 5: EINSTEIN TENSOR BREAKDOWN ──
+var TENSOR_LABELS=[['T00','T01','T02','T03'],['T10','T11','T12','T13'],['T20','T21','T22','T23'],['T30','T31','T32','T33']];
+var TENSOR_DESCS=[
+  ['T00: energy density (mass-energy per volume) -- dominant source of gravity',
+   'T01: x-momentum flux (energy current in x-direction)',
+   'T02: y-momentum flux',
+   'T03: z-momentum flux'],
+  ['T10: x-momentum density (=T01 by symmetry)',
+   'T11: xx-stress (pressure in x-direction)',
+   'T12: xy-shear stress',
+   'T13: xz-shear stress'],
+  ['T20: y-momentum density',
+   'T21: yx-shear stress',
+   'T22: yy-stress (pressure in y-direction)',
+   'T23: yz-shear stress'],
+  ['T30: z-momentum density',
+   'T31: zx-shear stress',
+   'T32: zy-shear stress',
+   'T33: zz-stress (pressure in z-direction)']
+];
+var tActive=[[true,false,false,false],[false,false,false,false],[false,false,false,false],[false,false,false,false]];
+var einstAnimId=null,einstT=0;
+function buildTensorGrid(){
+  var grid=document.getElementById('tGrid');
+  while(grid.firstChild)grid.removeChild(grid.firstChild);
+  for(var i=0;i<4;i++){for(var j=0;j<4;j++){
+    var cell=document.createElement('div');
+    var cls='t-cell';
+    if(i===0&&j===0)cls+=' energy';
+    else if(i===0||j===0)cls+=' momentum';
+    else cls+=' stress';
+    if(tActive[i][j])cls+=' on';
+    cell.className=cls;
+    cell.textContent=TENSOR_LABELS[i][j];
+    (function(ci,cj){cell.onclick=function(){
+      tActive[ci][cj]=!tActive[ci][cj];
+      if(ci!==cj)tActive[cj][ci]=tActive[ci][cj];
+      buildTensorGrid();updateEinst();
+      document.getElementById('einstComponentInfo').textContent=TENSOR_DESCS[ci][cj];
+    };})(i,j);
+    grid.appendChild(cell);
+  }}
+}
+function updateEinst(){
+  document.getElementById('v_einstK').textContent=parseFloat(document.getElementById('einstK').value).toFixed(1);
+  document.getElementById('v_einstLam').textContent=parseFloat(document.getElementById('einstLam').value).toFixed(2);
+  drawEinst();
+}
+function animEinst(btn){
+  if(einstAnimId){cancelAnimationFrame(einstAnimId);einstAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){einstT+=0.03*(window.animSpeed||1);drawEinst();einstAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function drawEinst(){
+  resizeCanvas(einstC);
+  var W=einstC.width,H=einstC.height;
+  enCtx.setTransform(1,0,0,1,0,0);enCtx.fillStyle='#06060f';enCtx.fillRect(0,0,W,H);
+  enCtx.setTransform(1,0,0,1,pans[5].x,pans[5].y);
+  var K=parseFloat(document.getElementById('einstK').value);
+  var Lam=parseFloat(document.getElementById('einstLam').value);
+  var t=einstT;
+  var cx=W/2,cy=H/2;
+  var cellSz=Math.min(W,H)*0.055;
+  var gridL=cx-W*0.3,gridT=cy-cellSz*2;
+
+  // Left: T_munu matrix
+  enCtx.fillStyle='rgba(255,170,34,0.7)';enCtx.font='12px Share Tech Mono';enCtx.textAlign='center';
+  enCtx.fillText('T(mu,nu) stress-energy',gridL+cellSz*2,gridT-14);
+  for(var i=0;i<4;i++){for(var j=0;j<4;j++){
+    var x=gridL+j*cellSz,y=gridT+i*cellSz;
+    var active=tActive[i][j];
+    var val=active?(K*(0.8+0.2*Math.sin(t+i+j))).toFixed(2):'0';
+    var baseA=active?0.3:0.05,baseB=active?0.8:0.15;
+    var fillCol=i===0&&j===0?'rgba(255,80,80,'+baseA+')':i===0||j===0?'rgba(80,120,255,'+baseA+')':'rgba(80,200,80,'+baseA+')';
+    var strCol=i===0&&j===0?'rgba(255,80,80,'+baseB+')':i===0||j===0?'rgba(80,120,255,'+baseB+')':'rgba(80,200,80,'+baseB+')';
+    enCtx.fillStyle=fillCol;enCtx.fillRect(x,y,cellSz-2,cellSz-2);
+    enCtx.strokeStyle=strCol;enCtx.lineWidth=active?1.5:0.5;enCtx.strokeRect(x,y,cellSz-2,cellSz-2);
+    enCtx.fillStyle=active?'rgba(255,220,120,0.95)':'rgba(255,170,34,0.25)';
+    enCtx.font=(cellSz>30?'9px':'7px')+' Share Tech Mono';enCtx.textAlign='center';
+    enCtx.fillText(TENSOR_LABELS[i][j],x+cellSz/2-1,y+cellSz*0.45);
+    if(active){enCtx.fillStyle='rgba(255,240,160,0.8)';enCtx.font='12px Share Tech Mono';enCtx.fillText(val,x+cellSz/2-1,y+cellSz*0.78);}
+  }}
+
+  // Arrow
+  var arrowX=gridL+cellSz*4+20,arrowY=cy;
+  enCtx.strokeStyle='rgba(255,170,34,0.8)';enCtx.lineWidth=2.5;
+  enCtx.beginPath();enCtx.moveTo(arrowX,arrowY);enCtx.lineTo(arrowX+50,arrowY);
+  enCtx.moveTo(arrowX+44,arrowY-8);enCtx.lineTo(arrowX+50,arrowY);enCtx.lineTo(arrowX+44,arrowY+8);enCtx.stroke();
+  enCtx.fillStyle='rgba(255,170,34,0.85)';enCtx.font='12px Share Tech Mono';enCtx.textAlign='center';
+  enCtx.fillText('8piG/c^4',arrowX+25,arrowY-10);enCtx.fillText('EFE',arrowX+25,arrowY+22);
+
+  // Right: G_munu heatmap
+  var gGridL=arrowX+65,gGridT=gridT;
+  enCtx.fillStyle='rgba(255,170,34,0.7)';enCtx.font='12px Share Tech Mono';enCtx.textAlign='center';
+  enCtx.fillText('G(mu,nu) Einstein tensor',gGridL+cellSz*2,gGridT-14);
+  var T00=tActive[0][0]?K*(0.8+0.2*Math.sin(t)):0;
+  var T11b=tActive[1][1]?K*(0.8+0.2*Math.sin(t+1))*0.3:0;
+  var T22b=tActive[2][2]?K*(0.8+0.2*Math.sin(t+2))*0.3:0;
+  var T33b=tActive[3][3]?K*(0.8+0.2*Math.sin(t+3))*0.3:0;
+  var fac=8*Math.PI;
+  var G00=fac*(T00-0.5*(T00-T11b-T22b-T33b));
+  var Gvals=[[G00,0,0,0],[0,fac*T11b,0,0],[0,0,fac*T22b,0],[0,0,0,fac*T33b]];
+  var Gmax=Math.max(0.01,G00,fac*T11b,fac*T22b,fac*T33b);
+  for(var i=0;i<4;i++){for(var j=0;j<4;j++){
+    var x=gGridL+j*cellSz,y=gGridT+i*cellSz;
+    var v=(Gvals[i][j]+(i===j?Lam:0))/Gmax;var absV=Math.abs(v);
+    var hue=v>0?30:200;
+    enCtx.fillStyle='hsla('+hue+',80%,50%,'+(absV*0.5+0.05)+')';enCtx.fillRect(x,y,cellSz-2,cellSz-2);
+    enCtx.strokeStyle='rgba(255,170,34,'+(absV*0.6+0.1)+')';enCtx.lineWidth=0.8;enCtx.strokeRect(x,y,cellSz-2,cellSz-2);
+    enCtx.fillStyle='rgba(255,220,150,'+(absV*0.7+0.3)+')';enCtx.font=(cellSz>30?'9px':'7px')+' Share Tech Mono';enCtx.textAlign='center';
+    enCtx.fillText(TENSOR_LABELS[i][j],x+cellSz/2-1,y+cellSz*0.45);
+    if(Math.abs(Gvals[i][j])>0.001){enCtx.fillStyle='rgba(255,240,160,0.85)';enCtx.font='12px Share Tech Mono';enCtx.fillText(v.toFixed(2),x+cellSz/2-1,y+cellSz*0.78);}
+  }}
+
+  // Curvature visual
+  var nActive=tActive.reduce(function(s,row){return s+row.filter(Boolean).length;},0);
+  var curv=K*nActive*0.5*(1+0.15*Math.sin(t*1.5));
+  var rSz=Math.min(50,cellSz*1.5),rDeform=Math.min(1.5,1+curv*0.15);
+  var vizY=cy+cellSz*2.5+20;
+  enCtx.fillStyle='rgba(255,170,34,0.6)';enCtx.font='12px Share Tech Mono';enCtx.textAlign='center';
+  enCtx.fillText('Ricci scalar R = '+curv.toFixed(3)+' ('+nActive+' active)',cx,vizY);
+  enCtx.beginPath();enCtx.ellipse(cx,vizY+48,rSz*rDeform,rSz/rDeform,0,0,Math.PI*2);
+  enCtx.strokeStyle='rgba(255,150,50,0.7)';enCtx.lineWidth=2;enCtx.stroke();enCtx.fillStyle='rgba(255,120,40,0.15)';enCtx.fill();
+  enCtx.fillStyle='rgba(255,170,34,0.5)';enCtx.font='12px Share Tech Mono';enCtx.fillText('Ricci curvature schematic',cx,vizY+48+rSz+14);
+  enCtx.textAlign='left';
+  enCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 6: GEODESIC DEVIATION ──
+var gdevMode=0,gdevAnimId=null,gdevXi_r=0,gdevXi_t=0,gdevDXi_r=0,gdevDXi_t=0;
+function setGDevMode(i){gdevMode=i;['gdevBtn0','gdevBtn1','gdevBtn2'].forEach(function(id,j){document.getElementById(id).classList.toggle('active',j===i);});resetGDev();}
+function updateGDev(){
+  document.getElementById('v_gdevK').textContent=parseFloat(document.getElementById('gdevK').value).toFixed(1);
+  document.getElementById('v_gdevXi').textContent=parseFloat(document.getElementById('gdevXi').value).toFixed(2);
+  document.getElementById('v_gdevV').textContent=parseFloat(document.getElementById('gdevV').value).toFixed(2);
+  drawGDev();
+}
+function resetGDev(){
+  gdevXi_r=parseFloat(document.getElementById('gdevXi').value);
+  gdevXi_t=parseFloat(document.getElementById('gdevXi').value)*0.3;
+  gdevDXi_r=parseFloat(document.getElementById('gdevV').value);
+  gdevDXi_t=0;
+  drawGDev();
+}
+function animGDev(btn){
+  if(gdevAnimId){cancelAnimationFrame(gdevAnimId);gdevAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  resetGDev();
+  function frame(){
+    var K=parseFloat(document.getElementById('gdevK').value);
+    var dt=0.03,Kr=K,Kt=-K/2;
+    if(gdevMode===1){Kr=-K*0.5;Kt=-K*0.5;}
+    if(gdevMode===2){Kr=K*2;Kt=-K;}
+    gdevDXi_r+=Kr*gdevXi_r*dt;gdevDXi_t+=Kt*gdevXi_t*dt;
+    gdevXi_r+=gdevDXi_r*dt;gdevXi_t+=gdevDXi_t*dt;
+    if(Math.abs(gdevXi_r)>5)gdevXi_r=5*Math.sign(gdevXi_r);
+    if(Math.abs(gdevXi_t)>5)gdevXi_t=5*Math.sign(gdevXi_t);
+    drawGDev();gdevAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+function drawGDev(){
+  resizeCanvas(gdevC);
+  var W=gdevC.width,H=gdevC.height;
+  gdCtx.setTransform(1,0,0,1,0,0);gdCtx.fillStyle='#06060f';gdCtx.fillRect(0,0,W,H);
+  gdCtx.setTransform(1,0,0,1,pans[6].x,pans[6].y);
+  var cx=W/2,cy=H/2;
+  var K=parseFloat(document.getElementById('gdevK').value);
+  var xi0=parseFloat(document.getElementById('gdevXi').value);
+  var scale=Math.min(W,H)*0.3*zooms[6];
+  var Kr=K,Kt=-K/2;
+  if(gdevMode===1){Kr=-K*0.5;Kt=-K*0.5;}
+  if(gdevMode===2){Kr=K*2;Kt=-K;}
+  // Reference geodesic
+  gdCtx.strokeStyle='rgba(255,170,34,0.7)';gdCtx.lineWidth=2.5;
+  gdCtx.beginPath();gdCtx.moveTo(cx,30);gdCtx.lineTo(cx,H-50);gdCtx.stroke();
+  gdCtx.fillStyle='rgba(255,170,34,0.6)';gdCtx.font='12px Share Tech Mono';gdCtx.textAlign='center';
+  gdCtx.fillText('reference geodesic',cx,22);
+  // Compute and draw deviation geodesics
+  var Nsteps=200,dt2=0.04;
+  var v0=parseFloat(document.getElementById('gdevV').value);
+  function drawDeviationGeodesic(xi0v,v0v,Keff,colStr,xSign){
+    var xR=xi0v,vR=v0v;
+    gdCtx.beginPath();
+    for(var i=0;i<Nsteps;i++){
+      vR+=Keff*xR*dt2;xR+=vR*dt2;
+      if(Math.abs(xR)>3)xR=3*Math.sign(xR);
+      var py=30+(i/Nsteps)*(H-80);
+      var px=cx+xSign*xR*scale*0.8;
+      if(i===0)gdCtx.moveTo(px,py);else gdCtx.lineTo(px,py);
+    }
+    gdCtx.strokeStyle=colStr;gdCtx.lineWidth=1.8;gdCtx.stroke();
+  }
+  drawDeviationGeodesic(xi0,v0,Kr,'#ff6644',-1);
+  drawDeviationGeodesic(xi0,v0,Kr,'#ff6644',1);
+  drawDeviationGeodesic(xi0*0.3,0,Kt,'#44aaff',-1);
+  drawDeviationGeodesic(xi0*0.3,0,Kt,'#44aaff',1);
+  // Separation markers
+  var Nlive=8;
+  for(var k=1;k<=Nlive;k++){
+    var frac=k/Nlive;var py=30+frac*(H-80);
+    var xRv=xi0,vRv=v0,xTv=xi0*0.3,vTv=0;
+    var steps2=Math.floor(frac*Nsteps);
+    for(var i=0;i<steps2;i++){
+      vRv+=Kr*xRv*dt2;xRv+=vRv*dt2;if(Math.abs(xRv)>3)xRv=3*Math.sign(xRv);
+      vTv+=Kt*xTv*dt2;xTv+=vTv*dt2;if(Math.abs(xTv)>3)xTv=3*Math.sign(xTv);
+    }
+    gdCtx.strokeStyle='rgba(255,170,34,0.35)';gdCtx.lineWidth=1;gdCtx.beginPath();gdCtx.moveTo(cx-xRv*scale*0.8,py);gdCtx.lineTo(cx+xRv*scale*0.8,py);gdCtx.stroke();
+    gdCtx.strokeStyle='rgba(68,170,255,0.25)';gdCtx.lineWidth=1;gdCtx.beginPath();gdCtx.moveTo(cx-xTv*scale*0.5,py);gdCtx.lineTo(cx+xTv*scale*0.5,py);gdCtx.stroke();
+  }
+  // Live animated particles
+  if(gdevAnimId){
+    gdCtx.beginPath();gdCtx.arc(cx-gdevXi_r*scale*0.8,cy,8,0,Math.PI*2);gdCtx.fillStyle='#ff6644';gdCtx.fill();
+    gdCtx.beginPath();gdCtx.arc(cx+gdevXi_r*scale*0.8,cy,8,0,Math.PI*2);gdCtx.fillStyle='#ff6644';gdCtx.fill();
+    gdCtx.beginPath();gdCtx.arc(cx,cy,5,0,Math.PI*2);gdCtx.fillStyle='#ffaa22';gdCtx.fill();
+    gdCtx.fillStyle='rgba(255,150,80,0.8)';gdCtx.font='12px Share Tech Mono';gdCtx.textAlign='left';
+    gdCtx.fillText('xi_r = '+gdevXi_r.toFixed(3),16,H-42);
+    gdCtx.fillText('xi_t = '+gdevXi_t.toFixed(3),16,H-26);
+  }
+  // Black hole indicator
+  if(gdevMode===0||gdevMode===2){
+    var bhY=H-95;
+    gdCtx.beginPath();gdCtx.arc(cx,bhY,18,0,Math.PI*2);gdCtx.fillStyle='rgba(0,0,0,0.95)';gdCtx.fill();gdCtx.strokeStyle='rgba(255,80,40,0.8)';gdCtx.lineWidth=2;gdCtx.stroke();
+    gdCtx.fillStyle='rgba(255,100,50,0.7)';gdCtx.font='12px Share Tech Mono';gdCtx.textAlign='center';gdCtx.fillText('BH',cx,bhY+4);
+  }
+  var modeNames=['Tidal (radial BH fall)','Cosmological (converging)','Spaghettification (strong tidal)'];
+  gdCtx.fillStyle='rgba(255,170,34,0.8)';gdCtx.font='13px Share Tech Mono';gdCtx.textAlign='center';
+  gdCtx.fillText('Geodesic Deviation: '+modeNames[gdevMode],cx,H-60);
+  gdCtx.fillStyle='rgba(255,100,80,0.7)';gdCtx.font='12px Share Tech Mono';
+  gdCtx.fillText('red = radial (K='+Kr.toFixed(1)+')  blue = transverse (K='+Kt.toFixed(1)+')',cx,H-44);
+  gdCtx.fillStyle='rgba(255,200,100,0.55)';gdCtx.font='12px Share Tech Mono';
+  gdCtx.fillText('D^2 xi/dtau^2 = -R^mu_nrs u^nu xi^rho u^sigma',cx,H-28);
+  gdCtx.textAlign='left';
+  gdCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── PROOF PANEL ──
+var proofOpen=false;
+function toggleProof(){proofOpen=!proofOpen;document.getElementById('proofPanel').classList.toggle('open',proofOpen);document.querySelector('.proof-header span').textContent=proofOpen?'\u25BC':'\u25B2';}
+function showProof(i){
+  document.querySelectorAll('.ptab').forEach(function(t,j){t.classList.toggle('active',j===i);});
+  var content=document.getElementById('proofContent');
+  while(content.firstChild)content.removeChild(content.firstChild);
+  var h4=document.createElement('h4');
+  h4.style.cssText='color:#ffaa22;margin-bottom:8px';
+  h4.textContent=PROOF_TITLES[i];
+  content.appendChild(h4);
+  var p=document.createElement('p');
+  p.textContent=PROOF_BODIES[i];
+  content.appendChild(p);
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(content,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }
+  if(!proofOpen)toggleProof();
+}
+buildProofTabs();
+showProof(0);
+
+// Pan/zoom setup
+_addPan(stC,0,drawST);_addZoom(stC,0,drawST);
+_addPan(orbC,1,drawOrbit);_addZoom(orbC,1,drawOrbit);
+_addPan(gwC,2,drawGW);_addZoom(gwC,2,drawGW);
+_addPan(schC,3,drawSch);_addZoom(schC,3,drawSch);
+_addPan(penC,4,drawPenrose);_addZoom(penC,4,drawPenrose);
+_addPan(einstC,5,drawEinst);_addZoom(einstC,5,drawEinst);
+_addPan(gdevC,6,drawGDev);_addZoom(gdevC,6,drawGDev);
+
+// Init
+buildTensorGrid();
+setGrid(0);updateOrbit();
+setGWPol(0);setGWView(0);
+setSchView(0);updateSch();
+setPenrose(0);
+setGDevMode(0);resetGDev();
+
+window.addEventListener('resize',function(){redrawTab();});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>
+

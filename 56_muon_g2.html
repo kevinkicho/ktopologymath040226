@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muon g−2 Anomaly | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --accent:#ff44aa;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:12px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.back{font-size:.75rem;color:var(--dim);text-decoration:none;transition:.15s}
+.back:hover{color:var(--accent)}
+h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
+.content{flex:1;display:flex;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden}
+.panel.active{display:flex}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:260px}
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+canvas{display:block;width:100%;height:100%}
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.77rem;margin-top:3px;font-family:monospace;color:var(--accent)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s;font-family:inherit}
+.btn:hover,.btn.active{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <a href="/" class="back">← Dashboard</a>
+    <h1>Muon g−2 Anomaly</h1>
+    <span class="sub">Fermilab E989 · 2021–2023</span>
+  </div>
+  <div class="tabs" data-role="tab-bar">
+    <button class="tab active" onclick="switchTab(1)">Storage Ring</button>
+    <button class="tab" onclick="switchTab(2)">Loop Corrections</button>
+    <button class="tab" onclick="switchTab(3)">Tension Meter</button>
+    <button class="tab" onclick="switchTab(4)">QED Feynman</button>
+    <button class="tab" onclick="switchTab(5)">Ring &amp; Precession</button>
+    <button class="tab" onclick="switchTab(6)">Hadronic VP</button>
+    <button class="tab" onclick="switchTab(7)">EDM &amp; New Physics</button>
+    <button class="tab" onclick="switchTab(8)">SM Precision</button>
+  </div>
+</header>
+
+<div class="content">
+  <!-- Panel 1 -->
+  <div class="panel active" id="p1">
+    <div class="sidebar" data-role="sidebar">
+      <div class="btn-row">
+        <button class="btn active" id="smBtn" onclick="showSM=true;this.classList.add('active');document.getElementById('measBtn').classList.remove('active')">SM Pred.</button>
+        <button class="btn" id="measBtn" onclick="showSM=false;this.classList.add('active');document.getElementById('smBtn').classList.remove('active')">Measured</button>
+      </div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="ringSpeedDisp">1.0</span>×</label>
+      <input type="range" id="ringSpeedSl" min="0.1" max="1" step="0.05" value="1"
+        oninput="ringSpeedDisp.textContent=(+this.value).toFixed(1);ringSpeed=+this.value">
+      <div class="vrow" style="margin-top:4px"><span class="vlbl">Ring radius</span><span>14.185 m</span></div>
+      <div class="vrow"><span class="vlbl">B field</span><span>1.45 T</span></div>
+      <div class="vrow"><span class="vlbl">γ factor</span><span>29.3</span></div>
+      <div class="vrow"><span class="vlbl">τ (lab frame)</span><span>64.4 μs</span></div>
+      <div class="callout" style="margin-top:8px">The spin precesses slightly <em>faster</em> than the momentum — $a_\mu$ causes a growing phase gap. <strong>Visual amplified ×10⁷</strong> to make the drift visible.</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim1(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv1"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Anomalous Moment</div>
+      <div class="eq-block">$$a_\mu = \frac{g_\mu - 2}{2}$$</div>
+      <div class="eq-block">$$a_\mu^{QED(1)} = \frac{\alpha}{2\pi}$$</div>
+      <div class="callout">Fermilab 2023 combined:<br>$a_\mu = 116\,592\,059(22)\times10^{-11}$<br>SM dispersive:<br>$116\,591\,810(43)\times10^{-11}$<br><strong>5.1σ discrepancy</strong></div>
+    </div>
+  </div>
+  <!-- Panel 2 -->
+  <div class="panel" data-role="panel" id="p2">
+    <div class="sidebar" data-role="sidebar">
+      <div class="callout">
+        <strong>Click a diagram</strong> to highlight it and see its running contribution to $a_\mu$.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim2(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv2"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Loop Contributions</div>
+      <div class="callout">The hadronic VP (HVP) dominates the theory uncertainty. The BMW lattice QCD value disagrees with the dispersive e⁺e⁻ data — creating an internal SM tension before even comparing to experiment.</div>
+    </div>
+  </div>
+  <!-- Panel 3 -->
+  <div class="panel" data-role="panel" id="p3">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">HVP Method</div>
+      <div class="btn-row">
+        <button class="btn active" id="dispBtn" onclick="useLatticeCPV=false;this.classList.add('active');document.getElementById('lattBtn').classList.remove('active')">Dispersive</button>
+        <button class="btn" id="lattBtn" onclick="useLatticeCPV=true;this.classList.add('active');document.getElementById('dispBtn').classList.remove('active')">BMW Lattice</button>
+      </div>
+      <div class="callout" style="margin-top:10px">
+        <strong>The tension depends on which SM HVP calculation you trust.</strong> Dispersive (data-driven) gives 4.2σ; BMW 2020 lattice gives only 1.5σ. The two SM predictions disagree with each other.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim3(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv3"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Current Values</div>
+      <div class="callout">SM (dispersive): $116\,591\,810(43)$<br>SM (BMW lattice): $116\,591\,900(53)$<br>Fermilab 2023: $116\,592\,059(22)$<br>Units: $\times10^{-11}$</div>
+    </div>
+  </div>
+
+  <!-- Panel 4: QED Feynman Diagrams -->
+  <div class="panel" data-role="panel" id="p4">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Contributions</div>
+      <div class="callout" style="margin-top:4px">Each row is a Feynman diagram order. Click to select. The bar at bottom shows the running sum converging to $a_\mu$.</div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">Tree (g=2)</span><span style="color:#55558a">+0</span></div>
+      <div class="vrow"><span class="vlbl">1-loop (α/2π)</span><span style="color:#ff44aa">+1161.4</span></div>
+      <div class="vrow"><span class="vlbl">2-loop QED</span><span style="color:#ff77bb">+413.2</span></div>
+      <div class="vrow"><span class="vlbl">3-loop QED</span><span style="color:#ffaadd">+30.1</span></div>
+      <div class="vrow"><span class="vlbl">4+5-loop QED</span><span style="color:#ffccee">+8.3</span></div>
+      <div class="vrow"><span class="vlbl">Electroweak</span><span style="color:#00ffcc">+153.6</span></div>
+      <div class="vrow"><span class="vlbl">Hadronic VP</span><span style="color:#ffd700">+6845.0</span></div>
+      <div class="vrow"><span class="vlbl">Hadronic LbL</span><span style="color:#ff8844">+92.0</span></div>
+      <div style="margin-top:6px;font-size:.68rem;color:var(--dim)">Units: ×10⁻¹¹ (relative to tree). Click diagram to animate.</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim4(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv4"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">QED to 5 loops</div>
+      <div class="eq-block">$$a_\mu^{QED} = \frac{\alpha}{2\pi} + C_2\!\left(\frac{\alpha}{\pi}\right)^{\!2} + \cdots$$</div>
+      <div class="eq-block" style="font-size:.74rem">Schwinger 1948:<br>$a_e = \frac{\alpha}{2\pi} \approx 0.001162$</div>
+      <div class="callout" style="margin-top:4px">Kinoshita (Cornell) computed QED to 5-loop order: 12,672 Feynman diagrams. The 5th-order coefficient $C_5 \approx 9.16$ was confirmed numerically.</div>
+      <div class="eq-title" style="margin-top:8px">SM Total</div>
+      <div class="callout">$a_\mu^{SM} = 116\,591\,810(43)\!\times\!10^{-11}$<br>$a_\mu^{exp} = 116\,592\,061(41)\!\times\!10^{-11}$<br><strong>Tension: 4.2σ</strong> (BNL + FNAL 2023 combined)</div>
+      <div class="callout" style="margin-top:6px">Hadronic LbL uncertainty (~10 units) now dominates theory error — all pure QED is under tight control.</div>
+    </div>
+  </div>
+
+  <!-- Panel 5: Storage Ring & Spin Precession (deep) -->
+  <div class="panel" data-role="panel" id="p5">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">B Field</div>
+      <label>B = <span class="val-disp" id="bFieldDisp">1.45</span> T</label>
+      <input type="range" id="bFieldSl" min="0.5" max="3.0" step="0.05" value="1.45"
+        oninput="document.getElementById('bFieldDisp').textContent=(+this.value).toFixed(2);bFieldVal=+this.value">
+      <div class="callout" style="margin-top:6px"><strong>Magic momentum:</strong> $p_{magic}=3.094$ GeV/c. At this momentum $a_\mu\gamma^2=1$, so electric quadrupole forces cancel exactly in the precession formula.</div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">ω_a/2π</span><span id="waDisp">229 kHz</span></div>
+      <div class="vrow"><span class="vlbl">ω_c/2π</span><span>6.71 MHz</span></div>
+      <div class="vrow"><span class="vlbl">Ring radius</span><span>14.185 m</span></div>
+      <div class="vrow"><span class="vlbl">Lab lifetime</span><span>64.4 μs</span></div>
+      <div class="section-lbl" style="margin-top:8px">Visualization</div>
+      <div class="btn-row">
+        <button class="btn active" id="showOmegaBtn" onclick="showOmegaViz=true;this.classList.add('active');document.getElementById('showRingBtn').classList.remove('active')">Frequencies</button>
+        <button class="btn" id="showRingBtn" onclick="showOmegaViz=false;this.classList.add('active');document.getElementById('showOmegaBtn').classList.remove('active')">Ring view</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" onclick="toggleAnim5(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv5"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Precession Formula</div>
+      <div class="eq-block" style="font-size:.75rem">$$\omega_a = \frac{eB}{m_\mu}\,a_\mu$$</div>
+      <div class="eq-block" style="font-size:.75rem">$$a_\mu = \frac{\omega_a}{\omega_c}$$</div>
+      <div class="callout">The anomalous frequency $\omega_a = \omega_s - \omega_c$ is the measurable beat note between spin and cyclotron precession. Only the <em>anomalous</em> part of the magnetic moment survives.</div>
+      <div class="eq-title" style="margin-top:8px">Thomas Precession</div>
+      <div class="eq-block" style="font-size:.75rem">$$\omega_s = \frac{eB}{m_\mu}\!\left(a_\mu + \frac{1}{\gamma}\right)$$</div>
+      <div class="callout">CBO (coherent betatron oscillation) at ~470 kHz modulates the decay positron count and is the dominant systematic. The electric focusing quadrupoles are shimmed to suppress radial-field imperfections to ppb level.</div>
+    </div>
+  </div>
+
+  <!-- Panel 6: Hadronic Vacuum Polarization -->
+  <div class="panel" data-role="panel" id="p6">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">ρ Peak Position</div>
+      <label>m_ρ = <span class="val-disp" id="rhoPeakDisp">775</span> MeV</label>
+      <input type="range" id="rhoPeakSl" min="700" max="850" step="5" value="775"
+        oninput="document.getElementById('rhoPeakDisp').textContent=this.value;rhoPeak=+this.value">
+      <div class="callout" style="margin-top:8px">The ρ(770) meson dominates the $e^+e^-\!\to\!\pi^+\pi^-$ cross-section and thus ~75% of the HVP integral. Even a 0.5% shift in this peak changes $a_\mu^{HVP}$ by ~4 units.</div>
+      <div class="section-lbl" style="margin-top:8px">Dataset</div>
+      <div class="btn-row">
+        <button class="btn active" id="cmd2Btn" onclick="hvpDataset='CMD2';updateHVPBtn()">CMD-2</button>
+        <button class="btn" id="cmd3Btn" onclick="hvpDataset='CMD3';updateHVPBtn()">CMD-3</button>
+        <button class="btn" id="babarHVPBtn" onclick="hvpDataset='BaBar';updateHVPBtn()">BaBar</button>
+      </div>
+      <div class="callout" style="margin-top:8px"><strong>CMD-3 2023</strong> measured $\sigma(\pi^+\pi^-)$ ~2.5% higher than CMD-2 — shifting $a_\mu^{HVP}$ UP by ~9 units, potentially resolving the g-2 tension. But CMD-3 disagrees with BaBar ISR data. The HVP puzzle is unresolved.</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim6(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv6"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Dispersion Relation</div>
+      <div class="eq-block" style="font-size:.73rem">$$a_\mu^{HVP} = \frac{\alpha^2}{3\pi^2}\!\int_{m_\pi^2}^{\infty}\!\frac{K(s)}{s}\,\hat{\sigma}(s)\,ds$$</div>
+      <div class="callout">$K(s)$ is a known QED kernel weighting low-$s$ heavily — the ρ peak is the dominant region. This is why disagreements at the 1% level in $\sigma_{\pi\pi}$ propagate to the g-2 tension.</div>
+      <div class="eq-title" style="margin-top:8px">BMW Lattice QCD</div>
+      <div class="callout">BMW group (2020, PRL): $a_\mu^{HVP(lat)} = 7075(55)\!\times\!10^{-11}$, about +90 units above dispersive. If correct, the SM prediction rises and tension with experiment drops to ~1.5σ. But BMW disagrees with CMD-2/BaBar window quantities — the "BMW vs data" sub-puzzle.</div>
+      <div class="callout" style="margin-top:6px">Crivellin et al. 2020: internal consistency of electroweak precision data would be spoiled if BMW result is used — hinting dispersive may be correct.</div>
+    </div>
+  </div>
+
+  <!-- Panel 7: Muon EDM & New Physics -->
+  <div class="panel" data-role="panel" id="p7">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">NP Model</div>
+      <div class="btn-row">
+        <button class="btn active" id="susyBtn" onclick="npModel='SUSY';updateNPBtn()">SUSY</button>
+        <button class="btn" id="lqBtn" onclick="npModel='LQ';updateNPBtn()">Leptoquark</button>
+        <button class="btn" id="wpBtn" onclick="npModel='Wprime';updateNPBtn()">W'</button>
+      </div>
+      <div class="callout" style="margin-top:8px">Current EDM limit: $|d_\mu| < 1.8\!\times\!10^{-19}\,e\cdot$cm (BNL). FNAL E989 sensitivity goal: $10^{-21}\,e\cdot$cm. Dedicated PSI muon EDM ring: $6\!\times\!10^{-23}\,e\cdot$cm.</div>
+      <div class="vrow" style="margin-top:6px"><span class="vlbl">EDM freq</span><span>ω<sub>EDM</sub> = 2d<sub>μ</sub>E/ℏ</span></div>
+      <div class="vrow"><span class="vlbl">MDM freq</span><span>ω<sub>a</sub> ~ 229 kHz</span></div>
+      <div class="callout" style="margin-top:8px">An EDM causes the spin to tilt vertically out of the ring plane, oscillating at ω<sub>a</sub>. Detected by up-down asymmetry in decay positron counts.</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim7(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv7"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">NP Sensitivity</div>
+      <div class="eq-block" style="font-size:.75rem">$$\Delta a_\mu \sim \frac{m_\mu^2}{\Lambda_{NP}^2}$$</div>
+      <div class="callout">A 4.2σ anomaly of $\Delta a_\mu \approx 2.5\!\times\!10^{-9}$ implies NP at $\Lambda_{NP}\sim\!O(100\text{ GeV}–1\text{ TeV})$ — precisely the LHC scale.</div>
+      <div class="eq-title" style="margin-top:8px">SUSY Loop</div>
+      <div class="callout">Smuon-neutralino (or sneutrino-chargino) loop contributes:<br>$a_\mu^{SUSY}\!\sim\!\frac{\alpha m_\mu^2\tan\beta}{m_{SUSY}^2}$<br>For $\tan\beta\!\sim\!40$, $m_{SUSY}\!\sim\!400$ GeV gives the right size.</div>
+      <div class="callout" style="margin-top:6px">The $(g-2)_\mu$ anomaly and the $(g-2)_e$ anomaly (opposite sign, Cs measurement) together disfavor simple one-loop NP — pointing toward lepton-nonuniversal NP or hadronic effects.</div>
+      <div class="callout" style="margin-top:6px">CP violation: an EDM at $10^{-21}$ would require CP phases $\delta_{CP}\!\sim\!10^{-3}$ in SUSY, or $O(1)$ in TeV-scale composite models.</div>
+    </div>
+  </div>
+
+  <!-- Panel 8: Precision SM Tests -->
+  <div class="panel" data-role="panel" id="p8">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Observable</div>
+      <div class="btn-row">
+        <button class="btn active" id="p8aBtn" onclick="p8Mode='all';updateP8Btn()">All</button>
+        <button class="btn" id="p8bBtn" onclick="p8Mode='gm2';updateP8Btn()">g-2</button>
+        <button class="btn" id="p8cBtn" onclick="p8Mode='lamb';updateP8Btn()">Lamb</button>
+      </div>
+      <div class="callout" style="margin-top:8px">The precision frontier probes SM at sub-ppm level. Each observable is computed to many loops and compared with ultra-precise measurements — any deviation hints at new physics.</div>
+      <div class="vrow" style="margin-top:6px"><span class="vlbl">a_e Harvard</span><span style="color:#00ffcc">0.34 ppb</span></div>
+      <div class="vrow"><span class="vlbl">a_μ FNAL</span><span style="color:#ff44aa">0.46 ppm</span></div>
+      <div class="vrow"><span class="vlbl">W mass CDF</span><span style="color:#ffd700">7σ anom</span></div>
+      <div class="vrow"><span class="vlbl">μH Lamb</span><span style="color:#ff8844">7σ 2010</span></div>
+      <div class="callout" style="margin-top:8px">Dirac 1928 predicted $g=2$ exactly. Kusch &amp; Foley measured $g\neq 2$ in 1947. Schwinger explained the discrepancy with the one-loop QED correction in 1948.</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim8(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv8"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Lamb Shift QED</div>
+      <div class="eq-block" style="font-size:.74rem">$$\Delta E_{Lamb} = \frac{\alpha^5 m_e}{6\pi}\ln\!\frac{1}{\alpha^2}$$</div>
+      <div class="callout">Muonic hydrogen Lamb shift (Pohl et al. 2010, Nature): proton radius $r_p = 0.84087(39)$ fm — 7σ smaller than CODATA 2010 value from electronic hydrogen. Partially resolved by new H spectroscopy (0.833 fm) but not fully.</div>
+      <div class="eq-title" style="margin-top:8px">W Boson Mass</div>
+      <div class="callout">CDF 2022: $M_W = 80.4335(94)$ GeV — 7σ above SM prediction of 80.357 GeV. ATLAS 2023 and LHCb disagree with CDF. The tension may be experimental, but it dominated precision electroweak discussions.</div>
+      <div class="callout" style="margin-top:6px">Dark sector: a dark photon of mass $m_{A'}\!\sim\!10$–$100$ MeV could contribute $\Delta a_\mu\!\sim\!10^{-9}$ — the right size. Current dark photon searches exclude most parameter space, but dark Z and axion-like particles remain viable.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims56();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims56(){
+  // Cancel any running animations
+}
+
+let _stops = [];
+let currentTab = 1;
+
+window.switchTab = function(n) {
+  _stops.forEach(s => s && s.stop && s.stop());
+  _stops = [];
+  currentTab = n;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
+  if(n===1) _stops.push(initTab1());
+  if(n===2) _stops.push(initTab2());
+  if(n===3) _stops.push(initTab3());
+  if(n===4) _stops.push(initTab4());
+  if(n===5) _stops.push(initTab5());
+  if(n===6) _stops.push(initTab6());
+  if(n===7) _stops.push(initTab7());
+  if(n===8) _stops.push(initTab8());
+};
+
+function fitCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.parentElement.clientWidth;
+  const H = cv.parentElement.clientHeight;
+  if(Math.round(cv.width) !== Math.round(W*dpr)) {
+    cv.width = W*dpr; cv.height = H*dpr;
+    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  }
+  return {W, H, ctx: cv.getContext('2d')};
+}
+
+window.showSM = true;
+window.useLatticeCPV = false;
+window.ringSpeed = 1.0;
+
+// ── Tab 1 — Storage Ring Precession ──────────────────────────
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  let raf1, t=0;
+  let paused1 = false;
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const cx=W/2, cy=H/2, R=Math.min(W,H)*0.32;
+
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,68,170,0.3)'; ctx.lineWidth=3; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,R-12,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,68,170,0.08)'; ctx.lineWidth=10; ctx.stroke();
+
+    for(let i=0;i<24;i++) {
+      const angle=i/24*Math.PI*2;
+      const dx=cx+(R+18)*Math.cos(angle), dy=cy+(R+18)*Math.sin(angle);
+      ctx.beginPath(); ctx.arc(dx,dy,5,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,215,0,0.5)'; ctx.fill();
+    }
+
+    const orbitAngle = t*0.03*window.ringSpeed;
+    const mx=cx+R*Math.cos(orbitAngle), my=cy+R*Math.sin(orbitAngle);
+    ctx.beginPath(); ctx.arc(mx,my,7,0,Math.PI*2);
+    ctx.fillStyle='#ff44aa'; ctx.shadowColor='#ff44aa'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+
+    const anom = window.showSM ? 0.001165918 : 0.001165921;
+    const anomRef = 0.001165918;
+    const amplification = 1e7;
+    const spinAngle = orbitAngle + (anom - anomRef) * t * 0.03 * window.ringSpeed * amplification;
+    const sl=22;
+    ctx.beginPath(); ctx.moveTo(mx,my);
+    ctx.lineTo(mx+sl*Math.cos(spinAngle), my+sl*Math.sin(spinAngle));
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(mx+sl*Math.cos(spinAngle), my+sl*Math.sin(spinAngle),4,0,Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill();
+    const tangAngle = orbitAngle + Math.PI/2;
+    ctx.strokeStyle='#ff44aa'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(mx,my); ctx.lineTo(mx+18*Math.cos(tangAngle),my+18*Math.sin(tangAngle)); ctx.stroke();
+
+    let gap = (spinAngle - orbitAngle) % (Math.PI*2);
+    if (gap < 0) gap += Math.PI*2;
+
+    ctx.fillStyle='#ff44aa'; ctx.font='bold 13px monospace';
+    ctx.fillText(`Mode: ${window.showSM?'SM prediction (a_μ=116591.8×10⁻⁸)':'Measured (a_μ=116592.1×10⁻⁸)'}`, 12, 22);
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+    ctx.fillText('→ spin (yellow)', mx+24, my-6);
+    ctx.fillStyle='#ff44aa'; ctx.font='12px monospace';
+    ctx.fillText('→ momentum (pink)', mx+24, my+8);
+
+    if (!window.showSM && gap > 0.05) {
+      ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(mx, my, 14, orbitAngle, spinAngle);
+      ctx.stroke();
+    }
+
+    const driftDeg = (gap * 180 / Math.PI).toFixed(1);
+    ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace';
+    ctx.fillText(window.showSM
+      ? 'No drift (SM prediction = reference)'
+      : `Spin drift from orbit: ${driftDeg}° (amplified ×10⁷)`, 12, H-14);
+
+    if (!paused1) t+=(window.animSpeed||0.1);
+    if (!paused1) raf1=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf1);}};
+}
+window.toggleAnim1 = function(btn) {
+  paused1 = !paused1;
+  btn.textContent = paused1 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused1);
+  if (!paused1) raf1=requestAnimationFrame(draw);
+};
+
+// ── Tab 2 — Feynman Loop Corrections ─────────────────────────
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  let raf2;
+  let paused2 = false;
+  window.highlightedDiagram = -1;
+
+  const diagrams = [
+    { label:'QED 1-loop (Schwinger)', value:116140.97, color:'#ff44aa' },
+    { label:'QED 2+3+4-loop', value:451.6, color:'#ff77bb' },
+    { label:'Electroweak (W,Z)', value:153.6, color:'#00ffcc' },
+    { label:'Hadronic VP (HVP)', value:6845.0, color:'#ffd700' },
+    { label:'Hadronic LbL (HLbL)', value:92.0, color:'#ff8844' },
+  ];
+
+  function drawDiagram(ctx, x, y, w, h, d, i) {
+    const mx=x+w/2, my=y+h*0.65, lw=w*0.8;
+    ctx.strokeStyle='#ff44aa'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(mx-lw/2,my); ctx.lineTo(mx+lw/2,my); ctx.stroke();
+    if(i===0) {
+      ctx.beginPath(); ctx.arc(mx,my-h*0.2,h*0.2,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,215,0,0.7)'; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='#ff44aa';
+      ctx.beginPath(); ctx.arc(mx-h*0.2,my,4,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(mx+h*0.2,my,4,0,Math.PI*2); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(mx,my-h*0.18,h*0.15,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,215,0,0.15)'; ctx.fill();
+      ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.stroke();
+      ctx.fillStyle='#ffd700'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(['','2-4L','W/Z','HVP','HLbL'][i],mx,my-h*0.18+4); ctx.textAlign='left';
+    }
+  }
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const cols=Math.min(3,diagrams.length), rows=Math.ceil(diagrams.length/cols);
+    const cw=(W-40)/cols, ch=(H*0.75)/rows;
+
+    diagrams.forEach((d,i)=>{
+      const col=i%cols, row=Math.floor(i/cols);
+      const x=20+col*cw, y=20+row*ch;
+      const isHL = window.highlightedDiagram===i;
+
+      ctx.fillStyle=isHL?`rgba(${parseInt(d.color.slice(1,3),16)||85},${parseInt(d.color.slice(3,5),16)||85},${parseInt(d.color.slice(5,7),16)||85},0.18)`:'rgba(255,255,255,0.02)';
+      ctx.strokeStyle=isHL?d.color:'rgba(255,255,255,0.06)';
+      ctx.lineWidth=isHL?2.5:1;
+      if(isHL){ ctx.shadowColor=d.color; ctx.shadowBlur=12; }
+      roundRect(ctx,x+4,y+4,cw-8,ch-8,6); ctx.fill(); ctx.stroke();
+      ctx.shadowBlur=0;
+
+      drawDiagram(ctx,x+4,y+4,cw-8,ch*0.6,d,i);
+
+      ctx.save();
+      ctx.rect(x+4, y, cw-8, ch); ctx.clip();
+      ctx.fillStyle=d.color; ctx.font='12px monospace';
+      ctx.fillText(d.label, x+6, y+ch*0.73);
+      ctx.restore();
+
+      ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
+      ctx.fillText(`+${d.value.toFixed(1)}`, x+6, y+ch*0.85);
+      ctx.fillStyle='#888888'; ctx.font='12px monospace';
+      ctx.fillText('×10⁻¹¹', x+6+ctx.measureText(`+${d.value.toFixed(1)}`).width+2, y+ch*0.85);
+    });
+
+    if(window.highlightedDiagram>=0){
+      const hi = window.highlightedDiagram;
+      const runningTotal=diagrams.slice(0,hi+1).reduce((s,d)=>s+d.value,0);
+      const pct = runningTotal / diagrams.reduce((s,d)=>s+d.value,0) * 100;
+      ctx.fillStyle='#ff44aa'; ctx.font='bold 12px monospace';
+      ctx.fillText(`Running a_μ: ${runningTotal.toFixed(1)} × 10⁻¹¹ = ${pct.toFixed(1)}% of total`, 20, H-28);
+      ctx.fillStyle='#888888'; ctx.font='12px monospace';
+      ctx.fillText(`(${diagrams[hi].label}: ${diagrams[hi].value.toFixed(1)} × 10⁻¹¹)`, 20, H-12);
+    } else {
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('Click a diagram to see its contribution to a_μ', 20, H-12);
+    }
+
+    if (!paused2) raf2=requestAnimationFrame(draw);
+  }
+
+  function onClick(e) {
+    const {W,H}=fitCanvas(cv);
+    const rect=cv.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(cv.width/rect.width/window.devicePixelRatio);
+    const my=(e.clientY-rect.top)*(cv.height/rect.height/window.devicePixelRatio);
+    const cols=Math.min(3,diagrams.length), cw=(W-40)/cols, ch=(H*0.75)/Math.ceil(diagrams.length/cols);
+    diagrams.forEach((_,i)=>{
+      const col=i%cols, row=Math.floor(i/cols);
+      const x=20+col*cw+4, y=20+row*ch+4;
+      if(mx>x&&mx<x+cw-8&&my>y&&my<y+ch-8) window.highlightedDiagram=(window.highlightedDiagram===i?-1:i);
+    });
+  }
+  cv.addEventListener('click',onClick);
+  draw();
+  return { stop(){cancelAnimationFrame(raf2);cv.removeEventListener('click',onClick);}};
+}
+window.toggleAnim2 = function(btn) {
+  paused2 = !paused2;
+  btn.textContent = paused2 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused2);
+  if (!paused2) raf2=requestAnimationFrame(draw);
+};
+
+// ── Tab 3 — Tension Meter ─────────────────────────────────────
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  let raf3, animT = 0;
+  let paused3 = false;
+
+  const d = {
+    sm:     { val:116591810, unc:43, label:'SM dispersive (e⁺e⁻ data)',  col:'#55558a' },
+    lattice:{ val:116591900, unc:53, label:'SM BMW lattice QCD',     col:'#00ffcc' },
+    exp:    { val:116592059, unc:22, label:'Fermilab 2023 measured',        col:'#ff44aa' },
+  };
+
+  const steps = [
+    { t:0,   text:'STEP 1 — How is a_μ calculated?', detail:'QED loops can be computed precisely. But hadronic corrections need data or lattice QCD.', highlight:'none' },
+    { t:90,  text:'STEP 2 — Dispersive method (data-driven)', detail:'Measure σ(e⁺e⁻→hadrons) at colliders, then integrate to get the HVP contribution. Relies on measured cross-section data from KLOE, BaBar, SND, CMD-3.', highlight:'sm' },
+    { t:180, text:'STEP 3 — BMW lattice QCD method', detail:'Compute the hadronic vacuum polarization from first principles on a spacetime lattice. Result: +90 units higher than dispersive — a direct SM internal conflict.', highlight:'lattice' },
+    { t:270, text:'STEP 4 — Fermilab measurement', detail:'Muons circulate 1.8 km ring 1000+ times. Spin precesses via a_μ. Comparing spin vs momentum frequency gives a_μ to 0.2 ppm. Result: 116592059 ±22 ×10⁻¹¹.', highlight:'exp' },
+    { t:360, text:'STEP 5 — The Tension', detail:'Dispersive SM vs Fermilab: 4.2σ difference. If BMW lattice is correct: only 1.5σ. Which hadronic calculation is right? This is the unresolved crisis at the heart of particle physics.', highlight:'all' },
+  ];
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const allVals=[d.sm.val, d.lattice.val, d.exp.val];
+    const vmin=Math.min(...allVals)-130, vmax=Math.max(...allVals)+130;
+    const padL=60,padR=40,padT=40,padB=50;
+    const pw=W-padL-padR;
+    function toX(v){return padL+(v-vmin)/(vmax-vmin)*pw;}
+
+    const axY = H*0.3;
+    ctx.strokeStyle='#333355'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,axY); ctx.lineTo(padL+pw,axY); ctx.stroke();
+
+    const stepIdx = steps.reduce((acc,s,i)=>animT>=s.t?i:acc,0);
+    const step = steps[stepIdx];
+    const hl = step.highlight;
+
+    const order = ['sm','lattice','exp'];
+    const labels = {sm:d.sm.label, lattice:d.lattice.label, exp:d.exp.label};
+
+    order.forEach(key=>{
+      const m = d[key];
+      const isActive = hl==='all' || hl===key;
+      const x=toX(m.val), ux=m.unc/(vmax-vmin)*pw;
+      const ry = axY;
+
+      ctx.strokeStyle=isActive?m.col:m.col+'44'; ctx.lineWidth=isActive?2.5:1;
+      ctx.beginPath(); ctx.moveTo(x-ux,ry-8); ctx.lineTo(x+ux,ry-8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-ux,ry+8); ctx.lineTo(x+ux,ry+8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x-ux,ry-8); ctx.lineTo(x-ux,ry+8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x+ux,ry-8); ctx.lineTo(x+ux,ry+8); ctx.stroke();
+      if(isActive){ ctx.shadowColor=m.col; ctx.shadowBlur=8; }
+      ctx.beginPath(); ctx.moveTo(x,ry-12); ctx.lineTo(x,ry+12); ctx.stroke();
+      ctx.shadowBlur=0;
+
+      const ly = key==='lattice' ? ry+38 : (key==='sm' ? ry-38 : ry-55);
+      ctx.fillStyle=isActive?m.col:m.col+'88'; ctx.font=isActive?'bold 11px monospace':'10px monospace'; ctx.textAlign='center';
+      ctx.fillText(labels[key], x, ly);
+      ctx.fillStyle=isActive?'#c0c0ea':'#55558a'; ctx.font='12px monospace';
+      ctx.fillText(`${m.val} ±${m.unc}`, x, ly+14);
+    });
+    ctx.textAlign='left';
+
+    if (hl==='all' || hl==='exp') {
+      const smRef = window.useLatticeCPV ? d.lattice.val : d.sm.val;
+      const smUnc = window.useLatticeCPV ? d.lattice.unc : d.sm.unc;
+      const totalUnc = Math.sqrt(smUnc**2 + d.exp.unc**2);
+      const sigma = (d.exp.val - smRef)/totalUnc;
+      const x1 = toX(smRef), x2 = toX(d.exp.val);
+      ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(x1,axY+60); ctx.lineTo(x2,axY+60); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffd700'; ctx.font='bold 14px monospace'; ctx.textAlign='center';
+      ctx.fillText(`${sigma.toFixed(1)}σ`, (x1+x2)/2, axY+80);
+    }
+
+    const boxY = H*0.55;
+    ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(padL,boxY,W-padL-padR,H-boxY-padB,8);
+    else ctx.rect(padL,boxY,W-padL-padR,H-boxY-padB);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle='#ff44aa'; ctx.font='bold 13px monospace';
+    ctx.fillText(step.text, padL+12, boxY+24);
+    ctx.fillStyle='#c0c0ea'; ctx.font='12px sans-serif';
+    const words = step.detail.split(' ');
+    let line='', lineY=boxY+46;
+    const maxW = W-padL-padR-24;
+    words.forEach(w=>{
+      const test = line+w+' ';
+      if(ctx.measureText(test).width > maxW && line) {
+        ctx.fillText(line, padL+12, lineY); lineY+=18; line=w+' ';
+      } else line=test;
+    });
+    if(line) ctx.fillText(line, padL+12, lineY);
+
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Toggle HVP method (sidebar) — switches between dispersive and BMW lattice SM prediction', W/2, H-padB+30);
+    ctx.textAlign='left';
+
+    if (!paused3) animT = (animT + 0.3*(window.animSpeed||0.1)) % (steps[steps.length-1].t + 90);
+    if (!paused3) raf3=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf3);}};
+}
+window.toggleAnim3 = function(btn) {
+  paused3 = !paused3;
+  btn.textContent = paused3 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused3);
+  if (!paused3) raf3=requestAnimationFrame(draw);
+};
+
+// ── Tab 4 — QED Feynman Diagram Expansion ────────────────────
+function initTab4() {
+  const cv = document.getElementById('cv4');
+  let raf4, t4=0;
+  let paused4 = false;
+  let selectedOrder = -1;
+
+  const orders = [
+    { name:'Tree level (g=2)', loops:0, contrib:0,       color:'#55558a', desc:'Dirac equation: g=2 exactly. No loops.' },
+    { name:'1-loop Schwinger', loops:1, contrib:1161.4,  color:'#ff44aa', desc:'α/2π ≈ 1161×10⁻¹¹. One virtual photon loop on the muon line.' },
+    { name:'2-loop QED',       loops:2, contrib:413.2,   color:'#ff77bb', desc:'7 diagrams. Coefficient −0.3285 (α/π)².' },
+    { name:'3-loop QED',       loops:3, contrib:30.1,    color:'#ffaadd', desc:'72 diagrams. Coefficient 1.181 (α/π)³.' },
+    { name:'4+5-loop QED',     loops:4, contrib:8.3,     color:'#ffccee', desc:'12,672 diagrams at 5 loops (Kinoshita group, Cornell). Numerically computed.' },
+    { name:'Electroweak W,Z',  loops:1, contrib:153.6,   color:'#00ffcc', desc:'W±, Z boson loops. EW correction known to 2-loop.' },
+    { name:'Hadronic VP (HVP)',loops:1, contrib:6845.0,  color:'#ffd700', desc:'Quark loop in photon propagator. Largest hadronic contribution; computed via e⁺e⁻ data.' },
+    { name:'Hadronic LbL',     loops:2, contrib:92.0,    color:'#ff8844', desc:'Light-by-light: 4 photons meeting at quark box. Dominant theory uncertainty source.' },
+  ];
+
+  const total = orders.reduce((s,o)=>s+o.contrib,0);
+
+  function drawFeynmanDiagram(ctx, x, y, w, h, order, t, isSelected) {
+    const mx = x + w/2, cy = y + h*0.5;
+    const lineY = y + h*0.72;
+    const lw = w * 0.75;
+
+    // Muon line
+    ctx.strokeStyle = isSelected ? order.color : '#ff44aa88';
+    ctx.lineWidth = isSelected ? 2.5 : 1.5;
+    ctx.beginPath(); ctx.moveTo(mx - lw/2, lineY); ctx.lineTo(mx + lw/2, lineY); ctx.stroke();
+
+    // Incoming/outgoing arrows
+    const aw = 6;
+    ctx.fillStyle = isSelected ? order.color : '#ff44aa88';
+    ctx.beginPath();
+    ctx.moveTo(mx - lw/2 + aw*2, lineY);
+    ctx.lineTo(mx - lw/2 + aw*2 - aw, lineY - aw*0.6);
+    ctx.lineTo(mx - lw/2 + aw*2 - aw, lineY + aw*0.6);
+    ctx.fill();
+
+    const n = order.loops;
+
+    if(n === 0) {
+      // Tree: just the photon vertex
+      const vx = mx, vy = lineY;
+      ctx.strokeStyle = isSelected ? '#ffd700' : '#ffd70060';
+      ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(vx, vy); ctx.lineTo(vx, vy - h*0.35); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(vx, vy, 4, 0, Math.PI*2);
+      ctx.fillStyle = isSelected ? '#ffd700' : '#ffd70060'; ctx.fill();
+      ctx.fillStyle = isSelected ? '#ffd700' : '#ffd70060';
+      ctx.font = '12px monospace'; ctx.textAlign='center';
+      ctx.fillText('γ', vx, vy - h*0.38); ctx.textAlign='left';
+    } else if(n >= 1) {
+      // Draw loop(s)
+      const loopCount = Math.min(n, 2);
+      for(let li=0; li<loopCount; li++) {
+        const loopX = mx + (li - (loopCount-1)/2) * w*0.22;
+        const loopR = h * 0.18;
+        const phase = t * 0.02 + li * Math.PI;
+
+        if(order.name.includes('HVP') || order.name.includes('Hadronic VP')) {
+          // Quark loop (closed bubble on photon propagator)
+          ctx.strokeStyle = isSelected ? '#ffd700' : '#ffd70060';
+          ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+          ctx.beginPath(); ctx.moveTo(loopX, lineY); ctx.lineTo(loopX, lineY - loopR*0.8); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(loopX, lineY - loopR*0.8 - loopR*2); ctx.lineTo(loopX, lineY - loopR*4); ctx.stroke();
+          ctx.setLineDash([]);
+          // Quark bubble
+          ctx.beginPath(); ctx.ellipse(loopX, lineY - loopR*1.8, loopR*1.1, loopR, 0, 0, Math.PI*2);
+          ctx.strokeStyle = isSelected ? order.color : order.color+'60';
+          ctx.lineWidth = 2; ctx.stroke();
+          // Quark arrow on bubble
+          const qa = phase % (Math.PI*2);
+          ctx.fillStyle = isSelected ? order.color : order.color+'80';
+          ctx.beginPath(); ctx.arc(loopX + loopR*1.1*Math.cos(qa), lineY-loopR*1.8+loopR*Math.sin(qa), 3, 0, Math.PI*2); ctx.fill();
+          ctx.font='12px monospace'; ctx.textAlign='center'; ctx.fillStyle=isSelected?'#ffd700':'#ffd70060';
+          ctx.fillText('q', loopX, lineY-loopR*2.8); ctx.textAlign='left';
+        } else if(order.name.includes('LbL') || order.name.includes('light-by-light') || order.name.includes('HLbL') || order.name.includes('Hadronic LbL')) {
+          // Light-by-light: quark box with 4 photon legs
+          const bw = loopR*1.2;
+          ctx.strokeStyle=isSelected?order.color:order.color+'60'; ctx.lineWidth=2;
+          ctx.beginPath(); ctx.rect(loopX-bw, lineY-loopR*3.5, bw*2, bw*2); ctx.stroke();
+          ctx.strokeStyle=isSelected?'#ffd700':'#ffd70060'; ctx.lineWidth=1.2; ctx.setLineDash([2,2]);
+          ctx.beginPath(); ctx.moveTo(loopX-bw, lineY-loopR*3.5); ctx.lineTo(loopX-lw*0.3, lineY); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(loopX+bw, lineY-loopR*3.5); ctx.lineTo(loopX+lw*0.3, lineY); ctx.stroke();
+          ctx.setLineDash([]);
+        } else if(order.name.includes('Electroweak')) {
+          // W/Z loop
+          ctx.strokeStyle=isSelected?order.color:order.color+'60'; ctx.lineWidth=2;
+          ctx.beginPath(); ctx.arc(loopX, lineY-loopR*1.5, loopR*1.5, 0, Math.PI, true); ctx.stroke();
+          ctx.font='12px monospace'; ctx.textAlign='center'; ctx.fillStyle=isSelected?order.color:order.color+'80';
+          ctx.fillText('W/Z', loopX, lineY-loopR*3.2); ctx.textAlign='left';
+        } else {
+          // Generic photon loop
+          const animPhase = (t * 0.025 + li*0.5) % (Math.PI*2);
+          const pts = 20;
+          ctx.beginPath();
+          for(let pi=0; pi<=pts; pi++){
+            const a = pi/pts * Math.PI*2;
+            const wobble = 1 + 0.15*Math.sin(a*4 + animPhase);
+            const px = loopX + loopR*wobble*Math.cos(a);
+            const py = lineY - loopR*1.5 + loopR*wobble*Math.sin(a);
+            pi===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+          }
+          ctx.strokeStyle=isSelected?'#ffd700':'#ffd70060'; ctx.lineWidth=1.5; ctx.stroke();
+          // Photon vertices on muon line
+          const vx1=loopX-loopR*0.8, vx2=loopX+loopR*0.8;
+          ctx.beginPath(); ctx.arc(vx1, lineY, 3, 0, Math.PI*2);
+          ctx.beginPath(); ctx.arc(vx2, lineY, 3, 0, Math.PI*2);
+          ctx.fillStyle=isSelected?'#ffd700':'#ffd70060'; ctx.fill();
+        }
+      }
+    }
+
+    // Value label
+    ctx.fillStyle = isSelected ? order.color : '#c0c0ea88';
+    ctx.font = isSelected ? 'bold 10px monospace' : '9px monospace';
+    ctx.textAlign='center';
+    if(order.contrib > 0) ctx.fillText(`+${order.contrib.toFixed(1)}×10⁻¹¹`, mx, y+h*0.93);
+    else ctx.fillText('(reference)', mx, y+h*0.93);
+    ctx.textAlign='left';
+  }
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const cols = 4, rows = 2;
+    const cellW = (W-32)/cols, cellH = (H*0.78)/rows;
+    const padX=16, padY=10;
+
+    orders.forEach((order, i) => {
+      const col=i%cols, row=Math.floor(i/cols);
+      const x=padX+col*cellW, y=padY+row*cellH;
+      const isSel = selectedOrder===i;
+      const pulse = isSel ? 0.5+0.5*Math.sin(t4*0.06) : 0;
+
+      ctx.fillStyle=isSel?`rgba(${parseInt(order.color.slice(1,3),16)},${parseInt(order.color.slice(3,5),16)},${parseInt(order.color.slice(5,7),16)},${0.1+pulse*0.08})`:'rgba(255,255,255,0.015)';
+      ctx.strokeStyle=isSel?order.color:'rgba(255,255,255,0.05)';
+      ctx.lineWidth=isSel?2:1;
+      if(isSel){ctx.shadowColor=order.color; ctx.shadowBlur=10+pulse*8;}
+      roundRect(ctx, x+2, y+2, cellW-4, cellH-4, 6); ctx.fill(); ctx.stroke();
+      ctx.shadowBlur=0;
+
+      ctx.fillStyle=isSel?order.color:'#c0c0ea99';
+      ctx.font=(isSel?'bold ':'')+`9px monospace`; ctx.textAlign='center';
+      ctx.fillText(order.name, x+cellW/2, y+16); ctx.textAlign='left';
+
+      drawFeynmanDiagram(ctx, x+2, y+20, cellW-4, cellH-26, order, t4, isSel);
+    });
+
+    // Running sum bar at bottom
+    const barY = H*0.82, barH2 = H*0.1, barX=32, barW=W-64;
+    ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(barX,barY,barW,barH2); ctx.fill(); ctx.stroke();
+
+    let runX=barX;
+    orders.forEach((order,i) => {
+      const frac = order.contrib/total;
+      const segW = frac*barW;
+      const alpha = (selectedOrder<0||selectedOrder===i) ? 1 : 0.3;
+      ctx.fillStyle = order.color + Math.round(alpha*255).toString(16).padStart(2,'0');
+      ctx.fillRect(runX, barY, segW, barH2);
+      runX += segW;
+    });
+
+    // Selected description
+    if(selectedOrder>=0) {
+      const ord=orders[selectedOrder];
+      ctx.fillStyle=ord.color; ctx.font='bold 12px monospace';
+      ctx.fillText(`${ord.name}: ${ord.contrib>0?'+'+ord.contrib.toFixed(1):0}×10⁻¹¹`, barX, barY+barH2+18);
+      ctx.fillStyle='#c0c0ea'; ctx.font='12px sans-serif';
+      ctx.fillText(ord.desc, barX, barY+barH2+33);
+    } else {
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('Click an order to inspect its Feynman diagram contribution', barX, barY+barH2+18);
+    }
+
+    if (!paused4) t4+=(window.animSpeed||0.1);
+    if (!paused4) raf4=requestAnimationFrame(draw);
+  }
+
+  function onClick4(e) {
+    const {W,H} = fitCanvas(cv);
+    const rect=cv.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(cv.width/rect.width/window.devicePixelRatio);
+    const my=(e.clientY-rect.top)*(cv.height/rect.height/window.devicePixelRatio);
+    const cols=4, cellW=(W-32)/cols, cellH=(H*0.78)/2;
+    orders.forEach((_,i)=>{
+      const col=i%cols, row=Math.floor(i/cols);
+      const x=16+col*cellW+2, y=10+row*cellH+2;
+      if(mx>x&&mx<x+cellW-4&&my>y&&my<y+cellH-4)
+        selectedOrder=(selectedOrder===i?-1:i);
+    });
+  }
+  cv.addEventListener('click',onClick4);
+  draw();
+  return { stop(){cancelAnimationFrame(raf4);cv.removeEventListener('click',onClick4);}};
+}
+window.toggleAnim4 = function(btn) {
+  paused4 = !paused4;
+  btn.textContent = paused4 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused4);
+  if (!paused4) raf4=requestAnimationFrame(draw);
+};
+
+// ── Tab 5 — Storage Ring & Spin Precession (deep) ────────────
+window.bFieldVal = 1.45;
+window.showOmegaViz = true;
+
+window.updateHVPBtn = function(){}; // forward-declared below
+
+function initTab5() {
+  const cv = document.getElementById('cv5');
+  let raf5, t5=0;
+  let paused5 = false;
+
+  // ωa = eB·aμ/m  — in natural relative scale
+  function getOmegaA() {
+    const B = window.bFieldVal;
+    const anom = 116592059e-11;
+    // ωa ∝ B·aμ — scale to display
+    const omegaA_kHz = B * anom * 1.602e-19 / (1.883e-28) / (2*Math.PI) / 1000;
+    return omegaA_kHz;
+  }
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const oaKHz = getOmegaA();
+    // Update display
+    const disp=document.getElementById('waDisp');
+    if(disp) disp.textContent = oaKHz.toFixed(1)+' kHz';
+
+    if(window.showOmegaViz) {
+      // Frequency comparison visualization
+      const cx=W*0.5, cy=H*0.42, R=Math.min(W,H)*0.30;
+
+      // Draw cyclotron circle (fast)
+      const ocAngle = t5 * 0.055;
+      ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,68,170,0.2)'; ctx.lineWidth=2; ctx.stroke();
+
+      // Cyclotron motion (muon position)
+      const mx=cx+R*Math.cos(ocAngle), my=cy+R*Math.sin(ocAngle);
+      ctx.beginPath(); ctx.arc(mx,my,8,0,Math.PI*2);
+      ctx.fillStyle='#ff44aa'; ctx.shadowColor='#ff44aa'; ctx.shadowBlur=14; ctx.fill(); ctx.shadowBlur=0;
+
+      // Spin precession (slightly faster than cyclotron)
+      const spinExtra = oaKHz / (6710) * 0.055; // ωa/ωc * ocAngle rate
+      const spinAngle = ocAngle + t5*spinExtra;
+      const sLen=26;
+      ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(mx,my); ctx.lineTo(mx+sLen*Math.cos(spinAngle),my+sLen*Math.sin(spinAngle)); ctx.stroke();
+      ctx.beginPath(); ctx.arc(mx+sLen*Math.cos(spinAngle),my+sLen*Math.sin(spinAngle),4,0,Math.PI*2);
+      ctx.fillStyle='#ffd700'; ctx.fill();
+
+      // Momentum direction (tangent to circle)
+      const tangDir = ocAngle + Math.PI/2;
+      ctx.strokeStyle='#ff44aacc'; ctx.lineWidth=1.8;
+      ctx.beginPath(); ctx.moveTo(mx,my); ctx.lineTo(mx+20*Math.cos(tangDir),my+20*Math.sin(tangDir)); ctx.stroke();
+
+      // Anomalous precession phase gap
+      let gap=(spinAngle-ocAngle)%(Math.PI*2); if(gap<0)gap+=Math.PI*2;
+      if(gap>0.05){
+        ctx.strokeStyle='rgba(255,215,0,0.35)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(mx,my,15,ocAngle,spinAngle); ctx.stroke();
+      }
+
+      // Labels
+      ctx.fillStyle='#ffd700'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText('— spin (ωs)', W*0.05, H*0.85);
+      ctx.fillStyle='#ff44aa';
+      ctx.fillText('— momentum (ωc)', W*0.05, H*0.90);
+      ctx.fillStyle='rgba(255,215,0,0.7)';
+      ctx.fillText(`ωa = ωs − ωc = ${oaKHz.toFixed(1)} kHz`, W*0.05, H*0.95);
+
+      // B field label
+      ctx.fillStyle='#00ffcc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+      ctx.fillText(`B = ${window.bFieldVal.toFixed(2)} T`, cx, H*0.06);
+
+      // Magic momentum annotation
+      if(Math.abs(window.bFieldVal-1.45)<0.15) {
+        ctx.fillStyle='#00ffcc88'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText('★ magic momentum: p = 3.094 GeV/c', cx, H*0.12);
+        ctx.fillText('E-field term cancels here', cx, H*0.17);
+      }
+
+      // Electric quadrupole markers (focusing elements)
+      const nQuad=4;
+      for(let i=0;i<nQuad;i++){
+        const qa=i/nQuad*Math.PI*2;
+        const qx=cx+(R+28)*Math.cos(qa), qy=cy+(R+28)*Math.sin(qa);
+        ctx.strokeStyle='rgba(0,255,204,0.5)'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.rect(qx-8,qy-5,16,10); ctx.stroke();
+        ctx.fillStyle='#00ffcc88'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText('Q', qx, qy+4);
+      }
+      ctx.textAlign='left';
+
+    } else {
+      // Ring top-down view
+      const cx=W/2, cy=H/2, R=Math.min(W,H)*0.35;
+      ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,68,170,0.25)'; ctx.lineWidth=4; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,R-16,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,68,170,0.07)'; ctx.lineWidth=14; ctx.stroke();
+
+      // Decay positron detectors (calorimeters, 24 stations)
+      const nDet=24;
+      for(let i=0;i<nDet;i++){
+        const a=i/nDet*Math.PI*2;
+        const dx=cx+(R+24)*Math.cos(a), dy=cy+(R+24)*Math.sin(a);
+        ctx.beginPath(); ctx.arc(dx,dy,4,0,Math.PI*2);
+        const active=Math.sin(t5*0.04+i*0.9)>0.7;
+        ctx.fillStyle=active?'rgba(0,255,204,0.9)':'rgba(0,255,204,0.2)'; ctx.fill();
+      }
+
+      // Muons (multiple)
+      const nMu=5;
+      for(let mi=0;mi<nMu;mi++){
+        const ma=t5*0.033+mi*Math.PI*2/nMu;
+        const mux=cx+R*Math.cos(ma), muy=cy+R*Math.sin(ma);
+        ctx.beginPath(); ctx.arc(mux,muy,5,0,Math.PI*2);
+        ctx.fillStyle='#ff44aa'; ctx.shadowColor='#ff44aa'; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
+      }
+
+      // Center B field label
+      ctx.fillStyle='rgba(255,215,0,0.4)'; ctx.font='bold 14px monospace'; ctx.textAlign='center';
+      ctx.fillText(`B = ${window.bFieldVal.toFixed(2)} T`, cx, cy-6);
+      ctx.fillStyle='rgba(255,215,0,0.3)'; ctx.font='12px monospace';
+      ctx.fillText('B out of page', cx, cy+12);
+      ctx.textAlign='left';
+
+      ctx.fillStyle='#00ffcc88'; ctx.font='12px monospace';
+      ctx.fillText('● Calorimeter stations (24)', W*0.04, H*0.9);
+      ctx.fillStyle='#ff44aa88';
+      ctx.fillText('● Muon bunches (5 shown)', W*0.04, H*0.95);
+    }
+
+    if (!paused5) t5+=(window.animSpeed||0.1);
+    if (!paused5) raf5=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf5);}};
+}
+window.toggleAnim5 = function(btn) {
+  paused5 = !paused5;
+  btn.textContent = paused5 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused5);
+  if (!paused5) raf5=requestAnimationFrame(draw);
+};
+
+// ── Tab 6 — Hadronic Vacuum Polarization ─────────────────────
+window.rhoPeak = 775;
+window.hvpDataset = 'CMD2';
+
+window.updateHVPBtn = function() {
+  ['cmd2Btn','cmd3Btn','babarHVPBtn'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b) b.classList.remove('active');
+  });
+  const map={CMD2:'cmd2Btn',CMD3:'cmd3Btn',BaBar:'babarHVPBtn'};
+  const btn=document.getElementById(map[window.hvpDataset]);
+  if(btn) btn.classList.add('active');
+};
+
+function initTab6() {
+  const cv = document.getElementById('cv6');
+  let raf6, t6=0;
+  let paused6 = false;
+
+  // Breit-Wigner cross-section σ(s) for e+e- -> pi+pi-
+  function bw(s_MeV, peak_MeV, scale) {
+    const mRho=peak_MeV, gRho=150;
+    return scale / ((s_MeV-mRho)**2 + (gRho/2)**2);
+  }
+
+  // Dataset offsets
+  const datasetOpts = {
+    CMD2: { scale:1.00, label:'CMD-2 (2003)', color:'#00ffcc' },
+    CMD3: { scale:1.025, label:'CMD-3 (2023) +2.5%', color:'#ffd700' },
+    BaBar:{ scale:1.01, label:'BaBar ISR', color:'#ff8844' },
+  };
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const padL=60,padR=30,padT=30,padB=50;
+    const pw=W-padL-padR, ph=H-padT-padB;
+    const sMin=400, sMax=1100;
+
+    function toX(s){return padL+(s-sMin)/(sMax-sMin)*pw;}
+    function toY(v){return padT+ph-v/1800*ph;}
+
+    // Axes
+    ctx.strokeStyle='#333355'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+ph); ctx.lineTo(padL+pw,padT+ph); ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('√s (MeV)', padL+pw/2, padT+ph+38);
+    for(let s=500;s<=1000;s+=100){
+      const x=toX(s);
+      ctx.beginPath(); ctx.moveTo(x,padT+ph); ctx.lineTo(x,padT+ph+4); ctx.stroke();
+      ctx.fillText(s, x, padT+ph+16);
+    }
+    ctx.save(); ctx.translate(14,padT+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('σ(e⁺e⁻→π⁺π⁻) [nb]', 0, 0); ctx.restore();
+    for(let v=400;v<=1600;v+=400){
+      const y=toY(v);
+      ctx.beginPath(); ctx.moveTo(padL-4,y); ctx.lineTo(padL,y); ctx.stroke();
+      ctx.textAlign='right'; ctx.fillText(v, padL-6, y+4);
+    }
+    ctx.textAlign='left';
+
+    // Draw cross-section curves for each dataset
+    Object.entries(datasetOpts).forEach(([key, opt]) => {
+      const isActive = window.hvpDataset===key;
+      const alpha_v = isActive ? 1 : 0.25;
+      const rhoPos = window.rhoPeak;
+      const peak = bw(rhoPos, rhoPos, 1);
+      ctx.beginPath();
+      for(let s=sMin; s<=sMax; s+=2){
+        const val = bw(s, rhoPos, opt.scale * 1600 / peak);
+        // Add omega(782) bump
+        const omegaBump = 30 * Math.exp(-((s-782)**2)/(2*10**2));
+        const phi_v = 5 * Math.exp(-((s-1020)**2)/(2*6**2));
+        const total = val + omegaBump + phi_v;
+        const x=toX(s), y=toY(Math.min(total,1700));
+        s===sMin ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle=opt.color+(Math.round(alpha_v*255).toString(16).padStart(2,'0'));
+      ctx.lineWidth=isActive?2.5:1.2; ctx.stroke();
+
+      if(isActive) {
+        // Dataset label at peak
+        const px=toX(window.rhoPeak), py=toY(1600);
+        ctx.fillStyle=opt.color; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(opt.label, px, py-8);
+      }
+    });
+    ctx.textAlign='left';
+
+    // ρ peak position marker
+    const rpX=toX(window.rhoPeak);
+    ctx.strokeStyle='rgba(255,68,170,0.4)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(rpX,padT); ctx.lineTo(rpX,padT+ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ff44aa'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText(`ρ(${window.rhoPeak})`, rpX, padT+14);
+    ctx.textAlign='left';
+
+    // HVP integral annotation (dispersion)
+    const dispColor = window.hvpDataset==='CMD3' ? '#ffd700' : '#00ffcc';
+    const hvpVal = window.hvpDataset==='CMD3' ? 7115 : (window.hvpDataset==='BaBar' ? 7018 : 6973);
+    ctx.fillStyle=dispColor; ctx.font='bold 12px monospace';
+    ctx.fillText(`a_μ^HVP ≈ ${hvpVal}×10⁻¹¹  [${datasetOpts[window.hvpDataset].label}]`, padL, padT+ph+42);
+
+    // BMW lattice line
+    const bmwVal=7075;
+    ctx.fillStyle='rgba(255,215,0,0.4)'; ctx.font='12px monospace';
+    ctx.fillText(`BMW lattice: ${bmwVal}×10⁻¹¹  (↑ larger → less tension)`, padL, padT+ph+55);
+
+    // Animated photon propagator diagram
+    const animPulse = 0.5+0.5*Math.sin(t6*0.06);
+    const diaX=W*0.7, diaY=H*0.35;
+    // Photon line
+    const waveN=8, waveL=80;
+    ctx.strokeStyle=`rgba(255,215,0,${0.5+0.3*animPulse})`; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let xi=0;xi<=waveL;xi++){
+      const px=diaX-waveL/2+xi;
+      const py=diaY+7*Math.sin(xi/waveL*Math.PI*waveN*2);
+      xi===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+    // Quark loop bubble
+    ctx.beginPath(); ctx.arc(diaX, diaY-28, 18, 0, Math.PI*2);
+    ctx.strokeStyle=`rgba(255,68,170,${0.6+0.3*animPulse})`; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='rgba(255,68,170,0.1)'; ctx.fill();
+    ctx.fillStyle='rgba(255,68,170,0.7)'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('q', diaX, diaY-24);
+    ctx.fillText('HVP diagram', diaX, diaY+22);
+    ctx.textAlign='left';
+
+    if (!paused6) t6+=(window.animSpeed||0.1);
+    if (!paused6) raf6=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf6);}};
+}
+window.toggleAnim6 = function(btn) {
+  paused6 = !paused6;
+  btn.textContent = paused6 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused6);
+  if (!paused6) raf6=requestAnimationFrame(draw);
+};
+
+// ── Tab 7 — Muon EDM & New Physics ───────────────────────────
+window.npModel = 'SUSY';
+
+window.updateNPBtn = function() {
+  ['susyBtn','lqBtn','wpBtn'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b) b.classList.remove('active');
+  });
+  const map={SUSY:'susyBtn',LQ:'lqBtn',Wprime:'wpBtn'};
+  const btn=document.getElementById(map[window.npModel]);
+  if(btn) btn.classList.add('active');
+};
+
+function initTab7() {
+  const cv = document.getElementById('cv7');
+  let raf7, t7=0;
+  let paused7 = false;
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    // Left panel: muon in crossed E and B fields with spin precession
+    const panelW=W*0.48, panelH=H;
+    const cx=panelW/2, cy=panelH*0.45;
+
+    // B field label (into page)
+    ctx.fillStyle='rgba(0,255,204,0.4)'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('B (vertical, into page)', cx, padT2(18));
+    ctx.fillStyle='rgba(255,215,0,0.35)'; ctx.font='12px monospace';
+    ctx.fillText('E (radial, horizontal)', cx, padT2(34));
+    function padT2(y){return y;}
+
+    // Ring cross-section (side view, muon going in/out)
+    ctx.beginPath(); ctx.arc(cx, cy, 60, 0, Math.PI*2);
+    ctx.strokeStyle='rgba(255,68,170,0.25)'; ctx.lineWidth=3; ctx.stroke();
+
+    // Muon dot
+    const muonAngle=t7*0.04;
+    const muonX=cx+60*Math.cos(muonAngle), muonY=cy+60*Math.sin(muonAngle);
+    ctx.beginPath(); ctx.arc(muonX,muonY,7,0,Math.PI*2);
+    ctx.fillStyle='#ff44aa'; ctx.shadowColor='#ff44aa'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+
+    // MDM spin (horizontal precession in ring plane)
+    const mdmAngle = muonAngle + Math.PI/2 + t7*0.003;
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(muonX,muonY); ctx.lineTo(muonX+22*Math.cos(mdmAngle),muonY+22*Math.sin(mdmAngle)); ctx.stroke();
+
+    // EDM component (vertical tilt, oscillates)
+    const edmTilt = 0.3*Math.sin(t7*0.04); // small tilt
+    const spZ = 22*Math.sin(edmTilt);
+    const spH = 22*Math.cos(edmTilt);
+    ctx.strokeStyle='#ff8844'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(muonX,muonY);
+    ctx.lineTo(muonX+spH*Math.cos(mdmAngle), muonY+spH*Math.sin(mdmAngle)-spZ*0.7);
+    ctx.stroke();
+
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('spin MDM', muonX+25, muonY-4);
+    ctx.fillStyle='#ff8844';
+    ctx.fillText('EDM tilt', muonX+25, muonY+8);
+
+    // Labels
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Side view: spin MDM (gold) + EDM tilt (orange)', cx, cy+85);
+    ctx.fillText('EDM causes up-down oscillation in decay positrons', cx, cy+100);
+    ctx.textAlign='left';
+
+    // Divider
+    ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(panelW,0); ctx.lineTo(panelW,H); ctx.stroke();
+
+    // Right panel: NP parameter space exclusion plot
+    const plotX=panelW+32, plotY=40, plotW=W-panelW-50, plotH=H-90;
+    ctx.fillStyle='rgba(255,255,255,0.02)'; ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(plotX,plotY,plotW,plotH); ctx.fill(); ctx.stroke();
+
+    // Axes: x=log10(Lambda NP/GeV), y=log10(coupling)
+    const lMin=2, lMax=4; // 100 GeV to 10 TeV
+    const cMin=-3, cMax=1;
+    function toPlotX(l){return plotX+(l-lMin)/(lMax-lMin)*plotW;}
+    function toPlotY(c){return plotY+plotH-(c-cMin)/(cMax-cMin)*plotH;}
+
+    // Axis labels
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Λ_NP [GeV]', plotX+plotW/2, plotY+plotH+30);
+    for(let l=lMin;l<=lMax;l++){
+      const x=toPlotX(l);
+      ctx.beginPath(); ctx.moveTo(x,plotY+plotH); ctx.lineTo(x,plotY+plotH+4); ctx.strokeStyle='#333355'; ctx.stroke();
+      ctx.fillText('10^'+l, x, plotY+plotH+18);
+    }
+    ctx.save(); ctx.translate(plotX-22,plotY+plotH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('coupling g/√(4π)', 0, 0); ctx.restore();
+
+    // Delta aμ contours: Lambda ~ sqrt(m_mu^2 / delta_aμ) in natural units
+    // Δaμ = 2.5e-9 line: coupling * m_mu / Lambda^2 ~ Δaμ
+    // Simplified: coupling ~ Δaμ * Lambda^2 / m_mu^2 * (m_mu^2)
+    const colors = {SUSY:'#ff44aa',LQ:'#00ffcc',Wprime:'#ffd700'};
+    const models = {
+      SUSY: { label:'SUSY (smuon-neutralino)', fillColor:'rgba(255,68,170,0.08)', borderColor:'#ff44aa', offset:0 },
+      LQ:   { label:'Leptoquark', fillColor:'rgba(0,255,204,0.08)', borderColor:'#00ffcc', offset:0.3 },
+      Wprime:{ label:"W' boson", fillColor:'rgba(255,215,0,0.08)', borderColor:'#ffd700', offset:-0.3 },
+    };
+
+    // Draw each model band
+    Object.entries(models).forEach(([key, mod])=>{
+      const isActive=window.npModel===key;
+      const bAlpha=isActive?1:0.3;
+      // Draw exclusion region (LHC excluded below)
+      const lhcLambda=3.0; // ~1 TeV excluded by direct searches
+      ctx.fillStyle=mod.fillColor.replace('0.08',isActive?'0.12':'0.03');
+      ctx.strokeStyle=mod.borderColor+(Math.round(bAlpha*255).toString(16).padStart(2,'0'));
+      ctx.lineWidth=isActive?2:1;
+
+      // Δaμ = 2.5e-9 contour: coupling ∝ Δaμ * (Lambda/mμ)^2
+      ctx.beginPath();
+      for(let l=lMin;l<=lMax;l+=0.05){
+        const lambda_GeV=Math.pow(10,l);
+        const logCoupling=mod.offset+Math.log10(2.5e-9*(lambda_GeV/0.106)**2);
+        const x=toPlotX(l), y=toPlotY(Math.max(cMin,Math.min(cMax,logCoupling)));
+        l===lMin?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+
+      if(isActive){
+        ctx.fillStyle=mod.borderColor; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+        ctx.fillText(mod.label, plotX+4, plotY+14+(Object.keys(models).indexOf(key)*14));
+        // Current sensitivity lines
+        ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+        ctx.beginPath();
+        ctx.moveTo(toPlotX(Math.log10(400)),plotY);
+        ctx.lineTo(toPlotX(Math.log10(400)),plotY+plotH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText('LHC', toPlotX(Math.log10(400)), plotY+10);
+        ctx.textAlign='left';
+      }
+    });
+
+    // BNL EDM limit and FNAL goal
+    const edmY = toPlotY(-3.5);
+    ctx.strokeStyle='rgba(255,136,68,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+    ctx.beginPath(); ctx.moveTo(plotX,edmY); ctx.lineTo(plotX+plotW,edmY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,136,68,0.7)'; ctx.font='12px monospace';
+    ctx.fillText('BNL EDM |d_μ|<1.8×10⁻¹⁹ e·cm', plotX+4, edmY-3);
+
+    if (!paused7) t7+=(window.animSpeed||0.1);
+    if (!paused7) raf7=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf7);}};
+}
+window.toggleAnim7 = function(btn) {
+  paused7 = !paused7;
+  btn.textContent = paused7 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused7);
+  if (!paused7) raf7=requestAnimationFrame(draw);
+};
+
+// ── Tab 8 — Precision SM Tests ───────────────────────────────
+window.p8Mode = 'all';
+
+window.updateP8Btn = function() {
+  ['p8aBtn','p8bBtn','p8cBtn'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b) b.classList.remove('active');
+  });
+  const map={all:'p8aBtn',gm2:'p8bBtn',lamb:'p8cBtn'};
+  const btn=document.getElementById(map[window.p8Mode]);
+  if(btn) btn.classList.add('active');
+};
+
+function initTab8() {
+  const cv = document.getElementById('cv8');
+  let raf8, t8=0;
+  let paused8 = false;
+
+  // Precision observables: {name, theory, exp, unit, sigma, color}
+  const observables = [
+    { name:'aₑ (electron g-2)', theory:115965218073, exp:115965218059, unc_th:28, unc_exp:28, unit:'×10⁻¹²', sigma:0.3, col:'#00ffcc', type:'gm2' },
+    { name:'aμ (muon g-2)',     theory:116591810,    exp:116592059,    unc_th:43, unc_exp:41, unit:'×10⁻¹¹', sigma:4.2, col:'#ff44aa', type:'gm2' },
+    { name:'MW CDF 2022',       theory:80357,         exp:80434,        unc_th:6,  unc_exp:9,  unit:'keV',    sigma:7.0, col:'#ffd700', type:'other' },
+    { name:'MW (avg non-CDF)',  theory:80357,         exp:80360,        unc_th:6,  unc_exp:16, unit:'keV',    sigma:0.2, col:'#ffd70060', type:'other' },
+    { name:'μH Lamb shift',     theory:202.3,         exp:206.0,        unc_th:1.0,unc_exp:0.003,unit:'meV', sigma:7.0, col:'#ff8844', type:'lamb' },
+    { name:'eH Lamb shift',     theory:1057.8,        exp:1058.0,       unc_th:0.1,unc_exp:0.01, unit:'MHz', sigma:2.0, col:'#ff884488', type:'lamb' },
+  ];
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const mode=window.p8Mode;
+    const filtered=mode==='all'?observables:observables.filter(o=>(mode==='gm2'?o.type==='gm2':o.type==='lamb')||mode==='all');
+
+    const padL=180, padR=120, padT=36, padB=50;
+    const pw=W-padL-padR, ph=H-padT-padB;
+    const n=filtered.length;
+    const rowH=ph/Math.max(n,1);
+
+    // Axis
+    ctx.strokeStyle='#333355'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+ph); ctx.stroke();
+    // Zero line
+    ctx.beginPath(); ctx.moveTo(padL+pw/2,padT); ctx.lineTo(padL+pw/2,padT+ph);
+    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('0σ', padL+pw/2, padT-6);
+    ctx.fillText('(SM prediction)', padL+pw/2, padT-16);
+    ctx.textAlign='left';
+
+    // Sigma tick marks
+    [-3,-2,-1,1,2,3,4,5,6,7].forEach(s=>{
+      const x=padL+pw/2+s*pw/16;
+      if(x>padL&&x<padL+pw){
+        ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,padT+ph); ctx.stroke();
+        ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(s+'σ', x, padT-6);
+      }
+    });
+    ctx.textAlign='left';
+
+    filtered.forEach((obs,i)=>{
+      const y=padT+i*rowH+rowH*0.5;
+      // Row background
+      ctx.fillStyle=i%2===0?'rgba(255,255,255,0.01)':'transparent';
+      ctx.fillRect(padL,padT+i*rowH,pw,rowH);
+
+      // Name label
+      ctx.fillStyle=obs.col; ctx.font=`${Math.min(11,Math.floor(rowH*0.35))}px monospace`;
+      ctx.textAlign='right';
+      ctx.fillText(obs.name, padL-8, y+4);
+      ctx.textAlign='left';
+
+      // Sigma bar
+      const sigmaX=padL+pw/2+obs.sigma*pw/16;
+      const barH2=rowH*0.3;
+      const positive=obs.sigma>0;
+
+      // Draw deviation bar
+      ctx.fillStyle=obs.col;
+      if(positive) ctx.fillRect(padL+pw/2, y-barH2/2, Math.min(sigmaX-padL-pw/2,pw/2-2), barH2);
+      else ctx.fillRect(Math.max(sigmaX,padL+2), y-barH2/2, padL+pw/2-Math.max(sigmaX,padL+2), barH2);
+
+      // Sigma value
+      ctx.fillStyle=obs.col; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+      ctx.fillText(`${obs.sigma.toFixed(1)}σ`, sigmaX+4, y+4);
+      ctx.textAlign='left';
+
+      // Unit note
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText(obs.unit, padL+pw+6, y+4);
+    });
+
+    // Bottom section: Lamb shift animation for lamb mode
+    if(mode==='lamb') {
+      const animY = padT+ph+8;
+      const wave=Math.sin(t8*0.08);
+      ctx.fillStyle='rgba(255,136,68,0.4+wave*0.1)'; ctx.font='12px monospace';
+      ctx.fillText(`Muonic H: proton radius rₚ = 0.841 fm  vs  CODATA 2010: 0.877 fm  →  7σ discrepancy (Pohl 2010)`, padL, animY+16);
+      ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='12px monospace';
+      ctx.fillText('Resolved partially by 2019 H spectroscopy (0.833 fm) — proton radius puzzle persists at 2σ', padL, animY+30);
+    }
+
+    // Dirac annotation
+    ctx.fillStyle='rgba(255,68,170,0.35)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Dirac 1928: g=2 exactly  →  Kusch & Foley 1947: g≠2  →  Schwinger 1948: g=2+α/π', W/2, padT+ph+42);
+    ctx.textAlign='left';
+
+    if (!paused8) t8+=(window.animSpeed||0.1);
+    if (!paused8) raf8=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf8);}};
+}
+window.toggleAnim8 = function(btn) {
+  paused8 = !paused8;
+  btn.textContent = paused8 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused8);
+  if (!paused8) raf8=requestAnimationFrame(draw);
+};
+
+window.animSpeed=0.1;
+switchTab(1);
+window.addEventListener('resize', () => { _stops.forEach(s=>s&&s.stop&&s.stop()); _stops=[]; switchTab(currentTab); });
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

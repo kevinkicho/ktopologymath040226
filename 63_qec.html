@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>63 · Quantum Error Correction</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]})"></script>
+<style>
+
+:root{
+  --bg1:#0a0a1a; --bg2:#10101f; --bg3:#171730;
+  --border:#252548; --text:#e8e8f8; --muted:#8888aa;
+  --accent:#34d399; --gold:#fbbf24; --teal:#a78bfa;
+  --red:#f87171; --blue:#44aaff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg1);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.85rem;opacity:.65}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.78rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.25rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.75rem;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 12px;flex-shrink:0;overflow-x:auto}
+.tab{padding:9px 13px;cursor:pointer;font-size:.8rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.pane{display:none;flex:1;overflow:hidden}
+.pane.active{display:flex}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:3px 0;flex-shrink:0}
+.controls label{font-size:.75rem;color:var(--muted)}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.78rem;cursor:pointer}
+select:focus{outline:none;border-color:var(--accent)}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.78rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:#0a2a1a}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.75rem;color:var(--muted);line-height:1.7;flex-shrink:0}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:300px;min-width:190px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:13px 12px;gap:9px;flex-shrink:0}
+.side-panel h3{font-size:.86rem;color:var(--accent);margin-bottom:2px;margin-top:4px}
+.side-panel p,.side-panel li{font-size:.73rem;color:var(--muted);line-height:1.68}
+.side-panel ul{padding-left:14px}
+.side-panel .eq{font-size:.77rem;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--accent);margin:3px 0}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p-left{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+#pane0.active,#pane1.active,#pane2.active,#pane3.active,#pane4.active,#pane5.active,#pane6.active,#pane7.active{flex-direction:row}
+.tag{display:inline-block;font-size:.68rem;padding:1px 6px;border-radius:3px;background:#0a1a0a;border:1px solid var(--border);color:var(--muted);margin:2px 2px 0 0}
+input[type=range]{accent-color:var(--accent);cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">63</span>
+  <div class="title-block">
+    <h1>Quantum Error Correction</h1>
+    <p>Protecting quantum information from decoherence — from simple codes to fault-tolerant logical qubits</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Why Errors Happen</div>
+  <div class="tab" onclick="switchTab(1)">3-Qubit Codes</div>
+  <div class="tab" onclick="switchTab(2)">Stabilizer Formalism</div>
+  <div class="tab" onclick="switchTab(3)">Shor &amp; Steane</div>
+  <div class="tab" onclick="switchTab(4)">Surface Code</div>
+  <div class="tab" onclick="switchTab(5)">Fault Tolerance</div>
+  <div class="tab" onclick="switchTab(6)">Topological Codes</div>
+  <div class="tab" onclick="switchTab(7)">Hardware &amp; Roadmap</div>
+</div>
+
+<div id="main">
+
+<!-- ===== TAB 0: WHY ERRORS HAPPEN ===== -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Bloch sphere (left) and density matrix (right) — watch decoherence live.</div>
+    <canvas id="c0" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+      <button id="btnAmp" class="active-btn" onclick="setErrorMode('amp')">Amplitude Damping</button>
+      <button id="btnDeph" onclick="setErrorMode('deph')">Dephasing</button>
+      <button id="btnPause0" onclick="toggleBloch(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed0Val">0.10</span>x</span>
+      <input type="range" id="speed0" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button onclick="resetBloch()">Reset</button>
+      <label>γ:</label>
+      <input type="range" id="slGamma" min="0.005" max="0.08" step="0.001" value="0.02" oninput="gamma0=+this.value;document.getElementById('gammaVal').textContent=this.value">
+      <span class="val" id="gammaVal" style="font-size:.75rem;color:var(--accent)">0.02</span>
+    </div>
+    <div class="info-box" id="info0">
+      Mode: <span class="val" id="modeVal">Amplitude Damping</span>
+      &nbsp;|&nbsp; Bloch r = <span class="val" id="blochR">1.000</span>
+      &nbsp;|&nbsp; ρ₁₁ = <span class="val" id="rho11Val">0.500</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about0">
+    <h3>Decoherence</h3>
+    <p>Quantum states are fragile. Interaction with the environment causes two types of errors:</p>
+    <ul>
+      <li><strong>Amplitude damping (T₁):</strong> Energy loss — qubit decays from |1⟩ to |0⟩</li>
+      <li><strong>Dephasing (T₂):</strong> Phase randomization — off-diagonal elements vanish</li>
+    </ul>
+    <h3>Lindblad Master Equation</h3>
+    <div class="eq">$$\frac{d\rho}{dt}=\sum_k\!\left(L_k\rho L_k^\dagger-\tfrac{1}{2}\{L_k^\dagger L_k,\rho\}\right)$$</div>
+    <h3>Kraus Operators — Amplitude Damping</h3>
+    <div class="eq">$$K_0=\begin{pmatrix}1&0\\0&\sqrt{1-\gamma}\end{pmatrix},\quad K_1=\begin{pmatrix}0&\sqrt{\gamma}\\0&0\end{pmatrix}$$</div>
+    <h3>Dephasing (T₂)</h3>
+    <div class="eq">$$\rho_{01}(t)=\rho_{01}(0)\,e^{-t/T_2}$$</div>
+    <p>Off-diagonal elements (coherences) decay exponentially. The diagonal (populations) are preserved.</p>
+    <h3>No-Cloning Theorem</h3>
+    <p>An unknown quantum state cannot be copied: $\nexists\, U$ such that $U|\psi\rangle|0\rangle=|\psi\rangle|\psi\rangle$ for all $|\psi\rangle$. Classical error correction (redundant copies) is forbidden! QEC must instead <em>encode</em> into entangled states and detect errors without measuring the logical qubit.</p>
+    <h3>Bloch Sphere</h3>
+    <div class="eq">$$\rho=\frac{1}{2}(I+\vec{r}\cdot\vec{\sigma}),\quad |\vec{r}|\le 1$$</div>
+    <p>Pure states: $|\vec{r}|=1$ (surface). Mixed states: interior. Decoherence shrinks the Bloch vector toward the center or toward the north pole.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 1: 3-QUBIT CODES ===== -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Click a qubit to inject an error. Measure syndrome to identify it. Correct to restore.</div>
+    <canvas id="c1" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleQecPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed1Val">0.10</span>x</span>
+      <input type="range" id="speed1" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnBFCode" class="active-btn" onclick="setCode('bf')">Bit-Flip Code</button>
+      <button id="btnPFCode" onclick="setCode('pf')">Phase-Flip Code</button>
+      <button onclick="measureSyndrome1()">Measure Syndrome</button>
+      <button onclick="correctError1()">Correct</button>
+      <button onclick="resetTab1()">Reset</button>
+    </div>
+    <div class="info-box" id="info1">
+      Syndrome: <span class="val" id="synVal">S₁=+1, S₂=+1 (no error)</span>
+      &nbsp;|&nbsp; Code: <span class="val" id="codeType">Bit-Flip [[3,1,1]]</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about1">
+    <h3>Bit-Flip Code [[3,1,1]]</h3>
+    <div class="eq">$$|\bar{0}\rangle=|000\rangle,\quad|\bar{1}\rangle=|111\rangle$$</div>
+    <p>Encodes 1 logical qubit in 3 physical qubits. Corrects a single bit-flip (X error).</p>
+    <h3>Syndrome Measurement</h3>
+    <div class="eq">$$S_1=Z_1Z_2,\quad S_2=Z_2Z_3$$</div>
+    <p>Syndrome eigenvalues ±1 identify the error without measuring the logical qubit:</p>
+    <ul>
+      <li>$S_1=-1,\,S_2=+1$ → error on Q₁</li>
+      <li>$S_1=-1,\,S_2=-1$ → error on Q₂</li>
+      <li>$S_1=+1,\,S_2=-1$ → error on Q₃</li>
+      <li>$S_1=+1,\,S_2=+1$ → no error</li>
+    </ul>
+    <h3>Phase-Flip Code</h3>
+    <div class="eq">$$|\bar{0}\rangle=|{+}{+}{+}\rangle,\quad|\bar{1}\rangle=|{-}{-}{-}\rangle$$</div>
+    <p>Apply Hadamard to each qubit, then use bit-flip syndrome in the X basis via $S_1=X_1X_2,\,S_2=X_2X_3$.</p>
+    <h3>No-Cloning Relevance</h3>
+    <p>These codes do not copy the logical state — they <em>entangle</em> it into a joint state. The syndrome only reveals which physical error occurred, never the logical information.</p>
+    <h3>Limitations</h3>
+    <p>The bit-flip code corrects X errors but not Z errors, and vice versa. Shor's 9-qubit code combines both.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 2: STABILIZER FORMALISM ===== -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Pauli product table (top) · Toggle generators to define a code space (bottom)</div>
+    <canvas id="c2" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleQecPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed2Val">0.10</span>x</span>
+      <input type="range" id="speed2" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnG1" class="active-btn" onclick="toggleGen(0)">Z₁Z₂</button>
+      <button id="btnG2" class="active-btn" onclick="toggleGen(1)">Z₂Z₃</button>
+      <button id="btnG3" onclick="toggleGen(2)">X₁X₂X₃</button>
+      <button id="btnLogOps" onclick="toggleLogOps()">Show Logical Ops</button>
+    </div>
+    <div class="info-box" id="info2">
+      Generators active: <span class="val" id="genCount">2</span>
+      &nbsp;|&nbsp; k = n − m = <span class="val" id="kVal">1</span>
+      &nbsp;|&nbsp; Code: <span class="val" id="codeParams">[[3,1,1]]</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about2">
+    <h3>Stabilizer Group</h3>
+    <p>A stabilizer code $\mathcal{C}(S)$ is the simultaneous +1 eigenspace of an Abelian group $S$ of Pauli operators:</p>
+    <div class="eq">$$\mathcal{C}(S)=\{|\psi\rangle : g|\psi\rangle=|\psi\rangle\;\forall g\in S\}$$</div>
+    <h3>[[n, k, d]] Parameters</h3>
+    <ul>
+      <li>$n$ = physical qubits</li>
+      <li>$k = n - m$ = logical qubits (m = independent generators)</li>
+      <li>$d$ = minimum distance (smallest weight undetectable error)</li>
+    </ul>
+    <h3>Pauli Group</h3>
+    <div class="eq">$$\mathcal{P}_1=\{\pm I,\pm iI,\pm X,\pm iX,\pm Y,\pm iY,\pm Z,\pm iZ\}$$</div>
+    <p>Products of Paulis pick up phases ±1, ±i. The table shows products ignoring global phase.</p>
+    <h3>Logical Operators</h3>
+    <p>Logical $\bar{X}$ and $\bar{Z}$ commute with all stabilizers but are not in $S$ itself. They act on the logical qubit without destroying the code space.</p>
+    <div class="eq">$$[\bar{X},g]=[\bar{Z},g]=0\;\forall g\in S,\quad \{\bar{X},\bar{Z}\}=0$$</div>
+    <h3>Error Detection</h3>
+    <p>An error $E$ is <em>detectable</em> iff $\exists g\in S$ such that $\{E,g\}\ne 0$ (anti-commutes). The syndrome is the pattern of anti-commuting generators.</p>
+    <h3>Shor/Steane Connection</h3>
+    <p>The Steane [[7,1,3]] code has 6 generators (3 X-type, 3 Z-type from the [7,4,3] Hamming code), yielding $k=7-6=1$ logical qubit with distance $d=3$.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 3: SHOR & STEANE ===== -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Circuit diagram — toggle between [[9,1,3]] Shor and [[7,1,3]] Steane codes</div>
+    <canvas id="c3" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleQecPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed3Val">0.10</span>x</span>
+      <input type="range" id="speed3" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnShor" class="active-btn" onclick="setCircuit('shor')">Shor [[9,1,3]]</button>
+      <button id="btnSteane" onclick="setCircuit('steane')">Steane [[7,1,3]]</button>
+      <button onclick="injectError3()">Inject Error</button>
+      <button onclick="resetTab3()">Reset</button>
+    </div>
+    <div class="info-box" id="info3">
+      Code: <span class="val" id="circuitCode">Shor [[9,1,3]]</span>
+      &nbsp;|&nbsp; Error on wire: <span class="val" id="errorWire">none</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about3">
+    <h3>Shor Code [[9,1,3]]</h3>
+    <p>Shor's 9-qubit code protects against <em>any</em> single-qubit error (X, Y, Z, or their combination). It works by concatenating the bit-flip code inside the phase-flip code:</p>
+    <div class="eq">$$|\bar{0}\rangle=\frac{1}{2\sqrt{2}}(|000\rangle+|111\rangle)^{\otimes 3}$$</div>
+    <div class="eq">$$|\bar{1}\rangle=\frac{1}{2\sqrt{2}}(|000\rangle-|111\rangle)^{\otimes 3}$$</div>
+    <h3>Steane Code [[7,1,3]]</h3>
+    <p>Encodes 1 logical qubit in 7, with distance $d=3$. Based on the classical [7,4,3] Hamming code via the <strong>CSS construction</strong>:</p>
+    <div class="eq">$$\mathcal{C}_{CSS}(C_1,C_2):\; C_2^\perp\subseteq C_1$$</div>
+    <p>X-type stabilizers from $H^\perp$ parity checks, Z-type from $H$ parity checks.</p>
+    <h3>Transversal Gates</h3>
+    <p>In both codes, logical CNOT is implemented by applying physical CNOT transversally (qubit $i$ to qubit $i$). This is <em>fault-tolerant</em> — errors do not spread.</p>
+    <div class="eq">$$\overline{CNOT}=CNOT_1\otimes CNOT_2\otimes\cdots\otimes CNOT_n$$</div>
+    <h3>Logical Error Rate</h3>
+    <div class="eq">$$p_L\sim\binom{d}{(d+1)/2}p^{(d+1)/2}\approx p^2\text{ for }d=3$$</div>
+    <p>For physical error rate $p \ll p_{th}$, logical errors are exponentially suppressed in the code distance $d$.</p>
+    <h3>CSS Construction</h3>
+    <p>Any pair of classical codes $C_1\supseteq C_2$ with $C_2^\perp\subseteq C_1$ yields a quantum code. This connects quantum error correction to classical coding theory.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 4: SURFACE CODE ===== -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Click data qubit to inject error. Run Decoder to find correction. Show logical ops for X̄/Z̄.</div>
+    <canvas id="c4" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleQecPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed4Val">0.10</span>x</span>
+      <input type="range" id="speed4" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnXErr" class="active-btn" onclick="setErrType('X')">X Error</button>
+      <button id="btnZErr" onclick="setErrType('Z')">Z Error</button>
+      <button onclick="runDecoder4()">Run Decoder</button>
+      <button id="btnLogOps4" onclick="toggleLogOps4()">Logical Ops</button>
+      <button onclick="resetTab4()">Reset</button>
+      <label>Size:</label>
+      <select id="surfSize" onchange="setSurfSize()">
+        <option value="3">3×3</option>
+        <option value="5" selected>5×5</option>
+        <option value="7">7×7</option>
+      </select>
+    </div>
+    <div class="info-box" id="info4">
+      d = <span class="val" id="surfD">5</span>
+      &nbsp;|&nbsp; Data qubits: <span class="val" id="surfN">25</span>
+      &nbsp;|&nbsp; Logical error: <span class="val" id="logErr">none</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about4">
+    <h3>Surface Code</h3>
+    <p>The leading candidate for fault-tolerant quantum computing. A 2D lattice of data qubits with X-type (face) and Z-type (vertex) stabilizers.</p>
+    <h3>Stabilizers</h3>
+    <div class="eq">$$A_v=\prod_{e\ni v}X_e \quad\text{(vertex/Z-syndrome)}$$</div>
+    <div class="eq">$$B_p=\prod_{e\in p}Z_e \quad\text{(plaquette/X-syndrome)}$$</div>
+    <p>X errors create pairs of Z-syndrome defects (plaquette violations). Z errors create pairs of X-syndrome defects (vertex violations).</p>
+    <h3>Threshold</h3>
+    <div class="eq">$$p_{th}\approx 1\%$$</div>
+    <p>Among the highest thresholds of any code. Below this, increasing $d$ suppresses logical errors exponentially.</p>
+    <h3>Logical Error Rate</h3>
+    <div class="eq">$$p_L\sim\left(\frac{p}{p_{th}}\right)^{\lceil(d+1)/2\rceil}$$</div>
+    <p>For $p=0.1\%$, $d=5$: $p_L\approx 10^{-9}$.</p>
+    <h3>Logical Operators</h3>
+    <p>Logical $\bar{X}$: horizontal chain of X operators across the lattice. Logical $\bar{Z}$: vertical chain of Z operators. These are topologically protected — only chains spanning the full lattice cause logical errors.</p>
+    <h3>Decoder</h3>
+    <p>Minimum-weight perfect matching (MWPM) pairs syndrome defects optimally. Near the threshold, machine-learning decoders (neural networks) outperform MWPM.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 5: FAULT TOLERANCE ===== -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Threshold curve (left) · Concatenation tree (right) — animate to see code levels</div>
+    <canvas id="c5" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleQecPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed5Val">0.10</span>x</span>
+      <input type="range" id="speed5" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button onclick="animConcat()">Animate Concat</button>
+      <button id="btnTGate" onclick="toggleTGate()">T-Gate Circuit</button>
+      <label>p_th:</label>
+      <input type="range" id="slPth" min="0.005" max="0.03" step="0.001" value="0.01" oninput="pthVal=+this.value;document.getElementById('pthDisplay').textContent=(pthVal*100).toFixed(1)+'%';drawTab5()">
+      <span class="val" id="pthDisplay" style="font-size:.75rem;color:var(--accent)">1.0%</span>
+    </div>
+    <div class="info-box" id="info5">
+      p_L(d=5, p=p_th/10) = <span class="val" id="plVal">—</span>
+      &nbsp;|&nbsp; Concat overhead: <span class="val" id="concatOverhead">7 phys/logical</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about5">
+    <h3>Threshold Theorem</h3>
+    <p>If physical error rate $p < p_{th}$, then logical error rate can be made arbitrarily small by increasing code size $d$:</p>
+    <div class="eq">$$p_L\le\left(\frac{p}{p_{th}}\right)^{\lceil(d+1)/2\rceil}$$</div>
+    <p>This is the central result that makes large-scale quantum computing theoretically possible.</p>
+    <h3>Fault-Tolerant Circuit Design</h3>
+    <p>Key principles:</p>
+    <ul>
+      <li><strong>No single fault causes two errors:</strong> ancilla preparation and measurement must be fault-tolerant</li>
+      <li><strong>Transversal gates:</strong> apply gate qubit-by-qubit; errors cannot propagate within a codeblock</li>
+      <li><strong>Cat states:</strong> for non-transversal syndrome extraction</li>
+    </ul>
+    <h3>Magic State Distillation</h3>
+    <p>Universal FT quantum computing requires the T gate ($\pi/8$ rotation). T is not transversal in most codes. Instead:</p>
+    <div class="eq">$$|T\rangle=T|{+}\rangle=\frac{|0\rangle+e^{i\pi/4}|1\rangle}{\sqrt{2}}$$</div>
+    <p>Distill many noisy $|T\rangle$ states into fewer high-fidelity ones using Clifford operations and post-selection. Overhead: ~1000 physical qubits per logical T gate.</p>
+    <h3>Concatenation</h3>
+    <p>Concatenating the Steane code $k$ times uses $7^k$ physical qubits per logical qubit and achieves:</p>
+    <div class="eq">$$p_L\le p_{th}\left(\frac{p}{p_{th}}\right)^{2^k}$$</div>
+    <h3>Resource Estimates</h3>
+    <p>Factoring a 2048-bit number (breaking RSA) requires ~$4\times 10^6$ physical qubits at $p=10^{-3}$, running for ~8 hours of circuit time.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 6: TOPOLOGICAL CODES ===== -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Toric code on identified rectangle · Drag anyons to braid · Toggle Fibonacci view</div>
+    <canvas id="c6" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleQecPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed6Val">0.10</span>x</span>
+      <input type="range" id="speed6" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnToric" class="active-btn" onclick="setTopoView('toric')">Toric Code</button>
+      <button id="btnFib" onclick="setTopoView('fib')">Fibonacci Anyons</button>
+      <button onclick="addAnyon('e')">Add e-Anyon</button>
+      <button onclick="addAnyon('m')">Add m-Anyon</button>
+      <button onclick="resetTab6()">Reset</button>
+    </div>
+    <div class="info-box" id="info6">
+      e-anyons: <span class="val" id="eCount">0</span>
+      &nbsp;|&nbsp; m-anyons: <span class="val" id="mCount">0</span>
+      &nbsp;|&nbsp; Braid phase crossings: <span class="val" id="braidPhase">0</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about6">
+    <h3>Toric Code</h3>
+    <p>Kitaev's toric code lives on a torus (periodic boundary conditions). It has two types of anyonic excitations from stabilizer violations:</p>
+    <ul>
+      <li><strong>e-anyons:</strong> vertex ($A_v$) violations — from Z errors</li>
+      <li><strong>m-anyons:</strong> plaquette ($B_p$) violations — from X errors</li>
+    </ul>
+    <h3>Anyon Statistics</h3>
+    <div class="eq">$$e\times e=1,\quad m\times m=1,\quad e\times m=\epsilon$$</div>
+    <p>e and m are Abelian anyons. Braiding an e around an m acquires a phase of $-1$ (mutual statistics).</p>
+    <div class="eq">$$\theta_{em}=e^{i\pi}=-1$$</div>
+    <h3>Topological Protection</h3>
+    <p>Logical errors require creating an anyon pair, moving one across a non-contractible cycle of the torus, and annihilating. This is exponentially unlikely at low temperature.</p>
+    <h3>Fibonacci Anyons</h3>
+    <p>Non-Abelian anyons with fusion rule:</p>
+    <div class="eq">$$\tau\times\tau=1+\tau$$</div>
+    <p>Quantum dimension $d_\tau=\varphi=(1+\sqrt{5})/2$ (golden ratio). A system of $n$ $\tau$-anyons has Hilbert space growing as $\varphi^n$.</p>
+    <h3>Braid Matrix (Fibonacci)</h3>
+    <div class="eq">$$R=\begin{pmatrix}e^{-4\pi i/5}&0\\0&e^{3\pi i/5}\end{pmatrix}$$</div>
+    <div class="eq">$$F=\begin{pmatrix}\varphi^{-1}&\varphi^{-1/2}\\\varphi^{-1/2}&-\varphi^{-1}\end{pmatrix}$$</div>
+    <p>Fibonacci braids are universal for quantum computation — any unitary can be approximated to arbitrary precision.</p>
+    <h3>Physical Realizations</h3>
+    <p>Fractional quantum Hall ν=5/2 state may host Ising anyons. Microsoft pursues Majorana-based topological qubits (non-Abelian anyons) for inherently protected quantum computing.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 7: HARDWARE & ROADMAP ===== -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Qubit overhead (Q1) · Error rate timeline (Q2) · Fidelity table (Q3) · Roadmap (Q4)</div>
+    <canvas id="c7" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleQecPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed7Val">0.10</span>x</span>
+      <input type="range" id="speed7" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnSC" class="active-btn" onclick="togglePlatform('sc')">Superconducting</button>
+      <button id="btnTI" class="active-btn" onclick="togglePlatform('ti')">Trapped Ion</button>
+      <button id="btnPh" onclick="togglePlatform('ph')">Photonic</button>
+      <button onclick="drawTab7()">Refresh</button>
+    </div>
+    <div class="info-box" id="info7">
+      Best 2Q gate fidelity: <span class="val" id="bestFid">Google SC 99.9%</span>
+      &nbsp;|&nbsp; Era: <span class="val" id="eraVal">NISQ → Early FT</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about7">
+    <h3>Google Willow (2024)</h3>
+    <p>105 superconducting qubits. First demonstration of below-threshold error rates: logical error rate decreases as code size $d$ increases from 3→5→7. Sub-threshold at $d=5$ with surface code.</p>
+    <h3>IBM Roadmap</h3>
+    <p>IBM targets 1000+ physical qubits per logical qubit with error rates reaching $10^{-3}$ by 2025–2026. Heron processor: 133 qubits, 2-qubit gate fidelity ~99.5%.</p>
+    <h3>Overhead Reality</h3>
+    <p>At current error rates (~$10^{-3}$), fault-tolerant algorithms require:</p>
+    <ul>
+      <li>~1,000 physical qubits per logical qubit</li>
+      <li>~$10^{10}$ operations for RSA-2048</li>
+      <li>~$4\times10^6$ total physical qubits</li>
+    </ul>
+    <h3>NISQ vs FT Era</h3>
+    <p><strong>NISQ (now):</strong> 50–1000 noisy qubits, no error correction. Variational algorithms (VQE, QAOA) attempt useful computation despite noise.</p>
+    <p><strong>Early FT (2026–2030):</strong> First logical qubits demonstrably better than physical. Small error-corrected algorithms possible.</p>
+    <p><strong>Full FT (2030+):</strong> Millions of physical qubits. RSA-relevant cryptanalysis, drug discovery, climate modeling.</p>
+    <h3>Platforms Compared</h3>
+    <ul>
+      <li><strong>Superconducting:</strong> Fast gates (~50 ns), but short $T_1\sim100\,\mu$s, cryogenic</li>
+      <li><strong>Trapped ion:</strong> Long coherence ($T_2\sim$minutes), slower gates (~1 ms), optical connections</li>
+      <li><strong>Photonic:</strong> Room temperature, but low interaction rates, measurement-based</li>
+      <li><strong>Neutral atom:</strong> 2D arrays, fast reconfiguration, growing rapidly</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+const ACCENT='#34d399', TEAL='#a78bfa', GOLD='#fbbf24', RED='#f87171', BLUE='#44aaff';
+let qecCurTab=0;
+let blochRafId=null, blochAnimating=true;
+let concatTimeout=null;
+let rho_a=0.5, rho_b=0.5, rho_c=0.0;
+let gamma0=0.02, errorMode='amp';
+let showTGate=false, pthVal=0.01;
+let topoView='toric';
+let surfD=5, surfErrType='X', showLogOps4=false;
+let circuitMode='shor', errorWire3=-1;
+let codeMode='bf';
+let genActive=[true,true,false], showLogOps2=false;
+let concatLevel=0;
+let platformVisible={sc:true,ti:true,ph:false};
+let braidPhaseTotal=0;
+let anyons=[];
+let dragAnyon=null, dragOffX=0, dragOffY=0;
+let qecAnimTime=0, qecRafId=null;
+let qecPaused=false;
+let tab7EntryTime=0;
+// Surface code state
+let surfErrors=[], surfSyndromes=[], surfLogErr=false;
+// Tab1 qubit errors: 0=none,1=bit-flip,2=phase-flip
+let qubitErrors=[0,0,0], synMeasured=false, syndromeS1=1, syndromeS2=1;
+
+// ============================================================
+// LIFECYCLE
+// ============================================================
+function stopAll(){
+  if(blochRafId){cancelAnimationFrame(blochRafId);blochRafId=null;}
+  if(qecRafId){cancelAnimationFrame(qecRafId);qecRafId=null;}
+  if(concatTimeout){clearTimeout(concatTimeout);concatTimeout=null;}
+  qecPaused=false;
+  document.querySelectorAll('.pane button').forEach(b=>{
+    if(b.textContent==='⏸'||b.textContent==='\u23f8'){b.textContent='\u25b6';b.classList.remove('active-btn');}
+  });
+}
+function startTab(i){
+  qecCurTab=i;
+  if(i===0){resizeC0();blochAnimating=true;startBlochLoop();}
+  else{
+    const resizeFns=[null,resizeC1,resizeC2,resizeC3,resizeC4,resizeC5,resizeC6,resizeC7];
+    if(resizeFns[i])resizeFns[i]();
+    if(i===7)tab7EntryTime=qecAnimTime;
+    startQecAnimLoop();
+  }
+}
+function qecAnimLoop(){
+  if(!qecPaused){
+    qecAnimTime+=0.016*(window.animSpeed||0.1);
+    const drawFns=[null,drawTab1,drawTab2,drawTab3,drawTab4,drawTab5,drawTab6,drawTab7];
+    if(drawFns[qecCurTab])drawFns[qecCurTab]();
+  }
+  qecRafId=requestAnimationFrame(qecAnimLoop);
+}
+function startQecAnimLoop(){
+  if(!qecRafId)qecRafId=requestAnimationFrame(qecAnimLoop);
+}
+function toggleQecPause(btn){
+  qecPaused=!qecPaused;
+  btn.textContent=qecPaused?'▶':'⏸';
+}
+function syncSpeedControl63(tab){
+  var s=document.getElementById('speed'+tab);
+  var v=document.getElementById('speed'+tab+'Val');
+  if(s&&v){s.value=window.animSpeed||0.1;v.textContent=(window.animSpeed||0.1).toFixed(2);}
+}
+
+function _cancelAllAnims63(){
+  if(blochRafId){cancelAnimationFrame(blochRafId);blochRafId=null;}
+  if(qecRafId){cancelAnimationFrame(qecRafId);qecRafId=null;}
+}
+
+function switchTab(i){
+  _cancelAllAnims63();
+  stopAll();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',i===j));
+  syncSpeedControl63(i);
+  startTab(i);
+}
+
+// ============================================================
+// TAB 0 — BLOCH SPHERE / DENSITY MATRIX
+// ============================================================
+function resizeC0(){
+  const c=document.getElementById('c0');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  const ctx=c.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function resetBloch(){rho_a=0.5;rho_b=0.5;rho_c=0.0;}
+function setErrorMode(m){
+  errorMode=m;
+  document.getElementById('btnAmp').classList.toggle('active-btn',m==='amp');
+  document.getElementById('btnDeph').classList.toggle('active-btn',m==='deph');
+  document.getElementById('modeVal').textContent=m==='amp'?'Amplitude Damping':'Dephasing';
+}
+function toggleBloch(btn){
+  blochAnimating=!blochAnimating;
+  btn.textContent=blochAnimating?'⏸':'▶';
+  if(blochAnimating)startBlochLoop();
+}
+function blochStep(){
+  if(errorMode==='amp'){
+    const d=1-gamma0*0.16;
+    rho_a*=d; rho_b*=Math.sqrt(Math.max(0,d)); rho_c*=Math.sqrt(Math.max(0,d));
+    rho_a=Math.min(0.5,Math.max(0,rho_a));
+  } else {
+    const d=Math.exp(-gamma0*0.16);
+    rho_b*=d; rho_c*=d;
+  }
+}
+function drawBloch(){
+  const c=document.getElementById('c0');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+
+  const splitX=W*0.52;
+  // --- BLOCH SPHERE (left) ---
+  const cx=splitX*0.5, cy=H*0.5;
+  const R=Math.min(splitX*0.38, H*0.38);
+  // sphere outline
+  ctx.strokeStyle='#334'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+  // equator ellipse
+  ctx.strokeStyle='#2a3a2a'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.ellipse(cx,cy,R,R*0.35,0,0,Math.PI*2); ctx.stroke();
+  // axes
+  ctx.strokeStyle='#334'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,cy-R-12); ctx.lineTo(cx,cy+R+12); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx-R-12,cy); ctx.lineTo(cx+R+12,cy); ctx.stroke();
+  // axis labels
+  ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillStyle='#8888aa'; ctx.fillText('|0⟩',cx,cy-R-16);
+  ctx.fillText('|1⟩',cx,cy+R+22);
+  ctx.textAlign='left'; ctx.fillText('|+⟩',cx+R+6,cy+4);
+
+  // Bloch vector
+  const bx=2*rho_b, bz=1-2*rho_a;
+  const vx=cx+bx*R, vy=cy-bz*R;
+  ctx.strokeStyle=ACCENT; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(vx,vy); ctx.stroke();
+  ctx.fillStyle=ACCENT;
+  ctx.beginPath(); ctx.arc(vx,vy,5,0,Math.PI*2); ctx.fill();
+  // label
+  const r=Math.sqrt(bx*bx+bz*bz);
+  ctx.font='12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle=ACCENT;
+  ctx.fillText('r='+r.toFixed(3),cx,cy+R+40);
+
+  // --- DENSITY MATRIX (right) ---
+  const rx=splitX+10, rw=W-splitX-20;
+  const rho00=1-rho_a, rho11=rho_a;
+  const rho01r=rho_b, rho01i=rho_c;
+  const rho10r=rho_b, rho10i=-rho_c;
+  const gridX=rx+rw*0.1, gridW=rw*0.8;
+  const gridY=H*0.12, cellW=gridW/2, cellH=(H*0.55)/2;
+  // title
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+  ctx.fillText('Density Matrix ρ', rx+rw/2, H*0.08);
+  // grid lines
+  ctx.strokeStyle='#252548'; ctx.lineWidth=1;
+  for(let i=0;i<=2;i++){
+    ctx.beginPath();ctx.moveTo(gridX,gridY+i*cellH);ctx.lineTo(gridX+gridW,gridY+i*cellH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(gridX+i*cellW,gridY);ctx.lineTo(gridX+i*cellW,gridY+2*cellH);ctx.stroke();
+  }
+  // row/col labels
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+  ctx.fillText('⟨0|',gridX-14,gridY+cellH*0.55);
+  ctx.fillText('⟨1|',gridX-14,gridY+cellH*1.55);
+  ctx.fillText('|0⟩',gridX+cellW*0.5,gridY-5);
+  ctx.fillText('|1⟩',gridX+cellW*1.5,gridY-5);
+  // values
+  function drawCell(col,row,val,color){
+    const tx=gridX+col*cellW+cellW/2, ty=gridY+row*cellH+cellH/2;
+    ctx.font='bold 12px monospace'; ctx.fillStyle=color; ctx.textAlign='center';
+    ctx.fillText(val,tx,ty);
+  }
+  drawCell(0,0,rho00.toFixed(3),ACCENT);
+  const s01=rho01r.toFixed(3)+(rho01i>=0?'+':'')+rho01i.toFixed(3)+'i';
+  drawCell(1,0,s01,'#e8e8f8');
+  const s10=rho10r.toFixed(3)+(rho10i>=0?'+':'')+rho10i.toFixed(3)+'i';
+  drawCell(0,1,s10,'#e8e8f8');
+  drawCell(1,1,rho11.toFixed(3),ACCENT);
+  // purity
+  const purity=Math.pow(rho00,2)+Math.pow(rho11,2)+2*(Math.pow(rho01r,2)+Math.pow(rho01i,2));
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+  ctx.fillText('Tr(ρ²) = '+purity.toFixed(4), rx+rw/2, gridY+2*cellH+30);
+  ctx.fillText('(1 = pure, 0.5 = maximally mixed)', rx+rw/2, gridY+2*cellH+48);
+
+  // update info
+  document.getElementById('blochR').textContent=r.toFixed(4);
+  document.getElementById('rho11Val').textContent=rho_a.toFixed(4);
+}
+function startBlochLoop(){
+  function loop(){
+    blochStep();
+    drawBloch();
+    if(blochAnimating)blochRafId=requestAnimationFrame(loop);
+    else blochRafId=null;
+  }
+  if(!blochRafId)blochRafId=requestAnimationFrame(loop);
+}
+
+// ============================================================
+// TAB 1 — 3-QUBIT CODES
+// ============================================================
+function resizeC1(){
+  const c=document.getElementById('c1');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=col.clientHeight-90;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  const ctx=c.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function setCode(m){
+  codeMode=m;
+  document.getElementById('btnBFCode').classList.toggle('active-btn',m==='bf');
+  document.getElementById('btnPFCode').classList.toggle('active-btn',m==='pf');
+  document.getElementById('codeType').textContent=m==='bf'?'Bit-Flip [[3,1,1]]':'Phase-Flip [[3,1,1]]';
+  synMeasured=false;
+  drawTab1();
+}
+function resetTab1(){qubitErrors=[0,0,0];synMeasured=false;drawTab1();}
+function drawTab1(){
+  const c=document.getElementById('c1');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+
+  const qx=[W*0.2,W*0.5,W*0.8], qy=H*0.32, qr=Math.min(28,H*0.08);
+  // connecting line
+  ctx.strokeStyle='#334'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(qx[0],qy); ctx.lineTo(qx[2],qy); ctx.stroke();
+
+  // draw qubits with orbital rings
+  for(let i=0;i<3;i++){
+    const err=qubitErrors[i];
+    // orbital ring animation
+    const orbitR=qr+8;
+    const orbitAngle=qecAnimTime*0.8+i*2.09;
+    ctx.save();
+    ctx.strokeStyle=(err>0?(err===1?RED:GOLD):ACCENT)+'55';
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.ellipse(qx[i],qy,orbitR,orbitR*0.35,orbitAngle,0,Math.PI*2);
+    ctx.stroke();
+    // orbiting dot
+    const dotAngle=qecAnimTime*2.5+i*2.09;
+    const odx=Math.cos(dotAngle)*orbitR;
+    const ody=Math.sin(dotAngle)*orbitR*0.35;
+    const rdx=odx*Math.cos(orbitAngle)-ody*Math.sin(orbitAngle);
+    const rdy=odx*Math.sin(orbitAngle)+ody*Math.cos(orbitAngle);
+    ctx.beginPath(); ctx.arc(qx[i]+rdx,qy+rdy,2.5,0,Math.PI*2);
+    ctx.fillStyle=err>0?(err===1?RED:GOLD):ACCENT; ctx.fill();
+    ctx.restore();
+    // qubit circle
+    ctx.beginPath(); ctx.arc(qx[i],qy,qr,0,Math.PI*2);
+    ctx.fillStyle=err===1?RED:(err===2?GOLD:'#1a2a1a');
+    ctx.fill();
+    ctx.strokeStyle=err>0?(err===1?RED:GOLD):ACCENT;
+    ctx.lineWidth=2; ctx.stroke();
+    ctx.font='bold 13px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle='#fff';
+    ctx.fillText('Q'+(i+1),qx[i],qy+5);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa';
+    const lbl=err===0?'|0⟩':(err===1?'X error':'Z error');
+    ctx.fillText(lbl,qx[i],qy+qr+16);
+  }
+
+  // draw CNOT gates below
+  const gateY=H*0.6, gateH=30, gateW=32;
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+  ctx.fillText(codeMode==='bf'?'Encoding CNOT gates':'Hadamard + CNOT gates',W/2,gateY-20);
+  const gateX=codeMode==='bf'?[W*0.3,W*0.6]:[W*0.2,W*0.5,W*0.8];
+  for(let i=0;i<gateX.length;i++){
+    const gx=gateX[i];
+    ctx.fillStyle='#1a2a1a'; ctx.strokeStyle=ACCENT; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.roundRect(gx-gateW/2,gateY-gateH/2,gateW,gateH,4); ctx.fill(); ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText(codeMode==='bf'?'CNOT':'H',gx,gateY+4);
+  }
+
+  // syndrome ancilla circles if measured
+  if(synMeasured){
+    const aY=H*0.82, aR=22;
+    const ax=[W*0.35, W*0.65];
+    const sVals=[syndromeS1,syndromeS2];
+    const sLabels=['Z₁Z₂','Z₂Z₃'];
+    // pulsing connection lines from qubits to syndrome
+    const pulseAlpha=0.25+0.2*Math.sin(qecAnimTime*3);
+    for(let i=0;i<2;i++){
+      const sv=sVals[i];
+      const lineColor=sv===-1?RED:ACCENT;
+      ctx.strokeStyle=lineColor+Math.round(pulseAlpha*255).toString(16).padStart(2,'0');
+      ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(qx[i],qy+qr); ctx.lineTo(ax[i],aY-aR); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(qx[i+1],qy+qr); ctx.lineTo(ax[i],aY-aR); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    for(let i=0;i<2;i++){
+      const sv=sVals[i];
+      const pulse=sv===-1?(1+0.15*Math.sin(qecAnimTime*5)):1;
+      ctx.beginPath(); ctx.arc(ax[i],aY,aR*pulse,0,Math.PI*2);
+      ctx.fillStyle=sv===-1?'#2a0000':'#0a1a0a'; ctx.fill();
+      ctx.strokeStyle=sv===-1?RED:ACCENT; ctx.lineWidth=2; ctx.stroke();
+      ctx.font='bold 12px Segoe UI'; ctx.fillStyle=sv===-1?RED:ACCENT; ctx.textAlign='center';
+      ctx.fillText(sv===-1?'−1':'+1',ax[i],aY+4);
+      ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa';
+      ctx.fillText(sLabels[i],ax[i],aY+aR+14);
+    }
+  }
+
+  // update info
+  let synStr='S₁=+1, S₂=+1 (no error)';
+  if(synMeasured){
+    synStr='S₁='+(syndromeS1===1?'+1':'−1')+', S₂='+(syndromeS2===1?'+1':'−1');
+  }
+  document.getElementById('synVal').textContent=synStr;
+}
+function measureSyndrome1(){
+  // compute syndrome based on errors
+  // S1=Z1Z2: -1 if Q1 or Q2 has bit-flip (not both), +1 otherwise
+  const e=[qubitErrors[0]===1?1:0, qubitErrors[1]===1?1:0, qubitErrors[2]===1?1:0];
+  syndromeS1 = (e[0]!==e[1]) ? -1 : 1;
+  syndromeS2 = (e[1]!==e[2]) ? -1 : 1;
+  synMeasured=true;
+  drawTab1();
+}
+function correctError1(){
+  if(!synMeasured)return;
+  // find qubit from syndrome
+  if(syndromeS1===-1&&syndromeS2===1)qubitErrors[0]=0;
+  else if(syndromeS1===-1&&syndromeS2===-1)qubitErrors[1]=0;
+  else if(syndromeS1===1&&syndromeS2===-1)qubitErrors[2]=0;
+  // clear all bit-flip errors
+  qubitErrors=qubitErrors.map(e=>e===1?0:e);
+  synMeasured=false;
+  drawTab1();
+}
+
+// canvas click for tab1
+document.getElementById('c1').addEventListener('click',function(e){
+  if(qecCurTab!==1)return;
+  const c=this;
+  const rect=c.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  const qx=[W*0.2,W*0.5,W*0.8], qy=H*0.32;
+  for(let i=0;i<3;i++){
+    const dx=mx-qx[i], dy=my-qy;
+    if(Math.sqrt(dx*dx+dy*dy)<30){
+      qubitErrors[i]=(qubitErrors[i]+1)%3;
+      synMeasured=false;
+      drawTab1();
+      return;
+    }
+  }
+});
+
+// ============================================================
+// TAB 2 — STABILIZER FORMALISM
+// ============================================================
+function resizeC2(){
+  const c=document.getElementById('c2');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=col.clientHeight-90;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+function toggleGen(i){
+  genActive[i]=!genActive[i];
+  const btns=['btnG1','btnG2','btnG3'];
+  document.getElementById(btns[i]).classList.toggle('active-btn',genActive[i]);
+  const m=genActive.filter(Boolean).length;
+  document.getElementById('genCount').textContent=m;
+  document.getElementById('kVal').textContent=3-m;
+  const d=m===0?'—':m===1?'1':m===2?'1':'>0';
+  document.getElementById('codeParams').textContent='[[3,'+(3-m)+','+d+']]';
+  drawTab2();
+}
+function toggleLogOps(){
+  showLogOps2=!showLogOps2;
+  document.getElementById('btnLogOps').classList.toggle('active-btn',showLogOps2);
+  drawTab2();
+}
+function drawTab2(){
+  const c=document.getElementById('c2');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+
+  // --- Pauli multiplication table (top half) ---
+  const paulis=['I','X','Y','Z'];
+  const pauliColors={'I':'#e8e8f8','X':ACCENT,'Y':GOLD,'Z':TEAL};
+  // Products ignoring global phase: rows × cols
+  // I=0,X=1,Y=2,Z=3
+  const prodTable=[
+    ['I','X','Y','Z'],
+    ['X','I','Z','Y'],
+    ['Y','Z','I','X'],
+    ['Z','Y','X','I']
+  ];
+  const tSz=Math.min(H*0.4/5, W*0.45/5);
+  const tOX=W*0.05, tOY=H*0.04;
+  // header row
+  for(let j=0;j<4;j++){
+    ctx.font='bold 12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle=pauliColors[paulis[j]];
+    ctx.fillText(paulis[j], tOX+(j+1.5)*tSz, tOY+tSz*0.65);
+  }
+  for(let i=0;i<4;i++){
+    ctx.font='bold 12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle=pauliColors[paulis[i]];
+    ctx.fillText(paulis[i], tOX+tSz*0.5, tOY+(i+1.5)*tSz+3);
+    for(let j=0;j<4;j++){
+      const prod=prodTable[i][j];
+      const cx2=tOX+(j+1)*tSz, cy2=tOY+(i+1)*tSz;
+      // scanning highlight across cells
+      const scanIdx=Math.floor((qecAnimTime*1.2)%16);
+      const cellIdx=i*4+j;
+      const isScanned=cellIdx===scanIdx;
+      ctx.fillStyle=isScanned?'#2a2a4a':'#1a1a2a';
+      ctx.beginPath(); ctx.roundRect(cx2+2,cy2+2,tSz-4,tSz-4,3); ctx.fill();
+      ctx.strokeStyle=isScanned?ACCENT+'88':'#252548'; ctx.lineWidth=1; ctx.stroke();
+      ctx.font='bold 12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle=pauliColors[prod];
+      ctx.fillText(prod, cx2+tSz/2, cy2+tSz/2+4);
+    }
+  }
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='left';
+  ctx.fillText('Pauli products (ignoring global phase)', tOX, tOY+5.2*tSz);
+
+  // --- Code space diagram (bottom half) ---
+  const btY=H*0.52;
+  const genLabels=['Z₁Z₂','Z₂Z₃','X₁X₂X₃'];
+  const genColors=[ACCENT,TEAL,GOLD];
+  const cCX=W*0.5, cCY=btY+(H-btY)*0.45;
+  const baseR=Math.min(W*0.18, (H-btY)*0.35);
+
+  ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+  ctx.fillText('Code Space = Intersection of +1 Eigenspaces', cCX, btY+12);
+
+  const offsets=[[-1,0],[1,0],[0,-0.9]];
+  const circles=[];
+  for(let i=0;i<3;i++){
+    if(!genActive[i])continue;
+    const ox=offsets[i][0]*baseR*0.55, oy=offsets[i][1]*baseR*0.55;
+    circles.push({x:cCX+ox,y:cCY+oy,r:baseR,color:genColors[i],label:genLabels[i]});
+  }
+  // draw circles with slow rotation via dashed stroke
+  for(let ci=0;ci<circles.length;ci++){
+    const circ=circles[ci];
+    ctx.save();
+    ctx.translate(circ.x,circ.y);
+    ctx.rotate(qecAnimTime*0.3+ci*1.2);
+    ctx.beginPath(); ctx.arc(0,0,circ.r,0,Math.PI*2);
+    ctx.fillStyle=circ.color+'22'; ctx.fill();
+    ctx.setLineDash([12,6]);
+    ctx.strokeStyle=circ.color; ctx.lineWidth=2; ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    ctx.font='12px Segoe UI'; ctx.fillStyle=circ.color; ctx.textAlign='center';
+    ctx.fillText(circ.label, circ.x, circ.y+circ.r+14);
+  }
+  if(circles.length===0){
+    // no generators: full Hilbert space
+    ctx.beginPath(); ctx.arc(cCX,cCY,baseR,0,Math.PI*2);
+    ctx.fillStyle=ACCENT+'33'; ctx.fill();
+    ctx.strokeStyle=ACCENT; ctx.lineWidth=2; ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Full Hilbert space (k=3)', cCX, cCY+baseR+14);
+  }
+  if(circles.length>=2){
+    // highlight center as code space with glow pulse
+    const glowAlpha=0.3+0.25*Math.sin(qecAnimTime*2);
+    const glowR=baseR*0.28*(1+0.05*Math.sin(qecAnimTime*2));
+    ctx.beginPath(); ctx.arc(cCX,cCY,glowR,0,Math.PI*2);
+    ctx.fillStyle=ACCENT+Math.round(glowAlpha*255).toString(16).padStart(2,'0'); ctx.fill();
+    ctx.strokeStyle=ACCENT; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Code', cCX, cCY+4);
+    ctx.fillText('Space', cCX, cCY+15);
+  }
+
+  // logical operators
+  if(showLogOps2){
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
+    ctx.fillText('X̄ = X₁X₂X₃', cCX-baseR*0.8, cCY-baseR*0.6);
+    ctx.fillText('Z̄ = Z₁Z₂Z₃', cCX+baseR*0.8, cCY-baseR*0.6);
+    // draw arrows
+    ctx.strokeStyle=GOLD; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(cCX,cCY); ctx.lineTo(cCX-baseR*0.55,cCY-baseR*0.45); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cCX,cCY); ctx.lineTo(cCX+baseR*0.55,cCY-baseR*0.45); ctx.stroke();
+  }
+}
+
+// ============================================================
+// TAB 3 — SHOR & STEANE CIRCUIT
+// ============================================================
+function resizeC3(){
+  const c=document.getElementById('c3');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=col.clientHeight-90;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+function setCircuit(m){
+  circuitMode=m;
+  errorWire3=-1;
+  document.getElementById('btnShor').classList.toggle('active-btn',m==='shor');
+  document.getElementById('btnSteane').classList.toggle('active-btn',m==='steane');
+  document.getElementById('circuitCode').textContent=m==='shor'?'Shor [[9,1,3]]':'Steane [[7,1,3]]';
+  document.getElementById('errorWire').textContent='none';
+  drawTab3();
+}
+function injectError3(){
+  const nWires=circuitMode==='shor'?9:7;
+  errorWire3=Math.floor(Math.random()*nWires);
+  document.getElementById('errorWire').textContent='Q'+(errorWire3+1);
+  drawTab3();
+}
+function resetTab3(){errorWire3=-1;document.getElementById('errorWire').textContent='none';drawTab3();}
+function drawTab3(){
+  const c=document.getElementById('c3');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+
+  const isShor=circuitMode==='shor';
+  const nWires=isShor?9:7;
+  const margin=60, wireSpacing=Math.min((H-60)/nWires, 36);
+  const topY=(H-wireSpacing*(nWires-1))/2;
+
+  // title
+  ctx.font='bold 13px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='left';
+  ctx.fillText(isShor?'Shor [[9,1,3]] Encoding Circuit':'Steane [[7,1,3]] Encoding Circuit', margin, 22);
+
+  // Wire labels & lines
+  for(let i=0;i<nWires;i++){
+    const wy=topY+i*wireSpacing;
+    const isErr=(i===errorWire3);
+    ctx.strokeStyle=isErr?RED:'#334'; ctx.lineWidth=isErr?2:1;
+    ctx.beginPath(); ctx.moveTo(margin,wy); ctx.lineTo(W-margin,wy); ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle=isErr?RED:'#8888aa'; ctx.textAlign='right';
+    ctx.fillText('Q'+(i+1),margin-6,wy+4);
+  }
+
+  // Gate positions
+  const gW=26, gH=22;
+  function drawGate(x,wire,label,color){
+    const wy=topY+wire*wireSpacing;
+    // subtle glow pulse behind gate
+    const glowA=0.15+0.1*Math.sin(qecAnimTime*3+x*0.02);
+    ctx.beginPath(); ctx.arc(x,wy,gW*0.7,0,Math.PI*2);
+    ctx.fillStyle=(color||ACCENT)+Math.round(glowA*255).toString(16).padStart(2,'0'); ctx.fill();
+    ctx.fillStyle='#1a2a1a'; ctx.strokeStyle=color||ACCENT; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.roundRect(x-gW/2,wy-gH/2,gW,gH,3); ctx.fill(); ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=color||ACCENT; ctx.textAlign='center';
+    ctx.fillText(label,x,wy+4);
+  }
+  function drawCNOT(x,ctrl,tgt){
+    const cy=topY+ctrl*wireSpacing, ty=topY+tgt*wireSpacing;
+    ctx.strokeStyle=ACCENT; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(x,cy); ctx.lineTo(x,ty); ctx.stroke();
+    // control dot
+    ctx.fillStyle=ACCENT; ctx.beginPath(); ctx.arc(x,cy,5,0,Math.PI*2); ctx.fill();
+    // target circle with plus
+    ctx.strokeStyle=ACCENT; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(x,ty,9,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-9,ty); ctx.lineTo(x+9,ty); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,ty-9); ctx.lineTo(x,ty+9); ctx.stroke();
+  }
+
+  if(isShor){
+    // Shor: H on 0,3,6 then CNOTs
+    const hX=margin+55;
+    [0,3,6].forEach(w=>drawGate(hX,w,'H',ACCENT));
+    const cnX=hX+55;
+    // Block 1: 0→1, 0→2
+    drawCNOT(cnX,0,1); drawCNOT(cnX+28,0,2);
+    // Block 2: 3→4, 3→5
+    drawCNOT(cnX,3,4); drawCNOT(cnX+28,3,5);
+    // Block 3: 6→7, 6→8
+    drawCNOT(cnX,6,7); drawCNOT(cnX+28,6,8);
+    // transversal label
+    ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Transversal CNOT', cnX+14, H-12);
+  } else {
+    // Steane: H on 0,1,2 then CNOTs
+    const hX=margin+55;
+    [0,1,2].forEach(w=>drawGate(hX,w,'H',TEAL));
+    const cnX=hX+50;
+    // Steane CNOT connections (simplified)
+    const cnotPairs=[[0,3],[0,4],[1,4],[1,5],[2,5],[2,6],[0,6]];
+    cnotPairs.forEach((pair,idx)=>drawCNOT(cnX+idx*22,pair[0],pair[1]));
+    ctx.font='12px Segoe UI'; ctx.fillStyle=TEAL; ctx.textAlign='center';
+    ctx.fillText('[[7,1,3]] CSS code — transversal ops', W/2, H-12);
+  }
+
+  // traveling pulse dots along wires
+  for(let i=0;i<nWires;i++){
+    const wy=topY+i*wireSpacing;
+    const speed=0.12; // fraction of wire per second
+    const phase=(qecAnimTime*speed+i*0.07)%1;
+    const dotX=margin+phase*(W-margin*2);
+    ctx.beginPath(); ctx.arc(dotX,wy,2.5,0,Math.PI*2);
+    const dotAlpha=0.5*Math.sin(phase*Math.PI);
+    ctx.fillStyle=ACCENT+Math.round(Math.max(0,dotAlpha)*255).toString(16).padStart(2,'0');
+    ctx.fill();
+  }
+
+  // error X marker
+  if(errorWire3>=0){
+    const ex=W-margin-30;
+    const wy=topY+errorWire3*wireSpacing;
+    ctx.font='bold 16px Segoe UI'; ctx.fillStyle=RED; ctx.textAlign='center';
+    ctx.fillText('✕',ex,wy+6);
+    ctx.font='12px Segoe UI'; ctx.fillStyle=RED;
+    ctx.fillText('error',ex,wy+20);
+  }
+}
+
+// ============================================================
+// TAB 4 — SURFACE CODE
+// ============================================================
+function resizeC4(){
+  const c=document.getElementById('c4');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=col.clientHeight-90;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  // reset error state on resize
+  surfErrors=Array(surfD*surfD).fill(null);
+  surfSyndromes=[];
+  surfLogErr=false;
+}
+function setSurfSize(){
+  surfD=+document.getElementById('surfSize').value;
+  surfErrors=Array(surfD*surfD).fill(null);
+  surfSyndromes=[];
+  surfLogErr=false;
+  document.getElementById('surfD').textContent=surfD;
+  document.getElementById('surfN').textContent=surfD*surfD;
+  document.getElementById('logErr').textContent='none';
+  resizeC4(); drawTab4();
+}
+function setErrType(t){
+  surfErrType=t;
+  document.getElementById('btnXErr').classList.toggle('active-btn',t==='X');
+  document.getElementById('btnZErr').classList.toggle('active-btn',t==='Z');
+}
+function toggleLogOps4(){
+  showLogOps4=!showLogOps4;
+  document.getElementById('btnLogOps4').classList.toggle('active-btn',showLogOps4);
+  drawTab4();
+}
+function resetTab4(){
+  surfErrors=Array(surfD*surfD).fill(null);
+  surfSyndromes=[]; surfLogErr=false;
+  document.getElementById('logErr').textContent='none';
+  drawTab4();
+}
+function getSurfLayout(W,H){
+  const margin=40;
+  const sz=Math.min((W-margin*2)/surfD,(H-margin*2)/surfD);
+  const ox=(W-sz*(surfD-1))/2, oy=(H-sz*(surfD-1))/2;
+  return {sz,ox,oy};
+}
+function drawTab4(){
+  const c=document.getElementById('c4');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+
+  if(!surfErrors.length)surfErrors=Array(surfD*surfD).fill(null);
+
+  const {sz,ox,oy}=getSurfLayout(W,H);
+  const qr=Math.min(sz*0.28,14);
+
+  // logical operator strips
+  if(showLogOps4){
+    // logical X: horizontal row at middle
+    const lrow=Math.floor(surfD/2);
+    ctx.fillStyle=GOLD+'33';
+    ctx.fillRect(ox-sz*0.5, oy+lrow*sz-sz*0.3, sz*(surfD-1)+sz, sz*0.6);
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='right';
+    ctx.fillText('X̄ (logical X)', ox+sz*(surfD-1)-2, oy+lrow*sz-sz*0.35);
+    // logical Z: vertical col at middle
+    const lcol=Math.floor(surfD/2);
+    ctx.fillStyle=TEAL+'33';
+    ctx.fillRect(ox+lcol*sz-sz*0.3, oy-sz*0.5, sz*0.6, sz*(surfD-1)+sz);
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=TEAL; ctx.textAlign='center';
+    ctx.fillText('Z̄', ox+lcol*sz, oy-sz*0.55);
+  }
+
+  // plaquette stabilizers (faces between qubits) - B_p with color cycling
+  for(let r=0;r<surfD-1;r++){
+    for(let col=0;col<surfD-1;col++){
+      const px=ox+col*sz+sz/2, py=oy+r*sz+sz/2;
+      const hasSyn=surfSyndromes.some(s=>s.type==='B'&&s.r===r&&s.c===col);
+      const plaqPhase=qecAnimTime*0.8+(r+col)*0.4;
+      const plaqGlow=hasSyn?(0.3+0.2*Math.sin(qecAnimTime*5+r+col)):(0.06+0.03*Math.sin(plaqPhase));
+      ctx.beginPath(); ctx.roundRect(px-sz*0.35,py-sz*0.35,sz*0.7,sz*0.7,3);
+      const baseColor=hasSyn?RED:ACCENT;
+      ctx.fillStyle=baseColor+Math.round(plaqGlow*255).toString(16).padStart(2,'0'); ctx.fill();
+      ctx.strokeStyle=hasSyn?RED:'#252548'; ctx.lineWidth=1; ctx.stroke();
+    }
+  }
+
+  // vertex stabilizers A_v with urgent pulsing
+  for(let r=0;r<surfD;r++){
+    for(let col=0;col<surfD;col++){
+      const hasSyn=surfSyndromes.some(s=>s.type==='A'&&s.r===r&&s.c===col);
+      if(hasSyn){
+        const vx=ox+col*sz, vy=oy+r*sz;
+        const urgePulse=1+0.15*Math.sin(qecAnimTime*6+r*0.5+col*0.7);
+        ctx.beginPath(); ctx.arc(vx,vy,qr*1.8*urgePulse,0,Math.PI*2);
+        const synAlpha=0.3+0.15*Math.sin(qecAnimTime*6+r+col);
+        ctx.fillStyle=TEAL+Math.round(synAlpha*255).toString(16).padStart(2,'0'); ctx.fill();
+        ctx.strokeStyle=TEAL; ctx.lineWidth=1.5; ctx.stroke();
+      }
+    }
+  }
+
+  // draw data qubits with breathing radius
+  for(let r=0;r<surfD;r++){
+    for(let col=0;col<surfD;col++){
+      const idx=r*surfD+col;
+      const qx=ox+col*sz, qy2=oy+r*sz;
+      const err=surfErrors[idx];
+      const breathe=1+0.06*Math.sin(qecAnimTime*1.5+r*0.6+col*0.8);
+      ctx.beginPath(); ctx.arc(qx,qy2,qr*breathe,0,Math.PI*2);
+      ctx.fillStyle=err==='X'?RED+'bb':(err==='Z'?GOLD+'bb':(err==='XZ'?'#aa88ff':'#1a2a1a'));
+      ctx.fill();
+      ctx.strokeStyle=err?ACCENT:'#334'; ctx.lineWidth=err?2:1; ctx.stroke();
+      if(err){
+        ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+        ctx.fillText(err,qx,qy2+3);
+      }
+    }
+  }
+
+  // decoder correction lines
+  for(const s of surfSyndromes){
+    if(s.correction){
+      ctx.strokeStyle=ACCENT+'aa'; ctx.lineWidth=2; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(s.correction.x1,s.correction.y1);
+      ctx.lineTo(s.correction.x2,s.correction.y2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  if(surfLogErr){
+    ctx.font='bold 13px Segoe UI'; ctx.fillStyle=RED; ctx.textAlign='center';
+    ctx.fillText('⚠ Logical error — decoder failed!', W/2, H-10);
+  }
+}
+
+// update syndrome after error injection
+function updateSyndrome4(){
+  surfSyndromes=[];
+  for(let r=0;r<surfD;r++){
+    for(let col=0;col<surfD;col++){
+      const idx=r*surfD+col;
+      const err=surfErrors[idx];
+      if(!err)continue;
+      // X error → B_p syndromes (adjacent plaquettes)
+      if(err==='X'||err==='XZ'){
+        if(r>0&&col<surfD-1) surfSyndromes.push({type:'B',r:r-1,c:col});
+        if(r<surfD-1&&col<surfD-1) surfSyndromes.push({type:'B',r:r,c:col});
+      }
+      // Z error → A_v syndromes (adjacent vertices)
+      if(err==='Z'||err==='XZ'){
+        if(col>0) surfSyndromes.push({type:'A',r:r,c:col-1});
+        if(col<surfD-1) surfSyndromes.push({type:'A',r:r,c:col+1});
+      }
+    }
+  }
+  // remove pairs (even parity = cancelled)
+  const unique=[]; const seen={};
+  for(const s of surfSyndromes){
+    const key=s.type+s.r+','+s.c;
+    seen[key]=(seen[key]||0)+1;
+  }
+  for(const k in seen) if(seen[k]%2!==0) unique.push(surfSyndromes.find(s=>s.type+s.r+','+s.c===k));
+  surfSyndromes=unique.filter(Boolean);
+}
+
+document.getElementById('c4').addEventListener('click',function(e){
+  if(qecCurTab!==4)return;
+  const c=this;
+  const rect=c.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  const {sz,ox,oy}=getSurfLayout(W,H);
+  const qr=Math.min(sz*0.28,14);
+  for(let r=0;r<surfD;r++){
+    for(let col=0;col<surfD;col++){
+      const qx=ox+col*sz, qy2=oy+r*sz;
+      if(Math.abs(mx-qx)<qr*2&&Math.abs(my-qy2)<qr*2){
+        const idx=r*surfD+col;
+        const cur=surfErrors[idx];
+        if(!cur) surfErrors[idx]=surfErrType;
+        else if(cur===surfErrType) surfErrors[idx]=null;
+        else surfErrors[idx]='XZ';
+        updateSyndrome4();
+        drawTab4();
+        return;
+      }
+    }
+  }
+});
+
+function runDecoder4(){
+  // greedy MWPM: pair syndromes of same type
+  const {sz,ox,oy}=getSurfLayout(
+    +document.getElementById('c4').style.width.replace('px',''),
+    +document.getElementById('c4').style.height.replace('px','')
+  );
+  // clear previous corrections
+  for(const s of surfSyndromes)s.correction=null;
+  const types=['A','B'];
+  let logicalErr=false;
+  for(const t of types){
+    const group=surfSyndromes.filter(s=>s.type===t);
+    const paired=new Set();
+    for(let i=0;i<group.length;i++){
+      if(paired.has(i))continue;
+      let best=-1,bestDist=1e9;
+      for(let j=i+1;j<group.length;j++){
+        if(paired.has(j))continue;
+        const dx=group[i].c-group[j].c, dy=group[i].r-group[j].r;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<bestDist){bestDist=d;best=j;}
+      }
+      if(best>=0){
+        paired.add(i);paired.add(best);
+        const a=group[i], b=group[best];
+        const ax=ox+a.c*sz+(t==='B'?sz/2:0);
+        const ay=oy+a.r*sz+(t==='B'?sz/2:0);
+        const bx=ox+b.c*sz+(t==='B'?sz/2:0);
+        const by=oy+b.r*sz+(t==='B'?sz/2:0);
+        a.correction={x1:ax,y1:ay,x2:bx,y2:by};
+      } else {
+        logicalErr=true;
+      }
+    }
+  }
+  surfLogErr=logicalErr;
+  document.getElementById('logErr').textContent=logicalErr?'LOGICAL ERROR':'none';
+  setTimeout(()=>{
+    surfErrors=Array(surfD*surfD).fill(null);
+    surfSyndromes=[];
+    surfLogErr=false;
+    document.getElementById('logErr').textContent='none';
+    drawTab4();
+  },1400);
+  drawTab4();
+}
+
+// ============================================================
+// TAB 5 — FAULT TOLERANCE
+// ============================================================
+function resizeC5(){
+  const c=document.getElementById('c5');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=col.clientHeight-90;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+function toggleTGate(){
+  showTGate=!showTGate;
+  document.getElementById('btnTGate').classList.toggle('active-btn',showTGate);
+  drawTab5();
+}
+function animConcat(){
+  if(concatTimeout){clearTimeout(concatTimeout);concatTimeout=null;}
+  concatLevel=0; drawTab5();
+  concatTimeout=setTimeout(()=>{concatLevel=1;drawTab5();
+    concatTimeout=setTimeout(()=>{concatLevel=2;drawTab5();
+      concatTimeout=setTimeout(()=>{concatLevel=3;drawTab5();concatTimeout=null;},600);
+    },600);
+  },600);
+}
+function drawTab5(){
+  const c=document.getElementById('c5');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+
+  const splitX=W*0.52;
+  const th=pthVal, p0=0.0025; // p = p_th/4 for example
+  const dvals=[3,5,7,9];
+  const dcolors=[ACCENT,GOLD,TEAL,RED];
+
+  // --- LEFT: threshold curve ---
+  const lm=48, rm=20, tm=30, bm=35;
+  const lW=splitX-lm-rm, lH=H-tm-bm;
+  const lX=lm, lY=tm;
+  // axes
+  ctx.strokeStyle='#334'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(lX,lY); ctx.lineTo(lX,lY+lH); ctx.lineTo(lX+lW,lY+lH); ctx.stroke();
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+  ctx.fillText('p (physical error rate)',lX+lW/2,lY+lH+bm-5);
+  ctx.save(); ctx.translate(lX-36,lY+lH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('p_L (logical error rate)',0,0); ctx.restore();
+
+  // title
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+  ctx.fillText('Threshold Curves',lX+lW/2,lY-10);
+
+  const pMax=0.025;
+  // axis ticks
+  for(let t=0;t<=5;t++){
+    const px=lX+t/5*lW;
+    ctx.strokeStyle='#252548'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(px,lY); ctx.lineTo(px,lY+lH); ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+    ctx.fillText((t/5*pMax*100).toFixed(1)+'%',px,lY+lH+12);
+  }
+
+  // plot curves with scanning dot
+  for(let di=0;di<dvals.length;di++){
+    const d=dvals[di];
+    const t=Math.ceil((d+1)/2);
+    ctx.beginPath(); ctx.strokeStyle=dcolors[di]; ctx.lineWidth=1.5;
+    const scanFrac=(qecAnimTime*0.08+di*0.15)%1;
+    const scanPi=Math.round(scanFrac*80);
+    let scanX=0, scanY=0;
+    for(let pi=0;pi<=80;pi++){
+      const p=pi/80*pMax;
+      const pL=Math.pow(p/th,t);
+      const cx2=lX+p/pMax*lW;
+      const cy2=lY+lH-Math.min(pL,1)*lH;
+      if(pi===0)ctx.moveTo(cx2,cy2); else ctx.lineTo(cx2,cy2);
+      if(pi===scanPi){scanX=cx2;scanY=cy2;}
+    }
+    ctx.stroke();
+    // scanning dot
+    ctx.beginPath(); ctx.arc(scanX,scanY,4,0,Math.PI*2);
+    ctx.fillStyle=dcolors[di]; ctx.fill();
+    ctx.font='12px Segoe UI'; ctx.fillStyle=dcolors[di]; ctx.textAlign='left';
+    ctx.fillText('d='+d,lX+lW*0.72,lY+(di+1)*14);
+  }
+
+  // threshold vertical line
+  const thX=lX+th/pMax*lW;
+  ctx.strokeStyle='#ffffff44'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(thX,lY); ctx.lineTo(thX,lY+lH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ffffff88'; ctx.textAlign='center';
+  ctx.fillText('p_th='+(th*100).toFixed(1)+'%',thX,lY-3);
+
+  // update p_L info
+  const pL5=Math.pow(th/10/th,Math.ceil(3));
+  document.getElementById('plVal').textContent=pL5.toExponential(2);
+
+  // --- RIGHT: concatenation tree ---
+  const rX=splitX+10, rW=W-splitX-20;
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+  ctx.fillText('Concatenation Tree (Steane)',rX+rW/2,tm);
+
+  const levels=[
+    [{x:0.5,y:0.15}],
+    [{x:0.25,y:0.42},{x:0.75,y:0.42}],
+    [{x:0.12,y:0.68},{x:0.38,y:0.68},{x:0.62,y:0.68},{x:0.88,y:0.68}]
+  ];
+  const levelColors=[ACCENT,TEAL,GOLD];
+  const levelLabels=['1 logical\n7 physical','7 logical\n49 physical','49 logical\n343 phys.'];
+  const nodeR=14;
+
+  for(let lv=0;lv<=Math.min(concatLevel,2);lv++){
+    if(lv<levels.length){
+      // draw edges to children
+      if(lv<levels.length-1&&lv+1<=concatLevel){
+        const nParents=levels[lv];
+        const nChildren=levels[lv+1];
+        for(let pi=0;pi<nParents.length;pi++){
+          const px2=rX+nParents[pi].x*rW, py2=tm+30+nParents[pi].y*(H-tm-60);
+          for(let ci=pi*2;ci<pi*2+2&&ci<nChildren.length;ci++){
+            const cx2=rX+nChildren[ci].x*rW, cy2=tm+30+nChildren[ci].y*(H-tm-60);
+            ctx.strokeStyle='#334'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(px2,py2); ctx.lineTo(cx2,cy2); ctx.stroke();
+          }
+        }
+      }
+      // draw nodes with pulsing by level
+      for(const node of levels[lv]){
+        const nx=rX+node.x*rW, ny=tm+30+node.y*(H-tm-60);
+        const nodePulse=1+0.1*Math.sin(qecAnimTime*2.5+lv*1.5);
+        const nodeGlow=0.2+0.15*Math.sin(qecAnimTime*2.5+lv*1.5);
+        // glow behind node
+        ctx.beginPath(); ctx.arc(nx,ny,nodeR*1.6*nodePulse,0,Math.PI*2);
+        ctx.fillStyle=levelColors[lv]+Math.round(nodeGlow*255).toString(16).padStart(2,'0'); ctx.fill();
+        ctx.beginPath(); ctx.arc(nx,ny,nodeR*nodePulse,0,Math.PI*2);
+        ctx.fillStyle='#1a2a1a'; ctx.fill();
+        ctx.strokeStyle=levelColors[lv]; ctx.lineWidth=2; ctx.stroke();
+        ctx.font='12px Segoe UI'; ctx.fillStyle=levelColors[lv]; ctx.textAlign='center';
+        ctx.fillText('L'+lv,nx,ny+3);
+      }
+      // label
+      ctx.font='12px Segoe UI'; ctx.fillStyle=levelColors[lv]; ctx.textAlign='right';
+      ctx.fillText('7^'+lv+'='+(Math.pow(7,lv))+' phys.',rX+rW-4,tm+30+levels[lv][0].y*(H-tm-60)+nodeR+14);
+    }
+  }
+
+  // T-gate circuit below
+  if(showTGate){
+    const tgY=H*0.84;
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
+    ctx.fillText('Magic State Injection (T gate)',W/2,tgY-10);
+    const wireY=tgY+14;
+    ctx.strokeStyle='#334'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(lX+lW*0.1,wireY); ctx.lineTo(W-30,wireY); ctx.stroke();
+    // CNOT + T state
+    ctx.fillStyle='#1a2a1a'; ctx.strokeStyle=GOLD; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.roundRect(W/2-15,wireY-11,30,22,3); ctx.fill(); ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
+    ctx.fillText('|T⟩',W/2,wireY+4);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa';
+    ctx.fillText('logical qubit',lX+lW*0.3,wireY-5);
+    ctx.fillText('measure→correct',W*0.75,wireY-5);
+  }
+}
+
+// ============================================================
+// TAB 6 — TOPOLOGICAL CODES
+// ============================================================
+function resizeC6(){
+  const c=document.getElementById('c6');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=col.clientHeight-90;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+function setTopoView(v){
+  topoView=v;
+  document.getElementById('btnToric').classList.toggle('active-btn',v==='toric');
+  document.getElementById('btnFib').classList.toggle('active-btn',v==='fib');
+  drawTab6();
+}
+function addAnyon(type){
+  const c=document.getElementById('c6');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  const margin=50;
+  anyons.push({
+    type,
+    x:margin+Math.random()*(W-margin*2),
+    y:margin+Math.random()*(H-margin*2)
+  });
+  document.getElementById('eCount').textContent=anyons.filter(a=>a.type==='e').length;
+  document.getElementById('mCount').textContent=anyons.filter(a=>a.type==='m').length;
+  drawTab6();
+}
+function resetTab6(){
+  anyons=[]; braidPhaseTotal=0;
+  document.getElementById('eCount').textContent='0';
+  document.getElementById('mCount').textContent='0';
+  document.getElementById('braidPhase').textContent='0';
+  drawTab6();
+}
+function drawToricCode(ctx,W,H){
+  const margin=40, gridN=6;
+  const gW=W-margin*2, gH=H-margin*2;
+  const sx=gW/(gridN-1), sy=gH/(gridN-1);
+
+  // identified edges (top=bottom gold, left=right gold)
+  ctx.strokeStyle=GOLD; ctx.lineWidth=2;
+  // top/bottom arrows
+  for(let i=0;i<gridN;i++){
+    const x=margin+i*sx;
+    ctx.beginPath(); ctx.moveTo(x,margin); ctx.lineTo(x,margin+12); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,H-margin); ctx.lineTo(x,H-margin-12); ctx.stroke();
+  }
+  // left/right arrows
+  for(let j=0;j<gridN;j++){
+    const y=margin+j*sy;
+    ctx.beginPath(); ctx.moveTo(margin,y); ctx.lineTo(margin+12,y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W-margin,y); ctx.lineTo(W-margin-12,y); ctx.stroke();
+  }
+  // grid lines with shimmer wave
+  for(let i=0;i<gridN;i++){
+    const shimmer=0.2+0.15*Math.sin(qecAnimTime*1.5+i*0.8);
+    ctx.strokeStyle='#334'+Math.round(shimmer*255/0.5).toString(16).padStart(2,'0').slice(0,2);
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(margin+i*sx,margin); ctx.lineTo(margin+i*sx,H-margin); ctx.stroke();
+  }
+  for(let j=0;j<gridN;j++){
+    const shimmer=0.2+0.15*Math.sin(qecAnimTime*1.5+j*0.8+2);
+    ctx.strokeStyle='#334'+Math.round(shimmer*255/0.5).toString(16).padStart(2,'0').slice(0,2);
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(margin,margin+j*sy); ctx.lineTo(W-margin,margin+j*sy); ctx.stroke();
+  }
+  // identified label
+  ctx.font='12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
+  ctx.fillText('↕ identified (torus)',W/2,H-margin+16);
+  ctx.save(); ctx.translate(margin-20,H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('↔ identified',0,0); ctx.restore();
+
+  // draw anyons with bobbing
+  for(let ai=0;ai<anyons.length;ai++){
+    const a=anyons[ai];
+    const bob=3*Math.sin(qecAnimTime*2.5+ai*1.3);
+    const dy=a.y+bob;
+    ctx.beginPath(); ctx.arc(a.x,dy,9,0,Math.PI*2);
+    ctx.fillStyle=a.type==='e'?RED:TEAL; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.fillText(a.type,a.x,dy+3);
+  }
+
+  // braid phase info
+  if(braidPhaseTotal>0){
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Braid phase: (−1)^'+braidPhaseTotal+' = '+(braidPhaseTotal%2===0?'+1':'−1'),W/2,20);
+  }
+}
+function drawFibView(ctx,W,H){
+  ctx.font='bold 13px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+  ctx.fillText('Fibonacci Anyon Data',W/2,30);
+
+  const phi=(1+Math.sqrt(5))/2;
+  const phiInv=1/phi, phiSqrt=Math.sqrt(phiInv);
+
+  var fibMatrixCallIdx=0;
+  function drawMatrix(label,entries,mx,my,cw,ch){
+    const matBase=fibMatrixCallIdx*4;
+    fibMatrixCallIdx++;
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
+    ctx.fillText(label,mx+cw,my-8);
+    for(let r=0;r<2;r++){
+      for(let c=0;c<2;c++){
+        const cellIdx=matBase+r*2+c;
+        const cx2=mx+c*cw+4, cy2=my+r*ch+4;
+        // sequential glow: one cell highlighted at a time
+        const glowPhase=Math.floor(qecAnimTime*1.8)%8;
+        const isGlow=(cellIdx===glowPhase);
+        ctx.fillStyle=isGlow?'#2a2a4a':'#1a1a2a';
+        ctx.strokeStyle=isGlow?GOLD+'88':'#334'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.roundRect(cx2,cy2,cw-6,ch-6,3); ctx.fill(); ctx.stroke();
+        ctx.font='12px monospace'; ctx.fillStyle=isGlow?GOLD:'#e8e8f8'; ctx.textAlign='center';
+        ctx.fillText(entries[r*2+c], cx2+(cw-6)/2, cy2+(ch-6)/2+4);
+      }
+    }
+    // brackets
+    ctx.strokeStyle='#8888aa'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(mx+2,my+1); ctx.lineTo(mx-3,my+1); ctx.lineTo(mx-3,my+ch*2-1); ctx.lineTo(mx+2,my+ch*2-1); ctx.stroke();
+    const rr=mx+cw*2-2;
+    ctx.beginPath(); ctx.moveTo(rr-2,my+1); ctx.lineTo(rr+3,my+1); ctx.lineTo(rr+3,my+ch*2-1); ctx.lineTo(rr-2,my+ch*2-1); ctx.stroke();
+  }
+
+  const cw=90,ch=40;
+  const fMx=W*0.1, fMy=60;
+  drawMatrix('F-matrix',[
+    'φ⁻¹','φ⁻¹/²',
+    'φ⁻¹/²','−φ⁻¹'
+  ],fMx,fMy,cw,ch);
+
+  const rMx=W*0.55, rMy=60;
+  drawMatrix('R-matrix',[
+    'e^(−4πi/5)','0',
+    '0','e^(3πi/5)'
+  ],rMx,rMy,cw,ch);
+
+  // quantum dimension
+  ctx.font='13px Segoe UI'; ctx.fillStyle='#e8e8f8'; ctx.textAlign='center';
+  ctx.fillText('Quantum dimension: d_τ = φ = (1+√5)/2 ≈ '+phi.toFixed(4),W/2,H*0.42);
+
+  // fusion rule
+  ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+  ctx.fillText('Fusion rule: τ × τ = 1 + τ',W/2,H*0.52);
+  ctx.fillText('Topological spin: θ_τ = e^(4πi/5)',W/2,H*0.60);
+
+  // pentagon diagram
+  const px=W/2, py=H*0.80, pr=Math.min(W,H)*0.13;
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+  ctx.fillText('Pentagon equation satisfied (unitarity of F)',px,H*0.70);
+  const corners=[];
+  for(let i=0;i<5;i++){
+    const a=-Math.PI/2+i*2*Math.PI/5;
+    corners.push([px+pr*Math.cos(a),py+pr*Math.sin(a)]);
+  }
+  ctx.strokeStyle=TEAL+'88'; ctx.lineWidth=1;
+  ctx.beginPath();
+  corners.forEach((c,i)=>{if(i===0)ctx.moveTo(c[0],c[1]);else ctx.lineTo(c[0],c[1]);});
+  ctx.closePath(); ctx.stroke();
+  for(const corner of corners){
+    ctx.beginPath(); ctx.arc(corner[0],corner[1],4,0,Math.PI*2);
+    ctx.fillStyle=TEAL; ctx.fill();
+  }
+}
+function drawTab6(){
+  const c=document.getElementById('c6');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+  if(topoView==='toric')drawToricCode(ctx,W,H);
+  else drawFibView(ctx,W,H);
+}
+
+// anyon drag
+(function(){
+  const c=document.getElementById('c6');
+  c.addEventListener('mousedown',function(e){
+    if(qecCurTab!==6||topoView!=='toric')return;
+    const rect=c.getBoundingClientRect();
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    for(const a of anyons){
+      if(Math.sqrt(Math.pow(mx-a.x,2)+Math.pow(my-a.y,2))<14){
+        dragAnyon=a; dragOffX=mx-a.x; dragOffY=my-a.y; return;
+      }
+    }
+  });
+  c.addEventListener('mousemove',function(e){
+    if(!dragAnyon)return;
+    const rect=c.getBoundingClientRect();
+    const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+    const prevX=dragAnyon.x;
+    dragAnyon.x=mx-dragOffX; dragAnyon.y=my-dragOffY;
+    // braid phase check: e crossing m
+    if(dragAnyon.type==='e'){
+      for(const other of anyons){
+        if(other===dragAnyon||other.type!=='m')continue;
+        if((prevX<other.x&&dragAnyon.x>=other.x)||(prevX>other.x&&dragAnyon.x<=other.x)){
+          braidPhaseTotal++;
+          document.getElementById('braidPhase').textContent=braidPhaseTotal;
+        }
+      }
+    }
+    drawTab6();
+  });
+  c.addEventListener('mouseup',()=>{dragAnyon=null;});
+  c.addEventListener('mouseleave',()=>{dragAnyon=null;});
+})();
+
+// ============================================================
+// TAB 7 — HARDWARE & ROADMAP
+// ============================================================
+function resizeC7(){
+  const c=document.getElementById('c7');
+  const col=c.parentElement;
+  const W=col.clientWidth-20, H=col.clientHeight-90;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+const platformBtnIds={sc:'btnSC',ti:'btnTI',ph:'btnPh'};
+function togglePlatform(p){
+  platformVisible[p]=!platformVisible[p];
+  document.getElementById(platformBtnIds[p]).classList.toggle('active-btn',platformVisible[p]);
+  drawTab7();
+}
+function drawTab7(){
+  const c=document.getElementById('c7');
+  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#10101f'; ctx.fillRect(0,0,W,H);
+
+  const hw=W/2-6, hh=H/2-6;
+
+  // Q1: top-left — bar chart qubit overhead
+  {
+    const qx=4, qy=4, qw=hw, qh=hh;
+    ctx.fillStyle='#141428'; ctx.beginPath(); ctx.roundRect(qx,qy,qw,qh,6); ctx.fill();
+    ctx.strokeStyle='#252548'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Physical Qubit Overhead per Logical',qx+qw/2,qy+16);
+    const bars=[
+      {label:'Google\nWillow',val:105,color:ACCENT},
+      {label:'IBM\nTarget',val:1000,color:TEAL},
+      {label:'Full FT\nTarget',val:4000000,color:GOLD}
+    ];
+    const maxLog=Math.log10(4000001);
+    const bm=30, bpad=10, bW=(qw-20-bpad*2)/bars.length-10;
+    const bH=qh-50;
+    const growFrac=Math.min(1,(qecAnimTime-tab7EntryTime)/0.5);
+    bars.forEach((b,i)=>{
+      const bx=qx+15+bpad+i*(bW+10);
+      const fullLogH=Math.log10(b.val+1)/maxLog*bH;
+      const logH=fullLogH*growFrac;
+      const by=qy+qh-bm-logH;
+      ctx.fillStyle=b.color+'88'; ctx.beginPath(); ctx.roundRect(bx,by,bW,logH,3); ctx.fill();
+      ctx.strokeStyle=b.color; ctx.lineWidth=1; ctx.stroke();
+      ctx.font='12px Segoe UI'; ctx.fillStyle=b.color; ctx.textAlign='center';
+      ctx.fillText(b.val>=1000?(b.val/1000)+'K':b.val,bx+bW/2,by-4);
+      ctx.fillStyle='#8888aa';
+      b.label.split('\n').forEach((line,li)=>ctx.fillText(line,bx+bW/2,qy+qh-bm+10+li*11));
+    });
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#666688'; ctx.textAlign='left';
+    ctx.fillText('(log scale)',qx+6,qy+qh-4);
+  }
+
+  // Q2: top-right — error rate timeline
+  {
+    const qx=W/2+2, qy=4, qw=hw, qh=hh;
+    ctx.fillStyle='#141428'; ctx.beginPath(); ctx.roundRect(qx,qy,qw,qh,6); ctx.fill();
+    ctx.strokeStyle='#252548'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Error Rate Timeline 2015–2030',qx+qw/2,qy+16);
+
+    const tm=28, bm=28, lm=40, rm=15;
+    const pW=qw-lm-rm, pH=qh-tm-bm;
+    const pX=qx+lm, pY=qy+tm;
+    ctx.strokeStyle='#252548'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pX,pY); ctx.lineTo(pX,pY+pH); ctx.lineTo(pX+pW,pY+pH); ctx.stroke();
+
+    const yearToX=(y)=>pX+(y-2015)/(2030-2015)*pW;
+    const errToY=(e)=>pY+(Math.log10(e)+2)/(2)*pH; // -2 to 0 range (1% to 100%)
+
+    // threshold line at 1%
+    ctx.strokeStyle='#ffffff44'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    const thy=errToY(0.01);
+    ctx.beginPath(); ctx.moveTo(pX,thy); ctx.lineTo(pX+pW,thy); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#ffffff66'; ctx.textAlign='right';
+    ctx.fillText('p_th=1%',pX-2,thy+3);
+
+    // data series
+    const scData=[[2015,0.1],[2019,0.05],[2023,0.008],[2024,0.004],[2030,0.001]];
+    const tiData=[[2015,0.05],[2019,0.02],[2023,0.005],[2026,0.002],[2030,0.0008]];
+    const phData=[[2015,0.2],[2020,0.1],[2025,0.03],[2030,0.01]];
+
+    function drawLine(data,color,visible){
+      if(!visible)return;
+      ctx.strokeStyle=color; ctx.lineWidth=1.5;
+      ctx.beginPath();
+      data.forEach((pt,i)=>{
+        const x=yearToX(pt[0]), y=errToY(pt[1]);
+        if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle=color;
+      data.forEach((pt,pi)=>{
+        const pulseR=3+1.2*Math.sin(qecAnimTime*2.5+pi*1.1);
+        ctx.beginPath(); ctx.arc(yearToX(pt[0]),errToY(pt[1]),pulseR,0,Math.PI*2); ctx.fill();
+      });
+    }
+    drawLine(scData,ACCENT,platformVisible.sc);
+    drawLine(tiData,TEAL,platformVisible.ti);
+    drawLine(phData,BLUE,platformVisible.ph);
+
+    // year labels
+    [2015,2020,2025,2030].forEach(y=>{
+      ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+      ctx.fillText(y,yearToX(y),pY+pH+14);
+    });
+    // legend
+    [[ACCENT,'SC'],[TEAL,'TI'],[BLUE,'Ph']].forEach(([c,l],i)=>{
+      ctx.fillStyle=c; ctx.fillRect(qx+qw-60,qy+22+i*13,10,8);
+      ctx.font='12px Segoe UI'; ctx.fillStyle=c; ctx.textAlign='left';
+      ctx.fillText(l,qx+qw-47,qy+29+i*13);
+    });
+  }
+
+  // Q3: bottom-left — fidelity table
+  {
+    const qx=4, qy=H/2+2, qw=hw, qh=hh;
+    ctx.fillStyle='#141428'; ctx.beginPath(); ctx.roundRect(qx,qy,qw,qh,6); ctx.fill();
+    ctx.strokeStyle='#252548'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Gate Fidelity Comparison',qx+qw/2,qy+16);
+
+    const headers=['Platform','2Q Gate','T₁','T₂'];
+    const rows=[
+      ['Google SC','99.9%','~100μs','~100μs'],
+      ['IBM Heron','99.5%','~150μs','~200μs'],
+      ['IonQ','99.5%','minutes','minutes'],
+      ['Photonic','99.3%','N/A','N/A'],
+    ];
+    const colW=[qw*0.32,qw*0.22,qw*0.22,qw*0.22];
+    const rowH=Math.min(24,(qh-36)/(rows.length+1));
+    const tX=qx+4, tY=qy+30;
+    // header
+    let cx2=tX;
+    headers.forEach((h,ci)=>{
+      ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+      ctx.fillText(h,cx2+colW[ci]/2,tY+8);
+      cx2+=colW[ci];
+    });
+    // rows
+    rows.forEach((row,ri)=>{
+      let cx3=tX;
+      row.forEach((cell,ci)=>{
+        ctx.font='12px Segoe UI';
+        ctx.fillStyle=ci===0?'#e8e8f8':(ci===1?ACCENT:'#8888aa');
+        ctx.textAlign='center';
+        ctx.fillText(cell,cx3+colW[ci]/2,tY+rowH*(ri+1)+10);
+        cx3+=colW[ci];
+      });
+      // row separator
+      ctx.strokeStyle='#252548'; ctx.lineWidth=0.5;
+      ctx.beginPath(); ctx.moveTo(tX,tY+rowH*(ri+1)+16); ctx.lineTo(tX+qw-8,tY+rowH*(ri+1)+16); ctx.stroke();
+    });
+  }
+
+  // Q4: bottom-right — milestone timeline
+  {
+    const qx=W/2+2, qy=H/2+2, qw=hw, qh=hh;
+    ctx.fillStyle='#141428'; ctx.beginPath(); ctx.roundRect(qx,qy,qw,qh,6); ctx.fill();
+    ctx.strokeStyle='#252548'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+    ctx.fillText('Milestones: NISQ → Fault Tolerant Era',qx+qw/2,qy+16);
+
+    const milestones=[
+      {y:2019,label:'Google\nSupremacy',color:ACCENT},
+      {y:2023,label:'IBM\n1000+',color:TEAL},
+      {y:2024,label:'Willow\nsub-threshold',color:ACCENT},
+      {y:2026,label:'Logical\nqubit demos',color:GOLD},
+      {y:2030,label:'Early FT\nera',color:GOLD},
+      {y:2035,label:'RSA-\nrelevant',color:RED},
+    ];
+    const tlm=40, trm=20, ttm=35, tbm=40;
+    const tlW=qw-tlm-trm, tlX=qx+tlm, tlY=qy+ttm+tlm;
+    const y2x=(y)=>tlX+(y-2018)/(2036-2018)*tlW;
+
+    // axis
+    ctx.strokeStyle='#334'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(tlX,tlY); ctx.lineTo(tlX+tlW,tlY); ctx.stroke();
+    // year ticks
+    [2020,2025,2030,2035].forEach(y=>{
+      const x=y2x(y);
+      ctx.strokeStyle='#334'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(x,tlY-4); ctx.lineTo(x,tlY+4); ctx.stroke();
+      ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
+      ctx.fillText(y,x,tlY+14);
+    });
+    // milestones
+    milestones.forEach((m,i)=>{
+      const x=y2x(m.y);
+      const above=i%2===0;
+      const dotY=tlY;
+      ctx.beginPath(); ctx.arc(x,dotY,5,0,Math.PI*2);
+      ctx.fillStyle=m.color; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=0.5; ctx.stroke();
+      // label line
+      ctx.strokeStyle=m.color+'88'; ctx.lineWidth=1;
+      const labelY=above?tlY-20-Math.floor(i/2)*24:tlY+24+Math.floor(i/2)*22;
+      ctx.beginPath(); ctx.moveTo(x,dotY); ctx.lineTo(x,labelY); ctx.stroke();
+      ctx.font='12px Segoe UI'; ctx.fillStyle=m.color; ctx.textAlign='center';
+      m.label.split('\n').forEach((line,li)=>ctx.fillText(line,x,labelY-(above?10:0)+li*11));
+    });
+    // era bands
+    ctx.fillStyle=ACCENT+'11';
+    ctx.fillRect(tlX,qy+ttm,y2x(2026)-tlX,qh-ttm-tbm);
+    ctx.fillStyle=GOLD+'11';
+    ctx.fillRect(y2x(2026),qy+ttm,y2x(2032)-y2x(2026),qh-ttm-tbm);
+    ctx.fillStyle=RED+'11';
+    ctx.fillRect(y2x(2032),qy+ttm,tlX+tlW-y2x(2032),qh-ttm-tbm);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#ffffff33'; ctx.textAlign='center';
+    ctx.fillText('NISQ',(tlX+y2x(2026))/2,qy+ttm+12);
+    ctx.fillText('Early FT',(y2x(2026)+y2x(2032))/2,qy+ttm+12);
+    ctx.fillText('FT',(y2x(2032)+tlX+tlW)/2,qy+ttm+12);
+    // sweeping progress indicator
+    const sweepFrac=(qecAnimTime*0.04)%1;
+    const sweepX=tlX+sweepFrac*tlW;
+    ctx.strokeStyle=ACCENT+'66'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(sweepX,qy+ttm); ctx.lineTo(sweepX,qy+qh-tbm); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sweepX,tlY,3,0,Math.PI*2);
+    ctx.fillStyle=ACCENT; ctx.fill();
+  }
+}
+
+// ============================================================
+// RESIZE HANDLER
+// ============================================================
+window.addEventListener('resize',()=>{
+  if(qecCurTab===0)resizeC0();
+  else{
+    const fns=[null,
+      ()=>{resizeC1();drawTab1();},
+      ()=>{resizeC2();drawTab2();},
+      ()=>{resizeC3();drawTab3();},
+      ()=>{resizeC4();drawTab4();},
+      ()=>{resizeC5();drawTab5();},
+      ()=>{resizeC6();drawTab6();},
+      ()=>{resizeC7();drawTab7();}
+    ];
+    if(fns[qecCurTab])fns[qecCurTab]();
+  }
+});
+window.addEventListener('load',()=>{
+  window.animSpeed=0.1;
+  for(var i=0;i<=7;i++){syncSpeedControl63(i);}
+  resizeC0();
+  startBlochLoop();
+  // init surface errors
+  surfErrors=Array(surfD*surfD).fill(null);
+});
+</script>
+<script src="glossary-data.js" defer></script>
+<script src="glossary-tooltip.js" defer></script>
+<script src="auto-start.js" defer></script>
+</body>
+</html>

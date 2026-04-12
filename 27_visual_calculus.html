@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>27 — Visual Calculus</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#88ff88;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;padding-bottom:38px;}
+header{display:flex;align-items:center;gap:14px;padding:18px 28px;border-bottom:1px solid var(--border);background:var(--bg2);}
+header a{color:var(--dim);text-decoration:none;font-size:1.3rem;transition:color .2s;}
+header a:hover{color:var(--accent);}
+.badge{background:var(--accent);color:#000;border-radius:6px;padding:3px 10px;font-weight:700;font-size:.95rem;}
+header h1{font-size:1.25rem;font-weight:600;color:var(--text);}
+header p{font-size:.82rem;color:var(--dim);}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 28px;}
+.tab{padding:11px 22px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;font-size:.93rem;transition:all .2s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover:not(.active){color:var(--text);}
+.page{display:none;padding:22px 28px;gap:18px;flex-direction:column;}
+.page.active{display:flex;}
+.row{display:flex;gap:18px;flex-wrap:wrap;}
+canvas{border:1px solid var(--border);border-radius:8px;background:#08081a;display:block;width:740px;height:460px;max-width:100%;}
+.controls{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;min-width:200px;}
+.controls label{font-size:.83rem;color:var(--dim);}
+.controls input[type=range]{width:100%;accent-color:var(--accent);}
+.controls select{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:5px;font-size:.85rem;width:100%;}
+button{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.85rem;transition:all .2s;}
+button:hover{border-color:var(--accent);color:var(--accent);}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:.85rem;color:var(--text);min-height:54px;line-height:1.6;}
+.proof-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;padding:14px 8px;color:var(--dim);cursor:pointer;font-size:.82rem;letter-spacing:.06em;transition:color .2s;}
+.proof-btn:hover{color:var(--accent);}
+.proof-panel{display:none;position:fixed;right:0;top:0;height:100vh;width:340px;background:var(--bg2);border-left:1px solid var(--border);padding:22px 20px;overflow-y:auto;z-index:100;flex-direction:column;gap:14px;}
+.proof-panel.open{display:flex;}
+.proof-panel h3{color:var(--accent);font-size:1rem;margin-bottom:4px;}
+.proof-close{align-self:flex-end;background:none;border:none;color:var(--dim);font-size:1.3rem;cursor:pointer;padding:0;}
+.proof-close:hover{color:var(--accent);}
+.proof-entry{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:12px 14px;font-size:.83rem;line-height:1.7;cursor:pointer;transition:border-color .2s;}
+.proof-entry:hover{border-color:var(--accent);}
+.proof-entry.selected{border-color:var(--accent);background:#0d1a1a;}
+#proofContent{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:14px;font-size:.84rem;line-height:1.8;margin-top:6px;}
+</style>
+</head>
+<body>
+<header>
+  <a href="/" title="Home">&#8592;</a>
+  <span class="badge">27</span>
+  <div>
+    <h1>Visual Calculus</h1>
+    <p>Limits, derivatives, integrals, and the fundamental theorem — Ch. 6</p>
+  </div>
+</header>
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Limits &amp; Derivatives</div>
+  <div class="tab" onclick="switchTab(1)">Riemann Integration</div>
+  <div class="tab" onclick="switchTab(2)">Taylor Series</div>
+  <div class="tab" onclick="switchTab(3)">Grad / Curl / Div</div>
+  <div class="tab" onclick="switchTab(4)">Complex &amp; Residues</div>
+  <div class="tab" onclick="switchTab(5)">Phase Portraits</div>
+  <div class="tab" onclick="switchTab(6)">Calculus of Variations</div>
+  <div class="tab" onclick="switchTab(7)">Frenet-Serret</div>
+</div>
+
+<!-- TAB 0: Limits & Derivatives -->
+<div class="page active" data-role="panel" id="page0">
+  <div class="row">
+    <canvas id="c0" style="cursor:crosshair;"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Function f(x):</label>
+      <select id="funcSel" onchange="draw0()">
+        <option value="xsq">x²</option>
+        <option value="xcube" selected>x³ - x</option>
+        <option value="sinx">sin(x)</option>
+        <option value="expx">eˣ</option>
+        <option value="absx">|x| (non-diff.)</option>
+      </select>
+      <label>Point x₀: <span id="x0Lbl">0.50</span></label>
+      <input type="range" id="x0Slider" min="-3" max="3" value="0.5" step="0.01" oninput="document.getElementById('x0Lbl').textContent=parseFloat(this.value).toFixed(2);draw0()">
+      <label>Step h: <span id="hLbl">1.000</span></label>
+      <input type="range" id="hSlider" min="-3" max="3" value="1.0" step="0.001" oninput="updateHLabel();draw0()">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" id="epsDeltaMode" onchange="draw0()"> ε-δ mode
+      </label>
+      <label>ε: <span id="epsLbl">0.50</span></label>
+      <input type="range" id="epsSlider" min="0.05" max="2" value="0.5" step="0.05" oninput="document.getElementById('epsLbl').textContent=parseFloat(this.value).toFixed(2);draw0()">
+      <label>δ: <span id="deltaLbl">0.30</span></label>
+      <input type="range" id="deltaSlider" min="0.02" max="2" value="0.3" step="0.02" oninput="document.getElementById('deltaLbl').textContent=parseFloat(this.value).toFixed(2);draw0()">
+      <button id="animBtn0" class="animBtn" onclick="toggleAnim0(this)">▶ Animate h→0</button>
+      <button onclick="resetView0()">Reset</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info0">Drag the x₀ slider to move the point. h controls the secant slope.</div>
+</div>
+
+<!-- TAB 1: Riemann Integration -->
+<div class="page" data-role="panel" id="page1">
+  <div class="row">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Function:</label>
+      <select id="rFuncSel" onchange="draw1()">
+        <option value="xsq">x² on [0,2]</option>
+        <option value="sinx" selected>sin(x) on [0,π]</option>
+        <option value="xthird">x³ on [0,1]</option>
+        <option value="expx">eˣ on [0,1]</option>
+        <option value="mixed">x·sin(x) on [0,π]</option>
+      </select>
+      <label>Method:</label>
+      <select id="methodSel" onchange="draw1()">
+        <option value="left">Left Riemann</option>
+        <option value="right">Right Riemann</option>
+        <option value="mid" selected>Midpoint</option>
+        <option value="trap">Trapezoid</option>
+      </select>
+      <label>N rectangles: <span id="nRectLbl">20</span></label>
+      <input type="range" id="nRectSlider" min="1" max="200" value="20" oninput="document.getElementById('nRectLbl').textContent=this.value;draw1()">
+      <button id="animBtn1" class="animBtn" onclick="toggleAnim1(this)">▶ Animate N→∞</button>
+      <button onclick="resetAnim1()">Reset</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info1">Watching rectangles approximate the area under the curve.</div>
+</div>
+
+<!-- TAB 2: Taylor Series -->
+<div class="page" data-role="panel" id="page2">
+  <div class="row">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Function:</label>
+      <select id="taylorSel" onchange="resetTaylor();draw2()">
+        <option value="sinx" selected>sin(x)</option>
+        <option value="expx">eˣ</option>
+        <option value="cosx">cos(x)</option>
+        <option value="ln1px">ln(1+x)</option>
+        <option value="geo">1/(1-x)</option>
+      </select>
+      <label>Expansion point a: <span id="aLbl">0.00</span></label>
+      <input type="range" id="aSlider" min="-1.5" max="1.5" value="0" step="0.05" oninput="document.getElementById('aLbl').textContent=parseFloat(this.value).toFixed(2);draw2()">
+      <label>Terms shown (n): <span id="nTermLbl">5</span></label>
+      <input type="range" id="nTermSlider" min="0" max="10" value="5" oninput="document.getElementById('nTermLbl').textContent=this.value;draw2()">
+      <button id="animBtn2" class="animBtn" onclick="toggleAnim2(this)">▶ Animate Terms</button>
+      <button onclick="resetTaylor()">Reset</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info2">Each colored curve is a partial sum. White curve is the true function.</div>
+</div>
+
+<!-- TAB 3: Grad / Curl / Div -->
+<div class="page" data-role="panel" id="page3">
+  <div class="row">
+    <canvas id="c3" width="740" height="460"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Operator:</label>
+      <select id="vcOpSel" onchange="draw3()">
+        <option value="grad">∇f  (Gradient)</option>
+        <option value="curl">∇×F  (Curl)</option>
+        <option value="div">∇·F  (Divergence)</option>
+      </select>
+      <label>Field preset:</label>
+      <select id="vcFieldSel" onchange="draw3()">
+        <option value="gauss">Gaussian hill f=e^(-(x²+y²)/2)</option>
+        <option value="saddle">Saddle f=x²-y²</option>
+        <option value="vortex">Vortex F=(-y,x)</option>
+        <option value="source">Source F=(x,y)</option>
+        <option value="sink">Sink F=(-x,-y)</option>
+      </select>
+      <label>Arrow density: <span id="vcDensLbl">12</span></label>
+      <input type="range" id="vcDensSlider" min="4" max="24" value="12" step="1"
+        oninput="document.getElementById('vcDensLbl').textContent=this.value;draw3()">
+      <label>Arrow scale: <span id="vcScaleLbl">1.0</span></label>
+      <input type="range" id="vcScaleSlider" min="0.1" max="3.0" value="1.0" step="0.05"
+        oninput="document.getElementById('vcScaleLbl').textContent=parseFloat(this.value).toFixed(1);draw3()">
+      <button id="animBtn3" class="animBtn" onclick="toggleAnim3(this)">▶ Animate</button>
+      <button onclick="draw3()">Redraw</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info3">Select an operator and field preset to visualize vector calculus operators.</div>
+  <div class="row" style="gap:10px;flex-wrap:wrap;">
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Gradient ∇f — steepest ascent</div>
+      <div>$\nabla f = \frac{\partial f}{\partial x}\hat{x} + \frac{\partial f}{\partial y}\hat{y} + \frac{\partial f}{\partial z}\hat{z}$</div>
+      <div style="margin-top:6px;color:#aaa;">Points in direction of maximum rate of increase. $|\nabla f|$ = rate of increase. $\nabla f \perp$ level curves. In physics: $\mathbf{E} = -\nabla\phi$ (electric field from potential).</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Curl ∇×F — local rotation</div>
+      <div>$(\nabla\times\mathbf{F})_z = \frac{\partial F_y}{\partial x} - \frac{\partial F_x}{\partial y}$</div>
+      <div style="margin-top:6px;color:#aaa;">Measures infinitesimal rotation. Irrotational: $\nabla\times\mathbf{F}=0$. Stokes' theorem: $\oint_C \mathbf{F}\cdot d\mathbf{r} = \iint_S (\nabla\times\mathbf{F})\cdot d\mathbf{S}$.</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Divergence ∇·F — source/sink strength</div>
+      <div>$\nabla\cdot\mathbf{F} = \frac{\partial F_x}{\partial x} + \frac{\partial F_y}{\partial y} + \frac{\partial F_z}{\partial z}$</div>
+      <div style="margin-top:6px;color:#aaa;">Measures net outward flux per unit volume. Divergence theorem: $\oiint_S \mathbf{F}\cdot d\mathbf{S} = \iiint_V (\nabla\cdot\mathbf{F})\,dV$. Incompressible: $\nabla\cdot\mathbf{F}=0$.</div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Maxwell's Equations (∇ form)</div>
+      <div>$\nabla\cdot\mathbf{E} = \rho/\varepsilon_0$ &nbsp; (Gauss, electric)</div>
+      <div>$\nabla\cdot\mathbf{B} = 0$ &nbsp; (Gauss, magnetic — no monopoles)</div>
+      <div>$\nabla\times\mathbf{E} = -\partial\mathbf{B}/\partial t$ &nbsp; (Faraday)</div>
+      <div>$\nabla\times\mathbf{B} = \mu_0\mathbf{J} + \mu_0\varepsilon_0\,\partial\mathbf{E}/\partial t$ &nbsp; (Ampère-Maxwell)</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Helmholtz Decomposition</div>
+      <div style="color:#aaa;">Every smooth vector field $\mathbf{F}$ decomposes uniquely as $\mathbf{F} = -\nabla\phi + \nabla\times\mathbf{A}$ (irrotational + solenoidal). Fundamental to gauge theory and fluid mechanics.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: Complex Analysis & Residues -->
+<div class="page" data-role="panel" id="page4">
+  <div class="row">
+    <canvas id="c4" width="740" height="460"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Function f(z):</label>
+      <select id="cxFuncSel" onchange="draw4()">
+        <option value="inv_zsq1">1/(z²+1)</option>
+        <option value="inv_z">1/z</option>
+        <option value="inv_z2">1/z²</option>
+        <option value="zsinz">sin(z)/z</option>
+        <option value="ez">e^z</option>
+      </select>
+      <label>Contour radius: <span id="cxRadLbl">1.50</span></label>
+      <input type="range" id="cxRadSlider" min="0.1" max="3.5" value="1.5" step="0.05"
+        oninput="document.getElementById('cxRadLbl').textContent=parseFloat(this.value).toFixed(2);draw4()">
+      <label>Contour center Re: <span id="cxCxLbl">0.00</span></label>
+      <input type="range" id="cxCxSlider" min="-2" max="2" value="0" step="0.05"
+        oninput="document.getElementById('cxCxLbl').textContent=parseFloat(this.value).toFixed(2);draw4()">
+      <label>Contour center Im: <span id="cxCyLbl">0.00</span></label>
+      <input type="range" id="cxCySlider" min="-2" max="2" value="0" step="0.05"
+        oninput="document.getElementById('cxCyLbl').textContent=parseFloat(this.value).toFixed(2);draw4()">
+      <button id="animBtn4" class="animBtn" onclick="toggleAnim4(this)">▶ Animate Contour</button>
+      <button onclick="draw4()">Redraw</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info4">Domain coloring: hue = arg(f(z)), brightness = |f(z)|. Poles appear as rainbow singularities.</div>
+  <div class="row" style="gap:10px;flex-wrap:wrap;">
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Residue Theorem</div>
+      <div>$\oint_C f(z)\,dz = 2\pi i \sum_k \operatorname{Res}(f, z_k)$</div>
+      <div style="color:#aaa;margin-top:6px;">Sum over poles $z_k$ inside contour $C$. Residue at simple pole: $\operatorname{Res}(f,z_0) = \lim_{z\to z_0}(z-z_0)f(z)$. For $1/(z^2+1)$: poles at $z=\pm i$, $\operatorname{Res}(f,i) = 1/(2i)$.</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Cauchy's Integral Formula</div>
+      <div>$f^{(n)}(z_0) = \frac{n!}{2\pi i}\oint_C \frac{f(z)}{(z-z_0)^{n+1}}dz$</div>
+      <div style="color:#aaa;margin-top:6px;">Values of holomorphic function determined entirely by boundary values. Implies all derivatives exist (analyticity).</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Laurent Series</div>
+      <div>$f(z) = \sum_{n=-\infty}^{\infty} a_n (z-z_0)^n$</div>
+      <div style="color:#aaa;margin-top:6px;">The residue is $a_{-1}$, the coefficient of $(z-z_0)^{-1}$. Essential singularities have infinitely many negative-power terms (Picard's theorem).</div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Real Integral via Residues</div>
+      <div>$\int_{-\infty}^{\infty}\frac{dx}{x^2+1} = \pi$</div>
+      <div style="color:#aaa;margin-top:6px;">Close contour in upper half-plane. Only $z=+i$ is enclosed. $\operatorname{Res}(f,i)=\frac{1}{2i}$, so integral $= 2\pi i \cdot \frac{1}{2i} = \pi$.</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Bromwich Inversion (Laplace)</div>
+      <div>$f(t) = \frac{1}{2\pi i}\int_{\gamma-i\infty}^{\gamma+i\infty} e^{st} F(s)\,ds$</div>
+      <div style="color:#aaa;margin-top:6px;">Inverse Laplace transform as contour integral in complex $s$-plane. Residues at poles of $F(s)$ give the time-domain response — exponential modes $e^{s_k t}$.</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Argument Principle</div>
+      <div style="color:#aaa;">$\frac{1}{2\pi i}\oint_C \frac{f'(z)}{f(z)}dz = Z - P$ (zeros minus poles inside $C$). Basis of Nyquist stability criterion in control theory.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: Differential Equations & Phase Portraits -->
+<div class="page" data-role="panel" id="page5">
+  <div class="row">
+    <canvas id="c5" width="740" height="460"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>System:</label>
+      <select id="ppSysSel" onchange="resetPhase()">
+        <option value="harmonic">Harmonic Oscillator</option>
+        <option value="vanderpol">Van der Pol</option>
+        <option value="saddle">Saddle Point</option>
+        <option value="spiral_in">Stable Spiral</option>
+        <option value="spiral_out">Unstable Spiral</option>
+        <option value="sir">SIR Epidemic (x=S, y=I)</option>
+      </select>
+      <label>Param μ: <span id="ppMuLbl">1.00</span></label>
+      <input type="range" id="ppMuSlider" min="0.01" max="3.0" value="1.0" step="0.05"
+        oninput="document.getElementById('ppMuLbl').textContent=parseFloat(this.value).toFixed(2);resetPhase()">
+      <label>Trajectory count: <span id="ppTrajLbl">12</span></label>
+      <input type="range" id="ppTrajSlider" min="4" max="30" value="12" step="1"
+        oninput="document.getElementById('ppTrajLbl').textContent=this.value;resetPhase()">
+      <button id="animBtn5" class="animBtn" onclick="toggleAnim5(this)">▶ Animate</button>
+      <button onclick="resetPhase()">Reset</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info5">Phase portrait: trajectories in (x,y) state space. Arrows show the vector field.</div>
+  <div class="row" style="gap:10px;flex-wrap:wrap;">
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Key Theorems</div>
+      <div style="color:var(--accent);">Poincaré-Bendixson:</div>
+      <div style="color:#aaa;">A bounded trajectory in $\mathbb{R}^2$ with no fixed points must approach a closed orbit (limit cycle). Rules out chaos in 2D autonomous systems.</div>
+      <div style="margin-top:6px;color:var(--accent);">Hartman-Grobman (Linearization):</div>
+      <div style="color:#aaa;">Near a hyperbolic fixed point $\mathbf{x}^*$, the nonlinear flow is topologically conjugate to the linearization $\dot{\xi} = D\mathbf{f}(\mathbf{x}^*)\xi$. Eigenvalues of Jacobian determine stability.</div>
+      <div style="margin-top:6px;color:var(--accent);">Lyapunov Stability:</div>
+      <div style="color:#aaa;">If $\exists V(\mathbf{x}) > 0$ (Lyapunov function) with $\dot{V} \leq 0$ along trajectories, then $\mathbf{x}^*=0$ is stable. $\dot{V} < 0$ gives asymptotic stability.</div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Physical Applications</div>
+      <div style="color:var(--accent);">Van der Pol Oscillator:</div>
+      <div style="color:#aaa;">$\ddot{x} - \mu(1-x^2)\dot{x} + x = 0$. Nonlinear damping: energy injected for $|x|&lt;1$, dissipated for $|x|>1$. Stable limit cycle, used in cardiac pacemaker models.</div>
+      <div style="margin-top:6px;color:var(--accent);">RLC Circuit:</div>
+      <div style="color:#aaa;">$L\ddot{q} + R\dot{q} + q/C = V(t)$. Same form as damped harmonic oscillator. Under/over/critically damped by $R^2$ vs $4L/C$.</div>
+      <div style="margin-top:6px;color:var(--accent);">SIR Epidemic:</div>
+      <div style="color:#aaa;">$\dot{S}=-\beta SI$, $\dot{I}=\beta SI - \gamma I$. Threshold $R_0 = \beta S_0/\gamma$: epidemic spreads iff $R_0 > 1$. No endemic equilibrium in basic SIR.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: Calculus of Variations -->
+<div class="page" data-role="panel" id="page6">
+  <div class="row">
+    <canvas id="c6" width="740" height="460"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Problem:</label>
+      <select id="covProbSel" onchange="draw6()">
+        <option value="brachistochrone">Brachistochrone</option>
+        <option value="geodesic">Geodesic (Straight Line)</option>
+        <option value="isoperimetric">Isoperimetric</option>
+        <option value="minsurface">Minimal Surface (Catenary)</option>
+      </select>
+      <label>Curve parameter: <span id="covParLbl">1.00</span></label>
+      <input type="range" id="covParSlider" min="0.1" max="3.0" value="1.0" step="0.05"
+        oninput="document.getElementById('covParLbl').textContent=parseFloat(this.value).toFixed(2);draw6()">
+      <label>Show curves:</label>
+      <select id="covCurvesSel" onchange="draw6()">
+        <option value="all">Cycloid + comparison curves</option>
+        <option value="optimal">Optimal only</option>
+        <option value="comparison">Comparison family</option>
+      </select>
+      <button id="animBtn6" class="animBtn" onclick="toggleAnim6(this)">▶ Animate Bead</button>
+      <button onclick="draw6()">Redraw</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info6">Brachistochrone: find curve of fastest descent under gravity between two points.</div>
+  <div class="row" style="gap:10px;flex-wrap:wrap;">
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Euler-Lagrange Equation</div>
+      <div>$J[y] = \int_a^b L(x, y, y')\,dx$</div>
+      <div style="margin-top:4px;">$\frac{d}{dx}\frac{\partial L}{\partial y'} - \frac{\partial L}{\partial y} = 0$</div>
+      <div style="color:#aaa;margin-top:6px;">Necessary condition for $J[y]$ to be stationary. For brachistochrone $L = \sqrt{(1+y'^2)/(2gy)}$, solution is a <em>cycloid</em>: $x=r(\theta-\sin\theta)$, $y=r(1-\cos\theta)$.</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Hamilton's Principle</div>
+      <div>$\delta S = \delta\int_{t_1}^{t_2}(T - V)\,dt = 0$</div>
+      <div style="color:#aaa;margin-top:4px;">Action $S = \int L\,dt$ is stationary along physical trajectories. Euler-Lagrange equations $\equiv$ Newton's laws. Basis of quantum path integrals (Feynman).</div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Classical Problems</div>
+      <div style="color:var(--accent);">Dido's Isoperimetric Problem:</div>
+      <div style="color:#aaa;">Among all closed curves of fixed perimeter $L$, the circle encloses maximum area $A = L^2/(4\pi)$. Proof via calculus of variations with Lagrange multiplier constraint.</div>
+      <div style="margin-top:6px;color:var(--accent);">Minimal Surfaces (Plateau's Problem):</div>
+      <div style="color:#aaa;">Soap film minimizes area: $\nabla^2 z = 0$ for small deformations, mean curvature $H=0$ in general. Catenary $y=a\cosh(x/a)$ generates catenoid when rotated.</div>
+      <div style="margin-top:6px;color:var(--accent);">Pontryagin Maximum Principle:</div>
+      <div style="color:#aaa;">Generalization to optimal control: $\dot{\mathbf{x}}=f(\mathbf{x},\mathbf{u})$, minimize $\int_0^T C(\mathbf{x},\mathbf{u})\,dt$. Costate/adjoint equations + Hamiltonian maximized over control $\mathbf{u}$.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: Differential Geometry of Curves (Frenet-Serret) -->
+<div class="page" data-role="panel" id="page7">
+  <div class="row">
+    <canvas id="c7" width="740" height="460"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Curve:</label>
+      <select id="fsCurveSel" onchange="resetFrenet()">
+        <option value="helix">Circular Helix</option>
+        <option value="viviani">Viviani Curve</option>
+        <option value="trefoil">Trefoil Knot (projected)</option>
+        <option value="epicycloid">Epicycloid</option>
+        <option value="lissajous">Lissajous (3:2)</option>
+      </select>
+      <label>Helix radius a: <span id="fsALbl">1.00</span></label>
+      <input type="range" id="fsASlider" min="0.2" max="2.0" value="1.0" step="0.05"
+        oninput="document.getElementById('fsALbl').textContent=parseFloat(this.value).toFixed(2);resetFrenet()">
+      <label>Helix pitch b: <span id="fsBLbl">0.30</span></label>
+      <input type="range" id="fsBSlider" min="0.05" max="1.0" value="0.3" step="0.05"
+        oninput="document.getElementById('fsBLbl').textContent=parseFloat(this.value).toFixed(2);resetFrenet()">
+      <label>Frame position t: <span id="fsTLbl">0.00</span></label>
+      <input type="range" id="fsTSlider" min="0" max="6.28" value="0" step="0.02"
+        oninput="document.getElementById('fsTLbl').textContent=parseFloat(this.value).toFixed(2);draw7()">
+      <button id="animBtn7" class="animBtn" onclick="toggleAnim7(this)">▶ Animate Frame</button>
+      <button onclick="resetFrenet()">Reset</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+  </div>
+  <div class="info-box" id="info7">Frenet-Serret frame (T,N,B) moving along a space curve. Red=T, Green=N, Blue=B.</div>
+  <div class="row" style="gap:10px;flex-wrap:wrap;">
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Frenet-Serret Formulas</div>
+      <div>$\frac{d\mathbf{T}}{ds} = \kappa\,\mathbf{N}$</div>
+      <div>$\frac{d\mathbf{N}}{ds} = -\kappa\,\mathbf{T} + \tau\,\mathbf{B}$</div>
+      <div>$\frac{d\mathbf{B}}{ds} = -\tau\,\mathbf{N}$</div>
+      <div style="color:#aaa;margin-top:6px;">$\mathbf{T}=$ unit tangent, $\mathbf{N}=$ principal normal, $\mathbf{B}=\mathbf{T}\times\mathbf{N}$ binormal. Curvature $\kappa = |d\mathbf{T}/ds|$ measures bending. Torsion $\tau$ measures twisting out of the osculating plane.</div>
+      <div style="margin-top:8px;color:var(--accent);font-weight:700;">Fundamental Theorem of Curves</div>
+      <div style="color:#aaa;">Given smooth $\kappa(s)>0$ and $\tau(s)$, there exists a unique (up to rigid motion) curve with these curvature and torsion functions. Curves are completely characterized by $(\kappa(s), \tau(s))$.</div>
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:280px;font-size:.84rem;line-height:1.8;">
+      <div style="color:var(--accent);font-weight:700;margin-bottom:8px;">Topology & Applications</div>
+      <div style="color:var(--accent);">Four-Vertex Theorem:</div>
+      <div style="color:#aaa;">Every smooth closed convex curve in $\mathbb{R}^2$ has at least 4 vertices (extrema of curvature). Generalizes to non-convex curves (Mukhopadhyaya).</div>
+      <div style="margin-top:6px;color:var(--accent);">Total Curvature:</div>
+      <div style="color:#aaa;">$\int_C \kappa\,ds = 2\pi\,n$ for a closed plane curve with winding number $n$ (Hopf Umlaufsatz). For a space curve, $\int\kappa\,ds \geq 2\pi$ (Fenchel's theorem).</div>
+      <div style="margin-top:6px;color:var(--accent);">DNA Supercoiling:</div>
+      <div style="color:#aaa;">Linking number $Lk = Tw + Wr$ (White's formula). Writhe $Wr$ measures spatial geometry of DNA axis (Frenet torsion contribution); twist $Tw$ counts helical turns of double helix. Topoisomerases change $Lk$.</div>
+      <div style="margin-top:6px;color:var(--accent);">Elastica (Euler's Elastic Curves):</div>
+      <div style="color:#aaa;">Minimize $\int \kappa^2\,ds$ subject to length constraint. Solutions are elliptic integrals — describe buckled rods, shape of red blood cells.</div>
+    </div>
+  </div>
+</div>
+
+<button class="proof-btn" onclick="toggleProofPanel()">PROOFS &amp; THEOREMS</button>
+<div class="proof-panel" id="proofPanel">
+  <button class="proof-close" onclick="toggleProofPanel()">&#10005;</button>
+  <h3>Proofs &amp; Theorems</h3>
+  <div id="proofList"></div>
+  <div id="proofContent" style="display:none;"></div>
+</div>
+
+<script>
+// ── PROOFS ────────────────────────────────────────────────────────────────
+const PROOF_TITLES = [
+  "Definition of Derivative",
+  "Fundamental Theorem of Calculus",
+  "Riemann Integral",
+  "Taylor's Theorem with Remainder",
+  "Radius of Convergence (Cauchy-Hadamard)",
+  "Complex Differentiability & Cauchy-Riemann"
+];
+const PROOFS = [
+  "Definition of derivative: $f'(x) = \\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}$. Geometric: slope of tangent. Differentiability $\\Rightarrow$ continuity, not vice versa (e.g., $|x|$ at 0).",
+  "Fundamental Theorem of Calculus: $\\frac{d}{dx}\\int_a^x f(t)\\,dt = f(x)$ and $\\int_a^b f'(x)\\,dx = f(b)-f(a)$. Integration and differentiation are inverse operations.",
+  "Riemann integral: $\\int_a^b f\\,dx = \\lim_{n\\to\\infty}\\sum_{i=1}^n f(x_i^*)\\Delta x_i$. Exists iff $f$ is bounded and continuous a.e. (Lebesgue criterion).",
+  "Taylor's theorem: $f(x) = \\sum_{n=0}^N \\frac{f^{(n)}(a)}{n!}(x-a)^n + R_N(x)$ where $R_N(x) = \\frac{f^{(N+1)}(\\xi)}{(N+1)!}(x-a)^{N+1}$ for some $\\xi$ between $a$ and $x$.",
+  "Radius of convergence: $R = 1/\\limsup_{n\\to\\infty}|a_n|^{1/n}$ (Cauchy-Hadamard). Examples: $e^x$ has $R=\\infty$; $\\ln(1+x)$ has $R=1$; geometric series $R=1$.",
+  "Complex differentiability (Ch. 6 connection): $f'(z) = \\lim_{h\\to 0}f(z+h)/h$ for $h\\in\\mathbb{C}$. Much stronger than real differentiability — Cauchy-Riemann equations $u_x=v_y$, $u_y=-v_x$ imply analyticity (convergent power series)."
+];
+
+function buildProofList(){
+  const el=document.getElementById('proofList');
+  el.innerHTML='';
+  PROOF_TITLES.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='proof-entry';
+    d.innerHTML=t;
+    d.onclick=()=>showProof(i,d);
+    el.appendChild(d);
+  });
+}
+function showProof(i,entry){
+  document.querySelectorAll('.proof-entry').forEach(e=>e.classList.remove('selected'));
+  if(entry) entry.classList.add('selected');
+  const el=document.getElementById('proofContent');
+  el.style.display='block';
+  el.innerHTML=PROOFS[i];
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(el,{
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });
+  }
+}
+function toggleProofPanel(){
+  document.getElementById('proofPanel').classList.toggle('open');
+}
+
+function _cancelAllAnims27(){
+  [animId0,animId1,animId2,animId3,animId4,animId5,animId6,animId7].forEach((id,j)=>{
+    if(id){cancelAnimationFrame(id);}
+  });
+  animId0=animId1=animId2=animId3=animId4=animId5=animId6=animId7=null;
+  document.querySelectorAll('.animBtn').forEach(b=>{
+    b.classList.remove('active');
+    const labels=['▶ Animate h→0','▶ Animate N→∞','▶ Animate Terms','▶ Animate','▶ Animate Contour','▶ Animate','▶ Animate Bead','▶ Animate Frame'];
+    if(labels[b.id?.slice(-1)])b.textContent=labels[b.id.slice(-1)];
+  });
+}
+function syncSpeedControl27(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+function switchTab(i){
+  _cancelAllAnims27();
+  document.querySelectorAll('.page').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  syncSpeedControl27(i);
+  [draw0,draw1,draw2,draw3,draw4,draw5,draw6,draw7][i]();
+  if(i===0) toggleAnim0(document.getElementById('animBtn0'));
+  if(i===1) toggleAnim1(document.getElementById('animBtn1'));
+  if(i===2) toggleAnim2(document.getElementById('animBtn2'));
+  if(i===3) toggleAnim3(document.getElementById('animBtn3'));
+  if(i===4) toggleAnim4(document.getElementById('animBtn4'));
+  if(i===5) toggleAnim5(document.getElementById('animBtn5'));
+  if(i===6) toggleAnim6(document.getElementById('animBtn6'));
+  if(i===7) toggleAnim7(document.getElementById('animBtn7'));
+}
+
+// ── FUNCTION DEFINITIONS ─────────────────────────────────────────────────
+const FUNCS = {
+  xsq:   { f: x=>x*x,          df: x=>2*x,           name:'x²',      dfName:"2x" },
+  xcube: { f: x=>x*x*x-x,      df: x=>3*x*x-1,       name:'x³-x',    dfName:"3x²-1" },
+  sinx:  { f: x=>Math.sin(x),  df: x=>Math.cos(x),   name:'sin(x)',  dfName:"cos(x)" },
+  expx:  { f: x=>Math.exp(x),  df: x=>Math.exp(x),   name:'eˣ',      dfName:"eˣ" },
+  absx:  { f: x=>Math.abs(x),  df: x=>(x>0?1:x<0?-1:NaN), name:'|x|', dfName:"sgn(x)" },
+};
+
+// ── TAB 0: LIMITS & DERIVATIVES ──────────────────────────────────────────
+const c0=document.getElementById('c0'), ctx0=c0.getContext('2d');
+let animId0=null, animOffset0=0;
+let zoom0=60, panX0=0, panY0=0;
+const zooms0=[zoom0];
+
+function updateHLabel(){
+  const raw=parseFloat(document.getElementById('hSlider').value);
+  const h=Math.pow(10,raw);
+  // display h directly from slider mapped 10^(-3) to 10^3
+  const hVal=Math.pow(10, parseFloat(document.getElementById('hSlider').value));
+  document.getElementById('hLbl').textContent=hVal.toFixed(4);
+}
+
+function worldToCanvas0(wx,wy){
+  const W=c0.offsetWidth, H=c0.offsetHeight;
+  return [W/2+wx*zoom0+panX0, H/2-wy*zoom0+panY0];
+}
+
+function draw0(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c0.offsetWidth, H=c0.offsetHeight;
+  if(!W||!H)return;
+  c0.width=W*dpr; c0.height=H*dpr;
+  ctx0.setTransform(dpr,0,0,dpr,0,0);
+  ctx0.clearRect(0,0,W,H);
+  const sel=document.getElementById('funcSel').value;
+  const fn=FUNCS[sel];
+  const x0=parseFloat(document.getElementById('x0Slider').value);
+  const hRaw=parseFloat(document.getElementById('hSlider').value);
+  const h=Math.pow(10,hRaw);
+  const epsDelta=document.getElementById('epsDeltaMode').checked;
+  const eps=parseFloat(document.getElementById('epsSlider').value);
+  const delta=parseFloat(document.getElementById('deltaSlider').value);
+
+  // Grid
+  ctx0.strokeStyle='#1a1a3a';
+  ctx0.lineWidth=1;
+  const xL=screenToWorld0x(0), xR=screenToWorld0x(W);
+  for(let gx=Math.ceil(xL);gx<=Math.floor(xR);gx++){
+    const [sx]=worldToCanvas0(gx,0);
+    ctx0.beginPath(); ctx0.moveTo(sx,0); ctx0.lineTo(sx,H); ctx0.stroke();
+    if(sx>20&&sx<W-10){
+      ctx0.fillStyle='#33335a'; ctx0.font='12px monospace'; ctx0.textAlign='center';
+      ctx0.fillText(gx, sx, H/2+panY0+14);
+    }
+  }
+  const yT=screenToWorld0y(0), yB=screenToWorld0y(H);
+  for(let gy=Math.ceil(yB);gy<=Math.floor(yT);gy++){
+    const [,sy]=worldToCanvas0(0,gy);
+    ctx0.beginPath(); ctx0.moveTo(0,sy); ctx0.lineTo(W,sy); ctx0.stroke();
+    if(sy>10&&sy<H-10){
+      ctx0.fillStyle='#33335a'; ctx0.font='12px monospace'; ctx0.textAlign='right';
+      ctx0.fillText(gy, W/2+panX0-4, sy+4);
+    }
+  }
+
+  // Axes
+  const [ax0]=worldToCanvas0(0,0); const [,ay0]=worldToCanvas0(0,0);
+  ctx0.strokeStyle='#44446a'; ctx0.lineWidth=1.5;
+  ctx0.beginPath(); ctx0.moveTo(0,ay0); ctx0.lineTo(W,ay0); ctx0.stroke();
+  ctx0.beginPath(); ctx0.moveTo(ax0,0); ctx0.lineTo(ax0,H); ctx0.stroke();
+
+  // f(x) curve
+  ctx0.beginPath();
+  ctx0.strokeStyle='#c0c0ea';
+  ctx0.lineWidth=2;
+  let first=true;
+  for(let px=0;px<W;px++){
+    const wx=screenToWorld0x(px);
+    const wy=fn.f(wx);
+    const [,sy]=worldToCanvas0(wx,wy);
+    if(!isFinite(wy)||Math.abs(wy)>1e4){first=true;continue;}
+    if(first){ctx0.moveTo(px,sy);first=false;}else{ctx0.lineTo(px,sy);}
+  }
+  ctx0.stroke();
+
+  // f'(x) curve below (in accent color)
+  ctx0.beginPath();
+  ctx0.strokeStyle='rgba(136,255,136,0.6)';
+  ctx0.lineWidth=1.5;
+  ctx0.setLineDash([4,4]);
+  first=true;
+  for(let px=0;px<W;px++){
+    const wx=screenToWorld0x(px);
+    const wy=fn.df(wx);
+    const [,sy]=worldToCanvas0(wx,wy*0.5-2.5); // offset downward
+    if(!isFinite(wy)||Math.abs(wy)>1e4){first=true;continue;}
+    if(first){ctx0.moveTo(px,sy);first=false;}else{ctx0.lineTo(px,sy);}
+  }
+  ctx0.stroke();
+  ctx0.setLineDash([]);
+  ctx0.fillStyle='rgba(136,255,136,0.7)'; ctx0.font='12px sans-serif'; ctx0.textAlign='left';
+  ctx0.fillText("f'(x) = "+fn.dfName+' (scaled)', W/2+panX0+8, ay0-8);
+
+  // Point P
+  const yP=fn.f(x0);
+  const [psx,psy]=worldToCanvas0(x0,yP);
+
+  // Secant line
+  const x1=x0+h;
+  const y1=fn.f(x1);
+  const slope=(y1-yP)/h;
+  // Draw secant
+  if(isFinite(slope)){
+    ctx0.strokeStyle='#ffaa44';
+    ctx0.lineWidth=1.5;
+    ctx0.beginPath();
+    const ext=8;
+    const [s1x,s1y]=worldToCanvas0(x0-ext,yP+((-ext)*slope));
+    const [s2x,s2y]=worldToCanvas0(x0+ext,yP+((ext)*slope));
+    ctx0.moveTo(s1x,s1y); ctx0.lineTo(s2x,s2y); ctx0.stroke();
+  }
+  // Tangent line
+  const dP=fn.df(x0);
+  if(isFinite(dP)){
+    ctx0.strokeStyle='#88ff88';
+    ctx0.lineWidth=2;
+    ctx0.beginPath();
+    const ext=6;
+    const [t1x,t1y]=worldToCanvas0(x0-ext,yP+((-ext)*dP));
+    const [t2x,t2y]=worldToCanvas0(x0+ext,yP+((ext)*dP));
+    ctx0.moveTo(t1x,t1y); ctx0.lineTo(t2x,t2y); ctx0.stroke();
+  }
+
+  // P dot
+  ctx0.beginPath(); ctx0.arc(psx,psy,6,0,Math.PI*2);
+  ctx0.fillStyle='#88ff88'; ctx0.fill();
+  ctx0.fillStyle='#88ff88'; ctx0.font='bold 12px sans-serif'; ctx0.textAlign='left';
+  ctx0.fillText(`P=(${x0.toFixed(2)},${yP.toFixed(3)})`, psx+8, psy-8);
+
+  // Q dot (secant endpoint)
+  if(Math.abs(h)>1e-5){
+    const [qsx,qsy]=worldToCanvas0(x1,y1);
+    ctx0.beginPath(); ctx0.arc(qsx,qsy,4,0,Math.PI*2);
+    ctx0.fillStyle='#ffaa44'; ctx0.fill();
+    ctx0.fillStyle='#ffaa44'; ctx0.font='12px sans-serif'; ctx0.textAlign='left';
+    ctx0.fillText(`Q  h=${h.toFixed(4)}`, qsx+6, qsy-6);
+  }
+
+  // Epsilon-delta visualization
+  if(epsDelta){
+    const [,Lsy]=worldToCanvas0(0,yP);
+    const [dLeft]=worldToCanvas0(x0-delta,0);
+    const [dRight]=worldToCanvas0(x0+delta,0);
+    const [,epsTop]=worldToCanvas0(0,yP+eps);
+    const [,epsBot]=worldToCanvas0(0,yP-eps);
+    // ε-band
+    ctx0.fillStyle='rgba(136,255,136,0.08)';
+    ctx0.fillRect(0,epsTop,W,epsBot-epsTop);
+    ctx0.strokeStyle='rgba(136,255,136,0.4)';
+    ctx0.setLineDash([6,4]);
+    ctx0.beginPath(); ctx0.moveTo(0,epsTop); ctx0.lineTo(W,epsTop); ctx0.stroke();
+    ctx0.beginPath(); ctx0.moveTo(0,epsBot); ctx0.lineTo(W,epsBot); ctx0.stroke();
+    // δ-band
+    ctx0.fillStyle='rgba(255,170,68,0.07)';
+    ctx0.fillRect(dLeft,0,dRight-dLeft,H);
+    ctx0.strokeStyle='rgba(255,170,68,0.4)';
+    ctx0.beginPath(); ctx0.moveTo(dLeft,0); ctx0.lineTo(dLeft,H); ctx0.stroke();
+    ctx0.beginPath(); ctx0.moveTo(dRight,0); ctx0.lineTo(dRight,H); ctx0.stroke();
+    ctx0.setLineDash([]);
+    ctx0.fillStyle='rgba(136,255,136,0.9)'; ctx0.font='12px sans-serif'; ctx0.textAlign='left';
+    ctx0.fillText(`ε=${eps.toFixed(2)}`, 6, epsTop-3);
+    ctx0.fillStyle='rgba(255,170,68,0.9)';
+    ctx0.fillText(`δ=${delta.toFixed(2)}`, dLeft+3, 14);
+  }
+
+  // Info
+  const secSlope=isFinite(slope)?slope.toFixed(5):'undef';
+  const tanSlope=isFinite(dP)?dP.toFixed(5):'undef';
+  document.getElementById('info0').innerHTML=
+    `f(x) = ${fn.name} &nbsp;|&nbsp; x₀ = ${x0.toFixed(3)} &nbsp;|&nbsp; `+
+    `Secant slope [f(x+h)-f(x)]/h = <b style="color:#ffaa44">${secSlope}</b> &nbsp;|&nbsp; `+
+    `True f'(x₀) = <b style="color:#88ff88">${tanSlope}</b>`;
+}
+
+function screenToWorld0x(sx){ return (sx - c0.offsetWidth/2 - panX0)/zoom0; }
+function screenToWorld0y(sy){ return -(sy - c0.offsetHeight/2 - panY0)/zoom0; }
+
+c0.addEventListener('wheel',e=>{
+  e.preventDefault();
+  zoom0=Math.max(10,Math.min(300,zoom0*(e.deltaY<0?1.12:0.89)));
+  draw0();
+},{passive:false});
+
+let drag0=false, dragLast0={x:0,y:0};
+c0.addEventListener('mousedown',e=>{drag0=true;dragLast0={x:e.clientX,y:e.clientY};});
+c0.addEventListener('mousemove',e=>{
+  if(!drag0) return;
+  panX0 += e.clientX-dragLast0.x;
+  panY0 += e.clientY-dragLast0.y;
+  dragLast0={x:e.clientX,y:e.clientY};
+  draw0();
+});
+c0.addEventListener('mouseup',()=>drag0=false);
+c0.addEventListener('mouseleave',()=>drag0=false);
+
+function resetView0(){
+  zoom0=60;panX0=0;panY0=0;
+  document.getElementById('x0Slider').value=0.5;
+  document.getElementById('hSlider').value=1.0;
+  document.getElementById('x0Lbl').textContent='0.50';
+  document.getElementById('hLbl').textContent='10.0000';
+  if(animId0){cancelAnimationFrame(animId0);animId0=null;}
+  const b0=document.getElementById('animBtn0');if(b0){b0.textContent='▶ Animate h→0';b0.classList.remove('active');}
+  draw0();
+}
+
+function toggleAnim0(btn){
+  if(animId0){cancelAnimationFrame(animId0);animId0=null;btn.textContent='▶ Animate h→0';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){
+    animOffset0+=0.022*(window.animSpeed||0.1);
+    // h goes from 2 → 0.001 oscillating
+    const raw=2-2.5*(0.5-0.5*Math.cos(animOffset0*0.5));
+    document.getElementById('hSlider').value=raw;
+    updateHLabel();
+    draw0();
+    animId0=requestAnimationFrame(frame);
+  }
+  animId0=requestAnimationFrame(frame);
+}
+
+// ── TAB 1: RIEMANN INTEGRATION ───────────────────────────────────────────
+const c1=document.getElementById('c1'), ctx1=c1.getContext('2d');
+let animId1=null, animOffset1=0;
+
+const RFUNCS={
+  xsq:   {f:x=>x*x,     a:0,b:2, exact:8/3,    name:'x²'},
+  sinx:  {f:x=>Math.sin(x), a:0,b:Math.PI, exact:2, name:'sin(x)'},
+  xthird:{f:x=>x*x*x,   a:0,b:1, exact:0.25,   name:'x³'},
+  expx:  {f:x=>Math.exp(x),a:0,b:1,exact:Math.E-1, name:'eˣ'},
+  mixed: {f:x=>x*Math.sin(x),a:0,b:Math.PI,exact:Math.PI, name:'x·sin(x)'},
+};
+
+function riemannSum(f,a,b,n,method){
+  const dx=(b-a)/n;
+  let sum=0;
+  for(let i=0;i<n;i++){
+    let xi;
+    if(method==='left') xi=a+i*dx;
+    else if(method==='right') xi=a+(i+1)*dx;
+    else if(method==='mid') xi=a+(i+0.5)*dx;
+    else xi=a+i*dx; // trap handled separately
+    if(method==='trap'){
+      sum+=0.5*(f(a+i*dx*(window.animSpeed||0.1))+f(a+(i+1)*dx))*dx;
+    } else {
+      sum+=f(xi)*dx;
+    }
+  }
+  return sum;
+}
+
+function draw1(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c1.offsetWidth, H=c1.offsetHeight;
+  if(!W||!H)return;
+  c1.width=W*dpr; c1.height=H*dpr;
+  ctx1.setTransform(dpr,0,0,dpr,0,0);
+  ctx1.clearRect(0,0,W,H);
+
+  const sel=document.getElementById('rFuncSel').value;
+  const method=document.getElementById('methodSel').value;
+  const n=parseInt(document.getElementById('nRectSlider').value);
+  const rdat=RFUNCS[sel];
+  const {f,a,b,exact}=rdat;
+
+  const plotH=H*0.6, plotTop=40, plotLeft=60, plotW=W-120;
+  const errPlotTop=plotTop+plotH+50, errPlotH=H-errPlotTop-20;
+
+  // Find y range
+  let yMax=0;
+  for(let i=0;i<=200;i++){
+    const x=a+i*(b-a)/200;
+    const y=f(x);
+    if(isFinite(y)&&y>yMax) yMax=y;
+  }
+  yMax=yMax*1.15||1;
+
+  const toSX=x=>plotLeft+(x-a)/(b-a)*plotW;
+  const toSY=y=>plotTop+plotH-(y/yMax)*plotH;
+
+  // Draw rectangles
+  const dx=(b-a)/n;
+  for(let i=0;i<n;i++){
+    let xi, height;
+    if(method==='left') xi=a+i*dx;
+    else if(method==='right') xi=a+(i+1)*dx;
+    else if(method==='mid') xi=a+(i+0.5)*dx;
+    else xi=a+i*dx;
+
+    if(method==='trap'){
+      const y0=f(a+i*dx), y1=f(a+(i+1)*dx);
+      const x0s=toSX(a+i*dx), x1s=toSX(a+(i+1)*dx);
+      const y0s=toSY(y0), y1s=toSY(y1), baseY=toSY(0);
+      ctx1.beginPath();
+      ctx1.moveTo(x0s,baseY); ctx1.lineTo(x0s,y0s);
+      ctx1.lineTo(x1s,y1s); ctx1.lineTo(x1s,baseY);
+      ctx1.closePath();
+      ctx1.fillStyle='rgba(136,255,136,0.18)';
+      ctx1.fill();
+      ctx1.strokeStyle='rgba(136,255,136,0.5)';
+      ctx1.lineWidth=0.5;
+      ctx1.stroke();
+    } else {
+      height=f(xi);
+      if(!isFinite(height)||height<0) height=0;
+      const rx=toSX(a+i*dx), rw=toSX(a+(i+1)*dx)-toSX(a+i*dx);
+      const ry=toSY(height), rh=toSY(0)-toSY(height);
+      ctx1.fillStyle='rgba(136,255,136,0.20)';
+      ctx1.fillRect(rx,ry,rw,rh);
+      ctx1.strokeStyle='rgba(136,255,136,0.5)';
+      ctx1.lineWidth=n>50?0.3:0.7;
+      ctx1.strokeRect(rx,ry,rw,rh);
+    }
+  }
+
+  // Axes
+  ctx1.strokeStyle='#3a3a6a'; ctx1.lineWidth=1;
+  ctx1.beginPath(); ctx1.moveTo(plotLeft,toSY(0)); ctx1.lineTo(plotLeft+plotW,toSY(0)); ctx1.stroke();
+  ctx1.beginPath(); ctx1.moveTo(plotLeft,plotTop); ctx1.lineTo(plotLeft,plotTop+plotH); ctx1.stroke();
+  ctx1.fillStyle='#55558a'; ctx1.font='12px monospace'; ctx1.textAlign='center';
+  ctx1.fillText(a.toFixed(2), plotLeft, toSY(0)+14);
+  ctx1.fillText(b.toFixed(2), plotLeft+plotW, toSY(0)+14);
+  ctx1.fillStyle='#88aabb'; ctx1.textAlign='right';
+  ctx1.fillText(yMax.toFixed(2), plotLeft-4, plotTop+6);
+
+  // True curve
+  ctx1.beginPath();
+  ctx1.strokeStyle='#ffffff';
+  ctx1.lineWidth=2.5;
+  let first=true;
+  for(let px=0;px<=plotW;px++){
+    const x=a+px/plotW*(b-a);
+    const y=f(x);
+    if(!isFinite(y)){first=true;continue;}
+    const sy=toSY(y);
+    if(first){ctx1.moveTo(plotLeft+px,sy);first=false;}
+    else ctx1.lineTo(plotLeft+px,sy);
+  }
+  ctx1.stroke();
+
+  // Compute sums
+  const rSum=riemannSum(f,a,b,n,method);
+  const err=Math.abs(rSum-exact);
+
+  // Error plot
+  if(errPlotH>30){
+    ctx1.fillStyle='#0d0d22';
+    ctx1.fillRect(plotLeft,errPlotTop,plotW*0.6,errPlotH);
+    ctx1.strokeStyle='#2a2a5a'; ctx1.lineWidth=1;
+    ctx1.strokeRect(plotLeft,errPlotTop,plotW*0.6,errPlotH);
+    ctx1.fillStyle='#55558a'; ctx1.font='12px sans-serif'; ctx1.textAlign='left';
+    ctx1.fillText('log(error) vs log(N)', plotLeft+4, errPlotTop-6);
+
+    const errPts=[];
+    for(let ni=2;ni<=120;ni+=2){
+      const s=riemannSum(f,a,b,ni,method);
+      const e=Math.abs(s-exact);
+      if(e>1e-14) errPts.push({logN:Math.log10(ni),logE:Math.log10(e)});
+    }
+    if(errPts.length>1){
+      const logNmin=errPts[0].logN, logNmax=errPts[errPts.length-1].logN;
+      const logEmin=Math.min(...errPts.map(p=>p.logE))-0.5;
+      const logEmax=Math.max(...errPts.map(p=>p.logE))+0.5;
+      const eW=plotW*0.6, eH=errPlotH;
+      const toEX=lN=>plotLeft+(lN-logNmin)/(logNmax-logNmin)*eW;
+      const toEY=lE=>errPlotTop+eH-(lE-logEmin)/(logEmax-logEmin)*eH;
+      ctx1.beginPath(); ctx1.strokeStyle='#88ff88'; ctx1.lineWidth=1.5;
+      errPts.forEach((pt,i)=>{
+        if(i===0) ctx1.moveTo(toEX(pt.logN),toEY(pt.logE));
+        else ctx1.lineTo(toEX(pt.logN),toEY(pt.logE));
+      });
+      ctx1.stroke();
+      // Mark current N
+      const curLogN=Math.log10(n);
+      if(curLogN>=logNmin&&curLogN<=logNmax){
+        const curLogE=Math.log10(Math.max(err,1e-14));
+        const cx=toEX(curLogN), cy=toEY(curLogE);
+        ctx1.beginPath(); ctx1.arc(cx,cy,4,0,Math.PI*2);
+        ctx1.fillStyle='#ffaa44'; ctx1.fill();
+      }
+    }
+    ctx1.fillStyle='#55558a'; ctx1.font='12px monospace'; ctx1.textAlign='center';
+    ctx1.fillText('log₁₀(N)', plotLeft+plotW*0.3, errPlotTop+errPlotH+12);
+  }
+
+  // Info
+  document.getElementById('info1').innerHTML=
+    `N=${n} &nbsp;|&nbsp; Method: ${method} &nbsp;|&nbsp; `+
+    `Riemann sum = <b style="color:#88ff88">${rSum.toFixed(6)}</b> &nbsp;|&nbsp; `+
+    `Exact = <b>${exact.toFixed(6)}</b> &nbsp;|&nbsp; `+
+    `Error = <b style="color:#ffaa44">${err.toExponential(3)}</b>`;
+}
+
+function toggleAnim1(btn){
+  if(animId1){cancelAnimationFrame(animId1);animId1=null;btn.textContent='▶ Animate N→∞';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  let curN=1;
+  function frame(){
+    animOffset1+=0.04*(window.animSpeed||0.1);
+    curN=Math.min(200,Math.floor(1+Math.exp(animOffset1*0.15)*1));
+    document.getElementById('nRectSlider').value=curN;
+    document.getElementById('nRectLbl').textContent=curN;
+    draw1();
+    if(curN<200) animId1=requestAnimationFrame(frame);
+    else{animId1=null;btn.textContent='Animate N→∞';}
+  }
+  animId1=requestAnimationFrame(frame);
+}
+function resetAnim1(){
+  if(animId1){cancelAnimationFrame(animId1);animId1=null;}
+  animOffset1=0;
+  document.getElementById('nRectSlider').value=20;
+  document.getElementById('nRectLbl').textContent=20;
+  document.getElementById('animBtn1').textContent='Animate N→∞';
+  draw1();
+}
+
+// ── TAB 2: TAYLOR SERIES ─────────────────────────────────────────────────
+const c2=document.getElementById('c2'), ctx2=c2.getContext('2d');
+let animId2=null, animOffset2=0, taylorN=5;
+
+const TAYLOR={
+  sinx:{
+    f:x=>Math.sin(x),
+    coeff:(n,a)=>{
+      // sin(x) around a: sum (-1)^k * cos/sin(a) / k! * (x-a)^k
+      const sins=[Math.sin(a),Math.cos(a),-Math.sin(a),-Math.cos(a)];
+      return sins[n%4];
+    },
+    name:'sin(x)', R:'∞', color:'#88ff88'
+  },
+  expx:{
+    f:x=>Math.exp(x),
+    coeff:(n,a)=>Math.exp(a),
+    name:'eˣ', R:'∞', color:'#88ff88'
+  },
+  cosx:{
+    f:x=>Math.cos(x),
+    coeff:(n,a)=>{
+      const coss=[Math.cos(a),-Math.sin(a),-Math.cos(a),Math.sin(a)];
+      return coss[n%4];
+    },
+    name:'cos(x)', R:'∞', color:'#88ff88'
+  },
+  ln1px:{
+    f:x=>Math.log(1+x),
+    coeff:(n,a)=>{
+      if(n===0) return Math.log(1+a);
+      // (d^n/dx^n) ln(1+x) at a = (-1)^(n+1)*(n-1)!/(1+a)^n
+      let v=Math.pow(-1,n+1);
+      let fact=1; for(let k=1;k<n;k++) fact*=k;
+      return v*fact/Math.pow(1+a,n);
+    },
+    name:'ln(1+x)', R:'1', color:'#88ff88'
+  },
+  geo:{
+    f:x=>1/(1-x),
+    coeff:(n,a)=>{
+      // (d^n/dx^n) 1/(1-x) at a = n!/(1-a)^(n+1)
+      let fact=1; for(let k=1;k<=n;k++) fact*=k;
+      return fact/Math.pow(1-a,n+1);
+    },
+    name:'1/(1-x)', R:'1', color:'#88ff88'
+  },
+};
+
+function taylorPartialSum(sel,a,x,nTerms){
+  const td=TAYLOR[sel];
+  let sum=0, xPow=1, fact=1;
+  for(let k=0;k<=nTerms;k++){
+    if(k>0){xPow*=(x-a);fact*=k;}
+    const c=td.coeff(k,a);
+    if(!isFinite(c)) return NaN;
+    sum+=c/fact*xPow;
+  }
+  return sum;
+}
+
+const TERM_COLORS=['#ff4444','#ff8844','#ffcc44','#aaff44','#44ff88',
+                   '#44ffee','#44aaff','#8844ff','#ff44ee','#ff4488','#ffffff'];
+
+function draw2(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c2.offsetWidth, H=c2.offsetHeight;
+  if(!W||!H)return;
+  c2.width=W*dpr; c2.height=H*dpr;
+  ctx2.setTransform(dpr,0,0,dpr,0,0);
+  ctx2.clearRect(0,0,W,H);
+
+  const sel=document.getElementById('taylorSel').value;
+  const a=parseFloat(document.getElementById('aSlider').value);
+  const nShow=parseInt(document.getElementById('nTermSlider').value);
+  const td=TAYLOR[sel];
+
+  const zoom=55, cx=W/2, cy=H/2;
+  const toSX=wx=>cx+wx*zoom;
+  const toSY=wy=>cy-wy*zoom;
+  const toWX=sx=>(sx-cx)/zoom;
+
+  // Grid
+  ctx2.strokeStyle='#181830'; ctx2.lineWidth=1;
+  for(let gx=-8;gx<=8;gx++){const sx=toSX(gx);ctx2.beginPath();ctx2.moveTo(sx,0);ctx2.lineTo(sx,H);ctx2.stroke();}
+  for(let gy=-6;gy<=6;gy++){const sy=toSY(gy);ctx2.beginPath();ctx2.moveTo(0,sy);ctx2.lineTo(W,sy);ctx2.stroke();}
+  // Axes
+  ctx2.strokeStyle='#3a3a6a'; ctx2.lineWidth=1.5;
+  ctx2.beginPath(); ctx2.moveTo(0,cy); ctx2.lineTo(W,cy); ctx2.stroke();
+  ctx2.beginPath(); ctx2.moveTo(cx,0); ctx2.lineTo(cx,H); ctx2.stroke();
+  // Tick labels
+  ctx2.fillStyle='#33335a'; ctx2.font='12px monospace'; ctx2.textAlign='center';
+  for(let gx=-7;gx<=7;gx++){if(gx===0)continue;ctx2.fillText(gx,toSX(gx),cy+12);}
+  ctx2.textAlign='right';
+  for(let gy=-5;gy<=5;gy++){if(gy===0)continue;ctx2.fillText(gy,cx-4,toSY(gy)+3);}
+
+  // True function (white)
+  ctx2.beginPath(); ctx2.strokeStyle='#ffffff'; ctx2.lineWidth=2.5;
+  let first=true;
+  for(let px=0;px<W;px++){
+    const wx=toWX(px);
+    let wy;
+    try{wy=td.f(wx);}catch(e){first=true;continue;}
+    if(!isFinite(wy)||Math.abs(wy)>8){first=true;continue;}
+    const sy=toSY(wy);
+    if(first){ctx2.moveTo(px,sy);first=false;}else ctx2.lineTo(px,sy);
+  }
+  ctx2.stroke();
+
+  // Partial sums T_n for n = 0..nShow
+  for(let n=0;n<=nShow;n++){
+    const col=TERM_COLORS[n%TERM_COLORS.length];
+    const alpha = n===nShow ? 1 : 0.35+0.5*(n/Math.max(nShow,1));
+    ctx2.beginPath();
+    ctx2.strokeStyle=col;
+    ctx2.lineWidth=n===nShow?2:1;
+    ctx2.globalAlpha=alpha;
+    first=true;
+    for(let px=0;px<W;px++){
+      const wx=toWX(px);
+      const wy=taylorPartialSum(sel,a,wx,n);
+      if(!isFinite(wy)||Math.abs(wy)>8){first=true;continue;}
+      const sy=toSY(wy);
+      if(first){ctx2.moveTo(px,sy);first=false;}else ctx2.lineTo(px,sy);
+    }
+    ctx2.stroke();
+  }
+  ctx2.globalAlpha=1;
+
+  // Glow on highest partial sum
+  if(nShow>=0){
+    const col=TERM_COLORS[nShow%TERM_COLORS.length];
+    ctx2.beginPath(); ctx2.strokeStyle=col+'55'; ctx2.lineWidth=8;
+    first=true;
+    for(let px=0;px<W;px+=2){
+      const wx=toWX(px);
+      const wy=taylorPartialSum(sel,a,wx,nShow);
+      if(!isFinite(wy)||Math.abs(wy)>8){first=true;continue;}
+      const sy=toSY(wy);
+      if(first){ctx2.moveTo(px,sy);first=false;}else ctx2.lineTo(px,sy);
+    }
+    ctx2.stroke();
+  }
+
+  // Expansion point marker
+  const asx=toSX(a), fax=td.f(a);
+  const asy=isFinite(fax)?toSY(fax):cy;
+  ctx2.beginPath(); ctx2.arc(asx,asy,5,0,Math.PI*2);
+  ctx2.fillStyle='#ffcc44'; ctx2.fill();
+  ctx2.fillStyle='#ffcc44'; ctx2.font='12px sans-serif'; ctx2.textAlign='left';
+  ctx2.fillText(`a=${a.toFixed(2)}`, asx+8, asy-8);
+
+  // Radius of convergence line
+  if(td.R==='1'){
+    const r1=toSX(a+1), r2=toSX(a-1);
+    ctx2.strokeStyle='rgba(255,100,100,0.5)'; ctx2.lineWidth=1.5; ctx2.setLineDash([6,4]);
+    ctx2.beginPath(); ctx2.moveTo(r1,0); ctx2.lineTo(r1,H); ctx2.stroke();
+    ctx2.beginPath(); ctx2.moveTo(r2,0); ctx2.lineTo(r2,H); ctx2.stroke();
+    ctx2.setLineDash([]);
+    ctx2.fillStyle='rgba(255,100,100,0.7)'; ctx2.font='12px sans-serif'; ctx2.textAlign='center';
+    ctx2.fillText('R=1', r1+16, 16);
+    ctx2.fillText('R=1', r2-16, 16);
+  } else {
+    ctx2.fillStyle='rgba(136,255,136,0.6)'; ctx2.font='12px sans-serif'; ctx2.textAlign='left';
+    ctx2.fillText('R = ∞', 8, 16);
+  }
+
+  // Term info — show n-th term coefficient
+  const cn=TAYLOR[sel].coeff(nShow,a);
+  let fact=1; for(let k=1;k<=nShow;k++) fact*=k;
+  const an=isFinite(cn)?cn/fact:NaN;
+  ctx2.fillStyle='#c0c0ea'; ctx2.font='12px monospace'; ctx2.textAlign='left';
+  ctx2.fillText(`T${nShow}: term ${nShow} coeff = ${isFinite(an)?an.toFixed(5):'∞'}`, 10, H-34);
+  ctx2.fillStyle='var(--accent,#88ff88)';
+  ctx2.fillText(`${td.name}  a=${a.toFixed(2)}  n=${nShow}  R=${td.R}`, 10, H-14);
+}
+
+function resetTaylor(){
+  if(animId2){cancelAnimationFrame(animId2);animId2=null;document.getElementById('animBtn2').textContent='Animate Terms';}
+  animOffset2=0;
+  document.getElementById('nTermSlider').value=5;
+  document.getElementById('nTermLbl').textContent=5;
+  taylorN=5;
+  draw2();
+}
+
+function toggleAnim2(btn){
+  if(animId2){cancelAnimationFrame(animId2);animId2=null;btn.textContent='▶ Animate Terms';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  let curN=0;
+  document.getElementById('nTermSlider').value=0;
+  document.getElementById('nTermLbl').textContent=0;
+  function step(){
+    draw2();
+    if(curN<10){
+      animId2=setTimeout(()=>{
+        curN++;
+        document.getElementById('nTermSlider').value=curN;
+        document.getElementById('nTermLbl').textContent=curN;
+        requestAnimationFrame(step);
+      },600);
+    } else {
+      animId2=null;
+      btn.textContent='Animate Terms';
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+buildProofList();
+updateHLabel();
+requestAnimationFrame(()=>{ draw0(); draw1(); draw2(); });
+</script>
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// TAB 3: GRADIENT / CURL / DIVERGENCE
+// ══════════════════════════════════════════════════════════════════════════
+(function(){
+var c3=document.getElementById('c3'), ctx3=c3.getContext('2d');
+var animId3=null, animT3=0;
+var _bg3Cache=null, _bg3CacheKey='';
+
+function draw3(){
+  var dpr=window.devicePixelRatio||1;
+  var W=c3.offsetWidth||740, H=c3.offsetHeight||460;
+  c3.width=W*dpr; c3.height=H*dpr;
+  ctx3.setTransform(dpr,0,0,dpr,0,0);
+  ctx3.clearRect(0,0,W,H);
+  var op=document.getElementById('vcOpSel').value;
+  var field=document.getElementById('vcFieldSel').value;
+  var dens=parseInt(document.getElementById('vcDensSlider').value);
+  var scl=parseFloat(document.getElementById('vcScaleSlider').value);
+  var zoom=70, cx=W/2, cy=H/2;
+  var toSX=function(wx){return cx+wx*zoom;};
+  var toSY=function(wy){return cy-wy*zoom;};
+  function getF(x,y){
+    if(field==='gauss') return Math.exp(-(x*x+y*y)/2);
+    if(field==='saddle') return x*x-y*y;
+    return 0;
+  }
+  function getVec(x,y){
+    if(field==='vortex') return [-y,x];
+    if(field==='source') return [x,y];
+    if(field==='sink')   return [-x,-y];
+    if(field==='gauss')  return [-x*Math.exp(-(x*x+y*y)/2),-y*Math.exp(-(x*x+y*y)/2)];
+    if(field==='saddle') return [2*x,-2*y];
+    return [0,0];
+  }
+  function getGrad(x,y){var h=0.001;return [(getF(x+h,y)-getF(x-h,y))/(2*h),(getF(x,y+h)-getF(x,y-h))/(2*h)];}
+  function getCurl(x,y){
+    var h=0.001;
+    var dFydx=(getVec(x+h,y)[1]-getVec(x-h,y)[1])/(2*h);
+    var dFxdy=(getVec(x,y+h)[0]-getVec(x,y-h)[0])/(2*h);
+    return dFydx-dFxdy;
+  }
+  function getDiv(x,y){
+    var h=0.001;
+    return (getVec(x+h,y)[0]-getVec(x-h,y)[0])/(2*h)+(getVec(x,y+h)[1]-getVec(x,y-h)[1])/(2*h);
+  }
+  // Background coloring — cache by op+field+size to avoid per-frame pixel loop
+  var bgKey=op+'|'+field+'|'+W+'|'+H;
+  if(_bg3CacheKey!==bgKey){
+    var imgData=ctx3.createImageData(W,H);
+    for(var px=0;px<W;px++){
+      for(var py=0;py<H;py++){
+        var wx=(px-cx)/zoom, wy=(cy-py)/zoom;
+        var val=0;
+        if(op==='div') val=getDiv(wx,wy);
+        else if(op==='curl') val=getCurl(wx,wy);
+        else val=getF(wx,wy);
+        var idx=(py*W+px)*4;
+        var t=Math.max(-1,Math.min(1,val));
+        if(t>0){imgData.data[idx]=0;imgData.data[idx+1]=Math.floor(t*60);imgData.data[idx+2]=0;}
+        else{imgData.data[idx]=Math.floor(-t*50);imgData.data[idx+1]=0;imgData.data[idx+2]=Math.floor(-t*60);}
+        imgData.data[idx+3]=180;
+      }
+    }
+    _bg3Cache=imgData; _bg3CacheKey=bgKey;
+  }
+  ctx3.putImageData(_bg3Cache,0,0);
+  // Grid + axes
+  ctx3.strokeStyle='#1c1c3a'; ctx3.lineWidth=0.5;
+  for(var gx=-5;gx<=5;gx++){ctx3.beginPath();ctx3.moveTo(toSX(gx),0);ctx3.lineTo(toSX(gx),H);ctx3.stroke();}
+  for(var gy=-4;gy<=4;gy++){ctx3.beginPath();ctx3.moveTo(0,toSY(gy));ctx3.lineTo(W,toSY(gy));ctx3.stroke();}
+  ctx3.strokeStyle='#3a3a6a'; ctx3.lineWidth=1.5;
+  ctx3.beginPath();ctx3.moveTo(0,cy);ctx3.lineTo(W,cy);ctx3.stroke();
+  ctx3.beginPath();ctx3.moveTo(cx,0);ctx3.lineTo(cx,H);ctx3.stroke();
+  // Arrow field
+  var step=W/dens;
+  for(var i=0;i<dens;i++){
+    for(var j=0;j<dens;j++){
+      var apx=step*(i+0.5), apy=step*(j+0.5);
+      var awx=(apx-cx)/zoom, awy=(cy-apy)/zoom;
+      var vx=0,vy=0,mag=0,color='#88ff88';
+      if(op==='grad'){var g=getGrad(awx,awy);vx=g[0];vy=g[1];color='#88ff88';}
+      else if(op==='curl'){
+        var cv=getCurl(awx,awy);
+        var abs=Math.abs(cv);
+        color=cv>0?('rgba(88,200,255,'+Math.min(1,abs/3)+')'):'rgba(255,120,120,'+Math.min(1,abs/3)+')';
+        var r=Math.min(8,abs*6*scl);
+        ctx3.beginPath();ctx3.arc(apx,apy,Math.max(1,r),0,Math.PI*2);
+        ctx3.fillStyle=color;ctx3.fill();
+        continue;
+      } else {
+        var fv=getVec(awx,awy); vx=fv[0];vy=fv[1];
+        var dv=getDiv(awx,awy);
+        color=dv>0?('rgba(255,180,80,'+Math.min(0.9,Math.abs(dv)/3)+')'):'rgba(80,180,255,'+Math.min(0.9,Math.abs(dv)/3)+')';
+      }
+      mag=Math.sqrt(vx*vx+vy*vy);
+      if(mag<1e-8) continue;
+      var nx=vx/mag, ny=vy/mag;
+      var len=Math.min(step*0.42,Math.log(1+mag)*12)*scl;
+      var ex=apx+nx*len, ey=apy-ny*len;
+      ctx3.strokeStyle=color;ctx3.lineWidth=1.2;
+      ctx3.beginPath();ctx3.moveTo(apx,apy);ctx3.lineTo(ex,ey);ctx3.stroke();
+      var angle=Math.atan2(ey-apy,ex-apx);
+      var hs=4;
+      ctx3.fillStyle=color;ctx3.beginPath();
+      ctx3.moveTo(ex,ey);
+      ctx3.lineTo(ex-hs*Math.cos(angle-0.4),ey-hs*Math.sin(angle-0.4));
+      ctx3.lineTo(ex-hs*Math.cos(angle+0.4),ey-hs*Math.sin(angle+0.4));
+      ctx3.closePath();ctx3.fill();
+    }
+  }
+  var opNames={grad:'\u2207f (Gradient)',curl:'\u2207\u00d7F (Curl)',div:'\u2207\u00b7F (Divergence)'};
+  ctx3.fillStyle='#88ff88';ctx3.font='12px sans-serif';ctx3.textAlign='left';
+  ctx3.fillText((opNames[op]||op)+' \u2014 '+field, 10, 18);
+  document.getElementById('info3').textContent=(opNames[op]||op)+': '+field+'. Green=positive, red/blue=negative.';
+}
+window.draw3=draw3;
+
+function toggleAnim3(btn){
+  if(animId3){cancelAnimationFrame(animId3);animId3=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){
+    animT3+=0.018*(window.animSpeed||0.1);
+    var ops=['grad','curl','div'];
+    var idx=Math.floor(animT3/3)%3;
+    document.getElementById('vcOpSel').value=ops[idx];
+    draw3();
+    animId3=requestAnimationFrame(frame);
+  }
+  animId3=requestAnimationFrame(frame);
+}
+window.toggleAnim3=toggleAnim3;
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
+// TAB 4: COMPLEX ANALYSIS & RESIDUES
+// ══════════════════════════════════════════════════════════════════════════
+(function(){
+var c4=document.getElementById('c4'), ctx4=c4.getContext('2d');
+var animId4=null, animT4=0;
+var _dc4Cache=null, _dc4CacheKey='';
+
+function cMul(a,b){return [a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]];}
+function cDiv(a,b){var d=b[0]*b[0]+b[1]*b[1];return d<1e-20?[1e10,1e10]:[(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d];}
+function cAdd(a,b){return [a[0]+b[0],a[1]+b[1]];}
+function cAbs(a){return Math.sqrt(a[0]*a[0]+a[1]*a[1]);}
+function cArg(a){return Math.atan2(a[1],a[0]);}
+function cExp(z){var er=Math.exp(z[0]);return [er*Math.cos(z[1]),er*Math.sin(z[1])];}
+function cSin(z){return [Math.sin(z[0])*Math.cosh(z[1]),Math.cos(z[0])*Math.sinh(z[1])];}
+
+function evalCx(sel,z){
+  if(sel==='inv_zsq1'){var z2=cMul(z,z);return cDiv([1,0],cAdd(z2,[1,0]));}
+  if(sel==='inv_z') return cDiv([1,0],z);
+  if(sel==='inv_z2') return cDiv([1,0],cMul(z,z));
+  if(sel==='zsinz'){var s=cSin(z);return cAbs(z)<1e-6?[1,0]:cDiv(s,z);}
+  if(sel==='ez') return cExp(z);
+  return [0,0];
+}
+var CX_POLES={inv_zsq1:[[0,1],[0,-1]],inv_z:[[0,0]],inv_z2:[[0,0]],zsinz:[],ez:[]};
+
+function hsl2rgb(h,s,l){
+  h=h/360;
+  function hue2rgb(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}
+  var q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+  return [hue2rgb(p,q,h+1/3),hue2rgb(p,q,h),hue2rgb(p,q,h-1/3)];
+}
+
+function draw4(){
+  var dpr=window.devicePixelRatio||1;
+  var W=c4.offsetWidth||740, H=c4.offsetHeight||460;
+  c4.width=W*dpr; c4.height=H*dpr;
+  ctx4.setTransform(dpr,0,0,dpr,0,0);
+  ctx4.clearRect(0,0,W,H);
+  var sel=document.getElementById('cxFuncSel').value;
+  var R=parseFloat(document.getElementById('cxRadSlider').value);
+  var cx0=parseFloat(document.getElementById('cxCxSlider').value);
+  var cy0=parseFloat(document.getElementById('cxCySlider').value);
+  var zoom=85, cx=W/2, cy=H/2;
+  var toSX=function(wx){return cx+wx*zoom;};
+  var toSY=function(wy){return cy-wy*zoom;};
+  // Domain coloring — recompute only when function/size changes
+  var cacheKey=sel+'|'+W+'|'+H;
+  if(_dc4CacheKey!==cacheKey){
+    var imgData=ctx4.createImageData(W,H);
+    for(var px=0;px<W;px++){
+      for(var py=0;py<H;py++){
+        var re=(px-cx)/zoom, im=(cy-py)/zoom;
+        var fz=evalCx(sel,[re,im]);
+        var mag=cAbs(fz), arg=cArg(fz);
+        var hue=((arg+Math.PI)/(2*Math.PI))*360;
+        var light=Math.pow(mag/(1+mag),0.3);
+        var s=0.85, l=0.15+light*0.65;
+        var rgb=hsl2rgb(hue,s,l);
+        var idx2=(py*W+px)*4;
+        imgData.data[idx2]=Math.floor(rgb[0]*255);
+        imgData.data[idx2+1]=Math.floor(rgb[1]*255);
+        imgData.data[idx2+2]=Math.floor(rgb[2]*255);
+        imgData.data[idx2+3]=255;
+      }
+    }
+    _dc4Cache=imgData; _dc4CacheKey=cacheKey;
+  }
+  ctx4.putImageData(_dc4Cache,0,0);
+  // Grid
+  ctx4.strokeStyle='rgba(255,255,255,0.08)';ctx4.lineWidth=0.5;
+  for(var g=-5;g<=5;g++){ctx4.beginPath();ctx4.moveTo(toSX(g),0);ctx4.lineTo(toSX(g),H);ctx4.stroke();ctx4.beginPath();ctx4.moveTo(0,toSY(g));ctx4.lineTo(W,toSY(g));ctx4.stroke();}
+  ctx4.strokeStyle='rgba(255,255,255,0.3)';ctx4.lineWidth=1;
+  ctx4.beginPath();ctx4.moveTo(0,cy);ctx4.lineTo(W,cy);ctx4.stroke();
+  ctx4.beginPath();ctx4.moveTo(cx,0);ctx4.lineTo(cx,H);ctx4.stroke();
+  // Contour circle
+  var csx=toSX(cx0), csy=toSY(cy0), csr=R*zoom;
+  ctx4.beginPath();ctx4.arc(csx,csy,csr,0,Math.PI*2);
+  ctx4.strokeStyle='#ffffff';ctx4.lineWidth=2.5;ctx4.stroke();
+  // Animated marker on contour
+  var at=animT4%(Math.PI*2);
+  var arx=csx+csr*Math.cos(at), ary=csy+csr*Math.sin(at);
+  ctx4.beginPath();ctx4.arc(arx,ary,5,0,Math.PI*2);ctx4.fillStyle='#ffff44';ctx4.fill();
+  var tx=-Math.sin(at)*16, ty=Math.cos(at)*16;
+  ctx4.strokeStyle='#ffff44';ctx4.lineWidth=2;
+  ctx4.beginPath();ctx4.moveTo(arx,ary);ctx4.lineTo(arx+tx,ary+ty);ctx4.stroke();
+  // Poles
+  var poles=CX_POLES[sel]||[];
+  var nInside=0;
+  poles.forEach(function(pr_pi){
+    var pr=pr_pi[0], pi=pr_pi[1];
+    var psx=toSX(pr), psy=toSY(pi);
+    var dist=Math.sqrt((pr-cx0)*(pr-cx0)+(pi-cy0)*(pi-cy0));
+    var inside=dist<R;
+    if(inside) nInside++;
+    ctx4.beginPath();ctx4.arc(psx,psy,7,0,Math.PI*2);
+    ctx4.strokeStyle=inside?'#ff4444':'#888888';ctx4.lineWidth=2;ctx4.stroke();
+    ctx4.fillStyle=inside?'rgba(255,50,50,0.3)':'rgba(100,100,100,0.2)';ctx4.fill();
+    ctx4.fillStyle='#cccccc';ctx4.font='12px monospace';ctx4.textAlign='center';
+    ctx4.fillText('z='+(pr>=0?'+':'')+pr.toFixed(1)+(pi>=0?'+':'')+pi.toFixed(1)+'i', psx, psy-12);
+  });
+  ctx4.fillStyle='rgba(255,255,255,0.5)';ctx4.font='12px monospace';ctx4.textAlign='center';
+  ctx4.fillText('Re(z)', W-25, cy-6);
+  ctx4.textAlign='left';ctx4.fillText('Im(z)', cx+4, 12);
+  document.getElementById('info4').textContent=
+    'f(z)='+sel+' | R='+R.toFixed(2)+' | Poles inside contour: '+nInside+
+    '. Drag sliders to enclose different poles. Rainbow colors = arg(f(z)).';
+}
+window.draw4=draw4;
+
+function toggleAnim4(btn){
+  if(animId4){cancelAnimationFrame(animId4);animId4=null;btn.textContent='▶ Animate Contour';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){animT4+=0.035*(window.animSpeed||0.1);draw4();animId4=requestAnimationFrame(frame);}
+  animId4=requestAnimationFrame(frame);
+}
+window.toggleAnim4=toggleAnim4;
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
+// TAB 5: PHASE PORTRAITS
+// ══════════════════════════════════════════════════════════════════════════
+(function(){
+var c5=document.getElementById('c5'), ctx5=c5.getContext('2d');
+var animId5=null, animT5=0;
+var phaseTrajectories=[];
+
+function ppSystem(sel,x,y,mu){
+  if(sel==='harmonic')   return [-y, x];
+  if(sel==='vanderpol')  return [y, mu*(1-x*x)*y-x];
+  if(sel==='saddle')     return [x, -y];
+  if(sel==='spiral_in')  return [-mu*x-y, x-mu*y];
+  if(sel==='spiral_out') return [mu*x-y, x+mu*y];
+  if(sel==='sir'){var beta=mu,gamma=0.5;return [-beta*x*y, beta*x*y-gamma*y];}
+  return [0,0];
+}
+function rk4P(sel,x,y,mu,dt){
+  var k1=ppSystem(sel,x,y,mu);
+  var k2=ppSystem(sel,x+dt*k1[0]/2,y+dt*k1[1]/2,mu);
+  var k3=ppSystem(sel,x+dt*k2[0]/2,y+dt*k2[1]/2,mu);
+  var k4=ppSystem(sel,x+dt*k3[0],y+dt*k3[1],mu);
+  return [x+dt*(k1[0]+2*k2[0]+2*k3[0]+k4[0])/6, y+dt*(k1[1]+2*k2[1]+2*k3[1]+k4[1])/6];
+}
+
+function buildTrajectories(){
+  phaseTrajectories=[];
+  var sel=document.getElementById('ppSysSel').value;
+  var mu=parseFloat(document.getElementById('ppMuSlider').value);
+  var nT=parseInt(document.getElementById('ppTrajSlider').value);
+  var dt=0.04, steps=400;
+  var useSIR=(sel==='sir');
+  for(var k=0;k<nT;k++){
+    var angle=(2*Math.PI*k)/nT;
+    var rad=useSIR?0.5:2.5;
+    var x=useSIR?0.9+0.05*Math.cos(angle):rad*Math.cos(angle);
+    var y=useSIR?0.05+0.03*Math.sin(angle):rad*Math.sin(angle);
+    var pts=[[x,y]];
+    for(var s=0;s<steps;s++){
+      var next=rk4P(sel,x,y,mu,dt);
+      x=next[0];y=next[1];
+      if(!isFinite(x)||!isFinite(y)||Math.abs(x)>8||Math.abs(y)>8) break;
+      pts.push([x,y]);
+    }
+    phaseTrajectories.push(pts);
+  }
+}
+
+function resetPhase(){phaseTrajectories=[];animT5=0;draw5();}
+window.resetPhase=resetPhase;
+
+function draw5(){
+  var dpr=window.devicePixelRatio||1;
+  var W=c5.offsetWidth||740, H=c5.offsetHeight||460;
+  c5.width=W*dpr; c5.height=H*dpr;
+  ctx5.setTransform(dpr,0,0,dpr,0,0);
+  ctx5.clearRect(0,0,W,H);
+  var sel=document.getElementById('ppSysSel').value;
+  var mu=parseFloat(document.getElementById('ppMuSlider').value);
+  var zoom=55, cx=W/2, cy=H/2;
+  var toSX=function(wx){return cx+wx*zoom;};
+  var toSY=function(wy){return cy-wy*zoom;};
+  // Grid
+  ctx5.strokeStyle='#161630';ctx5.lineWidth=0.5;
+  for(var g=-6;g<=6;g++){ctx5.beginPath();ctx5.moveTo(toSX(g),0);ctx5.lineTo(toSX(g),H);ctx5.stroke();}
+  for(var gv=-5;gv<=5;gv++){ctx5.beginPath();ctx5.moveTo(0,toSY(gv));ctx5.lineTo(W,toSY(gv));ctx5.stroke();}
+  ctx5.strokeStyle='#3a3a6a';ctx5.lineWidth=1.5;
+  ctx5.beginPath();ctx5.moveTo(0,cy);ctx5.lineTo(W,cy);ctx5.stroke();
+  ctx5.beginPath();ctx5.moveTo(cx,0);ctx5.lineTo(cx,H);ctx5.stroke();
+  // Vector field
+  var dens=18, stepX=W/dens, stepY=H/dens;
+  for(var i=0;i<dens;i++){
+    for(var j=0;j<dens;j++){
+      var apx=stepX*(i+0.5),apy=stepY*(j+0.5);
+      var awx=(apx-cx)/zoom, awy=(cy-apy)/zoom;
+      var v=ppSystem(sel,awx,awy,mu);
+      var mag=Math.sqrt(v[0]*v[0]+v[1]*v[1]);
+      if(mag<1e-8) continue;
+      var len=Math.min(stepX*0.38,Math.log(1+mag)*7);
+      var nx=v[0]/mag, ny=v[1]/mag;
+      ctx5.strokeStyle='rgba(88,88,180,0.5)';ctx5.lineWidth=0.8;
+      ctx5.beginPath();ctx5.moveTo(apx,apy);ctx5.lineTo(apx+nx*len,apy-ny*len);ctx5.stroke();
+    }
+  }
+  // Build trajectories if needed
+  if(phaseTrajectories.length===0) buildTrajectories();
+  // Draw trajectories
+  var nDraw=animId5?Math.floor(animT5):(phaseTrajectories[0]?phaseTrajectories[0].length:0);
+  phaseTrajectories.forEach(function(traj,k){
+    if(traj.length<2) return;
+    var hue=(k/phaseTrajectories.length)*300;
+    ctx5.strokeStyle='hsla('+hue+',90%,60%,0.7)';ctx5.lineWidth=1.4;
+    ctx5.beginPath();
+    var maxPts=animId5?Math.min(nDraw,traj.length):traj.length;
+    for(var si=0;si<maxPts;si++){
+      var pt=traj[si];
+      var sx=toSX(pt[0]),sy=toSY(pt[1]);
+      if(si===0) ctx5.moveTo(sx,sy); else ctx5.lineTo(sx,sy);
+    }
+    ctx5.stroke();
+    var ep=traj[Math.min(maxPts-1,traj.length-1)];
+    if(ep){ctx5.beginPath();ctx5.arc(toSX(ep[0]),toSY(ep[1]),3,0,Math.PI*2);ctx5.fillStyle='hsla('+hue+',90%,70%,0.9)';ctx5.fill();}
+  });
+  // Fixed points (for simple systems)
+  if(sel==='harmonic'||sel==='saddle'||sel==='spiral_in'||sel==='spiral_out'){
+    ctx5.beginPath();ctx5.arc(toSX(0),toSY(0),6,0,Math.PI*2);ctx5.fillStyle='#ff4444';ctx5.fill();
+  }
+  ctx5.fillStyle='#88ff88';ctx5.font='12px sans-serif';ctx5.textAlign='left';
+  ctx5.fillText(sel+' \u03bc='+mu.toFixed(2), 10, 18);
+  document.getElementById('info5').textContent='Phase portrait: '+sel+' \u03bc='+mu.toFixed(2)+'. Colored curves are trajectories. Red dot=fixed point.';
+}
+window.draw5=draw5;
+
+function toggleAnim5(btn){
+  if(animId5){cancelAnimationFrame(animId5);animId5=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  animT5=1;btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  var maxLen=phaseTrajectories[0]?phaseTrajectories[0].length:400;
+  function frame(){
+    animT5=Math.min(animT5+1.5*(window.animSpeed||0.1),maxLen);
+    draw5();
+    if(animT5<maxLen) animId5=requestAnimationFrame(frame);
+    else{animId5=null;btn.textContent='Animate';}
+  }
+  animId5=requestAnimationFrame(frame);
+}
+window.toggleAnim5=toggleAnim5;
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
+// TAB 6: CALCULUS OF VARIATIONS
+// ══════════════════════════════════════════════════════════════════════════
+(function(){
+var c6=document.getElementById('c6'), ctx6=c6.getContext('2d');
+var animId6=null, animT6=0;
+var margin=60;
+
+function timeOnCycloid_sub(r,Yend,Xend){
+  var N=200,thetaMax=Math.acos(Math.max(-1,Math.min(1,1-Yend/r)));
+  var t=0;
+  for(var i=0;i<N;i++){
+    var th=(i+0.5)/N*thetaMax;
+    var y=r*(1-Math.cos(th));
+    if(y<1e-6) continue;
+    var dxdth=r*(1-Math.cos(th)),dydth=r*Math.sin(th);
+    var ds=Math.sqrt(dxdth*dxdth+dydth*dydth)*thetaMax/N;
+    t+=ds/Math.sqrt(2*9.8*y);
+  }
+  return t;
+}
+function timeOnPower(p,Xend,Yend){
+  var N=200,dx=Xend/N,t=0;
+  for(var i=0;i<N;i++){
+    var x=(i+0.5)*dx;
+    var y=Yend*Math.pow(x/Xend,p);
+    var dydx=Yend*p*Math.pow(x/Xend,p-1)/Xend;
+    if(y<1e-6) continue;
+    t+=Math.sqrt((1+dydx*dydx)/(2*9.8*y))*dx;
+  }
+  return t;
+}
+
+function drawBrach(W,H,par,showMode){
+  var plotW=W-2*margin, plotH=H-2*margin-40;
+  var Xend=2.5, Yend=2.0;
+  var toSX=function(x){return margin+x/Xend*plotW;};
+  var toSY=function(y){return margin+y/Yend*plotH;};
+  ctx6.fillStyle='#06061a';ctx6.fillRect(0,0,W,H);
+  // Gravity hint
+  ctx6.strokeStyle='rgba(200,200,255,0.3)';ctx6.lineWidth=1;
+  for(var ax=margin+10;ax<W-margin;ax+=40){
+    ctx6.beginPath();ctx6.moveTo(ax,margin);ctx6.lineTo(ax,margin+14);ctx6.stroke();
+    ctx6.beginPath();ctx6.moveTo(ax-4,margin+9);ctx6.lineTo(ax,margin+14);ctx6.lineTo(ax+4,margin+9);ctx6.stroke();
+  }
+  var r=par*0.6, thetaMax=Math.acos(Math.max(-1,Math.min(1,1-Yend/r)));
+  var tc=timeOnCycloid_sub(r,Yend,Xend);
+  var colors=['#ff6644','#ffaa44','#aaaa44','#4488ff','#aa44ff'];
+  var powers=[0.5,0.75,1.0,1.5,2.0];
+  if(showMode!=='optimal'){
+    powers.forEach(function(p,k){
+      ctx6.beginPath();ctx6.strokeStyle=colors[k];ctx6.lineWidth=1.5;ctx6.setLineDash([4,3]);
+      for(var ii=0;ii<=100;ii++){
+        var x=ii/100*Xend, y=Yend*Math.pow(x/Xend,p);
+        if(ii===0) ctx6.moveTo(toSX(x),toSY(y)); else ctx6.lineTo(toSX(x),toSY(y));
+      }
+      ctx6.stroke();ctx6.setLineDash([]);
+      if(showMode==='all'){
+        var tp=timeOnPower(p,Xend,Yend);
+        ctx6.fillStyle=colors[k];ctx6.font='12px sans-serif';ctx6.textAlign='left';
+        ctx6.fillText('p='+p+' t='+tp.toFixed(3)+'s', W-margin-120, margin+20+k*16);
+      }
+    });
+  }
+  if(showMode!=='comparison'){
+    ctx6.beginPath();ctx6.strokeStyle='#88ff88';ctx6.lineWidth=3;
+    for(var ii2=0;ii2<=200;ii2++){
+      var th=ii2/200*thetaMax;
+      var xc=r*(th-Math.sin(th)), yc=r*(1-Math.cos(th));
+      if(xc>Xend+0.1) break;
+      if(ii2===0) ctx6.moveTo(toSX(xc),toSY(yc)); else ctx6.lineTo(toSX(xc),toSY(yc));
+    }
+    ctx6.stroke();
+    ctx6.fillStyle='#88ff88';ctx6.font='bold 12px sans-serif';ctx6.textAlign='left';
+    ctx6.fillText('Cycloid (optimal) t='+tc.toFixed(3)+'s', W-margin-190, margin+100);
+  }
+  ctx6.beginPath();ctx6.arc(toSX(0),toSY(0),6,0,Math.PI*2);ctx6.fillStyle='#ffffff';ctx6.fill();
+  ctx6.beginPath();ctx6.arc(toSX(Xend),toSY(Yend),6,0,Math.PI*2);ctx6.fillStyle='#ff4444';ctx6.fill();
+  ctx6.strokeStyle='#3a3a6a';ctx6.lineWidth=1;
+  ctx6.beginPath();ctx6.moveTo(margin,margin);ctx6.lineTo(margin,margin+plotH);ctx6.lineTo(margin+plotW,margin+plotH);ctx6.stroke();
+  ctx6.fillStyle='#55558a';ctx6.font='12px monospace';ctx6.textAlign='center';
+  ctx6.fillText('x', margin+plotW/2, margin+plotH+20);
+  ctx6.save();ctx6.translate(18,margin+plotH/2);ctx6.rotate(-Math.PI/2);ctx6.fillText('y (depth)',0,0);ctx6.restore();
+  document.getElementById('info6').textContent='Brachistochrone: cycloid (green) is fastest. t='+tc.toFixed(4)+'s. Dashed=power-law paths.';
+  // Bead animation
+  if(animId6){
+    var theta2=animT6%(thetaMax||Math.PI);
+    var bx=r*(theta2-Math.sin(theta2)), by=r*(1-Math.cos(theta2));
+    if(bx<=Xend&&by<=Yend){
+      ctx6.beginPath();ctx6.arc(toSX(bx),toSY(by),7,0,Math.PI*2);
+      ctx6.fillStyle='#ffff44';ctx6.shadowColor='#ffff44';ctx6.shadowBlur=14;ctx6.fill();ctx6.shadowBlur=0;
+    }
+  }
+}
+function drawGeodesic(W,H,par){
+  var pW=W-2*margin, pH=H-2*margin;
+  ctx6.fillStyle='#06061a';ctx6.fillRect(0,0,W,H);
+  ctx6.strokeStyle='#3a3a6a';ctx6.lineWidth=1;
+  ctx6.beginPath();ctx6.moveTo(margin,margin);ctx6.lineTo(margin,margin+pH);ctx6.lineTo(margin+pW,margin+pH);ctx6.stroke();
+  var toSX2=function(x){return margin+x*pW;};
+  var toSY2=function(y){return margin+(1-y)*pH;};
+  ctx6.strokeStyle='#88ff88';ctx6.lineWidth=3;
+  ctx6.beginPath();ctx6.moveTo(toSX2(0),toSY2(0));ctx6.lineTo(toSX2(1),toSY2(1));ctx6.stroke();
+  var colors2=['#ff6644','#ffaa44','#4488ff'];
+  [0.2,0.4,0.6].forEach(function(amp,k){
+    ctx6.strokeStyle=colors2[k];ctx6.lineWidth=1.5;ctx6.setLineDash([4,3]);
+    ctx6.beginPath();
+    for(var ii=0;ii<=100;ii++){var t=ii/100;ctx6.lineTo(toSX2(t),toSY2(t+amp*par*Math.sin(Math.PI*t)));}
+    ctx6.stroke();ctx6.setLineDash([]);
+    var len=0;
+    for(var ii2=0;ii2<100;ii2++){var t2=ii2/100;var dydx=1+amp*par*Math.PI*Math.cos(Math.PI*t2);len+=Math.sqrt(1+dydx*dydx)*0.01;}
+    ctx6.fillStyle=colors2[k];ctx6.font='12px sans-serif';ctx6.textAlign='left';
+    ctx6.fillText('amp='+amp+' L='+len.toFixed(3), W-220, margin+20+k*16);
+  });
+  ctx6.fillStyle='#88ff88';ctx6.font='12px sans-serif';ctx6.textAlign='left';
+  ctx6.fillText('Straight line L=\u221a2\u22481.414 (minimum)', W-260, margin+75);
+  document.getElementById('info6').textContent='Geodesic: straight line minimizes arc-length J[y]=\u222b\u221a(1+y\u00b2)dx.';
+}
+function drawIsoperimetric(W,H,par){
+  ctx6.fillStyle='#06061a';ctx6.fillRect(0,0,W,H);
+  var cx2=W/2, cy2=H/2, L=par*80, R2=L/(2*Math.PI);
+  ctx6.strokeStyle='#88ff88';ctx6.lineWidth=3;
+  ctx6.beginPath();ctx6.arc(cx2,cy2,R2,0,Math.PI*2);ctx6.stroke();
+  ctx6.fillStyle='rgba(136,255,136,0.08)';ctx6.beginPath();ctx6.arc(cx2,cy2,R2,0,Math.PI*2);ctx6.fill();
+  var side=L/4;
+  ctx6.strokeStyle='#ffaa44';ctx6.lineWidth=2;ctx6.setLineDash([5,4]);
+  ctx6.strokeRect(cx2-side/2,cy2-side/2,side,side);ctx6.setLineDash([]);
+  var aC=Math.PI*R2*R2, aS=side*side;
+  ctx6.fillStyle='#88ff88';ctx6.font='12px sans-serif';ctx6.textAlign='center';
+  ctx6.fillText('Circle A='+aC.toFixed(0)+' (maximum!)', cx2, cy2+R2+30);
+  ctx6.fillStyle='#ffaa44';ctx6.fillText('Square A='+aS.toFixed(0), cx2, cy2+R2+48);
+  ctx6.fillStyle='#c0c0ea';ctx6.font='12px sans-serif';ctx6.fillText('Perimeter L='+L.toFixed(0)+' in both', cx2, margin+22);
+  document.getElementById('info6').textContent='Isoperimetric: circle maximizes area for fixed perimeter. A_circle='+aC.toFixed(1)+' vs A_square='+aS.toFixed(1)+'.';
+}
+function drawCatenary(W,H,par){
+  ctx6.fillStyle='#06061a';ctx6.fillRect(0,0,W,H);
+  var cxC=W/2, cyC=H*0.3, a=par*40;
+  ctx6.strokeStyle='#88ff88';ctx6.lineWidth=2.5;ctx6.beginPath();
+  var started=false;
+  for(var px=-W/2+20;px<=W/2-20;px+=2){
+    var yC=a*(Math.cosh(px/a)-1);
+    if(yC>H*0.65) continue;
+    var sx=cxC+px, sy=cyC+yC;
+    if(!started){ctx6.moveTo(sx,sy);started=true;}else ctx6.lineTo(sx,sy);
+  }
+  ctx6.stroke();
+  ctx6.fillStyle='#88ff88';ctx6.font='12px sans-serif';ctx6.textAlign='center';
+  ctx6.fillText('Catenary: y = a\u00b7cosh(x/a)', cxC, cyC-20);
+  ctx6.fillStyle='#c0c0ea';ctx6.font='12px sans-serif';
+  ctx6.fillText('a='+a.toFixed(0)+'px | Minimizes potential energy \u222by\u00b7ds', cxC, cyC-4);
+  ctx6.fillText('Rotated \u2192 catenoid minimal surface (H=0)', cxC, H-30);
+  document.getElementById('info6').textContent='Catenary minimizes gravitational PE of hanging chain. Rotated gives catenoid minimal surface.';
+}
+
+function draw6(){
+  var dpr=window.devicePixelRatio||1;
+  var W=c6.offsetWidth||740, H=c6.offsetHeight||460;
+  c6.width=W*dpr; c6.height=H*dpr;
+  ctx6.setTransform(dpr,0,0,dpr,0,0);
+  ctx6.clearRect(0,0,W,H);
+  var prob=document.getElementById('covProbSel').value;
+  var par=parseFloat(document.getElementById('covParSlider').value);
+  var showMode=document.getElementById('covCurvesSel').value;
+  if(prob==='brachistochrone') drawBrach(W,H,par,showMode);
+  else if(prob==='geodesic') drawGeodesic(W,H,par);
+  else if(prob==='isoperimetric') drawIsoperimetric(W,H,par);
+  else if(prob==='minsurface') drawCatenary(W,H,par);
+}
+window.draw6=draw6;
+
+function toggleAnim6(btn){
+  if(animId6){cancelAnimationFrame(animId6);animId6=null;btn.textContent='▶ Animate Bead';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){animT6+=0.03*(window.animSpeed||0.1);draw6();animId6=requestAnimationFrame(frame);}
+  animId6=requestAnimationFrame(frame);
+}
+window.toggleAnim6=toggleAnim6;
+})();
+
+// ══════════════════════════════════════════════════════════════════════════
+// TAB 7: FRENET-SERRET
+// ══════════════════════════════════════════════════════════════════════════
+(function(){
+var c7=document.getElementById('c7'), ctx7=c7.getContext('2d');
+var animId7=null, animT7=0;
+
+function frenetCurve(sel,t,a,b){
+  if(sel==='helix')      return [a*Math.cos(t), a*Math.sin(t), b*t];
+  if(sel==='viviani')    return [a*(1+Math.cos(t)), a*Math.sin(t), 2*a*Math.sin(t/2)];
+  if(sel==='trefoil')    return [Math.sin(t)+2*Math.sin(2*t), Math.cos(t)-2*Math.cos(2*t), -Math.sin(3*t)*a];
+  if(sel==='epicycloid'){var R2=2*a;return [(R2+a)*Math.cos(t)-a*Math.cos((R2+a)/a*t),(R2+a)*Math.sin(t)-a*Math.sin((R2+a)/a*t),b*Math.sin(2*t)];}
+  if(sel==='lissajous')  return [a*Math.cos(3*t), a*Math.sin(2*t), b*Math.cos(t)];
+  return [0,0,0];
+}
+function norm3(v){var m=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);return m<1e-10?[1,0,0]:v.map(function(x){return x/m;});}
+function dot3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function cross3(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+
+function frenetFrame(sel,t,a,b){
+  var h=0.001;
+  var p=frenetCurve(sel,t,a,b);
+  var p1=frenetCurve(sel,t+h,a,b);
+  var pm=frenetCurve(sel,t-h,a,b);
+  var rp=[(p1[0]-pm[0])/(2*h),(p1[1]-pm[1])/(2*h),(p1[2]-pm[2])/(2*h)];
+  var rp_m=Math.sqrt(rp[0]*rp[0]+rp[1]*rp[1]+rp[2]*rp[2]);
+  var T=norm3(rp);
+  var rpp=[(p1[0]-2*p[0]+pm[0])/(h*h),(p1[1]-2*p[1]+pm[1])/(h*h),(p1[2]-2*p[2]+pm[2])/(h*h)];
+  var rppDotT=dot3(rpp,T);
+  var Nr=[rpp[0]-rppDotT*T[0],rpp[1]-rppDotT*T[1],rpp[2]-rppDotT*T[2]];
+  var Nr_m=Math.sqrt(Nr[0]*Nr[0]+Nr[1]*Nr[1]+Nr[2]*Nr[2]);
+  var N=norm3(Nr);
+  var B=cross3(T,N);
+  var kappa=Nr_m/(rp_m*rp_m);
+  var crv=cross3(rp,rpp);
+  var crv_m2=crv[0]*crv[0]+crv[1]*crv[1]+crv[2]*crv[2];
+  var p2=frenetCurve(sel,t+2*h,a,b),pm2=frenetCurve(sel,t-2*h,a,b);
+  var rppp=[(p2[0]-2*p1[0]+2*pm[0]-pm2[0])/(2*h*h*h),(p2[1]-2*p1[1]+2*pm[1]-pm2[1])/(2*h*h*h),(p2[2]-2*p1[2]+2*pm[2]-pm2[2])/(2*h*h*h)];
+  var torsion=crv_m2<1e-12?0:dot3(crv,rppp)/crv_m2;
+  return {p:p,T:T,N:N,B:B,kappa:kappa,torsion:torsion};
+}
+function project3D(x,y,z){
+  return [x*Math.cos(0.5)-y*Math.cos(0.5), x*Math.sin(0.5)+y*Math.sin(0.5)-z*0.85];
+}
+
+function draw7(){
+  var dpr=window.devicePixelRatio||1;
+  var W=c7.offsetWidth||740, H=c7.offsetHeight||460;
+  c7.width=W*dpr; c7.height=H*dpr;
+  ctx7.setTransform(dpr,0,0,dpr,0,0);
+  ctx7.clearRect(0,0,W,H);
+  var sel=document.getElementById('fsCurveSel').value;
+  var a=parseFloat(document.getElementById('fsASlider').value);
+  var b=parseFloat(document.getElementById('fsBSlider').value);
+  var t0=parseFloat(document.getElementById('fsTSlider').value);
+  var cx=W/2, cy=H/2, zoom=60;
+  var toS=function(v){return [cx+v[0]*zoom, cy-v[1]*zoom];};
+  // Full curve
+  var tMaxMap={helix:4*Math.PI,viviani:4*Math.PI,trefoil:2*Math.PI,epicycloid:4*Math.PI,lissajous:4*Math.PI};
+  var tMax=tMaxMap[sel]||4*Math.PI;
+  var N=400;
+  ctx7.beginPath();ctx7.strokeStyle='rgba(180,180,255,0.5)';ctx7.lineWidth=1.5;
+  for(var i=0;i<=N;i++){
+    var t=i/N*tMax;
+    var p3=frenetCurve(sel,t,a,b);
+    var sv=toS(project3D(p3[0],p3[1],p3[2]));
+    if(i===0) ctx7.moveTo(sv[0],sv[1]); else ctx7.lineTo(sv[0],sv[1]);
+  }
+  ctx7.stroke();
+  // Frenet frame
+  var frame=frenetFrame(sel,t0,a,b);
+  function drawArrow(from3,dir3,color,label){
+    var to3=[from3[0]+dir3[0]*0.5,from3[1]+dir3[1]*0.5,from3[2]+dir3[2]*0.5];
+    var fv=toS(project3D(from3[0],from3[1],from3[2]));
+    var tv=toS(project3D(to3[0],to3[1],to3[2]));
+    ctx7.strokeStyle=color;ctx7.lineWidth=2.5;
+    ctx7.beginPath();ctx7.moveTo(fv[0],fv[1]);ctx7.lineTo(tv[0],tv[1]);ctx7.stroke();
+    var angle=Math.atan2(tv[1]-fv[1],tv[0]-fv[0]);
+    var hs=7;
+    ctx7.fillStyle=color;ctx7.beginPath();
+    ctx7.moveTo(tv[0],tv[1]);
+    ctx7.lineTo(tv[0]-hs*Math.cos(angle-0.4),tv[1]-hs*Math.sin(angle-0.4));
+    ctx7.lineTo(tv[0]-hs*Math.cos(angle+0.4),tv[1]-hs*Math.sin(angle+0.4));
+    ctx7.closePath();ctx7.fill();
+    ctx7.fillStyle=color;ctx7.font='bold 12px sans-serif';ctx7.textAlign='center';
+    ctx7.fillText(label, tv[0]+10*Math.cos(angle), tv[1]+10*Math.sin(angle));
+  }
+  drawArrow(frame.p,frame.T,'#ff4444','T');
+  drawArrow(frame.p,frame.N,'#44ff44','N');
+  drawArrow(frame.p,frame.B,'#4488ff','B');
+  // Osculating circle
+  if(frame.kappa>0.05&&frame.kappa<20){
+    var R_osc=1/frame.kappa;
+    var cc=[frame.p[0]+frame.N[0]*R_osc,frame.p[1]+frame.N[1]*R_osc,frame.p[2]+frame.N[2]*R_osc];
+    var cs=toS(project3D(cc[0],cc[1],cc[2]));
+    var screenR=Math.min(80,R_osc*zoom);
+    ctx7.beginPath();ctx7.arc(cs[0],cs[1],screenR,0,Math.PI*2);
+    ctx7.strokeStyle='rgba(255,200,100,0.35)';ctx7.lineWidth=1.2;ctx7.stroke();
+  }
+  // Position dot
+  var sp=toS(project3D(frame.p[0],frame.p[1],frame.p[2]));
+  ctx7.beginPath();ctx7.arc(sp[0],sp[1],6,0,Math.PI*2);ctx7.fillStyle='#ffff44';ctx7.fill();
+  // Labels
+  var kStr=isFinite(frame.kappa)?frame.kappa.toFixed(4):'?';
+  var tStr=isFinite(frame.torsion)?frame.torsion.toFixed(4):'?';
+  ctx7.fillStyle='#88ff88';ctx7.font='12px monospace';ctx7.textAlign='left';
+  ctx7.fillText('\u03ba='+kStr+'  \u03c4='+tStr, 10, 18);
+  ctx7.fillStyle='#c0c0ea';ctx7.fillText('Curve: '+sel+'  a='+a.toFixed(2)+' b='+b.toFixed(2)+'  t='+t0.toFixed(2), 10, 34);
+  ctx7.fillStyle='#ff4444';ctx7.fillText('T=tangent', 10, H-46);
+  ctx7.fillStyle='#44ff44';ctx7.fillText('N=normal', 10, H-30);
+  ctx7.fillStyle='#4488ff';ctx7.fillText('B=binormal', 10, H-14);
+  document.getElementById('info7').textContent=
+    'Frenet-Serret on '+sel+': \u03ba='+kStr+', \u03c4='+tStr+'. Orange circle=osculating circle (radius 1/\u03ba).';
+}
+window.draw7=draw7;
+
+function resetFrenet(){
+  if(animId7){cancelAnimationFrame(animId7);animId7=null;document.getElementById('animBtn7').textContent='Animate Frame';}
+  animT7=0;
+  document.getElementById('fsTSlider').value=0;
+  document.getElementById('fsTLbl').textContent='0.00';
+  draw7();
+}
+window.resetFrenet=resetFrenet;
+
+function toggleAnim7(btn){
+  if(animId7){cancelAnimationFrame(animId7);animId7=null;btn.textContent='▶ Animate Frame';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  var sel=document.getElementById('fsCurveSel').value;
+  var tMaxMap2={helix:4*Math.PI,viviani:4*Math.PI,trefoil:2*Math.PI,epicycloid:4*Math.PI,lissajous:4*Math.PI};
+  var tMax2=tMaxMap2[sel]||4*Math.PI;
+  function frame(){
+    animT7+=0.025*(window.animSpeed||0.1);
+    var t=animT7%tMax2;
+    document.getElementById('fsTSlider').value=t;
+    document.getElementById('fsTLbl').textContent=t.toFixed(2);
+    draw7();
+    animId7=requestAnimationFrame(frame);
+  }
+  animId7=requestAnimationFrame(frame);
+}
+window.toggleAnim7=toggleAnim7;
+
+// Update init to include new tabs
+window.animSpeed=0.1;
+window.zoomX=1;
+requestAnimationFrame(function(){draw3();draw4();draw5();draw6();draw7();});
+
+window.addEventListener('resize',function(){
+  var active=[].findIndex.call(document.querySelectorAll('.page'),function(p){return p.classList.contains('active');});
+  var allD=[draw0,draw1,draw2,window.draw3,window.draw4,window.draw5,window.draw6,window.draw7];
+  if(active>=0&&allD[active]) allD[active]();
+});
+})();
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

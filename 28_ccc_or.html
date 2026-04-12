@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>28 · Conformal Cyclic Cosmology &amp; Objective Reduction</title>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#ff7744;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+.canvas-area{flex:1;display:flex;flex-direction:column;background:var(--bg);padding:12px;gap:8px;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span.sv{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--dim);line-height:1.7}
+.info-box .val{color:var(--accent);font-weight:600}
+
+/* Side panel (right) */
+.side-panel{width:280px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:14px;font-size:.78rem;line-height:1.75;color:var(--dim)}
+.side-panel h3{color:var(--accent);font-size:.88rem;letter-spacing:.04em;margin-bottom:4px}
+.eq-box{background:rgba(255,119,68,.08);border:1px solid rgba(255,119,68,.25);border-radius:5px;padding:7px 11px;font-family:'Courier New',monospace;color:var(--accent);font-size:.82rem;line-height:1.6}
+.side-panel p{color:var(--text);font-size:.76rem;line-height:1.7}
+.bullet{color:var(--text);font-size:.75rem;padding-left:6px}
+.status-box{border-radius:5px;padding:8px 12px;font-size:.82rem;font-weight:600;text-align:center;transition:background .4s,color .4s}
+.status-super{background:rgba(68,180,255,.12);border:1px solid rgba(68,180,255,.3);color:#44b4ff}
+.status-collapsed{background:rgba(255,119,68,.15);border:1px solid rgba(255,119,68,.4);color:var(--accent)}
+
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.panes{display:flex;flex-direction:column;flex:1;overflow:hidden}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">&#8592; Back</a>
+  <span class="badge">Ch. 30 &middot; 34</span>
+  <div class="title-block">
+    <h1>Conformal Cyclic Cosmology &amp; Objective Reduction</h1>
+    <p>Penrose's cyclic universe, quantum state reduction, and the Weyl curvature hypothesis</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">CCC &mdash; Aeons</div>
+  <div class="tab" onclick="switchTab(1)">Objective Reduction</div>
+  <div class="tab" onclick="switchTab(2)">Weyl Curvature</div>
+  <div class="tab" onclick="switchTab(3)">CMB Hawking Points</div>
+  <div class="tab" onclick="switchTab(4)">Orch-OR Microtubules</div>
+  <div class="tab" onclick="switchTab(5)">Twistor Road</div>
+  <div class="tab" onclick="switchTab(6)">BH Info Paradox</div>
+  <div class="tab" onclick="switchTab(7)">QG Phenomenology</div>
+</div>
+
+<div id="main">
+
+<!-- TAB 0: CCC AEONS -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn0" class="animBtn" onclick="toggleAnim(this,0)">▶ Animate</button>
+      <button onclick="resetView0()">Reset View</button>
+      <span style="font-size:.76rem;color:var(--dim)">Scroll to zoom &middot; Drag to pan</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" class="sv">0.10</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Conformal Cyclic Cosmology</h3>
+    <div class="eq-box">d&#x0073;&#x0303;&#xB2; = &#x03A9;&#xB2; ds&#xB2;</div>
+    <div class="eq-box">&#x03A9; &#x2192; 0 at &#x2131;&#x207A; (remote future)</div>
+    <div class="eq-box">&#x03A9; &#x2192; &#x221E; at Big Bang</div>
+    <p>Penrose proposes that the remote future of one aeon (&#x2131;&#x207A;) is <em>conformally equivalent</em> to the Big Bang of the next. Since massless particles (photons, gravitons) carry no rest mass, they experience no time scale. The vast, cold, conformally flat remote future <em>is</em> the conformally hot, dense Big Bang of the next aeon. The universe cycles through infinite aeons with no absolute time scale.</p>
+    <div class="bullet">&#x2022; No 2nd law violation &mdash; entropy resets at each crossover</div>
+    <div class="bullet">&#x2022; Hawking points: low-variance rings in CMB as remnant signatures</div>
+    <div class="bullet">&#x2022; Tested against CMB data (Gurzadyan &amp; Penrose, 2010; contested)</div>
+    <div class="bullet">&#x2022; Crossover surface: conformal boundary &#x2202;(Aeon N) identified with Big Bang of Aeon N+1</div>
+    <div class="bullet">&#x2022; Weyl tensor vanishes at each crossover (&#x2192; Tab 3)</div>
+  </div>
+</div>
+
+<!-- TAB 1: OBJECTIVE REDUCTION -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn1" class="animBtn" onclick="toggleAnim(this,1)">▶ Animate</button>
+      <label>Mass (log AMU)</label>
+      <input type="range" id="massSlider" min="8" max="17" value="12" step="0.1" oninput="updateOR()">
+      <span class="sv" id="massVal">10<sup>12</sup></span>
+      <label>Separation (nm)</label>
+      <input type="range" id="sepSlider" min="1" max="1000" value="100" oninput="updateOR()">
+      <span class="sv" id="sepVal">100 nm</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" class="sv">0.10</span>
+    </div>
+    <div class="info-box">
+      E<sub>G</sub> = <span class="val" id="egVal">&mdash;</span> &nbsp;|&nbsp;
+      &#x1D70F;&#x2092;&#x1D3F; = <span class="val" id="torVal">&mdash;</span> &nbsp;|&nbsp;
+      State: <span class="val" id="stateVal">&mdash;</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Objective Reduction (OR)</h3>
+    <div class="eq-box">&#x1D70F;&#x2092;&#x1D3F; = &#x210F; / E<sub>G</sub></div>
+    <div class="eq-box">E<sub>G</sub> &#x2248; Gm&#xB2;/d</div>
+    <div class="eq-box">E<sub>G</sub> = &#x222C; (G/6) &Delta;&rho;(r)&Delta;&rho;(r')/|r&#x2212;r'| d&#xB3;r d&#xB3;r'</div>
+    <p>Penrose proposes quantum superpositions collapse when their gravitational self-energy E<sub>G</sub> exceeds &#x210F;/&#x1D70F;. Unlike environmental decoherence, this is <strong style="color:var(--accent)">objective</strong> &mdash; it happens even in perfect isolation. The collapse is a real physical process linked to spacetime geometry.</p>
+    <div class="bullet">&#x2022; Proton: &#x1D70F; ~ 10&#x2077; years (never collapses alone)</div>
+    <div class="bullet">&#x2022; Dust grain (1&mu;m): &#x1D70F; ~ 10&#x207B;&#x2077; s (instant collapse)</div>
+    <div class="bullet">&#x2022; Microtubules in neurons (Penrose-Hameroff Orch OR): &#x1D70F; ~ 25 ms</div>
+    <div class="bullet">&#x2022; OR differs from decoherence: no environment needed</div>
+    <div id="orStatus" class="status-box status-super">State: SUPERPOSITION</div>
+  </div>
+</div>
+
+<!-- TAB 2: WEYL CURVATURE -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-area">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn2" class="animBtn" onclick="toggleAnim(this,2)">▶ Animate</button>
+      <button onclick="resetAnim2()">Reset</button>
+      <span style="font-size:.76rem;color:var(--dim)">Cosmic timeline from Big Bang (left) to far future (right)</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" class="sv">0.10</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Weyl Curvature Hypothesis</h3>
+    <div class="eq-box">C&#x1D41F;&#x1D41F;&#x1D41F;&#x1D41F; = 0 at Big Bang</div>
+    <div class="eq-box">S = S&#x2080; + k&#x1D435; ln &#x03A9;(&#x393;)</div>
+    <p>The Big Bang had Weyl = 0: a <em>maximally special</em> initial state. Gravitational degrees of freedom were frozen, giving the universe its initial low entropy despite extreme temperature. This fine-tuning is <em>not</em> explained by inflation.</p>
+    <div class="bullet">&#x2022; Weyl tensor: free gravitational field (tidal, shape-distorting)</div>
+    <div class="bullet">&#x2022; Ricci tensor: matter/energy source curvature (Einstein eq.)</div>
+    <div class="bullet">&#x2022; High Weyl = clumped matter, black holes, structure</div>
+    <div class="bullet">&#x2022; Low Weyl = smooth, uniform distribution</div>
+    <div class="bullet">&#x2022; CCC provides the mechanism: each crossover inherits Weyl = 0 from previous aeon's &#x2131;&#x207A;</div>
+    <div class="bullet">&#x2022; Entropy paradox: high-T Big Bang yet low S &mdash; resolved by Weyl = 0</div>
+  </div>
+</div>
+
+<!-- TAB 3: CMB HAWKING POINTS -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn3" class="animBtn" onclick="toggleAnim(this,3)">▶ Animate</button>
+      <label>Ring Radius</label>
+      <input type="range" id="hpRadius" min="20" max="160" value="70" oninput="draw3()">
+      <span class="sv" id="hpRadiusVal">70°</span>
+      <label>Amplitude</label>
+      <input type="range" id="hpAmp" min="1" max="10" value="4" step="0.5" oninput="draw3()">
+      <span class="sv" id="hpAmpVal">4×</span>
+      <label>N Rings</label>
+      <input type="range" id="hpN" min="1" max="6" value="3" step="1" oninput="draw3()">
+      <span class="sv" id="hpNVal">3</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" class="sv">0.10</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>CMB Hawking Points</h3>
+    <div class="eq-box">&#x03B4;T/T|<sub>ring</sub> &lt; &sigma;<sub>background</sub></div>
+    <div class="eq-box">P(detect|CCC) vs P(detect|&#x039B;CDM)</div>
+    <p><strong style="color:var(--accent)">CCC prediction (Penrose &amp; Gurzadyan, 2010):</strong> When supermassive black holes merge in a previous aeon, they emit isotropic bursts of gravitational waves. These propagate to the conformally rescaled Big Bang, imprinting as circles of anomalously <em>low</em> temperature variance in the CMB. Penrose calls these Hawking points — the final Hawking radiation burst of ancient black holes, visible as rings in our sky.</p>
+    <h3>Statistical controversy</h3>
+    <p>Gurzadyan &amp; Penrose claimed detection in WMAP data (2010). Three independent groups (Wehus &amp; Eriksen; Moss, Scott &amp; Zibin; Hajian) rebutted: the CMB variance circles fall within the expected range of a standard &#x039B;CDM Gaussian random field. The crucial point is that a random Gaussian field on S² naturally produces such features; CCC rings must be <em>statistically anomalous</em> beyond chance.</p>
+    <h3>Planck era status</h3>
+    <p>Penrose, An, Meissner, &amp; Gurzadyan (2020) claimed 30+ Hawking points in Planck data at &gt;99% significance, with a clustering of low-variance spots around specific centers. Critics dispute the trial factor correction. No consensus detection; the claim remains scientifically open but controversial.</p>
+    <div class="bullet">&#x2022; A confirmed detection would be the first evidence for physics <em>before</em> the Big Bang</div>
+    <div class="bullet">&#x2022; Distinguishing feature: rings should be correlated in radius with BH mass in previous aeon</div>
+    <div class="bullet">&#x2022; Future: CMB-S4, Simons Observatory will provide the definitive dataset</div>
+  </div>
+</div>
+
+<!-- TAB 4: ORCH-OR MICROTUBULES -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn4" class="animBtn" onclick="toggleAnim(this,4)">▶ Animate</button>
+      <label>log&#x2081;&#x2080;(m/kg)</label>
+      <input type="range" id="orchMass" min="-31" max="-17" value="-22" step="0.5" oninput="draw4()">
+      <span class="sv" id="orchMassVal">10⁻²²</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" class="sv">0.10</span>
+    </div>
+    <div class="info-box">
+      E<sub>G</sub> = <span class="val" id="orchEg">&mdash;</span> &nbsp;|&nbsp;
+      &#x1D70F; = &#x210F;/E<sub>G</sub> = <span class="val" id="orchTau">&mdash;</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Orchestrated OR (Orch-OR)</h3>
+    <div class="eq-box">E<sub>G</sub> = &#x222B; d&#xB3;x |&#x394;&#x393;|&#xB2; / (8&#x03C0;G)</div>
+    <div class="eq-box">&#x1D70F; = &#x210F; / E<sub>G</sub></div>
+    <p><strong style="color:var(--accent)">Penrose-Hameroff (1994–present):</strong> Quantum superpositions in tubulin dimers (the protein subunits of microtubules in neurons) collapse via OR when E<sub>G</sub> = &#x210F;/&#x1D70F;. The collapse is <em>orchestrated</em> by microtubule-associated proteins (MAPs), making it non-computable in Penrose's sense — the source of conscious experience.</p>
+    <h3>OR condition</h3>
+    <p>E<sub>G</sub> is the gravitational self-energy of the mass-difference distribution between the two arms of the superposition. For a tubulin dimer (~10⁻²² kg) displaced ~1 nm, &#x1D70F; ~ 10⁵ seconds — far too slow for a neuron. Hameroff argues coherence across many tubulins reduces &#x1D70F; to ~25 ms (gamma oscillation timescale).</p>
+    <h3>Objections &amp; responses</h3>
+    <div class="bullet">&#x2022; <strong>Tegmark (2000):</strong> Decoherence time in warm/wet neurons ~ 10⁻¹³ s, 13 orders faster than &#x1D70F;</div>
+    <div class="bullet">&#x2022; <strong>Hameroff response:</strong> Topological protection, anesthesia experiments, quantum vibrations in tubulin (Craddock 2017)</div>
+    <div class="bullet">&#x2022; <strong>Craddock et al. (2017):</strong> Quantum coherence in tubulin tryptophan chromophores</div>
+    <div class="bullet">&#x2022; <strong>Copenhagen:</strong> Collapse is not physical — just update of knowledge. OR disagrees.</div>
+    <div class="bullet">&#x2022; <strong>Many Worlds:</strong> No collapse at all. OR is a direct refutation of this.</div>
+    <div class="bullet">&#x2022; Key test: quantum coherence in neuron microtubules at physiological temperature</div>
+  </div>
+</div>
+
+<!-- TAB 5: TWISTOR ROAD -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn5" class="animBtn" onclick="toggleAnim(this,5)">▶ Animate</button>
+      <button onclick="resetTwistor()">Reset</button>
+      <label>Particle</label>
+      <select id="twistorParticle" onchange="draw5()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.8rem">
+        <option value="photon">Photon (h=+1)</option>
+        <option value="graviton">Graviton (h=+2)</option>
+        <option value="neutrino">Neutrino (h=+½)</option>
+      </select>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" class="sv">0.10</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Penrose's Twistor Programme</h3>
+    <div class="eq-box">Z&#x3B1; = (&#x3C9;&#x1D2E;, &#x3C0;<sub>A'</sub>) &#x2208; &#x2102;⁴</div>
+    <div class="eq-box">&#x3C9;&#x1D2E; = ix&#x1D2E;&#x1D2E;&#x2019; &#x3C0;<sub>A'</sub> (incidence relation)</div>
+    <div class="eq-box">H&#xB9;(PT, &#x1D4AA;(-n-2)) &#x27F7; helicity-n/2 fields</div>
+    <p><strong style="color:var(--accent)">Twistor space (Penrose, 1967):</strong> Replace spacetime as the fundamental arena with twistor space &#x1D54B;, a complex 4D space &#x2102;⁴. A spacetime <em>point</em> x corresponds to a Riemann sphere CP¹ (a "line") in projective twistor space PT = CP³. A massless particle's worldline becomes a <em>point</em> in twistor space.</p>
+    <h3>Penrose Transform</h3>
+    <p>Massless fields (Maxwell, linearized gravity) are encoded in sheaf cohomology classes on regions of PT. The Penrose transform provides an exact correspondence: H¹(PT⁺, 𝒪(-n-2)) ↔ zero-rest-mass fields of helicity n/2 satisfying field equations in Minkowski space. This encodes field equations <em>geometrically</em> without writing down differential equations explicitly.</p>
+    <h3>Legacy &amp; extensions</h3>
+    <div class="bullet">&#x2022; Twistor string theory: Witten (2003) reformulated N=4 super-Yang-Mills in twistor space, giving Parke-Taylor formula for gluon scattering</div>
+    <div class="bullet">&#x2022; Amplituhedron (Arkani-Hamed &amp; Trnka, 2013): scattering amplitudes as volumes of geometric objects — twistor geometry at heart</div>
+    <div class="bullet">&#x2022; Non-commutative twistor geometry under active development</div>
+    <div class="bullet">&#x2022; Penrose: twistors may be the correct variables for quantum gravity</div>
+  </div>
+</div>
+
+<!-- TAB 6: BLACK HOLE INFORMATION PARADOX -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-area">
+    <canvas id="c6"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn6" class="animBtn" onclick="toggleAnim(this,6)">▶ Animate</button>
+      <button onclick="resetBHInfo()">Reset</button>
+      <label>View</label>
+      <select id="bhView" onchange="draw6()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.8rem">
+        <option value="evap">Evaporation</option>
+        <option value="page">Page Curve</option>
+      </select>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" class="sv">0.10</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Black Hole Information Paradox</h3>
+    <div class="eq-box">T<sub>H</sub> = &#x210F;c&#xB3; / (8&#x03C0;Gk<sub>B</sub>M)</div>
+    <div class="eq-box">S<sub>BH</sub> = A / (4G&#x210F;) = 4&#x03C0;GM&#xB2; / (&#x210F;c)</div>
+    <p><strong style="color:var(--accent)">Hawking (1974):</strong> Black holes emit thermal radiation with temperature T<sub>H</sub> &#x221D; 1/M. The radiation is perfectly thermal — no information about the infalling matter escapes. After complete evaporation, information is <em>lost</em>. This violates unitarity of quantum mechanics.</p>
+    <h3>Page Curve</h3>
+    <p>Don Page (1993): if evolution is unitary, the von Neumann entropy S of the radiation must <em>decrease</em> after the Page time t<sub>Page</sub> ~ M³. Early radiation is nearly thermal; late radiation must be entangled with early radiation to purify the state. The "island formula" (Penington; Almheiri et al., 2019) reproduces the Page curve via replica wormholes in the gravitational path integral.</p>
+    <h3>Competing resolutions</h3>
+    <div class="bullet">&#x2022; <strong>Complementarity</strong> (Susskind &amp; 't Hooft): infaller sees no drama; outside observer sees info encoded in Hawking radiation. No contradiction if neither can compare notes.</div>
+    <div class="bullet">&#x2022; <strong>Firewall paradox</strong> (AMPS 2012): complementarity + monogamy of entanglement &#x21D2; drama at horizon (firewall)</div>
+    <div class="bullet">&#x2022; <strong>Island formula</strong> S = min(A/4G + S<sub>matter on island</sub>) — gravitational entropy includes contributions from islands behind horizon</div>
+    <div class="bullet">&#x2022; <strong>Penrose's view:</strong> OR resolves the paradox — the collapse of the quantum state during OR is a non-unitary, physical process; information is genuinely lost in black hole evaporation, consistent with OR</div>
+  </div>
+</div>
+
+<!-- TAB 7: QUANTUM GRAVITY PHENOMENOLOGY -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-area">
+    <canvas id="c7"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn7" class="animBtn" onclick="toggleAnim(this,7)">▶ Animate</button>
+      <label>View</label>
+      <select id="qgView" onchange="draw7()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.8rem">
+        <option value="lqg">LQG Spin Network</option>
+        <option value="experiments">Experiments</option>
+      </select>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" class="sv">0.10</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Loop Quantum Gravity</h3>
+    <div class="eq-box">A = 8&#x03C0;&#x03B3;&#x2113;<sub>P</sub>&#xB2; &#x2211;<sub>j</sub> &#x221A;(j(j+1))</div>
+    <div class="eq-box">V ~ &#x2113;<sub>P</sub>&#xB3; (discrete volume quanta)</div>
+    <p><strong style="color:var(--accent)">LQG (Rovelli, Smolin, Ashtekar, 1986–present):</strong> Spacetime itself is discrete at the Planck scale &#x2113;<sub>P</sub> ~ 10⁻³⁵ m. Area eigenvalues are discrete: A = 8&#x03C0;&#x03B3;&#x2113;<sub>P</sub>² &#x2211; &#x221A;(j<sub>i</sub>(j<sub>i</sub>+1)), where j<sub>i</sub> are half-integer spin quantum numbers labeling spin network edges. The Barbero-Immirzi parameter &#x03B3; ~ 0.274 is fixed by black hole entropy.</p>
+    <h3>Spin foams</h3>
+    <p>The covariant formulation describes spacetime history as a 2-complex (spin foam) with vertex amplitudes W(j<sub>f</sub>, i<sub>e</sub>). The EPRL model gives a well-defined vertex amplitude relating to the Regge action in the large-j limit, connecting LQG to discrete path integrals over geometries.</p>
+    <h3>Experimental probes</h3>
+    <div class="bullet">&#x2022; <strong>Fermi (2009):</strong> Gamma-ray burst photons — no Planck-scale dispersion detected (E<sub>QG</sub> &gt; 10E<sub>Planck</sub>)</div>
+    <div class="bullet">&#x2022; <strong>LISA (2030s):</strong> Gravitational wave Planck-noise sensitivity</div>
+    <div class="bullet">&#x2022; <strong>GEO600/LIGO:</strong> Holographic noise searches (inconclusive)</div>
+    <div class="bullet">&#x2022; <strong>Bose-Marletto-Vedral (2017):</strong> Tabletop quantum gravity via entanglement mediated by gravity between quantum masses</div>
+    <div class="bullet">&#x2022; <strong>CDT</strong> (Ambjorn et al.): Causal dynamical triangulations recover 4D spacetime from Planck-scale building blocks</div>
+    <div class="bullet">&#x2022; <strong>Asymptotic safety</strong> (Reuter): gravity may be UV-complete without strings</div>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ============================================================
+// SHARED STATE
+// ============================================================
+const animIds = [null, null, null, null, null, null, null, null];
+const animOffsets = [0, 0, 0, 0, 0, 0, 0, 0];
+
+function toggleAnim(btn, i) {
+  if (animIds[i]) {
+    cancelAnimationFrame(animIds[i]);
+    animIds[i] = null;
+    btn.textContent = '▶ Animate';
+    btn.classList.remove('active');
+    return;
+  }
+  btn.textContent = '⏸ Pause';
+  btn.classList.add('active');
+  const draws = [draw0, draw1, draw2, draw3, draw4, draw5, draw6, draw7];
+  function frame() {
+    animOffsets[i] += (window.animSpeed || 0.1) * 0.018;
+    draws[i]();
+    animIds[i] = requestAnimationFrame(frame);
+  }
+  animIds[i] = requestAnimationFrame(frame);
+}
+
+function _cancelAllAnims28() {
+  for (let i = 0; i < 8; i++) {
+    if (animIds[i]) {
+      cancelAnimationFrame(animIds[i]);
+      animIds[i] = null;
+    }
+    const btn = document.getElementById('animBtn' + i);
+    if (btn) {
+      btn.textContent = '▶ Animate';
+      btn.classList.remove('active');
+    }
+  }
+}
+function syncSpeedControl28(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+
+function switchTab(i) {
+  _cancelAllAnims28();
+  document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
+  document.querySelectorAll('.pane').forEach((p, j) => p.classList.toggle('active', j === i));
+  syncSpeedControl28(i);
+  if (i === 0) { draw0(); toggleAnim(document.getElementById('animBtn0'),0); }
+  if (i === 1) { updateOR(); draw1(); toggleAnim(document.getElementById('animBtn1'),1); }
+  if (i === 2) { draw2(); toggleAnim(document.getElementById('animBtn2'),2); }
+  if (i === 3) { draw3(); toggleAnim(document.getElementById('animBtn3'),3); }
+  if (i === 4) { draw4(); toggleAnim(document.getElementById('animBtn4'),4); }
+  if (i === 5) { draw5(); toggleAnim(document.getElementById('animBtn5'),5); }
+  if (i === 6) { draw6(); toggleAnim(document.getElementById('animBtn6'),6); }
+  if (i === 7) { draw7(); toggleAnim(document.getElementById('animBtn7'),7); }
+}
+
+// ============================================================
+// TAB 0 — CCC AEONS
+// ============================================================
+let pan0 = { x: 0, y: 0 };
+let zoom0 = 1;
+let drag0 = false;
+let drag0Last = { x: 0, y: 0 };
+
+function resetView0() { pan0 = { x: 0, y: 0 }; zoom0 = 1; draw0(); }
+
+function initCanvas0() {
+  const cv = document.getElementById('c0');
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.91;
+    zoom0 = Math.max(0.3, Math.min(5, zoom0 * factor));
+    draw0();
+  }, { passive: false });
+  cv.addEventListener('mousedown', e => { drag0 = true; drag0Last = { x: e.clientX, y: e.clientY }; });
+  cv.addEventListener('mousemove', e => {
+    if (!drag0) return;
+    pan0.x += e.clientX - drag0Last.x;
+    pan0.y += e.clientY - drag0Last.y;
+    drag0Last = { x: e.clientX, y: e.clientY };
+    draw0();
+  });
+  cv.addEventListener('mouseup', () => { drag0 = false; });
+  cv.addEventListener('mouseleave', () => { drag0 = false; });
+}
+
+function draw0() {
+  const cv = document.getElementById('c0');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[0];
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.translate(W / 2 + pan0.x, H / 2 + pan0.y);
+  ctx.scale(zoom0, zoom0);
+  ctx.translate(-W / 2, -H / 2);
+
+  const aeonH = H / 3;
+  const aeonLabels = ['Aeon N\u22121', 'Aeon N', 'Aeon N+1'];
+  const aeonColors = [
+    ['#0a0820', '#1a0a40'],
+    ['#050820', '#0a1535'],
+    ['#030515', '#061025']
+  ];
+
+  for (let a = 0; a < 3; a++) {
+    const yTop = a * aeonH;
+    const yBot = (a + 1) * aeonH;
+    const pulse = animIds[0] ? 0.06 * Math.sin(t * 1.5 + a * 1.1) : 0;
+
+    // Band gradient
+    const grad = ctx.createLinearGradient(0, yTop, W, yTop);
+    const c0 = aeonColors[a][0], c1 = aeonColors[a][1];
+    grad.addColorStop(0, c0);
+    grad.addColorStop(0.5, c1);
+    grad.addColorStop(1, '#020308');
+    ctx.fillStyle = grad;
+    ctx.globalAlpha = 1 + pulse;
+    ctx.fillRect(0, yTop, W, aeonH);
+    ctx.globalAlpha = 1;
+
+    // Faint grid lines (cosmic web suggestion)
+    ctx.strokeStyle = 'rgba(100,80,200,0.07)';
+    ctx.lineWidth = 0.5;
+    for (let gx = 0; gx < W; gx += 60) {
+      ctx.beginPath(); ctx.moveTo(gx, yTop); ctx.lineTo(gx, yBot); ctx.stroke();
+    }
+
+    // Big Bang left edge (orange diagonal)
+    const bbX = 28;
+    ctx.save();
+    ctx.strokeStyle = '#ff7744';
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 10; ctx.shadowColor = '#ff7744';
+    ctx.beginPath();
+    ctx.moveTo(bbX - 12, yTop + 4);
+    ctx.quadraticCurveTo(bbX + 10, yTop + aeonH / 2, bbX - 12, yBot - 4);
+    ctx.stroke();
+    ctx.restore();
+
+    // Label: Big Bang
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,119,68,0.7)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('BB', bbX - 4, yTop + aeonH / 2 + 4);
+    ctx.restore();
+
+    // Remote future right edge (dashed)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(80,120,255,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(W - 20, yTop + 6);
+    ctx.lineTo(W - 20, yBot - 6);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Label: remote future
+    ctx.save();
+    ctx.fillStyle = 'rgba(80,120,255,0.6)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.fillText('\u2131\u207A', W - 22, yTop + aeonH / 2 + 3);
+    ctx.restore();
+
+    // Light cones (X shapes)
+    const lcPositions = [
+      [0.15, 0.25], [0.28, 0.6], [0.42, 0.35], [0.55, 0.7],
+      [0.65, 0.3], [0.72, 0.55], [0.82, 0.4], [0.88, 0.65]
+    ];
+    for (const [fx, fy] of lcPositions) {
+      const lx = bbX + 24 + fx * (W - bbX - 50);
+      const ly = yTop + 10 + fy * (aeonH - 20);
+      const r = 9;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(180,160,255,0.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(lx - r, ly - r); ctx.lineTo(lx + r, ly + r);
+      ctx.moveTo(lx + r, ly - r); ctx.lineTo(lx - r, ly + r);
+      ctx.stroke();
+      // apex dot
+      ctx.fillStyle = 'rgba(200,180,255,0.4)';
+      ctx.beginPath(); ctx.arc(lx, ly, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    // Geodesic lines crossing aeon (diagonal lines suggesting null geodesics)
+    for (let g = 0; g < 4; g++) {
+      const gx0 = bbX + 30 + g * (W / 5);
+      const slope = (g % 2 === 0 ? 1 : -1) * 0.35;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,200,100,0.12)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(gx0, yTop + 2);
+      ctx.lineTo(gx0 + slope * aeonH, yBot - 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Aeon label
+    ctx.save();
+    ctx.fillStyle = 'rgba(192,192,234,0.55)';
+    ctx.font = 'bold 13px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText(aeonLabels[a], bbX + 12, yTop + 20);
+    ctx.restore();
+  }
+
+  // Crossover surfaces between aeons
+  for (let c = 1; c <= 2; c++) {
+    const cy = c * aeonH;
+    const shimmer = animIds[0] ? 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 3 + c * 2)) : 0.85;
+
+    ctx.save();
+    ctx.shadowBlur = 18; ctx.shadowColor = '#ff7744';
+    const lineGrad = ctx.createLinearGradient(0, cy, W, cy);
+    lineGrad.addColorStop(0, `rgba(255,119,68,0)`);
+    lineGrad.addColorStop(0.1, `rgba(255,119,68,${shimmer})`);
+    lineGrad.addColorStop(0.5, `rgba(255,220,100,${shimmer})`);
+    lineGrad.addColorStop(0.9, `rgba(255,119,68,${shimmer})`);
+    lineGrad.addColorStop(1, `rgba(255,119,68,0)`);
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(0, cy); ctx.lineTo(W, cy);
+    ctx.stroke();
+    ctx.restore();
+
+    // Label crossover
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,180,80,0.85)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    const label = c === 1
+      ? 'Conformal Crossover \u2202(Aeon N\u22121)'
+      : 'Conformal Crossover \u2202(Aeon N)';
+    ctx.fillText(label, W / 2, cy - 5);
+    ctx.restore();
+
+    // Geodesics crossing (continuous through crossover)
+    for (let g = 0; g < 3; g++) {
+      const gx = W * (0.25 + g * 0.25);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,200,120,0.22)';
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(gx, cy - aeonH * 0.3);
+      ctx.lineTo(gx, cy + aeonH * 0.3);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // Small marker at crossover
+      ctx.save();
+      ctx.fillStyle = `rgba(255,180,80,${shimmer * 0.7})`;
+      ctx.beginPath(); ctx.arc(gx, cy, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  ctx.restore();
+
+  // Axis legend (outside transform)
+  ctx.save();
+  ctx.fillStyle = 'rgba(85,85,138,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Conformal Time \u27F6', W / 2, H - 8);
+  ctx.textAlign = 'right';
+  ctx.fillText('zoom: ' + zoom0.toFixed(2) + '\u00D7', W - 12, 16);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 1 — OBJECTIVE REDUCTION
+// ============================================================
+// Physical constants
+const G = 6.674e-11;
+const hbar = 1.055e-34;
+const amu = 1.661e-27; // kg
+
+let orCollapsed = false;
+let orBurst = 0;
+
+function updateOR() {
+  const mExp = parseFloat(document.getElementById('massSlider').value);
+  const sepNm = parseFloat(document.getElementById('sepSlider').value);
+  const mVal = Math.pow(10, mExp) * amu; // kg
+  const d = sepNm * 1e-9; // meters
+
+  // Display
+  document.getElementById('massVal').innerHTML = '10<sup>' + mExp.toFixed(1) + '</sup> amu';
+  document.getElementById('sepVal').textContent = sepNm < 1000 ? sepNm.toFixed(0) + ' nm' : (sepNm / 1000).toFixed(2) + ' \u03BCm';
+
+  const Eg = G * mVal * mVal / d;
+  const tau = hbar / Eg;
+
+  function fmtSci(x) {
+    const e = Math.floor(Math.log10(x));
+    const m = (x / Math.pow(10, e)).toFixed(2);
+    return m + '\u00D710\u207B' + Math.abs(e) + (e < 0 ? '' : '');
+  }
+  function fmtTau(t) {
+    if (t > 3.15e13) return (t / 3.15e7).toExponential(1) + ' yr';
+    if (t > 3.15e7) return (t / 3.15e7).toFixed(1) + ' yr';
+    if (t > 86400) return (t / 86400).toFixed(1) + ' days';
+    if (t > 3600) return (t / 3600).toFixed(2) + ' hr';
+    if (t > 1) return t.toFixed(3) + ' s';
+    if (t > 1e-3) return (t * 1e3).toFixed(2) + ' ms';
+    if (t > 1e-6) return (t * 1e6).toFixed(2) + ' \u03BCs';
+    if (t > 1e-9) return (t * 1e9).toFixed(2) + ' ns';
+    return t.toExponential(2) + ' s';
+  }
+
+  document.getElementById('egVal').textContent = Eg.toExponential(2) + ' J';
+  document.getElementById('torVal').textContent = fmtTau(tau);
+
+  // Collapse criterion: if tau < 1 second, consider collapsed
+  const collapsed = tau < 1.0;
+  orCollapsed = collapsed;
+  const stateEl = document.getElementById('stateVal');
+  const statusEl = document.getElementById('orStatus');
+  if (collapsed) {
+    stateEl.textContent = 'COLLAPSED';
+    stateEl.style.color = '#ff7744';
+    statusEl.className = 'status-box status-collapsed';
+    statusEl.textContent = 'State: COLLAPSED (OR regime)';
+  } else {
+    stateEl.textContent = 'SUPERPOSITION';
+    stateEl.style.color = '#44b4ff';
+    statusEl.className = 'status-box status-super';
+    statusEl.textContent = 'State: SUPERPOSITION';
+  }
+
+  if (!animIds[1]) draw1();
+}
+
+function draw1() {
+  const cv = document.getElementById('c1');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[1];
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  const mExp = parseFloat(document.getElementById('massSlider').value);
+  const sepNm = parseFloat(document.getElementById('sepSlider').value);
+  const d = sepNm * 1e-9;
+  const mVal = Math.pow(10, mExp) * amu;
+  const Eg = G * mVal * mVal / d;
+  const tau = hbar / Eg;
+  const isCollapsed = tau < 1.0;
+
+  // Layout: top half = blobs, bottom half = field
+  const midY = H * 0.52;
+  const cx = W / 2;
+
+  // Separation in pixels (scaled: 100nm = 120px, log scale)
+  const sepPx = 40 + 100 * (Math.log10(sepNm) - Math.log10(1)) / (Math.log10(1000) - Math.log10(1));
+  const blobY = H * 0.28;
+  const blobR = 22;
+
+  // ---- TOP SECTION: Superposition ----
+  // Section background
+  const topGrad = ctx.createLinearGradient(0, 0, 0, midY);
+  topGrad.addColorStop(0, '#030512');
+  topGrad.addColorStop(1, '#06091a');
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(0, 0, W, midY);
+
+  if (!isCollapsed) {
+    // Superposition: two blobs
+    const animShift = animIds[1] ? 8 * Math.sin(t * 2) : 0;
+    const leftX = cx - sepPx / 2 + animShift;
+    const rightX = cx + sepPx / 2 + animShift;
+
+    // Wavy connection line
+    ctx.save();
+    ctx.strokeStyle = 'rgba(68,180,255,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    const steps = 40;
+    for (let i = 0; i <= steps; i++) {
+      const fx = leftX + (rightX - leftX) * (i / steps);
+      const wy = blobY + 14 * Math.sin((i / steps) * Math.PI * 4 + (animIds[1] ? t * 3 : 0));
+      if (i === 0) ctx.moveTo(fx, wy); else ctx.lineTo(fx, wy);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // Left blob
+    for (let pass = 0; pass < 2; pass++) {
+      const bx = pass === 0 ? leftX : rightX;
+      ctx.save();
+      ctx.globalAlpha = 0.55 + (animIds[1] ? 0.15 * Math.sin(t * 2.3 + pass) : 0);
+      const bg = ctx.createRadialGradient(bx, blobY, 0, bx, blobY, blobR * 2);
+      bg.addColorStop(0, 'rgba(68,180,255,0.7)');
+      bg.addColorStop(0.4, 'rgba(40,80,200,0.4)');
+      bg.addColorStop(1, 'rgba(20,40,120,0)');
+      ctx.fillStyle = bg;
+      ctx.beginPath(); ctx.arc(bx, blobY, blobR * 2, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.6 + (animIds[1] ? 0.2 * Math.sin(t * 2 + pass) : 0);
+      ctx.strokeStyle = '#44b4ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(bx, blobY, blobR, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+
+    // Superposition label
+    ctx.save();
+    ctx.fillStyle = 'rgba(68,180,255,0.85)';
+    ctx.font = '13px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('|\u03C8\u27E9 = \u03B1|left\u27E9 + \u03B2|right\u27E9', cx, blobY - blobR - 14);
+    ctx.restore();
+  } else {
+    // Collapsed: single blob with burst
+    orBurst = animIds[1] ? orBurst + 0.08 : Math.min(orBurst, 1);
+    if (animIds[1] && orBurst > 2 * Math.PI) orBurst = 0;
+
+    ctx.save();
+    const bg = ctx.createRadialGradient(cx, blobY, 0, cx, blobY, blobR * 2.5);
+    bg.addColorStop(0, 'rgba(255,119,68,0.9)');
+    bg.addColorStop(0.4, 'rgba(200,60,0,0.5)');
+    bg.addColorStop(1, 'rgba(120,30,0,0)');
+    ctx.fillStyle = bg;
+    ctx.beginPath(); ctx.arc(cx, blobY, blobR * 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ff7744';
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 12; ctx.shadowColor = '#ff7744';
+    ctx.beginPath(); ctx.arc(cx, blobY, blobR, 0, Math.PI * 2); ctx.stroke();
+
+    // Burst rays
+    const nRays = 8;
+    for (let r = 0; r < nRays; r++) {
+      const angle = (r / nRays) * Math.PI * 2 + (animIds[1] ? t : 0);
+      const len = blobR * 1.8 + blobR * 0.6 * Math.sin(animIds[1] ? t * 4 + r : 0);
+      ctx.strokeStyle = 'rgba(255,180,80,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.moveTo(cx + blobR * 1.1 * Math.cos(angle), blobY + blobR * 1.1 * Math.sin(angle));
+      ctx.lineTo(cx + len * Math.cos(angle), blobY + len * Math.sin(angle));
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,119,68,0.9)';
+    ctx.font = 'bold 13px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('|\u03C8\u27E9 collapsed \u2192 definite state', cx, blobY - blobR - 14);
+    ctx.restore();
+  }
+
+  // Divider
+  ctx.save();
+  ctx.strokeStyle = 'rgba(85,85,138,0.35)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // ---- BOTTOM SECTION: Gravitational self-energy ----
+  const botGrad = ctx.createLinearGradient(0, midY, 0, H);
+  botGrad.addColorStop(0, '#060812');
+  botGrad.addColorStop(1, '#030508');
+  ctx.fillStyle = botGrad;
+  ctx.fillRect(0, midY, W, H - midY);
+
+  const fieldCx = cx;
+  const fieldCy = midY + (H - midY) * 0.4;
+  const fR = 28;
+
+  // Two mass "copies" in field diagram
+  const fieldSep = Math.max(40, sepPx * 0.6);
+  const fLeft = fieldCx - fieldSep / 2;
+  const fRight = fieldCx + fieldSep / 2;
+
+  // Curved gravitational field lines
+  const nLines = 7;
+  for (let i = 0; i < nLines; i++) {
+    const frac = (i + 0.5) / nLines;
+    const yOffset = (frac - 0.5) * fR * 3.5;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,180,60,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(fLeft + fR * 0.8, fieldCy + yOffset);
+    ctx.bezierCurveTo(
+      fLeft + fR * 1.5, fieldCy + yOffset * 0.3,
+      fRight - fR * 1.5, fieldCy + yOffset * 0.3,
+      fRight - fR * 0.8, fieldCy + yOffset
+    );
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  for (let pass = 0; pass < 2; pass++) {
+    const fx = pass === 0 ? fLeft : fRight;
+    ctx.save();
+    const fg = ctx.createRadialGradient(fx, fieldCy, 0, fx, fieldCy, fR * 1.5);
+    fg.addColorStop(0, 'rgba(200,160,60,0.5)');
+    fg.addColorStop(0.5, 'rgba(160,100,20,0.2)');
+    fg.addColorStop(1, 'rgba(100,60,10,0)');
+    ctx.fillStyle = fg;
+    ctx.beginPath(); ctx.arc(fx, fieldCy, fR * 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,180,60,0.6)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(fx, fieldCy, fR, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // E_G label
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,180,60,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('E_G = gravitational self-energy of superposition', fieldCx, fieldCy + fR + 18);
+  ctx.restore();
+
+  // Threshold line — placed exactly where tau=1s falls on the log scale
+  const logMin = -8, logMax = 8;
+  const thrFrac = 1 - (0 - logMin) / (logMax - logMin); // logTau=0 at tau=1s → tFrac=0.5
+  const thrY = midY + 10 + thrFrac * (H - midY - 20);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,119,68,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([8, 5]);
+  ctx.beginPath(); ctx.moveTo(40, thrY); ctx.lineTo(W - 40, thrY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,119,68,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'right';
+  ctx.fillText('OR threshold: E_G = \u210F/\u03C4', W - 44, thrY - 5);
+  ctx.restore();
+
+  // Indicator dot
+  const tau2 = tau;
+  // Map tau to vertical position: 1e8s -> top, 1e-8s -> bottom of bottom section
+  const logTau = Math.log10(Math.max(1e-12, tau2));
+  const tFrac = 1 - (logTau - logMin) / (logMax - logMin);
+  const dotY = midY + 10 + tFrac * (H - midY - 20);
+  const dotX = W * 0.88;
+
+  ctx.save();
+  ctx.shadowBlur = 14;
+  ctx.shadowColor = isCollapsed ? '#ff7744' : '#44b4ff';
+  ctx.fillStyle = isCollapsed ? '#ff7744' : '#44b4ff';
+  const dotPulse = animIds[1] ? 5 + 3 * Math.sin(t * 3) : 5;
+  ctx.beginPath(); ctx.arc(dotX, dotY, dotPulse, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Tau label beside dot
+  ctx.save();
+  ctx.fillStyle = isCollapsed ? 'rgba(255,119,68,0.85)' : 'rgba(68,180,255,0.85)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'right';
+  function fmtTauShort(t_) {
+    if (t_ > 3.15e13) return (t_ / 3.15e7).toExponential(1) + ' yr';
+    if (t_ > 86400) return (t_ / 86400).toFixed(0) + ' d';
+    if (t_ > 1) return t_.toExponential(1) + ' s';
+    if (t_ > 1e-3) return (t_ * 1e3).toFixed(1) + ' ms';
+    return t_.toExponential(1) + ' s';
+  }
+  ctx.fillText('\u03C4\u2092\u1D3F = ' + fmtTauShort(tau2), dotX - 10, dotY - 8);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 2 — WEYL CURVATURE
+// ============================================================
+let weylAnim2Progress = 1; // 0 = start, 1 = full
+
+function resetAnim2() {
+  weylAnim2Progress = 0;
+  draw2();
+}
+
+function draw2() {
+  const cv = document.getElementById('c2');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[2];
+  if (animIds[2]) {
+    weylAnim2Progress = Math.min(1, weylAnim2Progress + 0.004);
+  }
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  const leftMargin = 72;
+  const rightMargin = 24;
+  const xRange = W - leftMargin - rightMargin;
+  const toX = frac => leftMargin + frac * xRange * weylAnim2Progress;
+
+  // Timeline events (fractions 0..1)
+  const events = [
+    { frac: 0.0, label: 'Big Bang', subLabel: 't=0' },
+    { frac: 0.06, label: 'CMB', subLabel: '380 kyr' },
+    { frac: 0.15, label: 'First Stars', subLabel: '180 Myr' },
+    { frac: 0.28, label: 'Galaxies', subLabel: '1 Gyr' },
+    { frac: 0.42, label: 'First BHs', subLabel: '~2 Gyr' },
+    { frac: 0.58, label: 'Present', subLabel: '13.8 Gyr' },
+    { frac: 1.0, label: 'Far Future', subLabel: 'heat death' },
+  ];
+
+  // Black hole events (for Weyl spikes and glowing dots)
+  const bhEvents = [
+    { frac: 0.42, size: 8 },
+    { frac: 0.50, size: 6 },
+    { frac: 0.62, size: 10 },
+    { frac: 0.73, size: 7 },
+    { frac: 0.83, size: 12 },
+    { frac: 0.91, size: 9 },
+  ];
+
+  // Row definitions
+  const rows = [
+    { yTop: H * 0.12, yBot: H * 0.33, label: 'Weyl Tensor |C\u1D43\u1D47\u1D9C\u1D48|', color: '#ff7744' },
+    { yTop: H * 0.38, yBot: H * 0.53, label: 'Ricci Tensor |R\u1D43\u1D47|', color: '#44b4ff' },
+    { yTop: H * 0.58, yBot: H * 0.76, label: 'Entropy S(t)', color: '#44ffaa' },
+  ];
+
+  // ---- Row backgrounds ----
+  for (const row of rows) {
+    ctx.save();
+    const rg = ctx.createLinearGradient(0, row.yTop, 0, row.yBot);
+    rg.addColorStop(0, 'rgba(255,255,255,0.015)');
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(leftMargin, row.yTop, xRange, row.yBot - row.yTop);
+
+    // Row label on left
+    ctx.fillStyle = row.color;
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.fillText(row.label, leftMargin - 6, (row.yTop + row.yBot) / 2 + 4);
+    ctx.restore();
+  }
+
+  // Helper: map y within a row to canvas y (0=bottom, 1=top of row)
+  function rowY(row, val) {
+    return row.yBot - val * (row.yBot - row.yTop);
+  }
+
+  const weylRow = rows[0];
+  const ricciRow = rows[1];
+  const entropyRow = rows[2];
+
+  // ---- WEYL TENSOR curve ----
+  function weylVal(frac) {
+    // Starts at 0, grows, with BH spikes
+    let base = 0;
+    if (frac > 0.05) base = Math.pow((frac - 0.05) / 0.95, 1.2) * 0.55;
+    let spike = 0;
+    for (const bh of bhEvents) {
+      const dist = Math.abs(frac - bh.frac);
+      spike += (bh.size / 12) * 0.5 * Math.exp(-dist * dist * 600);
+    }
+    return Math.min(0.95, base + spike);
+  }
+
+  ctx.save();
+  ctx.strokeStyle = '#ff7744';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 8; ctx.shadowColor = '#ff7744';
+  ctx.beginPath();
+  const nSteps = 300;
+  let started = false;
+  for (let i = 0; i <= nSteps; i++) {
+    const frac = i / nSteps;
+    if (toX(frac) < leftMargin) continue;
+    const vy = rowY(weylRow, weylVal(frac));
+    if (!started) { ctx.moveTo(toX(frac), vy); started = true; }
+    else ctx.lineTo(toX(frac), vy);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // Weyl = 0 at Big Bang annotation
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,119,68,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('Weyl = 0 at Big Bang (Penrose hypothesis)', leftMargin + 8, weylRow.yTop + 14);
+  ctx.restore();
+
+  // ---- RICCI TENSOR curve ----
+  function ricciVal(frac) {
+    // High at big bang, exponential-ish decrease, slight uptick from dark energy
+    return Math.max(0.04, Math.exp(-frac * 5) * 0.9 + 0.05 * Math.exp(-frac * 0.5));
+  }
+
+  ctx.save();
+  ctx.strokeStyle = '#44b4ff';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 6; ctx.shadowColor = '#44b4ff';
+  ctx.beginPath();
+  started = false;
+  for (let i = 0; i <= nSteps; i++) {
+    const frac = i / nSteps;
+    if (toX(frac) < leftMargin) continue;
+    const vy = rowY(ricciRow, ricciVal(frac));
+    if (!started) { ctx.moveTo(toX(frac), vy); started = true; }
+    else ctx.lineTo(toX(frac), vy);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(68,180,255,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('Ricci \u221D matter/energy density', leftMargin + 8, ricciRow.yTop + 14);
+  ctx.restore();
+
+  // ---- ENTROPY curve ----
+  function entropyVal(frac) {
+    // Starts low, grows with step increases at structure formation
+    let base = Math.pow(frac, 0.4) * 0.8;
+    // Steps at events
+    const steps = [0.06, 0.15, 0.28, 0.42, 0.62];
+    for (const s of steps) {
+      if (frac > s) base += 0.04 * (1 - Math.exp(-(frac - s*(window.animSpeed||1)) * 15));
+    }
+    return Math.min(0.96, base);
+  }
+
+  ctx.save();
+  ctx.strokeStyle = '#44ffaa';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 6; ctx.shadowColor = '#44ffaa';
+  ctx.beginPath();
+  started = false;
+  for (let i = 0; i <= nSteps; i++) {
+    const frac = i / nSteps;
+    if (toX(frac) < leftMargin) continue;
+    const vy = rowY(entropyRow, entropyVal(frac));
+    if (!started) { ctx.moveTo(toX(frac), vy); started = true; }
+    else ctx.lineTo(toX(frac), vy);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(68,255,170,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('Low entropy at Big Bang (gravitational dof frozen)', leftMargin + 8, entropyRow.yTop + 14);
+  ctx.restore();
+
+  // ---- Black hole events: glowing dots + Weyl spikes ----
+  for (const bh of bhEvents) {
+    if (toX(bh.frac) > leftMargin && toX(bh.frac) < W - rightMargin) {
+      const bx = toX(bh.frac);
+      const bhGlow = animIds[2] ? 0.6 + 0.4 * Math.sin(t * 2.5 + bh.frac * 10) : 0.8;
+
+      // BH dot (black with glow)
+      ctx.save();
+      ctx.shadowBlur = 12 * bhGlow; ctx.shadowColor = '#ff7744';
+      ctx.fillStyle = '#1a0800';
+      ctx.strokeStyle = `rgba(255,119,68,${bhGlow})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(bx, rowY(weylRow, weylVal(bh.frac)), bh.size * 0.8, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+
+      // Spike line downward
+      ctx.save();
+      ctx.strokeStyle = `rgba(255,119,68,0.25)`;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(bx, weylRow.yBot);
+      ctx.lineTo(bx, entropyRow.yBot);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  }
+
+  // ---- Vertical event markers ----
+  for (const ev of events) {
+    const ex = toX(ev.frac);
+    if (ex < leftMargin || ex > W - rightMargin) continue;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(85,85,138,0.4)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.moveTo(ex, weylRow.yTop - 4);
+    ctx.lineTo(ex, entropyRow.yBot + 4);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Label
+    ctx.fillStyle = 'rgba(192,192,234,0.7)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(ev.label, ex, weylRow.yTop - 14);
+    ctx.fillStyle = 'rgba(85,85,138,0.6)';
+    ctx.fillText(ev.subLabel, ex, weylRow.yTop - 4);
+    ctx.restore();
+  }
+
+  // ---- Glowing "now" particle if animating ----
+  if (animIds[2] && weylAnim2Progress < 1) {
+    const nowFrac = weylAnim2Progress;
+    const nx = leftMargin + nowFrac * xRange;
+    const pGlow = 0.5 + 0.5 * Math.sin(t * 6);
+
+    ctx.save();
+    ctx.shadowBlur = 18 * pGlow; ctx.shadowColor = '#ffffff';
+    ctx.fillStyle = `rgba(255,255,255,${0.7 + 0.3 * pGlow})`;
+    ctx.beginPath(); ctx.arc(nx, H * 0.45, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // ---- Insight box ----
+  const boxY = H * 0.82;
+  const boxH = H * 0.16;
+  ctx.save();
+  ctx.fillStyle = 'rgba(5,5,20,0.82)';
+  ctx.strokeStyle = 'rgba(255,119,68,0.3)';
+  ctx.lineWidth = 1;
+  const bx0 = leftMargin, bw = xRange;
+  const r6 = 6;
+  ctx.beginPath();
+  ctx.moveTo(bx0 + r6, boxY);
+  ctx.lineTo(bx0 + bw - r6, boxY);
+  ctx.arcTo(bx0 + bw, boxY, bx0 + bw, boxY + r6, r6);
+  ctx.lineTo(bx0 + bw, boxY + boxH - r6);
+  ctx.arcTo(bx0 + bw, boxY + boxH, bx0 + bw - r6, boxY + boxH, r6);
+  ctx.lineTo(bx0 + r6, boxY + boxH);
+  ctx.arcTo(bx0, boxY + boxH, bx0, boxY + boxH - r6, r6);
+  ctx.lineTo(bx0, boxY + r6);
+  ctx.arcTo(bx0, boxY, bx0 + r6, boxY, r6);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,119,68,0.9)';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('Weyl Curvature Hypothesis', bx0 + 12, boxY + 16);
+
+  ctx.fillStyle = 'rgba(192,192,234,0.85)';
+  ctx.font = '10.5px Segoe UI';
+
+  const lines = [
+    'The Big Bang had Weyl = 0: a maximally special initial state. Gravitational degrees of freedom',
+    'were frozen, giving the universe its low entropy despite extreme temperature. This is NOT explained',
+    'by inflation. CCC provides it: each crossover surface inherits Weyl = 0 from the previous aeon\u2019s \u2131\u207A.'
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], bx0 + 12, boxY + 32 + i * 15);
+  }
+  ctx.restore();
+
+  // Axis label
+  ctx.save();
+  ctx.fillStyle = 'rgba(85,85,138,0.65)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Cosmic Time \u27F6', leftMargin + xRange / 2, H - 6);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 3 — CMB HAWKING POINTS
+// ============================================================
+function draw3() {
+  const cv = document.getElementById('c3');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[3];
+  const ringR = parseFloat(document.getElementById('hpRadius').value);
+  const amp = parseFloat(document.getElementById('hpAmp').value);
+  const nRings = parseInt(document.getElementById('hpN').value);
+  document.getElementById('hpRadiusVal').textContent = ringR + '\u00B0';
+  document.getElementById('hpAmpVal').textContent = amp + '\u00D7';
+  document.getElementById('hpNVal').textContent = nRings;
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw simulated CMB sky (circular disc)
+  const cx = W * 0.5, cy = H * 0.5;
+  const discR = Math.min(W, H) * 0.42;
+
+  // CMB background — seeded Gaussian noise on canvas
+  const seed = 42;
+  function pseudoRand(x, y) {
+    const v = Math.sin(x * 127.1 + y * 311.7 + seed) * 43758.5453;
+    return v - Math.floor(v);
+  }
+
+  // Draw pixel-level CMB
+  const imgData = ctx.createImageData(Math.ceil(W), Math.ceil(H));
+  const pixels = imgData.data;
+
+  // Hawking point centers (in disc-relative coords)
+  const hpCenters = [];
+  for (let k = 0; k < nRings; k++) {
+    const angle = (k / nRings) * Math.PI * 2 + 0.4;
+    const dist = discR * (0.25 + 0.3 * ((k * 0.618) % 1));
+    hpCenters.push({
+      x: cx + dist * Math.cos(angle),
+      y: cy + dist * Math.sin(angle),
+      r: discR * (ringR / 180),
+      idx: k
+    });
+  }
+
+  for (let py = 0; py < H; py++) {
+    for (let px = 0; px < W; px++) {
+      const dx = px - cx, dy = py - cy;
+      const dist2 = dx * dx + dy * dy;
+      if (dist2 > discR * discR) {
+        // Outside disc: dark
+        const idx = (py * W + px) * 4;
+        pixels[idx] = 5; pixels[idx + 1] = 5; pixels[idx + 2] = 15; pixels[idx + 3] = 255;
+        continue;
+      }
+
+      // Base CMB variance (Gaussian fluctuations)
+      let temp = 0;
+      for (let oct = 0; oct < 4; oct++) {
+        const sc = Math.pow(2, oct);
+        temp += (pseudoRand(px * sc * 0.02, py * sc * 0.02) - 0.5) / sc;
+      }
+      temp *= 0.5; // normalize
+
+      // Hawking point rings: low-variance annuli
+      let ringEffect = 0;
+      for (const hp of hpCenters) {
+        const rdx = px - hp.x, rdy = py - hp.y;
+        const rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+        const ringWidth = discR * 0.06;
+        const delta = rDist - hp.r;
+        if (Math.abs(delta) < ringWidth) {
+          // Low variance inside annulus
+          const profile = 1 - Math.abs(delta) / ringWidth;
+          ringEffect -= amp * 0.1 * profile * Math.abs(temp);
+        }
+        // Small bright spot at center of each Hawking point
+        if (rDist < discR * 0.03) {
+          ringEffect += amp * 0.08 * (1 - rDist / (discR * 0.03));
+        }
+      }
+      temp += ringEffect;
+
+      // Animation: ripple emanating from Hawking centers
+      if (animIds[3]) {
+        for (const hp of hpCenters) {
+          const rdx = px - hp.x, rdy = py - hp.y;
+          const rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+          const wave = 0.04 * Math.sin(rDist * 0.12 - t * 3 + hp.idx * 1.5) * Math.exp(-rDist / (discR * 0.6));
+          temp += wave;
+        }
+      }
+
+      // Map temperature to color (CMB color scheme: blue=cold, red=hot)
+      const clamp = v => Math.max(0, Math.min(255, v));
+      const tNorm = temp * 2 + 0.5; // 0..1
+      let r, g, b;
+      if (tNorm < 0.25) {
+        r = 0; g = 0; b = clamp(180 + tNorm * 300);
+      } else if (tNorm < 0.5) {
+        const f = (tNorm - 0.25) / 0.25;
+        r = clamp(f * 20); g = clamp(f * 180); b = clamp(255 - f * 100);
+      } else if (tNorm < 0.75) {
+        const f = (tNorm - 0.5) / 0.25;
+        r = clamp(f * 220); g = clamp(180 - f * 60); b = clamp(155 - f * 100);
+      } else {
+        const f = (tNorm - 0.75) / 0.25;
+        r = clamp(220 + f * 35); g = clamp(120 - f * 80); b = clamp(55 - f * 40);
+      }
+
+      const idx = (py * W + px) * 4;
+      pixels[idx] = r; pixels[idx + 1] = g; pixels[idx + 2] = b; pixels[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Disc border
+  ctx.save();
+  ctx.strokeStyle = 'rgba(192,192,234,0.4)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, discR, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+
+  // Draw ring overlays
+  for (const hp of hpCenters) {
+    const pulse = animIds[3] ? 0.5 + 0.5 * Math.sin(t * 2 + hp.idx) : 0.7;
+    ctx.save();
+    ctx.strokeStyle = `rgba(255,255,100,${pulse * 0.7})`;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath(); ctx.arc(hp.x, hp.y, hp.r, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    // Center dot
+    ctx.fillStyle = `rgba(255,180,80,${pulse})`;
+    ctx.shadowBlur = 8; ctx.shadowColor = '#ff7744';
+    ctx.beginPath(); ctx.arc(hp.x, hp.y, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    // Label
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,220,100,0.85)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('HP' + (hp.idx + 1), hp.x, hp.y - 8);
+    ctx.restore();
+  }
+
+  // Title
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,119,68,0.9)';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Simulated CMB Sky — Hawking Point Rings (low-variance annuli)', W / 2, 18);
+  ctx.fillStyle = 'rgba(85,85,138,0.75)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Yellow dashed circles = predicted CCC Hawking point rings | Color scale: blue=cold, red=hot', W / 2, 30);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 4 — ORCH-OR MICROTUBULES
+// ============================================================
+const hbarJ = 1.055e-34;
+const GN = 6.674e-11;
+let orchPhase = 0; // 0..1 cycle
+
+function fmtTauOrch(tau) {
+  if (tau > 3.15e13) return (tau / 3.15e7).toExponential(1) + ' yr';
+  if (tau > 3.15e7) return (tau / 3.15e7).toFixed(1) + ' yr';
+  if (tau > 86400) return (tau / 86400).toFixed(1) + ' d';
+  if (tau > 3600) return (tau / 3600).toFixed(2) + ' hr';
+  if (tau > 1) return tau.toFixed(3) + ' s';
+  if (tau > 1e-3) return (tau * 1e3).toFixed(2) + ' ms';
+  if (tau > 1e-6) return (tau * 1e6).toFixed(2) + ' \u03BCs';
+  if (tau > 1e-9) return (tau * 1e9).toFixed(2) + ' ns';
+  return tau.toExponential(2) + ' s';
+}
+
+function draw4() {
+  const cv = document.getElementById('c4');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[4];
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  const massExp = parseFloat(document.getElementById('orchMass').value);
+  const m = Math.pow(10, massExp); // kg
+  document.getElementById('orchMassVal').textContent = '10^' + massExp.toFixed(1);
+
+  // Approximate E_G for a sphere of mass m displaced by its own radius r ~ (3m/4pi*rho)^(1/3)
+  // rho ~ 1300 kg/m^3 (tubulin-like)
+  const rho = 1300;
+  const r = Math.pow(3 * m / (4 * Math.PI * rho), 1 / 3);
+  const Eg = GN * m * m / r;
+  const tau = hbarJ / Eg;
+
+  document.getElementById('orchEg').textContent = Eg.toExponential(2) + ' J';
+  document.getElementById('orchTau').textContent = fmtTauOrch(tau);
+
+  // Layout: left = microtubule, right = tau vs mass plot
+  const splitX = W * 0.5;
+
+  // ---- LEFT: Microtubule + tubulin dimers ----
+  const mtLeft = 24, mtRight = splitX - 16;
+  const mtCx = (mtLeft + mtRight) / 2;
+  const nDimers = 13;
+  const dimerH = (H * 0.7) / nDimers;
+  const dimerW = (mtRight - mtLeft) * 0.55;
+  const mtTop = H * 0.12;
+
+  // Microtubule wall (two vertical stripes)
+  ctx.save();
+  ctx.strokeStyle = 'rgba(100,80,200,0.3)';
+  ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(20,10,60,0.5)';
+  ctx.fillRect(mtCx - dimerW * 0.6, mtTop, dimerW * 1.2, nDimers * dimerH);
+  ctx.strokeRect(mtCx - dimerW * 0.6, mtTop, dimerW * 1.2, nDimers * dimerH);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,119,68,0.7)';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Microtubule', mtCx, mtTop - 8);
+  ctx.restore();
+
+  for (let d = 0; d < nDimers; d++) {
+    const dy = mtTop + d * dimerH + dimerH * 0.1;
+    const dh = dimerH * 0.8;
+    const alpha = d / (nDimers - 1); // 0=top, 1=bottom
+
+    // Tubulin dimer pair (alpha + beta)
+    for (let half = 0; half < 2; half++) {
+      const dx = mtCx + (half === 0 ? -dimerW * 0.28 : dimerW * 0.28);
+      const dimR = dimerW * 0.22;
+
+      // Quantum state: superposition (blue shimmer) or collapsed (orange)
+      // Use mass to determine: high mass → collapsed
+      const isCollapsed = tau < 0.025; // 25ms threshold for neuron-like
+      const phase = animIds[4] ? t * 2.5 + d * 0.5 + half * 1.1 : 0;
+      const superAmt = isCollapsed ? 0 : 0.5 + 0.5 * Math.sin(phase);
+
+      const col = isCollapsed
+        ? `rgba(255,${Math.floor(100 + 60 * Math.abs(Math.sin(phase)))},68,0.85)`
+        : `rgba(${Math.floor(40 + 30 * superAmt)},${Math.floor(130 + 50 * superAmt)},255,${0.6 + 0.3 * superAmt})`;
+
+      ctx.save();
+      ctx.shadowBlur = isCollapsed ? 6 : 10 * superAmt;
+      ctx.shadowColor = isCollapsed ? '#ff7744' : '#44b4ff';
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(dx, dy + dh / 2, dimR, dh * 0.42, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Superposition ghost
+      if (!isCollapsed) {
+        ctx.globalAlpha = 0.3 * superAmt;
+        ctx.fillStyle = '#44b4ff';
+        ctx.beginPath();
+        ctx.ellipse(dx + 4 * superAmt, dy + dh / 2 - 3 * superAmt, dimR, dh * 0.42, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+
+      // Label
+      if (d === 0) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(192,192,234,0.55)';
+        ctx.font = '12px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText(half === 0 ? '\u03B1' : '\u03B2', dx, dy - 2);
+        ctx.restore();
+      }
+    }
+  }
+
+  // Collapse event flash
+  if (animIds[4] && tau < 0.025) {
+    const flash = 0.3 + 0.7 * Math.abs(Math.sin(t * 8));
+    ctx.save();
+    ctx.fillStyle = `rgba(255,119,68,${flash * 0.15})`;
+    ctx.fillRect(mtLeft, mtTop, mtRight - mtLeft, nDimers * dimerH);
+    ctx.fillStyle = `rgba(255,200,80,${flash * 0.8})`;
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('OR COLLAPSE', mtCx, mtTop + nDimers * dimerH + 16);
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.fillStyle = 'rgba(68,180,255,0.6)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('SUPERPOSITION', mtCx, mtTop + nDimers * dimerH + 16);
+    ctx.restore();
+  }
+
+  // ---- RIGHT: tau vs mass plot ----
+  const plotL = splitX + 12, plotR = W - 16;
+  const plotT = H * 0.1, plotB = H * 0.88;
+  const plotW = plotR - plotL, plotH2 = plotB - plotT;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(10,10,30,0.5)';
+  ctx.strokeStyle = 'rgba(85,85,138,0.4)';
+  ctx.lineWidth = 1;
+  ctx.fillRect(plotL, plotT, plotW, plotH2);
+  ctx.strokeRect(plotL, plotT, plotW, plotH2);
+  ctx.restore();
+
+  // Axes: x = log10(m) from -31 to -17, y = log10(tau) from -20 to 20
+  const xMin = -31, xMax = -17;
+  const yMin = -20, yMax = 20;
+  const toPlotX = logM => plotL + (logM - xMin) / (xMax - xMin) * plotW;
+  const toPlotY = logT => plotB - (logT - yMin) / (yMax - yMin) * plotH2;
+
+  // OR curve: tau = hbar / (G * m^2 / r), r ~ m^(1/3)
+  // so E_G ~ G m^(5/3) => tau ~ hbar / (G m^(5/3))
+  ctx.save();
+  ctx.strokeStyle = '#ff7744';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 6; ctx.shadowColor = '#ff7744';
+  ctx.beginPath();
+  let curveStarted = false;
+  for (let i = 0; i <= 200; i++) {
+    const logM = xMin + (i / 200) * (xMax - xMin);
+    const mI = Math.pow(10, logM);
+    const rI = Math.pow(3 * mI / (4 * Math.PI * 1300), 1 / 3);
+    const EgI = GN * mI * mI / rI;
+    const tauI = hbarJ / EgI;
+    const logTau = Math.log10(Math.max(1e-25, tauI));
+    const px2 = toPlotX(logM);
+    const py2 = toPlotY(Math.max(yMin, Math.min(yMax, logTau)));
+    if (!curveStarted) { ctx.moveTo(px2, py2); curveStarted = true; }
+    else ctx.lineTo(px2, py2);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // Threshold line: tau = 0.025 s (25 ms)
+  const thrLogTau = Math.log10(0.025);
+  const thrPlotY = toPlotY(thrLogTau);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(68,255,170,0.5)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(plotL, thrPlotY); ctx.lineTo(plotR, thrPlotY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(68,255,170,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('25 ms (gamma oscillation)', plotL + 4, thrPlotY - 4);
+  ctx.restore();
+
+  // Tau = 1s line
+  const sec1PlotY = toPlotY(0);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,180,80,0.4)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(plotL, sec1PlotY); ctx.lineTo(plotR, sec1PlotY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,180,80,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('1 s', plotL + 4, sec1PlotY - 4);
+  ctx.restore();
+
+  // Current mass indicator
+  const dotPlotX = toPlotX(massExp);
+  const tauNow = hbarJ / Eg;
+  const logTauNow = Math.log10(Math.max(1e-25, tauNow));
+  const dotPlotY = toPlotY(Math.max(yMin, Math.min(yMax, logTauNow)));
+  ctx.save();
+  ctx.shadowBlur = 14; ctx.shadowColor = '#44b4ff';
+  ctx.fillStyle = '#44b4ff';
+  const dpulse = animIds[4] ? 5 + 3 * Math.sin(t * 4) : 6;
+  ctx.beginPath(); ctx.arc(dotPlotX, dotPlotY, dpulse, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Notable mass labels
+  const notable = [
+    { logM: -30, label: 'electron' },
+    { logM: -27, label: 'proton' },
+    { logM: -22, label: 'tubulin' },
+    { logM: -18, label: 'dust\ngrain' },
+  ];
+  for (const n of notable) {
+    const nx = toPlotX(n.logM);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(85,85,138,0.35)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(nx, plotT); ctx.lineTo(nx, plotB); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(85,85,138,0.7)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(n.label, nx, plotT - 4);
+    ctx.restore();
+  }
+
+  // Axis labels
+  ctx.save();
+  ctx.fillStyle = 'rgba(85,85,138,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('log\u2081\u2080(mass / kg)', plotL + plotW / 2, plotB + 14);
+  ctx.save();
+  ctx.translate(plotL - 14, plotT + plotH2 / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('log\u2081\u2080(\u03C4 / s)', 0, 0);
+  ctx.restore();
+  ctx.restore();
+
+  // Plot title
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,119,68,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('\u03C4 = \u210F/E\u2047 vs mass (OR collapse time)', plotL + plotW / 2, plotT - 6);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 5 — TWISTOR ROAD
+// ============================================================
+let twistorT = 0;
+
+function resetTwistor() {
+  twistorT = 0;
+  animOffsets[5] = 0;
+  draw5();
+}
+
+function draw5() {
+  const cv = document.getElementById('c5');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[5];
+  const particle = document.getElementById('twistorParticle').value;
+  const helColors = { photon: '#44b4ff', graviton: '#ff7744', neutrino: '#44ffaa' };
+  const helLabel = { photon: 'h = +1 (photon)', graviton: 'h = +2 (graviton)', neutrino: 'h = +\u00BD (neutrino)' };
+  const pCol = helColors[particle];
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  // Layout: left = spacetime, right = twistor space
+  const midX = W * 0.5;
+
+  // ---- LEFT: Spacetime (Minkowski) ----
+  const stCx = midX * 0.5, stCy = H * 0.5;
+
+  // Grid
+  ctx.save();
+  ctx.strokeStyle = 'rgba(40,40,80,0.5)';
+  ctx.lineWidth = 0.5;
+  for (let gx = 0; gx < midX; gx += 30) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+  }
+  for (let gy = 0; gy < H; gy += 30) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(midX, gy); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Light cone at event x
+  const evX = stCx + 30 * Math.sin(t * 0.6);
+  const evY = stCy + 20 * Math.cos(t * 0.4);
+  const coneSize = Math.min(stCy * 0.6, midX * 0.35);
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,180,60,0.35)';
+  ctx.lineWidth = 1;
+  // Future cone
+  ctx.beginPath();
+  ctx.moveTo(evX, evY);
+  ctx.lineTo(evX - coneSize, evY - coneSize);
+  ctx.moveTo(evX, evY);
+  ctx.lineTo(evX + coneSize, evY - coneSize);
+  // Past cone
+  ctx.moveTo(evX, evY);
+  ctx.lineTo(evX - coneSize, evY + coneSize);
+  ctx.moveTo(evX, evY);
+  ctx.lineTo(evX + coneSize, evY + coneSize);
+  ctx.stroke();
+  ctx.restore();
+
+  // Event point
+  ctx.save();
+  ctx.shadowBlur = 12; ctx.shadowColor = '#ffffff';
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(evX, evY, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(192,192,234,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('x \u2208 \u2133\u00B9\u002C\u00B3', evX + 8, evY - 4);
+  ctx.restore();
+
+  // Massless particle worldline (null ray)
+  const rayAngle = Math.PI * 0.25 + 0.15 * Math.sin(t * 0.3);
+  ctx.save();
+  ctx.strokeStyle = pCol;
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 8; ctx.shadowColor = pCol;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(evX - coneSize * Math.cos(rayAngle), evY + coneSize * Math.sin(rayAngle));
+  ctx.lineTo(evX + coneSize * Math.cos(rayAngle), evY - coneSize * Math.sin(rayAngle));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Moving particle dot on worldline
+  const pFrac = animIds[5] ? (t * 0.35) % 1 : 0.6;
+  const px5 = evX + (pFrac - 0.5) * 2 * coneSize * Math.cos(rayAngle);
+  const py5 = evY - (pFrac - 0.5) * 2 * coneSize * Math.sin(rayAngle);
+  ctx.shadowBlur = 14; ctx.shadowColor = pCol;
+  ctx.fillStyle = pCol;
+  ctx.beginPath(); ctx.arc(px5, py5, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Label
+  ctx.save();
+  ctx.fillStyle = pCol;
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText(helLabel[particle], stCx, H * 0.9);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(192,192,234,0.6)';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Spacetime \u2133\u00B9\u002C\u00B3', stCx, 22);
+  ctx.fillStyle = 'rgba(85,85,138,0.6)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Null worldline = line in PT', stCx, 36);
+  ctx.restore();
+
+  // Divider
+  ctx.save();
+  ctx.strokeStyle = 'rgba(85,85,138,0.5)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, H); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // ---- RIGHT: Twistor space ----
+  const twCx = midX + (W - midX) * 0.5, twCy = H * 0.5;
+  const twR = Math.min((W - midX) * 0.36, H * 0.36);
+
+  // Background
+  ctx.save();
+  const twBg = ctx.createRadialGradient(twCx, twCy, 0, twCx, twCy, twR * 1.5);
+  twBg.addColorStop(0, 'rgba(20,10,50,0.6)');
+  twBg.addColorStop(1, 'rgba(5,5,15,0)');
+  ctx.fillStyle = twBg;
+  ctx.fillRect(midX, 0, W - midX, H);
+  ctx.restore();
+
+  // CP¹ Riemann sphere (circle in 2D projection)
+  // Spacetime point x ↔ CP¹ line in PT
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,180,60,0.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.ellipse(twCx, twCy, twR, twR * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(twCx, twCy, twR, twR * 0.38, Math.PI * 0.3, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Outer CP¹ sphere (the "line" corresponding to point x)
+  const rotAng = animIds[5] ? t * 0.5 : 0.3;
+  ctx.save();
+  ctx.strokeStyle = `rgba(${pCol.slice(1, 3)},${pCol.slice(3, 5)},${pCol.slice(5, 7)},0.8)`.replace('rgba(', 'rgba(');
+  // Simpler approach: draw ellipse for CP1 "line"
+  ctx.strokeStyle = pCol;
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 10; ctx.shadowColor = pCol;
+  ctx.beginPath();
+  ctx.ellipse(twCx, twCy, twR * 0.82, twR * 0.32, rotAng, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // Twistor "point" = massless particle
+  const twPtAngle = animIds[5] ? t * 0.8 : 1.2;
+  const twPtX = twCx + twR * 0.82 * Math.cos(twPtAngle);
+  const twPtY = twCy + twR * 0.32 * Math.sin(twPtAngle);
+  ctx.save();
+  ctx.shadowBlur = 16; ctx.shadowColor = pCol;
+  ctx.fillStyle = pCol;
+  ctx.beginPath(); ctx.arc(twPtX, twPtY, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(192,192,234,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('Z\u03B1 (twistor)', twPtX + 8, twPtY - 4);
+  ctx.restore();
+
+  // Center dot (Penrose transform)
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,180,60,0.7)';
+  ctx.shadowBlur = 8; ctx.shadowColor = 'rgba(255,180,60,0.5)';
+  ctx.beginPath(); ctx.arc(twCx, twCy, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Incidence lines from center to sphere points
+  for (let k = 0; k < 5; k++) {
+    const ang = (k / 5) * Math.PI * 2 + (animIds[5] ? t * 0.2 : 0);
+    const ex = twCx + twR * 0.82 * Math.cos(ang);
+    const ey = twCy + twR * 0.32 * Math.sin(ang);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,180,60,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(twCx, twCy); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Cohomology label
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,119,68,0.7)';
+  ctx.font = '9.5px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('CP\u00B9 \u21BD x \u2208 spacetime', twCx, twCy + twR * 0.6);
+  ctx.fillStyle = 'rgba(85,85,138,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('H\u00B9(PT, \u{1D4AA}(-n-2)) \u27F7 helicity-n/2 fields', twCx, twCy + twR * 0.6 + 16);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(192,192,234,0.6)';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Twistor Space PT = CP\u00B3', twCx, 22);
+  ctx.fillStyle = 'rgba(85,85,138,0.6)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Spacetime point \u27F7 Riemann sphere CP\u00B9', twCx, 36);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 6 — BLACK HOLE INFORMATION PARADOX
+// ============================================================
+let bhInfoProgress = 0;
+
+function resetBHInfo() {
+  bhInfoProgress = 0;
+  animOffsets[6] = 0;
+  draw6();
+}
+
+function draw6() {
+  const cv = document.getElementById('c6');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[6];
+  const view = document.getElementById('bhView').value;
+
+  if (animIds[6]) {
+    bhInfoProgress = Math.min(1, bhInfoProgress + 0.003);
+  }
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  if (view === 'evap') {
+    // Black hole evaporation animation
+    const cx = W * 0.42, cy = H * 0.5;
+    const maxR = Math.min(W, H) * 0.28;
+    const bhR = maxR * (1 - bhInfoProgress * 0.85);
+
+    // Hawking radiation particles spiraling out
+    const nParticles = 24;
+    for (let p = 0; p < nParticles; p++) {
+      const baseAngle = (p / nParticles) * Math.PI * 2;
+      const spiralR = bhR + (animIds[6] ? (((t * 0.8 + p * 0.3) % 1)) * maxR * 1.2 : 0);
+      const angle = baseAngle + (animIds[6] ? t * 0.5 : 0);
+      const px6 = cx + spiralR * Math.cos(angle);
+      const py6 = cy + spiralR * Math.sin(angle);
+      if (spiralR < maxR * 1.8) {
+        const alpha = Math.max(0, 1 - spiralR / (maxR * 1.8));
+        const tempColor = spiralR < bhR * 1.5
+          ? `rgba(255,180,60,${alpha})`
+          : `rgba(150,180,255,${alpha * 0.6})`;
+        ctx.save();
+        ctx.fillStyle = tempColor;
+        ctx.shadowBlur = 4; ctx.shadowColor = tempColor;
+        ctx.beginPath(); ctx.arc(px6, py6, 2.5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Black hole body
+    if (bhR > 2) {
+      const bhGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, bhR);
+      bhGrad.addColorStop(0, '#000000');
+      bhGrad.addColorStop(0.85, '#050508');
+      bhGrad.addColorStop(1, 'rgba(80,40,0,0)');
+      ctx.save();
+      ctx.fillStyle = bhGrad;
+      ctx.beginPath(); ctx.arc(cx, cy, bhR, 0, Math.PI * 2); ctx.fill();
+
+      // Photon sphere
+      ctx.strokeStyle = `rgba(255,180,60,${0.5 + 0.3 * Math.sin(t * 3)})`;
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 10; ctx.shadowColor = '#ff7744';
+      ctx.beginPath(); ctx.arc(cx, cy, bhR * 1.5, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+
+    // Labels
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,119,68,0.85)';
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('Black Hole Evaporation', cx, H * 0.12);
+    ctx.fillStyle = 'rgba(192,192,234,0.7)';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText('M(t) \u221D (1 \u2212 t/t\u1D49\u1D9C\u1D52\u1D56)^{1/3}    T_H = \u210Fc\u00B3/(8\u03C0GM)', cx, H * 0.12 + 16);
+
+    // Progress bar
+    const barL = cx - maxR, barR = cx + maxR, barY = H * 0.88;
+    ctx.fillStyle = 'rgba(85,85,138,0.3)';
+    ctx.fillRect(barL, barY, maxR * 2, 8);
+    ctx.fillStyle = '#ff7744';
+    ctx.fillRect(barL, barY, maxR * 2 * bhInfoProgress, 8);
+    ctx.fillStyle = 'rgba(192,192,234,0.6)';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText('Evaporation: ' + (bhInfoProgress * 100).toFixed(0) + '%', cx, barY + 20);
+    ctx.restore();
+
+    // Hawking's prediction label
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,180,60,0.7)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText('Hawking: radiation is perfectly thermal', W * 0.65, H * 0.3);
+    ctx.fillText('S(radiation) grows monotonically \u2192 information LOST', W * 0.65, H * 0.3 + 16);
+    ctx.fillText('Contradicts unitarity of quantum mechanics', W * 0.65, H * 0.3 + 32);
+    ctx.restore();
+
+  } else {
+    // Page curve
+    const plotL = 60, plotR = W - 24, plotT = H * 0.12, plotB = H * 0.86;
+    const plotW = plotR - plotL, plotH6 = plotB - plotT;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(10,10,30,0.5)';
+    ctx.strokeStyle = 'rgba(85,85,138,0.4)';
+    ctx.lineWidth = 1;
+    ctx.fillRect(plotL, plotT, plotW, plotH6);
+    ctx.strokeRect(plotL, plotT, plotW, plotH6);
+    ctx.restore();
+
+    const toX6 = f => plotL + f * plotW;
+    const toY6 = v => plotB - v * plotH6;
+
+    // Page time mark
+    const pageFrac = 0.52;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(85,85,138,0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(toX6(pageFrac), plotT); ctx.lineTo(toX6(pageFrac), plotB); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(192,192,234,0.6)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('t_Page', toX6(pageFrac), plotT - 6);
+    ctx.restore();
+
+    // Hawking prediction: monotone increase
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,80,80,0.7)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 4]);
+    ctx.beginPath();
+    const nPts = 100;
+    for (let i = 0; i <= nPts; i++) {
+      const f = i / nPts;
+      const s = f * 0.92;
+      const x6 = toX6(f), y6 = toY6(Math.min(0.96, s));
+      if (i === 0) ctx.moveTo(x6, y6); else ctx.lineTo(x6, y6);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,80,80,0.8)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.fillText("Hawking's prediction (monotone — info lost)", toX6(0.98), toY6(0.95) - 6);
+    ctx.restore();
+
+    // Page curve (actual unitary evolution)
+    ctx.save();
+    ctx.strokeStyle = '#44ffaa';
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 6; ctx.shadowColor = '#44ffaa';
+    ctx.beginPath();
+    for (let i = 0; i <= nPts; i++) {
+      const f = i / nPts;
+      let s;
+      if (f < pageFrac) {
+        // entropy rises like Hawking
+        s = (f / pageFrac) * 0.82;
+      } else {
+        // entropy falls (information returns)
+        s = 0.82 * (1 - (f - pageFrac) / (1 - pageFrac));
+      }
+      s = Math.max(0, s);
+      const drawFrac = animIds[6] ? Math.min(bhInfoProgress, f / 1) >= f / 1 ? 1 : 0 : 1;
+      if (bhInfoProgress < f && animIds[6]) break;
+      const x6 = toX6(f), y6 = toY6(s);
+      if (i === 0) ctx.moveTo(x6, y6); else ctx.lineTo(x6, y6);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = '#44ffaa';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText('Page curve — unitary evolution (info preserved)', toX6(0.55), toY6(0.65) + 14);
+    ctx.restore();
+
+    // Axis labels
+    ctx.save();
+    ctx.fillStyle = 'rgba(85,85,138,0.8)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('Evaporation time t / t_evap', plotL + plotW / 2, plotB + 16);
+    ctx.save();
+    ctx.translate(plotL - 16, plotT + plotH6 / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('S_vN (radiation)', 0, 0);
+    ctx.restore();
+    ctx.restore();
+
+    // Island formula box
+    ctx.save();
+    ctx.fillStyle = 'rgba(10,10,30,0.85)';
+    ctx.strokeStyle = 'rgba(68,255,170,0.3)';
+    ctx.lineWidth = 1;
+    const _bx6 = plotL, _by6 = plotB - 60, _bw6 = plotW, _bh6 = 56, _br6 = 5;
+    ctx.beginPath();
+    ctx.moveTo(_bx6 + _br6, _by6);
+    ctx.lineTo(_bx6 + _bw6 - _br6, _by6); ctx.arcTo(_bx6 + _bw6, _by6, _bx6 + _bw6, _by6 + _br6, _br6);
+    ctx.lineTo(_bx6 + _bw6, _by6 + _bh6 - _br6); ctx.arcTo(_bx6 + _bw6, _by6 + _bh6, _bx6 + _bw6 - _br6, _by6 + _bh6, _br6);
+    ctx.lineTo(_bx6 + _br6, _by6 + _bh6); ctx.arcTo(_bx6, _by6 + _bh6, _bx6, _by6 + _bh6 - _br6, _br6);
+    ctx.lineTo(_bx6, _by6 + _br6); ctx.arcTo(_bx6, _by6, _bx6 + _br6, _by6, _br6);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#44ffaa';
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText('Island formula (Penington; Almheiri et al. 2019):', plotL + 8, plotB - 44);
+    ctx.fillStyle = 'rgba(192,192,234,0.85)';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText('S = min\u2091\u2099\u209C { Area(\u2202Island)/4G + S_matter(radiation \u222A island) }', plotL + 8, plotB - 28);
+    ctx.fillStyle = 'rgba(85,85,138,0.7)';
+    ctx.fillText('Replica wormholes in gravitational path integral reproduce the Page curve.', plotL + 8, plotB - 12);
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,119,68,0.85)';
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('von Neumann Entropy of Hawking Radiation', plotL + plotW / 2, plotT - 8);
+    ctx.restore();
+  }
+}
+
+// ============================================================
+// TAB 7 — QUANTUM GRAVITY PHENOMENOLOGY
+// ============================================================
+function draw7() {
+  const cv = document.getElementById('c7');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const t = animOffsets[7];
+  const view = document.getElementById('qgView').value;
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  if (view === 'lqg') {
+    // LQG Spin network visualization
+    // Generate a spin network as a random planar graph
+    const nodes = [
+      { x: W * 0.50, y: H * 0.18 },
+      { x: W * 0.30, y: H * 0.30 },
+      { x: W * 0.70, y: H * 0.30 },
+      { x: W * 0.20, y: H * 0.50 },
+      { x: W * 0.50, y: H * 0.45 },
+      { x: W * 0.80, y: H * 0.48 },
+      { x: W * 0.35, y: H * 0.68 },
+      { x: W * 0.65, y: H * 0.66 },
+      { x: W * 0.50, y: H * 0.82 },
+      { x: W * 0.15, y: H * 0.70 },
+      { x: W * 0.85, y: H * 0.72 },
+    ];
+
+    const edges = [
+      [0, 1, 1], [0, 2, 2], [1, 2, 1],
+      [1, 3, 2], [1, 4, 1], [2, 4, 2], [2, 5, 1],
+      [3, 4, 1], [3, 6, 2], [4, 6, 1], [4, 7, 2],
+      [5, 4, 1], [5, 7, 1], [5, 10, 2],
+      [6, 8, 1], [7, 8, 2], [3, 9, 1], [9, 6, 2],
+      [10, 7, 1],
+    ];
+
+    const spinColors = {
+      1: '#44b4ff',
+      2: '#ff7744',
+    };
+
+    // Draw edges (links labeled with spin j)
+    for (const [a, b, j] of edges) {
+      const na = nodes[a], nb = nodes[b];
+      const pulse = animIds[7] ? 0.6 + 0.4 * Math.sin(t * 2 + a * 0.7 + b * 0.5) : 0.7;
+      ctx.save();
+      ctx.strokeStyle = spinColors[j] || '#88aaff';
+      ctx.lineWidth = 1.5 + j * 0.5;
+      ctx.globalAlpha = pulse;
+      ctx.shadowBlur = 4; ctx.shadowColor = spinColors[j];
+      ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y); ctx.stroke();
+
+      // Spin label at midpoint
+      const mx = (na.x + nb.x) / 2, my = (na.y + nb.y) / 2;
+      ctx.globalAlpha = pulse * 0.8;
+      ctx.fillStyle = spinColors[j];
+      ctx.font = '12px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText('j=' + (j === 1 ? '½' : '1'), mx, my - 4);
+      ctx.restore();
+    }
+
+    // Draw nodes (spin-network vertices = volume quanta)
+    for (let i = 0; i < nodes.length; i++) {
+      const n = nodes[i];
+      const pulse = animIds[7] ? 4 + 2 * Math.sin(t * 1.5 + i * 0.8) : 5;
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,220,80,0.9)';
+      ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(255,200,60,0.6)';
+      ctx.beginPath(); ctx.arc(n.x, n.y, pulse, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    // LQG area spectrum annotation
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,119,68,0.85)';
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('LQG Spin Network — Discrete Spacetime Geometry', W / 2, 20);
+    ctx.fillStyle = 'rgba(192,192,234,0.7)';
+    ctx.font = '9.5px Segoe UI';
+    ctx.fillText('Nodes = volume quanta (\u2113_P\u00B3)  |  Links labeled by spin j = \u00BD, 1, \u00B3\u2044\u2082...', W / 2, 36);
+    ctx.restore();
+
+    // Area spectrum formula boxes at bottom
+    const specs = [
+      { j: '1/2', area: '\u221A(3/4) \u00D7 8\u03C0\u03B3\u2113_P\u00B2' },
+      { j: '1', area: '\u221A2 \u00D7 8\u03C0\u03B3\u2113_P\u00B2' },
+      { j: '3/2', area: '\u221A(15/4) \u00D7 8\u03C0\u03B3\u2113_P\u00B2' },
+    ];
+    const boxW = W / 3 - 8;
+    for (let k = 0; k < 3; k++) {
+      const bx = 4 + k * (boxW + 4);
+      const by = H * 0.9;
+      ctx.save();
+      ctx.fillStyle = 'rgba(10,10,30,0.85)';
+      ctx.strokeStyle = 'rgba(255,119,68,0.3)';
+      ctx.lineWidth = 1;
+      const _bhx = bx, _bhy = by, _bhw = boxW, _bhh = H * 0.09, _bhrr = 4;
+      ctx.beginPath();
+      ctx.moveTo(_bhx + _bhrr, _bhy);
+      ctx.lineTo(_bhx + _bhw - _bhrr, _bhy); ctx.arcTo(_bhx + _bhw, _bhy, _bhx + _bhw, _bhy + _bhrr, _bhrr);
+      ctx.lineTo(_bhx + _bhw, _bhy + _bhh - _bhrr); ctx.arcTo(_bhx + _bhw, _bhy + _bhh, _bhx + _bhw - _bhrr, _bhy + _bhh, _bhrr);
+      ctx.lineTo(_bhx + _bhrr, _bhy + _bhh); ctx.arcTo(_bhx, _bhy + _bhh, _bhx, _bhy + _bhh - _bhrr, _bhrr);
+      ctx.lineTo(_bhx, _bhy + _bhrr); ctx.arcTo(_bhx, _bhy, _bhx + _bhrr, _bhy, _bhrr);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#ff7744';
+      ctx.font = 'bold 12px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText('j = ' + specs[k].j, bx + boxW / 2, by + 14);
+      ctx.fillStyle = 'rgba(192,192,234,0.85)';
+      ctx.font = '12px Segoe UI';
+      ctx.fillText('A = ' + specs[k].area, bx + boxW / 2, by + 28);
+      ctx.restore();
+    }
+
+    // Spin foam vertex flash
+    if (animIds[7]) {
+      const flashNode = Math.floor(t * 1.5) % nodes.length;
+      const fn = nodes[flashNode];
+      const fa = 0.4 + 0.6 * Math.abs(Math.sin(t * 4));
+      ctx.save();
+      ctx.strokeStyle = `rgba(255,255,100,${fa})`;
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 16; ctx.shadowColor = 'rgba(255,255,60,0.8)';
+      ctx.beginPath(); ctx.arc(fn.x, fn.y, 10 + 4 * Math.sin(t * 6), 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+
+  } else {
+    // Experiments view
+    const experiments = [
+      {
+        name: 'Fermi Gamma-Ray Telescope',
+        year: 2009,
+        method: 'Photon dispersion from GRBs',
+        result: 'E_QG > 10 E_Planck (LIV ruled out at 1st order)',
+        sensitivity: 0.95,
+        color: '#ff7744',
+        icon: '\u2605'
+      },
+      {
+        name: 'LISA (planned ~2035)',
+        year: 2035,
+        method: 'Gravitational wave Planck-noise',
+        result: 'Will probe stochastic Planck-scale effects in GW background',
+        sensitivity: 0.55,
+        color: '#44b4ff',
+        icon: '\u25C6'
+      },
+      {
+        name: 'GEO600 / LIGO',
+        year: 2015,
+        method: 'Holographic noise interferometry',
+        result: 'No Planck-noise excess detected (Hogan model constrained)',
+        sensitivity: 0.70,
+        color: '#44ffaa',
+        icon: '\u25CF'
+      },
+      {
+        name: 'Bose-Marletto-Vedral (BMV)',
+        year: 2021,
+        method: 'Gravity-mediated entanglement of masses',
+        result: 'Tabletop experiment: if QG mediates entanglement, gravity is quantum',
+        sensitivity: 0.25,
+        color: '#cc88ff',
+        icon: '\u2666'
+      },
+      {
+        name: 'CMB (Planck / CMB-S4)',
+        year: 2026,
+        method: 'Primordial GW + quantum gravity imprint',
+        result: 'r < 0.036 (Planck 2018); CMB-S4 probes r ~ 0.001',
+        sensitivity: 0.60,
+        color: '#ffcc44',
+        icon: '\u2764'
+      },
+    ];
+
+    const barL = 24, barR = W - 24;
+    const barW = barR - barL;
+    const rowH = (H * 0.82) / experiments.length;
+    const barTop = H * 0.1;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,119,68,0.85)';
+    ctx.font = 'bold 12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('Quantum Gravity Phenomenology — Experimental Probes', W / 2, 20);
+    ctx.fillStyle = 'rgba(85,85,138,0.7)';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText('Sensitivity bar: fraction of Planck scale probed or constrained', W / 2, 34);
+    ctx.restore();
+
+    for (let i = 0; i < experiments.length; i++) {
+      const exp = experiments[i];
+      const ry = barTop + i * rowH;
+
+      // Row background
+      ctx.save();
+      ctx.fillStyle = i % 2 === 0 ? 'rgba(15,15,35,0.5)' : 'rgba(10,10,25,0.5)';
+      ctx.fillRect(barL, ry, barW, rowH - 2);
+      ctx.restore();
+
+      // Icon + name
+      ctx.save();
+      ctx.fillStyle = exp.color;
+      ctx.font = '14px Segoe UI';
+      ctx.textAlign = 'left';
+      ctx.fillText(exp.icon, barL + 4, ry + rowH * 0.38);
+      ctx.font = 'bold 12px Segoe UI';
+      ctx.fillText(exp.name + ' (' + exp.year + ')', barL + 20, ry + rowH * 0.35);
+      ctx.fillStyle = 'rgba(192,192,234,0.7)';
+      ctx.font = '8.5px Segoe UI';
+      ctx.fillText(exp.method, barL + 20, ry + rowH * 0.58);
+      ctx.restore();
+
+      // Sensitivity bar
+      const bary = ry + rowH * 0.72;
+      const bh = 6;
+      const pulse = animIds[7] ? exp.sensitivity * (0.85 + 0.15 * Math.sin(t * 2 + i)) : exp.sensitivity;
+      ctx.save();
+      ctx.fillStyle = 'rgba(85,85,138,0.25)';
+      ctx.fillRect(barL + 18, bary, barW - 22, bh);
+      ctx.fillStyle = exp.color;
+      ctx.shadowBlur = 6; ctx.shadowColor = exp.color;
+      ctx.fillRect(barL + 18, bary, (barW - 22) * pulse, bh);
+      ctx.fillStyle = 'rgba(192,192,234,0.55)';
+      ctx.font = '12px Segoe UI';
+      ctx.textAlign = 'right';
+      ctx.fillText(exp.result, barR - 4, bary - 2);
+      ctx.restore();
+    }
+
+    // Planck scale legend
+    ctx.save();
+    ctx.fillStyle = 'rgba(85,85,138,0.55)';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'right';
+    ctx.fillText('\u2113_Planck = 1.616 \u00D7 10\u207B\u00B3\u2075 m  |  E_Planck = 1.22 \u00D7 10\u00B9\u2079 GeV', barR, H * 0.95);
+    ctx.restore();
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initCanvas0();
+
+// Initial draw
+draw0();
+updateOR();
+
+// Handle resize
+window.addEventListener('resize', () => {
+  const active = [...document.querySelectorAll('.pane')].findIndex(p => p.classList.contains('active'));
+  if (active === 0) draw0();
+  if (active === 1) draw1();
+  if (active === 2) draw2();
+  if (active === 3) draw3();
+  if (active === 4) draw4();
+  if (active === 5) draw5();
+  if (active === 6) draw6();
+  if (active === 7) draw7();
+});
+window.animSpeed=0.1;
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

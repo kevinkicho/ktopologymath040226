@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>15 · Quaternions & Octonions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05050f;color:#e0e8ff;font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;padding-bottom:38px}
+header{padding:18px 32px;display:flex;align-items:center;gap:20px;border-bottom:1px solid rgba(68,170,255,0.25);background:rgba(5,5,20,0.9)}
+.back{color:#44aaff;text-decoration:none;font-size:1.1rem;opacity:.7;transition:opacity .2s}.back:hover{opacity:1}
+h1{font-family:'Orbitron',sans-serif;font-size:1.55rem;color:#44aaff;text-shadow:0 0 20px #44aaff88}
+.subtitle{font-size:.8rem;opacity:.55;margin-left:auto}
+.tabs{display:flex;gap:0;border-bottom:1px solid rgba(68,170,255,0.2);background:rgba(10,10,30,0.8);padding:0 24px;flex-shrink:0;overflow-x:auto}
+.tab{padding:12px 16px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.82rem;color:#44aaff99;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:#44aaff;border-bottom-color:#44aaff;text-shadow:0 0 10px #44aaff88}
+.tab:hover:not(.active){color:#44aaffcc}
+.workspace{display:flex;height:calc(100vh - 160px);overflow:hidden}
+.sidebar{width:240px;min-width:200px;background:rgba(10,10,28,0.95);border-right:1px solid rgba(68,170,255,0.15);padding:18px 14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.sidebar.right{border-right:none;border-left:1px solid rgba(68,170,255,0.15)}
+.main-area{flex:1;position:relative;background:#06060f;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+label{font-size:.75rem;color:#44aaff99;display:block;margin-bottom:3px}
+input[type=range]{width:100%;accent-color:#44aaff;cursor:pointer}
+.val{color:#44aaff;font-size:.8rem;text-align:right}
+button{background:rgba(68,170,255,0.12);border:1px solid rgba(68,170,255,0.4);color:#44aaff;padding:7px 12px;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.78rem;width:100%;transition:all .2s}
+button:hover{background:rgba(68,170,255,0.25);box-shadow:0 0 10px #44aaff44}
+button.active{background:rgba(68,170,255,0.35);box-shadow:0 0 14px #44aaff66}
+.info-box{background:rgba(68,170,255,0.07);border:1px solid rgba(68,170,255,0.2);border-radius:6px;padding:10px;font-size:.72rem;line-height:1.55;color:#99ccff}
+.sep{height:1px;background:rgba(68,170,255,0.15);margin:4px 0}
+/* proof panel */
+.proof-panel{position:fixed;bottom:0;left:0;right:0;height:54px;background:rgba(8,8,20,0.97);border-top:1px solid rgba(68,170,255,0.3);transition:height .35s ease;z-index:100;overflow:hidden}
+.proof-panel.open{height:340px}
+.proof-header{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer}
+.proof-header h3{color:#44aaff;font-family:'Orbitron',sans-serif;font-size:.8rem;flex:1}
+.proof-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px}
+.ptab{background:rgba(68,170,255,0.1);border:1px solid rgba(68,170,255,0.3);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.72rem;color:#44aaff99;white-space:nowrap;transition:all .2s}
+.ptab.active,.ptab:hover{background:rgba(68,170,255,0.25);color:#44aaff}
+.proof-content{padding:4px 24px 20px;overflow-y:auto;max-height:260px;font-size:.83rem;line-height:1.75;color:#cce4ff}
+.katex-display{margin:.5em 0}
+.pan-mode canvas{cursor:grab}
+.pan-mode canvas:active{cursor:grabbing}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← back</a>
+  <h1>15 · Quaternions & Octonions</h1>
+  <span class="subtitle">Road to Reality Ch. 11 — Hypercomplex Numbers</span>
+</header>
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Quaternion Algebra</div>
+  <div class="tab" onclick="switchTab(1)">S³ Geometry</div>
+  <div class="tab" onclick="switchTab(2)">3D Rotation &amp; SLERP</div>
+  <div class="tab" onclick="switchTab(3)">Division Algebras</div>
+  <div class="tab" onclick="switchTab(4)">Physics &amp; SU(2)</div>
+  <div class="tab" onclick="switchTab(5)">Modern Technology</div>
+</div>
+
+<!-- TAB 0: Quaternion Algebra -->
+<div id="panel0" class="workspace" data-role="panel">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Quaternion<br>$q = a + bi + cj + dk$<br>$i^2=j^2=k^2=ijk=-1$</div>
+    <div class="sep"></div>
+    <b style="font-size:.78rem;color:#44aaffcc">q₁</b>
+    <label>a₁ <span class="val" id="v_a1">1.00</span></label>
+    <input type="range" id="a1" min="-2" max="2" value="1" step="any" oninput="updateQ()">
+    <label>b₁ (i) <span class="val" id="v_b1">0.50</span></label>
+    <input type="range" id="b1" min="-2" max="2" value="0.5" step="any" oninput="updateQ()">
+    <label>c₁ (j) <span class="val" id="v_c1">0.30</span></label>
+    <input type="range" id="c1" min="-2" max="2" value="0.3" step="any" oninput="updateQ()">
+    <label>d₁ (k) <span class="val" id="v_d1">0.00</span></label>
+    <input type="range" id="d1" min="-2" max="2" value="0" step="any" oninput="updateQ()">
+    <div class="sep"></div>
+    <b style="font-size:.78rem;color:#44aaffcc">q₂</b>
+    <label>a₂ <span class="val" id="v_a2">0.50</span></label>
+    <input type="range" id="a2" min="-2" max="2" value="0.5" step="any" oninput="updateQ()">
+    <label>b₂ (i) <span class="val" id="v_b2">1.00</span></label>
+    <input type="range" id="b2" min="-2" max="2" value="1" step="any" oninput="updateQ()">
+    <label>c₂ (j) <span class="val" id="v_c2">-0.50</span></label>
+    <input type="range" id="c2" min="-2" max="2" value="-0.5" step="any" oninput="updateQ()">
+    <label>d₂ (k) <span class="val" id="v_d2">0.70</span></label>
+    <input type="range" id="d2" min="-2" max="2" value="0.7" step="any" oninput="updateQ()">
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="qAlgC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" id="qResult" style="font-size:.7rem;line-height:1.7">Results shown here</div>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.68rem;color:#88bbee">
+      <b>Key identities:</b><br>
+      $ij=k,\ jk=i,\ ki=j$<br>
+      $ji=-k,\ kj=-i,\ ik=-j$<br><br>
+      Non-commutative:<br>
+      $q_1 q_2 \neq q_2 q_1$<br><br>
+      $|q_1 q_2|=|q_1||q_2|$
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.67rem;color:#88bbee">
+      <b>Scalar+vector form:</b><br>
+      $(a_1,\mathbf{u})(a_2,\mathbf{v})$<br>
+      $=(a_1a_2-\mathbf{u}{\cdot}\mathbf{v},$<br>
+      $\;a_1\mathbf{v}+a_2\mathbf{u}+\mathbf{u}{\times}\mathbf{v})$<br><br>
+      Hamilton invented the<br>
+      cross product $\mathbf{u}{\times}\mathbf{v}$ here!
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: S³ Geometry -->
+<div id="panel1" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Unit quaternions form $S^3$:<br>$a^2+b^2+c^2+d^2=1$<br>Stereographic projection to $\mathbb{R}^3$</div>
+    <div class="sep"></div>
+    <label>q₁ half-angle φ₁ <span class="val" id="v_s3phi1">0.80</span>rad</label>
+    <input type="range" id="s3phi1" min="0" max="6.28" step="0.05" value="0.8" oninput="updateS3()">
+    <label>q₁ axis θ₁ <span class="val" id="v_s3th1">1.20</span>rad</label>
+    <input type="range" id="s3th1" min="0" max="6.28" step="0.05" value="1.2" oninput="updateS3()">
+    <div class="sep"></div>
+    <label>q₂ half-angle φ₂ <span class="val" id="v_s3phi2">1.50</span>rad</label>
+    <input type="range" id="s3phi2" min="0" max="6.28" step="0.05" value="1.5" oninput="updateS3()">
+    <label>q₂ axis θ₂ <span class="val" id="v_s3th2">0.50</span>rad</label>
+    <input type="range" id="s3th2" min="0" max="6.28" step="0.05" value="0.5" oninput="updateS3()">
+    <div class="sep"></div>
+    <button id="s3AnimBtn" class="btn" onclick="animS3()">▶ Orbit S³</button>
+    <button onclick="showGreatCircles()">Show Great Circles</button>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9994; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+    <div class="sep"></div>
+    <button id="s3AnimBtn" class="btn" onclick="animS3()">▶ Orbit S³</button>
+
+  </div>
+  <div class="main-area"><canvas id="s3C"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.7">
+      <b>Stereographic projection</b><br>
+      $S^3\subset\mathbb{R}^4\to\mathbb{R}^3$:<br>
+      $(a,b,c,d)\mapsto\tfrac{1}{1-d}(a,b,c)$<br><br>
+      <b>Pure imaginary circle:</b><br>
+      $bi+cj+dk$, $b^2+c^2+d^2=1$<br>
+      forms $S^2\subset S^3$<br><br>
+      <b>Left/Right isometries:</b><br>
+      $L_q: p\mapsto qp$<br>
+      $R_q: p\mapsto pq$<br><br>
+      <b>Hopf fibration:</b><br>
+      $S^3\xrightarrow{S^1} S^2$<br>
+      Fibres = cosets of $U(1)$<br><br>
+      $q_1 q_2\neq q_2 q_1$ shown<br>
+      geometrically: different<br>
+      points on $S^3$!
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" id="s3ProdInfo" style="font-size:.68rem;line-height:1.6">product shown here</div>
+  </div>
+</div>
+
+<!-- TAB 2: 3D Rotation & SLERP -->
+<div id="panel2" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Rotation via conjugation:<br>$v' = q v q^{-1}$<br>where $v$ is pure quat</div>
+    <div class="sep"></div>
+    <label>Axis X <span class="val" id="v_ax">0.00</span></label>
+    <input type="range" id="ax" min="-1" max="1" step="0.05" value="0" oninput="updateRot()">
+    <label>Axis Y <span class="val" id="v_ay">1.00</span></label>
+    <input type="range" id="ay" min="-1" max="1" step="0.05" value="1" oninput="updateRot()">
+    <label>Axis Z <span class="val" id="v_az">0.00</span></label>
+    <input type="range" id="az" min="-1" max="1" step="0.05" value="0" oninput="updateRot()">
+    <div class="sep"></div>
+    <label>Angle θ (°) <span class="val" id="v_ang">45</span></label>
+    <input type="range" id="ang" min="0" max="720" step="1" value="45" oninput="updateRot()">
+    <div class="sep"></div>
+    <button id="rotAnimBtn" class="btn" onclick="animateRot()">▶ Animate</button>
+    <button onclick="show720()">720&#xb0; Tour</button>
+    <button id="slerpBtn" onclick="toggleSlerp()">SLERP mode</button>
+    <div class="sep"></div>
+    <div class="info-box" id="rotInfo" style="font-size:.7rem;line-height:1.6">q = &hellip;</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9994; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+
+  </div>
+  <div class="main-area"><canvas id="rotC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.7">
+      Unit quaternion:<br>
+      $q=\cos\tfrac{\theta}{2}+\hat{n}\sin\tfrac{\theta}{2}$<br><br>
+      Double cover:<br>
+      $q$ and $-q$ give same rotation.<br><br>
+      Composition:<br>
+      $R_2 \circ R_1 \leftrightarrow q_2 q_1$<br><br>
+      <b>SLERP:</b><br>
+      $q(t)=\frac{\sin(1{-}t)\Omega}{\sin\Omega}q_0+\frac{\sin t\Omega}{\sin\Omega}q_1$<br>
+      $\Omega=\arccos(q_0{\cdot}q_1)$<br><br>
+      No gimbal lock!
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.7rem;line-height:1.6" id="rotMatrix">Matrix: &hellip;</div>
+  </div>
+</div>
+
+<!-- TAB 3: Division Algebras -->
+<div id="panel3" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Hurwitz Theorem:<br>Only $\mathbb{R},\mathbb{C},\mathbb{H},\mathbb{O}$<br>are normed division algebras</div>
+    <div class="sep"></div>
+    <label>Highlight</label>
+    <button onclick="setHighlight(0)" id="hlBtn0">ℝ — Reals</button>
+    <button onclick="setHighlight(1)" id="hlBtn1">ℂ — Complex</button>
+    <button onclick="setHighlight(2)" id="hlBtn2">ℍ — Quaternions</button>
+    <button onclick="setHighlight(3)" id="hlBtn3">𝕆 — Octonions</button>
+    <div class="sep"></div>
+    <button id="cayleyAnimBtn" class="btn" onclick="animateCayley()">▶ Cayley–Dickson</button>
+    <button onclick="showOctonionTable()">Octonion / Fano</button>
+    <div class="sep"></div>
+    <div class="info-box" id="daInfo" style="font-size:.69rem;line-height:1.65">Click an algebra</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9994; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+
+  </div>
+  <div class="main-area"><canvas id="daC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.69rem;line-height:1.75">
+      <b>Properties lost:</b><br>
+      &#x211d; &#x2192; &#x2102;: ordering<br>
+      &#x2102; &#x2192; &#x210d;: commutativity<br>
+      &#x210d; &#x2192; &#x1d546;: associativity<br>
+      &#x1d546; &#x2192; &#x1d54a;: division algebra<br><br>
+      <b>Cayley&ndash;Dickson:</b><br>
+      $(a,b)(c,d)=$<br>
+      $(ac-\bar{d}b,\,da+b\bar{c})$<br><br>
+      <b>Non-associativity:</b><br>
+      $(e_1e_2)e_4=e_3e_4=e_7$<br>
+      $e_1(e_2e_4)=e_1e_6=-e_7$<br>
+      $\Rightarrow$ NOT equal!<br><br>
+      <b>Aut(&#x1d546;) = G&#x2082;</b><br>
+      exceptional Lie group
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: Physics & SU(2) -->
+<div id="panel4" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">$SU(2)\cong$ unit quaternions<br>$\sigma_1\sigma_2=i\sigma_3$<br>Spin-&#xbd;: need 720&#xb0; rotation</div>
+    <div class="sep"></div>
+    <label>Mode</label>
+    <button onclick="setPhysMode(0)" id="pm0" class="active">Pauli Matrices</button>
+    <button onclick="setPhysMode(1)" id="pm1">SU(2) / Spin-&#xbd;</button>
+    <button onclick="setPhysMode(2)" id="pm2">Bloch Sphere</button>
+    <button onclick="setPhysMode(3)" id="pm3">Maxwell / Adler QM</button>
+    <div class="sep"></div>
+    <label>Spinor angle <span class="val" id="v_spinAng">0</span>&#xb0;</label>
+    <input type="range" id="spinAng" min="0" max="720" step="1" value="0" oninput="updatePhys()">
+    <div class="sep"></div>
+    <button id="physAnimBtn" class="btn" onclick="animPhys()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" id="physInfo" style="font-size:.67rem;line-height:1.6">...</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9994; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+
+  </div>
+  <div class="main-area"><canvas id="physC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.67rem;line-height:1.7">
+      <b>Pauli &#x2194; Quaternions:</b><br>
+      $i\sigma_1\leftrightarrow\mathbf{i},\;i\sigma_2\leftrightarrow\mathbf{j},\;i\sigma_3\leftrightarrow\mathbf{k}$<br>
+      $\sigma_\mu\sigma_\nu=\delta_{\mu\nu}I+i\varepsilon_{\mu\nu\rho}\sigma_\rho$<br><br>
+      <b>Spin-&#xbd; rotation:</b><br>
+      $U(\hat{n},\theta)=\cos\frac{\theta}{2}I-i\sin\frac{\theta}{2}(\hat{n}{\cdot}\boldsymbol{\sigma})$<br>
+      $U(\hat{n},2\pi)=-I\neq I$<br><br>
+      <b>Quaternionic QM (Adler):</b><br>
+      Replace &#x2102; with &#x210d; as<br>
+      scalar field of Hilbert space.<br>
+      Inner product $\langle\psi|\phi\rangle\in\mathbb{H}$.<br>
+      Potential: new physics<br>
+      beyond standard model.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" id="physExtra" style="font-size:.67rem;line-height:1.6">details here</div>
+  </div>
+</div>
+
+<!-- TAB 5: Modern Technology -->
+<div id="panel5" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Quaternions in technology:<br>graphics, aerospace,<br>quantum computing, deep learning</div>
+    <div class="sep"></div>
+    <label>Demo</label>
+    <button onclick="setTechMode(0)" id="tm0" class="active">Camera SLERP</button>
+    <button onclick="setTechMode(1)" id="tm1">Spacecraft Attitude</button>
+    <button onclick="setTechMode(2)" id="tm2">Qubit / Bloch Sphere</button>
+    <button onclick="setTechMode(3)" id="tm3">Quaternion NN</button>
+    <div class="sep"></div>
+    <label>Interpolation t <span class="val" id="v_techT">0.00</span></label>
+    <input type="range" id="techT" min="0" max="1" step="0.01" value="0" oninput="updateTech()">
+    <div class="sep"></div>
+    <button id="techAnimBtn" class="btn" onclick="animTech()">▶ Animate</button>
+    <div class="sep"></div>
+    <div class="info-box" id="techInfo" style="font-size:.67rem;line-height:1.6">...</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">&#9994; Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+
+  </div>
+  <div class="main-area"><canvas id="techC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.67rem;line-height:1.7">
+      <b>3D Graphics (SLERP):</b><br>
+      Smooth camera paths without<br>
+      gimbal lock or axis flipping.<br>
+      Used in Unity, Unreal, Blender.<br><br>
+      <b>Aerospace (NASA/SpaceX):</b><br>
+      Attitude control via quaternion<br>
+      error: $q_e=q_d q_c^{-1}$<br><br>
+      <b>Quantum computing:</b><br>
+      Single-qubit gate = $SU(2)$ element<br>
+      = unit quaternion (up to phase).<br>
+      H, X, Y, Z, T gates all live<br>
+      on the Bloch sphere.<br><br>
+      <b>Quaternion NNs:</b><br>
+      Weight $W\in\mathbb{H}^{n\times m}$;<br>
+      product $Wq$ = Hamilton mult.<br>
+      Encodes 3D rotation equivariance;<br>
+      4&#xd7; richer than real weights.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" id="techExtra" style="font-size:.67rem;line-height:1.6">details here</div>
+  </div>
+</div>
+
+<!-- PROOF PANEL -->
+<div class="proof-panel" id="proofPanel">
+  <div class="proof-header" onclick="toggleProof()">
+    <span style="color:#44aaff;font-size:1.1rem">▲</span>
+    <h3>Proofs & Theory</h3>
+    <span style="font-size:.75rem;color:#44aaff88">click to expand</span>
+  </div>
+  <div class="proof-tabs">
+    <div class="ptab active" onclick="showProof(0)">Quaternion Mult</div>
+    <div class="ptab" onclick="showProof(1)">Rotation Formula</div>
+    <div class="ptab" onclick="showProof(2)">Double Cover</div>
+    <div class="ptab" onclick="showProof(3)">Hurwitz Theorem</div>
+    <div class="ptab" onclick="showProof(4)">Octonion Moufang</div>
+    <div class="ptab" onclick="showProof(5)">SLERP Derivation</div>
+    <div class="ptab" onclick="showProof(6)">SU(2) &#x2245; &#x210d;&#x2081;</div>
+    <div class="ptab" onclick="showProof(7)">Adler QM</div>
+  </div>
+  <div class="proof-content" id="proofContent"></div>
+</div>
+
+<script>
+const PROOFS=[
+  {title:"Quaternion Multiplication Rule",body:`
+Given two quaternions $q_1 = a_1 + b_1 i + c_1 j + d_1 k$ and $q_2 = a_2 + b_2 i + c_2 j + d_2 k$, expand using distributivity and the rules $i^2=j^2=k^2=-1$, $ij=k$, $jk=i$, $ki=j$, $ji=-k$, $kj=-i$, $ik=-j$:
+$$q_1 q_2 = (a_1 a_2 - b_1 b_2 - c_1 c_2 - d_1 d_2)$$
+$$+ (a_1 b_2 + b_1 a_2 + c_1 d_2 - d_1 c_2)i$$
+$$+ (a_1 c_2 - b_1 d_2 + c_1 a_2 + d_1 b_2)j$$
+$$+ (a_1 d_2 + b_1 c_2 - c_1 b_2 + d_1 a_2)k$$
+The norm satisfies $|q_1 q_2| = |q_1||q_2|$, making $\\mathbb{H}$ a normed division algebra.`},
+  {title:"Quaternion Rotation Formula",body:`
+A 3D vector $\\mathbf{v}$ is embedded as a pure quaternion $v = v_x i + v_y j + v_z k$.
+A rotation by angle $\\theta$ about unit axis $\\hat{n}=(n_x,n_y,n_z)$ is encoded as:
+$$q = \\cos\\frac{\\theta}{2} + (n_x i + n_y j + n_z k)\\sin\\frac{\\theta}{2}$$
+The rotated vector is recovered by:
+$$v' = q\\, v\\, q^{-1} = q\\, v\\, \\bar{q} \\quad (\\text{since }|q|=1)$$
+where $\\bar{q} = a - bi - cj - dk$ is the quaternion conjugate, and $q\\bar{q}=1$.
+This is equivalent to the Rodrigues rotation formula.`},
+  {title:"Double Cover SU(2) → SO(3)",body:`
+Both $q$ and $-q$ produce the same rotation $v' = qvq^{-1}$ because $(-q)v(-q)^{-1} = (-q)v(-q^{-1}) = qvq^{-1}$.
+This 2-to-1 homomorphism $\\pi: SU(2) \\to SO(3)$ has kernel $\\{+I,-I\\}$.
+A spinor (element of SU(2)) requires a $720°$ rotation to return to its original state, while a vector (SO(3)) only needs $360°$.
+$$\\pi_1(SO(3)) = \\mathbb{Z}/2, \\quad \\pi_1(SU(2)) = 0$$
+SU(2) is the universal cover of SO(3), explaining the spinor double-valuedness that appears in quantum mechanics.`},
+  {title:"Hurwitz Theorem",body:`
+**Hurwitz's Theorem (1898):** The only finite-dimensional normed division algebras over $\\mathbb{R}$ are:
+$$\\mathbb{R}\\;(\\text{dim }1),\\quad \\mathbb{C}\\;(\\text{dim }2),\\quad \\mathbb{H}\\;(\\text{dim }4),\\quad \\mathbb{O}\\;(\\text{dim }8)$$
+Proof sketch: Any such algebra is isomorphic to one of these via composition algebras. The Cayley–Dickson construction doubles dimension but loses properties:
+- $\\mathbb{R} \\to \\mathbb{C}$: lose ordering
+- $\\mathbb{C} \\to \\mathbb{H}$: lose commutativity $ab = ba$
+- $\\mathbb{H} \\to \\mathbb{O}$: lose associativity $(ab)c = a(bc)$
+- $\\mathbb{O} \\to \\mathbb{S}$ (sedenions): lose division algebra property`},
+  {title:"Octonion Moufang Identity",body:`
+Though octonions $\\mathbb{O}$ are non-associative, they satisfy the **Moufang identities**:
+$$z(x(zy)) = (zxz)y$$
+$$((xz)y)z = x(z(yz))$$
+$$(zx)(yz) = z(xy)z$$
+These replace full associativity. Octonions form an **alternative algebra**: the subalgebra generated by any two elements is associative.
+The automorphism group of $\\mathbb{O}$ is the exceptional Lie group $G_2$.
+Octonions are connected to string theory (10D = 8D octonion + 2) and exceptional Lie groups $F_4, E_6, E_7, E_8$.`},
+  {title:"SLERP — Spherical Linear Interpolation",body:`
+Given two unit quaternions $q_0, q_1$ representing orientations, the SLERP formula interpolates smoothly along the great circle arc on $S^3$:
+$$q(t) = \\frac{\\sin((1-t)\\Omega)}{\\sin\\Omega}q_0 + \\frac{\\sin(t\\Omega)}{\\sin\\Omega}q_1$$
+where $\\Omega = \\arccos(q_0 \\cdot q_1)$ is the angle between them on $S^3$.
+When $\\Omega \\approx 0$, use normalized LERP: $q(t)=\\text{normalize}((1-t)q_0 + t q_1)$.
+SLERP has **constant angular velocity** along the shortest arc, unlike Euler-angle interpolation which can take longer paths and suffers gimbal lock.
+Key property: if $q_0\\cdot q_1 < 0$, negate $q_1$ to take the shorter arc (since $q_1$ and $-q_1$ represent the same rotation).`},
+  {title:"SU(2) \\u2245 Unit Quaternions",body:`
+The Lie group $SU(2)=\\{U\\in M_2(\\mathbb{C}): U^\\dagger U=I, \\det U=1\\}$ consists of matrices:
+$$U = \\begin{pmatrix} \\alpha & -\\bar\\beta \\\\ \\beta & \\bar\\alpha \\end{pmatrix}, \\quad |\\alpha|^2+|\\beta|^2=1$$
+Writing $\\alpha=a+id$, $\\beta=c+ib$ gives the isomorphism to unit quaternion $q=a+bi+cj+dk$.
+The Pauli matrices $\\sigma_1,\\sigma_2,\\sigma_3$ satisfy: $\\sigma_j\\sigma_k = \\delta_{jk}I + i\\varepsilon_{jkl}\\sigma_l$.
+Setting $\\mathbf{e}_j = -i\\sigma_j$ gives $\\mathbf{e}_1\\mathbf{e}_2=\\mathbf{e}_3$, $\\mathbf{e}_1^2=-I$ — exactly the quaternion algebra.
+The exponential map: $\\exp(-i\\theta\\hat{n}\\cdot\\boldsymbol{\\sigma}/2)\\in SU(2)$ corresponds to unit quaternion $q=\\cos(\\theta/2)+\\sin(\\theta/2)(n_xi+n_yj+n_zk)$.`},
+  {title:"Adler Quaternionic Quantum Mechanics",body:`
+In standard QM, the Hilbert space is a vector space over $\\mathbb{C}$. Stephen Adler (1995) proposed replacing $\\mathbb{C}$ with $\\mathbb{H}$ as the division ring of scalars.
+Key features:
+- State vectors $|\\psi\\rangle$ in $\\mathbb{H}$-Hilbert space; inner product $\\langle\\phi|\\psi\\rangle\\in\\mathbb{H}$
+- Observables are right-linear operators (right multiplication preserves $\\mathbb{H}$-linearity)
+- The quaternionic Schrödinger equation: $\\frac{d}{dt}|\\psi\\rangle = H|\\psi\\rangle j$ where $j$ is a quaternion unit
+- Quaternionic QM contains standard complex QM as a special case when states lie in a $\\mathbb{C}$-subspace
+- Potential predictions: modifications to Bell inequalities, CPT violation signatures
+Experimental constraints: no deviation from complex QM found to date. Adler also constructed quaternionic quantum field theories.`}
+];
+
+const NUM_TABS=6;
+let activeTab=0;
+const pans=Array.from({length:NUM_TABS},()=>({x:0,y:0}));
+let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+
+function togglePan(){
+  panMode=!panMode;
+  document.querySelectorAll('.panBtn').forEach(b=>{
+    b.classList.toggle('active',panMode);
+    b.textContent=panMode?'\u270b On':'\u270b Pan';
+  });
+  document.body.classList.toggle('pan-mode',panMode);
+}
+function resetPan(){
+  pans[activeTab].x=0;pans[activeTab].y=0;
+  redrawTab();
+}
+function _addPan(canvas,idx,fn){
+  canvas.addEventListener('mousedown',e=>{if(!panMode)return;_panDrag=true;_panTab=idx;_panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;e.preventDefault();},{passive:false});
+  canvas.addEventListener('mousemove',e=>{if(!_panDrag||_panTab!==idx)return;pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;fn();});
+  canvas.addEventListener('mouseup',()=>_panDrag=false);
+  canvas.addEventListener('mouseleave',()=>_panDrag=false);
+}
+
+function _cancelAllAnims15(){
+  if(s3AnimId){cancelAnimationFrame(s3AnimId);s3AnimId=null;}
+  if(slerpAnimId){cancelAnimationFrame(slerpAnimId);slerpAnimId=null;}
+  if(rotAnimId){cancelAnimationFrame(rotAnimId);rotAnimId=null;}
+  if(cayleyAnim){cancelAnimationFrame(cayleyAnim);cayleyAnim=null;}
+  if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;}
+  if(techAnimId){cancelAnimationFrame(techAnimId);techAnimId=null;}
+  if(qAlgAnimId){cancelAnimationFrame(qAlgAnimId);qAlgAnimId=null;}
+}
+
+function autoStartAnimations() {
+  if (window.animSpeed === undefined) {
+    window.animSpeed = 0.1;
+  }
+  syncSpeedControl15();
+  
+  // Auto-start the first animation in the active tab
+  if (activeTab === 0) {
+    // No auto-start for Tab 0 (static visualization)
+  } else if (activeTab === 1) {
+    animS3();
+  } else if (activeTab === 2) {
+    animateRot();
+  } else if (activeTab === 3) {
+    animateCayley();
+  } else if (activeTab === 4) {
+    animPhys();
+  } else if (activeTab === 5) {
+    animTech();
+  }
+}
+
+function syncSpeedControl15() {
+  const slider = document.getElementById('speed'), display = document.getElementById('speedVal');
+  if (slider && display) {
+    slider.value = window.animSpeed || 0.1;
+    display.textContent = (window.animSpeed || 0.1).toFixed(1);
+  }
+}
+function switchTab(t){
+  _cancelAllAnims15();
+  activeTab=t;
+  for(let i=0;i<NUM_TABS;i++){
+    const el=document.getElementById('panel'+i);
+    if(el)el.style.display=i===t?'flex':'none';
+  }
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===t));
+  syncSpeedControl15();
+  redrawTab();
+  autoStartAnimations();
+}
+function redrawTab(){
+  if(activeTab===0)drawAlg();
+  else if(activeTab===1)drawS3();
+  else if(activeTab===2)drawRot();
+  else if(activeTab===3)drawDA();
+  else if(activeTab===4)drawPhys();
+  else if(activeTab===5)drawTech();
+}
+
+// ── CANVAS SETUP ──
+const qAlgC=document.getElementById('qAlgC');
+const s3C=document.getElementById('s3C');
+const rotC=document.getElementById('rotC');
+const daC=document.getElementById('daC');
+const physC=document.getElementById('physC');
+const techC=document.getElementById('techC');
+const qCtx=qAlgC.getContext('2d');
+const s3Ctx=s3C.getContext('2d');
+const rCtx=rotC.getContext('2d');
+const dCtx=daC.getContext('2d');
+const pCtx=physC.getContext('2d');
+const tCtx=techC.getContext('2d');
+
+function resizeCanvas(c) {
+  window.resizeCanvas(c);
+  // Ensure visualization fits the viewport
+  const ctx = c.getContext('2d');
+  const parent = c.parentElement;
+  const scale = Math.min(parent.clientWidth, parent.clientHeight) * 0.9;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.translate(parent.clientWidth / 2, parent.clientHeight / 2);
+  ctx.scale(scale, scale);
+}
+
+// ── QUATERNION HELPERS ──
+function qMul(q1,q2){
+  const[a1,b1,c1,d1]=q1,[a2,b2,c2,d2]=q2;
+  return[
+    a1*a2-b1*b2-c1*c2-d1*d2,
+    a1*b2+b1*a2+c1*d2-d1*c2,
+    a1*c2-b1*d2+c1*a2+d1*b2,
+    a1*d2+b1*c2-c1*b2+d1*a2
+  ];
+}
+function qNorm(q){return Math.sqrt(q[0]**2+q[1]**2+q[2]**2+q[3]**2)}
+function qConj(q){return[q[0],-q[1],-q[2],-q[3]]}
+function qNormalize(q){const n=qNorm(q)||1;return q.map(x=>x/n)}
+function qAdd(q1,q2){return q1.map((v,i)=>v+q2[i])}
+function qDot(q1,q2){return q1[0]*q2[0]+q1[1]*q2[1]+q1[2]*q2[2]+q1[3]*q2[3]}
+function slerp(q0,q1,t){
+  let dot=qDot(q0,q1);
+  let q1s=q1.slice();
+  if(dot<0){q1s=q1s.map(v=>-v);dot=-dot;}
+  if(dot>0.9995)return qNormalize(q0.map((v,i)=>v+(q1s[i]-v)*t));
+  const omega=Math.acos(Math.min(1,dot));
+  const so=Math.sin(omega);
+  return q0.map((v,i)=>(v*Math.sin((1-t)*omega)+q1s[i]*Math.sin(t*omega))/so);
+}
+function qScale(q,s){return q.map(v=>v*s)}
+function fmtQ(q){
+  const s=q.map(v=>v.toFixed(3));
+  return `${s[0]} + ${s[1]}i + ${s[2]}j + ${s[3]}k`;
+}
+function fmtQShort(q){
+  const f=v=>v>=0?`+${v.toFixed(2)}`:`${v.toFixed(2)}`;
+  return `${q[0].toFixed(2)} ${f(q[1])}i ${f(q[2])}j ${f(q[3])}k`;
+}
+
+// ── TAB 0: ALGEBRA VISUALIZATION ──
+let q1=[1,0.5,0.3,0], q2=[0.5,1,-0.5,0.7];
+
+function updateQ(){
+  const get=id=>parseFloat(document.getElementById(id).value);
+  const set=(id,v)=>document.getElementById(id).textContent=v.toFixed(2);
+  const a1=get('a1'),b1=get('b1'),c1=get('c1'),d1=get('d1');
+  const a2=get('a2'),b2=get('b2'),c2=get('c2'),d2=get('d2');
+  set('v_a1',a1);set('v_b1',b1);set('v_c1',c1);set('v_d1',d1);
+  set('v_a2',a2);set('v_b2',b2);set('v_c2',c2);set('v_d2',d2);
+  q1=[a1,b1,c1,d1]; q2=[a2,b2,c2,d2];
+  const q12=qMul(q1,q2), q21=qMul(q2,q1);
+  const comm=q12.map((v,i)=>v-q21[i]);
+  const commNorm=qNorm(comm).toFixed(4);
+  const qrEl=document.getElementById('qResult');
+  qrEl.textContent='q\u2081: '+fmtQShort(q1)+'\n|q\u2081|='+qNorm(q1).toFixed(3)
+    +'\n\nq\u2082: '+fmtQShort(q2)+'\n|q\u2082|='+qNorm(q2).toFixed(3)
+    +'\n\nq\u2081q\u2082:\n'+fmtQShort(q12)+'\n|q\u2081q\u2082|='+qNorm(q12).toFixed(3)
+    +'\n\nq\u2082q\u2081:\n'+fmtQShort(q21)
+    +'\n\n|q\u2081q\u2082-q\u2082q\u2081|:\n'+commNorm+'\n(non-zero = non-commutative)';
+  drawAlg();
+}
+
+function drawAlg(){
+  resizeCanvas(qAlgC);
+  const W=qAlgC.width,H=qAlgC.height;
+  qCtx.setTransform(1,0,0,1,0,0);
+  qCtx.fillStyle='#06060f';qCtx.fillRect(0,0,W,H);
+  qCtx.setTransform(1,0,0,1,pans[0].x,pans[0].y);
+
+  const cx=W/2,cy=H/2;
+  const scale=Math.min(W,H)*0.25;
+
+  // Draw 3D projection of quaternion as 4D point
+  // Project onto ij-plane (horizontal) and jk-plane (vertical)
+  // Show q1, q2, q1*q2, q2*q1 as vectors
+
+  const quats=[
+    {q:q1,label:'q₁',color:'#44aaff'},
+    {q:q2,label:'q₂',color:'#ff8844'},
+    {q:qMul(q1,q2),label:'q₁q₂',color:'#44ff88'},
+    {q:qMul(q2,q1),label:'q₂q₁',color:'#ff44aa'},
+    {q:qAdd(q1,q2),label:'q₁+q₂',color:'#ffff44'}
+  ];
+
+  // Draw axes labels
+  qCtx.fillStyle='rgba(68,170,255,0.3)';
+  qCtx.font='12px Share Tech Mono';
+
+  // Draw grid
+  qCtx.strokeStyle='rgba(68,170,255,0.08)';qCtx.lineWidth=1;
+  for(let g=-3;g<=3;g++){
+    qCtx.beginPath();qCtx.moveTo(cx+g*scale/2,cy-H/2);qCtx.lineTo(cx+g*scale/2,cy+H/2);qCtx.stroke();
+    qCtx.beginPath();qCtx.moveTo(cx-W/2,cy+g*scale/2);qCtx.lineTo(cx+W/2,cy+g*scale/2);qCtx.stroke();
+  }
+
+  // Axes
+  qCtx.strokeStyle='rgba(68,170,255,0.4)';qCtx.lineWidth=1.5;
+  qCtx.beginPath();qCtx.moveTo(cx-W*0.45,cy);qCtx.lineTo(cx+W*0.45,cy);qCtx.stroke();
+  qCtx.beginPath();qCtx.moveTo(cx,cy-H*0.45);qCtx.lineTo(cx,cy+H*0.45);qCtx.stroke();
+  qCtx.fillStyle='rgba(68,170,255,0.6)';qCtx.font='13px Share Tech Mono';
+  qCtx.fillText('Re (a)',cx+W*0.4,cy-8);
+  qCtx.fillText('Im·i (b)',cx+8,cy-H*0.4);
+
+  // Draw unit circle
+  qCtx.strokeStyle='rgba(68,170,255,0.12)';qCtx.lineWidth=1;
+  qCtx.beginPath();qCtx.arc(cx,cy,scale,0,Math.PI*2);qCtx.stroke();
+  qCtx.strokeStyle='rgba(68,170,255,0.07)';
+  qCtx.beginPath();qCtx.arc(cx,cy,scale*1.5,0,Math.PI*2);qCtx.stroke();
+
+  quats.forEach(({q,label,color})=>{
+    // Plot in Re-Im(i) plane - all vectors originate from center (0,0)
+    const px=cx+q[0]*scale;
+    const py=cy-q[1]*scale;
+
+    // Draw arrow from origin (cx,cy)
+    qCtx.strokeStyle=color;qCtx.lineWidth=2;
+    qCtx.globalAlpha=0.85;
+    qCtx.beginPath();qCtx.moveTo(cx,cy);qCtx.lineTo(px,py);qCtx.stroke();
+    // arrowhead
+    const dx=px-cx,dy=py-cy,len=Math.sqrt(dx*dx+dy*dy)||1;
+    const ux=dx/len,uy=dy/len;
+    qCtx.beginPath();
+    qCtx.moveTo(px,py);
+    qCtx.lineTo(px-ux*10-uy*6,py-uy*10+ux*6);
+    qCtx.lineTo(px-ux*10+uy*6,py-uy*10-ux*6);
+    qCtx.closePath();qCtx.fillStyle=color;qCtx.fill();
+    // dot at vector tip
+    qCtx.beginPath();qCtx.arc(px,py,5,0,Math.PI*2);qCtx.fillStyle=color;qCtx.fill();
+    // label
+    qCtx.globalAlpha=1;
+    qCtx.fillStyle=color;qCtx.font='bold 12px Share Tech Mono';
+    qCtx.fillText(label,px+8,py-8);
+    qCtx.fillStyle='rgba(255,255,255,0.5)';qCtx.font='12px Share Tech Mono';
+    qCtx.fillText(`|${qNorm(q).toFixed(2)}|`,px+8,py+8);
+  });
+  qCtx.globalAlpha=1;
+
+  // Show j,k component values in text below
+  qCtx.fillStyle='rgba(68,170,255,0.4)';qCtx.font='12px Share Tech Mono';
+  const jkText = `q₁: j=${q1[2].toFixed(2)}, k=${q1[3].toFixed(2)} | q₂: j=${q2[2].toFixed(2)}, k=${q2[3].toFixed(2)}`;
+  qCtx.fillText(jkText,cx-W*0.35,cy+H*0.42);
+  qCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 1: S³ GEOMETRY ──
+let s3AnimId=null, s3RX=0.45, s3RY=0.6;
+let s3Dragging=false, s3LX=0, s3LY=0;
+let showGC=false;
+
+function stereoProj(q){
+  const denom=1-q[3];
+  if(Math.abs(denom)<0.001)return{x:20,y:0,z:0};
+  return{x:q[0]/denom, y:q[1]/denom, z:q[2]/denom};
+}
+function makeS3Point(phi,theta){
+  return qNormalize([Math.cos(phi),Math.sin(phi)*Math.cos(theta),Math.sin(phi)*Math.sin(theta),0]);
+}
+function proj3DS3(p,rx,ry,fov=380){
+  let{x,y,z}=p;
+  let y2=y*Math.cos(rx)-z*Math.sin(rx);
+  let z2=y*Math.sin(rx)+z*Math.cos(rx);
+  let x3=x*Math.cos(ry)+z2*Math.sin(ry);
+  let z3=-x*Math.sin(ry)+z2*Math.cos(ry);
+  const sc=fov/(fov+z3+5);
+  return{sx:x3*sc,sy:y2*sc,depth:z3};
+}
+function updateS3(){
+  const phi1=parseFloat(document.getElementById('s3phi1').value);
+  const th1=parseFloat(document.getElementById('s3th1').value);
+  const phi2=parseFloat(document.getElementById('s3phi2').value);
+  const th2=parseFloat(document.getElementById('s3th2').value);
+  document.getElementById('v_s3phi1').textContent=phi1.toFixed(2);
+  document.getElementById('v_s3th1').textContent=th1.toFixed(2);
+  document.getElementById('v_s3phi2').textContent=phi2.toFixed(2);
+  document.getElementById('v_s3th2').textContent=th2.toFixed(2);
+  const qA=makeS3Point(phi1,th1);
+  const qB=makeS3Point(phi2,th2);
+  const qProd=qNormalize(qMul(qA,qB));
+  const pA=stereoProj(qA);
+  const pB=stereoProj(qB);
+  const pP=stereoProj(qProd);
+  const fi=document.getElementById('s3Info');
+  fi.textContent='q\u2081=('+qA.map(v=>v.toFixed(2)).join(',')+')'
+    +' q\u2082=('+qB.map(v=>v.toFixed(2)).join(',')+')'
+    +' q\u2081q\u2082=('+qProd.map(v=>v.toFixed(2)).join(',')+')'
+  ;
+  const fp=document.getElementById('s3ProdInfo');
+  fp.textContent='Stereo p\u2081=('+[pA.x,pA.y,pA.z].map(v=>v.toFixed(2)).join(',')+')'
+    +' p\u2082=('+[pB.x,pB.y,pB.z].map(v=>v.toFixed(2)).join(',')+')'
+    +' prod=('+[pP.x,pP.y,pP.z].map(v=>v.toFixed(2)).join(',')+')'
+  ;
+  drawS3();
+}
+function animS3(){
+  const btn=document.getElementById('s3AnimBtn');
+  if(s3AnimId){cancelAnimationFrame(s3AnimId);s3AnimId=null;btn.textContent='▶ Orbit S³';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  function frame(){s3RY+=0.012 * window.animSpeed;s3RX+=0.005 * window.animSpeed;drawS3();s3AnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function showGreatCircles(){showGC=!showGC;drawS3();}
+function drawS3(){
+  resizeCanvas(s3C);
+  const W=s3C.width,H=s3C.height;
+  s3Ctx.setTransform(1,0,0,1,0,0);
+  s3Ctx.fillStyle='#06060f';s3Ctx.fillRect(0,0,W,H);
+  s3Ctx.setTransform(1,0,0,1,pans[1].x,pans[1].y);
+  const cx=W/2,cy=H/2;
+  const scale=Math.min(W,H)*0.18;
+  s3Ctx.strokeStyle='rgba(68,170,255,0.12)';s3Ctx.lineWidth=1;
+  s3Ctx.beginPath();s3Ctx.arc(cx,cy,scale*2,0,Math.PI*2);s3Ctx.stroke();
+  if(showGC){
+    for(let t=0;t<7;t++){
+      const theta0=t*Math.PI/3.5;
+      s3Ctx.strokeStyle='rgba(68,170,255,0.18)';s3Ctx.lineWidth=1;
+      s3Ctx.beginPath();
+      for(let i=0;i<=80;i++){
+        const phi=i/80*Math.PI*2;
+        const q=[Math.cos(phi),Math.sin(phi)*Math.cos(theta0),Math.sin(phi)*Math.sin(theta0),0];
+        const sp=stereoProj(q);
+        const clamp=5;
+        const sx=Math.max(-clamp,Math.min(clamp,sp.x));
+        const sy=Math.max(-clamp,Math.min(clamp,sp.y));
+        const sz=Math.max(-clamp,Math.min(clamp,sp.z));
+        const {sx:px,sy:py}=proj3DS3({x:sx,y:sy,z:sz},s3RX,s3RY);
+        if(i===0)s3Ctx.moveTo(cx+px*scale*0.6,cy-py*scale*0.6);
+        else s3Ctx.lineTo(cx+px*scale*0.6,cy-py*scale*0.6);
+      }
+      s3Ctx.stroke();
+    }
+  }
+  // Pure imaginary great circle
+  s3Ctx.strokeStyle='rgba(255,200,100,0.35)';s3Ctx.lineWidth=1.5;s3Ctx.setLineDash([4,4]);
+  s3Ctx.beginPath();
+  for(let i=0;i<=60;i++){
+    const phi=i/60*Math.PI*2;
+    const sp=stereoProj([0,Math.cos(phi),Math.sin(phi),0]);
+    const {sx:px,sy:py}=proj3DS3({x:sp.x,y:sp.y,z:sp.z},s3RX,s3RY);
+    if(i===0)s3Ctx.moveTo(cx+px*scale*0.6,cy-py*scale*0.6);
+    else s3Ctx.lineTo(cx+px*scale*0.6,cy-py*scale*0.6);
+  }
+  s3Ctx.stroke();s3Ctx.setLineDash([]);
+  const phi1=parseFloat(document.getElementById('s3phi1').value);
+  const th1=parseFloat(document.getElementById('s3th1').value);
+  const phi2=parseFloat(document.getElementById('s3phi2').value);
+  const th2=parseFloat(document.getElementById('s3th2').value);
+  const qA=makeS3Point(phi1,th1);
+  const qB=makeS3Point(phi2,th2);
+  const qProd=qNormalize(qMul(qA,qB));
+  const pts=[
+    {q:qA,label:'q\u2081',color:'#44aaff'},
+    {q:qB,label:'q\u2082',color:'#ff8844'},
+    {q:qProd,label:'q\u2081q\u2082',color:'#44ff88'},
+    {q:qNormalize(qMul(qB,qA)),label:'q\u2082q\u2081',color:'#ff44aa'}
+  ];
+  pts.forEach(({q,label,color})=>{
+    const sp=stereoProj(q);
+    const cl=4;
+    const {sx:px,sy:py}=proj3DS3({x:Math.max(-cl,Math.min(cl,sp.x)),y:Math.max(-cl,Math.min(cl,sp.y)),z:Math.max(-cl,Math.min(cl,sp.z))},s3RX,s3RY);
+    s3Ctx.beginPath();s3Ctx.arc(cx+px*scale*0.6,cy-py*scale*0.6,8,0,Math.PI*2);
+    s3Ctx.fillStyle=color;s3Ctx.globalAlpha=0.9;s3Ctx.fill();s3Ctx.globalAlpha=1;
+    s3Ctx.fillStyle=color;s3Ctx.font='bold 12px Share Tech Mono';
+    s3Ctx.fillText(label,cx+px*scale*0.6+10,cy-py*scale*0.6-6);
+    s3Ctx.fillStyle='rgba(255,255,255,0.4)';s3Ctx.font='12px Share Tech Mono';
+    s3Ctx.fillText('|q|='+qNorm(q).toFixed(3),cx+px*scale*0.6+10,cy-py*scale*0.6+8);
+  });
+  s3Ctx.fillStyle='rgba(255,200,100,0.6)';s3Ctx.font='12px Share Tech Mono';
+  s3Ctx.fillText('yellow = pure imaginaries S\u00b2\u2282S\u00b3  (stereographic S\u00b3\u2192\u211d\u00b3)',cx-W*0.4,cy+H*0.44);
+  s3Ctx.setTransform(1,0,0,1,0,0);
+}
+s3C.addEventListener('mousedown',e=>{if(panMode)return;s3Dragging=true;s3LX=e.clientX;s3LY=e.clientY;});
+s3C.addEventListener('mousemove',e=>{if(!s3Dragging||panMode)return;s3RY+=(e.clientX-s3LX)*0.012;s3RX+=(e.clientY-s3LY)*0.012;s3LX=e.clientX;s3LY=e.clientY;drawS3();});
+s3C.addEventListener('mouseup',()=>s3Dragging=false);
+s3C.addEventListener('mouseleave',()=>s3Dragging=false);
+
+// ── TAB 2: 3D ROTATION & SLERP ──
+let rotAnimId=null;
+let cubeRx=0.5, cubeRy=0.5;
+let rotDragging=false, rotLX=0, rotLY=0;
+let slerpMode=false, slerpAnimId=null, slerpT=0;
+const slerpQ0=qNormalize([1,0.5,0,0]);
+const slerpQ1=qNormalize([0,1,0.5,0.3]);
+
+function toggleSlerp(){
+  slerpMode=!slerpMode;
+  document.getElementById('slerpBtn').classList.toggle('active',slerpMode);
+  if(slerpMode){
+    if(slerpAnimId)cancelAnimationFrame(slerpAnimId);
+    let dir=1;
+    function slerpFrame(){
+      slerpT+=0.008*dir*window.animSpeed;
+      if(slerpT>1){slerpT=1;dir=-1;}
+      if(slerpT<0){slerpT=0;dir=1;}
+      drawRotSlerp();
+      slerpAnimId=requestAnimationFrame(slerpFrame);
+    }
+    slerpFrame();
+  } else {
+    if(slerpAnimId){cancelAnimationFrame(slerpAnimId);slerpAnimId=null;}
+    updateRot();
+  }
+}
+function drawRotSlerp(){
+  resizeCanvas(rotC);
+  const W=rotC.width,H=rotC.height;
+  rCtx.setTransform(1,0,0,1,0,0);
+  rCtx.fillStyle='#06060f';rCtx.fillRect(0,0,W,H);
+  rCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.28;
+  const t=slerpT;
+  const qCurr=slerp(slerpQ0,slerpQ1,t);
+  const axes=[[1,0,0,'#ff4444','X'],[0,1,0,'#44ff44','Y'],[0,0,1,'#4488ff','Z']];
+  axes.forEach(([x,y,z,col,label])=>{
+    const p0=proj3D([0,0,0],cubeRx,cubeRy);
+    const p1=proj3D([x*0.9,y*0.9,z*0.9],cubeRx,cubeRy);
+    rCtx.strokeStyle=col+'88';rCtx.lineWidth=1.5;rCtx.setLineDash([]);
+    rCtx.beginPath();rCtx.moveTo(cx+p0.x*scale,cy-p0.y*scale);rCtx.lineTo(cx+p1.x*scale,cy-p1.y*scale);rCtx.stroke();
+    rCtx.fillStyle=col;rCtx.font='12px Share Tech Mono';
+    rCtx.fillText(label,cx+p1.x*scale+6,cy-p1.y*scale);
+  });
+  const fColors=['#ff4444','#44ff44','#4488ff'];
+  [[1,0,0],[0,1,0],[0,0,1]].forEach((v,i)=>{
+    const rv0=rotVec(slerpQ0,v);
+    const rv1=rotVec(slerpQ1,v);
+    const rvt=rotVec(qCurr,v);
+    const p0f=proj3D([0,0,0],cubeRx,cubeRy);
+    rCtx.strokeStyle=fColors[i]+'55';rCtx.lineWidth=1.5;rCtx.setLineDash([4,4]);
+    [rv0,rv1].forEach(rv=>{
+      const pp=proj3D(rv.map(u=>u*0.8),cubeRx,cubeRy);
+      rCtx.beginPath();rCtx.moveTo(cx+p0f.x*scale,cy-p0f.y*scale);rCtx.lineTo(cx+pp.x*scale,cy-pp.y*scale);rCtx.stroke();
+    });
+    const ptf=proj3D(rvt.map(u=>u*0.8),cubeRx,cubeRy);
+    rCtx.strokeStyle=fColors[i];rCtx.lineWidth=3;rCtx.setLineDash([]);
+    rCtx.beginPath();rCtx.moveTo(cx+p0f.x*scale,cy-p0f.y*scale);rCtx.lineTo(cx+ptf.x*scale,cy-ptf.y*scale);rCtx.stroke();
+  });
+  rCtx.fillStyle='rgba(68,170,255,0.7)';rCtx.font='12px Share Tech Mono';
+  rCtx.fillText('SLERP t='+t.toFixed(2)+'  (dashed=endpoints, solid=interpolated)',cx-W*0.42,cy+H*0.42);
+  rCtx.setTransform(1,0,0,1,0,0);
+}
+
+function getRotQ(){
+  let ax=parseFloat(document.getElementById('ax').value);
+  let ay=parseFloat(document.getElementById('ay').value);
+  let az=parseFloat(document.getElementById('az').value);
+  const len=Math.sqrt(ax*ax+ay*ay+az*az)||1;
+  ax/=len;ay/=len;az/=len;
+  const theta=parseFloat(document.getElementById('ang').value)*Math.PI/180;
+  const s=Math.sin(theta/2),c=Math.cos(theta/2);
+  return[c,ax*s,ay*s,az*s];
+}
+
+function updateRot(){
+  if(slerpMode)return;
+  const get=id=>parseFloat(document.getElementById(id).value);
+  document.getElementById('v_ax').textContent=get('ax').toFixed(2);
+  document.getElementById('v_ay').textContent=get('ay').toFixed(2);
+  document.getElementById('v_az').textContent=get('az').toFixed(2);
+  document.getElementById('v_ang').textContent=get('ang').toFixed(0);
+  const q=getRotQ();
+  const ri=document.getElementById('rotInfo');
+  ri.textContent='q = '+q[0].toFixed(3)+' + '+q[1].toFixed(3)+'i + '+q[2].toFixed(3)+'j + '+q[3].toFixed(3)+'k  |q|='+qNorm(q).toFixed(4);
+  const[a,b,c,d]=q;
+  const R=[[1-2*(c*c+d*d),2*(b*c-a*d),2*(b*d+a*c)],
+           [2*(b*c+a*d),1-2*(b*b+d*d),2*(c*d-a*b)],
+           [2*(b*d-a*c),2*(c*d+a*b),1-2*(b*b+c*c)]];
+  const rm=document.getElementById('rotMatrix');
+  rm.textContent='Rotation matrix:\n'+R.map(row=>'['+row.map(v=>v.toFixed(2)).join(', ')+']').join('\n');
+  drawRot();
+}
+
+function rotVec(q,v){
+  const pv=[0,v[0],v[1],v[2]];
+  const qinv=qConj(q);
+  const res=qMul(qMul(q,pv),qinv);
+  return[res[1],res[2],res[3]];
+}
+
+function proj3D(p,rx,ry,fov=400){
+  // rotate around x then y
+  let[x,y,z]=p;
+  let y2=y*Math.cos(rx)-z*Math.sin(rx);
+  let z2=y*Math.sin(rx)+z*Math.cos(rx);
+  let x3=x*Math.cos(ry)+z2*Math.sin(ry);
+  let z3=-x*Math.sin(ry)+z2*Math.cos(ry);
+  const sc=fov/(fov+z3+3);
+  return{x:x3*sc,y:y2*sc,z:z3};
+}
+
+function drawRot(){
+  if(slerpMode){drawRotSlerp();return;}
+  resizeCanvas(rotC);
+  const W=rotC.width,H=rotC.height;
+  rCtx.setTransform(1,0,0,1,0,0);
+  rCtx.fillStyle='#06060f';rCtx.fillRect(0,0,W,H);
+  rCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
+
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.28;
+  const q=getRotQ();
+
+  // Draw 3D axes (original frame, faded)
+  const axes=[[1,0,0,'#ff4444','X'],[0,1,0,'#44ff44','Y'],[0,0,1,'#4488ff','Z']];
+  rCtx.lineWidth=1.5;
+  axes.forEach(([x,y,z,col,label])=>{
+    const p0=proj3D([0,0,0],cubeRx,cubeRy);
+    const p1=proj3D([x*0.9,y*0.9,z*0.9],cubeRx,cubeRy);
+    rCtx.strokeStyle=col+'55';rCtx.setLineDash([4,4]);
+    rCtx.beginPath();rCtx.moveTo(cx+p0.x*scale,cy-p0.y*scale);rCtx.lineTo(cx+p1.x*scale,cy-p1.y*scale);rCtx.stroke();
+    rCtx.setLineDash([]);
+    rCtx.fillStyle=col+'88';rCtx.font='12px Share Tech Mono';
+    rCtx.fillText(label,cx+p1.x*scale+6,cy-p1.y*scale);
+  });
+  // Draw rotated frame (solid, bright)
+  const fLabels=["X'","Y'","Z'"];
+  axes.forEach(([x,y,z,col,label],i)=>{
+    const rv=rotVec(q,[x,y,z]);
+    const p0=proj3D([0,0,0],cubeRx,cubeRy);
+    const p1=proj3D(rv.map(u=>u*0.9),cubeRx,cubeRy);
+    rCtx.strokeStyle=col;rCtx.lineWidth=3;rCtx.setLineDash([]);
+    rCtx.beginPath();rCtx.moveTo(cx+p0.x*scale,cy-p0.y*scale);rCtx.lineTo(cx+p1.x*scale,cy-p1.y*scale);rCtx.stroke();
+    const dx=p1.x-p0.x,dy=p1.y-p0.y,len=Math.sqrt(dx*dx+dy*dy)||1;
+    const ux=dx/len,uy=dy/len;
+    const ax2=cx+p1.x*scale,ay2=cy-p1.y*scale;
+    rCtx.beginPath();rCtx.moveTo(ax2,ay2);
+    rCtx.lineTo(ax2-ux*12-uy*6,ay2+uy*12-ux*6);
+    rCtx.lineTo(ax2-ux*12+uy*6,ay2+uy*12+ux*6);
+    rCtx.closePath();rCtx.fillStyle=col;rCtx.fill();
+    rCtx.fillStyle=col;rCtx.font='bold 12px Share Tech Mono';
+    rCtx.fillText(fLabels[i],cx+p1.x*scale+8,cy-p1.y*scale);
+  });
+
+  // Draw original vector (white)
+  const origVec=[0.7,0.4,0.3];
+  const pO0=proj3D([0,0,0],cubeRx,cubeRy);
+  const pO1=proj3D(origVec,cubeRx,cubeRy);
+  rCtx.strokeStyle='rgba(255,255,255,0.5)';rCtx.lineWidth=2;rCtx.setLineDash([5,5]);
+  rCtx.beginPath();rCtx.moveTo(cx+pO0.x*scale,cy-pO0.y*scale);rCtx.lineTo(cx+pO1.x*scale,cy-pO1.y*scale);rCtx.stroke();
+  rCtx.setLineDash([]);
+  rCtx.fillStyle='rgba(255,255,255,0.7)';
+  rCtx.beginPath();rCtx.arc(cx+pO1.x*scale,cy-pO1.y*scale,5,0,Math.PI*2);rCtx.fill();
+  rCtx.fillText('v',cx+pO1.x*scale+8,cy-pO1.y*scale);
+
+  // Draw rotated vector (cyan)
+  const rv=rotVec(q,origVec);
+  const pR1=proj3D(rv,cubeRx,cubeRy);
+  rCtx.strokeStyle='#44aaff';rCtx.lineWidth=3;
+  rCtx.beginPath();rCtx.moveTo(cx+pO0.x*scale,cy-pO0.y*scale);rCtx.lineTo(cx+pR1.x*scale,cy-pR1.y*scale);rCtx.stroke();
+  rCtx.fillStyle='#44aaff';
+  rCtx.beginPath();rCtx.arc(cx+pR1.x*scale,cy-pR1.y*scale,6,0,Math.PI*2);rCtx.fill();
+  rCtx.font='bold 13px Share Tech Mono';
+  rCtx.fillText("v'",cx+pR1.x*scale+8,cy-pR1.y*scale);
+
+  // Draw rotation axis
+  const ax0=parseFloat(document.getElementById('ax').value);
+  const ay0=parseFloat(document.getElementById('ay').value);
+  const az0=parseFloat(document.getElementById('az').value);
+  const alen=Math.sqrt(ax0*ax0+ay0*ay0+az0*az0)||1;
+  const axis=[ax0/alen,ay0/alen,az0/alen];
+  const pa1=proj3D(axis.map(v=>v*1.2),cubeRx,cubeRy);
+  const pa0=proj3D(axis.map(v=>-v*1.2),cubeRx,cubeRy);
+  rCtx.strokeStyle='#ffcc44';rCtx.lineWidth=2;rCtx.setLineDash([8,4]);
+  rCtx.beginPath();rCtx.moveTo(cx+pa0.x*scale,cy-pa0.y*scale);rCtx.lineTo(cx+pa1.x*scale,cy-pa1.y*scale);rCtx.stroke();
+  rCtx.setLineDash([]);
+  rCtx.fillStyle='#ffcc44';rCtx.font='12px Share Tech Mono';
+  rCtx.fillText('n̂ (axis)',cx+pa1.x*scale+6,cy-pa1.y*scale);
+
+  // Draw arc showing rotation
+  // Show sweeping arc on a plane perpendicular to axis
+  const ang=parseFloat(document.getElementById('ang').value)*Math.PI/180;
+  rCtx.strokeStyle='rgba(68,170,255,0.5)';rCtx.lineWidth=1.5;rCtx.setLineDash([3,3]);
+  const steps=60;
+  rCtx.beginPath();
+  for(let i=0;i<=steps;i++){
+    const frac=i/steps;
+    const qPartial=[Math.cos(ang*frac/2),...axis.map(v=>v*Math.sin(ang*frac/2))];
+    const vp=rotVec(qPartial,origVec);
+    const pp=proj3D(vp,cubeRx,cubeRy);
+    if(i===0)rCtx.moveTo(cx+pp.x*scale,cy-pp.y*scale);
+    else rCtx.lineTo(cx+pp.x*scale,cy-pp.y*scale);
+  }
+  rCtx.stroke();
+  rCtx.setLineDash([]);
+
+  // Double cover indicator
+  const angDeg=parseFloat(document.getElementById('ang').value);
+  if(angDeg>180){
+    rCtx.fillStyle='rgba(255,200,80,0.75)';rCtx.font='12px Share Tech Mono';
+    rCtx.fillText('Note: q and \u2212q give identical rotation (double cover)',cx-W*0.38,cy+H*0.38);
+  }
+  rCtx.fillStyle='rgba(68,170,255,0.6)';rCtx.font='12px Share Tech Mono';
+  rCtx.fillText('Angle: '+document.getElementById('ang').value+'\u00b0  |q|='+qNorm(q).toFixed(4),cx-W*0.45,cy+H*0.45);
+  rCtx.fillStyle='rgba(255,255,255,0.35)';
+  rCtx.fillText('drag to orbit',cx+W*0.25,cy+H*0.45);
+  rCtx.setTransform(1,0,0,1,0,0);
+}
+
+// Drag to orbit 3D view
+rotC.addEventListener('mousedown',e=>{
+  if(panMode)return;
+  rotDragging=true;rotLX=e.clientX;rotLY=e.clientY;
+});
+rotC.addEventListener('mousemove',e=>{
+  if(!rotDragging||panMode)return;
+  cubeRy+=(e.clientX-rotLX)*0.01;
+  cubeRx+=(e.clientY-rotLY)*0.01;
+  rotLX=e.clientX;rotLY=e.clientY;
+  drawRot();
+});
+rotC.addEventListener('mouseup',()=>rotDragging=false);
+rotC.addEventListener('mouseleave',()=>rotDragging=false);
+
+function animateRot(){
+  const btn=document.getElementById('rotAnimBtn');
+  if(slerpMode){toggleSlerp();return;}
+  if(rotAnimId){cancelAnimationFrame(rotAnimId);rotAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  let t=0;
+  function frame(){
+    t+=0.8 * window.animSpeed;
+    document.getElementById('ang').value=t%720;
+    document.getElementById('v_ang').textContent=Math.floor(t%720);
+    updateRot();
+    rotAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+function show720(){
+  let t=0;const start=Date.now();
+  function frame(){
+    const elapsed=(Date.now()-start)/3000;
+    if(elapsed>1){updateRot();return;}
+    t=elapsed*720;
+    document.getElementById('ang').value=t;
+    document.getElementById('v_ang').textContent=Math.floor(t);
+    updateRot();
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ── TAB 3: DIVISION ALGEBRAS ──
+let hlIdx=2, cayleyAnim=null, cayleyT=0;
+let showOctTable=false;
+// Octonion multiplication table (Fano plane triples)
+const OCT_TRIPLES=[[1,2,3],[1,4,5],[2,4,6],[3,4,7],[1,6,7],[2,5,7],[3,5,6]];
+const DA_INFO=[
+  {name:'ℝ — Real Numbers',dim:1,comm:true,assoc:true,div:true,color:'#aaaaff',
+   desc:'dim=1, ordered field, Archimedean. Every polynomial of odd degree has a root. The unique complete ordered field.'},
+  {name:'ℂ — Complex Numbers',dim:2,comm:true,assoc:true,div:true,color:'#44aaff',
+   desc:'dim=2, algebraically closed (Fundamental Theorem of Algebra). Used throughout QM, EM, signal processing. Lose: ordering.'},
+  {name:'ℍ — Quaternions',dim:4,comm:false,assoc:true,div:true,color:'#ff8844',
+   desc:'dim=4, non-commutative. Encodes 3D rotations, spinors. Used in 3D graphics and robotics. Lose: commutativity (ab≠ba).'},
+  {name:'𝕆 — Octonions',dim:8,comm:false,assoc:false,div:true,color:'#44ff88',
+   desc:'dim=8, non-associative, non-commutative. Connected to exceptional Lie groups G₂, F₄, E₈. Lose: associativity (ab)c≠a(bc).'}
+];
+
+function setHighlight(i){
+  hlIdx=i;
+  const d=DA_INFO[i];
+  const el=document.getElementById('daInfo');
+  el.textContent='';
+  const b=document.createElement('b');b.style.color=d.color;b.textContent=d.name;el.appendChild(b);
+  el.appendChild(document.createTextNode('\ndim='+d.dim+'\nCommutative: '+(d.comm?'\u2713':'\u2717')+'\nAssociative: '+(d.assoc?'\u2713':'\u2717')+'\nDivision algebra: '+(d.div?'\u2713':'\u2717')+'\n\n'+d.desc));
+  ['hlBtn0','hlBtn1','hlBtn2','hlBtn3'].forEach((id,j)=>
+    document.getElementById(id).classList.toggle('active',j===i));
+  drawDA();
+}
+function showOctonionTable(){showOctTable=!showOctTable;drawDA();}
+
+function drawFanoPlane(ctx,cx,cy,W,H){
+  const R=Math.min(W,H)*0.32;
+  const verts=[];
+  for(let i=0;i<7;i++){
+    const ang=Math.PI/2+i*2*Math.PI/7;
+    verts.push({x:cx+R*Math.cos(ang),y:cy+R*Math.sin(ang)});
+  }
+  const lineColors=['#44aaff','#ff8844','#44ff88','#ff44aa','#ffff44','#ff6688','#88ffcc'];
+  OCT_TRIPLES.forEach(([a,b,c],idx)=>{
+    const va=verts[a-1],vb=verts[b-1],vc=verts[c-1];
+    ctx.strokeStyle=lineColors[idx];ctx.lineWidth=2;ctx.globalAlpha=0.6;
+    ctx.beginPath();ctx.moveTo(va.x,va.y);ctx.lineTo(vb.x,vb.y);ctx.lineTo(vc.x,vc.y);ctx.closePath();ctx.stroke();
+    ctx.globalAlpha=1;
+  });
+  verts.forEach((v,i)=>{
+    ctx.beginPath();ctx.arc(v.x,v.y,12,0,Math.PI*2);
+    ctx.fillStyle='#ff8844';ctx.fill();
+    ctx.strokeStyle='#ffcc88';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='bold 12px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('e'+(i+1),v.x,v.y);
+  });
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.fillStyle='rgba(255,200,100,0.85)';ctx.font='13px Share Tech Mono';
+  ctx.fillText('Fano Plane = Octonion multiplication table',cx-W*0.4,cy-H*0.46);
+  ctx.fillStyle='rgba(180,200,255,0.65)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('Each colored triangle: e\u2090e\u1d47=e\u1d9c (cyclic), e\u1d9ce\u1d47=-e\u2090',cx-W*0.4,cy-H*0.41);
+  ctx.fillText('e\u2081e\u2082=e\u2083, e\u2083e\u2082=-e\u2081  (non-commutative)',cx-W*0.4,cy+H*0.43);
+  ctx.fillText('(e\u2081e\u2082)e\u2084=e\u2087  but  e\u2081(e\u2082e\u2084)=-e\u2087  (non-associative)',cx-W*0.4,cy+H*0.43+16);
+}
+
+function drawDA(){
+  resizeCanvas(daC);
+  const W=daC.width,H=daC.height;
+  dCtx.setTransform(1,0,0,1,0,0);
+  dCtx.fillStyle='#06060f';dCtx.fillRect(0,0,W,H);
+  dCtx.setTransform(1,0,0,1,pans[3].x,pans[3].y);
+  if(showOctTable){drawFanoPlane(dCtx,W/2,H/2,W,H);dCtx.setTransform(1,0,0,1,0,0);return;}
+
+  const cx=W/2,cy=H/2;
+  const DAS=[
+    {label:'ℝ',color:'#aaaaff',r:80,bx:cx-W*0.3,by:cy+H*0.05},
+    {label:'ℂ',color:'#44aaff',r:130,bx:cx-W*0.15,by:cy},
+    {label:'ℍ',color:'#ff8844',r:185,bx:cx+W*0.05,by:cy-H*0.05},
+    {label:'𝕆',color:'#44ff88',r:240,bx:cx+W*0.22,by:cy-H*0.08}
+  ];
+
+  // Draw nested circles (Venn-like)
+  for(let i=DAS.length-1;i>=0;i--){
+    const d=DAS[i];
+    const isHl=i===hlIdx;
+    dCtx.beginPath();
+    dCtx.arc(cx,cy,d.r+(cayleyT*(i+1)*8),0,Math.PI*2);
+    dCtx.fillStyle=d.color+(isHl?'22':'0d');
+    dCtx.fill();
+    dCtx.strokeStyle=d.color+(isHl?'ff':'66');
+    dCtx.lineWidth=isHl?3:1.5;
+    dCtx.stroke();
+  }
+
+  // Labels
+  DAS.forEach((d,i)=>{
+    const r=d.r+(cayleyT*(i+1)*8);
+    const isHl=i===hlIdx;
+    dCtx.font=(isHl?'bold ':'')+`${isHl?22:16}px Orbitron`;
+    dCtx.fillStyle=d.color;
+    dCtx.textAlign='center';
+    dCtx.textBaseline='middle';
+    const angle=-Math.PI*0.35+i*0.15;
+    dCtx.fillText(d.label,cx+r*0.7*Math.cos(angle),cy+r*0.7*Math.sin(angle));
+  });
+
+  // Property table
+  dCtx.textAlign='left';dCtx.textBaseline='top';
+  const props=['dim','comm','assoc','norm div'];
+  const vals=[['1','2','4','8'],['✓','✓','✗','✗'],['✓','✓','✓','✗'],['✓','✓','✓','✓']];
+  const headers=['','ℝ','ℂ','ℍ','𝕆'];
+  const tw=70,th=26,tx=cx-W*0.42,ty=cy-H*0.4;
+  dCtx.font='12px Share Tech Mono';
+  headers.forEach((h,col)=>{
+    dCtx.fillStyle=col>0?DA_INFO[col-1].color:'#ffffff88';
+    dCtx.fillText(h,tx+col*tw,ty);
+  });
+  props.forEach((p,row)=>{
+    dCtx.fillStyle='rgba(180,200,255,0.7)';
+    dCtx.fillText(p,tx,ty+(row+1)*th);
+    vals[row].forEach((v,col)=>{
+      const isHl=col===hlIdx;
+      dCtx.fillStyle=isHl?DA_INFO[col].color:'rgba(200,220,255,0.5)';
+      dCtx.font=(isHl?'bold ':'')+`12px Share Tech Mono`;
+      dCtx.fillText(v,tx+(col+1)*tw,ty+(row+1)*th);
+      dCtx.font='12px Share Tech Mono';
+    });
+  });
+
+  // Cayley–Dickson arrow labels
+  const arrows=[{x:cx-W*0.15,y:cy-H*0.38,label:'\u00d7\u2102: lose order'},
+                {x:cx+W*0.02,y:cy-H*0.42,label:'\u00d7\u210d: lose commutativity'},
+                {x:cx+W*0.2,y:cy-H*0.46,label:'\u00d7\ud835\udd46: lose associativity'}];
+  dCtx.fillStyle='rgba(255,200,100,0.6)';dCtx.font='12px Share Tech Mono';
+  arrows.forEach(a=>dCtx.fillText(a.label,a.x,a.y));
+  dCtx.fillStyle='rgba(68,255,136,0.7)';dCtx.font='12px Share Tech Mono';
+  dCtx.fillText('Non-assoc proof: (e\u2081e\u2082)e\u2084=e\u2087 \u2260 e\u2081(e\u2082e\u2084)=-e\u2087',cx-W*0.38,cy+H*0.44);
+
+  dCtx.textAlign='left';dCtx.textBaseline='alphabetic';
+  dCtx.setTransform(1,0,0,1,0,0);
+}
+
+function animateCayley(){
+  const btn=document.getElementById('cayleyAnimBtn');
+  if(cayleyAnim){cancelAnimationFrame(cayleyAnim);cayleyAnim=null;cayleyT=0;btn.textContent='▶ Cayley–Dickson';btn.classList.remove('active');drawDA();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  cayleyT=0;
+  function frame(){
+    cayleyT=0.5*(1-Math.cos(Date.now()/600 * window.animSpeed));
+    drawDA();
+    cayleyAnim=requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ── TAB 4: PHYSICS & SU(2) ──
+let physMode=0, physAnimId=null, physAnimPhase=0, physAnimFrame=0;
+let pauliHighlight=[0,0]; // [row, col] to highlight in Pauli matrix
+let blochAnimT=0; // Animation time for Bloch sphere
+let maxwellAnimT=0; // Animation time for Maxwell/Adler
+
+function setPhysMode(i){
+  physMode=i;
+  ['pm0','pm1','pm2','pm3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  const labels=[
+    'Pauli matrices satisfy quaternion algebra: i\u03c3\u2081\u2194i, i\u03c3\u2082\u2194j, i\u03c3\u2083\u2194k',
+    'SU(2) spin-\u00bd: spinor needs 720\u00b0 rotation (double cover)',
+    'Bloch sphere: qubit state = point on S\u00b2, gate = unit quaternion',
+    'Maxwell original equations in quaternion form; Adler quaternionic QM'
+  ];
+  document.getElementById('physInfo').textContent=labels[i];
+  drawPhys();
+}
+function updatePhys(){
+  const ang=parseFloat(document.getElementById('spinAng').value);
+  document.getElementById('v_spinAng').textContent=ang.toFixed(0);
+  drawPhys();
+}
+function animPhys(){
+  const btn=document.getElementById('physAnimBtn');
+  if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  let t=0, frameCount=0;
+  function frame(){
+    t=(t+1.2*window.animSpeed)%720;
+    frameCount++;
+    // Update slider and spin angle (for spin modes)
+    document.getElementById('spinAng').value=t;
+    document.getElementById('v_spinAng').textContent=Math.floor(t);
+    // Animate Pauli matrix highlighting (cycle through off-diagonal elements)
+    const cycleSpeed=Math.floor(frameCount/30*window.animSpeed)%6;
+    const pairs=[[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]];
+    pauliHighlight=pairs[cycleSpeed]||[0,0];
+    // Animation time for Bloch sphere
+    blochAnimT=(blochAnimT+0.016*window.animSpeed);
+    // Animation time for Maxwell/Adler
+    maxwellAnimT=(maxwellAnimT+0.008*window.animSpeed);
+    drawPhys();
+    physAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+function drawPhys(){
+  resizeCanvas(physC);
+  const rect=physC.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  if(physC.width!==Math.floor(rect.width*dpr)||physC.height!==Math.floor(rect.height*dpr)){
+    physC.width=Math.floor(rect.width*dpr);
+    physC.height=Math.floor(rect.height*dpr);
+  }
+  const W=physC.width/dpr,H=physC.height/dpr;
+  pCtx.setTransform(1,0,0,1,0,0);
+  pCtx.fillStyle='#06060f';pCtx.fillRect(0,0,W,H);
+  pCtx.setTransform(1,0,0,1,pans[4].x,pans[4].y);
+  const cx=W/2,cy=H/2;
+  if(physMode===0)drawPauliDiagram(pCtx,cx,cy,W,H);
+  else if(physMode===1)drawSpinHalf(pCtx,cx,cy,W,H);
+  else if(physMode===2)drawBlochSphere(pCtx,cx,cy,W,H);
+  else drawMaxwellAdler(pCtx,cx,cy,W,H);
+  pCtx.setTransform(1,0,0,1,0,0);
+}
+
+function drawPauliDiagram(ctx,cx,cy,W,H){
+  const cell=68,N=4;
+  const ox=cx-N*cell/2, oy=cy-N*cell/2-30;
+  const products=[
+    ['I','\u03c3\u2081','\u03c3\u2082','\u03c3\u2083'],
+    ['\u03c3\u2081','I','i\u03c3\u2083','-i\u03c3\u2082'],
+    ['\u03c3\u2082','-i\u03c3\u2083','I','i\u03c3\u2081'],
+    ['\u03c3\u2083','i\u03c3\u2082','-i\u03c3\u2081','I']
+  ];
+  // Animation: cycle through multiplication pairs
+  const animRow=pauliHighlight[0], animCol=pauliHighlight[1];
+  const pulse=physAnimId?(0.5+0.5*Math.sin(Date.now()/200)):1;
+  const headers=['','\u03c3\u2080(I)','\u03c3\u2081','\u03c3\u2082','\u03c3\u2083'];
+  const colors=['#aaaaff','#ff6666','#66ff66','#6699ff'];
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(68,170,255,0.85)';ctx.font='14px Orbitron';
+  ctx.fillText('Pauli Matrix Algebra',cx,oy-22);
+  ctx.fillStyle='rgba(180,200,255,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('\u03c3\u2090\u03c3\u1d62 = \u03b4\u2090\u1d62I + i\u03b5\u2090\u1d62\u02e4\u03c3\u02e4',cx,oy-6);
+  headers.forEach((h,col)=>{
+    ctx.fillStyle=col>0?colors[col-1]:'#ffffff88';ctx.font='12px Share Tech Mono';
+    ctx.fillText(h,ox+col*cell+cell/2,oy+16);
+  });
+  for(let r=0;r<N;r++){
+    ctx.fillStyle=colors[r];ctx.font='12px Share Tech Mono';
+    ctx.fillText(headers[r+1],ox-28,oy+(r+1)*cell+cell*0.55);
+    for(let c=0;c<N;c++){
+      ctx.strokeStyle='rgba(68,170,255,0.2)';ctx.lineWidth=1;
+      ctx.strokeRect(ox+c*cell,oy+(r+1)*cell,cell,cell);
+      ctx.fillStyle=r===c?'rgba(68,170,255,0.15)':'rgba(68,170,255,0.04)';
+      ctx.fillRect(ox+c*cell,oy+(r+1)*cell,cell,cell);
+      // Highlight animated cell
+      const isAnimCell=(r===animRow && c===animCol);
+      ctx.fillStyle=isAnimCell?'rgba(68,255,136,0.9)':'rgba(220,240,255,0.9)';
+      ctx.font=isAnimCell?'bold 13px Share Tech Mono':'12px Share Tech Mono';
+      if(isAnimCell && physAnimId){
+        ctx.shadowBlur=10*pulse;ctx.shadowColor='#44ff88';
+      }
+      ctx.fillText(products[r][c],ox+c*cell+cell/2,oy+(r+1)*cell+cell*0.55);
+      ctx.shadowBlur=0;
+    }
+  }
+  ctx.textAlign='left';
+  const corr=[
+    'Quaternion correspondence:',
+    'i\u03c3\u2081 \u2194 \u03c9\u0129  (quaternion i)',
+    'i\u03c3\u2082 \u2194 \u0135  (quaternion j)',
+    'i\u03c3\u2083 \u2194 \u0137  (quaternion k)',
+    '',
+    'Both algebras satisfy:',
+    'i\u00b2=j\u00b2=k\u00b2=-1',
+    'ij=k, jk=i, ki=j',
+    '',
+    'SU(2) isomorphism:',
+    'U = aI - ib\u03c3\u2081 - ic\u03c3\u2082 - id\u03c3\u2083',
+    '\u2261 unit quat a+bi+cj+dk'
+  ];
+  ctx.fillStyle='rgba(255,200,100,0.8)';ctx.font='12px Share Tech Mono';
+  corr.forEach((line,i)=>ctx.fillText(line,cx+60,oy+22+i*20));
+}
+
+function drawSpinHalf(ctx,cx,cy,W,H){
+  const dpr=window.devicePixelRatio||1;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const ang=parseFloat(document.getElementById('spinAng').value)*Math.PI/180;
+  const R=Math.min(W,H)*0.35;
+  ctx.strokeStyle='rgba(68,170,255,0.3)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(255,136,68,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cx,cy,R*1.4,0,Math.PI*2);ctx.stroke();
+  // Spinor (half angle)
+  const sx=cx+R*Math.cos(ang/2);
+  const sy=cy-R*Math.sin(ang/2);
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(sx,sy);ctx.stroke();
+  ctx.beginPath();ctx.arc(sx,sy,7,0,Math.PI*2);ctx.fillStyle='#44aaff';ctx.fill();
+  // Vector (full angle)
+  const vx=cx+R*1.4*Math.cos(ang);
+  const vy=cy-R*1.4*Math.sin(ang);
+  ctx.strokeStyle='#ff8844';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(vx,vy);ctx.stroke();
+  ctx.beginPath();ctx.arc(vx,vy,5,0,Math.PI*2);ctx.fillStyle='#ff8844';ctx.fill();
+  ctx.fillStyle='#44aaff';ctx.font='12px Share Tech Mono';
+  ctx.fillText('spinor (half-angle)',sx+10,sy);
+  ctx.fillStyle='#ff8844';ctx.font='12px Share Tech Mono';
+  ctx.fillText('vector (full-angle)',vx+10,vy);
+  // 360 and 720 markers
+  ctx.fillStyle='rgba(255,255,100,0.6)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('180\u00b0',cx+R*1.5,cy-4);
+  ctx.fillText('360\u00b0',cx-R*1.55,cy-4);
+  const angDeg=Math.round(ang*180/Math.PI);
+  ctx.fillStyle='rgba(180,200,255,0.8)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('Rotation: '+angDeg+'\u00b0',cx-W*0.4,cy-H*0.42);
+  ctx.fillText('Spinor phase: '+(angDeg/2).toFixed(1)+'\u00b0',cx-W*0.4,cy-H*0.36);
+  ctx.fillText('Vector phase: '+angDeg+'\u00b0',cx-W*0.4,cy-H*0.3);
+  ctx.fillStyle='rgba(68,255,136,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('Blue (spinor) needs 720\u00b0 to return; orange (vector) needs 360\u00b0',cx-W*0.42,cy+H*0.44);
+  ctx.fillText('This is the SU(2)\u21922:1 SO(3) double cover \u2014 origin of spinors!',cx-W*0.42,cy+H*0.44+15);
+}
+
+function drawBlochSphere(ctx,cx,cy,W,H){
+  // Combine slider angle with animation
+  const sliderAng=parseFloat(document.getElementById('spinAng').value)*Math.PI/180;
+  const animOffset=physAnimId?(Date.now()/1000*(window.animSpeed||0.1)):0;
+  const ang=sliderAng+animOffset;
+  const R=Math.min(W,H)*0.3;
+  // sphere outline
+  ctx.strokeStyle='rgba(68,170,255,0.35)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(68,170,255,0.12)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(cx,cy,R,R*0.3,0,0,Math.PI*2);ctx.stroke();
+  // latitude circles
+  for(let lat=1;lat<4;lat++){
+    const r2=R*Math.sin(lat*Math.PI/4);
+    const yOff=R*Math.cos(lat*Math.PI/4);
+    ctx.beginPath();ctx.ellipse(cx,cy-yOff,r2,r2*0.3,0,0,Math.PI*2);
+    ctx.strokeStyle='rgba(68,170,255,0.08)';ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle='rgba(255,100,100,0.6)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(cx,cy+R*1.15);ctx.lineTo(cx,cy-R*1.15);ctx.stroke();
+  ctx.fillStyle='rgba(255,100,100,0.8)';ctx.font='12px Share Tech Mono';ctx.textAlign='center';
+  ctx.fillText('|1\u27e9',cx,cy+R*1.28);ctx.fillText('|0\u27e9',cx,cy-R*1.2);
+  // Bloch vector
+  const theta=ang;
+  const phi=ang*0.7;
+  const bx=Math.sin(theta)*Math.cos(phi);
+  const by=Math.sin(theta)*Math.sin(phi);
+  const bz=Math.cos(theta);
+  const projX=cx+R*(bx*0.8+by*0.4);
+  const projY=cy-R*bz;
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(projX,projY);ctx.stroke();
+  ctx.beginPath();ctx.arc(projX,projY,8,0,Math.PI*2);ctx.fillStyle='#44aaff';ctx.fill();
+  // Common gates on sphere
+  const gates=[
+    {name:'|0\u27e9',q:[1,0,0,0]},{name:'|1\u27e9',q:[0,1,0,0]},
+    {name:'H',q:qNormalize([1,1,0,0])},{name:'Y',q:[0,0,1,0]}
+  ];
+  gates.forEach(({name,q})=>{
+    const tz=2*Math.acos(Math.min(1,Math.abs(q[0])));
+    const bz2=Math.cos(tz);
+    const br2=Math.sin(tz);
+    const ph2=Math.atan2(q[2],q[1]);
+    const gx=cx+R*(br2*Math.cos(ph2)*0.8);
+    const gy=cy-R*bz2;
+    ctx.beginPath();ctx.arc(gx,gy,5,0,Math.PI*2);ctx.fillStyle='#ffcc44';ctx.fill();
+    ctx.fillStyle='#ffcc44';ctx.font='12px Share Tech Mono';ctx.textAlign='center';
+    ctx.fillText(name,gx,gy-8);
+  });
+  ctx.textAlign='left';
+  const qBloch=qNormalize([Math.cos(theta/2),Math.sin(theta/2)*Math.cos(phi),Math.sin(theta/2)*Math.sin(phi),0]);
+  ctx.fillStyle='rgba(68,170,255,0.8)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('|\u03c8\u27e9 = cos(\u03b8/2)|0\u27e9 + e^{i\u03c6}sin(\u03b8/2)|1\u27e9',cx-W*0.4,cy-H*0.42);
+  ctx.fillText('q = '+fmtQShort(qBloch),cx-W*0.4,cy-H*0.36);
+  ctx.fillStyle='rgba(255,200,100,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('Single-qubit gates \u2261 SU(2) \u2245 unit quaternions',cx-W*0.4,cy+H*0.44);
+}
+
+function drawMaxwellAdler(ctx,cx,cy,W,H){
+  // Animation time for C/H oscillation
+  const t=physAnimId?(Date.now()/2000*(window.animSpeed||0.1)):0;
+  const pulse=physAnimId?(0.5+0.5*Math.sin(t*Math.PI*2)):0;
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(68,170,255,0.9)';ctx.font='14px Orbitron';
+  ctx.fillText('Maxwell & Adler Quaternionic Physics',cx-W*0.42,cy-H*0.46);
+  const lines=[
+    {t:'Maxwell (1865) original used quaternion form:',c:'#44aaff'},
+    {t:'\u2207q = 4\u03c0\u03c1 + (1/c)\u2202q/\u2202t   (q = quaternion potential)',c:'#88ccff'},
+    {t:'Gibbs & Heaviside (1880s) extracted vector calculus',c:'#88ccff'},
+    {t:'from Hamilton\u2019s quaternions \u2014 the modern notation.',c:'#88ccff'},
+    {t:'',c:''},
+    {t:'Pauli matrices = quaternion units (with factor i):',c:'#ff8844'},
+    {t:'-i\u03c3\u2081 \u2194 i,   -i\u03c3\u2082 \u2194 j,   -i\u03c3\u2083 \u2194 k',c:'#ffaa66'},
+    {t:'\u03c3\u2090\u03c3\u1d62 = \u03b4\u2090\u1d62I + i\u03b5\u2090\u1d62\u02e4\u03c3\u02e4   \u27fa   quaternion multiplication',c:'#ffaa66'},
+    {t:'',c:''},
+    {t:'Adler Quaternionic QM (1995):',c:'#44ff88'},
+    {t:'Hilbert space H over \u210d (not \u2102)',c:'#88ffaa'},
+    {t:'Inner product \u27e8\u03c8|\u03c6\u27e9 \u2208 \u210d',c:'#88ffaa'},
+    {t:'Observables = right-\u210d-linear operators',c:'#88ffaa'},
+    {t:'Potential: CPT violation, Bell inequality mods',c:'#88ffaa'}
+  ];
+  lines.forEach(({t,c},i)=>{ctx.fillStyle=c;ctx.font='12px Share Tech Mono';ctx.fillText(t,cx-W*0.42,cy-H*0.36+i*22);});
+  const bx=cx+W*0.3,by=cy-H*0.05;
+  // Animated pulsing circles for C vs H
+  const rC=45+pulse*5, rH=82-pulse*3;
+  ctx.strokeStyle='rgba(68,170,255,0.4)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(bx,by,rC,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(255,136,68,0.4)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(bx,by,rH,0,Math.PI*2);ctx.stroke();
+  // Connection line showing extension
+  ctx.strokeStyle='rgba(255,255,100,0.3)';ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(bx+rC,by);ctx.lineTo(bx+rH,by);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#44aaff';ctx.font='bold 15px Orbitron';ctx.textAlign='center';
+  if(physAnimId)ctx.shadowBlur=5+pulse*5;ctx.shadowColor='#44aaff';
+  ctx.fillText('\u2102',bx,by+5);
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#ff8844';ctx.font='bold 15px Orbitron';
+  if(physAnimId)ctx.shadowBlur=5+pulse*5;ctx.shadowColor='#ff8844';
+  ctx.fillText('\u210d',bx+rH-18,by+5);
+  ctx.shadowBlur=0;
+  ctx.textAlign='left';
+  // Animated text showing Hamilton vs Maxwell equations
+  ctx.fillStyle='rgba(255,200,100,0.8)';ctx.font='12px Share Tech Mono';
+  if(physAnimId){
+    ctx.fillText('Quaternion evolution: q(t) = e^{iHt}q(0)',cx-W*0.42,cy-H*0.5);
+  }
+}
+
+// ── TAB 5: MODERN TECHNOLOGY ──
+let techMode=0, techAnimId=null, techTval=0;
+
+function setTechMode(i){
+  techMode=i;
+  ['tm0','tm1','tm2','tm3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  const labels=[
+    'Camera SLERP: smooth orientation interpolation between keyframes',
+    'Spacecraft attitude control: quaternion error feedback, no gimbal lock',
+    'Quantum computing: single-qubit gates = SU(2) = unit quaternions',
+    'Quaternion neural networks: rotation-equivariant features for 3D data'
+  ];
+  document.getElementById('techInfo').textContent=labels[i];
+  drawTech();
+}
+function updateTech(){
+  const t=parseFloat(document.getElementById('techT').value);
+  techTval=t;
+  document.getElementById('v_techT').textContent=t.toFixed(2);
+  drawTech();
+}
+function animTech(){
+  const btn=document.getElementById('techAnimBtn');
+  if(techAnimId){cancelAnimationFrame(techAnimId);techAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  let t=0,dir=1;
+  function frame(){
+    t+=0.008*dir*window.animSpeed;
+    if(t>1){t=1;dir=-1;}
+    if(t<0){t=0;dir=1;}
+    techTval=t;
+    document.getElementById('techT').value=t;
+    document.getElementById('v_techT').textContent=t.toFixed(2);
+    drawTech();
+    techAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+function drawTech(){
+  resizeCanvas(techC);
+  const W=techC.width,H=techC.height;
+  tCtx.setTransform(1,0,0,1,0,0);
+  tCtx.fillStyle='#06060f';tCtx.fillRect(0,0,W,H);
+  tCtx.setTransform(1,0,0,1,pans[5].x,pans[5].y);
+  const cx=W/2,cy=H/2;
+  if(techMode===0)drawCameraSlerp(tCtx,cx,cy,W,H);
+  else if(techMode===1)drawSpacecraft(tCtx,cx,cy,W,H);
+  else if(techMode===2)drawQubits(tCtx,cx,cy,W,H);
+  else drawQNN(tCtx,cx,cy,W,H);
+  tCtx.setTransform(1,0,0,1,0,0);
+}
+
+function drawCameraSlerp(ctx,cx,cy,W,H){
+  const t=techTval;
+  const camQ0=qNormalize([1,0.3,0,0]);
+  const camQ1=qNormalize([0,0.5,1,0.2]);
+  const camQt=slerp(camQ0,camQ1,t);
+  const scale=Math.min(W,H)*0.25;
+  const rx=0.4,ry=0.7;
+  // Draw frustum at endpoints (faded)
+  const frustumPts=[[0.5,0.35,0.8],[-0.5,0.35,0.8],[0.5,-0.35,0.8],[-0.5,-0.35,0.8]];
+  [camQ0,camQ1].forEach((qc,qi)=>{
+    const rp=frustumPts.map(v=>rotVec(qc,v));
+    const pp=rp.map(v=>proj3D(v,rx,ry));
+    ctx.globalAlpha=0.3;
+    [[0,1],[2,3],[0,2],[1,3]].forEach(([a,b])=>{
+      ctx.strokeStyle=qi===0?'#ff8844':'#44ff88';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(cx+pp[a].x*scale,cy-pp[a].y*scale);
+      ctx.lineTo(cx+pp[b].x*scale,cy-pp[b].y*scale);ctx.stroke();
+    });
+    [0,1,2,3].forEach(i=>{
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+pp[i].x*scale,cy-pp[i].y*scale);ctx.stroke();
+    });
+    ctx.globalAlpha=1;
+  });
+  // Interpolated camera
+  const rp=frustumPts.map(v=>rotVec(camQt,v));
+  const pp=rp.map(v=>proj3D(v,rx,ry));
+  [[0,1],[2,3],[0,2],[1,3]].forEach(([a,b])=>{
+    ctx.strokeStyle='#44aaff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx+pp[a].x*scale,cy-pp[a].y*scale);
+    ctx.lineTo(cx+pp[b].x*scale,cy-pp[b].y*scale);ctx.stroke();
+  });
+  [0,1,2,3].forEach(i=>{
+    ctx.strokeStyle='rgba(68,170,255,0.7)';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+pp[i].x*scale,cy-pp[i].y*scale);ctx.stroke();
+  });
+  ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);ctx.fillStyle='#44aaff';ctx.fill();
+  // SLERP path
+  ctx.strokeStyle='rgba(255,255,100,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([3,4]);
+  ctx.beginPath();
+  for(let i=0;i<=40;i++){
+    const qi=slerp(camQ0,camQ1,i/40);
+    const fwd=rotVec(qi,[0,0,0.6]);
+    const pf=proj3D(fwd,rx,ry);
+    if(i===0)ctx.moveTo(cx+pf.x*scale,cy-pf.y*scale);
+    else ctx.lineTo(cx+pf.x*scale,cy-pf.y*scale);
+  }
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(68,170,255,0.85)';ctx.font='13px Share Tech Mono';
+  ctx.fillText('Camera SLERP  t='+t.toFixed(2),cx-W*0.42,cy-H*0.44);
+  ctx.fillStyle='rgba(255,136,68,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('Start (orange) \u2192 End (green)  \u2014  blue = interpolated pose',cx-W*0.42,cy+H*0.44);
+  ctx.fillText('Yellow arc = path of forward vector on S\u00b3',cx-W*0.42,cy+H*0.44+15);
+}
+
+function drawSpacecraft(ctx,cx,cy,W,H){
+  const t=techTval;
+  const qDesired=qNormalize([0.7,0.4,0.3,0.1]);
+  const qCurrent=slerp([1,0,0,0],qDesired,t);
+  const qError=qNormalize(qMul(qDesired,qConj(qCurrent)));
+  const scale=Math.min(W,H)*0.22;
+  const rx=0.3,ry=0.6;
+  const satVerts=[
+    [0.4,0.4,0.2],[0.4,-0.4,0.2],[-0.4,-0.4,0.2],[-0.4,0.4,0.2],
+    [0.4,0.4,-0.2],[0.4,-0.4,-0.2],[-0.4,-0.4,-0.2],[-0.4,0.4,-0.2]
+  ];
+  const rotVs=satVerts.map(v=>rotVec(qCurrent,v));
+  const pv=rotVs.map(v=>proj3D(v,rx,ry));
+  const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  edges.forEach(([a,b])=>{
+    ctx.strokeStyle='rgba(68,170,255,0.7)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx+pv[a].x*scale,cy-pv[a].y*scale);
+    ctx.lineTo(cx+pv[b].x*scale,cy-pv[b].y*scale);ctx.stroke();
+  });
+  // Solar panels
+  [[-0.4,0,0],[ 0.4,0,0]].forEach(base=>{
+    const sign=base[0]<0?-1:1;
+    const pts=[base,[sign*1.2,0,0],[...base],[sign*1.2,0.05,0]].map(v=>{
+      const rv=rotVec(qCurrent,v);return proj3D(rv,rx,ry);
+    });
+    ctx.strokeStyle='rgba(255,200,100,0.7)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx+pts[0].x*scale,cy-pts[0].y*scale);ctx.lineTo(cx+pts[1].x*scale,cy-pts[1].y*scale);ctx.stroke();
+  });
+  // Desired axes (dashed)
+  [[1,0,0,'#ff6666'],[0,1,0,'#66ff66'],[0,0,1,'#6699ff']].forEach(([x,y,z,col])=>{
+    const rv=rotVec(qDesired,[x,y,z]);
+    const pp=proj3D(rv.map(u=>u*0.9),rx,ry);
+    ctx.strokeStyle=col+'55';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+pp.x*scale,cy-pp.y*scale);ctx.stroke();
+    ctx.setLineDash([]);
+  });
+  ctx.fillStyle='rgba(68,170,255,0.85)';ctx.font='13px Share Tech Mono';
+  ctx.fillText('Spacecraft Attitude Control',cx-W*0.42,cy-H*0.44);
+  ctx.fillStyle='rgba(180,200,255,0.75)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('q_current = SLERP(I, q_desired, t='+t.toFixed(2)+')',cx-W*0.42,cy-H*0.38);
+  ctx.fillText('q_error = q_desired * q_current\u207b\u00b9',cx-W*0.42,cy-H*0.32);
+  ctx.fillText('|q_error| = '+qNorm(qError).toFixed(4)+' (must stay = 1)',cx-W*0.42,cy-H*0.26);
+  ctx.fillStyle='rgba(255,200,100,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('No gimbal lock possible with quaternion representation',cx-W*0.42,cy+H*0.44);
+}
+
+function drawQubits(ctx,cx,cy,W,H){
+  const t=techTval;
+  const R=Math.min(W,H)*0.28;
+  ctx.strokeStyle='rgba(68,170,255,0.3)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(68,170,255,0.1)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(cx,cy,R,R*0.28,0,0,Math.PI*2);ctx.stroke();
+  // Axes
+  ctx.strokeStyle='rgba(255,100,100,0.5)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(cx,cy+R*1.1);ctx.lineTo(cx,cy-R*1.1);ctx.stroke();
+  ctx.fillStyle='rgba(255,100,100,0.8)';ctx.font='12px Share Tech Mono';ctx.textAlign='center';
+  ctx.fillText('|1\u27e9',cx,cy+R*1.22);ctx.fillText('|0\u27e9',cx,cy-R*1.13);
+  // Common gates as fixed points
+  const gates=[
+    {name:'I',q:[1,0,0,0],color:'#aaaaff'},
+    {name:'X',q:[0,1,0,0],color:'#ff6666'},
+    {name:'Y',q:[0,0,1,0],color:'#66ff66'},
+    {name:'Z',q:[0,0,0,1],color:'#6699ff'},
+    {name:'H',q:qNormalize([1,1,0,0]),color:'#ffff44'},
+    {name:'S',q:qNormalize([1,0,0,1]),color:'#ff88cc'},
+    {name:'T',q:qNormalize([1,0,0,Math.tan(Math.PI/8)]),color:'#88ffcc'}
+  ];
+  function gateToBloch(q){
+    const th=2*Math.acos(Math.min(1,Math.abs(q[0])));
+    const bz=Math.cos(th);
+    const br=Math.sin(th);
+    const ph=Math.atan2(q[2],q[1]);
+    return{x:cx+R*(br*Math.cos(ph)*0.8),y:cy-R*bz};
+  }
+  gates.forEach(({name,q,color})=>{
+    const{x,y}=gateToBloch(q);
+    ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+    ctx.fillStyle=color;ctx.font='bold 12px Share Tech Mono';ctx.textAlign='center';
+    ctx.fillText(name,x,y-10);
+  });
+  // Interpolated state
+  const gIdx=Math.min(Math.floor(t*(gates.length-1)),gates.length-2);
+  const gFrac=(t*(gates.length-1))%1;
+  const qCurr=slerp(gates[gIdx].q,gates[gIdx+1].q,gFrac);
+  const{x:bx,y:by}=gateToBloch(qCurr);
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(bx,by);ctx.stroke();
+  ctx.beginPath();ctx.arc(bx,by,9,0,Math.PI*2);ctx.fillStyle='#44aaff';ctx.fill();
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(68,170,255,0.85)';ctx.font='13px Share Tech Mono';
+  ctx.fillText('Qubit Gates on Bloch Sphere',cx-W*0.4,cy-H*0.43);
+  ctx.fillStyle='rgba(180,200,255,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('q = '+fmtQShort(qCurr),cx-W*0.4,cy-H*0.37);
+  ctx.fillStyle='rgba(255,200,100,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('All single-qubit gates = SU(2) = unit quaternions',cx-W*0.4,cy+H*0.44);
+}
+
+function drawQNN(ctx,cx,cy,W,H){
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(68,170,255,0.9)';ctx.font='14px Orbitron';
+  ctx.fillText('Quaternion Neural Networks',cx-W*0.42,cy-H*0.46);
+  const layers=[{n:3,color:'#44aaff'},{n:4,color:'#ff8844'},{n:4,color:'#44ff88'},{n:2,color:'#ffff44'}];
+  const lNames=['3D input\n(x,y,z)','Quat\nlayer 1','Quat\nlayer 2','Output'];
+  const lx=cx-W*0.3;
+  const lw=W*0.6/(layers.length-1);
+  layers.forEach((layer,li)=>{
+    const x=lx+li*lw;
+    for(let n=0;n<layer.n;n++){
+      const y=cy+(n-(layer.n-1)/2)*50;
+      ctx.beginPath();ctx.arc(x,y,15,0,Math.PI*2);
+      ctx.fillStyle=layer.color+'22';ctx.fill();
+      ctx.strokeStyle=layer.color;ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle=layer.color;ctx.font='12px Share Tech Mono';ctx.textAlign='center';
+      if(li===0)ctx.fillText(['x','y','z'][n]||'',x,y+4);
+      else if(li<layers.length-1)ctx.fillText('q',x,y+4);
+    }
+    if(li<layers.length-1){
+      const nl=layers[li+1];
+      const x2=lx+(li+1)*lw;
+      for(let n=0;n<layer.n;n++){
+        for(let m=0;m<nl.n;m++){
+          const y1=cy+(n-(layer.n-1)/2)*50;
+          const y2=cy+(m-(nl.n-1)/2)*50;
+          ctx.strokeStyle='rgba(68,170,255,0.1)';ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(x+15,y1);ctx.lineTo(x2-15,y2);ctx.stroke();
+        }
+      }
+    }
+    ctx.fillStyle=layer.color;ctx.font='12px Share Tech Mono';ctx.textAlign='center';
+    lNames[li].split('\n').forEach((line,li2)=>ctx.fillText(line,x,cy+layer.n*30+li2*14));
+  });
+  ctx.textAlign='left';
+  ctx.fillStyle='rgba(180,200,255,0.75)';ctx.font='12px Share Tech Mono';
+  const desc=[
+    'Each weight W \u2208 \u210d^{n\u00d7m}: weight = quaternion',
+    'Forward pass: z = Wq + b  (Hamilton product)',
+    'Encodes 3D rotation equivariance: f(Rv) = R f(v)',
+    'Applications: point cloud segmentation,',
+    '  3D object detection, pose estimation,',
+    '  molecular property prediction',
+    'Parameter efficiency: 4\u00d7 richer per weight'
+  ];
+  desc.forEach((line,i)=>ctx.fillText(line,cx-W*0.42,cy+H*0.12+i*18));
+}
+
+// ── PROOF PANEL ──
+let proofOpen=false,proofIdx=0;
+function toggleProof(){
+  proofOpen=!proofOpen;
+  document.getElementById('proofPanel').classList.toggle('open',proofOpen);
+  document.querySelector('.proof-header span').textContent=proofOpen?'\u25bc':'\u25b2';
+}
+function showProof(i){
+  proofIdx=i;
+  document.querySelectorAll('.ptab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  const p=PROOFS[i];
+  const el=document.getElementById('proofContent');
+  el.textContent='';
+  const h=document.createElement('h4');h.style.color='#44aaff';h.style.marginBottom='8px';h.textContent=p.title;el.appendChild(h);
+  const div=document.createElement('div');div.textContent=p.body;el.appendChild(div);
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }
+  // Auto-open removed - user must click to expand
+}
+// Initialize proof content without opening panel
+proofIdx=0;
+document.querySelectorAll('.ptab').forEach((t,j)=>t.classList.toggle('active',j===0));
+const p0=PROOFS[0];
+const el0=document.getElementById('proofContent');
+el0.textContent='';
+const h0=document.createElement('h4');h0.style.color='#44aaff';h0.style.marginBottom='8px';h0.textContent=p0.title;el0.appendChild(h0);
+const div0=document.createElement('div');div0.textContent=p0.body;el0.appendChild(div0);
+if(typeof renderMathInElement==='function'){
+  renderMathInElement(el0,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+
+
+// ── TAB 0 ANIMATION ──
+let qAlgAnimId=null;
+function animQAlg(){
+  const btn=document.getElementById('qAlgAnimBtn');
+  if(qAlgAnimId){cancelAnimationFrame(qAlgAnimId);qAlgAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  let t=0;
+  function frame(){
+    t+=0.012 * window.animSpeed;
+    const ang=t*0.5;
+    const a1=Math.cos(ang),b1=Math.sin(ang)*0.7,c1=Math.sin(ang*0.3)*0.4,d1=0;
+    const a2=Math.cos(ang*1.2)*0.6,b2=Math.sin(ang*0.8),c2=Math.sin(ang*0.5)*0.3,d2=Math.sin(ang*0.7)*0.5;
+    q1=[a1,b1,c1,d1];q2=[a2,b2,c2,d2];
+    document.getElementById('a1').value=a1;document.getElementById('b1').value=b1;document.getElementById('c1').value=c1;document.getElementById('d1').value=d1;
+    document.getElementById('a2').value=a2;document.getElementById('b2').value=b2;document.getElementById('c2').value=c2;document.getElementById('d2').value=d2;
+    updateQ();
+    qAlgAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+  frame();
+}
+
+// ── INIT ──
+window.animSpeed=0.1;
+// Auto-start animations for all tabs
+setTimeout(() => {
+  animQAlg();
+  animS3();
+  animateRot();
+  animateCayley();
+  animPhys();
+  animTech();
+}, 500);
+_addPan(qAlgC,0,drawAlg);
+_addPan(s3C,1,drawS3);
+_addPan(rotC,2,drawRot);
+_addPan(daC,3,drawDA);
+_addPan(physC,4,drawPhys);
+_addPan(techC,5,drawTech);
+
+requestAnimationFrame(()=>{
+  updateQ();
+  updateS3();
+  updateRot();
+  setHighlight(2);
+  setPhysMode(0);
+  setTechMode(0);
+  autoStartAnimations();
+});
+
+window.addEventListener('resize',()=>redrawTab());
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

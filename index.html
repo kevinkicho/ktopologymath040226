@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<title>Road to Reality — Math Playground</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --cyan:#00e5ff;--gold:#ffd700;--green:#00ff99;
+  --pink:#ff44ff;--orange:#ff8844;--blue:#5599ff;
+}
+
+html{height:100%}
+body{min-height:100%;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden}
+
+/* ── HERO ── */
+.hero{
+  text-align:center;padding:60px 24px 40px;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,#0d0d3a 0%,var(--bg) 70%);
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 100%,rgba(0,229,255,.04) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-label{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:16px}
+.hero h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:700;letter-spacing:.04em;
+  background:linear-gradient(135deg,var(--cyan) 0%,var(--gold) 50%,var(--green) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:14px;line-height:1.15}
+.hero-sub{font-size:.95rem;color:var(--dim);max-width:560px;margin:0 auto 10px;line-height:1.6}
+.hero-author{font-size:.78rem;color:var(--dim);font-style:italic;margin-top:8px}
+.hero-author span{color:var(--gold);opacity:.8}
+
+/* ── GRID ── */
+.grid-section{padding:40px 32px 60px;max-width:1200px;margin:0 auto}
+.grid-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--dim);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.grid-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+
+/* ── CARD ── */
+.card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;transition:.25s;position:relative;
+  display:flex;flex-direction:column;
+}
+.card:hover{transform:translateY(-3px);border-color:var(--accent,var(--cyan));
+  box-shadow:0 8px 40px rgba(0,0,0,.5),0 0 0 1px rgba(0,229,255,.22)}
+.card.done{cursor:pointer}
+.card.coming{opacity:.55;cursor:default}
+
+.card-preview{
+  height:140px;display:flex;align-items:center;justify-content:center;
+  font-size:3.5rem;position:relative;overflow:hidden;
+  background:var(--bg3);
+}
+.card-preview .bg-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,color-mix(in srgb,var(--accent,#00e5ff) 18%,transparent),transparent 70%);
+  opacity:.12;
+}
+.card-preview .icon{position:relative;z-index:1;filter:drop-shadow(0 0 12px var(--accent,#00e5ff))}
+
+.card-body{padding:16px 18px 18px;flex:1;display:flex;flex-direction:column;gap:8px}
+.card-num{font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim)}
+.card-title{font-size:1rem;font-weight:600;color:var(--text)}
+.card-desc{font-size:.78rem;color:var(--dim);line-height:1.55;flex:1}
+.card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.tag{padding:2px 8px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;font-size:.65rem;color:var(--dim)}
+.tag.highlight{border-color:color-mix(in srgb,var(--accent,var(--cyan)) 33%,transparent);color:var(--accent,var(--cyan))}
+
+.card-footer{padding:12px 18px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;font-size:.74rem}
+.status-done{color:var(--green)}
+.status-soon{color:var(--dim)}
+.open-btn{padding:5px 14px;border:1px solid color-mix(in srgb,var(--accent,var(--cyan)) 40%,transparent);
+  background:transparent;color:var(--accent,var(--cyan));border-radius:4px;
+  font-size:.74rem;cursor:pointer;transition:.15s;text-decoration:none;display:inline-block}
+.open-btn:hover{background:color-mix(in srgb,var(--accent,var(--cyan)) 9%,transparent)}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:24px;font-size:.7rem;color:var(--dim);
+  border-top:1px solid var(--border)}
+footer span{color:var(--gold);opacity:.6}
+
+/* ── STARS BACKGROUND ── */
+.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+body > *:not(.stars):not(.fab):not(.toc-backdrop):not(.toc-drawer):not(.gls-pop){position:relative;z-index:1}
+
+/* ── FAB ── */
+.fab{
+  position:fixed;bottom:28px;right:28px;z-index:900;
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#0d0d3a,#1a1a4e);
+  border:1px solid color-mix(in srgb,#00e5ff 33%,transparent);
+  color:var(--cyan);font-size:1.3rem;
+  box-shadow:0 4px 24px rgba(0,229,255,.2),0 0 0 1px color-mix(in srgb,#00e5ff 13%,transparent);
+  cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.fab:hover{background:linear-gradient(135deg,#141450,#22226a);
+  box-shadow:0 6px 32px rgba(0,229,255,.35),0 0 0 1px color-mix(in srgb,#00e5ff 27%,transparent);
+  transform:scale(1.08)}
+.fab:active{transform:scale(.95)}
+
+/* ── TOC OVERLAY ── */
+.toc-backdrop{
+  position:fixed;inset:0;z-index:910;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.toc-backdrop.open{opacity:1;pointer-events:all}
+
+.toc-drawer{
+  position:fixed;top:0;right:0;bottom:0;z-index:920;
+  width:340px;max-width:92vw;
+  background:#080818;border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.22,1,.36,1);
+  box-shadow:-8px 0 60px rgba(0,0,0,.7);
+}
+.toc-drawer.open{transform:translateX(0)}
+
+.toc-header{
+  padding:20px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.toc-header h2{
+  font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--dim);font-weight:600;margin:0;
+}
+.toc-close{
+  width:28px;height:28px;border-radius:50%;
+  background:transparent;border:1px solid var(--border);
+  color:var(--dim);font-size:1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;line-height:1;
+}
+.toc-close:hover{border-color:color-mix(in srgb,#00e5ff 40%,transparent);color:var(--cyan);background:color-mix(in srgb,#00e5ff 7%,transparent)}
+
+.toc-list{overflow-y:auto;flex:1;padding:10px 0}
+.toc-list::-webkit-scrollbar{width:3px}
+.toc-list::-webkit-scrollbar-track{background:transparent}
+.toc-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.toc-item{
+  display:flex;align-items:center;gap:12px;
+  padding:9px 20px;text-decoration:none;color:var(--text);
+  transition:.15s;border-left:2px solid transparent;
+}
+.toc-item:hover{background:var(--bg3);border-left-color:var(--ti-accent,var(--cyan))}
+.toc-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  background:var(--ti-accent,var(--cyan));opacity:.8;
+  box-shadow:0 0 6px var(--ti-accent,var(--cyan))99;
+}
+.toc-num{font-size:.6rem;color:var(--dim);letter-spacing:.08em;width:16px;flex-shrink:0;text-align:right}
+.toc-info{flex:1;min-width:0}
+.toc-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toc-ch{font-size:.65rem;color:var(--dim);margin-top:1px}
+
+/* ── TOC TABS ── */
+.toc-tabs{
+  display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.toc-tab{
+  flex:1;padding:5px 0;border-radius:4px;font-size:.7rem;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;transition:.15s;
+  background:transparent;border:1px solid var(--border);color:var(--dim);
+}
+.toc-tab.active{background:color-mix(in srgb,#00e5ff 9%,transparent);border-color:color-mix(in srgb,#00e5ff 33%,transparent);color:var(--cyan)}
+.toc-tab:hover:not(.active){background:var(--bg3);color:var(--text)}
+
+/* ── CHAPTER VIEW ── */
+.toc-ch-list{overflow-y:auto;flex:1;padding:8px 0;display:none}
+.toc-ch-list.visible{display:block}
+.toc-ch-list::-webkit-scrollbar{width:3px}
+.toc-ch-list::-webkit-scrollbar-track{background:transparent}
+.toc-ch-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.toc-ch-row{
+  display:grid;grid-template-columns:110px 1fr auto;
+  align-items:start;gap:0;
+  padding:9px 16px 9px 20px;
+  border-bottom:1px solid color-mix(in srgb,var(--border) 40%,transparent);
+  transition:.15s;
+}
+.toc-ch-row:last-child{border-bottom:none}
+.toc-ch-row:hover{background:var(--bg3)}
+.toc-ch-label{font-size:.68rem;font-weight:600;color:var(--cyan);opacity:.8;padding-top:1px;letter-spacing:.04em;display:flex;flex-direction:column;gap:2px}
+.toc-ch-booktitle{font-size:.57rem;color:var(--dim);font-style:italic;font-weight:400;letter-spacing:0;line-height:1.3;white-space:normal}
+.toc-ch-topic{font-size:.76rem;color:var(--text);line-height:1.45}
+.toc-ch-pills{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;padding-top:1px}
+.toc-pill.deep{box-shadow:0 0 5px var(--p-accent,var(--cyan))55}
+.toc-legend{padding:5px 20px 7px;font-size:.64rem;color:var(--dim);border-bottom:1px solid var(--border);flex-shrink:0;line-height:1.6}
+.toc-ch-ctrl{display:flex;gap:5px;padding:6px 20px;border-bottom:1px solid var(--border);flex-shrink:0;align-items:center;flex-wrap:wrap}
+.toc-ch-ctrl span{font-size:.62rem;color:var(--dim);margin-right:2px}
+.toc-ch-ctrl button{background:transparent;border:1px solid var(--border);color:var(--dim);font-size:.62rem;padding:3px 8px;border-radius:3px;cursor:pointer;transition:.15s}
+.toc-ch-ctrl button.on{border-color:color-mix(in srgb,#00e5ff 33%,transparent);color:var(--cyan);background:color-mix(in srgb,#00e5ff 5%,transparent)}
+.toc-ch-ctrl button:hover:not(.on){background:var(--bg3);color:var(--text)}
+#tocNumList{overflow-y:auto;flex:1;padding:10px 0;display:none}
+#tocNumList.visible{display:block}
+#tocNumList::-webkit-scrollbar{width:3px}
+#tocNumList::-webkit-scrollbar-track{background:transparent}
+#tocNumList::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.toc-pill{
+  padding:2px 7px;border-radius:3px;font-size:.62rem;font-weight:600;
+  text-decoration:none;letter-spacing:.06em;
+  border:1px solid transparent;transition:.15s;
+  color:var(--p-accent,var(--cyan));
+  border-color:color-mix(in srgb,var(--p-accent,var(--cyan)) 40%,transparent);
+  background:color-mix(in srgb,var(--p-accent,var(--cyan)) 10%,transparent);
+}
+.toc-pill:hover{
+  background:color-mix(in srgb,var(--p-accent,var(--cyan)) 22%,transparent);
+}
+
+/* ── GLOSSARY BUTTON (hero) ── */
+.hero-actions{margin-top:18px;display:flex;align-items:center;justify-content:center;gap:12px}
+.gls-hero-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 18px;border-radius:6px;font-size:.78rem;letter-spacing:.04em;
+  background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.28);color:var(--cyan);
+  text-decoration:none;transition:.18s;cursor:pointer;
+}
+.gls-hero-btn:hover{background:rgba(0,229,255,.14);border-color:rgba(0,229,255,.55)}
+.gls-hero-btn svg{opacity:.75}
+
+/* ── GLOSSARY CHIP TRIGGER ── */
+.tag.highlight.gls-term{cursor:pointer;transition:.15s}
+.tag.highlight.gls-term:hover{
+  background:color-mix(in srgb,var(--accent,var(--cyan)) 18%,transparent);
+  border-color:color-mix(in srgb,var(--accent,var(--cyan)) 60%,transparent);
+  color:var(--accent,var(--cyan));
+}
+
+/* ── GLOSSARY POPOVER ── */
+.gls-pop{
+  position:fixed;z-index:9999;width:306px;
+  background:#0c0c26;border:1px solid rgba(0,229,255,.22);border-radius:10px;
+  box-shadow:0 16px 60px rgba(0,0,0,.88),0 0 0 1px rgba(0,229,255,.08);
+  padding:15px 17px 13px;
+  opacity:0;pointer-events:none;
+  transform:translateY(8px) scale(.98);
+  transition:opacity .17s,transform .17s;
+  backdrop-filter:blur(10px);
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+.gls-pop.visible{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+.gls-pop-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.gls-pop-title{font-size:.9rem;font-weight:700;color:#e8e8ff;line-height:1.2;flex:1}
+.gls-pop-side{display:flex;align-items:center;gap:5px;flex-shrink:0;margin-top:1px}
+.gls-pop-badge{font-size:.56rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px}
+.gls-pop-badge.ug {background:#00ff9918;color:#00ff99;border:1px solid #00ff9930}
+.gls-pop-badge.grad{background:#ffd70018;color:#ffd700;border:1px solid #ffd70030}
+.gls-pop-badge.res {background:#ff44ff18;color:#ff44ff;border:1px solid #ff44ff30}
+.gls-pop-close{background:none;border:none;color:#55558a;font-size:.85rem;
+  cursor:pointer;padding:1px 2px;line-height:1;transition:.12s}
+.gls-pop-close:hover{color:#c0c0ea}
+.gls-pop-def{font-size:.775rem;color:#9090c0;line-height:1.58;margin-bottom:10px}
+.gls-pop-related{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.gls-pop-rel-label{font-size:.6rem;color:#55558a;text-transform:uppercase;letter-spacing:.08em;
+  width:100%;margin-bottom:2px}
+.gls-pop-rel-tag{padding:2px 7px;border-radius:3px;font-size:.62rem;
+  background:#ffffff0b;border:1px solid #ffffff14;color:#7070a0;cursor:pointer;transition:.12s}
+.gls-pop-rel-tag:hover{background:#ffffff18;color:#b0b0d0}
+.gls-pop-footer{display:flex;justify-content:flex-end}
+.gls-pop-more{font-size:.67rem;color:#55558a;text-decoration:none;
+  padding:3px 9px;border:1px solid #ffffff10;border-radius:3px;transition:.12s}
+.gls-pop-more:hover{color:var(--cyan);border-color:rgba(0,229,255,.35)}
+
+/* ── QUIZ BUTTON ── */
+.quiz-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:4px;font-size:.67rem;font-weight:600;
+  letter-spacing:.04em;cursor:pointer;border:1px solid rgba(255,215,0,.3);
+  background:rgba(255,215,0,.07);color:var(--gold);
+  transition:.15s;text-decoration:none;
+}
+.quiz-btn:hover{background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.55)}
+
+/* ── QUIZ MODAL OVERLAY ── */
+#quizOverlay{
+  display:none;position:fixed;inset:0;z-index:10000;
+  background:rgba(5,5,15,.88);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:16px;
+}
+#quizOverlay.open{display:flex}
+#quizBox{
+  background:#0d0d24;border:1px solid #2a2a60;border-radius:14px;
+  width:100%;max-width:540px;padding:28px 28px 22px;position:relative;
+  box-shadow:0 0 60px rgba(0,229,255,.07);
+}
+.quiz-close{
+  position:absolute;top:12px;right:14px;background:none;border:none;
+  color:#55558a;font-size:1.1rem;cursor:pointer;line-height:1;padding:4px;
+}
+.quiz-close:hover{color:#c0c0ea}
+.quiz-module-label{
+  font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--gold);opacity:.7;margin-bottom:8px;
+}
+.quiz-q-counter{
+  font-size:.68rem;color:#55558a;float:right;margin-top:-18px;
+}
+.quiz-question{
+  font-size:.95rem;color:#e0e0ff;line-height:1.55;margin-bottom:20px;font-weight:500;
+}
+.quiz-opts{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.quiz-opt{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 14px;border-radius:8px;border:1px solid #1c1c44;
+  background:#0b0b1e;cursor:pointer;transition:.14s;text-align:left;
+  font-size:.84rem;color:#b0b0d0;line-height:1.45;
+}
+.quiz-opt:hover:not(.locked){border-color:#3a3a70;background:#111130;color:#d0d0f0}
+.quiz-opt.correct{border-color:#00ff99!important;background:rgba(0,255,153,.08)!important;color:#00ff99!important}
+.quiz-opt.wrong  {border-color:#ff5566!important;background:rgba(255,85,102,.07)!important;color:#ff8888!important}
+.quiz-opt.locked {cursor:default}
+.quiz-opt-letter{
+  min-width:22px;height:22px;border-radius:50%;border:1px solid currentColor;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.67rem;font-weight:700;flex-shrink:0;margin-top:1px;opacity:.7;
+}
+.quiz-explanation{
+  font-size:.78rem;color:#7070a0;line-height:1.55;
+  padding:10px 14px;border-radius:7px;background:#07071a;border:1px solid #1a1a40;
+  margin-bottom:16px;display:none;
+}
+.quiz-explanation.show{display:block}
+.quiz-explanation strong{color:#9090c0}
+.quiz-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.quiz-progress{display:flex;gap:5px}
+.quiz-dot{
+  width:7px;height:7px;border-radius:50%;background:#1c1c44;transition:.2s;
+}
+.quiz-dot.done-correct{background:#00ff99}
+.quiz-dot.done-wrong{background:#ff5566}
+.quiz-dot.active{background:var(--gold)}
+.quiz-next-btn{
+  padding:7px 18px;border-radius:6px;border:1px solid rgba(0,229,255,.35);
+  background:rgba(0,229,255,.07);color:var(--cyan);font-size:.8rem;
+  font-weight:600;cursor:pointer;transition:.14s;
+}
+.quiz-next-btn:hover{background:rgba(0,229,255,.16);border-color:var(--cyan)}
+.quiz-score{
+  font-size:.8rem;color:#7070a0;text-align:center;
+  padding:12px 0 4px;display:none;
+}
+.quiz-score.show{display:block}
+.quiz-score strong{color:var(--gold)}
+
+
+/* ── SEARCH BAR ── */
+.search-bar-wrap{
+  max-width:1200px;margin:0 auto;padding:20px 32px 0;
+  display:flex;align-items:center;gap:12px;
+}
+.search-input-wrap{
+  position:relative;flex:1;max-width:420px;
+}
+.search-input-wrap svg{
+  position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  color:var(--dim);pointer-events:none;
+}
+#moduleSearch{
+  width:100%;background:var(--bg2);border:1px solid var(--border);
+  border-radius:7px;color:var(--text);font-size:.8rem;
+  padding:8px 12px 8px 34px;outline:none;transition:.15s;
+}
+#moduleSearch:focus{border-color:color-mix(in srgb,#00e5ff 40%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,#00e5ff 7%,transparent)}
+#moduleSearch::placeholder{color:var(--dim)}
+#searchCount{font-size:.72rem;color:var(--dim);white-space:nowrap}
+#searchClear{
+  padding:5px 12px;border-radius:5px;border:1px solid var(--border);
+  background:transparent;color:var(--dim);font-size:.72rem;cursor:pointer;
+  transition:.15s;display:none;
+}
+#searchClear:hover{border-color:color-mix(in srgb,#00e5ff 33%,transparent);color:var(--cyan)}
+
+.grid-section .no-results{
+  display:none;font-size:.82rem;color:var(--dim);padding:24px 0;grid-column:1/-1;
+}
+.grid-section .no-results.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="hero">
+  <div class="hero-label">Interactive Visualizations</div>
+  <h1>Road to Reality<br>Math Playground</h1>
+  <p class="hero-sub">
+    63 interactive modules spanning Roger Penrose's masterwork — from undergraduate foundations
+    through the frontier: black holes, Riemann surfaces, Maxwell fields, the Standard Model,
+    QFT, chaos, homotopy, Clifford algebras, conformal field theory, twistors, Bell's theorem,
+    gravitational waves, quantum optics, topological matter, spin glasses, dark energy &amp; more.
+  </p>
+  <p class="hero-author">Based on <span>The Road to Reality</span> by Sir Roger Penrose</p>
+  <div class="hero-actions">
+    <a href="/glossary.html" class="gls-hero-btn">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="12" rx="1.5"/><line x1="5" y1="5.5" x2="11" y2="5.5"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="5" y1="10.5" x2="9" y2="10.5"/>
+      </svg>
+      Glossary
+    </a>
+    <a href="/graph.html" class="gls-hero-btn" style="border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.07);color:var(--gold)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="3" cy="8" r="1.5"/><circle cx="13" cy="3.5" r="1.5"/><circle cx="13" cy="12.5" r="1.5"/><circle cx="8" cy="5" r="1.5"/><circle cx="8" cy="11" r="1.5"/>
+        <line x1="4.4" y1="7.3" x2="6.7" y2="5.6"/><line x1="4.4" y1="8.7" x2="6.7" y2="10.4"/>
+        <line x1="9.4" y1="4.5" x2="11.6" y2="4"/><line x1="9.4" y1="11.5" x2="11.6" y2="12"/>
+        <line x1="8" y1="6.4" x2="8" y2="9.6"/>
+      </svg>
+      Concept Graph
+    </a>
+    <a href="/graph3d.html" class="gls-hero-btn" style="border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.07);color:var(--cyan)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 12L8 3l6 9H2z"/><circle cx="8" cy="8" r="1.2"/><line x1="5" y1="10" x2="11" y2="10"/>
+      </svg>
+      3D Graph
+    </a>
+    <a href="/paths.html" class="gls-hero-btn" style="border-color:rgba(0,255,153,.3);background:rgba(0,255,153,.07);color:var(--green)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="2,12 6,4 10,9 14,2"/><circle cx="14" cy="2" r="1.2"/>
+      </svg>
+      Learning Paths
+    </a>
+    <a href="/analytics.html" class="gls-hero-btn" style="border-color:rgba(255,68,255,.3);background:rgba(255,68,255,.07);color:var(--pink)">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="10" width="3" height="4"/><rect x="6" y="6" width="3" height="8"/><rect x="11" y="2" width="3" height="12"/>
+      </svg>
+      Analytics
+    </a>
+  </div>
+
+  </div>
+</div>
+
+<!-- Search bar -->
+<div class="search-bar-wrap">
+  <div class="search-input-wrap">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="6.5" cy="6.5" r="4"/><line x1="9.9" y1="9.9" x2="13" y2="13"/>
+    </svg>
+    <input id="moduleSearch" type="search" placeholder="Search modules, topics, or concepts…" autocomplete="off" spellcheck="false">
+  </div>
+  <span id="searchCount"></span>
+  <button id="searchClear">✕ Clear</button>
+</div>
+
+<div class="grid-section">
+  <div class="grid-title">Visualizations</div>
+  <div class="cards">
+
+    <!-- 01 Complex Numbers -->
+    <div class="card done" style="--accent:#00e5ff" onclick="open01()">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">ℂ</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">01</div>
+        <div class="card-title">Complex Number Explorer</div>
+        <div class="card-desc">
+          Drag complex numbers on the Argand plane. Visualize addition, multiplication,
+          and division geometrically. Animate Euler's formula e^(iθ) and explore
+          conformal mappings like z², 1/z, and e^z.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Argand Plane</span>
+          <span class="tag highlight">Euler's Formula</span>
+          <span class="tag highlight">Conformal Maps</span>
+          <span class="tag">Ch. 4–7</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/01_complex_explorer.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 02 Penrose Tiling -->
+    <div class="card done" style="--accent:#ffd700" onclick="open02()">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">⬟</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">02</div>
+        <div class="card-title">Penrose Tiling Generator</div>
+        <div class="card-desc">
+          Generate aperiodic P2 tilings via golden triangle subdivision.
+          Watch the pattern grow from 10 triangles to thousands.
+          Toggle kite/dart view, explore 4 color modes, pan and zoom.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Aperiodic</span>
+          <span class="tag highlight">Golden Ratio</span>
+          <span class="tag highlight">5-fold Symmetry</span>
+          <span class="tag">Ch. 1</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/02_penrose_tiling.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 03 Mandelbrot -->
+    <div class="card done" style="--accent:#ff44ff" onclick="window.location.href='/03_mandelbrot.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">🌀</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">03</div>
+        <div class="card-title">Mandelbrot &amp; Julia Sets</div>
+        <div class="card-desc">
+          Complex iteration z → z² + c. Explore the infinite fractal
+          boundary of the Mandelbrot set. Hover to preview Julia sets live.
+          Click to lock, scroll to zoom, double-click to dive deeper.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Complex Iteration</span>
+          <span class="tag highlight">Fractal Geometry</span>
+          <span class="tag highlight">Orbit Visualizer</span>
+          <span class="tag">Ch. 7</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/03_mandelbrot.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 04 Hyperbolic -->
+    <div class="card done" style="--accent:#00ff99" onclick="window.location.href='/04_hyperbolic.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">⊙</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">04</div>
+        <div class="card-title">Hyperbolic Geometry</div>
+        <div class="card-desc">
+          The Poincaré disk model. Drag a triangle to see its angle sum
+          fall below 180°. Draw geodesics and parallels. Generate Escher-style
+          {p,q} tessellations with live depth control.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Poincaré Disk</span>
+          <span class="tag highlight">Hyperbolic Triangle</span>
+          <span class="tag highlight">{p,q} Tessellations</span>
+          <span class="tag">Ch. 2–3</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/04_hyperbolic.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 05 Fourier -->
+    <div class="card done" style="--accent:#ff8844" onclick="window.location.href='/05_fourier.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">〜</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">05</div>
+        <div class="card-title">Fourier Series Visualizer</div>
+        <div class="card-desc">
+          Decompose any wave into spinning circles. Draw a custom shape
+          and watch Fourier epicycles reconstruct it. See the frequency
+          spectrum grow term by term.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Frequency Analysis</span>
+          <span class="tag highlight">Epicycles</span>
+          <span class="tag highlight">Gibbs Phenomenon</span>
+          <span class="tag">Ch. 9</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/05_fourier.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 07 Spinors & Lie Groups -->
+    <div class="card done" style="--accent:#ff6644" onclick="window.location.href='/07_spinors_lie.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">⟳</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">07</div>
+        <div class="card-title">Spinors &amp; Lie Groups</div>
+        <div class="card-desc">
+          Rotate a wireframe cube with Euler angles to see SO(3) in action.
+          Explore the Bloch sphere for SU(2) spinors and the 720° identity.
+          Watch the Dirac belt trick demonstrate spinor double cover.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">SO(3) &amp; SU(2)</span>
+          <span class="tag highlight">Bloch Sphere</span>
+          <span class="tag highlight">Plate Trick</span>
+          <span class="tag">Ch. 13, 22</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/07_spinors_lie.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 08 Spacetime -->
+    <div class="card done" style="--accent:#44ddff" onclick="window.location.href='/08_spacetime.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">⌖</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">08</div>
+        <div class="card-title">Special Relativity &amp; Minkowski Spacetime</div>
+        <div class="card-desc">
+          Drag events on a Minkowski diagram and classify spacetime intervals.
+          Slide velocity to see Lorentz boosts, length contraction, and
+          time dilation live. Watch the twin paradox animate in proper time.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Minkowski Diagram</span>
+          <span class="tag highlight">Lorentz Boost</span>
+          <span class="tag highlight">Twin Paradox</span>
+          <span class="tag">Ch. 17–18</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/08_spacetime.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 09 Quantum Mechanics -->
+    <div class="card done" style="--accent:#88ff44" onclick="window.location.href='/09_quantum.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">ψ</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">09</div>
+        <div class="card-title">Quantum Mechanics &amp; Wavefunctions</div>
+        <div class="card-desc">
+          Energy eigenstates in a box with animated superposition. Gaussian
+          wave packets squeezed by Heisenberg uncertainty. Stern-Gerlach spin
+          measurement with Bloch sphere and sequential collapse demo.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Wavefunctions</span>
+          <span class="tag highlight">Uncertainty Principle</span>
+          <span class="tag highlight">Stern-Gerlach</span>
+          <span class="tag">Ch. 21–23</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/09_quantum.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 06 Complex Calculus -->
+    <div class="card done" style="--accent:#aa77ff" onclick="window.location.href='/06_complex_calculus.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">∮</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">06</div>
+        <div class="card-title">Complex Calculus &amp; Riemann Surfaces</div>
+        <div class="card-desc">
+          Smoothness classes C⁰–C^∞, holomorphic maps with Wegert domain coloring,
+          contour integration via Cauchy's theorem, and Riemann surfaces for
+          multi-valued functions with branch cut monodromy.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Holomorphic Maps</span>
+          <span class="tag highlight">Contour Integration</span>
+          <span class="tag highlight">Riemann Surfaces</span>
+          <span class="tag">Ch. 6–8</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/06_complex_calculus.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 10 Lagrangian & Hamiltonian -->
+    <div class="card done" style="--accent:#ffcc00" onclick="window.location.href='/10_lagrangian.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">ℒ</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">10</div>
+        <div class="card-title">Lagrangian &amp; Hamiltonian Mechanics</div>
+        <div class="card-desc">
+          Chaotic double pendulum with live L=T−V readout via RK4. Phase
+          portrait with clickable trajectories and separatrix. Principle of
+          stationary action: sweep path families and watch S minimize.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Double Pendulum</span>
+          <span class="tag highlight">Phase Space</span>
+          <span class="tag highlight">Least Action</span>
+          <span class="tag">Ch. 19–20</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/10_lagrangian.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 11 Dirac Equation -->
+    <div class="card done" style="--accent:#ff4477" onclick="window.location.href='/11_dirac.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">ψ̄</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">11</div>
+        <div class="card-title">Dirac Equation &amp; Antiparticles</div>
+        <div class="card-desc">
+          Dirac sea with animated pair creation and annihilation. Relativistic
+          spinor plane waves with dispersion relation E²=p²+m². Chiral
+          decomposition: L/R mixing by mass, helicity vs chirality.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Dirac Sea</span>
+          <span class="tag highlight">Pair Creation</span>
+          <span class="tag highlight">Chirality</span>
+          <span class="tag">Ch. 24</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/11_dirac.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 12 Gauge Theory -->
+    <div class="card done" style="--accent:#33ffcc" onclick="window.location.href='/12_gauge_theory.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">⊛</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">12</div>
+        <div class="card-title">Gauge Theory &amp; QFT</div>
+        <div class="card-desc">
+          U(1) fiber bundle: global vs local gauge transformations, how
+          demanding local invariance forces the photon. Interactive Feynman
+          diagrams. Running couplings: asymptotic freedom in QCD.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">U(1) Gauge</span>
+          <span class="tag highlight">Feynman Diagrams</span>
+          <span class="tag highlight">Asymptotic Freedom</span>
+          <span class="tag">Ch. 25–26</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/12_gauge_theory.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 13 Cosmology -->
+    <div class="card done" style="--accent:#cc66ff" onclick="window.location.href='/13_cosmology.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">🌌</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">13</div>
+        <div class="card-title">Cosmology &amp; Quantum Gravity</div>
+        <div class="card-desc">
+          Friedmann cosmology: solve a(t) with Ω_matter/Λ/radiation sliders.
+          Penrose conformal diagrams for Schwarzschild, de Sitter, Minkowski.
+          Hawking temperature, evaporation animation, Bekenstein entropy.
+        </div>
+        <div class="card-tags">
+          <span class="tag highlight">Friedmann Eq.</span>
+          <span class="tag highlight">Penrose Diagram</span>
+          <span class="tag highlight">Hawking Radiation</span>
+          <span class="tag">Ch. 27–34</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/13_cosmology.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 14 Differential Geometry -->
+    <div class="card done" style="--accent:#ff9944" onclick="window.location.href='/14_diff_geometry.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">📐</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">14</div>
+        <h2 class="card-title">Differential Geometry</h2>
+        <p class="card-desc">Curved surfaces, Gaussian curvature, geodesics, parallel transport & Gauss–Bonnet theorem.</p>
+        <div class="card-tags"><span class="tag">Curvature</span><span class="tag">Geodesics</span><span class="tag">Holonomy</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/14_diff_geometry.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 15 Quaternions -->
+    <div class="card done" style="--accent:#44aaff" onclick="window.location.href='/15_quaternions.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">🔄</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">15</div>
+        <h2 class="card-title">Quaternions & Octonions</h2>
+        <p class="card-desc">Quaternion algebra, 3D rotation via conjugation, double cover SU(2)→SO(3), Hurwitz theorem & Cayley–Dickson construction.</p>
+        <div class="card-tags"><span class="tag">Quaternions</span><span class="tag">Spinors</span><span class="tag">Hurwitz</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/15_quaternions.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 16 Differential Forms -->
+    <div class="card done" style="--accent:#99ff66" onclick="window.location.href='/16_diff_forms.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">∧</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">16</div>
+        <h2 class="card-title">Differential Forms</h2>
+        <p class="card-desc">1-forms & 2-forms, wedge product, exterior derivative, generalized Stokes' theorem, Maxwell's equations as forms.</p>
+        <div class="card-tags"><span class="tag">Forms</span><span class="tag">Stokes</span><span class="tag">Maxwell</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/16_diff_forms.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 17 Fiber Bundles -->
+    <div class="card done" style="--accent:#ff55cc" onclick="window.location.href='/17_fiber_bundles.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">🌀</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">17</div>
+        <h2 class="card-title">Fiber Bundles</h2>
+        <p class="card-desc">Möbius band (twisted ℝ-bundle), Hopf fibration S³→S², principal bundles, connection, holonomy & gauge fields.</p>
+        <div class="card-tags"><span class="tag">Bundles</span><span class="tag">Hopf</span><span class="tag">Holonomy</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/17_fiber_bundles.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 18 Infinity & Cantor -->
+    <div class="card done" style="--accent:#aabbff" onclick="window.location.href='/18_infinity.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">∞</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">18</div>
+        <h2 class="card-title">Infinity & Cantor</h2>
+        <p class="card-desc">Cardinality, bijections for ℤ/ℚ/ℝ, Cantor's diagonal argument, power set theorem, Gödel incompleteness & continuum hypothesis.</p>
+        <div class="card-tags"><span class="tag">Cantor</span><span class="tag">Diagonal</span><span class="tag">Gödel</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/18_infinity.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 19 General Relativity -->
+    <div class="card done" style="--accent:#ffaa22" onclick="window.location.href='/19_general_relativity.html'">
+      <div class="card-preview">
+        <div class="bg-glow"></div>
+        <span class="icon">⊙</span>
+      </div>
+      <div class="card-body">
+        <div class="card-num">19</div>
+        <h2 class="card-title">General Relativity</h2>
+        <p class="card-desc">Spacetime curvature & Schwarzschild geometry, orbital precession (Mercury 43″/century), gravitational wave polarizations.</p>
+        <div class="card-tags"><span class="tag">Einstein</span><span class="tag">Geodesics</span><span class="tag">GW</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/19_general_relativity.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 20 Thermodynamics & Entropy -->
+    <div class="card done" style="--accent:#ff6b35" onclick="window.location.href='/20_thermodynamics.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">🌡️</span></div>
+      <div class="card-body">
+        <div class="card-num">20</div>
+        <h2 class="card-title">Thermodynamics &amp; Entropy</h2>
+        <p class="card-desc">Boltzmann gas simulation, phase space & arrow of time, Maxwell's demon and Landauer's principle.</p>
+        <div class="card-tags"><span class="tag">Entropy</span><span class="tag">Boltzmann</span><span class="tag">Ch. 27</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/20_thermodynamics.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 21 Quantum Measurement -->
+    <div class="card done" style="--accent:#66ddff" onclick="window.location.href='/21_quantum_measurement.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">🔬</span></div>
+      <div class="card-body">
+        <div class="card-num">21</div>
+        <h2 class="card-title">Quantum Measurement</h2>
+        <p class="card-desc">Wave function collapse & Born rule, Bell inequality violations, decoherence & many-worlds branching.</p>
+        <div class="card-tags"><span class="tag">Collapse</span><span class="tag">Bell</span><span class="tag">Ch. 29</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/21_quantum_measurement.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 22 Path Integrals -->
+    <div class="card done" style="--accent:#ffdd44" onclick="window.location.href='/22_path_integrals.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">∫</span></div>
+      <div class="card-body">
+        <div class="card-num">22</div>
+        <h2 class="card-title">Path Integrals &amp; QFT</h2>
+        <p class="card-desc">Feynman's sum over histories, double-slit via path integral, propagators and virtual particle loop corrections.</p>
+        <div class="card-tags"><span class="tag">Feynman</span><span class="tag">Propagator</span><span class="tag">Ch. 23</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/22_path_integrals.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 23 Twistor Theory -->
+    <div class="card done" style="--accent:#dd88ff" onclick="window.location.href='/23_twistor_theory.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">✦</span></div>
+      <div class="card-body">
+        <div class="card-num">23</div>
+        <h2 class="card-title">Twistor Theory</h2>
+        <p class="card-desc">Penrose's twistor space, null rays ↔ points, the celestial Riemann sphere, and the Penrose transform for massless fields.</p>
+        <div class="card-tags"><span class="tag">Twistors</span><span class="tag">Penrose</span><span class="tag">Ch. 33</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/23_twistor_theory.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 24 Loop Quantum Gravity -->
+    <div class="card done" style="--accent:#44ffaa" onclick="window.location.href='/24_loop_quantum_gravity.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">⬡</span></div>
+      <div class="card-body">
+        <div class="card-num">24</div>
+        <h2 class="card-title">Loop Quantum Gravity</h2>
+        <p class="card-desc">Spin networks with quantized area, spin foam spacetime evolution, discrete area & volume eigenvalue spectra.</p>
+        <div class="card-tags"><span class="tag">Spin Networks</span><span class="tag">Discrete</span><span class="tag">Ch. 32</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/24_loop_quantum_gravity.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 25 String Theory -->
+    <div class="card done" style="--accent:#ff9966" onclick="window.location.href='/25_string_theory.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">〰️</span></div>
+      <div class="card-body">
+        <div class="card-num">25</div>
+        <h2 class="card-title">String Theory &amp; Extra Dims</h2>
+        <p class="card-desc">String worldsheets & vibration modes, Calabi-Yau compactification, T-duality, and the landscape of vacua.</p>
+        <div class="card-tags"><span class="tag">Strings</span><span class="tag">Calabi-Yau</span><span class="tag">Ch. 31</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/25_string_theory.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 25b Higgs Field -->
+    <div class="card done" style="--accent:#ff44aa" onclick="window.location.href='/25_higgs_field.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">H</span></div>
+      <div class="card-body">
+        <div class="card-num">25b</div>
+        <h2 class="card-title">The Higgs Field &amp; Electroweak Symmetry Breaking</h2>
+        <p class="card-desc">Mexican-hat Higgs potential with spontaneous symmetry breaking. SU(2)×U(1) gauge theory and the Higgs mechanism giving W/Z mass. Interactive Feynman diagrams for Higgs production channels.</p>
+        <div class="card-tags"><span class="tag highlight">Higgs Mechanism</span><span class="tag highlight">Symmetry Breaking</span><span class="tag highlight">LHC</span><span class="tag">Ch. 25</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/25_higgs_field.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 26 Number Systems -->
+    <div class="card done" style="--accent:#55ccff" onclick="window.location.href='/26_number_systems.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">ℕ</span></div>
+      <div class="card-body">
+        <div class="card-num">26</div>
+        <h2 class="card-title">Number Systems</h2>
+        <p class="card-desc">The tower ℕ⊂ℤ⊂ℚ⊂ℝ⊂ℂ, continued fractions for φ/π/e/√2, and the p-adic ultrametric world.</p>
+        <div class="card-tags"><span class="tag">p-adic</span><span class="tag">Cont. Fractions</span><span class="tag">Ch. 3</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/26_number_systems.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 27 Visual Calculus -->
+    <div class="card done" style="--accent:#88ff88" onclick="window.location.href='/27_visual_calculus.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">∂</span></div>
+      <div class="card-body">
+        <div class="card-num">27</div>
+        <h2 class="card-title">Visual Calculus</h2>
+        <p class="card-desc">Epsilon-delta limits, derivative as tangent, Riemann sums with error plots, and Taylor series convergence animation.</p>
+        <div class="card-tags"><span class="tag">Derivatives</span><span class="tag">Taylor Series</span><span class="tag">Ch. 6</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/27_visual_calculus.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="grid-section">
+  <div class="grid-title">Graduate &amp; Frontier Mathematics</div>
+  <div class="cards">
+
+    <!-- 28 CCC & OR -->
+    <div class="card done" style="--accent:#ff7744" onclick="window.location.href='/28_ccc_or.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">∞</span></div>
+      <div class="card-body">
+        <div class="card-num">28</div>
+        <h2 class="card-title">Conformal Cyclic Cosmology &amp; Objective Reduction</h2>
+        <p class="card-desc">Penrose's own frontier theories: CCC aeons with conformal crossover surfaces, gravity-induced quantum collapse (OR), and the Weyl Curvature Hypothesis.</p>
+        <div class="card-tags"><span class="tag highlight">CCC Aeons</span><span class="tag highlight">Penrose-Diósi OR</span><span class="tag highlight">Weyl Curvature</span><span class="tag">Ch. 30, 34</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/28_ccc_or.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 29 Symplectic Geometry -->
+    <div class="card done" style="--accent:#00ddaa" onclick="window.location.href='/29_symplectic.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">ω</span></div>
+      <div class="card-body">
+        <div class="card-num">29</div>
+        <h2 class="card-title">Symplectic Geometry &amp; Integrable Systems</h2>
+        <p class="card-desc">Symplectic phase space with Hamiltonian flow, Arnold-Liouville tori with rational/irrational winding, and exact KdV 2-soliton elastic collisions.</p>
+        <div class="card-tags"><span class="tag highlight">Symplectic Form</span><span class="tag highlight">Liouville Tori</span><span class="tag highlight">KdV Solitons</span><span class="tag">Ch. 20</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/29_symplectic.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 30 Spinor Calculus -->
+    <div class="card done" style="--accent:#aa55ff" onclick="window.location.href='/30_spinor_calculus.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">κ</span></div>
+      <div class="card-body">
+        <div class="card-num">30</div>
+        <h2 class="card-title">Spinor Calculus &amp; Newman–Penrose Formalism</h2>
+        <p class="card-desc">Penrose's flagpole picture (720° spinor periodicity), domain-colored spin-weighted spherical harmonics ₛYₗₘ, and Petrov classification of gravitational fields.</p>
+        <div class="card-tags"><span class="tag highlight">2-Spinors</span><span class="tag highlight">Spin-Weighted ₛYₗₘ</span><span class="tag highlight">Petrov Types</span><span class="tag">Ch. 22</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/30_spinor_calculus.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 31 Yang-Mills Instantons -->
+    <div class="card done" style="--accent:#ff4455" onclick="window.location.href='/31_instantons.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">★</span></div>
+      <div class="card-body">
+        <div class="card-num">31</div>
+        <h2 class="card-title">Yang–Mills Instantons &amp; Topology</h2>
+        <p class="card-desc">Self-dual gauge field decomposition, BPST instanton with draggable size parameter ρ, Chern-Simons vacuum landscape, and Atiyah-Singer zero modes.</p>
+        <div class="card-tags"><span class="tag highlight">Self-Duality</span><span class="tag highlight">BPST Instanton</span><span class="tag highlight">Atiyah-Singer</span><span class="tag">Ch. 25</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/31_instantons.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 32 Representation Theory -->
+    <div class="card done" style="--accent:#ffaa00" onclick="window.location.href='/32_representation_theory.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">⬡</span></div>
+      <div class="card-body">
+        <div class="card-num">32</div>
+        <h2 class="card-title">Representation Theory &amp; Dynkin Diagrams</h2>
+        <p class="card-desc">Interactive root systems (A₁/A₂/B₂/G₂/E₈), SU(3) weight diagrams with quark labels, and the full Eightfold Way with Gell-Mann's legendary Ω⁻ prediction.</p>
+        <div class="card-tags"><span class="tag highlight">Root Systems</span><span class="tag highlight">Dynkin Diagrams</span><span class="tag highlight">Eightfold Way</span><span class="tag">Ch. 13</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/32_representation_theory.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 33 de Rham Cohomology -->
+    <div class="card done" style="--accent:#33ccff" onclick="window.location.href='/33_cohomology.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">∧</span></div>
+      <div class="card-body">
+        <div class="card-num">33</div>
+        <h2 class="card-title">de Rham Cohomology &amp; Characteristic Classes</h2>
+        <p class="card-desc">Live winding-number integration on punctured plane, interactive Betti number topology workshop (add handles!), and Chern classes from monopole curvature.</p>
+        <div class="card-tags"><span class="tag highlight">Closed vs Exact</span><span class="tag highlight">Betti Numbers</span><span class="tag highlight">Chern Classes</span><span class="tag">Ch. 15</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/33_cohomology.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 34 Riemann Zeta -->
+    <div class="card done" style="--accent:#4499ff" onclick="window.location.href='/34_riemann_zeta.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">ζ</span></div>
+      <div class="card-body">
+        <div class="card-num">34</div>
+        <h2 class="card-title">Riemann Zeta &amp; the Prime Frontier</h2>
+        <p class="card-desc">Full domain coloring of ζ(s), Hardy Z-function with labeled non-trivial zeros on the critical line, and the explicit formula connecting zeros to prime distribution.</p>
+        <div class="card-tags"><span class="tag highlight">Domain Coloring</span><span class="tag highlight">Riemann Hypothesis</span><span class="tag highlight">Euler Product</span><span class="tag">Ch. 7</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/34_riemann_zeta.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── DEEP FRONTIER ── -->
+<div class="grid-section">
+  <div class="grid-title">Deep Frontier &amp; Penrose's Own Ideas</div>
+  <div class="cards">
+
+    <!-- 35 Black Holes -->
+    <div class="card done" style="--accent:#ff6644" onclick="window.location.href='/35_black_holes.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">●</span></div>
+      <div class="card-body">
+        <div class="card-num">35</div>
+        <h2 class="card-title">Black Holes &amp; Penrose Diagrams</h2>
+        <p class="card-desc">Penrose's own conformal diagrams for Schwarzschild, Kerr, de Sitter &amp; AdS spacetimes. Gravitational collapse, Hawking radiation particle pairs, and the four laws of black hole thermodynamics.</p>
+        <div class="card-tags"><span class="tag highlight">Penrose Diagrams</span><span class="tag highlight">Hawking Radiation</span><span class="tag highlight">Kerr BH</span><span class="tag">Ch. 32–34</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/35_black_holes.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 36 Riemann Surfaces -->
+    <div class="card done" style="--accent:#aa66ff" onclick="window.location.href='/36_riemann_surfaces.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">∞</span></div>
+      <div class="card-body">
+        <div class="card-num">36</div>
+        <h2 class="card-title">Riemann Surfaces</h2>
+        <p class="card-desc">Navigate multi-sheeted surfaces of √z, log z and z^(2/3) with branch cut crossings. Analytic continuation with monodromy demo showing path-dependent values. Genus, handles, and Riemann–Hurwitz formula.</p>
+        <div class="card-tags"><span class="tag highlight">Branch Cuts</span><span class="tag highlight">Monodromy</span><span class="tag highlight">Genus</span><span class="tag">Ch. 8</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/36_riemann_surfaces.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 37 Maxwell -->
+    <div class="card done" style="--accent:#44ddff" onclick="window.location.href='/37_maxwell.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">∇</span></div>
+      <div class="card-body">
+        <div class="card-num">37</div>
+        <h2 class="card-title">Maxwell's Equations &amp; EM Fields</h2>
+        <p class="card-desc">Place charges and trace field lines with marching-squares equipotentials. Animated 3D EM wave with polarization and Poynting vector. Gauge invariance and the Aharonov–Bohm effect.</p>
+        <div class="card-tags"><span class="tag highlight">Field Lines</span><span class="tag highlight">EM Waves</span><span class="tag highlight">Gauge Theory</span><span class="tag">Ch. 19</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/37_maxwell.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 38 Standard Model -->
+    <div class="card done" style="--accent:#ff44aa" onclick="window.location.href='/38_standard_model.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">⚛</span></div>
+      <div class="card-body">
+        <div class="card-num">38</div>
+        <h2 class="card-title">The Standard Model</h2>
+        <p class="card-desc">Interactive particle zoo with SU(3) color triangle. Animated Feynman diagram builder (β-decay, Higgs production, e⁺e⁻ annihilation). Mexican-hat Higgs potential with spontaneous symmetry breaking and GUT unification curves.</p>
+        <div class="card-tags"><span class="tag highlight">Particle Zoo</span><span class="tag highlight">Higgs Mechanism</span><span class="tag highlight">Feynman Diagrams</span><span class="tag">Ch. 25</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/38_standard_model.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 39 QFT -->
+    <div class="card done" style="--accent:#66ff88" onclick="window.location.href='/39_quantum_field_theory.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">∫𝒟φ</span></div>
+      <div class="card-body">
+        <div class="card-num">39</div>
+        <h2 class="card-title">Quantum Field Theory</h2>
+        <p class="card-desc">Live Klein–Gordon lattice with vacuum fluctuations and Casimir effect. Feynman path integral with phase clocks showing stationary-phase principle. Renormalization group flow: QED Landau pole vs. QCD asymptotic freedom.</p>
+        <div class="card-tags"><span class="tag highlight">Path Integral</span><span class="tag highlight">Vacuum Energy</span><span class="tag highlight">Renormalization</span><span class="tag">Ch. 26</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/39_quantum_field_theory.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 40 Chaos -->
+    <div class="card done" style="--accent:#ffcc00" onclick="window.location.href='/40_chaos.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">𝜆</span></div>
+      <div class="card-body">
+        <div class="card-num">40</div>
+        <h2 class="card-title">Chaos &amp; Poincaré Sections</h2>
+        <p class="card-desc">Double pendulum with live Lyapunov exponent and twin-trajectory divergence. Driven pendulum Poincaré sections showing KAM tori breaking into chaos. Lorenz, Rössler and logistic-map bifurcation diagram with Feigenbaum cascade.</p>
+        <div class="card-tags"><span class="tag highlight">Lyapunov Exponent</span><span class="tag highlight">KAM Theorem</span><span class="tag highlight">Strange Attractors</span><span class="tag">Ch. 20</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/40_chaos.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 41 Homotopy -->
+    <div class="card done" style="--accent:#ff8844" onclick="window.location.href='/41_homotopy.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">π₁</span></div>
+      <div class="card-body">
+        <div class="card-num">41</div>
+        <h2 class="card-title">Algebraic Topology &amp; Homotopy</h2>
+        <p class="card-desc">Place holes and watch loops contract or get trapped — live winding number readout. Universal cover ℝ→S¹ helix and figure-8 Cayley tree with animated lifts. Knot gallery with Reidemeister moves, Alexander and Jones polynomials.</p>
+        <div class="card-tags"><span class="tag highlight">Fundamental Group</span><span class="tag highlight">Covering Spaces</span><span class="tag highlight">Knot Theory</span><span class="tag">Ch. 12–16</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/41_homotopy.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 42 Clifford Algebras -->
+    <div class="card done" style="--accent:#44aaff" onclick="window.location.href='/42_clifford_algebras.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">Cl</span></div>
+      <div class="card-body">
+        <div class="card-num">42</div>
+        <h2 class="card-title">Clifford Algebras &amp; Geometric Algebra</h2>
+        <p class="card-desc">Animated algebra family tree from ℝ→ℂ→ℍ→Cl(3,0)→Cl(1,3). Geometric product visualizer: drag vectors to see dot + wedge products and rotor rotations. Spacetime algebra with the 720° spinor flag sign-change demonstration.</p>
+        <div class="card-tags"><span class="tag highlight">Geometric Product</span><span class="tag highlight">Rotors</span><span class="tag highlight">Spinor Flag</span><span class="tag">Ch. 11</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/42_clifford_algebras.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 43 CFT -->
+    <div class="card done" style="--accent:#cc44ff" onclick="window.location.href='/43_conformal_field_theory.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">Vir</span></div>
+      <div class="card-body">
+        <div class="card-num">43</div>
+        <h2 class="card-title">Conformal Field Theory</h2>
+        <p class="card-desc">Animated conformal grid deformation for Möbius, z², eᶻ, and Joukowski maps with live angle-preservation proof. Virasoro vector fields with Kac table and central charge. AdS/CFT Poincaré disk with Ryu–Takayanagi entanglement entropy.</p>
+        <div class="card-tags"><span class="tag highlight">Virasoro Algebra</span><span class="tag highlight">AdS/CFT</span><span class="tag highlight">Entanglement Entropy</span><span class="tag">Ch. 24–26</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/43_conformal_field_theory.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 44 Twistors -->
+    <div class="card done" style="--accent:#00ffdd" onclick="window.location.href='/44_twistors.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">𝕋</span></div>
+      <div class="card-body">
+        <div class="card-num">44</div>
+        <h2 class="card-title">Twistor Theory</h2>
+        <p class="card-desc">Penrose's twistor space and the incidence relation: points in spacetime ↔ Riemann spheres in CP³. The Penrose transform encodes massless fields as cohomology. Robinson congruence and the Hopf fibration. Momentum twistors and the amplituhedron.</p>
+        <div class="card-tags"><span class="tag highlight">Twistor Space</span><span class="tag highlight">Penrose Transform</span><span class="tag highlight">Amplituhedron</span><span class="tag">Ch. 33</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/44_twistors.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Nobel Prize Physics & Experimental Frontiers -->
+<div class="grid-section">
+  <div class="grid-title">Nobel Prize Physics &amp; Experimental Frontiers</div>
+  <div class="cards">
+
+    <!-- 45 Bell's Theorem -->
+    <div class="card done" style="--accent:#ff6688" onclick="window.location.href='/45_bell_theorem.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">⟨AB⟩</span></div>
+      <div class="card-body">
+        <div class="card-num">45</div>
+        <h2 class="card-title">Bell's Theorem &amp; Quantum Nonlocality</h2>
+        <p class="card-desc">EPR paradox and the singlet state. Interactive CHSH inequality: tune detector angles to witness quantum violation of classical bounds ($S \leq 2$ vs $2\sqrt{2}$). Aspect's experiment with coincidence counters. GHZ state and the Mermin device. 2022 Nobel Prize.</p>
+        <div class="card-tags"><span class="tag highlight">CHSH Inequality</span><span class="tag highlight">Entanglement</span><span class="tag highlight">2022 Nobel</span><span class="tag">Ch. 23</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/45_bell_theorem.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 46 Gravitational Waves -->
+    <div class="card done" style="--accent:#88aaff" onclick="window.location.href='/46_gravitational_waves.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">≋</span></div>
+      <div class="card-body">
+        <div class="card-num">46</div>
+        <h2 class="card-title">Gravitational Waves &amp; LIGO</h2>
+        <p class="card-desc">Binary black hole inspiral with live strain waveform and quadrupole radiation. Animated LIGO Michelson interferometer — arms stretching $10^{-18}$m. GW150914 chirp spectrogram with matched filtering demo. GW170817 multimessenger astronomy. 2017 Nobel Prize.</p>
+        <div class="card-tags"><span class="tag highlight">Chirp Waveform</span><span class="tag highlight">LIGO</span><span class="tag highlight">2017 Nobel</span><span class="tag">Ch. 19, 30</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/46_gravitational_waves.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 47 Quantum Optics -->
+    <div class="card done" style="--accent:#ffdd44" onclick="window.location.href='/47_quantum_optics.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">λ</span></div>
+      <div class="card-body">
+        <div class="card-num">47</div>
+        <h2 class="card-title">Laser Physics &amp; Quantum Optics</h2>
+        <p class="card-desc">Doppler laser cooling with live temperature readout. Bose-Einstein condensate formation: phase-space density animation and matter-wave interference. Optical tweezers gradient force with DNA stretching. Chirped pulse amplification (CPA) — petawatt lasers. 1997, 2001 &amp; 2018 Nobel.</p>
+        <div class="card-tags"><span class="tag highlight">Laser Cooling</span><span class="tag highlight">BEC</span><span class="tag highlight">Optical Tweezers</span><span class="tag">Ch. 22</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/47_quantum_optics.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 48 Topological Quantum Matter -->
+    <div class="card done" style="--accent:#44ff88" onclick="window.location.href='/48_topological_matter.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">σ<sub>xy</sub></span></div>
+      <div class="card-body">
+        <div class="card-num">48</div>
+        <h2 class="card-title">Topological Quantum Matter</h2>
+        <p class="card-desc">Integer quantum Hall effect with Landau levels and topologically protected edge states. Berry phase on the Bloch sphere — geometric phase from adiabatic transport. Topological insulators and bulk-boundary correspondence. Giant magnetoresistance and spintronics. 2007 &amp; 2016 Nobel.</p>
+        <div class="card-tags"><span class="tag highlight">Quantum Hall</span><span class="tag highlight">Berry Phase</span><span class="tag highlight">GMR</span><span class="tag">Ch. 15</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/48_topological_matter.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 49 Quantum Networks & Micius Satellite -->
+    <div class="card done" style="--accent:#00e5ff" onclick="window.location.href='/49_quantum_networks.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">🛰</span></div>
+      <div class="card-body">
+        <div class="card-num">49</div>
+        <h2 class="card-title">Quantum Networks &amp; Micius Satellite</h2>
+        <p class="card-desc">Pan Jianwei's 2017 experiment distributing entangled photon pairs over 1200 km via satellite relay. Density matrix decoherence, quantum teleportation protocol, and entanglement swapping in repeater chains.</p>
+        <div class="card-tags"><span class="tag highlight">Entanglement</span><span class="tag highlight">Teleportation</span><span class="tag highlight">Micius</span><span class="tag">Ch. 23</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/49_quantum_networks.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 50 Semiconductor Quantum Physics -->
+    <div class="card done" style="--accent:#ff44ff" onclick="window.location.href='/50_semiconductor_quantum.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">⊡</span></div>
+      <div class="card-body">
+        <div class="card-num">50</div>
+        <h2 class="card-title">Semiconductor Quantum Physics</h2>
+        <p class="card-desc">Quantum confinement and energy subbands in GAA nanosheet transistors. Gate-all-around cross-section with band bending. Spintronics and GMR in FM/NM/FM spin valves. Spin-orbit torque switching in SOT-MRAM.</p>
+        <div class="card-tags"><span class="tag highlight">GAA Transistor</span><span class="tag highlight">Spintronics</span><span class="tag highlight">MRAM</span><span class="tag">Ch. 21</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/50_semiconductor_quantum.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 51 Photonics & Fiber Optics -->
+    <div class="card done" style="--accent:#ffd700" onclick="window.location.href='/51_photonics_fiber.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">J₀</span></div>
+      <div class="card-body">
+        <div class="card-num">51</div>
+        <h2 class="card-title">Photonics &amp; Fiber Optics</h2>
+        <p class="card-desc">Bessel function waveguide modes, single- vs multi-mode V-number. Total internal reflection and evanescent coupling. Poincaré sphere polarization — same CP¹ as twistor space. Silicon photonic ring resonators and Mach-Zehnder modulators behind NVLink.</p>
+        <div class="card-tags"><span class="tag highlight">Bessel Functions</span><span class="tag highlight">Poincaré Sphere</span><span class="tag highlight">Silicon Photonics</span><span class="tag">Ch. 7</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/51_photonics_fiber.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 52 Category Theory & Toposes -->
+    <div class="card done" style="--accent:#ff8844" onclick="window.location.href='/52_category_theory.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">⟶</span></div>
+      <div class="card-body">
+        <div class="card-num">52</div>
+        <h2 class="card-title">Category Theory &amp; Toposes</h2>
+        <p class="card-desc">Draggable commutative diagrams with functors, natural transformations, and universal constructions. Subobject classifiers and Heyting algebra logic. Sheaves as gauge fields. ZX-calculus for quantum circuits.</p>
+        <div class="card-tags"><span class="tag highlight">Functors</span><span class="tag highlight">Toposes</span><span class="tag highlight">Sheaves</span><span class="tag">Ch. 1</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/52_category_theory.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 53 Attosecond Physics -->
+    <div class="card done" style="--accent:#7ec8ff" onclick="window.location.href='/53_attosecond.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">as</span></div>
+      <div class="card-body">
+        <div class="card-num">53</div>
+        <h2 class="card-title">Attosecond Physics</h2>
+        <p class="card-desc">High-harmonic generation three-step model: tunnel ionisation, free-electron acceleration, and recollision. Attosecond pulse train in time and frequency. Wave-packet ionisation with ADK rates and Keldysh parameter. 2023 Nobel Prize.</p>
+        <div class="card-tags"><span class="tag highlight">HHG</span><span class="tag highlight">Keldysh γ</span><span class="tag highlight">2023 Nobel</span><span class="tag">Ultrafast</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/53_attosecond.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 54 Trapped Ions -->
+    <div class="card done" style="--accent:#00ffcc" onclick="window.location.href='/54_trapped_ions.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">Ion</span></div>
+      <div class="card-body">
+        <div class="card-num">54</div>
+        <h2 class="card-title">Trapped Ions &amp; Quantum Gates</h2>
+        <p class="card-desc">Paul trap with RF confinement and ion secular/micromotion. Jaynes-Cummings Bloch sphere, vacuum Rabi splitting, and Fock state bar chart. Wigner function heatmap with decoherence timeline. 2012 Nobel Prize.</p>
+        <div class="card-tags"><span class="tag highlight">Paul Trap</span><span class="tag highlight">Jaynes-Cummings</span><span class="tag highlight">2012 Nobel</span><span class="tag">Quantum Gates</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/54_trapped_ions.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 55 Neutrino Oscillations -->
+    <div class="card done" style="--accent:#ffd700" onclick="window.location.href='/55_neutrino_oscillations.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">ν</span></div>
+      <div class="card-body">
+        <div class="card-num">55</div>
+        <h2 class="card-title">Neutrino Oscillations</h2>
+        <p class="card-desc">Three-flavor PMNS oscillation probabilities on a log-L axis with solar/atmospheric/reactor/beam presets. PMNS matrix |U_αi|² heatmap with CP phase animation. Earth cross-section with animated neutrino flavor change. 2015 Nobel Prize.</p>
+        <div class="card-tags"><span class="tag highlight">PMNS Matrix</span><span class="tag highlight">CP Violation</span><span class="tag highlight">2015 Nobel</span><span class="tag">Neutrinos</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/55_neutrino_oscillations.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 56 Muon g-2 -->
+    <div class="card done" style="--accent:#ff44aa" onclick="window.location.href='/56_muon_g2.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">g−2</span></div>
+      <div class="card-body">
+        <div class="card-num">56</div>
+        <h2 class="card-title">Muon g−2 Anomaly</h2>
+        <p class="card-desc">Fermilab E989 storage ring with muon orbit and spin precession. Interactive Feynman diagram cards (QED 1-loop through HLbL contributions) with running total. Tension bar chart — SM dispersive vs BMW lattice vs Fermilab 2023 measurement.</p>
+        <div class="card-tags"><span class="tag highlight">Anomalous Magnetic Moment</span><span class="tag highlight">Feynman Diagrams</span><span class="tag highlight">BSM Tension</span><span class="tag">Fermilab</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/56_muon_g2.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 57 Nuclear Fusion -->
+    <div class="card done" style="--accent:#ff8844" onclick="window.location.href='/57_nuclear_fusion.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">DT</span></div>
+      <div class="card-body">
+        <div class="card-num">57</div>
+        <h2 class="card-title">Nuclear Fusion &amp; NIF Ignition</h2>
+        <p class="card-desc">Lawson criterion log-log nτT diagram with ignition contours for DT/DD/p-B fusion and JET/NIF/ITER device points. Hohlraum implosion animation with Rayleigh-Taylor perturbation toggle. NIF shot history Q-value scatter plot. 2022 ignition milestone.</p>
+        <div class="card-tags"><span class="tag highlight">Lawson Criterion</span><span class="tag highlight">Hohlraum</span><span class="tag highlight">NIF 2022</span><span class="tag">Fusion</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/57_nuclear_fusion.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 58 Dark Energy -->
+    <div class="card done" style="--accent:#66aaff" onclick="window.location.href='/58_dark_energy.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">Λ</span></div>
+      <div class="card-body">
+        <div class="card-num">58</div>
+        <h2 class="card-title">Dark Energy &amp; Hubble Tension</h2>
+        <p class="card-desc">Type Ia supernova Hubble diagram with SN Ia data, ΛCDM model curve, and tunable Ω_Λ/Ω_m/H₀. Scale factor a(t) with inflection point marking dark-energy onset. H₀ tension dot-plot — 17 measurements, Planck vs SH0ES ~5σ discrepancy visualised.</p>
+        <div class="card-tags"><span class="tag highlight">ΛCDM</span><span class="tag highlight">Hubble Tension</span><span class="tag highlight">SN Ia</span><span class="tag">Cosmology</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/58_dark_energy.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 59 Spin Glasses -->
+    <div class="card done" style="--accent:#ff88cc" onclick="window.location.href='/59_spin_glasses.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">q_EA</span></div>
+      <div class="card-body">
+        <div class="card-num">59</div>
+        <h2 class="card-title">Spin Glasses &amp; Replica Theory</h2>
+        <p class="card-desc">Metropolis Monte Carlo on 2D Edwards-Anderson model with live frustrated-bond highlighting. Pixel-rendered random energy landscape with steepest-descent particle tracks. Parisi P(q) overlap distribution — continuous RSB band vs ferromagnet delta function. 2021 Nobel Prize.</p>
+        <div class="card-tags"><span class="tag highlight">Edwards-Anderson</span><span class="tag highlight">Parisi RSB</span><span class="tag highlight">2021 Nobel</span><span class="tag">Stat. Mech.</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/59_spin_glasses.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <!-- 60 Penrose Singularity -->
+    <div class="card done" style="--accent:#cc88ff" onclick="window.location.href='/60_penrose_singularity.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">θ→−∞</span></div>
+      <div class="card-body">
+        <div class="card-num">60</div>
+        <h2 class="card-title">Penrose Singularity Theorem</h2>
+        <p class="card-desc">Penrose conformal diagram with singularity, event horizon, and trapped surface with converging null rays. Raychaudhuri phase portrait — dθ/dλ = −θ²/2 − σ² − R_μν k²: tune shear and Ricci curvature to see focusing and caustic formation. Gravitational collapse animation. 2020 Nobel Prize.</p>
+        <div class="card-tags"><span class="tag highlight">Raychaudhuri Eq.</span><span class="tag highlight">Trapped Surface</span><span class="tag highlight">2020 Nobel</span><span class="tag">GR</span></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/60_penrose_singularity.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <div class="card done" style="--accent:#44ccff" onclick="window.location.href='/62_adscft.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">AdS/CFT</span></div>
+      <div class="card-body">
+        <div class="card-num">62</div>
+        <h2 class="card-title">AdS/CFT Holography</h2>
+        <p class="card-desc">Bulk/boundary duality, Ryu-Takayanagi, BTZ black holes, tensor networks &amp; MERA</p>
+        <div class="card-tags"></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/62_adscft.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+    <div class="card done" style="--accent:#ff44aa" onclick="window.location.href='/63_qec.html'">
+      <div class="card-preview"><div class="bg-glow"></div><span class="icon">QEC</span></div>
+      <div class="card-body">
+        <div class="card-num">63</div>
+        <h2 class="card-title">Quantum Error Correction</h2>
+        <p class="card-desc">Surface codes, stabilizer formalism, fault tolerance, toric code, hardware roadmap</p>
+        <div class="card-tags"></div>
+      </div>
+      <div class="card-footer">
+        <span class="status-done">✓ Ready</span>
+        <a class="open-btn" href="/63_qec.html" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Road to Reality Math Playground &nbsp;·&nbsp;
+  Built with <span>HTML · CSS · JavaScript · Express</span> &nbsp;·&nbsp;
+  Inspired by Sir Roger Penrose
+</footer>
+
+<!-- FAB -->
+<button class="fab" id="fabBtn" title="Table of Contents">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+    <line x1="3" y1="5" x2="17" y2="5"/>
+    <line x1="3" y1="10" x2="17" y2="10"/>
+    <line x1="3" y1="15" x2="17" y2="15"/>
+  </svg>
+</button>
+
+<!-- TOC Backdrop -->
+<div class="toc-backdrop" id="tocBackdrop"></div>
+
+<!-- TOC Drawer -->
+<div class="toc-drawer" id="tocDrawer">
+  <div class="toc-header">
+    <h2>Table of Contents</h2>
+    <button class="toc-close" id="tocClose">✕</button>
+  </div>
+  <div class="toc-tabs">
+    <button class="toc-tab active" id="tabFiles">By File</button>
+    <button class="toc-tab" id="tabChapters">By Chapter</button>
+    <button class="toc-tab" id="tabNum">All 01–63</button>
+  </div>
+  <div class="toc-legend">
+    <span style="color:var(--cyan)">★</span> on a pill = deep-dive or advanced module that goes beyond the chapter's core coverage &nbsp;·&nbsp; Nobel Prize modules are marked on their card tags
+  </div>
+  <nav class="toc-list" id="tocFileList">
+    <a class="toc-item" href="/01_complex_explorer.html" style="--ti-accent:#00e5ff">
+      <span class="toc-num">01</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Complex Number Explorer</div><div class="toc-ch">Ch. 4–7 · Argand plane, Euler's formula, conformal maps</div></span>
+    </a>
+    <a class="toc-item" href="/02_penrose_tiling.html" style="--ti-accent:#ffd700">
+      <span class="toc-num">02</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Penrose Tiling Generator</div><div class="toc-ch">Ch. 1 · Aperiodic tilings, golden ratio, 5-fold symmetry</div></span>
+    </a>
+    <a class="toc-item" href="/03_mandelbrot.html" style="--ti-accent:#ff44ff">
+      <span class="toc-num">03</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Mandelbrot &amp; Julia Sets</div><div class="toc-ch">Ch. 7 · Complex iteration, fractal geometry</div></span>
+    </a>
+    <a class="toc-item" href="/04_hyperbolic.html" style="--ti-accent:#00ff99">
+      <span class="toc-num">04</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Hyperbolic Geometry</div><div class="toc-ch">Ch. 2–3 · Poincaré disk, geodesics, tessellations</div></span>
+    </a>
+    <a class="toc-item" href="/05_fourier.html" style="--ti-accent:#ff8844">
+      <span class="toc-num">05</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Fourier Series Visualizer</div><div class="toc-ch">Ch. 9 · Epicycles, frequency spectrum, Gibbs phenomenon</div></span>
+    </a>
+    <a class="toc-item" href="/06_complex_calculus.html" style="--ti-accent:#aa77ff">
+      <span class="toc-num">06</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Complex Calculus &amp; Riemann Surfaces</div><div class="toc-ch">Ch. 6–8 · Holomorphic maps, contour integration</div></span>
+    </a>
+    <a class="toc-item" href="/07_spinors_lie.html" style="--ti-accent:#ff6644">
+      <span class="toc-num">07</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Spinors &amp; Lie Groups</div><div class="toc-ch">Ch. 13, 22 · SO(3), SU(2), Dirac belt trick</div></span>
+    </a>
+    <a class="toc-item" href="/08_spacetime.html" style="--ti-accent:#44ddff">
+      <span class="toc-num">08</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Special Relativity &amp; Minkowski Spacetime</div><div class="toc-ch">Ch. 17–18 · Lorentz boosts, twin paradox</div></span>
+    </a>
+    <a class="toc-item" href="/09_quantum.html" style="--ti-accent:#88ff44">
+      <span class="toc-num">09</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Quantum Mechanics &amp; Wavefunctions</div><div class="toc-ch">Ch. 21–23 · Uncertainty, Stern-Gerlach, spin</div></span>
+    </a>
+    <a class="toc-item" href="/10_lagrangian.html" style="--ti-accent:#ffcc00">
+      <span class="toc-num">10</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Lagrangian &amp; Hamiltonian Mechanics</div><div class="toc-ch">Ch. 19–20 · Double pendulum, phase space, least action</div></span>
+    </a>
+    <a class="toc-item" href="/11_dirac.html" style="--ti-accent:#ff4477">
+      <span class="toc-num">11</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Dirac Equation &amp; Antiparticles</div><div class="toc-ch">Ch. 24 · Dirac sea, pair creation, chirality</div></span>
+    </a>
+    <a class="toc-item" href="/12_gauge_theory.html" style="--ti-accent:#33ffcc">
+      <span class="toc-num">12</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Gauge Theory &amp; QFT</div><div class="toc-ch">Ch. 25–26 · U(1) gauge, Feynman diagrams, QCD</div></span>
+    </a>
+    <a class="toc-item" href="/13_cosmology.html" style="--ti-accent:#cc66ff">
+      <span class="toc-num">13</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Cosmology &amp; Quantum Gravity</div><div class="toc-ch">Ch. 27–34 · Friedmann, Penrose diagrams, Hawking</div></span>
+    </a>
+    <a class="toc-item" href="/14_diff_geometry.html" style="--ti-accent:#ff9944">
+      <span class="toc-num">14</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Differential Geometry</div><div class="toc-ch">Ch. 10, 12 · Curvature, geodesics, Gauss–Bonnet</div></span>
+    </a>
+    <a class="toc-item" href="/15_quaternions.html" style="--ti-accent:#44aaff">
+      <span class="toc-num">15</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Quaternions &amp; Octonions</div><div class="toc-ch">Ch. 11 · Quaternion algebra, SU(2)→SO(3), Hurwitz</div></span>
+    </a>
+    <a class="toc-item" href="/16_diff_forms.html" style="--ti-accent:#99ff66">
+      <span class="toc-num">16</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Differential Forms</div><div class="toc-ch">Ch. 14 · Wedge product, Stokes' theorem, Maxwell</div></span>
+    </a>
+    <a class="toc-item" href="/17_fiber_bundles.html" style="--ti-accent:#ff55cc">
+      <span class="toc-num">17</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Fiber Bundles</div><div class="toc-ch">Ch. 15 · Möbius band, Hopf fibration, holonomy</div></span>
+    </a>
+    <a class="toc-item" href="/18_infinity.html" style="--ti-accent:#aabbff">
+      <span class="toc-num">18</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Infinity &amp; Cantor</div><div class="toc-ch">Ch. 16 · Cardinality, diagonal argument, Gödel</div></span>
+    </a>
+    <a class="toc-item" href="/19_general_relativity.html" style="--ti-accent:#ffaa22">
+      <span class="toc-num">19</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">General Relativity</div><div class="toc-ch">Ch. 17 (deep) · Schwarzschild, precession, grav. waves</div></span>
+    </a>
+    <a class="toc-item" href="/20_thermodynamics.html" style="--ti-accent:#ff6b35">
+      <span class="toc-num">20</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Thermodynamics &amp; Entropy</div><div class="toc-ch">Ch. 27 · Boltzmann gas, phase space, Maxwell's demon</div></span>
+    </a>
+    <a class="toc-item" href="/21_quantum_measurement.html" style="--ti-accent:#66ddff">
+      <span class="toc-num">21</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Quantum Measurement</div><div class="toc-ch">Ch. 29 · Collapse, Bell inequality, decoherence</div></span>
+    </a>
+    <a class="toc-item" href="/22_path_integrals.html" style="--ti-accent:#ffdd44">
+      <span class="toc-num">22</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Path Integrals &amp; QFT</div><div class="toc-ch">Ch. 23 · Sum over histories, double-slit, propagator</div></span>
+    </a>
+    <a class="toc-item" href="/23_twistor_theory.html" style="--ti-accent:#dd88ff">
+      <span class="toc-num">23</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Twistor Theory</div><div class="toc-ch">Ch. 33 · Null rays, celestial sphere, Penrose transform</div></span>
+    </a>
+    <a class="toc-item" href="/24_loop_quantum_gravity.html" style="--ti-accent:#44ffaa">
+      <span class="toc-num">24</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Loop Quantum Gravity</div><div class="toc-ch">Ch. 32 · Spin networks, spin foams, area quantization</div></span>
+    </a>
+    <a class="toc-item" href="/25_string_theory.html" style="--ti-accent:#ff9966">
+      <span class="toc-num">25</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">String Theory &amp; Extra Dims</div><div class="toc-ch">Ch. 31 · Worldsheets, Calabi-Yau, T-duality, landscape</div></span>
+    </a>
+    <a class="toc-item" href="/25_higgs_field.html" style="--ti-accent:#ff44aa">
+      <span class="toc-num">25b</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Higgs Field &amp; Electroweak Symmetry Breaking</div><div class="toc-ch">Ch. 25 · Mexican-hat potential, Higgs mechanism, LHC</div></span>
+    </a>
+    <a class="toc-item" href="/26_number_systems.html" style="--ti-accent:#55ccff">
+      <span class="toc-num">26</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Number Systems</div><div class="toc-ch">Ch. 3 · ℕ⊂ℤ⊂ℚ⊂ℝ⊂ℂ, cont. fractions, p-adics</div></span>
+    </a>
+    <a class="toc-item" href="/27_visual_calculus.html" style="--ti-accent:#88ff88">
+      <span class="toc-num">27</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Visual Calculus</div><div class="toc-ch">Ch. 6 · Limits, derivatives, Riemann sums, Taylor series</div></span>
+    </a>
+    <a class="toc-item" href="/28_ccc_or.html" style="--ti-accent:#ff7744">
+      <span class="toc-num">28</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Conformal Cyclic Cosmology &amp; Objective Reduction</div><div class="toc-ch">Ch. 30, 34 · CCC aeons, Penrose-Diósi OR, Weyl curvature</div></span>
+    </a>
+    <a class="toc-item" href="/29_symplectic.html" style="--ti-accent:#00ddaa">
+      <span class="toc-num">29</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Symplectic Geometry &amp; Integrable Systems</div><div class="toc-ch">Ch. 20 · Phase space, Liouville tori, KdV solitons</div></span>
+    </a>
+    <a class="toc-item" href="/30_spinor_calculus.html" style="--ti-accent:#aa55ff">
+      <span class="toc-num">30</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Spinor Calculus &amp; Newman–Penrose Formalism</div><div class="toc-ch">Ch. 22 · Flagpole, spin-weighted harmonics, Petrov types</div></span>
+    </a>
+    <a class="toc-item" href="/31_instantons.html" style="--ti-accent:#ff4455">
+      <span class="toc-num">31</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Yang–Mills Instantons &amp; Topology</div><div class="toc-ch">Ch. 25 · Self-duality, BPST instanton, Atiyah-Singer index</div></span>
+    </a>
+    <a class="toc-item" href="/32_representation_theory.html" style="--ti-accent:#ffaa00">
+      <span class="toc-num">32</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Representation Theory &amp; Dynkin Diagrams</div><div class="toc-ch">Ch. 13 · Root systems, weight diagrams, Eightfold Way</div></span>
+    </a>
+    <a class="toc-item" href="/33_cohomology.html" style="--ti-accent:#33ccff">
+      <span class="toc-num">33</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">de Rham Cohomology &amp; Characteristic Classes</div><div class="toc-ch">Ch. 15 · Closed/exact forms, Betti numbers, Chern classes</div></span>
+    </a>
+    <a class="toc-item" href="/34_riemann_zeta.html" style="--ti-accent:#4499ff">
+      <span class="toc-num">34</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Riemann Zeta &amp; the Prime Frontier</div><div class="toc-ch">Ch. 7 · Domain coloring, critical zeros, Euler product &amp; primes</div></span>
+    </a>
+    <a class="toc-item" href="/35_black_holes.html" style="--ti-accent:#ff6644">
+      <span class="toc-num">35</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Black Holes &amp; Penrose Diagrams</div><div class="toc-ch">Ch. 32–34 · Causal diagrams, Hawking radiation, BH thermodynamics</div></span>
+    </a>
+    <a class="toc-item" href="/36_riemann_surfaces.html" style="--ti-accent:#aa66ff">
+      <span class="toc-num">36</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Riemann Surfaces</div><div class="toc-ch">Ch. 8 · Branch cuts, monodromy, analytic continuation &amp; genus</div></span>
+    </a>
+    <a class="toc-item" href="/37_maxwell.html" style="--ti-accent:#44ddff">
+      <span class="toc-num">37</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Maxwell's Equations &amp; EM Fields</div><div class="toc-ch">Ch. 19 · Field lines, EM waves, gauge invariance &amp; Aharonov–Bohm</div></span>
+    </a>
+    <a class="toc-item" href="/38_standard_model.html" style="--ti-accent:#ff44aa">
+      <span class="toc-num">38</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">The Standard Model</div><div class="toc-ch">Ch. 25 · Particle zoo, Feynman diagrams &amp; Higgs mechanism</div></span>
+    </a>
+    <a class="toc-item" href="/39_quantum_field_theory.html" style="--ti-accent:#66ff88">
+      <span class="toc-num">39</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Quantum Field Theory</div><div class="toc-ch">Ch. 26 · Vacuum fluctuations, path integrals &amp; renormalization</div></span>
+    </a>
+    <a class="toc-item" href="/40_chaos.html" style="--ti-accent:#ffcc00">
+      <span class="toc-num">40</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Chaos &amp; Poincaré Sections</div><div class="toc-ch">Ch. 20 · Double pendulum, KAM tori &amp; strange attractors</div></span>
+    </a>
+    <a class="toc-item" href="/41_homotopy.html" style="--ti-accent:#ff8844">
+      <span class="toc-num">41</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Algebraic Topology &amp; Homotopy</div><div class="toc-ch">Ch. 12–16 · Fundamental group, covering spaces &amp; knot theory</div></span>
+    </a>
+    <a class="toc-item" href="/42_clifford_algebras.html" style="--ti-accent:#44aaff">
+      <span class="toc-num">42</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Clifford Algebras &amp; Geometric Algebra</div><div class="toc-ch">Ch. 11 · Geometric product, rotors &amp; spacetime algebra</div></span>
+    </a>
+    <a class="toc-item" href="/43_conformal_field_theory.html" style="--ti-accent:#cc44ff">
+      <span class="toc-num">43</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Conformal Field Theory</div><div class="toc-ch">Ch. 24–26 · Virasoro algebra, conformal maps &amp; AdS/CFT</div></span>
+    </a>
+    <a class="toc-item" href="/44_twistors.html" style="--ti-accent:#00ffdd">
+      <span class="toc-num">44</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Twistor Theory</div><div class="toc-ch">Ch. 33 · Incidence relation, Penrose transform &amp; amplituhedron</div></span>
+    </a>
+    <a class="toc-item" href="/45_bell_theorem.html" style="--ti-accent:#ff6688">
+      <span class="toc-num">45</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Bell's Theorem &amp; Quantum Nonlocality</div><div class="toc-ch">Ch. 23 · EPR, CHSH inequality &amp; 2022 Nobel</div></span>
+    </a>
+    <a class="toc-item" href="/46_gravitational_waves.html" style="--ti-accent:#88aaff">
+      <span class="toc-num">46</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Gravitational Waves &amp; LIGO</div><div class="toc-ch">Ch. 19, 30 · Binary inspiral, chirp waveform &amp; 2017 Nobel</div></span>
+    </a>
+    <a class="toc-item" href="/47_quantum_optics.html" style="--ti-accent:#ffdd44">
+      <span class="toc-num">47</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Laser Physics &amp; Quantum Optics</div><div class="toc-ch">Ch. 22 · Laser cooling, BEC, optical tweezers &amp; CPA</div></span>
+    </a>
+    <a class="toc-item" href="/48_topological_matter.html" style="--ti-accent:#44ff88">
+      <span class="toc-num">48</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Topological Quantum Matter</div><div class="toc-ch">Ch. 15 · Quantum Hall, Berry phase, GMR &amp; 2016 Nobel</div></span>
+    </a>
+    <a class="toc-item" href="/49_quantum_networks.html" style="--ti-accent:#00e5ff">
+      <span class="toc-num">49</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Quantum Networks &amp; Micius Satellite</div><div class="toc-ch">Ch. 23 · Entanglement, teleportation &amp; repeater networks</div></span>
+    </a>
+    <a class="toc-item" href="/50_semiconductor_quantum.html" style="--ti-accent:#ff44ff">
+      <span class="toc-num">50</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Semiconductor Quantum Physics</div><div class="toc-ch">Ch. 21 · GAA transistors, spintronics &amp; SOT-MRAM</div></span>
+    </a>
+    <a class="toc-item" href="/51_photonics_fiber.html" style="--ti-accent:#ffd700">
+      <span class="toc-num">51</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Photonics &amp; Fiber Optics</div><div class="toc-ch">Ch. 7 · Bessel modes, Poincaré sphere &amp; silicon photonics</div></span>
+    </a>
+    <a class="toc-item" href="/52_category_theory.html" style="--ti-accent:#ff8844">
+      <span class="toc-num">52</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Category Theory &amp; Toposes</div><div class="toc-ch">Ch. 1 · Functors, natural transformations, sheaves &amp; ZX-calculus</div></span>
+    </a>
+    <a class="toc-item" href="/53_attosecond.html" style="--ti-accent:#7ec8ff">
+      <span class="toc-num">53</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Attosecond Physics</div><div class="toc-ch">HHG three-step model · Keldysh γ · ADK ionisation · 2023 Nobel</div></span>
+    </a>
+    <a class="toc-item" href="/54_trapped_ions.html" style="--ti-accent:#00ffcc">
+      <span class="toc-num">54</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Trapped Ions &amp; Quantum Gates</div><div class="toc-ch">Paul trap · Jaynes-Cummings · Wigner function · 2012 Nobel</div></span>
+    </a>
+    <a class="toc-item" href="/55_neutrino_oscillations.html" style="--ti-accent:#ffd700">
+      <span class="toc-num">55</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Neutrino Oscillations</div><div class="toc-ch">PMNS matrix · CP phase · Super-K/SNO · 2015 Nobel</div></span>
+    </a>
+    <a class="toc-item" href="/56_muon_g2.html" style="--ti-accent:#ff44aa">
+      <span class="toc-num">56</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Muon g−2 Anomaly</div><div class="toc-ch">Fermilab E989 · Feynman cards · HVP/HLbL · 5σ BSM tension</div></span>
+    </a>
+    <a class="toc-item" href="/57_nuclear_fusion.html" style="--ti-accent:#ff8844">
+      <span class="toc-num">57</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Nuclear Fusion &amp; NIF Ignition</div><div class="toc-ch">Lawson criterion · hohlraum implosion · NIF Q&gt;1 (2022)</div></span>
+    </a>
+    <a class="toc-item" href="/58_dark_energy.html" style="--ti-accent:#66aaff">
+      <span class="toc-num">58</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Dark Energy &amp; Hubble Tension</div><div class="toc-ch">SN Ia Hubble diagram · ΛCDM scale factor · H₀ tension 5σ</div></span>
+    </a>
+    <a class="toc-item" href="/59_spin_glasses.html" style="--ti-accent:#ff88cc">
+      <span class="toc-num">59</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Spin Glasses &amp; Replica Theory</div><div class="toc-ch">Edwards-Anderson MC · energy landscape · Parisi P(q) RSB · 2021 Nobel</div></span>
+    </a>
+    <a class="toc-item" href="/60_penrose_singularity.html" style="--ti-accent:#cc88ff">
+      <span class="toc-num">60</span><span class="toc-dot"></span>
+      <span class="toc-info"><div class="toc-name">Penrose Singularity Theorem</div><div class="toc-ch">Penrose diagram · Raychaudhuri eq. · trapped surface · 2020 Nobel</div></span>
+    </a>
+  </nav>
+
+  <nav id="tocNumList"></nav>
+
+  <div class="toc-ch-ctrl" id="tocChCtrl" style="display:none">
+    <span>View:</span>
+    <button id="btnGrouped" class="on" onclick="setChView('grouped')">Grouped</button>
+    <button id="btnFlat" onclick="setChView('flat')">Flat</button>
+  </div>
+  <nav class="toc-ch-list" id="tocChList">
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 1<span class="toc-ch-booktitle">The roots of science</span></span>
+      <span class="toc-ch-topic">Aperiodic tilings, quasicrystals &amp; the golden ratio</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/02_penrose_tiling.html" style="--p-accent:#ffd700">02</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 2–3<span class="toc-ch-booktitle">Ancient theorem; kinds of number</span></span>
+      <span class="toc-ch-topic">Hyperbolic geometry, Poincaré disk &amp; number systems</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/04_hyperbolic.html" style="--p-accent:#00ff99">04</a>
+        <a class="toc-pill" href="/26_number_systems.html" style="--p-accent:#55ccff">26</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 4–7<span class="toc-ch-booktitle">Magical complex numbers &amp; calculus</span></span>
+      <span class="toc-ch-topic">Complex numbers, Euler’s formula, conformal maps &amp; real calculus</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/01_complex_explorer.html" style="--p-accent:#00e5ff">01</a>
+        <a class="toc-pill" href="/06_complex_calculus.html" style="--p-accent:#aa77ff">06</a>
+        <a class="toc-pill" href="/27_visual_calculus.html" style="--p-accent:#88ff88">27</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 7<span class="toc-ch-booktitle">Complex-number calculus</span></span>
+      <span class="toc-ch-topic">Riemann zeta, analytic continuation &amp; Euler product</span>
+      <span class="toc-ch-pills"><a class="toc-pill deep" href="/34_riemann_zeta.html" style="--p-accent:#4499ff">34★</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 8<span class="toc-ch-booktitle">Riemann surfaces &amp; mappings</span></span>
+      <span class="toc-ch-topic">Branch cuts, monodromy, analytic continuation &amp; genus</span>
+      <span class="toc-ch-pills"><a class="toc-pill deep" href="/36_riemann_surfaces.html" style="--p-accent:#aa66ff">36★</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 9<span class="toc-ch-booktitle">Fourier decomposition</span></span>
+      <span class="toc-ch-topic">Epicycles, frequency spectrum &amp; Gibbs phenomenon</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/05_fourier.html" style="--p-accent:#ff8844">05</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 10, 12<span class="toc-ch-booktitle">Surfaces &amp; manifolds</span></span>
+      <span class="toc-ch-topic">Differential geometry, curvature &amp; connections</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/14_diff_geometry.html" style="--p-accent:#ff9944">14</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 11<span class="toc-ch-booktitle">Hypercomplex numbers</span></span>
+      <span class="toc-ch-topic">Quaternions, octonions, Clifford algebras &amp; spinor flag</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/15_quaternions.html" style="--p-accent:#44aaff">15</a>
+        <a class="toc-pill deep" href="/42_clifford_algebras.html" style="--p-accent:#44aaff">42★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 12–16<span class="toc-ch-booktitle">Topology &amp; homotopy</span></span>
+      <span class="toc-ch-topic">Fundamental group, covering spaces &amp; knot theory</span>
+      <span class="toc-ch-pills"><a class="toc-pill deep" href="/41_homotopy.html" style="--p-accent:#ff8844">41★</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 13<span class="toc-ch-booktitle">Symmetry groups</span></span>
+      <span class="toc-ch-topic">SO(3), SU(2), Lie algebras, root systems &amp; Eightfold Way</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/07_spinors_lie.html" style="--p-accent:#ff6644">07</a>
+        <a class="toc-pill deep" href="/32_representation_theory.html" style="--p-accent:#ffaa00">32★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 14<span class="toc-ch-booktitle">Calculus on manifolds</span></span>
+      <span class="toc-ch-topic">Differential forms, Stokes’ theorem &amp; exterior calculus</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/16_diff_forms.html" style="--p-accent:#99ff66">16</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 15<span class="toc-ch-booktitle">Fibre bundles &amp; gauge</span></span>
+      <span class="toc-ch-topic">Connections, Chern classes, cohomology, QHE &amp; Berry phase</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/17_fiber_bundles.html" style="--p-accent:#ff55cc">17</a>
+        <a class="toc-pill deep" href="/33_cohomology.html" style="--p-accent:#33ccff">33★</a>
+        <a class="toc-pill deep" href="/48_topological_matter.html" style="--p-accent:#44ff88">48★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 16<span class="toc-ch-booktitle">The ladder of infinity</span></span>
+      <span class="toc-ch-topic">Cantor, Gödel incompleteness &amp; infinite cardinals</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/18_infinity.html" style="--p-accent:#aabbff">18</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 17–18<span class="toc-ch-booktitle">Spacetime &amp; Minkowski</span></span>
+      <span class="toc-ch-topic">Lorentz boosts, twin paradox &amp; general relativity</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/08_spacetime.html" style="--p-accent:#44ddff">08</a>
+        <a class="toc-pill" href="/19_general_relativity.html" style="--p-accent:#ffaa22">19</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 19<span class="toc-ch-booktitle">Classical fields</span></span>
+      <span class="toc-ch-topic">Maxwell, Lagrangians, gravitational waves &amp; LIGO</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/10_lagrangian.html" style="--p-accent:#ffcc00">10</a>
+        <a class="toc-pill deep" href="/37_maxwell.html" style="--p-accent:#44ddff">37★</a>
+        <a class="toc-pill deep" href="/46_gravitational_waves.html" style="--p-accent:#88aaff">46★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 20<span class="toc-ch-booktitle">Lagrangians &amp; Hamiltonians</span></span>
+      <span class="toc-ch-topic">Symplectic geometry, solitons, chaos &amp; KAM theorem</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill deep" href="/29_symplectic.html" style="--p-accent:#00ddaa">29★</a>
+        <a class="toc-pill deep" href="/40_chaos.html" style="--p-accent:#ffcc00">40★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 21–23<span class="toc-ch-booktitle">Quantum mechanics &amp; spin</span></span>
+      <span class="toc-ch-topic">Wave functions, Hilbert space, spin &amp; measurement</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/09_quantum.html" style="--p-accent:#88ff44">09</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 22<span class="toc-ch-booktitle">Quantum algebra &amp; spin</span></span>
+      <span class="toc-ch-topic">2-spinors, Newman–Penrose, laser cooling, BEC &amp; optical tweezers</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill deep" href="/30_spinor_calculus.html" style="--p-accent:#aa55ff">30★</a>
+        <a class="toc-pill deep" href="/47_quantum_optics.html" style="--p-accent:#ffdd44">47★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 23<span class="toc-ch-booktitle">Entangled quantum world</span></span>
+      <span class="toc-ch-topic">Path integrals, Bell’s theorem &amp; quantum nonlocality</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/22_path_integrals.html" style="--p-accent:#ffdd44">22</a>
+        <a class="toc-pill deep" href="/45_bell_theorem.html" style="--p-accent:#ff6688">45★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 24<span class="toc-ch-booktitle">Dirac’s electron</span></span>
+      <span class="toc-ch-topic">Dirac equation, antiparticles &amp; spinor structure</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/11_dirac.html" style="--p-accent:#ff4477">11</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 25<span class="toc-ch-booktitle">Standard model</span></span>
+      <span class="toc-ch-topic">Gauge theory, Yang-Mills, instantons, Higgs &amp; particle zoo</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/12_gauge_theory.html" style="--p-accent:#33ffcc">12</a>
+        <a class="toc-pill deep" href="/25_higgs_field.html" style="--p-accent:#ff44aa">25b★</a>
+        <a class="toc-pill deep" href="/31_instantons.html" style="--p-accent:#ff4455">31★</a>
+        <a class="toc-pill deep" href="/38_standard_model.html" style="--p-accent:#ff44aa">38★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 26<span class="toc-ch-booktitle">Quantum field theory</span></span>
+      <span class="toc-ch-topic">Vacuum, renormalization, path integrals &amp; CFT</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill deep" href="/39_quantum_field_theory.html" style="--p-accent:#66ff88">39★</a>
+        <a class="toc-pill deep" href="/43_conformal_field_theory.html" style="--p-accent:#cc44ff">43★</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 27<span class="toc-ch-booktitle">Big Bang &amp; thermodynamics</span></span>
+      <span class="toc-ch-topic">Entropy, arrow of time &amp; cosmological models</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/13_cosmology.html" style="--p-accent:#cc66ff">13</a>
+        <a class="toc-pill" href="/20_thermodynamics.html" style="--p-accent:#ff6b35">20</a>
+      </span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 29<span class="toc-ch-booktitle">The measurement paradox</span></span>
+      <span class="toc-ch-topic">Quantum measurement, decoherence &amp; interpretations</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/21_quantum_measurement.html" style="--p-accent:#66ddff">21</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 30, 34<span class="toc-ch-booktitle">Gravity &amp; quantum reduction</span></span>
+      <span class="toc-ch-topic">Penrose’s OR, CCC &amp; Weyl curvature hypothesis</span>
+      <span class="toc-ch-pills"><a class="toc-pill deep" href="/28_ccc_or.html" style="--p-accent:#ff7744">28★</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 31<span class="toc-ch-booktitle">Supersymmetry &amp; strings</span></span>
+      <span class="toc-ch-topic">Worldsheets, Calabi-Yau, T-duality &amp; landscape</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/25_string_theory.html" style="--p-accent:#ff9966">25</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 32<span class="toc-ch-booktitle">Loop quantum gravity</span></span>
+      <span class="toc-ch-topic">Spin networks, spin foams &amp; area quantization</span>
+      <span class="toc-ch-pills"><a class="toc-pill" href="/24_loop_quantum_gravity.html" style="--p-accent:#44ffaa">24</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 32–34<span class="toc-ch-booktitle">Black holes &amp; Penrose diagrams</span></span>
+      <span class="toc-ch-topic">Causal structure, Hawking radiation &amp; BH thermodynamics</span>
+      <span class="toc-ch-pills"><a class="toc-pill deep" href="/35_black_holes.html" style="--p-accent:#ff6644">35★</a></span>
+    </div>
+    <div class="toc-ch-row">
+      <span class="toc-ch-label">Ch. 33<span class="toc-ch-booktitle">Twistor theory</span></span>
+      <span class="toc-ch-topic">Twistor space, Penrose transform, Robinson congruence &amp; amplituhedron</span>
+      <span class="toc-ch-pills">
+        <a class="toc-pill" href="/23_twistor_theory.html" style="--p-accent:#dd88ff">23</a>
+        <a class="toc-pill deep" href="/44_twistors.html" style="--p-accent:#00ffdd">44★</a>
+      </span>
+    </div>
+  </nav>
+</div>
+
+<!-- Glossary Popover -->
+<div class="gls-pop" id="glsPop" role="tooltip" aria-live="polite">
+  <div class="gls-pop-head">
+    <span class="gls-pop-title" id="glsTitle"></span>
+    <div class="gls-pop-side">
+      <span class="gls-pop-badge" id="glsBadge"></span>
+      <button class="gls-pop-close" id="glsClose" aria-label="Close">✕</button>
+    </div>
+  </div>
+  <p class="gls-pop-def" id="glsDef"></p>
+  <div class="gls-pop-related" id="glsRelated"></div>
+  <div class="gls-pop-footer">
+    <a class="gls-pop-more" href="/glossary.html" id="glsMore">Full glossary →</a>
+  </div>
+</div>
+
+<script>
+// ── Scroll position persistence ──
+(function(){
+  const key='rtr_scroll';
+  const saved=localStorage.getItem(key);
+  if(saved){
+    // Two attempts: after DOM ready and after full load, in case of layout shifts
+    document.addEventListener('DOMContentLoaded',()=>window.scrollTo(0,parseInt(saved)));
+    window.addEventListener('load',()=>window.scrollTo(0,parseInt(saved)));
+  }
+  let _t;
+  window.addEventListener('scroll',()=>{
+    clearTimeout(_t);
+    _t=setTimeout(()=>localStorage.setItem(key,Math.round(window.scrollY)),80);
+  },{passive:true});
+})();
+
+// ── FAB / TOC drawer ──
+(function(){
+  const fab=document.getElementById('fabBtn');
+  const backdrop=document.getElementById('tocBackdrop');
+  const drawer=document.getElementById('tocDrawer');
+  const closeBtn=document.getElementById('tocClose');
+  const tabFiles=document.getElementById('tabFiles');
+  const tabChapters=document.getElementById('tabChapters');
+  const tabNum=document.getElementById('tabNum');
+  const fileList=document.getElementById('tocFileList');
+  const chList=document.getElementById('tocChList');
+  const numList=document.getElementById('tocNumList');
+  const chCtrl=document.getElementById('tocChCtrl');
+
+  function open(){backdrop.classList.add('open');drawer.classList.add('open');document.body.style.overflow='hidden'}
+  function close(){backdrop.classList.remove('open');drawer.classList.remove('open');document.body.style.overflow=''}
+
+  function showTab(t){
+    [tabFiles,tabChapters,tabNum].forEach(b=>b.classList.remove('active'));
+    t.classList.add('active');
+    fileList.style.display='none';
+    chList.classList.remove('visible');
+    numList.classList.remove('visible');
+    chCtrl.style.display='none';
+    if(t===tabFiles) fileList.style.display='';
+    else if(t===tabChapters){chList.classList.add('visible');chCtrl.style.display='flex';}
+    else{buildNumList();numList.classList.add('visible');}
+  }
+
+  function buildNumList(){
+    if(numList.dataset.built) return;
+    const items=[...document.querySelectorAll('#tocFileList .toc-item')];
+    items.sort((a,b)=>parseInt(a.querySelector('.toc-num').textContent)-parseInt(b.querySelector('.toc-num').textContent));
+    items.forEach(item=>numList.appendChild(item.cloneNode(true)));
+    numList.dataset.built='1';
+  }
+
+  tabFiles.addEventListener('click',()=>showTab(tabFiles));
+  tabChapters.addEventListener('click',()=>showTab(tabChapters));
+  tabNum.addEventListener('click',()=>showTab(tabNum));
+  fab.addEventListener('click',open);
+  backdrop.addEventListener('click',close);
+  closeBtn.addEventListener('click',close);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+})();
+
+// ── Chapter view grouped / flat toggle ──
+function setChView(mode){
+  document.getElementById('btnGrouped').classList.toggle('on',mode==='grouped');
+  document.getElementById('btnFlat').classList.toggle('on',mode==='flat');
+  const chList=document.getElementById('tocChList');
+  if(mode==='flat'){
+    const rows=[];
+    chList.querySelectorAll('.toc-ch-row').forEach(row=>{
+      const chNum=row.querySelector('.toc-ch-label').childNodes[0].textContent.trim();
+      const topic=row.querySelector('.toc-ch-topic').textContent;
+      row.querySelectorAll('.toc-pill').forEach(pill=>{
+        const href=pill.getAttribute('href');
+        const color=pill.style.getPropertyValue('--p-accent')||'#88aaff';
+        const num=pill.textContent.replace('\u2605','').trim();
+        rows.push({num:parseInt(num),html:`<div class="toc-ch-row" style="grid-template-columns:50px 1fr auto">
+          <span class="toc-ch-label" style="font-size:.72rem">${num}</span>
+          <span class="toc-ch-topic" style="font-size:.71rem">${topic}</span>
+          <span class="toc-ch-pills"><a class="toc-pill" href="${href}" style="--p-accent:${color}">${chNum}</a></span>
+        </div>`});
+      });
+    });
+    rows.sort((a,b)=>a.num-b.num);
+    chList.dataset.grouped=chList.innerHTML;
+    chList.innerHTML=rows.map(r=>r.html).join('');
+  } else {
+    if(chList.dataset.grouped) chList.innerHTML=chList.dataset.grouped;
+  }
+}
+
+// ── Open functions ──
+function open01(){ window.location.href = '/01_complex_explorer.html' }
+function open02(){ window.location.href = '/02_penrose_tiling.html' }
+
+// ── Starfield background ──
+(function() {
+  const container = document.getElementById('stars');
+  const N = 120;
+  for (let i = 0; i < N; i++) {
+    const s = document.createElement('div');
+    const size = Math.random() * 1.8 + 0.4;
+    const x = Math.random() * 100;
+    const y = Math.random() * 100;
+    const opacity = Math.random() * 0.5 + 0.1;
+    const dur = Math.random() * 4 + 2;
+    const delay = Math.random() * 5;
+    s.style.cssText = `
+      position:absolute;
+      left:${x}%;top:${y}%;
+      width:${size}px;height:${size}px;
+      border-radius:50%;
+      background:rgba(200,210,255,${opacity});
+      animation:twinkle ${dur}s ${delay}s infinite alternate;
+    `;
+    container.appendChild(s);
+  }
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes twinkle {
+      from { opacity: 0.05; transform: scale(0.8); }
+      to   { opacity: 0.6;  transform: scale(1.2); }
+    }
+  `;
+  document.head.appendChild(style);
+})();
+</script>
+<script src="/glossary-data.js"></script>
+<script src="/search-data.js"></script>
+<script>
+// ── Glossary ──
+(function(){
+var GLOSS = {};
+// Convert array-format glossary data (from glossary-data.js) to keyed object
+if(Array.isArray(window.GLOSS)){
+  window.GLOSS.forEach(function(item){ GLOSS[item.key] = item; });
+} else if(window.GLOSS && typeof window.GLOSS === 'object' && !Array.isArray(window.GLOSS)){
+  Object.assign(GLOSS, window.GLOSS);
+}
+
+// ── Wire up all highlight chips ──
+const pop=document.getElementById('glsPop');
+const glsTitle=document.getElementById('glsTitle');
+const glsDef=document.getElementById('glsDef');
+const glsBadge=document.getElementById('glsBadge');
+const glsRelated=document.getElementById('glsRelated');
+const glsClose=document.getElementById('glsClose');
+
+let _hoverTimer=null, _activeEl=null;
+
+function showGloss(key,el){
+  const data=GLOSS[key];
+  if(!data) return;
+  glsTitle.textContent=data.title;
+  glsDef.textContent=data.def;
+  const labels={ug:'Undergrad',grad:'Graduate',res:'Research'};
+  glsBadge.textContent=labels[data.level]||data.level;
+  glsBadge.className='gls-pop-badge '+(data.level||'ug');
+  // Related terms
+  glsRelated.innerHTML='';
+  if(data.related&&data.related.length){
+    const lbl=document.createElement('span');
+    lbl.className='gls-pop-rel-label';
+    lbl.textContent='See also';
+    glsRelated.appendChild(lbl);
+    data.related.forEach(r=>{
+      const btn=document.createElement('button');
+      btn.className='gls-pop-rel-tag';
+      btn.textContent=r;
+      btn.addEventListener('click',e=>{
+        e.stopPropagation();
+        const rk=r.toLowerCase().replace(/[&;]/g,'').replace(/\s+/g,' ').trim();
+        const rkey=Object.keys(GLOSS).find(k=>k===rk||GLOSS[k].title.toLowerCase()===r.toLowerCase());
+        if(rkey) showGloss(rkey,el);
+      });
+      glsRelated.appendChild(btn);
+    });
+  }
+  positionPop(el);
+  pop.classList.add('visible');
+  _activeEl=el;
+}
+
+function positionPop(el){
+  const r=el.getBoundingClientRect();
+  const pw=pop.offsetWidth||306, ph=pop.offsetHeight||200;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  let left=r.left, top=r.bottom+8;
+  if(left+pw>vw-12) left=vw-pw-12;
+  if(left<8) left=8;
+  if(top+ph>vh-12) top=r.top-ph-8;
+  if(top<8) top=8;
+  pop.style.left=left+'px';
+  pop.style.top=top+'px';
+}
+
+function hidePop(){
+  pop.classList.remove('visible');
+  _activeEl=null;
+}
+
+glsClose.addEventListener('click',hidePop);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hidePop()});
+pop.addEventListener('click',e=>e.stopPropagation());
+document.addEventListener('click',e=>{
+  if(!pop.contains(e.target)&&_activeEl&&!_activeEl.contains(e.target)) hidePop();
+});
+
+document.querySelectorAll('.tag.highlight').forEach(tag=>{
+  const raw=tag.textContent.trim();
+  const key=raw.toLowerCase().replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+  // try exact key, then normalized (strip special chars)
+  const match=GLOSS[key] ? key : Object.keys(GLOSS).find(k=>
+    GLOSS[k].title.toLowerCase()===raw.toLowerCase() ||
+    k===raw.toLowerCase()
+  );
+  if(!match) return;
+  tag.classList.add('gls-term');
+  tag.setAttribute('title','');// suppress native tooltip
+
+  // Hover (with delay)
+  tag.addEventListener('mouseenter',()=>{
+    clearTimeout(_hoverTimer);
+    _hoverTimer=setTimeout(()=>showGloss(match,tag),220);
+  });
+  tag.addEventListener('mouseleave',()=>{
+    clearTimeout(_hoverTimer);
+    // keep open if cursor moves into the popover
+    _hoverTimer=setTimeout(()=>{
+      if(!pop.matches(':hover')) hidePop();
+    },300);
+  });
+  // Click (immediate)
+  tag.addEventListener('click',e=>{
+    e.stopPropagation();
+    clearTimeout(_hoverTimer);
+    if(_activeEl===tag&&pop.classList.contains('visible')){hidePop();return;}
+    showGloss(match,tag);
+  });
+});
+
+pop.addEventListener('mouseenter',()=>clearTimeout(_hoverTimer));
+pop.addEventListener('mouseleave',()=>{_hoverTimer=setTimeout(hidePop,200)});
+})();
+</script>
+
+<!-- Quiz Modal -->
+<div id="quizOverlay" role="dialog" aria-modal="true" aria-label="Module Quiz">
+  <div id="quizBox">
+    <button class="quiz-close" id="quizClose" aria-label="Close quiz">✕</button>
+    <div class="quiz-module-label" id="quizModuleLabel"></div>
+    <div class="quiz-q-counter" id="quizCounter"></div>
+    <div class="quiz-question" id="quizQuestion"></div>
+    <div class="quiz-opts" id="quizOpts"></div>
+    <div class="quiz-explanation" id="quizExp"></div>
+    <div class="quiz-footer">
+      <div class="quiz-progress" id="quizProgress"></div>
+      <button class="quiz-next-btn" id="quizNext" style="display:none"></button>
+    </div>
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+</div>
+
+<script src="/quiz-data.js"></script>
+<script>
+// ── MODULE SEARCH ────────────────────────────────────────────────────────────
+(function () {
+  'use strict';
+  var allCards = [];
+  document.querySelectorAll('.card').forEach(function (card) {
+    var title = (card.querySelector('.card-title') || {}).textContent || '';
+    var desc  = (card.querySelector('.card-desc')  || {}).textContent || '';
+    var num   = (card.querySelector('.card-num')   || {}).textContent || '';
+    var tags  = Array.from(card.querySelectorAll('.tag')).map(function(t){ return t.textContent; }).join(' ');
+    card.dataset.searchText = (title + ' ' + desc + ' ' + num + ' ' + tags).toLowerCase();
+    allCards.push(card);
+  });
+
+  var searchInput = document.getElementById('moduleSearch');
+  var searchCount = document.getElementById('searchCount');
+  var searchClear = document.getElementById('searchClear');
+
+  function applySearch(q) {
+    var matchCount = 0;
+    allCards.forEach(function (card) {
+      var matches = !q || card.dataset.searchText.includes(q);
+      card.style.display = matches ? '' : 'none';
+      if (matches) matchCount++;
+    });
+    document.querySelectorAll('.grid-section').forEach(function (section) {
+      var vis = section.querySelectorAll('.card:not([style*="none"])').length;
+      var noRes = section.querySelector('.no-results');
+      if (!noRes) {
+        noRes = document.createElement('div');
+        noRes.className = 'no-results';
+        noRes.textContent = 'No matches in this section.';
+        section.querySelector('.cards').appendChild(noRes);
+      }
+      noRes.classList.toggle('show', vis === 0 && !!q);
+    });
+    searchCount.textContent = q ? (matchCount + ' / ' + allCards.length + ' matching') : '';
+    searchClear.style.display = q ? '' : 'none';
+  }
+
+  searchInput.addEventListener('input', function () { applySearch(this.value.trim().toLowerCase()); });
+  searchClear.addEventListener('click', function () { searchInput.value = ''; applySearch(''); searchInput.focus(); });
+})();
+</script>
+<script>
+(function(){
+  const overlay=document.getElementById('quizOverlay');
+  const closeBtn=document.getElementById('quizClose');
+  let _qs=[], _qi=0, _correct=0, _answered=false;
+
+  function openQuiz(key,label){
+    const qs=QUIZ_DATA[key];
+    if(!qs||!qs.length) return;
+    _qs=qs; _qi=0; _correct=0; _answered=false;
+    document.getElementById('quizModuleLabel').textContent=label;
+    document.getElementById('quizScore').classList.remove('show');
+    buildProgress();
+    renderQ();
+    overlay.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeQuiz(){
+    overlay.classList.remove('open');
+    document.body.style.overflow='';
+  }
+
+  function buildProgress(){
+    const el=document.getElementById('quizProgress');
+    el.innerHTML='';
+    _qs.forEach((_,i)=>{
+      const d=document.createElement('div');
+      d.className='quiz-dot'+(i===_qi?' active':'');
+      d.id='qdot'+i;
+      el.appendChild(d);
+    });
+  }
+
+  function renderQ(){
+    const q=_qs[_qi];
+    _answered=false;
+    document.getElementById('quizCounter').textContent=(_qi+1)+' / '+_qs.length;
+    document.getElementById('quizQuestion').textContent=q.q;
+    document.getElementById('quizExp').textContent='';
+    document.getElementById('quizExp').classList.remove('show');
+    const nextBtn=document.getElementById('quizNext');
+    nextBtn.style.display='none';
+
+    const opts=document.getElementById('quizOpts');
+    opts.innerHTML='';
+    const letters=['A','B','C','D'];
+    q.opts.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='quiz-opt';
+      btn.innerHTML='<span class="quiz-opt-letter">'+letters[i]+'</span><span>'+opt+'</span>';
+      btn.addEventListener('click',()=>selectOpt(i,btn));
+      opts.appendChild(btn);
+    });
+    // update dots
+    document.querySelectorAll('.quiz-dot').forEach((d,i)=>{
+      d.className='quiz-dot'+(i===_qi?' active':(i<_qi?' done-correct':''));
+    });
+  }
+
+  function selectOpt(chosen,btn){
+    if(_answered) return;
+    _answered=true;
+    const q=_qs[_qi];
+    const allBtns=document.querySelectorAll('.quiz-opt');
+    allBtns.forEach(b=>b.classList.add('locked'));
+    if(chosen===q.ans){
+      btn.classList.add('correct');
+      _correct++;
+    } else {
+      btn.classList.add('wrong');
+      allBtns[q.ans].classList.add('correct');
+    }
+    const expEl=document.getElementById('quizExp');
+    expEl.innerHTML='<strong>Explanation:</strong> '+q.exp;
+    expEl.classList.add('show');
+    const nextBtn=document.getElementById('quizNext');
+    nextBtn.style.display='block';
+    if(_qi<_qs.length-1){
+      nextBtn.textContent='Next →';
+    } else {
+      nextBtn.textContent='See Results';
+    }
+    // colour dot
+    const dot=document.getElementById('qdot'+_qi);
+    if(dot) dot.className='quiz-dot '+(chosen===q.ans?'done-correct':'done-wrong');
+  }
+
+  document.getElementById('quizNext').addEventListener('click',()=>{
+    if(_qi<_qs.length-1){
+      _qi++;
+      renderQ();
+    } else {
+      // show score
+      const scoreEl=document.getElementById('quizScore');
+      scoreEl.innerHTML='You got <strong>'+_correct+' / '+_qs.length+'</strong> correct.'+
+        (_correct===_qs.length?' Perfect! 🎯':_correct>=Math.ceil(_qs.length/2)?' Well done!':' Keep exploring — the concepts will click!');
+      scoreEl.classList.add('show');
+      document.getElementById('quizNext').style.display='none';
+    }
+  });
+
+  closeBtn.addEventListener('click',closeQuiz);
+  overlay.addEventListener('click',e=>{if(e.target===overlay) closeQuiz();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('open')) closeQuiz();});
+
+  // Inject quiz buttons into card footers
+  document.querySelectorAll('.card.done').forEach(card=>{
+    const openBtn=card.querySelector('.open-btn');
+    if(!openBtn) return;
+    const href=openBtn.getAttribute('href');
+    const key=href.replace(/^\//, '').replace(/\.html$/, '');
+    if(!QUIZ_DATA[key]) return;
+    const label=card.querySelector('.card-title')?.textContent||key;
+    const qb=document.createElement('button');
+    qb.className='quiz-btn';
+    qb.innerHTML='&#x2753; Quiz';
+    qb.title='Test your knowledge of this module';
+    qb.addEventListener('click',e=>{
+      e.stopPropagation();
+      openQuiz(key,label);
+    });
+    const footer=card.querySelector('.card-footer');
+    if(footer) footer.insertBefore(qb, openBtn);
+  });
+})();
+</script>
+</body>
+</html>

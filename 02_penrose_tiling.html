@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penrose Tiling | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --gold:#ffd700;--cyan:#00e5ff;--green:#00ff99;--pink:#ff44ff;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:14px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+h1{font-size:1.35rem;color:var(--gold);text-shadow:0 0 24px rgba(255,215,0,.4);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tab-bar{display:flex;gap:2px;padding:0 8px;background:var(--bg2);border-top:1px solid var(--border)}
+.tab{padding:7px 13px;font-size:.72rem;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;
+  transition:.15s;user-select:none;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-panel{display:none;flex:1;overflow:hidden}
+.tab-panel.active{display:flex}
+.main{flex:1;display:flex;overflow:hidden;flex-direction:column}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:215px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;flex-shrink:0}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:255px}
+.canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--bg)}
+canvas{display:block;cursor:grab}
+canvas.dragging{cursor:grabbing}
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:8px}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.25);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--gold)}
+.callout-blue{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55;margin-top:8px}
+.callout-blue strong{color:var(--cyan)}
+.callout-green{background:rgba(0,255,153,.05);border:1px solid rgba(0,255,153,.2);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55;margin-top:8px}
+.callout-green strong{color:var(--green)}
+.callout-pink{background:rgba(255,68,255,.05);border:1px solid rgba(255,68,255,.2);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55;margin-top:8px}
+.callout-pink strong{color:var(--pink)}
+input[type=range]{width:100%;accent-color:var(--gold);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.78rem;margin-top:3px;font-family:monospace;color:var(--gold)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.75rem;transition:.15s;flex:1;text-align:center}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn.active{border-color:var(--gold);background:rgba(255,215,0,.1);color:var(--gold)}
+.btn-cyan{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.75rem;transition:.15s;flex:1;text-align:center}
+.btn-cyan:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-cyan.active{border-color:var(--cyan);background:rgba(0,229,255,.1);color:var(--cyan)}
+.btn-green{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.75rem;transition:.15s;flex:1;text-align:center}
+.btn-green:hover{border-color:var(--green);color:var(--green)}
+.btn-green.active{border-color:var(--green);background:rgba(0,255,153,.1);color:var(--green)}
+.color-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.cbtn{padding:5px 4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.72rem;text-align:center;transition:.15s}
+.cbtn:hover{border-color:var(--gold)}
+.cbtn.active{border-color:var(--gold);background:rgba(255,215,0,.1);color:var(--gold)}
+.explore-panel{flex:1;display:flex;overflow:hidden}
+.ctrl-col{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+.info-col{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.conn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.conn-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 13px}
+.conn-card h4{font-size:.75rem;color:var(--cyan);margin-bottom:5px;letter-spacing:.04em}
+.conn-card p{font-size:.72rem;color:var(--dim);line-height:1.6}
+.strip{background:var(--bg2);border-top:1px solid var(--border);padding:6px 18px;
+  font-size:.7rem;color:var(--dim);display:flex;align-items:center;gap:18px;flex-shrink:0}
+.bookref{color:var(--gold);opacity:.7}
+.hint-overlay{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  background:rgba(5,5,15,.75);border:1px solid var(--border);border-radius:5px;
+  padding:5px 12px;font-size:.7rem;color:var(--dim);pointer-events:none;white-space:nowrap}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.proof-btn{display:inline-flex;align-items:center;margin-left:7px;padding:1px 7px;background:rgba(255,215,0,.09);border:1px solid rgba(255,215,0,.3);border-radius:3px;font-size:.6rem;color:#ffd700;cursor:pointer;letter-spacing:.03em;transition:.15s;vertical-align:middle;font-family:inherit}
+.proof-btn:hover{background:rgba(255,215,0,.2);border-color:#ffd700}
+#proof-panel{position:fixed;bottom:0;left:0;right:0;background:#090916;border-top:2px solid #ffd700;padding:18px 40px 26px;max-height:56vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,1,.36,1);z-index:200;box-shadow:0 -12px 48px rgba(0,0,0,.85)}
+#proof-panel.open{transform:translateY(0)}
+.pp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.pp-meta{flex:1}
+.pp-title{font-size:1rem;font-weight:600;color:#c0c0ea}
+.pp-sub{font-size:.74rem;color:#55558a;margin-top:2px}
+.pp-ref{font-size:.66rem;color:#ffd700;opacity:.7;margin-top:4px;font-style:italic}
+.pp-close{padding:4px 12px;border:1px solid #1c1c44;background:transparent;color:#55558a;border-radius:4px;cursor:pointer;font-size:.74rem;flex-shrink:0;transition:.15s;font-family:inherit}
+.pp-close:hover{border-color:#ffd700;color:#ffd700}
+.pp-steps{display:flex;flex-direction:column;gap:11px}
+.pp-step{display:flex;gap:11px;align-items:flex-start}
+.pp-num{min-width:20px;text-align:center;padding:1px 4px;border-radius:3px;font-size:.66rem;font-weight:700;color:#ffd700;background:rgba(255,215,0,.1);margin-top:3px;flex-shrink:0}
+.pp-text{font-size:.78rem;color:#c0c0ea;line-height:1.75;flex:1}
+.pp-text strong{color:#ffd700}
+.pp-qed{text-align:right;color:#ffd700;opacity:.4;font-size:.9rem;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <a href="/" style="padding:4px 10px;border:1px solid #1c1c44;border-radius:4px;color:#55558a;font-size:.75rem;text-decoration:none;transition:.15s;flex-shrink:0" onmouseover="this.style.color='#ffd700';this.style.borderColor='#ffd700'" onmouseout="this.style.color='#55558a';this.style.borderColor='#1c1c44'">&#8592; Home</a>
+    <h1>Penrose Tiling Generator</h1>
+    <span class="sub">Road to Reality &#8212; Ch.&#160;1 &amp; 33 &#183; Penrose 1974 &#183; de Bruijn 1981 &#183; Shechtman 1982</span>
+  </div>
+  <div class="tab-bar" data-role="tab-bar">
+    <div class="tab active" onclick="switchTab(1)">&#9632; Tiling</div>
+    <div class="tab" onclick="switchTab(2)">&#9674; de Bruijn Pentagrid</div>
+    <div class="tab" onclick="switchTab(3)">&#9650; Quasicrystals</div>
+    <div class="tab" onclick="switchTab(4)">&#8645; Inflation &amp; Deflation</div>
+    <div class="tab" onclick="switchTab(5)">&#8594; Matching Rules</div>
+    <div class="tab" onclick="switchTab(6)">&#9670; Connections</div>
+  </div>
+</header>
+<div class="main" data-role="panel">
+<!-- ======================= TAB 1: TILING ======================= -->
+<div class="tab-panel active" data-role="panel" id="tab-1">
+  <div style="flex:1;display:flex;overflow:hidden">
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Subdivisions</div>
+      <input type="range" id="level-sl" min="0" max="8" value="5" oninput="setLevel(+this.value)">
+      <div class="val-disp" id="level-disp">Level 5 &#8212; 320 triangles</div>
+    </div>
+    <div>
+      <div class="section-lbl">Color Mode</div>
+      <div class="color-grid">
+        <button class="cbtn" onclick="setColor('type',this)">Type</button>
+        <button class="cbtn active" onclick="setColor('orient',this)">Orientation</button>
+        <button class="cbtn" onclick="setColor('radial',this)">Radial</button>
+        <button class="cbtn" onclick="setColor('golden',this)">Golden</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Display</div>
+      <div class="btn-row">
+        <button class="btn active" id="edge-btn" onclick="toggleEdges(this)">Edges</button>
+        <button class="btn" id="kd-btn" onclick="toggleKD(this)">Kite/Dart</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Seed Pattern</div>
+      <div class="btn-row">
+        <button class="btn active" id="sun-btn" onclick="setSeed('sun',this)">Sun &#9728;</button>
+        <button class="btn" id="star-btn" onclick="setSeed('star',this)">Star &#11088;</button>
+      </div>
+    </div>
+    <div>
+      <label>Anim Speed</label>
+      <input type="range" id="pan-speed" min="0.1" max="2" step="0.1" value="0.1" oninput="window.animSpeed=Number(this.value);this.nextElementSibling.textContent=this.value+'x'">
+      <div class="val-disp" id="pan-speed-disp">0.1x</div>
+    </div>
+    <div>
+      <button class="btn" style="width:100%" onclick="resetView()">&#8634; Reset View</button>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Aperiodic!</strong> <button class="proof-btn" onclick="showProof('aperiodic')">proof &#9658;</button> No matter how far you look, the pattern never exactly repeats &#8212; yet it is generated by just two tile shapes.
+    </div>
+  </div>
+  <!-- CANVAS -->
+  <div class="canvas-wrap">
+    <canvas id="cp"></canvas>
+    <div class="hint-overlay">Drag to pan &#183; Scroll to zoom</div>
+  </div>
+  <!-- RIGHT SIDEBAR -->
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Tiling Statistics</div>
+    <div class="eq-block">
+      <div class="vrow"><span class="vlbl">Subdivisions</span><span id="stat-level" style="color:var(--gold)">5</span></div>
+      <div class="vrow"><span class="vlbl">Total triangles</span><span id="stat-tris" style="color:var(--cyan)">320</span></div>
+      <div class="vrow"><span class="vlbl">Golden &#9651; (T)</span><span id="stat-T" style="color:#5599ff">&#8212;</span></div>
+      <div class="vrow"><span class="vlbl">Golden &#8962; (G)</span><span id="stat-G" style="color:#ff9933">&#8212;</span></div>
+      <div class="vrow"><span class="vlbl">Kite : Dart ratio</span><span id="stat-ratio" style="color:var(--green)">&#8212;</span></div>
+      <div class="vrow"><span class="vlbl">&#966; (golden ratio)</span><span style="color:var(--gold)">1.61803&#8230;</span></div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">The Golden Ratio <button class="proof-btn" onclick="showProof('golden-ratio')">proof &#9658;</button></div>
+      <div style="font-size:.76rem;line-height:1.8">
+        $\varphi = \dfrac{1+\sqrt{5}}{2} \approx 1.618$<br>
+        Kite : Dart $\to \varphi$ as tiles $\to \infty$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Two Triangles</div>
+      <div style="font-size:.74rem;color:var(--text);line-height:1.7">
+        <span style="color:#5599ff">&#9632;</span> <strong>Golden &#9651;</strong> &#8212; 36&#176;-72&#176;-72&#176;<br>
+        Legs : base = $\varphi$ : 1<br><br>
+        <span style="color:#ff9933">&#9632;</span> <strong>Golden &#8962;</strong> &#8212; 108&#176;-36&#176;-36&#176;<br>
+        Base : leg = $\varphi$ : 1<br><br>
+        Two &#9651; form a <em>kite</em>. Two &#8962; form a <em>dart</em>.
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Substitution Rules <button class="proof-btn" onclick="showProof('substitution')">proof &#9658;</button></div>
+      <div style="font-size:.74rem;color:var(--dim);line-height:1.7">
+        Each &#9651; &#8594; one &#9651; + one &#8962;<br>
+        Each &#8962; &#8594; one &#9651; + one &#8962;<br><br>
+        Every subdivision doubles the triangle count. The ratio converges to $\varphi$.
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Penrose's discovery:</strong> A tiling with only 5-fold symmetry &#8212; impossible in periodic tilings. Directly related to quasi-crystals found in 1984!
+    </div>
+  </div>
+  </div><!-- end inner flex -->
+</div><!-- end tab-1 -->
+<!-- ======================= TAB 2: DE BRUIJN ======================= -->
+<div class="tab-panel" data-role="panel" id="tab-2">
+  <div class="explore-panel">
+  <div class="ctrl-col">
+    <div class="section-lbl">Pentagrid Controls</div>
+    <div>
+      <label>Families shown</label>
+      <div class="btn-row" style="flex-wrap:wrap;gap:3px">
+        <button class="btn-cyan active" id="db-fam-all" onclick="dbShowFam('all',this)">All 5</button>
+        <button class="btn-cyan" id="db-fam-0" onclick="dbShowFam('0',this)">k=0</button>
+        <button class="btn-cyan" id="db-fam-1" onclick="dbShowFam('1',this)">k=1</button>
+        <button class="btn-cyan" id="db-fam-2" onclick="dbShowFam('2',this)">k=2</button>
+      </div>
+    </div>
+    <div>
+      <label>&#947;&#8320; offset (0&#8594;1)</label>
+      <input type="range" id="db-g0" min="0" max="100" value="0" oninput="dbSetGamma(0,this.value/100)">
+      <div class="val-disp" id="db-g0-disp">0.000</div>
+    </div>
+    <div>
+      <label>&#947;&#8321; offset</label>
+      <input type="range" id="db-g1" min="0" max="100" value="20" oninput="dbSetGamma(1,this.value/100)">
+      <div class="val-disp" id="db-g1-disp">0.200</div>
+    </div>
+    <div>
+      <label>&#947;&#8322; offset</label>
+      <input type="range" id="db-g2" min="0" max="100" value="40" oninput="dbSetGamma(2,this.value/100)">
+      <div class="val-disp" id="db-g2-disp">0.400</div>
+    </div>
+    <div>
+      <label>Line density (N)</label>
+      <input type="range" id="db-N" min="3" max="12" value="6" oninput="dbSetN(+this.value)">
+      <div class="val-disp" id="db-N-disp">N = 6</div>
+    </div>
+    <div>
+      <label>Anim Speed</label>
+      <input type="range" id="db-speed" min="0.1" max="2" step="0.1" value="0.1" oninput="window.animSpeed=Number(this.value);this.nextElementSibling.textContent=this.value+'x'">
+      <div class="val-disp" id="db-speed-disp">0.1x</div>
+    </div>
+    <div class="btn-row" style="flex-direction:column;gap:5px">
+      <button class="btn-cyan active" id="db-lines-btn" onclick="dbToggleLines(this)">Show Grid Lines</button>
+      <button class="btn-cyan active" id="db-tiles-btn" onclick="dbToggleTiles(this)">Show Tiles</button>
+    </div>
+    <div class="callout-blue" style="margin-top:auto">
+      <strong>de Bruijn 1981:</strong> Each intersection of two families k&#8800;j generates exactly one rhombus tile. The five families at angles 2&#960;k/5 encode the 5-fold symmetry.
+    </div>
+  </div>
+  <div class="info-col">
+    <canvas id="db-canvas" style="width:100%;height:340px;border:1px solid var(--border);border-radius:6px;background:var(--bg);cursor:default"></canvas>
+    <div class="eq-block">
+      <div class="eq-title">The Pentagrid Construction (de Bruijn 1981)</div>
+      <div style="font-size:.76rem;line-height:1.9;color:var(--text)">
+        For each family $k \in \{0,1,2,3,4\}$, define parallel lines at angle $\theta_k = 2\pi k/5$:<br>
+        $$G_k = \bigl\{\mathbf{r}\in\mathbb{R}^2 : \mathbf{r}\cdot\mathbf{e}_k = n + \gamma_k,\; n\in\mathbb{Z}\bigr\}$$
+        where $\mathbf{e}_k = (\cos\theta_k, \sin\theta_k)$ and $\gamma_k \in [0,1)$ is an offset parameter.<br><br>
+        <strong>Key constraint:</strong> $\sum_{k=0}^{4}\gamma_k = 0$ ensures the grid avoids triple intersections (generic position).<br><br>
+        Each intersection of families $j \neq k$ maps to a rhombus tile. The <em>index vector</em> $(m_0, m_1, m_2, m_3, m_4) \in \mathbb{Z}^5$ with $m_k = \lceil \mathbf{r}\cdot\mathbf{e}_k - \gamma_k \rceil$ projects two rhombus shapes: <strong>fat</strong> (72&#176;) and <strong>thin</strong> (36&#176;).
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">5D &#8594; 2D Projection</div>
+      <div style="font-size:.76rem;line-height:1.9;color:var(--text)">
+        The tiling lives in a 2D <em>physical space</em> $E_\parallel$ embedded in $\mathbb{R}^5$. The projection vectors are:<br>
+        $$\mathbf{v}^{(j)}_k = \cos(2\pi jk/5)\,\hat{e}_x + \sin(2\pi jk/5)\,\hat{e}_y \quad j=1,2$$
+        The <em>perpendicular space</em> $E_\perp \cong \mathbb{R}^3$ determines <em>which</em> lattice points project into the tiling window $W \subset E_\perp$. Changing $\gamma_k$ shifts the window, producing different (but locally indistinguishable) tilings.<br><br>
+        <strong>Golden ratio in spacing:</strong> consecutive line spacings in family $k$ follow the ratio $\tau = \varphi = (1+\sqrt{5})/2$ &#8212; the same ratio as kite-to-dart tile counts.
+      </div>
+    </div>
+    <div class="callout-green">
+      <strong>Uncountably many tilings:</strong> Different $\gamma_k$ values give tilings that differ globally but are locally indistinguishable &#8212; any finite patch in one appears somewhere in every other. This is called <em>local indistinguishability</em> (Penrose 1979).
+    </div>
+  </div>
+  </div>
+</div><!-- end tab-2 -->
+<!-- ======================= TAB 3: QUASICRYSTALS ======================= -->
+<div class="tab-panel" data-role="panel" id="tab-3">
+  <div class="explore-panel">
+  <div class="ctrl-col">
+    <div class="section-lbl">Diffraction Controls</div>
+    <div class="btn-row" style="flex-direction:column;gap:5px">
+      <button class="btn-cyan" id="qc-real-btn" onclick="qcSetView('real',this)">Real Space</button>
+      <button class="btn-cyan active" id="qc-diff-btn" onclick="qcSetView('diff',this)">Diffraction Pattern</button>
+    </div>
+    <div>
+      <label>Point size</label>
+      <input type="range" id="qc-pts" min="1" max="8" value="3" oninput="qcSetPtSize(+this.value)">
+      <div class="val-disp" id="qc-pts-disp">3 px</div>
+    </div>
+    <div>
+      <label>Tiles shown (radius)</label>
+      <input type="range" id="qc-rad" min="3" max="15" value="8" oninput="qcSetRadius(+this.value)">
+      <div class="val-disp" id="qc-rad-disp">R = 8</div>
+    </div>
+    <div>
+      <label>Anim Speed</label>
+      <input type="range" id="qc-speed" min="0.1" max="2" step="0.1" value="0.1" oninput="window.animSpeed=Number(this.value);this.nextElementSibling.textContent=this.value+'x'">
+      <div class="val-disp" id="qc-speed-disp">0.1x</div>
+    </div>
+    <div class="callout-blue" style="margin-top:auto">
+      <strong>Shechtman 1982:</strong> Al&#8722;Mn alloy gave electron diffraction with sharp 10-fold peaks &#8212; crystallographically forbidden. Nobel Prize 2011.
+    </div>
+  </div>
+  <div class="info-col">
+    <canvas id="qc-canvas" style="width:100%;height:330px;border:1px solid var(--border);border-radius:6px;background:var(--bg)"></canvas>
+    <div class="eq-block">
+      <div class="eq-title">Quasicrystal Diffraction Theory</div>
+      <div style="font-size:.76rem;line-height:1.9;color:var(--text)">
+        The <strong>structure factor</strong> for a set of atomic positions $\{\mathbf{r}_j\}$ is:<br>
+        $$F(\mathbf{G}) = \sum_j f_j\, e^{i\mathbf{G}\cdot\mathbf{r}_j}$$
+        For a Penrose quasicrystal, reciprocal lattice vectors require <strong>5 integer indices</strong>:<br>
+        $$\mathbf{G} = \sum_{k=0}^{4} h_k \mathbf{G}_k, \quad \mathbf{G}_k = \frac{2\pi}{a}\bigl(\cos(2\pi k/5),\,\sin(2\pi k/5)\bigr)$$
+        This gives a <em>dense</em> (not periodic) but <strong>discrete</strong> set of Bragg peaks &#8212; the hallmark of quasicrystals: sharp diffraction spots with icosahedral/pentagonal symmetry.
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Physical Quasicrystals</div>
+      <div style="font-size:.76rem;line-height:1.7;color:var(--text)">
+        &#9679; <strong>Al&#8722;Mn</strong> (Shechtman 1982) &#8212; first icosahedral quasicrystal<br>
+        &#9679; <strong>Al&#8722;Cu&#8722;Fe</strong> &#8212; thermodynamically stable icosahedral phase<br>
+        &#9679; <strong>Ho&#8722;Mg&#8722;Zn</strong> &#8212; perfect dodecahedral macroscopic shape<br>
+        &#9679; <strong>Icosahedrite</strong> (Bindi 2009) &#8212; natural quasicrystal in Khatyrka meteorite<br><br>
+        IUCr redefined &#8220;crystal&#8221; in 1992: <em>any solid with an essentially discrete diffraction diagram</em> &#8212; removing the periodicity requirement entirely.
+      </div>
+    </div>
+    <div class="callout-pink">
+      <strong>Crystallographic restriction theorem:</strong> A periodic tiling in 2D can only have 2-, 3-, 4-, or 6-fold rotational symmetry. 5-fold is <em>forbidden</em> for periodic structures &#8212; which is precisely why Penrose tilings and quasicrystals are so remarkable.
+    </div>
+  </div>
+  </div>
+</div><!-- end tab-3 -->
+<!-- ======================= TAB 4: INFLATION ======================= -->
+<div class="tab-panel" data-role="panel" id="tab-4">
+  <div class="explore-panel">
+  <div class="ctrl-col">
+    <div class="section-lbl">Inflation Controls</div>
+    <div>
+      <label>Inflation level (0&#8211;7)</label>
+      <input type="range" id="infl-level" min="0" max="7" value="3" oninput="inflSetLevel(+this.value)">
+      <div class="val-disp" id="infl-level-disp">Level 3</div>
+    </div>
+    <div>
+      <label>Anim Speed</label>
+      <input type="range" id="infl-speed" min="0.1" max="2" step="0.1" value="0.1" oninput="window.animSpeed=Number(this.value);this.nextElementSibling.textContent=this.value+'x'">
+      <div class="val-disp" id="infl-speed-disp">0.1x</div>
+    </div>
+    <div class="eq-block" style="margin-top:4px">
+      <div class="eq-title">Fibonacci Counts</div>
+      <div class="vrow"><span class="vlbl">T triangles</span><span id="infl-T" style="color:#5599ff">&#8212;</span></div>
+      <div class="vrow"><span class="vlbl">G triangles</span><span id="infl-G" style="color:#ff9933">&#8212;</span></div>
+      <div class="vrow"><span class="vlbl">T/G ratio</span><span id="infl-ratio" style="color:var(--green)">&#8212;</span></div>
+      <div class="vrow"><span class="vlbl">&#966; = 1.618&#8230;</span><span style="color:var(--gold)">target</span></div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Fibonacci tile counts:</strong> after $n$ inflations, T&#8320; = $F_{n+1}$ and G&#8320; = $F_n$. Their ratio &#8594; &#966;.
+    </div>
+  </div>
+  <div class="info-col">
+    <canvas id="infl-canvas" style="width:100%;height:300px;border:1px solid var(--border);border-radius:6px;background:var(--bg)"></canvas>
+    <div class="eq-block">
+      <div class="eq-title">Substitution Matrix &amp; Eigenvalue</div>
+      <div style="font-size:.76rem;line-height:1.9;color:var(--text)">
+        The inflation rules $T\to G+T$, $G\to T+G$ are encoded in the matrix:<br>
+        $$M = \begin{pmatrix}1&1\\1&2\end{pmatrix}$$
+        Its eigenvalues satisfy $\lambda^2 - 3\lambda + 1 = 0$, giving<br>
+        $$\lambda_+ = \varphi^2 = \varphi+1 \approx 2.618, \quad \lambda_- = \varphi^{-2} \approx 0.382$$
+        After $n$ steps: tile counts $\mathbf{v}_n = M^n\mathbf{v}_0 \sim \lambda_+^n\,\mathbf{u}_+$ where $\mathbf{u}_+\propto(\varphi,1)$.<br><br>
+        <strong>Self-similarity:</strong> scaling the tiling by $\varphi^2$ and subdividing recovers the exact same tiling &#8212; a <em>fractal-like</em> structure at every scale.
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Inflation vs. Deflation</div>
+      <div style="font-size:.76rem;line-height:1.7;color:var(--text)">
+        <strong>Inflate:</strong> scale each tile by $\varphi$, then split according to substitution rules &#8594; more, smaller tiles covering the same area.<br><br>
+        <strong>Deflate:</strong> merge groups of tiles into larger tiles &#8594; fewer, bigger tiles.<br><br>
+        The two operations are exact inverses. Starting from any valid tiling, infinite inflation or deflation always produces another valid Penrose tiling. This proves that <em>every finite patch appears infinitely often</em>.
+      </div>
+    </div>
+    <div class="callout-green">
+      <strong>Why &#966;&#178; = &#966; + 1 matters:</strong> the area of a fat rhombus to a thin rhombus is exactly &#966;&#178;. After each inflation step, the total tile count multiplies by &#960;&#178; &#8776; 2.618 &#8212; not 2, not 3, but precisely the golden ratio squared.
+    </div>
+  </div>
+  </div>
+</div><!-- end tab-4 -->
+<!-- ======================= TAB 5: MATCHING RULES ======================= -->
+<div class="tab-panel" data-role="panel" id="tab-5">
+  <div class="explore-panel">
+  <div class="ctrl-col">
+    <div class="section-lbl">Matching Rule Options</div>
+    <div>
+      <label>Anim Speed</label>
+      <input type="range" id="mr-speed" min="0.1" max="2" step="0.1" value="0.1" oninput="window.animSpeed=Number(this.value);this.nextElementSibling.textContent=this.value+'x'">
+      <div class="val-disp" id="mr-speed-disp">0.1x</div>
+    </div>
+    <div class="btn-row" style="flex-direction:column;gap:5px">
+      <button class="btn-cyan active" id="mr-arrows-btn" onclick="mrToggleArrows(this)">Show Arrow Markings</button>
+      <button class="btn-cyan active" id="mr-colors-btn" onclick="mrToggleColors(this)">Color Edge Types</button>
+      <button class="btn-green active" id="mr-worms-btn" onclick="mrToggleWorms(this)">Show Conway Worms</button>
+      <button class="btn active" id="mr-enforce-btn" onclick="mrToggleEnforce(this)">Enforce Rules</button>
+    </div>
+    <div class="callout" style="margin-top:4px">
+      <strong>Rules off?</strong> Without matching rules you can tile periodically or with defects. With rules, only quasiperiodic tilings are possible.
+    </div>
+    <div class="callout-blue" style="margin-top:auto">
+      <strong>Conway worms</strong> are infinite straight chains of tiles. They run parallel to the 5 pentagrid directions and demonstrate global long-range order.
+    </div>
+  </div>
+  <div class="info-col">
+    <canvas id="mr-canvas" style="width:100%;height:310px;border:1px solid var(--border);border-radius:6px;background:var(--bg)"></canvas>
+    <div class="eq-block">
+      <div class="eq-title">Matching Rules &amp; Aperiodicity</div>
+      <div style="font-size:.76rem;line-height:1.9;color:var(--text)">
+        Penrose tiles carry <strong>edge markings</strong> (arrows or indentations) such that tiles may only be assembled if markings on shared edges agree. There are <strong>two types</strong> of edge markings:<br>
+        &#9679; <span style="color:var(--gold)">Single arrow</span> (S): must align head-to-tail<br>
+        &#9679; <span style="color:var(--cyan)">Double arrow</span> (D): must also align head-to-tail<br><br>
+        <strong>Theorem (Penrose 1974):</strong> Any tiling of the plane using P2 tiles that satisfies all matching rules is necessarily aperiodic &#8212; no translation symmetry is possible.<br><br>
+        <strong>Undecidability connection:</strong> Berger (1966) proved that the domino tiling problem is undecidable. Penrose&#8217;s matching rules show that <em>local constraints can enforce global aperiodicity</em> &#8212; a deep connection to computability theory.
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Conway Worms &amp; Ammann Bars</div>
+      <div style="font-size:.76rem;line-height:1.7;color:var(--text)">
+        <strong>Conway worms</strong> (John H. Conway): infinite sequences of kites and darts forming straight strips. Any Penrose tiling contains exactly 5 families of Conway worms, parallel to the 5 pentagrid directions.<br><br>
+        <strong>Ammann bars</strong> (Robert Ammann): line segments on each tile that, when tiles obey matching rules, extend into 5 families of infinite parallel lines &#8212; with a quasiperiodic spacing ratio of $\varphi:1$. These bars directly encode the pentagrid structure.
+      </div>
+    </div>
+    <div class="callout-pink">
+      <strong>Local vs. global:</strong> matching rules are purely <em>local</em> (only adjacent tiles need agree) yet they enforce a <em>global</em> structure. This is philosophically profound &#8212; Penrose himself connected this to the question of whether the laws of physics (local) could enforce the global structure of spacetime.
+    </div>
+  </div>
+  </div>
+</div><!-- end tab-5 -->
+<!-- ======================= TAB 6: CONNECTIONS ======================= -->
+<div class="tab-panel" data-role="panel" id="tab-6">
+  <div class="explore-panel">
+  <div class="ctrl-col">
+    <div class="section-lbl">Topics</div>
+    <div style="font-size:.74rem;color:var(--dim);line-height:1.8">
+      Click any card to see details. These connections span number theory, physics, and the foundations of mathematics.
+    </div>
+    <div class="callout-blue" style="margin-top:8px">
+      <strong>Penrose&#8217;s view:</strong> quasicrystals and aperiodic tilings hint at deep geometric structure underlying physical reality &#8212; a theme throughout <em>Road to Reality</em>.
+    </div>
+    <div class="callout-pink" style="margin-top:8px">
+      <strong>E&#8328; connection:</strong> the 3D icosahedral quasicrystal is a projection of the 8D $E_8$ root lattice. The same lattice appears in string theory and the Monster group.
+    </div>
+  </div>
+  <div class="info-col">
+    <div class="conn-grid">
+      <div class="conn-card">
+        <h4>&#955;-Adic Numbers &amp; Almost Periodicity</h4>
+        <p><strong>Harald Bohr (1925)</strong> defined <em>almost-periodic functions</em>: $f(x)$ such that for any $\varepsilon>0$, the set of $\tau$ with $\sup_x|f(x+\tau)-f(x)|<\varepsilon$ is relatively dense. Penrose tilings are almost-periodic in exactly this sense &#8212; they are the spatial analog of Bohr&#8217;s functions. The Fourier transform of an almost-periodic function is a <em>discrete but dense</em> set of frequencies, precisely matching quasicrystal diffraction.</p>
+      </div>
+      <div class="conn-card">
+        <h4>Cut-and-Project &amp; Model Sets</h4>
+        <p><strong>Yves Meyer (1972)</strong> introduced <em>model sets</em> (cut-and-project sets): take the integer lattice $\mathbb{Z}^5 \subset \mathbb{R}^5$, define a strip $\mathcal{S} = E_\parallel \times W$ where $W \subset E_\perp$ is a compact window (a regular pentagon for Penrose), and project $\mathcal{S} \cap \mathbb{Z}^5$ onto $E_\parallel$. The result is a Penrose tiling vertex set. Meyer&#8217;s theory proves these sets have <em>pure point diffraction</em> &#8212; the mathematical basis for sharp Bragg peaks in quasicrystals.</p>
+      </div>
+      <div class="conn-card">
+        <h4>E&#8328; Root System &amp; Icosahedral Quasicrystals</h4>
+        <p>The $E_8$ root system has 240 vectors in $\mathbb{R}^8$. The icosahedral subgroup $Y \subset SO(3)$ of order 60 acts on a 6D sublattice of $E_8$. Projecting this onto 3D physical space plus 3D perpendicular space gives the 3D icosahedral quasicrystal. The same $E_8$ lattice appears in the heterotic string theory ($E_8 \times E_8$) and in Garrett Lisi&#8217;s $E_8$ theory of everything. The deepest tilings of physical space may be shadows of 8-dimensional geometry.</p>
+      </div>
+      <div class="conn-card">
+        <h4>Kochen&#8211;Specker Contextuality</h4>
+        <p>The <strong>Kochen&#8211;Specker theorem (1967)</strong> proves that quantum mechanics is <em>contextual</em>: measurement outcomes cannot be pre-assigned independently of which other observables are measured simultaneously. One construction uses a set of 31 rays in $\mathbb{R}^3$ with Penrose-like geometric structure. A Penrose tiling of the sphere gives a natural coloring problem whose unsolvability <em>is</em> the Kochen&#8211;Specker theorem &#8212; connecting aperiodic geometry directly to quantum foundations.</p>
+      </div>
+      <div class="conn-card">
+        <h4>Noncommutative Geometry (Connes)</h4>
+        <p><strong>Alain Connes</strong> showed that the space of all Penrose tilings, while uncountable and topologically trivial (all tilings are locally indistinguishable), admits a rich <em>noncommutative</em> structure. The $C^*$-algebra $\mathcal{A}$ of the Penrose tiling has $K_0(\mathcal{A}) \cong \mathbb{Z}^2$ with the golden ratio $\varphi$ encoding the module structure. This is the first example of a physical application of noncommutative geometry &#8212; Connes used it as a motivating example in his 1994 book.</p>
+      </div>
+      <div class="conn-card">
+        <h4>Penrose&#8217;s Quantum Mind Thesis</h4>
+        <p>In <em>The Emperor&#8217;s New Mind</em> (1989) and <em>Shadows of the Mind</em> (1994), Penrose argues that human consciousness involves <em>non-algorithmic</em> processes, connected to his <strong>Orchestrated Objective Reduction (Orch-OR)</strong> hypothesis with Hameroff. The aperiodic structure of Penrose tilings mirrors his view: locally determined rules create globally non-computable structures. The undecidability of the tiling extension problem (can a finite patch extend to a full Penrose tiling?) connects directly to G&#246;del incompleteness.</p>
+      </div>
+    </div>
+    <div class="callout-blue">
+      <strong>&#8220;Road to Reality&#8221; connection:</strong> Penrose devotes Chapter 33 to quasicrystals and Chapter 1 to the golden ratio. The deeper point throughout the book is that the most profound mathematics &#8212; irrational numbers, infinite-dimensional Hilbert spaces, fiber bundles &#8212; turns out to be exactly what describes physical reality. Penrose tilings are a perfect microcosm of this theme.
+    </div>
+  </div>
+  </div>
+</div><!-- end tab-6 -->
+</div><!-- end .main -->
+<div class="strip">
+  <span class="bookref">&#128214; Road to Reality &#167;1.3 &#183; &#167;33.3</span>
+  <span>The Penrose tiling has no translational symmetry yet is quasi-periodic &#8212; bridging order and chaos.</span>
+</div>
+<script>
+function _cancelAllAnims02(){
+  // Cancel all animation frames
+  for(let i=0;i<10;i++){
+    let id=requestAnimationFrame(()=>{});
+    cancelAnimationFrame(id);
+  }
+}
+
+
+  window.animSpeed=0.1;
+
+  function autoStartAnimations() {
+    if (window.animSpeed === undefined) {
+      window.animSpeed = 0.1;
+    }
+    // Auto-start animations for all tabs
+    if (_activeTab === 1) {
+      togglePanAnim();
+    } else if (_activeTab === 2) {
+      dbToggleAnim();
+    }
+  }
+
+// =====================================================
+//  TAB SWITCHING
+// =====================================================
+var _activeTab = 1;
+function cancelAllAnimations() {
+  if (P.raf) { cancelAnimationFrame(P.raf); P.raf = null; }
+  if (DB.animFrame) { cancelAnimationFrame(DB.animFrame); DB.animFrame = null; }
+  if (QC.animFrame) { cancelAnimationFrame(QC.animFrame); QC.animFrame = null; }
+  if (INFL.animFrame) { cancelAnimationFrame(INFL.animFrame); INFL.animFrame = null; }
+  if (MR.animFrame) { cancelAnimationFrame(MR.animFrame); MR.animFrame = null; }
+  // Reset animation states and button UI
+  P.animating = false;
+  var pBtn = document.getElementById('pan-anim-btn');
+  if (pBtn) { pBtn.textContent = '▶ Animate View'; pBtn.classList.remove('active'); }
+  DB.anim = false;
+  var dbBtn = document.getElementById('db-anim-btn');
+  if (dbBtn) { dbBtn.textContent = '▶ Animate'; dbBtn.classList.remove('active'); }
+  QC.xrayAnim = false;
+  var qcBtn = document.getElementById('qc-xray-btn');
+  if (qcBtn) { qcBtn.textContent = '▶ X-ray'; qcBtn.classList.remove('active'); }
+  INFL.anim = false;
+  var inflBtn = document.getElementById('infl-anim-btn');
+  if (inflBtn) { inflBtn.textContent = '▶ Inflate'; inflBtn.classList.remove('active'); }
+  MR.anim = false;
+  var mrBtn = document.getElementById('mr-anim-btn');
+  if (mrBtn) { mrBtn.textContent = '▶ Animate Rules'; mrBtn.classList.remove('active'); }
+}
+function switchTab(n) {
+  cancelAllAnimations();
+  document.querySelectorAll('.tab').forEach(function(t,i){ t.classList.toggle('active', i+1===n); });
+  document.querySelectorAll('.tab-panel').forEach(function(p,i){ p.classList.toggle('active', i+1===n); });
+  _activeTab = n;
+  if (n===1) {
+    initCanvas(); render(); P.animating=true; panAnimate();
+  }
+  else if (n===2) {
+    initDBCanvas(); drawDB(); DB.anim=true; dbAnimate();
+  }
+  else if (n===3) {
+    initQCCanvas(); drawQC(); QC.xrayAnim=true; qcAnimate();
+  }
+  else if (n===4) {
+    initInflCanvas(); drawInfl(); INFL.anim=true; inflAnimate();
+  }
+  else if (n===5) {
+    initMRCanvas(); drawMR(); MR.anim=true; mrAnimate();
+  }
+}
+// =====================================================
+//  MATH
+// =====================================================
+const PHI = (1 + Math.sqrt(5)) / 2;
+function lerp(A, B, t) {
+  return {x: A.x + (B.x-A.x)*t, y: A.y + (B.y-A.y)*t};
+}
+function subdivide(tris) {
+  const r = [];
+  for (const {type, A, B, C} of tris) {
+    if (type === 'T') {
+      const D = lerp(A, B, 1/PHI);
+      r.push({type:'G', A:D, B:A, C:C});
+      r.push({type:'T', A:C, B:B, C:D});
+    } else {
+      const E = lerp(B, C, 1/PHI);
+      r.push({type:'T', A:B, B:A, C:E});
+      r.push({type:'G', A:E, B:C, C:A});
+    }
+  }
+  return r;
+}
+function makeSun(cx, cy, R) {
+  const t = [];
+  for (let k = 0; k < 10; k++) {
+    t.push({ type:'T',
+      A: {x:cx, y:cy},
+      B: {x:cx + R*Math.cos(k * Math.PI/5),     y:cy + R*Math.sin(k * Math.PI/5)},
+      C: {x:cx + R*Math.cos((k+1) * Math.PI/5), y:cy + R*Math.sin((k+1) * Math.PI/5)}
+    });
+  }
+  return t;
+}
+function makeStar(cx, cy, R) {
+  const t = [];
+  for (let k = 0; k < 10; k++) {
+    const a1 = k * Math.PI/5 + Math.PI/10;
+    const a2 = (k+1) * Math.PI/5 + Math.PI/10;
+    t.push({ type:'G',
+      A: {x:cx, y:cy},
+      B: {x:cx + R*Math.cos(a1), y:cy + R*Math.sin(a1)},
+      C: {x:cx + R*Math.cos(a2), y:cy + R*Math.sin(a2)}
+    });
+  }
+  return t;
+}
+// =====================================================
+//  STATE (Tab 1)
+// =====================================================
+const P = {
+  seed: 'sun', level: 5, colorMode: 'orient',
+  showEdges: true, mergeKD: false,
+  pan: {x:0, y:0}, zoom: 220, dragging: false, dragStart: null, dragPan: null, animating: true, animT: 0, raf: null, speed: 0.1,
+};
+const cache = new Map();
+function buildTiling(seed, level) {
+  const key = seed + '_' + level;
+  if (cache.has(key)) return cache.get(key);
+  const cx = 0, cy = 0;
+  let t = seed === 'sun' ? makeSun(cx, cy, 1) : makeStar(cx, cy, 1);
+  for (let i = 0; i < level; i++) t = subdivide(t);
+  cache.set(key, t);
+  return t;
+}
+function getColor(tri, mode) {
+  if (mode === 'type') {
+    return tri.type === 'T' ? 'hsl(220,70%,30%)' : 'hsl(38,85%,32%)';
+  }
+  if (mode === 'orient') {
+    const cx = (tri.B.x + tri.C.x)/2, cy = (tri.B.y + tri.C.y)/2;
+    const angle = Math.atan2(tri.A.y - cy, tri.A.x - cx);
+    const snapped = Math.round(angle / (Math.PI/5)) * (Math.PI/5);
+    const hue = ((snapped * 180/Math.PI) + 360) % 360;
+    return tri.type === 'T' ? 'hsl('+hue+',65%,30%)' : 'hsl('+((hue+25)%360)+',80%,38%)';
+  }
+  if (mode === 'radial') {
+    const cx = (tri.A.x+tri.B.x+tri.C.x)/3, cy = (tri.A.y+tri.B.y+tri.C.y)/3;
+    const dist = Math.sqrt(cx*cx + cy*cy);
+    const angle = Math.atan2(cy, cx);
+    const hue = ((angle*180/Math.PI)+360) % 360;
+    const lit = 22 + 20 * Math.exp(-dist*0.8);
+    return 'hsl('+hue+','+(tri.type==='T'?75:60)+'%,'+lit+'%)';
+  }
+  if (mode === 'golden') {
+    const cx = (tri.B.x + tri.C.x)/2, cy = (tri.B.y + tri.C.y)/2;
+    const angle = Math.atan2(tri.A.y - cy, tri.A.x - cx);
+    const snapped = Math.round(angle / (Math.PI/5)) * (Math.PI/5);
+    const idx = Math.round(((snapped + Math.PI) / (2*Math.PI)) * 10) % 10;
+    const lit = tri.type === 'T'
+      ? [18,22,26,30,34,38,34,30,26,22][idx]
+      : [35,40,45,50,45,40,35,30,35,40][idx];
+    return 'hsl(43,'+(tri.type==='T'?55:80)+'%,'+lit+'%)';
+  }
+  return '#223';
+}
+function eKey(A, B) {
+  const a = A.x.toFixed(6)+','+A.y.toFixed(6);
+  const b = B.x.toFixed(6)+','+B.y.toFixed(6);
+  return a < b ? a+'|'+b : b+'|'+a;
+}
+function buildSharedBases(tris) {
+  const map = new Map();
+  for (const tri of tris) {
+    const k = eKey(tri.B, tri.C);
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(tri);
+  }
+  const shared = new Set();
+  for (const [k, ts] of map)
+    if (ts.length === 2 && ts[0].type === ts[1].type) shared.add(k);
+  return shared;
+}
+let colorCache = null, colorCacheKey = '';
+function render() {
+  const c = document.getElementById('cp');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+  const tris = buildTiling(P.seed, P.level);
+  const toX = p => W/2 + P.pan.x + p.x * P.zoom;
+  const toY = p => H/2 + P.pan.y + p.y * P.zoom;
+  const ck = P.seed+'_'+P.level+'_'+P.colorMode;
+  if (colorCacheKey !== ck) {
+    colorCache = tris.map(tri => getColor(tri, P.colorMode));
+    colorCacheKey = ck;
+  }
+  const sharedBases = P.mergeKD ? buildSharedBases(tris) : null;
+  for (let i = 0; i < tris.length; i++) {
+    const {A, B, C} = tris[i];
+    const ax=toX(A),ay=toY(A),bx=toX(B),by=toY(B),cx_=toX(C),cy_=toY(C);
+    if (ax<-5&&bx<-5&&cx_<-5) continue;
+    if (ax>W+5&&bx>W+5&&cx_>W+5) continue;
+    if (ay<-5&&by<-5&&cy_<-5) continue;
+    if (ay>H+5&&by>H+5&&cy_>H+5) continue;
+    ctx.fillStyle = colorCache[i];
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.lineTo(cx_,cy_);
+    ctx.closePath(); ctx.fill();
+  }
+  if (P.showEdges) {
+    const lw = Math.max(0.3, Math.min(1.5, P.zoom / 150));
+    ctx.lineWidth = lw;
+    for (const tri of tris) {
+      const {A, B, C} = tri;
+      const ax=toX(A),ay=toY(A),bx=toX(B),by=toY(B),cx_=toX(C),cy_=toY(C);
+      if (ax<-5&&bx<-5&&cx_<-5) continue;
+      if (ax>W+5&&bx>W+5&&cx_>W+5) continue;
+      const hideBC = P.mergeKD && sharedBases && sharedBases.has(eKey(tri.B, tri.C));
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx_,cy_); ctx.lineTo(ax,ay); ctx.stroke();
+      if (!hideBC) { ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(cx_,cy_); ctx.stroke(); }
+    }
+  }
+  updateStats(tris);
+}
+function updateStats(tris) {
+  const nT = tris.filter(t=>t.type==='T').length, nG = tris.length - nT;
+  const ratio = nG > 0 ? (nT/nG).toFixed(4) : 'inf';
+  document.getElementById('stat-level').textContent  = P.level;
+  document.getElementById('stat-tris').textContent   = tris.length;
+  document.getElementById('stat-T').textContent      = nT;
+  document.getElementById('stat-G').textContent      = nG;
+  document.getElementById('stat-ratio').textContent  = ratio;
+  document.getElementById('level-disp').textContent  = 'Level ' + P.level + ' \u2014 ' + tris.length + ' triangles';
+}
+function setLevel(v) { P.level=v; colorCacheKey=''; render(); }
+function setColor(mode, btn) {
+  P.colorMode=mode; colorCacheKey='';
+  document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); render();
+}
+function toggleEdges(btn) { P.showEdges=!P.showEdges; btn.classList.toggle('active',P.showEdges); render(); }
+function toggleKD(btn) { P.mergeKD=!P.mergeKD; btn.classList.toggle('active',P.mergeKD); render(); }
+function setSeed(seed, btn) {
+  P.seed=seed; colorCacheKey='';
+  document.getElementById('sun-btn').classList.toggle('active',seed==='sun');
+  document.getElementById('star-btn').classList.toggle('active',seed==='star');
+  render();
+}
+function resetView() { P.pan={x:0,y:0}; P.zoom=220; render(); }
+function togglePanAnim(btn) {
+  P.animating = !P.animating;
+  if(btn) btn.textContent = P.animating ? '⏸ Stop Pan' : '▶ Animate View';
+  if(P.animating) panAnimate();
+}
+function panAnimate() {
+  if(!P.animating || _activeTab !== 1) return;
+  if(!P.dragging) {
+    P.animT += 0.012 * window.animSpeed;
+    P.pan.x = Math.sin(P.animT) * 120;
+    P.pan.y = Math.cos(P.animT * 0.7) * 90;
+    render();
+  }
+  P.raf = requestAnimationFrame(panAnimate);
+}
+function initCanvas() {
+  const c = document.getElementById('cp');
+  if (!c) return;
+  window.resizeCanvas(c);
+}
+function initInteraction() {
+  const c = document.getElementById('cp');
+  if (!c) return;
+  c.addEventListener('mousedown', e => {
+    P.dragging=true; P.dragStart={x:e.clientX,y:e.clientY}; P.dragPan={x:P.pan.x,y:P.pan.y};
+    c.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!P.dragging) return;
+    P.pan.x=P.dragPan.x+(e.clientX-P.dragStart.x);
+    P.pan.y=P.dragPan.y+(e.clientY-P.dragStart.y);
+    render();
+  });
+  window.addEventListener('mouseup', () => { P.dragging=false; document.getElementById('cp').classList.remove('dragging'); });
+  c.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor=e.deltaY<0?1.12:1/1.12;
+    const rect=c.getBoundingClientRect();
+    const mx=e.clientX-rect.left-c.width/2, my=e.clientY-rect.top-c.height/2;
+    P.pan.x=mx+(P.pan.x-mx)*factor; P.pan.y=my+(P.pan.y-my)*factor; P.zoom*=factor; render();
+  },{passive:false});
+  let lastTouches=null;
+  c.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    if(e.touches.length===1){P.dragging=true;P.dragStart={x:e.touches[0].clientX,y:e.touches[0].clientY};P.dragPan={x:P.pan.x,y:P.pan.y};}
+    lastTouches=Array.from(e.touches).map(t=>({x:t.clientX,y:t.clientY}));
+  },{passive:false});
+  c.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===1&&P.dragging){P.pan.x=P.dragPan.x+(e.touches[0].clientX-P.dragStart.x);P.pan.y=P.dragPan.y+(e.touches[0].clientY-P.dragStart.y);render();}
+    else if(e.touches.length===2&&lastTouches&&lastTouches.length===2){
+      const t=Array.from(e.touches).map(t=>({x:t.clientX,y:t.clientY}));
+      const pd=Math.hypot(lastTouches[0].x-lastTouches[1].x,lastTouches[0].y-lastTouches[1].y);
+      const nd=Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y);
+      if(pd>0){P.zoom*=nd/pd;render();} lastTouches=t;
+    }
+  },{passive:false});
+  c.addEventListener('touchend',()=>{P.dragging=false;});
+}
+// =====================================================
+//  DE BRUIJN (Tab 2)
+// =====================================================
+var DB = {
+  gamma: [0, 0.2, 0.4, 0.6, 0.8],
+  N: 6, showLines: true, showTiles: true, anim: true,
+  animFrame: null, animT: 0, famFilter: 'all', speed: 0.1
+};
+function initDBCanvas() {
+  var c = document.getElementById('db-canvas');
+  if (!c) return;
+  var rect = c.parentElement.getBoundingClientRect();
+  c.width  = Math.floor(rect.width - 36);
+  c.height = 340;
+}
+function dbSetGamma(k, v) {
+  DB.gamma[k] = v;
+  document.getElementById('db-g'+k+'-disp').textContent = v.toFixed(3);
+  if (!DB.anim) drawDB();
+}
+function dbSetN(v) {
+  DB.N = v;
+  document.getElementById('db-N-disp').textContent = 'N = ' + v;
+  if (!DB.anim) drawDB();
+}
+function dbShowFam(f, btn) {
+  DB.famFilter = f;
+  document.querySelectorAll('[id^="db-fam-"]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (!DB.anim) drawDB();
+}
+function dbToggleLines(btn) {
+  DB.showLines = !DB.showLines;
+  btn.classList.toggle('active', DB.showLines);
+  if (!DB.anim) drawDB();
+}
+function dbToggleTiles(btn) {
+  DB.showTiles = !DB.showTiles;
+  btn.classList.toggle('active', DB.showTiles);
+  if (!DB.anim) drawDB();
+}
+function dbToggleAnim(btn) {
+  DB.anim = !DB.anim;
+  if (btn) btn.classList.toggle('active', DB.anim);
+  if (DB.anim) dbAnimate();
+}
+function dbAnimate() {
+  if (!DB.anim || _activeTab !== 2) return;
+  DB.animT += 0.012 * window.animSpeed;
+  for (var k = 0; k < 5; k++) {
+    DB.gamma[k] = (Math.sin(DB.animT * (1 + k*0.3)) * 0.5 + 0.5) * 0.9;
+    if (k < 3) {
+      var el = document.getElementById('db-g' + k);
+      var disp = document.getElementById('db-g' + k + '-disp');
+      if (el) el.value = DB.gamma[k] * 100;
+      if (disp) disp.textContent = DB.gamma[k].toFixed(3);
+    }
+  }
+  drawDB();
+  DB.animFrame = requestAnimationFrame(dbAnimate);
+}
+function drawDB() {
+  var c = document.getElementById('db-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+  var cx = W/2, cy = H/2;
+  var scale = Math.min(W, H) * 0.38;
+  var N = DB.N;
+  var colors5 = ['#ff4466','#ffaa00','#00ff99','#00aaff','#ff44ff'];
+  // Draw grid lines
+  if (DB.showLines) {
+    for (var k = 0; k < 5; k++) {
+      if (DB.famFilter !== 'all' && DB.famFilter !== String(k)) continue;
+      var th = 2 * Math.PI * k / 5;
+      var ex = Math.cos(th), ey = Math.sin(th);
+      var nx = -Math.sin(th), ny = Math.cos(th); // normal direction
+      ctx.strokeStyle = colors5[k];
+      ctx.globalAlpha = 0.35;
+      ctx.lineWidth = 1;
+      for (var n = -N; n <= N; n++) {
+        var d = (n + DB.gamma[k]) * scale * 0.18;
+        var px = cx + nx * d, py = cy + ny * d;
+        ctx.beginPath();
+        ctx.moveTo(px - ex*W, py - ey*W);
+        ctx.lineTo(px + ex*W, py + ey*W);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+  // Draw tiles from intersections
+  if (DB.showTiles) {
+    var tileScale = scale * 0.18;
+    for (var j = 0; j < 5; j++) {
+      for (var kk = j+1; kk < 5; kk++) {
+        var thJ = 2*Math.PI*j/5, thK = 2*Math.PI*kk/5;
+        var eJx=Math.cos(thJ),eJy=Math.sin(thJ);
+        var eKx=Math.cos(thK),eKy=Math.sin(thK);
+        var nJx=-Math.sin(thJ),nJy=Math.cos(thJ);
+        var nKx=-Math.sin(thK),nKy=Math.cos(thK);
+        var denom = nJx*nKy - nJy*nKx;
+        if (Math.abs(denom) < 1e-9) continue;
+        for (var m = -N+1; m < N; m++) {
+          for (var p = -N+1; p < N; p++) {
+            var dJ = (m + DB.gamma[j]) * tileScale;
+            var dK = (p + DB.gamma[kk]) * tileScale;
+            var t1 = (dJ*nKy - dK*nKx) / denom;
+            var t2 = (dK*nJx - dJ*nJy) / denom;
+            var ix = cx + t1*nKx + t2*nJx;
+            var iy = cy + t1*nKy + t2*nJy;
+            if (ix < 5 || ix > W-5 || iy < 5 || iy > H-5) continue;
+            // Draw small rhombus
+            var sz = tileScale * 0.45;
+            var ang = (thJ + thK) / 2;
+            var fatAngle = Math.abs(thK - thJ);
+            // color by family pair
+            var col = colors5[j];
+            ctx.fillStyle = col;
+            ctx.globalAlpha = 0.55;
+            ctx.beginPath();
+            ctx.arc(ix, iy, sz * 0.35, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+    }
+  }
+  // Draw legend
+  ctx.font = '12px monospace';
+  for (var k = 0; k < 5; k++) {
+    ctx.fillStyle = colors5[k];
+    ctx.fillText('k='+k+' \u03b8='+((360*k/5).toFixed(0))+'\u00b0  \u03b3='+DB.gamma[k].toFixed(3), 10, 18+k*16);
+  }
+}
+// =====================================================
+//  QUASICRYSTALS (Tab 3)
+// =====================================================
+var QC = {
+  view: 'diff', ptSize: 3, radius: 8, speed: 0.1,
+  xrayAnim: true, xrayT: 0, animFrame: null
+};
+function initQCCanvas() {
+  var c = document.getElementById('qc-canvas');
+  if (!c) return;
+  var rect = c.parentElement.getBoundingClientRect();
+  c.width  = Math.floor(rect.width - 36);
+  c.height = 330;
+}
+function qcSetView(v, btn) {
+  QC.view = v;
+  document.getElementById('qc-real-btn').classList.toggle('active', v==='real');
+  document.getElementById('qc-diff-btn').classList.toggle('active', v==='diff');
+  drawQC();
+}
+function qcSetPtSize(v) { QC.ptSize=v; document.getElementById('qc-pts-disp').textContent=v+' px'; drawQC(); }
+function qcSetRadius(v) { QC.radius=v; document.getElementById('qc-rad-disp').textContent='R = '+v; drawQC(); }
+function qcToggleXray(btn) {
+  QC.xrayAnim=!QC.xrayAnim;
+  if (btn) btn.classList.toggle('active',QC.xrayAnim);
+  if (QC.xrayAnim) qcAnimate();
+}
+function qcAnimate() {
+  if (!QC.xrayAnim || _activeTab !== 3) return;
+  QC.xrayT += 0.012 * window.animSpeed;
+  drawQC();
+  QC.animFrame = requestAnimationFrame(qcAnimate);
+}
+function getQCVertices(R) {
+  // Build vertices from sun seed + R subdivisions
+  var tris = makeSun(0, 0, 1);
+  for (var i = 0; i < R; i++) tris = subdivide(tris);
+  var vmap = new Map();
+  for (var t of tris) {
+    for (var pt of [t.A, t.B, t.C]) {
+      var k = pt.x.toFixed(4)+','+pt.y.toFixed(4);
+      if (!vmap.has(k)) vmap.set(k, pt);
+    }
+  }
+  return Array.from(vmap.values());
+}
+function drawQC() {
+  var c = document.getElementById('qc-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+  if (QC.view === 'real') drawQCReal(ctx, W, H);
+  else drawQCDiff(ctx, W, H);
+}
+function drawQCReal(ctx, W, H) {
+  var R = Math.min(QC.radius, 7);
+  var verts = getQCVertices(R);
+  var scale = Math.min(W,H) * 0.38;
+  var cx = W/2, cy = H/2;
+  ctx.fillStyle = '#ffd700';
+  for (var v of verts) {
+    var sx = cx + v.x * scale, sy = cy + v.y * scale;
+    if (sx<0||sx>W||sy<0||sy>H) continue;
+    ctx.beginPath();
+    ctx.arc(sx, sy, QC.ptSize, 0, 2*Math.PI);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px monospace';
+  ctx.fillText('Real space \u2014 '+verts.length+' vertices (level '+R+')', 8, H-8);
+}
+function drawQCDiff(ctx, W, H) {
+  var cx = W/2, cy = H/2;
+  var maxQ = 4;
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+  // Draw 5-index diffraction spots G = sum h_k * G_k
+  var scale = Math.min(W,H) * 0.13;
+  var gk = [];
+  for (var k = 0; k < 5; k++) {
+    gk.push({x: Math.cos(2*Math.PI*k/5), y: Math.sin(2*Math.PI*k/5)});
+  }
+  // Animate with X-ray beam sweep
+  var beamAngle = QC.xrayAnim ? QC.xrayT * 0.8 : 0;
+  // Draw beam
+  ctx.strokeStyle = 'rgba(0,200,255,0.12)';
+  ctx.lineWidth = 18;
+  ctx.beginPath();
+  ctx.moveTo(cx - Math.cos(beamAngle)*W, cy - Math.sin(beamAngle)*W);
+  ctx.lineTo(cx + Math.cos(beamAngle)*W, cy + Math.sin(beamAngle)*W);
+  ctx.stroke();
+  for (var h0=-maxQ;h0<=maxQ;h0++) for (var h1=-maxQ;h1<=maxQ;h1++) for (var h2=-maxQ;h2<=maxQ;h2++) {
+    var Gx = h0*gk[0].x + h1*gk[1].x + h2*gk[2].x;
+    var Gy = h0*gk[0].y + h1*gk[1].y + h2*gk[2].y;
+    var q2 = Gx*Gx + Gy*Gy;
+    if (q2 > maxQ*maxQ*2.5) continue;
+    var intensity = Math.exp(-q2 * 0.08) * (1 + 0.3*Math.cos(QC.xrayT - Math.atan2(Gy,Gx)));
+    var r = Math.min(255, Math.floor(intensity * 220));
+    var g = Math.min(255, Math.floor(intensity * 160));
+    var b = Math.min(255, Math.floor(intensity * 60));
+    ctx.fillStyle = 'rgb('+r+','+g+','+b+')';
+    var sx = cx + Gx*scale, sy = cy + Gy*scale;
+    if (sx<0||sx>W||sy<0||sy>H) continue;
+    var ps = Math.max(1, QC.ptSize * intensity * 0.6);
+    ctx.beginPath(); ctx.arc(sx,sy,ps,0,2*Math.PI); ctx.fill();
+  }
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px monospace';
+  ctx.fillText('Diffraction \u2014 5-index reciprocal lattice, 10-fold symmetry', 8, H-8);
+}
+// =====================================================
+//  INFLATION & DEFLATION (Tab 4)
+// =====================================================
+var INFL = {
+  level: 3, anim: true, animDir: 1, animT: 0,
+  displayLevel: 3.0, speed: 0.1
+};
+function initInflCanvas() {
+  var c = document.getElementById('infl-canvas');
+  if (!c) return;
+  var rect = c.parentElement.getBoundingClientRect();
+  c.width  = Math.floor(rect.width - 36);
+  c.height = 300;
+}
+function inflSetLevel(v) {
+  INFL.level = v; INFL.displayLevel = v;
+  document.getElementById('infl-level-disp').textContent = 'Level ' + v;
+  if (!INFL.anim) drawInfl();
+}
+function inflToggleAnim(btn) {
+  INFL.anim = !INFL.anim;
+  if (btn) btn.classList.toggle('active', INFL.anim);
+  if (INFL.anim) inflAnimate();
+}
+function inflAnimate() {
+  if (!INFL.anim || _activeTab !== 4) return;
+  INFL.animT += 0.012 * INFL.animDir * window.animSpeed;
+  if (INFL.animT > 1) { INFL.animT = 1; INFL.animDir = -1; }
+  if (INFL.animT < 0) { INFL.animT = 0; INFL.animDir = 1; }
+  var lvl = Math.min(6, Math.round(INFL.animT * 6));
+  if (lvl !== INFL.level) {
+    INFL.level = lvl;
+    document.getElementById('infl-level-disp').textContent = 'Level ' + lvl;
+    document.getElementById('infl-level').value = lvl;
+  }
+  drawInfl();
+  INFL.animFrame = requestAnimationFrame(inflAnimate);
+}
+function drawInfl() {
+  var c = document.getElementById('infl-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+  var tris = buildTiling('sun', INFL.level);
+  var nT = tris.filter(t=>t.type==='T').length;
+  var nG = tris.length - nT;
+  var ratio = nG > 0 ? (nT/nG).toFixed(4) : 'inf';
+  // Update stats
+  document.getElementById('infl-T').textContent = nT;
+  document.getElementById('infl-G').textContent = nG;
+  document.getElementById('infl-ratio').textContent = ratio;
+  var scale = Math.min(W,H) * 0.30;
+  var cx = W/2, cy = H/2;
+  var toX = p => cx + p.x * scale;
+  var toY = p => cy + p.y * scale;
+  for (var i = 0; i < tris.length; i++) {
+    var tri = tris[i];
+    var ax=toX(tri.A),ay=toY(tri.A),bx=toX(tri.B),by=toY(tri.B),cx_=toX(tri.C),cy_=toY(tri.C);
+    ctx.fillStyle = tri.type==='T' ? '#1a3380' : '#803a1a';
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.lineTo(cx_,cy_);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+  // Fibonacci bar chart overlay
+  var fib = [1,1,2,3,5,8,13,21,34,55];
+  var fn1 = fib[Math.min(INFL.level+1, fib.length-1)];
+  var fn  = fib[Math.min(INFL.level, fib.length-1)];
+  var barW = 80, barMaxH = 60, barX = W - 110, barY = H - 35;
+  ctx.fillStyle = '#1a3380';
+  ctx.fillRect(barX, barY - Math.min(barMaxH, fn1*4), 28, Math.min(barMaxH, fn1*4));
+  ctx.fillStyle = '#803a1a';
+  ctx.fillRect(barX+34, barY - Math.min(barMaxH, fn*4), 28, Math.min(barMaxH, fn*4));
+  ctx.fillStyle = '#5599ff'; ctx.font = '12px monospace';
+  ctx.fillText('T='+nT, barX, barY+12);
+  ctx.fillStyle = '#ff9933';
+  ctx.fillText('G='+nG, barX+34, barY+12);
+  ctx.fillStyle = '#00ff99';
+  ctx.fillText('ratio='+ratio, barX-10, barY+26);
+}
+// =====================================================
+//  MATCHING RULES (Tab 5)
+// =====================================================
+var MR = {
+  showArrows: true, showColors: true,
+  showWorms: true, enforce: true, anim: true, animT: 0, animFrame: null, speed: 0.1,
+  level: 3
+};
+function initMRCanvas() {
+  var c = document.getElementById('mr-canvas');
+  if (!c) return;
+  var rect = c.parentElement.getBoundingClientRect();
+  c.width  = Math.floor(rect.width - 36);
+  c.height = 310;
+}
+function mrToggleArrows(btn) { MR.showArrows=!MR.showArrows; btn.classList.toggle('active',MR.showArrows); drawMR(); }
+function mrToggleColors(btn) { MR.showColors=!MR.showColors; btn.classList.toggle('active',MR.showColors); drawMR(); }
+function mrToggleWorms(btn) { MR.showWorms=!MR.showWorms; btn.classList.toggle('active',MR.showWorms); drawMR(); }
+function mrToggleEnforce(btn) { MR.enforce=!MR.enforce; btn.classList.toggle('active',MR.enforce); drawMR(); }
+function drawArrow(ctx, x1, y1, x2, y2, color, double_) {
+  var dx = x2-x1, dy = y2-y1;
+  var len = Math.sqrt(dx*dx+dy*dy);
+  if (len < 2) return;
+  var ux = dx/len, uy = dy/len;
+  var mx = (x1+x2)/2, my = (y1+y2)/2;
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+  // Arrow head at midpoint
+  var hs = 5;
+  ctx.beginPath();
+  ctx.moveTo(mx - ux*hs - uy*hs*0.5, my - uy*hs + ux*hs*0.5);
+  ctx.lineTo(mx + ux*hs*0.3, my + uy*hs*0.3);
+  ctx.lineTo(mx - ux*hs + uy*hs*0.5, my - uy*hs - ux*hs*0.5);
+  ctx.stroke();
+  if (double_) {
+    var off = 3;
+    ctx.beginPath();
+    ctx.moveTo(mx - ux*hs - uy*hs*0.5 - ux*off, my - uy*hs + ux*hs*0.5 - uy*off);
+    ctx.lineTo(mx + ux*hs*0.3 - ux*off, my + uy*hs*0.3 - uy*off);
+    ctx.lineTo(mx - ux*hs + uy*hs*0.5 - ux*off, my - uy*hs - ux*hs*0.5 - uy*off);
+    ctx.stroke();
+  }
+}
+function mrToggleAnim(btn) {
+  MR.anim = !MR.anim;
+  if(btn) btn.textContent = MR.anim ? '⏸ Stop Anim' : '▶ Animate Rules';
+  if(MR.anim) mrAnimate();
+}
+function mrAnimate() {
+  if(!MR.anim || _activeTab !== 5) return;
+  MR.animT += 0.012 * window.animSpeed;
+  drawMR();
+  MR.animFrame = requestAnimationFrame(mrAnimate);
+}
+function drawMR() {
+  var c = document.getElementById('mr-canvas');
+  if (!c) return;
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+  var tris = buildTiling('sun', 4);
+  var scale = Math.min(W,H) * 0.36;
+  var cx = W/2, cy = H/2;
+  var toX = function(p) { return cx + p.x*scale; };
+  var toY = function(p) { return cy + p.y*scale; };
+  for (var i = 0; i < tris.length; i++) {
+    var tri = tris[i];
+    var ax=toX(tri.A),ay=toY(tri.A),bx=toX(tri.B),by=toY(tri.B),cx_=toX(tri.C),cy_=toY(tri.C);
+    var fill;
+    if (MR.showColors) {
+      if (MR.enforce) {
+        fill = tri.type==='T' ? 'rgba(30,60,180,0.7)' : 'rgba(180,80,20,0.7)';
+      } else {
+        // Random-ish to show disorder without rules
+        fill = (i%3===0)?'rgba(80,20,120,0.7)':(i%3===1?'rgba(20,100,60,0.7)':'rgba(140,30,30,0.7)');
+      }
+    } else {
+      fill = 'rgba(40,40,80,0.7)';
+    }
+    ctx.fillStyle = fill;
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.lineTo(cx_,cy_);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(100,100,180,0.4)'; ctx.lineWidth = 0.6;
+    ctx.stroke();
+    // Matching rule arrows on edges
+    if (MR.showArrows && MR.enforce) {
+      // Edge AB: single arrow (color gold)
+      drawArrow(ctx, ax,ay, bx,by, '#ffd700', false);
+      // Edge CA: double arrow (color cyan)
+      drawArrow(ctx, cx_,cy_, ax,ay, '#00e5ff', true);
+    }
+  }
+  // Conway worms overlay
+  if (MR.showWorms) {
+    ctx.strokeStyle = `hsla(${(MR.animT*40)%360},100%,60%,0.6)`;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([4,4]);
+    if(MR.anim) ctx.lineDashOffset = -(MR.animT * 20);
+    for (var k = 0; k < 5; k++) {
+      var th = 2*Math.PI*k/5;
+      for (var n = -3; n <= 3; n++) {
+        var nx = -Math.sin(th), ny = Math.cos(th);
+        var ex = Math.cos(th), ey = Math.sin(th);
+        var d = n * scale * 0.22;
+        var px = cx + nx*d, py = cy + ny*d;
+        ctx.beginPath();
+        ctx.moveTo(px - ex*W, py - ey*W);
+        ctx.lineTo(px + ex*W, py + ey*W);
+        ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+  }
+  ctx.fillStyle = '#55558a'; ctx.font = '12px monospace';
+  ctx.fillText(MR.enforce ? 'Matching rules enforced \u2014 aperiodic only' : 'No rules \u2014 periodic tilings possible', 8, H-8);
+}
+// =====================================================
+//  PROOFS
+// =====================================================
+const PROOFS = {
+  'golden-ratio': {
+    title: 'The Golden Ratio \u03c6',
+    sub: '\u03c6\u00b2 = \u03c6 + 1 and its consequences',
+    ref: 'Road to Reality \u00a71.1 \u00b7 Euclid, Elements Book VI',
+    steps: [
+      {n:1, text:'Divide a segment of length $a+b$ so that the whole is to the longer part as the longer is to the shorter: $$\\frac{a+b}{a}=\\frac{a}{b}$$ Setting $\\varphi=a/b$: $\\;1+1/\\varphi=\\varphi$, i.e. $\\varphi^2-\\varphi-1=0$.'},
+      {n:2, text:'By the quadratic formula (taking the positive root): $$\\varphi=\\frac{1+\\sqrt{5}}{2}\\approx1.6180339\\ldots$$'},
+      {n:3, text:'From $\\varphi^2=\\varphi+1$ we get the key identities: $$\\varphi^2=\\varphi+1,\\quad \\frac{1}{\\varphi}=\\varphi-1,\\quad \\varphi^n=F_n\\varphi+F_{n-1}$$ where $F_n$ are Fibonacci numbers. The ratio of consecutive Fibonacci numbers $F_{n+1}/F_n\\to\\varphi$.'},
+      {n:4, text:'In the Penrose tiling, the golden triangle (36\u00b0-72\u00b0-72\u00b0) has legs-to-base ratio $=\\varphi$. After one subdivision step, the count of golden triangles to golden gnomons is always $\\varphi:1$ \u2014 the ratio is self-similar under subdivision.'},
+      {n:5, text:'<strong>Why irrational matters:</strong> any periodic tiling with period vector $\\mathbf v$ has a rational density of each tile type. The $\\varphi$-ratio forces the Penrose tiling to be <em>aperiodic</em> \u2014 no translation can map it exactly onto itself.'}
+    ]
+  },
+  'substitution': {
+    title: 'Penrose Substitution Rules',
+    sub: 'How two triangles tile aperiodically at every scale',
+    ref: 'Road to Reality \u00a71.2 \u00b7 Penrose 1974',
+    steps: [
+      {n:1, text:'Define two triangles: <strong>golden triangle</strong> $T$ (36\u00b0-72\u00b0-72\u00b0, isoceles) and <strong>golden gnomon</strong> $G$ (108\u00b0-36\u00b0-36\u00b0, obtuse isoceles). Their long-to-short side ratio is $\\varphi:1$ in both cases.'},
+      {n:2, text:'Subdivision rules (one step doubles the number of triangles): $$T\\to G + T \\qquad G\\to T + G$$ Each $T$ splits into one $G$ and one $T$; each $G$ splits into one $T$ and one $G$.'},
+      {n:3, text:'After $n$ subdivisions starting from one $T$: let $t_n$, $g_n$ be counts of $T$- and $G$-triangles. The recurrence is $t_{n+1}=t_n+g_n$, $g_{n+1}=t_n$, giving $t_n=F_{n+1}$, $g_n=F_n$ (Fibonacci!). Their ratio $t_n/g_n\\to\\varphi$.'},
+      {n:4, text:'<strong>Matching rules:</strong> tiles may only be assembled if arc markings on their edges align. These local rules force a globally aperiodic pattern \u2014 no periodic tiling can satisfy all the matching constraints simultaneously.'},
+      {n:5, text:'<strong>Self-similarity:</strong> inflate the tiling by $\\varphi$ and subdivide \u2014 you recover the original tiling. This means the tiling looks essentially the same at every scale. Every finite patch appears <em>infinitely often</em> somewhere in the tiling.'}
+    ]
+  },
+  'aperiodic': {
+    title: 'Why the Tiling Is Aperiodic',
+    sub: 'No translation can map a Penrose tiling onto itself',
+    ref: 'Road to Reality \u00a71.2 \u00b7 Penrose 1974, de Bruijn 1981',
+    steps: [
+      {n:1, text:'A tiling is <strong>periodic</strong> if there exists a non-zero translation vector $\\mathbf v$ such that shifting the tiling by $\\mathbf v$ gives the identical tiling. Penrose tilings have no such vector.'},
+      {n:2, text:'<strong>Proof sketch via inflation:</strong> suppose the tiling $\\mathcal T$ is periodic with vector $\\mathbf v$. The inflation map (scale by $\\varphi$, then subdivide) produces a tiling $\\mathcal T\'$ which is also periodic, now with vector $\\varphi\\mathbf v$.'},
+      {n:3, text:'Repeating inflation $n$ times produces a periodic tiling with vector $\\varphi^n\\mathbf v\\to\\infty$. But inflating also grows the tile size. One can show this produces a contradiction: the inflated tiling cannot remain consistent with the matching rules for all $n$.'},
+      {n:4, text:'<strong>Alternatively (density argument):</strong> the ratio of $T$- to $G$-tiles converges to $\\varphi$ \u2014 an irrational number. A periodic tiling must have a rational density for each tile type (tiles repeat in a fixed pattern). Contradiction.'},
+      {n:5, text:'Despite being aperiodic, Penrose tilings have <strong>5-fold (pentagonal) symmetry</strong> \u2014 they are quasiperiodic. Quasi-crystals discovered in 1984 (Shechtman) showed this structure exists in real materials, vindicating the mathematical theory.'}
+    ]
+  }
+};
+function showProof(key) {
+  var p = PROOFS[key]; if (!p) return;
+  document.getElementById('pp-title').textContent = p.title;
+  document.getElementById('pp-sub').textContent   = p.sub;
+  document.getElementById('pp-ref').textContent   = '\u{1F4D6} ' + p.ref;
+  var el = document.getElementById('pp-steps');
+  while (el.firstChild) el.removeChild(el.firstChild);
+  for (var i = 0; i < p.steps.length; i++) {
+    var step = p.steps[i];
+    var div = document.createElement('div'); div.className = 'pp-step';
+    var num = document.createElement('div'); num.className = 'pp-num';
+    num.textContent = step.n; div.appendChild(num);
+    var txt = document.createElement('div'); txt.className = 'pp-text';
+    txt.innerHTML = step.text; div.appendChild(txt);
+    el.appendChild(div);
+  }
+  document.getElementById('proof-panel').classList.add('open');
+  if (window.renderMathInElement) renderMathInElement(el, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+function closeProof() { document.getElementById('proof-panel').classList.remove('open'); }
+// =====================================================
+//  INIT
+// =====================================================
+window.addEventListener('load', function() {
+  initCanvas();
+  initInteraction();
+  for (var i = 0; i <= 7; i++) buildTiling('sun', i);
+  render();
+  panAnimate();
+});
+
+window.addEventListener('resize', function() {
+  const c = document.getElementById('cp');
+  if (c) window.resizeCanvas(c);
+  if (_activeTab===1) render();
+  else if (_activeTab===2) { initDBCanvas(); drawDB(); }
+  else if (_activeTab===3) { initQCCanvas(); drawQC(); }
+  else if (_activeTab===4) { initInflCanvas(); drawInfl(); }
+  else if (_activeTab===5) { initMRCanvas(); drawMR(); }
+});
+window.addEventListener('resize', function() {
+  initCanvas();
+  if (_activeTab===1) render();
+  else if (_activeTab===2) { initDBCanvas(); drawDB(); }
+  else if (_activeTab===3) { initQCCanvas(); drawQC(); }
+  else if (_activeTab===4) { initInflCanvas(); drawInfl(); }
+  else if (_activeTab===5) { initMRCanvas(); drawMR(); }
+});
+</script>
+<div id="proof-panel">
+  <div class="pp-head">
+    <div class="pp-meta">
+      <div class="pp-title" id="pp-title"></div>
+      <div class="pp-sub" id="pp-sub"></div>
+      <div class="pp-ref" id="pp-ref"></div>
+    </div>
+    <button class="pp-close" onclick="closeProof()">&#10005; Close</button>
+  </div>
+  <div class="pp-steps" id="pp-steps"></div>
+  <div class="pp-qed">&#8718;</div>
+</div>
+<script>
+/**
+ * Module-Specific Adjustments for 02_penrose_tiling.html:
+ * 
+ * 1. Replaced custom `resize` logic with `window.resizeCanvas`.
+ * 2. Updated animation loops to use `0.012 * window.animSpeed`.
+ * 3. Removed manual animation controls and rely on `auto-start.js`.
+ * 4. Auto-start animations at 0.1x speed via direct function calls.
+ * 5. Removed duplicate speed sliders and animation buttons.
+ */
+</script>
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+<script src="auto-start.js"></script>
+</body>
+</html>
+

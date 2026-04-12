@@ -1,0 +1,2787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lie Groups & Spinors | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --accent:#ff6644;--violet:#aa77ff;--cyan:#00e5ff;--gold:#ffd700;--green:#00ff99;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+header{background:linear-gradient(135deg,#08082a 0%,#1a0a08 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:12px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px rgba(255,102,68,.4);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tabs{display:flex;gap:2px}
+.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
+
+.content{flex:1;display:flex;overflow:hidden}
+.panel{display:none;flex:1}
+.panel.active{display:flex}
+
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;flex-shrink:0;
+  overflow-x:hidden}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:220px}
+.canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--bg)}
+canvas{display:block}
+
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;overflow:hidden}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,102,68,.06);border:1px solid rgba(255,102,68,.25);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.77rem;margin-top:3px;font-family:monospace;color:var(--accent)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:6px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s}
+.btn:hover,.btn.active{border-color:var(--accent);color:var(--accent)}
+.strip{background:var(--bg2);border-top:1px solid var(--border);padding:6px 18px;
+  font-size:.7rem;color:var(--dim);display:flex;align-items:center;gap:18px;flex-shrink:0}
+.bookref{color:var(--accent);opacity:.7}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* PROOF PANEL */
+.proof-btn{display:inline-flex;align-items:center;margin-left:7px;padding:1px 7px;
+  background:rgba(255,102,68,.09);border:1px solid rgba(255,102,68,.3);border-radius:3px;
+  font-size:.6rem;color:var(--accent);cursor:pointer;letter-spacing:.03em;transition:.15s;
+  vertical-align:middle;font-family:inherit}
+.proof-btn:hover{background:rgba(255,102,68,.2);border-color:var(--accent)}
+#proof-panel{position:fixed;bottom:0;left:0;right:0;background:#0d0805;
+  border-top:2px solid var(--accent);padding:18px 40px 26px;max-height:56vh;overflow-y:auto;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.22,1,.36,1);z-index:200;
+  box-shadow:0 -12px 48px rgba(0,0,0,.85)}
+#proof-panel.open{transform:translateY(0)}
+.pp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.pp-meta{flex:1}
+.pp-title{font-size:1rem;font-weight:600;color:#c0c0ea}
+.pp-sub{font-size:.74rem;color:#55558a;margin-top:2px}
+.pp-ref{font-size:.66rem;color:var(--accent);opacity:.7;margin-top:4px;font-style:italic}
+.pp-close{padding:4px 12px;border:1px solid #1c1c44;background:transparent;color:#55558a;
+  border-radius:4px;cursor:pointer;font-size:.74rem;flex-shrink:0;transition:.15s;font-family:inherit}
+.pp-close:hover{border-color:var(--accent);color:var(--accent)}
+.pp-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.pp-chip{padding:3px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--dim);
+  border-radius:12px;cursor:pointer;font-size:.68rem;transition:.15s}
+.pp-chip:hover{border-color:var(--accent);color:var(--text)}
+.pp-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(255,102,68,.1)}
+.pp-steps{display:flex;flex-direction:column;gap:11px}
+.pp-step{display:flex;gap:11px;align-items:flex-start}
+.pp-num{min-width:20px;text-align:center;padding:1px 4px;border-radius:3px;font-size:.66rem;
+  font-weight:700;color:var(--accent);background:rgba(255,102,68,.1);margin-top:3px;flex-shrink:0}
+.pp-text{font-size:.78rem;color:#c0c0ea;line-height:1.75;flex:1}
+.pp-text strong{color:var(--accent)}
+.pp-qed{text-align:right;color:var(--accent);opacity:.4;font-size:.9rem;margin-top:10px}
+
+/* Tab 1 sidebar+canvas layout */
+#panel-rotation{flex-direction:row}
+.rot-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;flex-shrink:0;
+  overflow-x:hidden}
+.rot-mode-btns{display:flex;gap:4px;flex-wrap:wrap}
+.rot-mode-btns .btn{flex:1;padding:5px 6px;font-size:.7rem}
+.rot-mode-btns .btn.active{border-color:var(--accent);color:var(--accent);background:rgba(255,102,68,.1)}
+.matrix-disp{font-family:'Courier New',monospace;font-size:.68rem;color:var(--accent);
+  line-height:1.6;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:4px;margin-top:6px;white-space:pre;overflow-x:auto;max-width:100%}
+
+/* Tab 2 */
+#panel-bloch{flex-direction:row}
+.bloch-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;flex-shrink:0;
+  overflow-x:hidden}
+.state-disp{background:var(--bg3);border:1px solid var(--border);border-radius:5px;
+  padding:10px;font-family:monospace;font-size:.72rem;line-height:1.7;color:var(--accent);
+  overflow-x:auto;word-break:break-all}
+
+/* Tab 3 */
+#panel-belt{flex-direction:row}
+.belt-area{display:flex;gap:0;width:100%;flex:1;overflow:hidden}
+.belt-canvas-wrap{flex:1;position:relative;overflow:hidden}
+.belt-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;flex-shrink:0;
+  overflow-x:hidden;order:-1}
+
+.status-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:600;letter-spacing:.04em}
+.status-badge.tangled{background:rgba(255,60,60,.15);border:1px solid rgba(255,60,60,.5);color:#ff4444}
+.status-badge.untangled{background:rgba(0,255,100,.1);border:1px solid rgba(0,255,100,.4);color:var(--green)}
+.status-badge.neutral{background:rgba(85,85,138,.1);border:1px solid var(--border);color:var(--dim)}
+
+.phase-bar-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:7px 9px;margin-top:5px}
+.phase-bar-lbl{font-size:.67rem;color:var(--dim);margin-bottom:4px}
+.phase-bar-track{height:7px;background:#1a1a38;border-radius:3px;overflow:hidden}
+.phase-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width .1s}
+
+/* Tab 4: Manifolds */
+#panel-manifolds{flex-direction:row}
+.mfd-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0;
+  overflow-x:hidden}
+
+/* Tab 5: Exp Map */
+#panel-expmap{flex-direction:row}
+.exp-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0;
+  overflow-x:hidden}
+
+/* Tab 6: SU(3) roots */
+#panel-roots{flex-direction:row}
+.roots-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0;
+  overflow-x:hidden}
+
+/* Tab 7: Double cover */
+#panel-dcover{flex-direction:row}
+.dc-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0;
+  overflow-x:hidden}
+
+/* Tab 8: Exceptional / octonions */
+#panel-octonion{flex-direction:row}
+.oct-sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:240px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0;
+  overflow-x:hidden}
+
+/* shared */
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:5px;
+  padding:9px 11px;font-size:.72rem;line-height:1.55;color:var(--dim);overflow:hidden}
+.info-box strong{color:var(--accent)}
+.info-box em{color:var(--cyan)}
+.fano-cell{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;
+  border:1px solid var(--border);border-radius:3px;font-size:.7rem;font-family:monospace;
+  background:var(--bg3);color:var(--violet)}
+.oct-tbl{border-collapse:collapse;font-size:.65rem;font-family:monospace;width:100%}
+.oct-tbl td,.oct-tbl th{padding:2px 4px;border:1px solid var(--border);text-align:center}
+.oct-tbl th{background:var(--bg3);color:var(--dim)}
+.oct-tbl td{color:var(--text)}
+.oct-tbl td.pos{color:var(--green)}
+.oct-tbl td.neg{color:#ff4444}
+.oct-tbl td.diag{color:var(--dim)}
+
+body{padding-bottom:38px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <a href="/" style="padding:4px 10px;border:1px solid #1c1c44;border-radius:4px;color:#55558a;font-size:.75rem;text-decoration:none;transition:.15s;flex-shrink:0"
+      onmouseover="this.style.color='#ff6644';this.style.borderColor='#ff6644'"
+      onmouseout="this.style.color='#55558a';this.style.borderColor='#1c1c44'">&#8592; Back</a>
+    <h1>Lie Groups, Rotation Groups &amp; Spinors</h1>
+    <span class="sub">Road to Reality &#8212; Ch. 11, 13, 15, 22 &middot; SO(2), SO(3), SU(2), SU(3), Spinors, Dirac Belt, Octonions, Exceptional Groups</span>
+    <button class="proof-btn" onclick="openProof(0)">&#9656; Proofs</button>
+  </div>
+  <div class="tabs" data-role="tab-bar">
+    <button class="tab active" onclick="switchTab('rotation',this)">Rotation Groups</button>
+    <button class="tab" onclick="switchTab('bloch',this)">SU(2) &amp; Bloch Sphere</button>
+    <button class="tab" onclick="switchTab('belt',this)">Plate Trick (Dirac Belt)</button>
+    <button class="tab" onclick="switchTab('manifolds',this)">Lie Manifolds</button>
+    <button class="tab" onclick="switchTab('expmap',this)">Exp Map</button>
+    <button class="tab" onclick="switchTab('roots',this)">SU(3) Roots</button>
+    <button class="tab" onclick="switchTab('dcover',this)">Double Cover</button>
+    <button class="tab" onclick="switchTab('octonion',this)">Exceptional Groups</button>
+  </div>
+</header>
+
+<div class="content">
+
+<!-- ════════ TAB 1: ROTATION GROUPS ════════ -->
+<div class="panel active" id="panel-rotation">
+  <div class="rot-sidebar" data-role="sidebar">
+
+    <div>
+      <div class="section-lbl">Visualization Mode</div>
+      <div class="rot-mode-btns">
+        <button class="btn active" id="rot-mode-so2" onclick="setRotMode('so2')">SO(2)</button>
+        <button class="btn" id="rot-mode-so3" onclick="setRotMode('so3')">SO(3)</button>
+        <button class="btn" id="rot-mode-both" onclick="setRotMode('both')">Both</button>
+      </div>
+    </div>
+
+    <div id="rot-so2-controls">
+      <div class="section-lbl">SO(2) — Circle Group</div>
+      <label>Angle &theta; <span class="val-disp" id="so2-theta-val">0.00 rad (0°)</span></label>
+      <input type="range" id="so2-theta" min="0" max="628" value="0" step="1">
+    </div>
+
+    <div id="rot-so3-controls" style="display:none">
+      <div class="section-lbl">SO(3) — 3D Rotations</div>
+      <label>Yaw &alpha; <span class="val-disp" id="so3-alpha-val">0°</span></label>
+      <input type="range" id="so3-alpha" min="0" max="360" value="0" step="1">
+      <label>Pitch &beta; <span class="val-disp" id="so3-beta-val">0°</span></label>
+      <input type="range" id="so3-beta" min="0" max="360" value="0" step="1">
+      <label>Roll &gamma; <span class="val-disp" id="so3-gamma-val">0°</span></label>
+      <input type="range" id="so3-gamma" min="0" max="360" value="0" step="1">
+    </div>
+
+    <div>
+      <button class="btn" id="rot-anim-btn" onclick="toggleRotAnim()" style="width:100%">Pause</button>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" onclick="resetRotAnim()">Reset</button>
+        <div style="flex:1;display:flex;align-items:center;gap:4px">
+          <span style="font-size:.65rem;color:var(--dim)">Speed</span>
+          <input type="range" id="rot-speed" min="1" max="20" value="5" step="1" style="flex:1">
+        </div>
+      </div>
+    </div>
+
+    <div class="eq-block">
+      <div class="eq-title">Rotation Matrix</div>
+      <div class="matrix-disp" id="so2-matrix">R(θ) = [1.00  0.00]
+       [0.00  1.00]</div>
+      <div class="matrix-disp" id="so3-matrix" style="display:none">R = [1.00  0.00  0.00]
+    [0.00  1.00  0.00]
+    [0.00  0.00  1.00]</div>
+    </div>
+
+    <div class="info-box">
+      <strong>What is a rotation group?</strong><br>
+      SO(n) is the group of n&times;n orthogonal matrices with determinant +1. Each element represents a rotation that preserves orientation and distance. These groups are <em style="color:var(--accent)">Lie groups</em> — continuous groups that are also smooth manifolds.
+    </div>
+
+    <div class="info-box">
+      <strong>SO(2) &cong; U(1) &cong; S&sup1;</strong><br>
+      Every 2D rotation is determined by a single angle &theta;. The group manifold is the circle S&sup1;. It is <em style="color:var(--cyan)">abelian</em>: R(&alpha;)R(&beta;) = R(&alpha;+&beta;).<br><br>
+      <strong>Physical relevance:</strong> SO(2) appears in pendulum phase spaces, polarizer optics, and as the gauge group U(1) of electromagnetism in the Standard Model.
+    </div>
+
+    <div class="info-box">
+      <strong>SO(3) &cong; RP&sup3;</strong><br>
+      3D rotations require 3 parameters (Euler angles, or axis+angle). The manifold is RP&sup3; — a 3-ball of radius &pi; with antipodal boundary points identified.<br><br>
+      <strong>Key fact:</strong> SO(3) is <em style="color:var(--accent)">not simply connected</em>. A 360&deg; rotation cannot be shrunk to a point, but a 720&deg; rotation can. This is why spinors (SU(2) double cover) are needed in quantum mechanics.
+    </div>
+
+    <div class="callout" style="font-size:.72rem">
+      <strong>Why rotation groups matter:</strong> Angular momentum in quantum mechanics, rigid body dynamics in robotics, molecular symmetry in chemistry, and gauge symmetry in particle physics all depend on SO(n). The topology of these groups determines what kinds of particles can exist.
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="so2canvas"></canvas>
+  </div>
+</div>
+
+<!-- ════════ TAB 2: BLOCH SPHERE / SU(2) ════════ -->
+<div class="panel" data-role="panel" id="panel-bloch">
+
+  <div class="bloch-sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Qubit State</div>
+      <label>Polar &theta; (0 &rarr; &pi;) <span class="val-disp" id="bloch-theta-val">0.00</span></label>
+      <input type="range" id="bloch-theta" min="0" max="314" value="0" step="1">
+      <label style="margin-top:8px">Azimuthal &phi; (0 &rarr; 2&pi;) <span class="val-disp" id="bloch-phi-val">0.00</span></label>
+      <input type="range" id="bloch-phi" min="0" max="628" value="0" step="1">
+    </div>
+
+    <div class="eq-block">
+      <div class="eq-title">Quantum State |&psi;&rang;</div>
+      <div class="state-disp" id="bloch-state">|ψ⟩ = 1.000|0⟩ + 0.000·e^(i·0.00)|1⟩</div>
+    </div>
+
+    <div class="eq-block">
+      <div class="eq-title">SU(2) Matrix</div>
+      <div class="matrix-disp" id="su2-matrix">[1  0]
+[0  1]</div>
+    </div>
+
+    <div class="eq-block">
+      <div class="eq-title">Bloch Vector</div>
+      <div class="vrow"><span class="vlbl">x =</span><span id="bv-x">0.000</span></div>
+      <div class="vrow"><span class="vlbl">y =</span><span id="bv-y">0.000</span></div>
+      <div class="vrow"><span class="vlbl">z =</span><span id="bv-z">1.000</span></div>
+    </div>
+
+    <div>
+      <div class="section-lbl">Spinor Demo</div>
+      <div class="btn-row">
+        <button class="btn" id="tour-btn" onclick="toggleSpinorTour()">Play 720° Tour</button>
+        <button class="btn" id="tour-reset-btn" onclick="resetSpinorTour()">Reset</button>
+      </div>
+      <div style="margin-top:8px" id="spin-phase-wrap">
+        <div class="phase-bar-wrap">
+          <div class="phase-bar-lbl">Spinor phase: <span id="spin-phase-lbl">0°</span></div>
+          <div class="phase-bar-track"><div class="phase-bar-fill" id="spin-phase-bar" style="width:0%"></div></div>
+        </div>
+        <div style="margin-top:6px;font-size:.72rem;color:var(--dim)" id="spin-label">Drag sliders or click tour</div>
+      </div>
+      <div class="callout" style="margin-top:8px;font-size:.72rem">
+        <strong>Spin-½ paradox:</strong> Rotating a spinor by 360° multiplies it by <strong>-1</strong>. Only after 720° does it return to its original state. This is not a mathematical trick — it has real physical consequences for electrons!
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="blochcanvas"></canvas>
+  </div>
+</div>
+
+<!-- ════════ TAB 3: PLATE TRICK / DIRAC BELT ════════ -->
+<div class="panel" data-role="panel" id="panel-belt">
+  <div class="belt-area">
+    <div class="belt-sidebar" data-role="sidebar">
+      <div>
+        <div class="section-lbl">Controls</div>
+        <div style="margin-bottom:6px;font-size:.77rem;color:var(--dim)">
+          Plate rotation: <span style="color:var(--accent);font-weight:600" id="belt-angle-lbl">0°</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="btn-rot360" onclick="toggleBelt360()">Play 360°</button>
+          <button class="btn" id="btn-rot720" onclick="toggleBelt720()">Play 720°</button>
+          <button class="btn" onclick="beltReset()">Reset</button>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:6px">
+          <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+          <input type="range" id="belt-speed" min="1" max="10" value="3" step="1" style="flex:1">
+          <span style="font-size:.65rem;color:var(--dim)">1×</span>
+        </div>
+        <div style="margin-top:8px;text-align:center">
+          <span class="status-badge neutral" id="belt-status">Ready</span>
+        </div>
+      </div>
+
+      <div class="eq-block">
+        <div class="eq-title">What You're Seeing</div>
+        <div style="font-size:.72rem;color:var(--dim);line-height:1.6">
+          A plate is connected to a wall by elastic belts. When the plate rotates <strong style="color:var(--accent)">360°</strong>, the belts become tangled — they cannot unwind without moving the plate.<br><br>
+          But at <strong style="color:var(--accent)">720°</strong>, the belts return to flat! This demonstrates a fundamental topological property: a 360° loop in SO(3) is <em>not</em> contractible, but a 720° loop <em>is</em>.
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>Why 720° and not 360°?</strong><br>
+        SO(3) has fundamental group &pi;&#8321; &cong; &ZZ;&#8322;. A rotation by 360° traces a <em>non-contractible loop</em> in SO(3) — you can't deform it back to the identity without leaving the group. But 720° traces a <em>contractible loop</em> — it can be smoothly shrunk to a point.
+      </div>
+
+      <div class="info-box">
+        <strong>The physical consequence</strong><br>
+        Objects with half-integer spin (fermions: electrons, quarks, neutrinos) transform under <em style="color:var(--cyan)">SU(2)</em>, the double cover of SO(3). A 360° rotation multiplies the wavefunction by &minus;1. Only a 720° rotation returns it to +1.<br><br>
+        This was verified experimentally: <strong>neutron interferometry</strong> (Werner et al., 1975) directly observed the &minus;1 phase shift after a 360° rotation.
+      </div>
+
+      <div class="callout" style="font-size:.72rem">
+        <strong>Try it yourself:</strong> Hold a cup of water in your hand. Rotate it 360° under your arm — your arm is now twisted. Continue another 360° in the same direction, and your arm untwists. That's the Dirac belt trick, and it proves SO(3) &ne; simply connected!
+      </div>
+    </div>
+
+    <div class="belt-canvas-wrap">
+      <canvas id="beltcanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════ TAB 4: LIE GROUPS AS MANIFOLDS ════════ -->
+<div class="panel" data-role="panel" id="panel-manifolds">
+  <div class="mfd-sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Manifold Controls</div>
+      <label>Path parameter t <span class="val-disp" id="mfd-t-val">0.00</span></label>
+      <input type="range" id="mfd-t" min="0" max="628" value="0" step="1">
+      <div class="btn-row" style="margin-top:7px">
+        <button class="btn active" id="mfd-anim-btn" onclick="mfdToggleAnim()">Pause</button>
+        <button class="btn" onclick="mfdReset()">Reset</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="mfd-orbit-btn" onclick="mfdToggleOrbit()">3D Orbit</button>
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="mfd-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>SU(2) &#8773; S&#179;</strong><br>
+      Every 2&#215;2 unitary matrix with det = 1:<br>
+      $U = \begin{pmatrix}\alpha & -\bar\beta \\ \beta & \bar\alpha\end{pmatrix}$<br>
+      satisfies $|\alpha|^2+|\beta|^2=1$,<br>
+      which is exactly the 3-sphere $S^3 \subset \mathbb{R}^4$.
+    </div>
+
+    <div class="info-box">
+      <strong>SO(3) &#8773; RP&#179; = S&#179;/&#8484;&#8322;</strong><br>
+      Antipodal points $U$ and $-U$ on S&#179; map to the <em>same</em> rotation. So SO(3) is the 3-sphere with antipodal identifications.<br><br>
+      <strong>&#960;&#8321;(SO(3)) = &#8484;&#8322;</strong> &mdash; one non-contractible loop class.<br>
+      <strong>&#960;&#8321;(SU(2)) = 0</strong> &mdash; simply connected.
+    </div>
+
+    <div class="info-box">
+      <strong>Hopf map (2:1 cover)</strong><br>
+      $\phi: \mathrm{SU}(2) \to \mathrm{SO}(3)$<br>
+      $\phi(U) = \phi(-U)$<br>
+      Fiber = $\{+I, -I\} \cong \mathbb{Z}_2$<br><br>
+      The <em style="color:var(--gold)">gold path</em> traces a loop in SO(3) that is <em>not</em> contractible. Its two lifts in SU(2) connect $+I \to -I$ (and $-I \to +I$), showing SU(2) has no such loop.
+    </div>
+
+    <div class="info-box">
+      <strong>S&#179; stereographic projection</strong><br>
+      The canvas shows S&#179; projected to 3D via stereographic projection from the south pole, then drawn as a 2D oblique projection. The colored circle is a great circle on S&#179;.
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="mfdcanvas"></canvas>
+  </div>
+</div>
+
+<!-- ════════ TAB 5: LIE ALGEBRA & EXPONENTIAL MAP ════════ -->
+<div class="panel" data-role="panel" id="panel-expmap">
+  <div class="exp-sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Rotation Axis n&#770;</div>
+      <label>n&#770;&#x2093; <span class="val-disp" id="exp-nx-val">0.00</span></label>
+      <input type="range" id="exp-nx" min="-100" max="100" value="0" step="1">
+      <label>n&#770;&#x1D67; <span class="val-disp" id="exp-ny-val">0.00</span></label>
+      <input type="range" id="exp-ny" min="-100" max="100" value="0" step="1">
+      <label>n&#770;&#x1D69; <span class="val-disp" id="exp-nz-val">1.00</span></label>
+      <input type="range" id="exp-nz" min="-100" max="100" value="100" step="1">
+      <label style="margin-top:8px">Angle &theta; (0 &rarr; 4&pi;) <span class="val-disp" id="exp-theta-val">0.00</span></label>
+      <input type="range" id="exp-theta" min="0" max="1257" value="0" step="1">
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" id="exp-anim-btn" onclick="expToggleAnim()">Play</button>
+        <button class="btn" onclick="expReset()">Reset</button>
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="exp-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
+      </div>
+    </div>
+
+    <div class="eq-block">
+      <div class="eq-title">Exponential Map</div>
+      <div style="font-size:.72rem;color:var(--dim);line-height:1.7">
+        $\exp(i\tfrac\theta2 \hat{n}\cdot\boldsymbol{\sigma}) = \cos\tfrac\theta2\,I + i\sin\tfrac\theta2(\hat{n}\cdot\boldsymbol{\sigma})$
+      </div>
+      <div class="matrix-disp" id="exp-matrix">[1  0]
+[0  1]</div>
+    </div>
+
+    <div class="info-box">
+      <strong>su(2) Lie algebra</strong><br>
+      Basis: $J_k = \tfrac{i}{2}\sigma_k$ (skew-Hermitian)<br>
+      $[J_i, J_j] = \varepsilon_{ijk} J_k$<br><br>
+      <strong>Tangent at identity:</strong> a vector $\mathbf{v} \in \mathfrak{su}(2)$ is a direction in the group manifold S&#179;. The exp map sends rays through the origin to geodesics (great circles on S&#179;).
+    </div>
+
+    <div class="info-box">
+      <strong>Geodesics on S&#179;</strong><br>
+      The <em style="color:var(--cyan)">cyan arc</em> on canvas = the geodesic $t \mapsto \exp(t \cdot \hat{n}\cdot\mathbf{J})$, a great circle on S&#179;. At $\theta=2\pi$ we reach $-I$; at $\theta=4\pi$ we return to $+I$.<br><br>
+      The <em style="color:var(--gold)">gold dot</em> is the current group element $U(\theta)$.
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="expcanvas"></canvas>
+  </div>
+</div>
+
+<!-- ════════ TAB 6: SU(3) ROOT SYSTEM ════════ -->
+<div class="panel" data-role="panel" id="panel-roots">
+  <div class="roots-sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Root Diagram Controls</div>
+      <div class="btn-row">
+        <button class="btn active" id="roots-weyl-btn" onclick="rootsToggleWeyl()">Pause</button>
+      </div>
+      <div style="margin-top:7px">
+        <label>Highlight root
+          <select id="roots-select" style="width:100%;margin-top:4px;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:4px;border-radius:4px;font-size:.75rem">
+            <option value="-1">All</option>
+            <option value="0">&alpha;&#8321;</option>
+            <option value="1">&alpha;&#8322;</option>
+            <option value="2">&alpha;&#8321;+&alpha;&#8322;</option>
+            <option value="3">-&alpha;&#8321;</option>
+            <option value="4">-&alpha;&#8322;</option>
+            <option value="5">-&alpha;&#8321;-&alpha;&#8322;</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>SU(3) / A&#8322; Root System</strong><br>
+      Rank 2, dimension 8.<br>
+      6 root vectors + 2 Cartan generators = 8 generators total (Gell-Mann matrices).<br><br>
+      Simple roots: <em>&#945;&#8321;</em>, <em>&#945;&#8322;</em><br>
+      Positive roots: &#945;&#8321;, &#945;&#8322;, &#945;&#8321;+&#945;&#8322;<br>
+      Weyl group = S&#8323; (symmetric group, order 6).
+    </div>
+
+    <div class="info-box">
+      <strong>Adjoint action</strong><br>
+      Cartan generators $H_i$:<br>
+      $[H_i, E_\alpha] = \alpha_i\, E_\alpha$<br>
+      Roots $\alpha$ are eigenvalues of ad($H_i$).<br><br>
+      <strong>Root lengths:</strong> all roots in A&#8322; have equal length; the angle between $\alpha_1$ and $\alpha_2$ is 120°.
+    </div>
+
+    <div class="info-box">
+      <strong>8-dimensional Adjoint Rep</strong><br>
+      The adjoint representation has weights = the 6 roots plus the 2 zero weights (Cartan generators). This is the <em style="color:var(--gold)">octet</em> of QCD — the 8 gluons!
+    </div>
+
+    <div class="info-box">
+      <strong>Weyl reflections</strong><br>
+      Each root $\alpha$ defines a reflection hyperplane $H_\alpha$ (perpendicular bisector through origin). The Weyl group acts by reflecting roots across these planes, permuting the root system.
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="rootscanvas"></canvas>
+  </div>
+</div>
+
+<!-- ════════ TAB 7: SPINOR DOUBLE COVER ════════ -->
+<div class="panel" data-role="panel" id="panel-dcover">
+  <div class="dc-sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Rotation Angle</div>
+      <label>&theta; (0 &rarr; 4&pi;) <span class="val-disp" id="dc-theta-val">0°</span></label>
+      <input type="range" id="dc-theta" min="0" max="1257" value="0" step="1">
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" id="dc-anim-btn" onclick="dcToggleAnim()">Animate 4&pi;</button>
+        <button class="btn" onclick="dcReset()">Reset</button>
+      </div>
+    </div>
+
+    <div class="eq-block">
+      <div class="eq-title">Spin-&#189; matrix D&#x00BD;(R&#x2094;(&theta;))</div>
+      <div class="matrix-disp" id="dc-matrix">[e^{-iθ/2}    0   ]
+[   0     e^{+iθ/2}]</div>
+    </div>
+
+    <div class="info-box">
+      <strong>Vector vs Spinor</strong><br>
+      A 3D <em style="color:var(--gold)">vector</em> (spin-1) returns to itself after $\theta = 2\pi$.<br><br>
+      A <em style="color:var(--accent)">spinor</em> (spin-&#189;) acquires phase $e^{i\theta/2}$, so at $\theta = 2\pi$ it becomes $-|\psi\rangle$. It needs $\theta = 4\pi$ to return to $+|\psi\rangle$.
+    </div>
+
+    <div class="info-box">
+      <strong>D&#x00BD; under composition</strong><br>
+      $D^{1/2}(R_1 R_2) = D^{1/2}(R_1)\,D^{1/2}(R_2)$<br><br>
+      This is a <em>projective</em> representation of SO(3) — it satisfies the group law only up to a sign $\pm 1$. It is an <em>exact</em> representation of SU(2).
+    </div>
+
+    <div class="info-box">
+      <strong>Physical consequence</strong><br>
+      The Aharonov–Susskind experiment (1967) and neutron interferometry (Werner et al., 1975; Rauch et al., 1975) directly confirmed the $4\pi$ periodicity of spinors via quantum interference. Half-integer spin particles (fermions) live in the double cover SU(2).
+    </div>
+
+    <div class="callout">
+      <strong>Key formula:</strong> For rotation by $\theta$ around $\hat{z}$:<br>
+      $D^{1/2}(R_z(\theta)) = \begin{pmatrix} e^{-i\theta/2} &amp; 0 \\ 0 &amp; e^{+i\theta/2} \end{pmatrix}$<br><br>
+      At $\theta=2\pi$: $D^{1/2} = -I$. At $\theta=4\pi$: $D^{1/2} = +I$.
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="dccanvas"></canvas>
+  </div>
+</div>
+
+<!-- ════════ TAB 8: EXCEPTIONAL GROUPS & OCTONIONS ════════ -->
+<div class="panel" data-role="panel" id="panel-octonion">
+  <div class="oct-sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Exceptional Lie Groups</div>
+      <div class="btn-row">
+        <button class="btn oct-grp-btn active" onclick="octSelectGroup(0,this)">G&#8322;</button>
+        <button class="btn oct-grp-btn" onclick="octSelectGroup(1,this)">F&#8324;</button>
+        <button class="btn oct-grp-btn" onclick="octSelectGroup(2,this)">E&#8326;</button>
+        <button class="btn oct-grp-btn" onclick="octSelectGroup(3,this)">E&#8327;</button>
+        <button class="btn oct-grp-btn" onclick="octSelectGroup(4,this)">E&#8328;</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" id="octAnimBtn" onclick="octToggleAnim()">⏸ Pause</button>
+      </div>
+      <div class="info-box" id="oct-grp-info" style="margin-top:8px">
+        <strong>G&#8322;</strong> — dim 14, rank 2<br>
+        Automorphism group of the <em>octonions</em> &#120214;. The smallest exceptional Lie group. Contains SU(3) as a subgroup. Root system G&#8322; has 12 roots: 6 short + 6 long.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-lbl">Octonion Multiplication Table</div>
+      <div style="overflow-x:auto">
+        <table class="oct-tbl" id="oct-table">
+          <thead><tr><th>&#215;</th><th>e&#8321;</th><th>e&#8322;</th><th>e&#8323;</th><th>e&#8324;</th><th>e&#8325;</th><th>e&#8326;</th><th>e&#8327;</th></tr></thead>
+          <tbody id="oct-tbody"></tbody>
+        </table>
+      </div>
+      <div style="font-size:.67rem;color:var(--dim);margin-top:5px">
+        $e_i e_j = -\delta_{ij} + \varepsilon_{ijk}e_k$ &mdash; click a row to highlight a Fano line
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>E&#8328; &amp; String Theory</strong><br>
+      E&#8328; has dimension 248. The <em style="color:var(--cyan)">E&#8328;&#215;E&#8328; heterotic string</em> lives in 10D spacetime. The two E&#8328; factors arise from left- and right-moving modes of the string. Compactifying on a torus reduces to the Standard Model gauge group.
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="octcanvas"></canvas>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<div class="strip">
+  <span class="bookref">Penrose Ch. 11, 13, 15, 22</span>
+  <span>Lie groups &middot; SO(2) &middot; SO(3) &middot; SU(2) &#8773; S&#179; &middot; SU(3) roots &middot; Spinors &middot; Dirac belt &middot; E&#8328; &middot; Octonions</span>
+</div>
+
+<!-- ════════ PROOF PANEL ════════ -->
+<div id="proof-panel">
+  <div class="pp-head">
+    <div class="pp-meta">
+      <div class="pp-title" id="pp-title">Lie Algebra of SO(3)</div>
+      <div class="pp-sub" id="pp-sub">Generators and commutation relations</div>
+      <div class="pp-ref" id="pp-ref">Penrose §13.6, §22.4</div>
+    </div>
+    <button class="pp-close" onclick="closeProof()">Close ✕</button>
+  </div>
+  <div class="pp-chips">
+    <span class="pp-chip active" onclick="selectProof(0)">Lie Algebra so(3)</span>
+    <span class="pp-chip" onclick="selectProof(1)">Exponential Map</span>
+    <span class="pp-chip" onclick="selectProof(2)">SU(2) covers SO(3)</span>
+    <span class="pp-chip" onclick="selectProof(3)">Spinor 720° Identity</span>
+    <span class="pp-chip" onclick="selectProof(4)">Pauli Matrices</span>
+  </div>
+  <div class="pp-steps" id="pp-steps"></div>
+  <div class="pp-qed">&#x25a0;</div>
+</div>
+
+<script>
+function _cancelAllAnims07(){
+  // Cancel all animation frames
+  for(let i=0;i<10;i++){
+    let id=requestAnimationFrame(()=>{});
+    cancelAnimationFrame(id);
+  }
+}
+
+  window.animSpeed=0.1;
+
+// ══════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════
+function cancelAllAnimations() {
+  tourAnimating = false;
+  if (tourAnim) { cancelAnimationFrame(tourAnim); tourAnim = null; }
+  const tourBtn = document.getElementById('tour-btn');
+  if (tourBtn) { tourBtn.textContent = 'Play 720° Tour'; tourBtn.classList.remove('active'); }
+  rotAnimating = false;
+  if (rotAnimId) { cancelAnimationFrame(rotAnimId); rotAnimId = null; }
+  const rotBtn = document.getElementById('rot-anim-btn');
+  if (rotBtn) { rotBtn.textContent = 'Play'; }
+  // Cancel Belt animation
+  beltAnimating = false;
+  beltLooping = false;
+  beltLoopMode = 0;
+  if (beltAnim) { cancelAnimationFrame(beltAnim); beltAnim = null; }
+  if (beltPauseTimer) { clearTimeout(beltPauseTimer); beltPauseTimer = null; }
+  const btn360 = document.getElementById('btn-rot360');
+  const btn720 = document.getElementById('btn-rot720');
+  if (btn360) { btn360.textContent = 'Play 360°'; btn360.classList.remove('active'); }
+  if (btn720) { btn720.textContent = 'Play 720°'; btn720.classList.remove('active'); }
+  // Note: rootsWeylId, dcAnimId, octAnimId are in IIFEs
+  // and are cancelled when switching tabs via the draw functions
+  // Exp map animation has expStopAnim exposed
+  if(typeof expStopAnim==='function') expStopAnim();
+}
+function switchTab(id, btn) {
+  cancelAllAnimations();
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(() => {
+    if (id === 'rotation')  { resizeRot(); drawRot(); setRotMode(rotMode); rotAnimating=true; document.getElementById('rot-anim-btn').textContent='Pause'; rotAnimStep(); }
+    if (id === 'bloch')     { resizeBloch(); drawBloch(); startSpinorTour(); }
+    if (id === 'belt')      { resizeBelt(); drawBelt(); beltAutoStart(); }
+    if (id === 'manifolds') { resizeMfd(); drawMfd(); if(typeof mfdStartAnim==='function') mfdStartAnim(); }
+    if (id === 'expmap')    { resizeExp(); drawExp(); if(typeof expStartAnim==='function') expStartAnim(); }
+    if (id === 'roots')     { resizeRoots(); drawRoots(); }
+    if (id === 'dcover')    { resizeDC(); drawDC(); const btn=document.getElementById('dc-anim-btn'); if(btn) btn.click(); }
+    if (id === 'octonion')  { resizeOct(); drawOct(); octToggleAnim(); }
+  }, 30);
+}
+
+// ══════════════════════════════════════
+// PROOF PANEL
+// ══════════════════════════════════════
+const proofs = [
+  {
+    title: 'Lie Algebra of SO(3)',
+    sub: 'Generators and commutation relations',
+    ref: 'Penrose §13.6',
+    steps: [
+      { n:'Def', t:'The <strong>Lie algebra</strong> $\\mathfrak{so}(3)$ consists of $3\\times3$ real antisymmetric matrices — the tangent space at the identity of SO(3).' },
+      { n:'Gen', t:'Standard basis generators (infinitesimal rotations): $$J_x = \\begin{pmatrix}0&0&0\\\\0&0&-1\\\\0&1&0\\end{pmatrix},\\quad J_y = \\begin{pmatrix}0&0&1\\\\0&0&0\\\\-1&0&0\\end{pmatrix},\\quad J_z = \\begin{pmatrix}0&-1&0\\\\1&0&0\\\\0&0&0\\end{pmatrix}$$' },
+      { n:'Com', t:'<strong>Commutation relations</strong> (the defining structure of the Lie algebra): $$[J_i, J_j] = \\varepsilon_{ijk}\\, J_k$$ where $\\varepsilon_{ijk}$ is the Levi-Civita symbol. Explicitly: $[J_x,J_y]=J_z$, $[J_y,J_z]=J_x$, $[J_z,J_x]=J_y$.' },
+      { n:'Key', t:'These are the <strong>same commutation relations</strong> as the Pauli matrices $\\sigma_i/2i$, showing $\\mathfrak{su}(2) \\cong \\mathfrak{so}(3)$ as Lie algebras — even though SU(2) and SO(3) differ as groups.' },
+    ]
+  },
+  {
+    title: 'The Exponential Map',
+    sub: 'Connecting Lie algebra to Lie group',
+    ref: 'Penrose §13.4–13.5',
+    steps: [
+      { n:'Idea', t:'The <strong>exponential map</strong> $\\exp: \\mathfrak{g} \\to G$ turns infinitesimal generators into finite group elements via the matrix exponential.' },
+      { n:'Form', t:'For rotation by angle $\\theta$ around unit axis $\\hat{n} = (n_x, n_y, n_z)$: $$R = \\exp(\\theta\\,\\hat{n}\\cdot\\mathbf{J}) = I + \\sin\\theta\\,(\\hat{n}\\cdot\\mathbf{J}) + (1-\\cos\\theta)\\,(\\hat{n}\\cdot\\mathbf{J})^2$$ This is <strong>Rodrigues&#39; formula</strong>.' },
+      { n:'SU2', t:'For SU(2), with Pauli matrices $\\sigma_i$: $$U = \\exp\\!\\left(\\frac{i\\theta}{2}\\hat{n}\\cdot\\boldsymbol{\\sigma}\\right) = I\\cos\\frac{\\theta}{2} + i(\\hat{n}\\cdot\\boldsymbol{\\sigma})\\sin\\frac{\\theta}{2}$$' },
+      { n:'360', t:'Setting $\\theta = 2\\pi$: $U(2\\pi) = I\\cos\\pi + (\\ldots)\\sin\\pi = -I$. So a full 360° rotation gives $-I$ in SU(2) — the spinor sign flip!' },
+    ]
+  },
+  {
+    title: 'SU(2) Double Covers SO(3)',
+    sub: 'The 2:1 homomorphism',
+    ref: 'Penrose §22.8',
+    steps: [
+      { n:'Map', t:'Define $\\varphi: \\mathrm{SU}(2) \\to \\mathrm{SO}(3)$ by the adjoint action: for $U\\in\\mathrm{SU}(2)$, $$\\varphi(U): \\mathbf{x} \\mapsto U\\,\\mathbf{x}\\cdot\\boldsymbol{\\sigma}\\,U^\\dagger$$ where $\\mathbf{x}\\cdot\\boldsymbol{\\sigma} = x_i\\sigma_i$ is a traceless Hermitian matrix encoding a 3-vector.' },
+      { n:'Hom', t:'$\\varphi$ is a <strong>Lie group homomorphism</strong>: $\\varphi(U_1 U_2) = \\varphi(U_1)\\varphi(U_2)$, and its image lands in SO(3) since it preserves the determinant (length of vectors).' },
+      { n:'Ker', t:'The kernel is $\\ker(\\varphi) = \\{+I, -I\\}$, since $(-I)\\,M\\,(-I)^\\dagger = M$ for all $M$. So both $U$ and $-U$ represent the same rotation. This is the <strong>2:1 cover</strong>.' },
+      { n:'Top', t:'SU(2) $\\cong S^3$ (the 3-sphere) is simply connected, while $\\pi_1(\\mathrm{SO}(3)) = \\mathbb{Z}_2$. The cover "unrolls" the nontrivial loop — a 360° path in SO(3) lifts to a path from $I$ to $-I$ in SU(2).' },
+    ]
+  },
+  {
+    title: 'Spinor 720° Identity',
+    sub: 'Why electrons need two full turns',
+    ref: 'Penrose §22.9–22.11',
+    steps: [
+      { n:'Fact', t:'In SU(2), rotation by angle $\\theta$ around $\\hat{z}$: $$U_z(\\theta) = \\begin{pmatrix}e^{i\\theta/2}&0\\\\0&e^{-i\\theta/2}\\end{pmatrix}$$' },
+      { n:'360', t:'At $\\theta = 2\\pi$: $U_z(2\\pi) = \\mathrm{diag}(e^{i\\pi}, e^{-i\\pi}) = \\mathrm{diag}(-1,-1) = -I$. <br>So $U(2\\pi) = -I \\neq +I$. A spinor $|\\psi\\rangle \\mapsto -|\\psi\\rangle$ under a 360° rotation.' },
+      { n:'720', t:'At $\\theta = 4\\pi$: $U_z(4\\pi) = \\mathrm{diag}(e^{2\\pi i}, e^{-2\\pi i}) = I$. The spinor returns to itself only after <strong>720°</strong>. This is the defining property of half-integer spin.' },
+      { n:'Obs', t:'The sign $-1$ is <strong>observable</strong> in interference experiments! The Aharonov-Susskind experiment (1967) and neutron interferometry confirm that spinors acquire a factor of $-1$ after a 360° rotation.' },
+    ]
+  },
+  {
+    title: 'Pauli Matrices',
+    sub: 'Basis of the su(2) Lie algebra',
+    ref: 'Penrose §22.4',
+    steps: [
+      { n:'Def', t:'The Pauli matrices are: $$\\sigma_x = \\begin{pmatrix}0&1\\\\1&0\\end{pmatrix},\\quad \\sigma_y = \\begin{pmatrix}0&-i\\\\i&0\\end{pmatrix},\\quad \\sigma_z = \\begin{pmatrix}1&0\\\\0&-1\\end{pmatrix}$$' },
+      { n:'Alg', t:'They are Hermitian ($\\sigma_i^\\dagger = \\sigma_i$), traceless, and satisfy $\\sigma_i^2 = I$. The generators of $\\mathfrak{su}(2)$ are $T_i = \\sigma_i/(2i)$ (skew-Hermitian).' },
+      { n:'Com', t:'<strong>Commutation relations</strong>: $$[\\sigma_i, \\sigma_j] = 2i\\,\\varepsilon_{ijk}\\,\\sigma_k$$ This matches $\\mathfrak{so}(3)$ (with a factor of $2i$), confirming $\\mathfrak{su}(2)\\cong\\mathfrak{so}(3)$.' },
+      { n:'Anti', t:'Anti-commutation: $\\{\\sigma_i, \\sigma_j\\} = 2\\delta_{ij}I$. Together: $\\sigma_i\\sigma_j = \\delta_{ij}I + i\\varepsilon_{ijk}\\sigma_k$. This is the <strong>Clifford algebra</strong> Cl(3), connecting spinors to geometry.' },
+    ]
+  }
+];
+
+let currentProof = 0;
+function openProof(i) {
+  selectProof(i);
+  document.getElementById('proof-panel').classList.add('open');
+}
+function closeProof() {
+  document.getElementById('proof-panel').classList.remove('open');
+}
+function selectProof(i) {
+  currentProof = i;
+  const p = proofs[i];
+  document.getElementById('pp-title').textContent = p.title;
+  document.getElementById('pp-sub').textContent = p.sub;
+  document.getElementById('pp-ref').textContent = p.ref;
+  document.querySelectorAll('.pp-chip').forEach((c,j) => c.classList.toggle('active', j===i));
+  const steps = p.steps.map(s =>
+    `<div class="pp-step"><div class="pp-num">${s.n}</div><div class="pp-text">${s.t}</div></div>`
+  ).join('');
+  document.getElementById('pp-steps').innerHTML = steps;
+  if (window.renderMathInElement) {
+    renderMathInElement(document.getElementById('pp-steps'), {
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]
+    });
+  }
+}
+
+// ══════════════════════════════════════
+// MATH HELPERS
+// ══════════════════════════════════════
+function matMul(A, B) {
+  const n = A.length, m = B[0].length, k = B.length;
+  const C = Array.from({length:n}, () => new Array(m).fill(0));
+  for(let i=0;i<n;i++) for(let j=0;j<m;j++) for(let l=0;l<k;l++) C[i][j]+=A[i][l]*B[l][j];
+  return C;
+}
+function rotX(a){const c=Math.cos(a),s=Math.sin(a);return[[1,0,0],[0,c,-s],[0,s,c]];}
+function rotY(a){const c=Math.cos(a),s=Math.sin(a);return[[c,0,s],[0,1,0],[-s,0,c]];}
+function rotZ(a){const c=Math.cos(a),s=Math.sin(a);return[[c,-s,0],[s,c,0],[0,0,1]];}
+function applyMat(M, v) {
+  return [
+    M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],
+    M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],
+    M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]
+  ];
+}
+function fmt(x, d=3){ return x.toFixed(d); }
+function fmi(x, d){
+  d=d||2;
+  var s=x.toFixed(d);
+  if(parseFloat(s)===0) return '0';
+  return s;
+}
+function fc(re,im,d){
+  d=d||2;
+  var rs=re.toFixed(d), as=Math.abs(im).toFixed(d);
+  var reZero=Math.abs(re)<Math.pow(10,-d)/2;
+  var imZero=Math.abs(im)<Math.pow(10,-d)/2;
+  if(reZero&&imZero) return '0';
+  if(imZero) return rs;
+  if(reZero) return (im<0?'-':'')+as+'i';
+  return rs+(im>=0?'+':'-')+as+'i';
+}
+
+// ══════════════════════════════════════
+// TAB 1: ROTATION GROUPS (SO(2) & SO(3))
+// ══════════════════════════════════════
+const rotCanvas = document.getElementById('so2canvas');
+const rotCtx = rotCanvas.getContext('2d');
+let rotMode = 'so2';
+let so2Theta = 0;
+let so3Alpha=0, so3Beta=0, so3Gamma=0;
+let so2Drag = false;
+let rotAnimating = true;
+let rotAnimId = null;
+
+function setRotMode(m) {
+  rotMode = m;
+  document.getElementById('rot-mode-so2').classList.toggle('active', m==='so2');
+  document.getElementById('rot-mode-so3').classList.toggle('active', m==='so3');
+  document.getElementById('rot-mode-both').classList.toggle('active', m==='both');
+  document.getElementById('rot-so2-controls').style.display = (m==='so3') ? 'none' : '';
+  document.getElementById('rot-so3-controls').style.display = (m==='so2') ? 'none' : '';
+  document.getElementById('so2-matrix').style.display = (m==='so3') ? 'none' : '';
+  document.getElementById('so3-matrix').style.display = (m==='so2') ? 'none' : '';
+  drawRot();
+}
+
+function resizeRot() {
+  const wrap = rotCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  rotCanvas.style.width = rect.width + 'px';
+  rotCanvas.style.height = rect.height + 'px';
+  rotCanvas.width = rect.width * dpr;
+  rotCanvas.height = rect.height * dpr;
+  drawRot();
+}
+
+function drawRot() {
+  if(rotMode === 'so2') drawSO2Only();
+  else if(rotMode === 'so3') drawSO3Only();
+  else drawBoth();
+}
+
+function drawSO2Only() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = rotCanvas.width / dpr, H = rotCanvas.height / dpr;
+  const ctx = rotCtx;
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+  const R = Math.min(W,H)*0.35;
+
+  drawSO2Content(ctx, cx, cy, R, W, H);
+
+  ctx.fillStyle = '#ff664488';
+  ctx.font = 'bold 14px Segoe UI';
+  ctx.fillText('SO(2) — Circle Group S¹', 14, 24);
+
+  const c = Math.cos(so2Theta), s = Math.sin(so2Theta);
+  document.getElementById('so2-matrix').textContent =
+    `R(θ) = [ ${fmt(c,2)}  ${fmt(-s,2)} ]\n       [ ${fmt(s,2)}  ${fmt(c,2)} ]`;
+  ctx.restore();
+}
+
+function drawSO3Only() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = rotCanvas.width / dpr, H = rotCanvas.height / dpr;
+  const ctx = rotCtx;
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+
+  drawSO3Content(ctx, cx, cy, Math.min(W,H)*0.22, W, H);
+
+  ctx.fillStyle = '#ff664488';
+  ctx.font = 'bold 14px Segoe UI';
+  ctx.fillText('SO(3) — 3D Rotations (Euler Angles)', 14, 24);
+
+  const R_mat = matMul(rotZ(so3Gamma), matMul(rotY(so3Beta), rotX(so3Alpha)));
+  document.getElementById('so3-matrix').textContent =
+    `R = [ ${fmt(R_mat[0][0],2)}  ${fmt(R_mat[0][1],2)}  ${fmt(R_mat[0][2],2)} ]\n` +
+    `    [ ${fmt(R_mat[1][0],2)}  ${fmt(R_mat[1][1],2)}  ${fmt(R_mat[1][2],2)} ]\n` +
+    `    [ ${fmt(R_mat[2][0],2)}  ${fmt(R_mat[2][1],2)}  ${fmt(R_mat[2][2],2)} ]`;
+  ctx.restore();
+}
+
+function drawBoth() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = rotCanvas.width / dpr, H = rotCanvas.height / dpr;
+  const ctx = rotCtx;
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+
+  const halfW = W / 2;
+  const R2 = Math.min(halfW, H) * 0.30;
+  const sc3 = Math.min(halfW, H) * 0.19;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, halfW, H);
+  ctx.clip();
+  drawSO2Content(ctx, halfW/2, H/2, R2, halfW, H);
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(halfW, 0, halfW, H);
+  ctx.clip();
+  drawSO3Content(ctx, W/2 + halfW/2, H/2, sc3, halfW, H);
+  ctx.restore();
+
+  ctx.strokeStyle = '#1c1c44';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(halfW, 0); ctx.lineTo(halfW, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#ff664488';
+  ctx.font = 'bold 13px Segoe UI';
+  ctx.fillText('SO(2) — S¹', 14, 22);
+  ctx.fillText('SO(3) — RP³', halfW + 14, 22);
+
+  const c = Math.cos(so2Theta), s = Math.sin(so2Theta);
+  document.getElementById('so2-matrix').textContent =
+    `R(θ) = [ ${fmt(c,2)}  ${fmt(-s,2)} ]\n       [ ${fmt(s,2)}  ${fmt(c,2)} ]`;
+  const R_mat = matMul(rotZ(so3Gamma), matMul(rotY(so3Beta), rotX(so3Alpha)));
+  document.getElementById('so3-matrix').textContent =
+    `R = [ ${fmt(R_mat[0][0],2)}  ${fmt(R_mat[0][1],2)}  ${fmt(R_mat[0][2],2)} ]\n` +
+    `    [ ${fmt(R_mat[1][0],2)}  ${fmt(R_mat[1][1],2)}  ${fmt(R_mat[1][2],2)} ]\n` +
+    `    [ ${fmt(R_mat[2][0],2)}  ${fmt(R_mat[2][1],2)}  ${fmt(R_mat[2][2],2)} ]`;
+  ctx.restore();
+}
+
+function drawSO2Content(ctx, cx, cy, R, W, H) {
+  ctx.strokeStyle = '#0f0f2a';
+  ctx.lineWidth = 1;
+  for(let x=cx%40; x<cx+R*1.5; x+=40){ ctx.beginPath();ctx.moveTo(x,cy-R*1.5);ctx.lineTo(x,cy+R*1.5);ctx.stroke(); }
+  for(let y=cy%40; y<cy+R*1.5; y+=40){ ctx.beginPath();ctx.moveTo(cx-R*1.5,y);ctx.lineTo(cx+R*1.5,y);ctx.stroke(); }
+
+  ctx.strokeStyle = '#2a2a60';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx-R*1.3,cy); ctx.lineTo(cx+R*1.3,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-R*1.3); ctx.lineTo(cx,cy+R*1.3); ctx.stroke();
+
+  ctx.strokeStyle = '#ff664466';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+
+  ctx.strokeStyle = '#ff664499';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx,cy,R*0.35,0,-so2Theta,true); ctx.stroke();
+
+  const px = cx + R*Math.cos(-so2Theta);
+  const py = cy + R*Math.sin(-so2Theta);
+  ctx.strokeStyle = '#ff6644cc';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const vx = Math.cos(so2Theta), vy = Math.sin(so2Theta);
+  const ex = cx + R*vx, ey = cy - R*vy;
+  ctx.strokeStyle = '#ffd700';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.stroke();
+  const ang = Math.atan2(ey-cy, ex-cx);
+  ctx.fillStyle = '#ffd700';
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex-10*Math.cos(ang-0.4), ey-10*Math.sin(ang-0.4));
+  ctx.lineTo(ex-10*Math.cos(ang+0.4), ey-10*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = '#ff6644';
+  ctx.shadowColor = '#ff6644';
+  ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#c0c0ea';
+  ctx.font = '13px Segoe UI';
+  ctx.fillText('Re', cx+R*1.15, cy+14);
+  ctx.fillText('Im', cx+6, cy-R*1.15);
+
+  if(so2Theta > 0.1) {
+    ctx.fillStyle = '#ff9977';
+    ctx.font = '14px serif';
+    const lx = cx + R*0.42*Math.cos(-so2Theta*0.5);
+    const ly = cy + R*0.42*Math.sin(-so2Theta*0.5);
+    ctx.fillText('θ', lx-5, ly+5);
+  }
+
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Courier New';
+  ctx.fillText(`(${fmt(Math.cos(so2Theta))}, ${fmt(Math.sin(so2Theta))})`, px+10, py-8);
+}
+
+const CUBE_VERTS = [];
+for(let x=-1;x<=1;x+=2) for(let y=-1;y<=1;y+=2) for(let z=-1;z<=1;z+=2) CUBE_VERTS.push([x,y,z]);
+const CUBE_EDGES = [];
+for(let i=0;i<8;i++) for(let j=i+1;j<8;j++){
+  let diff=0;
+  for(let k=0;k<3;k++) if(CUBE_VERTS[i][k]!==CUBE_VERTS[j][k]) diff++;
+  if(diff===1) CUBE_EDGES.push([i,j]);
+}
+
+function projectSO3Local(v, cx, cy, scale) {
+  const ix = v[0]*Math.cos(0.5) + v[2]*Math.cos(Math.PI*0.75);
+  const iy = -v[1] + v[2]*Math.sin(Math.PI*0.75)*0.4;
+  return [cx + ix*scale, cy + iy*scale];
+}
+
+function drawSO3Content(ctx, cx, cy, scale, W, H) {
+  ctx.strokeStyle = '#0f0f2a';
+  ctx.lineWidth = 1;
+  for(let x=(cx%40); x<cx+scale*3; x+=40){ ctx.beginPath();ctx.moveTo(x,cy-scale*3);ctx.lineTo(x,cy+scale*3);ctx.stroke(); }
+  for(let y=(cy%40); y<cy+scale*3; y+=40){ ctx.beginPath();ctx.moveTo(cx-scale*3,y);ctx.lineTo(cx+scale*3,y);ctx.stroke(); }
+
+  const R = matMul(rotZ(so3Gamma), matMul(rotY(so3Beta), rotX(so3Alpha)));
+
+  const axisColors = ['#ff4444','#44ff44','#4488ff'];
+  const axisLabels = ['x','y','z'];
+  const axisVecs = [[1.4,0,0],[0,1.4,0],[0,0,1.4]];
+  ctx.lineWidth = 2;
+  for(let a=0;a<3;a++){
+    const rv = applyMat(R, axisVecs[a]);
+    const [ox,oy] = projectSO3Local([0,0,0], cx, cy, scale);
+    const [ex,ey] = projectSO3Local(rv, cx, cy, scale);
+    ctx.strokeStyle = axisColors[a];
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ex,ey); ctx.stroke();
+    ctx.fillStyle = axisColors[a];
+    ctx.font = '13px Segoe UI';
+    ctx.fillText(axisLabels[a], ex+5, ey+5);
+  }
+
+  const projected = CUBE_VERTS.map(v => {
+    const rv = applyMat(R, v);
+    return projectSO3Local(rv, cx, cy, scale);
+  });
+  const depths = CUBE_VERTS.map(v => applyMat(R, v)[2]);
+  const edgeDepths = CUBE_EDGES.map(([i,j]) => (depths[i]+depths[j])/2);
+  const sortedEdges = CUBE_EDGES.map((e,i) => ({e,d:edgeDepths[i]})).sort((a,b)=>a.d-b.d);
+
+  sortedEdges.forEach(({e:[i,j], d}) => {
+    const alpha = 0.35 + 0.65*(d+2)/4;
+    ctx.strokeStyle = `rgba(255,102,68,${alpha.toFixed(2)})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(projected[i][0], projected[i][1]);
+    ctx.lineTo(projected[j][0], projected[j][1]);
+    ctx.stroke();
+  });
+
+  CUBE_VERTS.forEach((v,i) => {
+    const d = (depths[i]+2)/4;
+    ctx.fillStyle = `rgba(255,180,100,${(0.3+0.7*d).toFixed(2)})`;
+    ctx.beginPath(); ctx.arc(projected[i][0],projected[i][1],3,0,Math.PI*2); ctx.fill();
+  });
+
+  ctx.strokeStyle = '#ff664466';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  for(let a=0;a<=32;a++){
+    const t = a/32*Math.PI*2;
+    const rv = applyMat(R, [Math.cos(t), Math.sin(t), 0]);
+    const [x,y] = projectSO3Local(rv, cx, cy, scale);
+    if(a===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.closePath(); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// Animation
+function toggleRotAnim() {
+  if(rotAnimating) {
+    rotAnimating = false;
+    if(rotAnimId) { cancelAnimationFrame(rotAnimId); rotAnimId = null; }
+    document.getElementById('rot-anim-btn').textContent = 'Play';
+  } else {
+    rotAnimating = true;
+    document.getElementById('rot-anim-btn').textContent = 'Pause';
+    rotAnimStep();
+  }
+}
+
+function resetRotAnim() {
+  so2Theta = 0;
+  so3Alpha = 0; so3Beta = 0; so3Gamma = 0;
+  document.getElementById('so2-theta').value = 0;
+  document.getElementById('so2-theta-val').textContent = '0.00 rad (0°)';
+  document.getElementById('so3-alpha').value = 0;
+  document.getElementById('so3-alpha-val').textContent = '0°';
+  document.getElementById('so3-beta').value = 0;
+  document.getElementById('so3-beta-val').textContent = '0°';
+  document.getElementById('so3-gamma').value = 0;
+  document.getElementById('so3-gamma-val').textContent = '0°';
+  drawRot();
+}
+
+let rotAnimTime = 0;
+function rotAnimStep() {
+  if(!rotAnimating) return;
+  const speed = parseFloat(document.getElementById('rot-speed').value) || 5;
+  const dt = speed * 0.001;
+  so2Theta = (so2Theta + dt * 2) % (Math.PI * 2);
+  so3Alpha = (so3Alpha + dt * 1.3) % (Math.PI * 2);
+  so3Beta = (so3Beta + dt * 0.7) % (Math.PI * 2);
+  so3Gamma = (so3Gamma + dt * 1.9) % (Math.PI * 2);
+  document.getElementById('so2-theta').value = Math.round(so2Theta * 100);
+  document.getElementById('so2-theta-val').textContent = `${fmt(so2Theta)} rad (${Math.round(so2Theta*180/Math.PI)}°)`;
+  document.getElementById('so3-alpha').value = Math.round(so3Alpha * 180 / Math.PI);
+  document.getElementById('so3-alpha-val').textContent = `${Math.round(so3Alpha*180/Math.PI)}°`;
+  document.getElementById('so3-beta').value = Math.round(so3Beta * 180 / Math.PI);
+  document.getElementById('so3-beta-val').textContent = `${Math.round(so3Beta*180/Math.PI)}°`;
+  document.getElementById('so3-gamma').value = Math.round(so3Gamma * 180 / Math.PI);
+  document.getElementById('so3-gamma-val').textContent = `${Math.round(so3Gamma*180/Math.PI)}°`;
+  drawRot();
+  rotAnimId = requestAnimationFrame(rotAnimStep);
+}
+
+// Slider inputs
+document.getElementById('so2-theta').addEventListener('input', function() {
+  so2Theta = parseFloat(this.value)/100;
+  document.getElementById('so2-theta-val').textContent = `${fmt(so2Theta)} rad (${Math.round(so2Theta*180/Math.PI)}°)`;
+  drawRot();
+});
+
+['so3-alpha','so3-beta','so3-gamma'].forEach((id,i) => {
+  document.getElementById(id).addEventListener('input', function() {
+    const deg = parseFloat(this.value);
+    const rad = deg * Math.PI/180;
+    if(i===0){ so3Alpha=rad; document.getElementById('so3-alpha-val').textContent=`${deg}°`; }
+    if(i===1){ so3Beta=rad;  document.getElementById('so3-beta-val').textContent=`${deg}°`; }
+    if(i===2){ so3Gamma=rad; document.getElementById('so3-gamma-val').textContent=`${deg}°`; }
+    drawRot();
+  });
+});
+
+// Mouse drag on canvas for SO(2)
+rotCanvas.addEventListener('mousedown', e => { so2Drag = true; handleRotMouse(e); });
+rotCanvas.addEventListener('mousemove', e => { if(so2Drag && rotMode!=='so3') handleRotMouse(e); });
+rotCanvas.addEventListener('mouseup', () => so2Drag = false);
+rotCanvas.addEventListener('mouseleave', () => so2Drag = false);
+
+function handleRotMouse(e) {
+  if(rotMode === 'so3') return;
+  const rect = rotCanvas.getBoundingClientRect();
+  let cx, cy, R;
+  if(rotMode === 'both') {
+    cx = rect.width / 4;
+    cy = rect.height / 2;
+    R = Math.min(rect.width/2, rect.height) * 0.30;
+  } else {
+    cx = rect.width / 2;
+    cy = rect.height / 2;
+    R = Math.min(rect.width, rect.height) * 0.35;
+  }
+  const mx = e.clientX - rect.left - cx;
+  const my = e.clientY - rect.top - cy;
+  const dist = Math.sqrt(mx*mx + my*my);
+  if(dist < R * 1.5) {
+    const angle = Math.atan2(-my, mx);
+    so2Theta = ((angle % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+    document.getElementById('so2-theta').value = Math.round(so2Theta*100);
+    document.getElementById('so2-theta-val').textContent = `${fmt(so2Theta)} rad (${Math.round(so2Theta*180/Math.PI)}°)`;
+    drawRot();
+  }
+}
+
+
+// ══════════════════════════════════════
+// TAB 2: BLOCH SPHERE
+// ══════════════════════════════════════
+const blochCanvas = document.getElementById('blochcanvas');
+const blochCtx = blochCanvas.getContext('2d');
+let blochTheta = 0, blochPhi = 0;
+let tourAnim = null;
+
+function resizeBloch() {
+  const wrap = blochCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  blochCanvas.style.width = rect.width + 'px';
+  blochCanvas.style.height = rect.height + 'px';
+  blochCanvas.width = rect.width * dpr;
+  blochCanvas.height = rect.height * dpr;
+}
+
+function drawBloch() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = blochCanvas.width / dpr, H = blochCanvas.height / dpr;
+  const ctx = blochCtx;
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+
+  const cx = W/2, cy = H/2;
+  const R = Math.min(W,H)*0.43;
+
+  // Grid
+  ctx.strokeStyle = '#0d0d22';
+  ctx.lineWidth = 1;
+  for(let x=cx%50; x<W; x+=50){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=cy%50; y<H; y+=50){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  // Sphere outline
+  ctx.strokeStyle = '#ff664433';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+
+  // Faint meridian lines
+  ctx.strokeStyle = '#ff664418';
+  ctx.lineWidth = 1;
+  for(let phi=0; phi<Math.PI*2; phi+=Math.PI/4) {
+    ctx.beginPath();
+    for(let t=0; t<=Math.PI; t+=0.05){
+      const x3 = Math.sin(t)*Math.cos(phi);
+      const z3 = Math.cos(t);
+      const sx = cx + x3*R;
+      const sy = cy - z3*R;
+      if(t===0) ctx.moveTo(sx,sy); else ctx.lineTo(sx,sy);
+    }
+    ctx.stroke();
+  }
+
+  // Equator (ellipse)
+  ctx.strokeStyle = '#ff664444';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, R, R*0.35, 0, 0, Math.PI*2);
+  ctx.stroke();
+
+  // Z axis
+  ctx.strokeStyle = '#55558a';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(cx, cy-R*1.15); ctx.lineTo(cx, cy+R*1.15); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Pole labels
+  ctx.fillStyle = '#c0c0ea';
+  ctx.font = 'bold 13px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('|0⟩', cx, cy-R-12);
+  ctx.fillText('|1⟩', cx, cy+R+18);
+  ctx.textAlign = 'left';
+
+  // Bloch vector
+  const bx = Math.sin(blochTheta)*Math.cos(blochPhi);
+  const by = Math.sin(blochTheta)*Math.sin(blochPhi);
+  const bz = Math.cos(blochTheta);
+
+  // Project: x->x, y->y (perspective squeeze), z->-z (up)
+  const px = cx + bx*R;
+  const py = cy - bz*R + by*R*0.2;
+
+  // Vector line
+  ctx.strokeStyle = '#ff6644';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#ff6644';
+  ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Arrow head
+  const ang = Math.atan2(py-cy, px-cx);
+  ctx.fillStyle = '#ff6644';
+  ctx.shadowColor = '#ff6644';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.moveTo(px,py);
+  ctx.lineTo(px-11*Math.cos(ang-0.38), py-11*Math.sin(ang-0.38));
+  ctx.lineTo(px-11*Math.cos(ang+0.38), py-11*Math.sin(ang+0.38));
+  ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // State point
+  ctx.fillStyle = '#ffd700';
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 14;
+  ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Projection lines (dashed)
+  ctx.strokeStyle = '#55558a';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,5]);
+  ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(cx+bx*R, cy+by*R*0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+bx*R, cy+by*R*0.2); ctx.lineTo(cx,cy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Title
+  ctx.fillStyle = '#ff664488';
+  ctx.font = 'bold 14px Segoe UI';
+  ctx.fillText('Bloch Sphere — SU(2) / Qubit', 14, 24);
+
+  // Coordinate readout on canvas
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Courier New';
+  ctx.fillText(`(${fmt(bx)}, ${fmt(by)}, ${fmt(bz)})`, px+8, py-10);
+
+  // Update sidebar
+  const cos_ht = Math.cos(blochTheta/2), sin_ht = Math.sin(blochTheta/2);
+  const eiphi_re = Math.cos(blochPhi), eiphi_im = Math.sin(blochPhi);
+  document.getElementById('bloch-state').textContent =
+    `|ψ⟩ = ${fmt(cos_ht,2)}|0⟩ + ${fmt(sin_ht,2)}·e^(i${fmt(blochPhi,2)})|1⟩`;
+  document.getElementById('bv-x').textContent = fmt(bx);
+  document.getElementById('bv-y').textContent = fmt(by);
+  document.getElementById('bv-z').textContent = fmt(bz);
+
+  // SU(2) matrix
+  const a_re = cos_ht*Math.cos(blochPhi/2), a_im = cos_ht*Math.sin(blochPhi/2);
+  const b_re = -sin_ht*Math.cos(blochPhi/2), b_im = sin_ht*Math.sin(blochPhi/2);
+  const c_re = sin_ht*Math.cos(blochPhi/2), c_im = sin_ht*Math.sin(blochPhi/2);
+  const d_re = cos_ht*Math.cos(blochPhi/2), d_im = -cos_ht*Math.sin(blochPhi/2);
+  document.getElementById('su2-matrix').textContent =
+    `[ ${fc(a_re,a_im)}  ${fc(b_re,b_im)} ]\n[ ${fc(c_re,c_im)}  ${fc(d_re,d_im)} ]`;
+
+  // Spinor phase display
+  const spinPhase = blochTheta / 2; // in radians; at theta=2pi -> phase=pi
+  const phaseDeg = Math.round(spinPhase * 180 / Math.PI);
+  const phasePct = Math.min(100, (spinPhase / (Math.PI*2))*100);
+  document.getElementById('spin-phase-lbl').textContent = `${phaseDeg}°`;
+  document.getElementById('spin-phase-bar').style.width = phasePct + '%';
+
+  if(blochTheta > Math.PI*1.9) {
+    document.getElementById('spin-label').textContent = 'Sign flip! Spinor → -|ψ⟩ after 360°';
+    document.getElementById('spin-label').style.color = '#ff6644';
+  } else if(blochTheta > Math.PI*3.9) {
+    document.getElementById('spin-label').textContent = 'Back to identity after 720°';
+    document.getElementById('spin-label').style.color = '#00ff99';
+  } else {
+    document.getElementById('spin-label').textContent = 'Drag θ to see spinor phase';
+    document.getElementById('spin-label').style.color = '#55558a';
+  }
+  ctx.restore();
+}
+
+document.getElementById('bloch-theta').addEventListener('input', function() {
+  blochTheta = parseFloat(this.value)/100;
+  document.getElementById('bloch-theta-val').textContent = fmt(blochTheta);
+  drawBloch();
+});
+document.getElementById('bloch-phi').addEventListener('input', function() {
+  blochPhi = parseFloat(this.value)/100;
+  document.getElementById('bloch-phi-val').textContent = fmt(blochPhi);
+  drawBloch();
+});
+
+let tourAnimating = false;
+function resetSpinorTour() {
+  if(tourAnim) { cancelAnimationFrame(tourAnim); tourAnim = null; }
+  tourAnimating = false;
+  blochTheta = 0;
+  blochPhi = 0;
+  document.getElementById('bloch-theta').value = 0;
+  document.getElementById('bloch-theta-val').textContent = fmt(0);
+  document.getElementById('bloch-phi').value = 0;
+  document.getElementById('bloch-phi-val').textContent = '0.00';
+  document.getElementById('spin-label').textContent = 'Drag sliders or click tour';
+  document.getElementById('spin-label').style.color = '#55558a';
+  const btn = document.getElementById('tour-btn');
+  btn.textContent = 'Play 720° Tour';
+  btn.classList.remove('active');
+  drawBloch();
+}
+function toggleSpinorTour() {
+  if(tourAnimating) {
+    if(tourAnim) { cancelAnimationFrame(tourAnim); tourAnim = null; }
+    tourAnimating = false;
+    const btn = document.getElementById('tour-btn');
+    btn.textContent = 'Play 720° Tour';
+    btn.classList.remove('active');
+    return;
+  }
+  tourAnimating = true;
+  const btn = document.getElementById('tour-btn');
+  btn.textContent = 'Pause';
+  btn.classList.add('active');
+  const duration = 4000;
+  const startTime = performance.now();
+  const startTheta = blochTheta;
+  blochPhi = 0;
+  document.getElementById('bloch-phi').value = 0;
+  document.getElementById('bloch-phi-val').textContent = '0.00';
+
+  function animate(now) {
+    if(!tourAnimating) return;
+    const t = Math.min(1, (now - startTime) / duration);
+    blochTheta = startTheta + t * Math.PI * 4;
+    document.getElementById('bloch-theta').value = Math.round(blochTheta*100);
+    document.getElementById('bloch-theta-val').textContent = fmt(blochTheta);
+    drawBloch();
+
+    if(blochTheta > Math.PI*1.95 && blochTheta < Math.PI*2.05) {
+      document.getElementById('spin-label').textContent = 'Spin-½: 360° → sign flip = -1!';
+      document.getElementById('spin-label').style.color = '#ff6644';
+    }
+    if(t < 1) {
+      tourAnim = requestAnimationFrame(animate);
+    } else {
+      blochTheta = Math.PI * 2;
+      document.getElementById('bloch-theta').value = Math.round(blochTheta*100);
+      drawBloch();
+      tourAnimating = false;
+      tourAnim = null;
+      btn.textContent = 'Play 720° Tour';
+      btn.classList.remove('active');
+      document.getElementById('spin-label').textContent = '720° complete — back to identity!';
+      document.getElementById('spin-label').style.color = '#00ff99';
+    }
+  }
+  tourAnim = requestAnimationFrame(animate);
+}
+function startSpinorTour() {
+  if(tourAnimating) return;
+  blochTheta = 0;
+  document.getElementById('bloch-theta').value = 0;
+  document.getElementById('bloch-theta-val').textContent = fmt(0);
+  toggleSpinorTour();
+}
+
+// ══════════════════════════════════════
+// TAB 3: PLATE TRICK / DIRAC BELT
+// ══════════════════════════════════════
+const beltCanvas = document.getElementById('beltcanvas');
+const beltCtx = beltCanvas.getContext('2d');
+let beltAngle = 0;
+let beltAnim = null;
+let beltAnimating = false;
+
+function resizeBelt() {
+  const wrap = beltCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  beltCanvas.style.width = rect.width + 'px';
+  beltCanvas.style.height = rect.height + 'px';
+  beltCanvas.width = rect.width * dpr;
+  beltCanvas.height = rect.height * dpr;
+}
+
+function beltTangle(angle) {
+  const a = ((angle % 720) + 720) % 720;
+  if(a <= 360) return a/360;
+  return (720-a)/360;
+}
+
+function drawBelt() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = beltCanvas.width / dpr, H = beltCanvas.height / dpr;
+  const ctx = beltCtx;
+  ctx.save();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.strokeStyle = '#0d0d1e';
+  ctx.lineWidth = 1;
+  for(let x=0; x<W; x+=50){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0; y<H; y+=50){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const plateW = Math.min(W,H)*0.1, plateH = Math.min(W,H)*0.13;
+  const plateCX = W*0.35, plateCY = H/2;
+  const wallX = W*0.85;
+
+  const tangle = beltTangle(beltAngle);
+  const nBelts = 5;
+  const beltColors = ['#ff6644','#ff8866','#ffaa88','#ff5533','#ff7755'];
+  const rad = beltAngle * Math.PI / 180;
+
+  for(let i=0; i<nBelts; i++) {
+    const t = (i/(nBelts-1)) - 0.5;
+    const phase = (i / nBelts) * Math.PI * 2;
+    const waveAmp = tangle * plateH * 0.38;
+    const crossFreq = 2 + i*0.5;
+
+    // Attachment point on the plate's right edge, in plate-local coords
+    const localX = plateW/2;
+    const localY = t * plateH * 0.8;
+    // Rotate with the plate
+    const startX = plateCX + localX*Math.cos(rad) - localY*Math.sin(rad);
+    const startY = plateCY + localX*Math.sin(rad) + localY*Math.cos(rad);
+    const endY = H/2 + t * (H*0.4);
+    const endX = wallX;
+
+    const cx1 = startX + (endX-startX)*0.3;
+    const cy1 = startY + waveAmp * Math.sin(phase + crossFreq*0.7);
+    const cx2 = startX + (endX-startX)*0.65;
+    const cy2 = endY + waveAmp * Math.sin(phase + crossFreq*1.4);
+
+    ctx.shadowColor = beltColors[i];
+    ctx.shadowBlur = 4;
+    ctx.strokeStyle = beltColors[i] + (tangle > 0.5 ? '99' : 'cc');
+    ctx.lineWidth = tangle > 0.5 ? 2.5 : 3;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.bezierCurveTo(cx1, cy1, cx2, cy2, endX, endY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.fillStyle = '#1c1c44';
+  ctx.fillRect(wallX-5, H*0.15, 10, H*0.7);
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Wall', wallX, H*0.15-8);
+
+  ctx.save();
+  ctx.translate(plateCX, plateCY);
+  ctx.rotate(beltAngle * Math.PI/180);
+
+  ctx.shadowColor = '#ff6644';
+  ctx.shadowBlur = beltAngle > 0 ? 15 : 5;
+  ctx.fillStyle = '#1a0e08';
+  ctx.strokeStyle = '#ff6644';
+  ctx.lineWidth = 2.5;
+  ctx.fillRect(-plateW/2, -plateH/2, plateW, plateH);
+  ctx.strokeRect(-plateW/2, -plateH/2, plateW, plateH);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#ff8866';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Plate', 0, 4);
+
+  // Belt attachment dots on the plate
+  ctx.fillStyle = '#ffd700';
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 6;
+  for(let i=0; i<nBelts; i++) {
+    const t = (i/(nBelts-1)) - 0.5;
+    ctx.beginPath();
+    ctx.arc(plateW/2, t * plateH * 0.8, 3, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+
+  if(beltAngle > 0) {
+    ctx.save();
+    ctx.translate(plateCX, plateCY);
+    ctx.strokeStyle = '#ff664466';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, plateW*0.7, 0, (beltAngle % 720) * Math.PI/180);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  ctx.fillStyle = '#c0c0ea';
+  ctx.font = 'bold 14px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Rotation: ${Math.round(beltAngle % 720)}°  (total: ${Math.round(beltAngle)}°)`, 16, 30);
+
+  if(beltAngle <= 0.5) {
+    document.getElementById('belt-status').textContent = 'Ready';
+    document.getElementById('belt-status').className = 'status-badge neutral';
+  } else if(beltAngle < 700) {
+    const isMainlyTangled = beltTangle(beltAngle) > 0.5;
+    if(isMainlyTangled) {
+      document.getElementById('belt-status').textContent = 'Tangled \u2717';
+      document.getElementById('belt-status').className = 'status-badge tangled';
+    } else {
+      document.getElementById('belt-status').textContent = 'Untangling...';
+      document.getElementById('belt-status').className = 'status-badge neutral';
+    }
+  } else {
+    document.getElementById('belt-status').textContent = 'Untangled \u2713';
+    document.getElementById('belt-status').className = 'status-badge untangled';
+  }
+
+  document.getElementById('belt-angle-lbl').textContent = `\u2192 ${Math.round(beltAngle)}\u00b0`;
+  ctx.textAlign = 'left';
+  ctx.restore();
+}
+
+function beltGetSpeed() {
+  return parseFloat(document.getElementById('belt-speed').value) / 10;
+}
+
+function animateBeltTo(targetAngle, onDone) {
+  if(beltAnim) cancelAnimationFrame(beltAnim);
+  beltAnimating = true;
+  const startAngle = beltAngle;
+  const totalAngle = targetAngle - startAngle;
+  let progress = 0;
+
+  function step() {
+    const speed = beltGetSpeed() || 0.3;
+    progress += speed * 0.008;
+    if(progress >= 1) progress = 1;
+    const ease = progress < 0.5 ? 2*progress*progress : -1+(4-2*progress)*progress;
+    beltAngle = startAngle + totalAngle * ease;
+    drawBelt();
+    if(progress < 1) {
+      beltAnim = requestAnimationFrame(step);
+    } else {
+      beltAngle = targetAngle;
+      drawBelt();
+      beltAnimating = false;
+      beltAnim = null;
+      if(onDone) onDone();
+    }
+  }
+  beltAnim = requestAnimationFrame(step);
+}
+
+let beltLoopMode = 0;
+let beltLooping = false;
+let beltPauseTimer = null;
+
+function startBeltLoop(targetAngle) {
+  if(beltAnim) cancelAnimationFrame(beltAnim);
+  if(beltPauseTimer) { clearTimeout(beltPauseTimer); beltPauseTimer = null; }
+  beltLoopMode = targetAngle;
+  beltLooping = true;
+  document.getElementById('btn-rot360').textContent = targetAngle === 360 ? 'Pause 360°' : 'Play 360°';
+  document.getElementById('btn-rot360').classList.toggle('active', targetAngle === 360);
+  document.getElementById('btn-rot720').textContent = targetAngle === 720 ? 'Pause 720°' : 'Play 720°';
+  document.getElementById('btn-rot720').classList.toggle('active', targetAngle === 720);
+  beltAngle = 0;
+  drawBelt();
+  animateBeltTo(targetAngle, () => {
+    if(!beltLooping) return;
+    beltPauseTimer = setTimeout(() => {
+      if(!beltLooping) return;
+      startBeltLoop(targetAngle);
+    }, 3000);
+  });
+}
+
+function toggleBelt360() {
+  if(beltLoopMode === 360) { stopBeltLoop(); return; }
+  startBeltLoop(360);
+}
+
+function toggleBelt720() {
+  if(beltLoopMode === 720) { stopBeltLoop(); return; }
+  startBeltLoop(720);
+}
+
+function stopBeltLoop() {
+  beltLooping = false;
+  beltLoopMode = 0;
+  if(beltAnim) { cancelAnimationFrame(beltAnim); beltAnim = null; }
+  if(beltPauseTimer) { clearTimeout(beltPauseTimer); beltPauseTimer = null; }
+  beltAnimating = false;
+  document.getElementById('btn-rot360').textContent = 'Play 360°';
+  document.getElementById('btn-rot360').classList.remove('active');
+  document.getElementById('btn-rot360').disabled = false;
+  document.getElementById('btn-rot720').textContent = 'Play 720°';
+  document.getElementById('btn-rot720').classList.remove('active');
+  document.getElementById('btn-rot720').disabled = false;
+}
+
+function beltReset() {
+  stopBeltLoop();
+  beltAngle = 0;
+  drawBelt();
+}
+
+function beltAutoStart() {
+  stopBeltLoop();
+  beltAngle = 0;
+  resizeBelt();
+  drawBelt();
+  startBeltLoop(720);
+}
+
+// ══════════════════════════════════════
+// RESIZE HANDLER
+// ══════════════════════════════════════
+function handleResize() {
+  const active = document.querySelector('.panel.active');
+  if (!active) return;
+  const id = active.id.replace('panel-', '');
+  if (id === 'rotation')  { resizeRot(); drawRot(); }
+  if (id === 'bloch')     { resizeBloch(); drawBloch(); }
+  if (id === 'belt')      { resizeBelt(); drawBelt(); }
+  if (id === 'manifolds') { resizeMfd(); drawMfd(); }
+  if (id === 'expmap')    { resizeExp(); drawExp(); }
+  if (id === 'roots')     { resizeRoots(); drawRoots(); }
+  if (id === 'dcover')    { resizeDC(); drawDC(); }
+  if (id === 'octonion')   { resizeOct(); drawOct(); }
+}
+
+window.addEventListener('resize', handleResize);
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+window.addEventListener('load', () => {
+  resizeRot();
+  setRotMode('so2');
+  drawRot();
+  rotAnimating = true;
+  document.getElementById('rot-anim-btn').textContent = 'Pause';
+  rotAnimStep();
+  selectProof(0);
+  // Auto-start animations - click all Animate/Play buttons
+  document.querySelectorAll('.btn[id$="-anim-btn"], .btn[id$="AnimBtn"]').forEach(btn => {
+    if (btn.textContent.includes('\u25b6') || btn.textContent.includes('Animate')) {
+      btn.click();
+    }
+  });
+});
+</script>
+
+<script>
+  window.animSpeed=0.1;
+// ══════════════════════════════════════════════════════════════
+// TAB 4: LIE GROUPS AS MANIFOLDS  (SU(2)≅S³, SO(3)≅RP³, Hopf)
+// ══════════════════════════════════════════════════════════════
+(function(){
+  var mfdCanvas = document.getElementById('mfdcanvas');
+  var mfdCtx    = mfdCanvas.getContext('2d');
+  var mfdT      = 0;
+  var mfdAnimId = null;
+  var mfdAnimating = false;
+  var mfdOrbitAngle = 0;
+  var mfdOrbiting = false;
+
+  function resizeMfd(){
+    var wrap = mfdCanvas.parentElement;
+    var rect = wrap.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    mfdCanvas.style.width = rect.width + 'px';
+    mfdCanvas.style.height = rect.height + 'px';
+    mfdCanvas.width = rect.width * dpr;
+    mfdCanvas.height = rect.height * dpr;
+  }
+  window.resizeMfd = resizeMfd;
+
+  function stereoS3(a,b,c,d){
+    var denom=1+d; if(Math.abs(denom)<1e-6) return[0,0,0];
+    return[a/denom,b/denom,c/denom];
+  }
+  function rotVec3(v, angleY, angleX) {
+    var x1 = v[0]*Math.cos(angleY) + v[2]*Math.sin(angleY);
+    var y1 = v[1];
+    var z1 = -v[0]*Math.sin(angleY) + v[2]*Math.cos(angleY);
+    var x2 = x1;
+    var y2 = y1*Math.cos(angleX) - z1*Math.sin(angleX);
+    var z2 = y1*Math.sin(angleX) + z1*Math.cos(angleX);
+    return [x2, y2, z2];
+  }
+
+  function mfdProj(v,cx,cy,scale){
+    var rv = rotVec3(v, mfdOrbitAngle*0.7, mfdOrbitAngle*0.3);
+    var x=rv[0],y=rv[1],z=rv[2];
+    return[cx+(x-z*0.5)*scale, cy-(y+z*0.35)*scale];
+  }
+
+  function drawMfd(){
+    var dpr = window.devicePixelRatio || 1;
+    var W=mfdCanvas.width/dpr, H=mfdCanvas.height/dpr;
+    var ctx=mfdCtx;
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    var cx=W*0.5, cy=H*0.5;
+    var scale=Math.min(W,H)*0.3;
+
+    ctx.strokeStyle='#0d0d22'; ctx.lineWidth=1;
+    for(var x=cx%50;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(var y=cy%50;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    // S² grid (projected S³ equatorial sphere)
+    ctx.lineWidth=1;
+    ctx.strokeStyle='#ffffff0a';
+    for(var lat=0;lat<=Math.PI;lat+=Math.PI/6){
+      ctx.beginPath(); var first=true;
+      for(var t=0;t<=Math.PI*2+0.01;t+=0.06){
+        var v3=stereoS3(Math.sin(lat)*Math.cos(t),Math.sin(lat)*Math.sin(t),Math.cos(lat),0);
+        var p=mfdProj(v3,cx,cy,scale);
+        if(first){ctx.moveTo(p[0],p[1]);first=false;}else ctx.lineTo(p[0],p[1]);
+      }
+      ctx.stroke();
+    }
+    for(var lon=0;lon<Math.PI*2;lon+=Math.PI/4){
+      ctx.beginPath(); first=true;
+      for(var t2=0;t2<=Math.PI+0.01;t2+=0.06){
+        var v3b=stereoS3(Math.sin(t2)*Math.cos(lon),Math.sin(t2)*Math.sin(lon),Math.cos(t2),0);
+        var pb=mfdProj(v3b,cx,cy,scale);
+        if(first){ctx.moveTo(pb[0],pb[1]);first=false;}else ctx.lineTo(pb[0],pb[1]);
+      }
+      ctx.stroke();
+    }
+
+    var nPts=200;
+
+    // Full great circle SU(2) cyan faint
+    ctx.strokeStyle='#00e5ff44'; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(var i=0;i<=nPts;i++){
+      var t3=(i/nPts)*Math.PI*2;
+      var v3c=stereoS3(Math.cos(t3),Math.sin(t3),0,0);
+      var pc=mfdProj(v3c,cx,cy,scale);
+      if(i===0)ctx.moveTo(pc[0],pc[1]);else ctx.lineTo(pc[0],pc[1]);
+    }
+    ctx.stroke();
+
+    // Antipodal path violet faint
+    ctx.strokeStyle='#aa77ff44'; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(var i2=0;i2<=nPts;i2++){
+      var t4=(i2/nPts)*Math.PI*2;
+      var v3d=stereoS3(-Math.cos(t4),-Math.sin(t4),0,0);
+      var pd=mfdProj(v3d,cx,cy,scale);
+      if(i2===0)ctx.moveTo(pd[0],pd[1]);else ctx.lineTo(pd[0],pd[1]);
+    }
+    ctx.stroke();
+
+    // Animated arc gold (the SU(2) path from +I)
+    if(mfdT > 0.01) {
+      ctx.strokeStyle='#ffd700cc'; ctx.lineWidth=3;
+      ctx.shadowColor='#ffd700'; ctx.shadowBlur=8;
+      ctx.beginPath();
+      var firstPt=true;
+      for(var i3=0;i3<=nPts;i3++){
+        var t5=(i3/nPts)*Math.PI*2;
+        if(t5>mfdT) break;
+        var v3e=stereoS3(Math.cos(t5),Math.sin(t5),0,0);
+        var pe=mfdProj(v3e,cx,cy,scale);
+        if(firstPt){ctx.moveTo(pe[0],pe[1]);firstPt=false;}else ctx.lineTo(pe[0],pe[1]);
+      }
+      ctx.stroke(); ctx.shadowBlur=0;
+    }
+
+    // Moving gold dot at γ(t)
+    var v3f=stereoS3(Math.cos(mfdT),Math.sin(mfdT),0,0);
+    var pf=mfdProj(v3f,cx,cy,scale);
+    ctx.fillStyle='#ffd700'; ctx.shadowColor='#ffd700'; ctx.shadowBlur=18;
+    ctx.beginPath();ctx.arc(pf[0],pf[1],8,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+    // Small white center for visibility
+    ctx.fillStyle='#fff'; ctx.beginPath();ctx.arc(pf[0],pf[1],3,0,Math.PI*2);ctx.fill();
+
+    // +I dot
+    var vI=stereoS3(1,0,0,0); var pI=mfdProj(vI,cx,cy,scale);
+    ctx.fillStyle='#00e5ff'; ctx.shadowColor='#00e5ff'; ctx.shadowBlur=14;
+    ctx.beginPath();ctx.arc(pI[0],pI[1],6,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+
+    // -I dot
+    var vmI=stereoS3(-1,0,0,0); var pmI=mfdProj(vmI,cx,cy,scale);
+    ctx.fillStyle='#aa77ff'; ctx.shadowColor='#aa77ff'; ctx.shadowBlur=14;
+    ctx.beginPath();ctx.arc(pmI[0],pmI[1],6,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+
+    // Labels
+    ctx.font='bold 13px Segoe UI';
+    ctx.fillStyle='#00e5ff'; ctx.fillText('+I',pI[0]+10,pI[1]-8);
+    ctx.fillStyle='#aa77ff'; ctx.fillText('\u2212I',pmI[0]+10,pmI[1]-8);
+    ctx.fillStyle='#ffd700'; ctx.fillText('\u03b3(t)',pf[0]+10,pf[1]-8);
+
+    // Legend box
+    ctx.fillStyle='rgba(5,5,15,0.85)';
+    ctx.fillRect(8,8,260,70);
+    ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1;
+    ctx.strokeRect(8,8,260,70);
+    ctx.fillStyle='#c0c0ea'; ctx.font='13px Segoe UI';
+    ctx.fillText('t = '+mfdT.toFixed(2)+' rad  ('+Math.round(mfdT/(Math.PI*2)*360)+'\u00b0 in SO(3))',16,26);
+
+    var closed=(mfdT>=Math.PI*2-0.05);
+    ctx.font='12px Segoe UI';
+    ctx.fillStyle=closed?'#00ff99':'#55558a';
+    ctx.fillText(closed
+      ?'Loop closed in SO(3) \u2014 path in SU(2): +I\u2192\u2212I'
+      :'Gold: loop in SO(3) lifts to +I\u2192\u2212I arc in SU(2)',
+      16,44);
+    ctx.fillStyle='#55558a'; ctx.font='11px Segoe UI';
+    ctx.fillText('Cyan circle = +I path   Violet circle = \u2212I path',16,62);
+
+    ctx.restore();
+  }
+  window.drawMfd = drawMfd;
+
+  document.getElementById('mfd-t').addEventListener('input',function(){
+    mfdT=parseFloat(this.value)/100;
+    document.getElementById('mfd-t-val').textContent=mfdT.toFixed(2);
+    drawMfd();
+  });
+
+  window.mfdToggleAnim=function(){
+    if(mfdAnimating){
+      mfdAnimating=false;
+      if(!mfdOrbiting) { if(mfdAnimId){cancelAnimationFrame(mfdAnimId);mfdAnimId=null;} }
+      document.getElementById('mfd-anim-btn').textContent='Play';
+      document.getElementById('mfd-anim-btn').classList.remove('active');
+      return;
+    }
+    mfdAnimating=true;
+    document.getElementById('mfd-anim-btn').textContent='Pause';
+    document.getElementById('mfd-anim-btn').classList.add('active');
+    if(!mfdOrbiting) mfdStartLoop();
+  };
+
+  function mfdGetSpeed(){
+    return parseFloat(document.getElementById('mfd-speed').value)/10 || 0.3;
+  }
+
+  function mfdStartLoop(){
+    if(mfdAnimId) return;
+    function loop(){
+      var needDraw = false;
+      if(mfdAnimating){
+        var speed = mfdGetSpeed();
+        mfdT += speed * 0.008;
+        if(mfdT >= Math.PI*2) mfdT -= Math.PI*2;
+        document.getElementById('mfd-t').value = Math.round(mfdT*100);
+        document.getElementById('mfd-t-val').textContent = mfdT.toFixed(2);
+        needDraw = true;
+      }
+      if(mfdOrbiting){
+        mfdOrbitAngle += 0.008;
+        needDraw = true;
+      }
+      if(needDraw) drawMfd();
+      if(mfdAnimating || mfdOrbiting) {
+        mfdAnimId = requestAnimationFrame(loop);
+      } else {
+        mfdAnimId = null;
+      }
+    }
+    mfdAnimId = requestAnimationFrame(loop);
+  }
+
+  window.mfdReset=function(){
+    mfdAnimating=false;
+    mfdOrbiting=false;
+    if(mfdAnimId){cancelAnimationFrame(mfdAnimId);mfdAnimId=null;}
+    document.getElementById('mfd-anim-btn').textContent='Play';
+    document.getElementById('mfd-anim-btn').classList.remove('active');
+    document.getElementById('mfd-orbit-btn').classList.remove('active');
+    mfdT=0;
+    mfdOrbitAngle=0;
+    document.getElementById('mfd-t').value=0;
+    document.getElementById('mfd-t-val').textContent='0.00';
+    drawMfd();
+  };
+
+  window.mfdStartAnim=function(){
+    mfdAnimating=true;
+    document.getElementById('mfd-anim-btn').textContent='Pause';
+    document.getElementById('mfd-anim-btn').classList.add('active');
+    mfdStartLoop();
+  };
+
+  window.mfdStopAnim=function(){
+    mfdAnimating=false;
+    mfdOrbiting=false;
+    if(mfdAnimId){cancelAnimationFrame(mfdAnimId);mfdAnimId=null;}
+    document.getElementById('mfd-anim-btn').textContent='Play';
+    document.getElementById('mfd-anim-btn').classList.remove('active');
+    document.getElementById('mfd-orbit-btn').classList.remove('active');
+  };
+
+  window.mfdToggleOrbit=function(){
+    if(mfdOrbiting){
+      mfdOrbiting=false;
+      document.getElementById('mfd-orbit-btn').classList.remove('active');
+      if(!mfdAnimating && mfdAnimId){cancelAnimationFrame(mfdAnimId);mfdAnimId=null;}
+      return;
+    }
+    mfdOrbiting=true;
+    document.getElementById('mfd-orbit-btn').classList.add('active');
+    if(!mfdAnimating) mfdStartLoop();
+  };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// TAB 5: LIE ALGEBRA & EXPONENTIAL MAP
+// ══════════════════════════════════════════════════════════════
+(function(){
+  var expCanvas=document.getElementById('expcanvas');
+  var expCtx=expCanvas.getContext('2d');
+  var expNx=0,expNy=0,expNz=1,expTheta=0;
+  var expAnimating=false,expAnimId=null;
+
+  function resizeExp(){
+    var wrap = expCanvas.parentElement;
+    var rect = wrap.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    expCanvas.style.width = rect.width + 'px';
+    expCanvas.style.height = rect.height + 'px';
+    expCanvas.width = rect.width * dpr;
+    expCanvas.height = rect.height * dpr;
+  }
+  window.resizeExp=resizeExp;
+
+  function su2ExpMap(nx,ny,nz,theta){
+    var c=Math.cos(theta/2),s=Math.sin(theta/2);
+    return{re00:c,im00:s*nz,re01:s*ny,im01:s*nx,re10:-s*ny,im10:s*nx,re11:c,im11:-s*nz};
+  }
+
+  function drawExp(){
+    var dpr=window.devicePixelRatio||1;
+    var W=expCanvas.width/dpr,H=expCanvas.height/dpr;
+    var ctx=expCtx;
+    ctx.save(); ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    var cx=W*0.5,cy=H*0.5,R=Math.min(W,H)*0.38;
+
+    ctx.strokeStyle='#0d0d22'; ctx.lineWidth=1;
+    for(var x=cx%50;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(var y=cy%50;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    ctx.strokeStyle='#2a2a60'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(cx-R*1.1,cy);ctx.lineTo(cx+R*1.1,cy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy-R*1.1);ctx.lineTo(cx,cy+R*1.1);ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.strokeStyle='#ff664430'; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+
+    ctx.fillStyle='#55558a'; ctx.font='12px Courier New';
+    ctx.fillText('cos(\u03b8/2)',cx+R+6,cy+14);
+    ctx.fillText('i\u00b7sin(\u03b8/2)\u00b7nz',cx+6,cy-R-8);
+
+    var nMag=Math.sqrt(expNx*expNx+expNy*expNy+expNz*expNz)||1;
+    var nz=expNz/nMag;
+
+    [[0,'#00e5ff','+I'],[Math.PI*2,'#aa77ff','\u2212I'],[Math.PI*4,'#00e5ff','+I']].forEach(function(ref){
+      var t=ref[0],col=ref[1],lbl=ref[2];
+      var px=cx+Math.cos(t/2)*R,py=cy-Math.sin(t/2)*nz*R;
+      ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=10;
+      ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+      ctx.fillStyle=col; ctx.font='12px Courier New';
+      ctx.fillText(lbl,px+8,py-6);
+    });
+
+    ctx.strokeStyle='#00e5ff33'; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(var i=0;i<=200;i++){
+      var t=(i/200)*Math.PI*4;
+      var px=cx+Math.cos(t/2)*R,py=cy-Math.sin(t/2)*nz*R;
+      if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    if(expTheta > 0.01) {
+      var nArc=Math.max(2,Math.round((expTheta/(Math.PI*4))*200));
+      ctx.strokeStyle='#ffd700cc'; ctx.lineWidth=2.5;
+      ctx.shadowColor='#ffd700'; ctx.shadowBlur=6;
+      ctx.beginPath();
+      for(var i2=0;i2<=nArc;i2++){
+        var t2=(i2/200)*Math.PI*4;
+        if(t2>expTheta)break;
+        var px2=cx+Math.cos(t2/2)*R,py2=cy-Math.sin(t2/2)*nz*R;
+        if(i2===0)ctx.moveTo(px2,py2);else ctx.lineTo(px2,py2);
+      }
+      ctx.stroke(); ctx.shadowBlur=0;
+    }
+
+    var cpx=cx+Math.cos(expTheta/2)*R,cpy=cy-Math.sin(expTheta/2)*nz*R;
+    ctx.fillStyle='#ffd700'; ctx.shadowColor='#ffd700'; ctx.shadowBlur=18;
+    ctx.beginPath();ctx.arc(cpx,cpy,8,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+    ctx.fillStyle='#fff'; ctx.beginPath();ctx.arc(cpx,cpy,3,0,Math.PI*2);ctx.fill();
+
+    ctx.strokeStyle='#00ff99cc'; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx,cy+R);ctx.stroke();
+    ctx.fillStyle='#00ff99';
+    ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx-6,cy-R+12);ctx.lineTo(cx+6,cy-R+12);ctx.closePath();ctx.fill();
+
+    ctx.fillStyle='#ff664488'; ctx.font='bold 14px Segoe UI';
+    ctx.fillText('Exponential Map: exp(i\u03b8/2 \u00b7 n\u0302\u00b7\u03c3) \u2014 geodesic on SU(2)\u2245S\u00b3',14,24);
+    ctx.fillStyle='#c0c0ea'; ctx.font='13px Segoe UI';
+    ctx.fillText('\u03b8 = '+expTheta.toFixed(3)+' rad = '+(expTheta*180/Math.PI).toFixed(1)+'\u00b0',14,46);
+    var annot='';
+    if(Math.abs(expTheta-Math.PI*2)<0.1) annot=' \u2190 arrives at \u2212I!';
+    else if(Math.abs(expTheta-Math.PI*4)<0.1) annot=' \u2190 back to +I!';
+    ctx.fillText((expTheta/(Math.PI*2)).toFixed(2)+'\u03c0 rad'+annot,14,64);
+
+    var m=su2ExpMap(expNx/nMag,expNy/nMag,nz,expTheta);
+    document.getElementById('exp-matrix').textContent=
+      `[ ${fc(m.re00,m.im00)}  ${fc(m.re01,m.im01)} ]\n[ ${fc(m.re10,m.im10)}  ${fc(m.re11,m.im11)} ]`;
+    ctx.restore();
+  }
+  window.drawExp=drawExp;
+
+  ['exp-nx','exp-ny','exp-nz'].forEach(function(id,i){
+    document.getElementById(id).addEventListener('input',function(){
+      var v=parseFloat(this.value)/100;
+      if(i===0){expNx=v;document.getElementById('exp-nx-val').textContent=v.toFixed(2);}
+      if(i===1){expNy=v;document.getElementById('exp-ny-val').textContent=v.toFixed(2);}
+      if(i===2){expNz=v;document.getElementById('exp-nz-val').textContent=v.toFixed(2);}
+      drawExp();
+    });
+  });
+  document.getElementById('exp-theta').addEventListener('input',function(){
+    expTheta=parseFloat(this.value)/100;
+    document.getElementById('exp-theta-val').textContent=expTheta.toFixed(2);
+    drawExp();
+  });
+
+  function expGetSpeed(){
+    return parseFloat(document.getElementById('exp-speed').value)/10 || 0.3;
+  }
+
+  function expStartLoop(){
+    if(expAnimId) return;
+    function loop(){
+      if(expAnimating){
+        var speed = expGetSpeed();
+        expTheta += speed * 0.015;
+        if(expTheta > Math.PI*4) expTheta = Math.PI*4;
+        document.getElementById('exp-theta').value = Math.round(expTheta*100);
+        document.getElementById('exp-theta-val').textContent = expTheta.toFixed(2);
+      }
+      if(expAnimating || false) {
+        drawExp();
+        expAnimId = requestAnimationFrame(loop);
+      } else {
+        expAnimId = null;
+      }
+    }
+    expAnimId = requestAnimationFrame(loop);
+  }
+
+  window.expToggleAnim=function(){
+    if(expAnimating){
+      expAnimating=false;
+      document.getElementById('exp-anim-btn').textContent='Play';
+      document.getElementById('exp-anim-btn').classList.remove('active');
+      return;
+    }
+    expAnimating=true;
+    document.getElementById('exp-anim-btn').textContent='Pause';
+    document.getElementById('exp-anim-btn').classList.add('active');
+    if(expTheta >= Math.PI*4 - 0.01) expTheta = 0;
+    expStartLoop();
+  };
+
+  window.expReset=function(){
+    expAnimating=false;
+    if(expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
+    document.getElementById('exp-anim-btn').textContent='Play';
+    document.getElementById('exp-anim-btn').classList.remove('active');
+    expTheta=0;
+    expNx=0; expNy=0; expNz=1;
+    document.getElementById('exp-theta').value=0;
+    document.getElementById('exp-theta-val').textContent='0.00';
+    document.getElementById('exp-nx').value=0;
+    document.getElementById('exp-nx-val').textContent='0.00';
+    document.getElementById('exp-ny').value=0;
+    document.getElementById('exp-ny-val').textContent='0.00';
+    document.getElementById('exp-nz').value=100;
+    document.getElementById('exp-nz-val').textContent='1.00';
+    drawExp();
+  };
+
+  window.expStartAnim=function(){
+    expAnimating=true;
+    document.getElementById('exp-anim-btn').textContent='Pause';
+    document.getElementById('exp-anim-btn').classList.add('active');
+    if(expTheta >= Math.PI*4 - 0.01) expTheta = 0;
+    expStartLoop();
+  };
+
+  window.expStopAnim=function(){
+    expAnimating=false;
+    if(expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
+    document.getElementById('exp-anim-btn').textContent='Play';
+    document.getElementById('exp-anim-btn').classList.remove('active');
+  };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// TAB 6: SU(3) ROOT SYSTEM  A₂
+// ══════════════════════════════════════════════════════════════
+(function(){
+  var rootsCanvas=document.getElementById('rootscanvas');
+  var rootsCtx=rootsCanvas.getContext('2d');
+  var rootsHighlight=-1,rootsWeylAnim=true,rootsWeylId=null,rootsWeylAngle=0;
+
+  function resizeRoots(){
+    var wrap = rootsCanvas.parentElement;
+    var rect = wrap.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    rootsCanvas.style.width = rect.width + 'px';
+    rootsCanvas.style.height = rect.height + 'px';
+    rootsCanvas.width = rect.width * dpr;
+    rootsCanvas.height = rect.height * dpr;
+  }
+  window.resizeRoots=resizeRoots;
+
+  var ROOTS=[
+    {name:'\u03b1\u2081',       v:[1,0],              col:'#ff6644'},
+    {name:'\u03b1\u2082',       v:[-0.5,0.866],       col:'#00e5ff'},
+    {name:'\u03b1\u2081+\u03b1\u2082', v:[0.5,0.866], col:'#ffd700'},
+    {name:'\u2212\u03b1\u2081',  v:[-1,0],             col:'#ff4444'},
+    {name:'\u2212\u03b1\u2082',  v:[0.5,-0.866],       col:'#4499ff'},
+    {name:'\u2212\u03b1\u2081\u2212\u03b1\u2082',v:[-0.5,-0.866],col:'#aa77ff'},
+  ];
+
+  function drawRoots(){
+    var dpr=window.devicePixelRatio||1;
+    var W=rootsCanvas.width/dpr,H=rootsCanvas.height/dpr;
+    var ctx=rootsCtx;
+    ctx.save(); ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    var cx=W*0.55,cy=H*0.5,scale=Math.min(W,H)*0.28;
+
+    ctx.strokeStyle='#0d0d22'; ctx.lineWidth=1;
+    for(var x=cx%50;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(var y=cy%50;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    ctx.strokeStyle='#2a2a60'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(cx-scale*1.5,cy);ctx.lineTo(cx+scale*1.5,cy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy-scale*1.5);ctx.lineTo(cx,cy+scale*1.5);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#55558a'; ctx.font='12px Courier New';
+    ctx.fillText('H\u2081',cx+scale*1.3,cy+14);
+    ctx.fillText('H\u2082',cx+6,cy-scale*1.2);
+
+    var cosW=Math.cos(rootsWeylAngle),sinW=Math.sin(rootsWeylAngle);
+    function rotR(v){return[v[0]*cosW-v[1]*sinW,v[0]*sinW+v[1]*cosW];}
+
+    // Reflection hyperplanes
+    ctx.strokeStyle='#ffffff08'; ctx.lineWidth=1;
+    ROOTS.slice(0,3).forEach(function(r){
+      var rv=rotR(r.v),px=-rv[1],py=rv[0];
+      ctx.beginPath();ctx.moveTo(cx+px*scale*1.6,cy-py*scale*1.6);ctx.lineTo(cx-px*scale*1.6,cy+py*scale*1.6);ctx.stroke();
+    });
+
+    // Weight lattice
+    ctx.fillStyle='#2a2a50';
+    for(var i=-4;i<=4;i++) for(var j=-4;j<=4;j++){
+      var lx=cx+(i*1+j*(-0.5))*scale*0.5,ly=cy-(j*0.866)*scale*0.5;
+      ctx.beginPath();ctx.arc(lx,ly,2,0,Math.PI*2);ctx.fill();
+    }
+
+    // Hexagon boundary
+    ctx.strokeStyle='#ffffff10'; ctx.lineWidth=1;
+    ctx.beginPath();
+    for(var k=0;k<=6;k++){
+      var a=k*Math.PI/3+Math.PI/6;
+      var hx=cx+scale*Math.cos(a),hy=cy-scale*Math.sin(a);
+      if(k===0)ctx.moveTo(hx,hy);else ctx.lineTo(hx,hy);
+    }
+    ctx.closePath(); ctx.stroke();
+
+    // Roots
+    ROOTS.forEach(function(r,idx){
+      var rv=rotR(r.v);
+      var ex=cx+rv[0]*scale,ey=cy-rv[1]*scale;
+      var isHL=(rootsHighlight===-1||rootsHighlight===idx);
+      ctx.globalAlpha=isHL?1:0.25;
+      ctx.strokeStyle=r.col; ctx.lineWidth=isHL?2.5:1.5;
+      ctx.shadowColor=r.col; ctx.shadowBlur=isHL?10:0;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.stroke();
+      ctx.shadowBlur=0;
+      var ang=Math.atan2(ey-cy,ex-cx);
+      ctx.fillStyle=r.col;
+      ctx.beginPath();ctx.moveTo(ex,ey);
+      ctx.lineTo(ex-10*Math.cos(ang-0.4),ey-10*Math.sin(ang-0.4));
+      ctx.lineTo(ex-10*Math.cos(ang+0.4),ey-10*Math.sin(ang+0.4));
+      ctx.closePath();ctx.fill();
+      ctx.shadowColor=r.col; ctx.shadowBlur=isHL?16:0;
+      ctx.beginPath();ctx.arc(ex,ey,5,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+      ctx.fillStyle=r.col; ctx.font='bold '+(isHL?13:11)+'px Segoe UI';
+      ctx.fillText(r.name,ex+10,ey-6);
+      ctx.globalAlpha=1;
+    });
+
+    // Origin
+    ctx.fillStyle='#c0c0ea'; ctx.shadowColor='#c0c0ea'; ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+
+    // Two zero-weight dots (adjoint rep)
+    ctx.fillStyle='#ffd70066';
+    ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx+2,cy+2,4,0,Math.PI*2);ctx.fill();
+
+    ctx.fillStyle='#ff664488'; ctx.font='bold 14px Segoe UI';
+    ctx.fillText('SU(3) / A\u2082 Root System \u2014 Cartan Plane',14,24);
+    ctx.fillStyle='#55558a'; ctx.font='12px Segoe UI';
+    ctx.fillText('6 roots (equal length) + 2 Cartan generators = 8 = dim(su(3))  |  Weyl group = S\u2083',14,H-14);
+    if(rootsWeylAnim){
+      ctx.fillStyle='#ffd700'; ctx.font='12px Segoe UI';
+      ctx.fillText('Weyl rotation: '+(rootsWeylAngle*180/Math.PI).toFixed(1)+'\u00b0',W-180,24);
+    }
+    ctx.restore();
+  }
+  window.drawRoots=drawRoots;
+
+  document.getElementById('roots-select').addEventListener('change',function(){
+    rootsHighlight=parseInt(this.value);
+    drawRoots();
+  });
+
+  window.rootsToggleWeyl=function(){
+    if(rootsWeylAnim){
+      rootsWeylAnim=false;
+      if(rootsWeylId){cancelAnimationFrame(rootsWeylId);rootsWeylId=null;}
+      document.getElementById('roots-weyl-btn').textContent='Animate Weyl Reflections';
+      return;
+    }
+    rootsWeylAnim=true;
+    document.getElementById('roots-weyl-btn').textContent='Pause';
+    var start=performance.now(),startAngle=rootsWeylAngle;
+    function step(now){
+      if(!rootsWeylAnim)return;
+      rootsWeylAngle=startAngle+(now-start)*0.0004;
+      drawRoots();
+      rootsWeylId=requestAnimationFrame(step);
+    }
+    rootsWeylId=requestAnimationFrame(step);
+  };
+
+  // Start animation by default if rootsWeylAnim is true
+  if(rootsWeylAnim){
+    document.getElementById('roots-weyl-btn').textContent='Pause';
+    var rootsStart=performance.now(),rootsStartAngle=rootsWeylAngle;
+    function rootsStep(now){
+      if(!rootsWeylAnim)return;
+      rootsWeylAngle=rootsStartAngle+(now-rootsStart)*0.0004;
+      drawRoots();
+      rootsWeylId=requestAnimationFrame(rootsStep);
+    }
+    rootsWeylId=requestAnimationFrame(rootsStep);
+  }
+})();
+
+// ══════════════════════════════════════════════════════════════
+// TAB 7: SPINOR DOUBLE COVER  D^{1/2}(R_z(θ))
+// ══════════════════════════════════════════════════════════════
+(function(){
+  var dcCanvas=document.getElementById('dccanvas');
+  var dcCtx=dcCanvas.getContext('2d');
+  var dcTheta=0,dcAnimating=false,dcAnimId=null;
+
+  function resizeDC(){
+    var wrap = dcCanvas.parentElement;
+    var rect = wrap.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    dcCanvas.style.width = rect.width + 'px';
+    dcCanvas.style.height = rect.height + 'px';
+    dcCanvas.width = rect.width * dpr;
+    dcCanvas.height = rect.height * dpr;
+  }
+  window.resizeDC=resizeDC;
+
+  function drawDC(){
+    var dpr=window.devicePixelRatio||1;
+    var W=dcCanvas.width/dpr,H=dcCanvas.height/dpr;
+    var ctx=dcCtx;
+    ctx.save(); ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    var cx=W*0.5,cy=H*0.5,Rv=Math.min(W,H)*0.21;
+
+    ctx.strokeStyle='#0d0d22'; ctx.lineWidth=1;
+    for(var x=cx%50;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(var y=cy%50;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    var upperCY=H*0.28, lowerCY=H*0.72;
+
+    // Upper panel - spin-1 vector
+    ctx.fillStyle='#1a1a2e'; ctx.fillRect(20,H*0.05,W-40,H*0.4);
+    ctx.fillStyle='#ff664411'; ctx.strokeStyle='#ff664433'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(cx,upperCY,Rv,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+    var v1x=cx+Rv*Math.cos(dcTheta),v1y=upperCY-Rv*Math.sin(dcTheta);
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5; ctx.shadowColor='#ffd700'; ctx.shadowBlur=8;
+    ctx.beginPath();ctx.moveTo(cx,upperCY);ctx.lineTo(v1x,v1y);ctx.stroke(); ctx.shadowBlur=0;
+    var ang1=Math.atan2(v1y-upperCY,v1x-cx);
+    ctx.fillStyle='#ffd700';
+    ctx.beginPath();ctx.moveTo(v1x,v1y);
+    ctx.lineTo(v1x-10*Math.cos(ang1-0.4),v1y-10*Math.sin(ang1-0.4));
+    ctx.lineTo(v1x-10*Math.cos(ang1+0.4),v1y-10*Math.sin(ang1+0.4));
+    ctx.closePath();ctx.fill();
+
+    ctx.fillStyle='#ffd700'; ctx.font='bold 13px Segoe UI';
+    ctx.fillText('Spin-1 (Vector): period 2\u03c0',30,H*0.07);
+    ctx.fillStyle='#c0c0ea'; ctx.font='12px Courier New';
+    ctx.fillText('\u03b8 = '+dcTheta.toFixed(3)+' rad  ('+(dcTheta*180/Math.PI).toFixed(1)+'\u00b0)',30,H*0.07+18);
+
+    // Track arc
+    ctx.strokeStyle='#ffd70055'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(cx,upperCY,Rv*0.5,0,-dcTheta,true);ctx.stroke();
+
+    // Lower panel - spinor
+    ctx.fillStyle='#1a0a1e'; ctx.fillRect(20,H*0.55,W-40,H*0.4);
+    ctx.fillStyle='#ff664411'; ctx.strokeStyle='#ff664433'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(cx,lowerCY,Rv,0,Math.PI*2);ctx.fill();ctx.stroke();
+
+    var spinPhase=dcTheta/2;
+    var s1x=cx+Rv*Math.cos(spinPhase),s1y=lowerCY-Rv*Math.sin(spinPhase);
+    ctx.strokeStyle='#ff6644'; ctx.lineWidth=2.5; ctx.shadowColor='#ff6644'; ctx.shadowBlur=8;
+    ctx.beginPath();ctx.moveTo(cx,lowerCY);ctx.lineTo(s1x,s1y);ctx.stroke(); ctx.shadowBlur=0;
+    var ang2=Math.atan2(s1y-lowerCY,s1x-cx);
+    ctx.fillStyle='#ff6644';
+    ctx.beginPath();ctx.moveTo(s1x,s1y);
+    ctx.lineTo(s1x-10*Math.cos(ang2-0.4),s1y-10*Math.sin(ang2-0.4));
+    ctx.lineTo(s1x-10*Math.cos(ang2+0.4),s1y-10*Math.sin(ang2+0.4));
+    ctx.closePath();ctx.fill();
+
+    ctx.fillStyle='#ff6644'; ctx.font='bold 13px Segoe UI';
+    ctx.fillText('Spin-\u00bd (Spinor): period 4\u03c0',30,H*0.57);
+    ctx.fillStyle='#c0c0ea'; ctx.font='12px Courier New';
+    ctx.fillText('Phase = \u03b8/2 = '+(dcTheta/2).toFixed(3)+' rad  ('+(dcTheta/2*180/Math.PI).toFixed(1)+'\u00b0)',30,H*0.57+18);
+
+    // Milestones
+    if(dcTheta>=Math.PI*2-0.1){
+      ctx.fillStyle='#ff4444'; ctx.font='bold 12px Segoe UI';
+      ctx.fillText('\u03b8=2\u03c0: Vector \u2713  Spinor = \u2212I \u2717',cx-120,cy);
+    }
+    if(dcTheta>=Math.PI*4-0.1){
+      ctx.fillStyle='#00ff99'; ctx.font='bold 12px Segoe UI';
+      ctx.fillText('\u03b8=4\u03c0: Both back to +I \u2713',cx-100,cy+20);
+    }
+
+    // Update sidebar matrix
+    var eRe=Math.cos(dcTheta/2),eIm=-Math.sin(dcTheta/2);
+    document.getElementById('dc-matrix').textContent=
+      `[ ${fc(eRe,eIm)}     0    ]\n[    0      ${fc(eRe,-eIm)} ]`;
+    document.getElementById('dc-theta-val').textContent=(dcTheta*180/Math.PI).toFixed(1)+'\u00b0';
+
+    ctx.fillStyle='#ff664488'; ctx.font='bold 14px Segoe UI';
+    ctx.fillText('Spinor Double Cover: D\u00bd(Rz(\u03b8)) \u2014 spin-\u00bd needs 4\u03c0',14,24);
+    ctx.restore();
+  }
+  window.drawDC=drawDC;
+
+  document.getElementById('dc-theta').addEventListener('input',function(){
+    dcTheta=parseFloat(this.value)/100;
+    document.getElementById('dc-theta-val').textContent=(dcTheta*180/Math.PI).toFixed(1)+'\u00b0';
+    drawDC();
+  });
+
+  window.dcToggleAnim=function(){
+    if(dcAnimating){
+      dcAnimating=false;
+      if(dcAnimId){cancelAnimationFrame(dcAnimId);dcAnimId=null;}
+      document.getElementById('dc-anim-btn').textContent='Animate 4\u03c0';
+      return;
+    }
+    dcAnimating=true;
+    document.getElementById('dc-anim-btn').textContent='Pause';
+    var start=performance.now(),dur=10000;
+    dcTheta=0;
+    function step(now){
+      if(!dcAnimating)return;
+      var t=Math.min(1,(now-start)/dur);
+      dcTheta=t*Math.PI*4;
+      document.getElementById('dc-theta').value=Math.round(dcTheta*100);
+      document.getElementById('dc-theta-val').textContent=(dcTheta*180/Math.PI).toFixed(1)+'\u00b0';
+      drawDC();
+      if(t<1) dcAnimId=requestAnimationFrame(step);
+      else{dcAnimating=false;document.getElementById('dc-anim-btn').textContent='Animate 4\u03c0';}
+    }
+    dcAnimId=requestAnimationFrame(step);
+  };
+
+  window.dcReset=function(){
+    dcAnimating=false;
+    if(dcAnimId){cancelAnimationFrame(dcAnimId);dcAnimId=null;}
+    document.getElementById('dc-anim-btn').textContent='Animate 4\u03c0';
+    dcTheta=0;
+    document.getElementById('dc-theta').value=0;
+    document.getElementById('dc-theta-val').textContent='0\u00b0';
+    drawDC();
+  };
+})();
+
+// ══════════════════════════════════════════════════════════════
+// TAB 8: EXCEPTIONAL GROUPS & OCTONIONS
+// ══════════════════════════════════════════════════════════════
+(function(){
+  var octCanvas=document.getElementById('octcanvas');
+  var octCtx=octCanvas.getContext('2d');
+  var octGroup=0,octAnimId=null,octAngle=0,octPaused=false;
+
+  var OCT_GROUPS=[
+    {name:'G\u2082',dim:14,rank:2,roots:12,col:'#ff6644',
+     desc:'Automorphism group of octonions \uD835\uDD46. Smallest exceptional Lie group. Contains SU(3). 12 roots: 6 short + 6 long (ratio \u221a3).',
+     physics:'G\u2082 holonomy manifolds appear in M-theory compactifications giving N=1 SUSY in 4D.'},
+    {name:'F\u2084',dim:52,rank:4,roots:48,col:'#00e5ff',
+     desc:'Automorphism group of the exceptional Jordan algebra J\u2083(\uD835\uDD46). 48 roots: 24 short + 24 long.',
+     physics:'F\u2084 = isometry group of Cayley projective plane OP\u00b2. Appears in maximal supergravity.'},
+    {name:'E\u2086',dim:78,rank:6,roots:72,col:'#ffd700',
+     desc:'72 roots, all equal length. Outer automorphism of order 2. 27-dim rep related to 27 lines on a cubic surface.',
+     physics:'E\u2086 is a GUT candidate (rank-6 unification with 3 generations + right-handed neutrinos).'},
+    {name:'E\u2087',dim:133,rank:7,roots:126,col:'#aa77ff',
+     desc:'126 roots. Fundamental 56-dim rep. Contains E\u2086, F\u2084, SU(8). Appears in N=8 supergravity.',
+     physics:'E\u2087 appears in M-theory \u201cmagic triangle\u201d and in the moduli space of N=2 supergravity.'},
+    {name:'E\u2088',dim:248,rank:8,roots:240,col:'#00ff99',
+     desc:'240 roots. Self-dual root lattice = optimal 8D sphere packing (Viazovska 2016). Rank 8, simply laced.',
+     physics:'E\u2088\u00d7E\u2088 heterotic string (10D): left-movers carry one E\u2088 charge, right-movers the other. Compactify on CY\u2083 \u2192 Standard Model.'},
+  ];
+
+  // Fano plane directed lines: (i,j,k) means eᵢeⱼ=+eₖ
+  var FANO_LINES=[[1,2,3],[1,4,5],[2,4,6],[3,4,7],[1,6,7],[2,5,7],[3,5,6]];
+
+  function octProd(i,j){
+    if(i===j) return{sign:-1,label:'-1'};
+    for(var l=0;l<FANO_LINES.length;l++){
+      var a=FANO_LINES[l][0],b=FANO_LINES[l][1],c=FANO_LINES[l][2];
+      if(i===a&&j===b) return{sign:1,label:'+e'+c};
+      if(i===b&&j===a) return{sign:-1,label:'-e'+c};
+      if(i===b&&j===c) return{sign:1,label:'+e'+a};
+      if(i===c&&j===b) return{sign:-1,label:'-e'+a};
+      if(i===c&&j===a) return{sign:1,label:'+e'+b};
+      if(i===a&&j===c) return{sign:-1,label:'-e'+b};
+    }
+    return{sign:0,label:'0'};
+  }
+
+  function initOct(){
+    var tbody=document.getElementById('oct-tbody');
+    while(tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    for(var i=1;i<=7;i++){
+      var tr=document.createElement('tr');
+      var th=document.createElement('th');
+      th.textContent='e'+i;
+      tr.appendChild(th);
+      for(var j=1;j<=7;j++){
+        var td=document.createElement('td');
+        var p=octProd(i,j);
+        td.textContent=p.label;
+        td.className=i===j?'diag':(p.sign>0?'pos':'neg');
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  }
+  window.initOct=initOct;
+
+  function resizeOct(){
+    var wrap = octCanvas.parentElement;
+    var rect = wrap.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    octCanvas.style.width = rect.width + 'px';
+    octCanvas.style.height = rect.height + 'px';
+    octCanvas.width = rect.width * dpr;
+    octCanvas.height = rect.height * dpr;
+  }
+  window.resizeOct=resizeOct;
+
+  // Build info text for each group using DOM
+  var OCT_INFO_DATA=[
+    {strong:'G\u2082 \u2014 dim 14, rank 2',text:' Automorphism group of the octonions \uD835\uDD46. Smallest exceptional Lie group. Contains SU(3) as subgroup. Root system: 12 roots (6 short + 6 long).'},
+    {strong:'F\u2084 \u2014 dim 52, rank 4',text:' Automorphism group of the exceptional Jordan algebra J\u2083(\uD835\uDD46). 48 roots (24 short, 24 long). Isometry group of Cayley projective plane OP\u00b2.'},
+    {strong:'E\u2086 \u2014 dim 78, rank 6',text:' 72 roots (all equal length). Outer automorphism order 2. 27-dim rep \u2194 27 lines on a cubic surface. GUT gauge group candidate.'},
+    {strong:'E\u2087 \u2014 dim 133, rank 7',text:' 126 roots. Fundamental 56-dim rep. Contains E\u2086, F\u2084, SU(8). Appears in N=8 supergravity and M-theory magic triangle.'},
+    {strong:'E\u2088 \u2014 dim 248, rank 8',text:' 240 roots (all equal length). Self-dual root lattice = optimal 8D sphere packing (Viazovska 2016). Gauge group of heterotic string: E\u2088\u00d7E\u2088.'},
+  ];
+
+  window.octSelectGroup=function(idx,btn){
+    octGroup=idx;
+    document.querySelectorAll('.oct-grp-btn').forEach(function(b,i){b.classList.toggle('active',i===idx);});
+    var box=document.getElementById('oct-grp-info');
+    while(box.firstChild) box.removeChild(box.firstChild);
+    var d=OCT_INFO_DATA[idx];
+    var strong=document.createElement('strong');
+    strong.textContent=d.strong;
+    box.appendChild(strong);
+    box.appendChild(document.createTextNode(d.text));
+    drawOct();
+  };
+
+  function drawFano(ctx,cx,cy,R){
+    var pts=[];
+    for(var i=0;i<7;i++){
+      var a=i*(Math.PI*2/7)-Math.PI/2;
+      pts.push([cx+R*Math.cos(a),cy+R*Math.sin(a)]);
+    }
+    var FIDX=[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]];
+    var lc=['#ff6644','#00e5ff','#ffd700','#aa77ff','#00ff99','#ff4488','#44aaff'];
+    FIDX.forEach(function(line,li){
+      ctx.strokeStyle=lc[li]+'88'; ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.moveTo(pts[line[0]][0],pts[line[0]][1]);
+      ctx.lineTo(pts[line[1]][0],pts[line[1]][1]);
+      ctx.lineTo(pts[line[2]][0],pts[line[2]][1]);
+      ctx.stroke();
+    });
+    ctx.strokeStyle='#55558a44'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+    pts.forEach(function(p,i){
+      ctx.fillStyle=lc[i%lc.length]; ctx.shadowColor=lc[i%lc.length]; ctx.shadowBlur=8;
+      ctx.beginPath();ctx.arc(p[0],p[1],6,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+      ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px Segoe UI';
+      var lx2=p[0]+(p[0]-cx)*0.2,ly2=p[1]+(p[1]-cy)*0.2;
+      ctx.fillText('e'+(i+1),lx2-6,ly2+4);
+    });
+  }
+
+  function drawRootSchematic(ctx,cx,cy,R,group){
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(octAngle);
+    var g=OCT_GROUPS[group];
+    if(group===0){
+      // G₂: 6 short + 6 long roots
+      var shortR=R*0.45,longR=R*0.78;
+      for(var i=0;i<6;i++){
+        var a=i*Math.PI/3,px=shortR*Math.cos(a),py=-shortR*Math.sin(a);
+        ctx.strokeStyle='#ff6644'; ctx.lineWidth=1.5; ctx.shadowColor='#ff6644'; ctx.shadowBlur=8;
+        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(px,py);ctx.stroke(); ctx.shadowBlur=0;
+        ctx.fillStyle='#ff6644';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();
+      }
+      for(var i2=0;i2<6;i2++){
+        var a2=i2*Math.PI/3+Math.PI/6,px2=longR*Math.cos(a2),py2=-longR*Math.sin(a2);
+        ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5; ctx.shadowColor='#ffd700'; ctx.shadowBlur=8;
+        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(px2,py2);ctx.stroke(); ctx.shadowBlur=0;
+        ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(px2,py2,4,0,Math.PI*2);ctx.fill();
+      }
+    } else if(group===1){
+      // F₄: schematic 3 rings
+      var ringN=[8,16,24],ringR=[0.35,0.57,0.79];
+      ringN.forEach(function(n,ring){
+        for(var ii=0;ii<n;ii++){
+          var aa=ii*(Math.PI*2/n)+ring*Math.PI/n;
+          var ppx=R*ringR[ring]*Math.cos(aa),ppy=-R*ringR[ring]*Math.sin(aa);
+          ctx.fillStyle='#00e5ff'; ctx.shadowColor='#00e5ff'; ctx.shadowBlur=5;
+          ctx.beginPath();ctx.arc(ppx,ppy,3,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+        }
+      });
+    } else {
+      // E6/E7/E8
+      var cols=['#ffd700','#aa77ff','#00ff99'];
+      var gidx=group-2;
+      var nRings=[3,4,5][gidx];
+      var nBase=[12,18,30][gidx];
+      for(var ring2=0;ring2<nRings;ring2++){
+        var n2=Math.round(nBase*(ring2+1)/nRings);
+        var rr=R*(0.25+ring2*0.17);
+        for(var iii=0;iii<n2;iii++){
+          var aa2=iii*(Math.PI*2/n2)+ring2*0.3;
+          var ppx2=rr*Math.cos(aa2),ppy2=-rr*Math.sin(aa2);
+          ctx.fillStyle=cols[gidx]; ctx.shadowColor=cols[gidx]; ctx.shadowBlur=4;
+          ctx.beginPath();ctx.arc(ppx2,ppy2,2.5,0,Math.PI*2);ctx.fill(); ctx.shadowBlur=0;
+        }
+      }
+    }
+    ctx.fillStyle='#c0c0ea';ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+
+  function drawOct(){
+    var dpr=window.devicePixelRatio||1;
+    var W=octCanvas.width/dpr,H=octCanvas.height/dpr;
+    var ctx=octCtx;
+    ctx.save(); ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    ctx.strokeStyle='#0d0d22'; ctx.lineWidth=1;
+    for(var x=W/2%50;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(var y=H/2%50;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    var midX=W*0.5;
+    var fanoCX=midX*0.5,fanoCY=H*0.5,fanoR=Math.min(midX,H)*0.32;
+    ctx.fillStyle='#ffffff06';ctx.beginPath();ctx.arc(fanoCX,fanoCY,fanoR*1.05,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#55558a22';ctx.lineWidth=1;ctx.beginPath();ctx.arc(fanoCX,fanoCY,fanoR*1.05,0,Math.PI*2);ctx.stroke();
+    drawFano(ctx,fanoCX,fanoCY,fanoR);
+    ctx.fillStyle='#ff664488'; ctx.font='bold 13px Segoe UI';
+    ctx.fillText('Fano Plane (Octonion mnemonic)',fanoCX-fanoR*0.9,fanoCY-fanoR-16);
+    ctx.fillStyle='#55558a'; ctx.font='12px Segoe UI';
+    ctx.fillText('Each line = quaternion subalgebra.  e\u1d62e\u2c7c=+e\u2096 (\u2192) / \u2212e\u2096 (\u2190)',fanoCX-fanoR,fanoCY+fanoR+16);
+
+    var rootCX=midX+midX*0.5,rootCY=H*0.5,rootR=Math.min(midX,H)*0.33;
+    octAngle+=0.003*(window.animSpeed||1);
+    drawRootSchematic(ctx,rootCX,rootCY,rootR,octGroup);
+    var g=OCT_GROUPS[octGroup];
+    ctx.fillStyle=g.col+'cc'; ctx.font='bold 14px Segoe UI';
+    ctx.fillText(g.name+' Root System  (dim '+g.dim+', rank '+g.rank+', '+g.roots+' roots)',rootCX-rootR,rootCY-rootR-16);
+    ctx.fillStyle='#55558a'; ctx.font='12px Segoe UI';
+    var phys=g.physics;
+    var lines=[];
+    while(phys.length>58){var sp=phys.lastIndexOf(' ',58);lines.push(phys.slice(0,sp));phys=phys.slice(sp+1);}
+    lines.push(phys);
+    lines.forEach(function(ln,i){ctx.fillText(ln.trim(),rootCX-rootR,rootCY+rootR+18+i*14);});
+
+    if(octGroup===4){
+      ctx.fillStyle='#00ff9920';ctx.fillRect(14,H-52,W-28,40);
+      ctx.strokeStyle='#00ff9944';ctx.lineWidth=1;ctx.strokeRect(14,H-52,W-28,40);
+      ctx.fillStyle='#00ff99';ctx.font='bold 12px Segoe UI';
+      ctx.fillText('E\u2088\u00d7E\u2088 heterotic string: left-movers carry one E\u2088 charge, right-movers the other.',22,H-34);
+      ctx.fillStyle='#55558a';ctx.font='12px Segoe UI';
+      ctx.fillText('Compactify 6D on Calabi-Yau \u2192 E\u2086\u00d7SU(3)\u00d7SU(3) (Standard Model after symmetry breaking).',22,H-18);
+    }
+
+    ctx.fillStyle='#ff664488'; ctx.font='bold 14px Segoe UI';
+    ctx.fillText('Exceptional Lie Groups & Octonions',14,24);
+
+    if(!octPaused){
+      octAnimId=requestAnimationFrame(function(){
+        octAnimId=null;
+        if(octCanvas.closest('.panel.active')) drawOct();
+      });
+    }
+    ctx.restore();
+  }
+  window.drawOct=drawOct;
+
+  function octToggleAnim(){
+    octPaused=!octPaused;
+    var btn=document.getElementById('octAnimBtn');
+    btn.textContent=octPaused?'▶ Play':'⏸ Pause';
+    btn.classList.toggle('active',octPaused);
+    if(!octPaused&&octCanvas.closest('.panel.active')){
+      octAnimId=requestAnimationFrame(function(){
+        octAnimId=null;
+        drawOct();
+      });
+    }
+  }
+  window.octToggleAnim=octToggleAnim;
+})();
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>
+

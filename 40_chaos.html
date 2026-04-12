@@ -1,0 +1,2310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>40 · Chaos &amp; Poincaré Sections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#ffcc00;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid rgba(255,204,0,.22);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.back{font-size:.85rem;opacity:.7;color:var(--accent)}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.78rem;padding:2px 9px;border-radius:20px;font-family:'Orbitron',sans-serif}
+.title-block h1{font-size:1.3rem;color:var(--accent);letter-spacing:.02em;font-family:'Orbitron',sans-serif;text-shadow:0 0 18px #ffcc0066}
+.title-block p{font-size:.75rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px;flex-shrink:0}
+.tab{padding:10px 20px;cursor:pointer;font-size:.83rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;overflow:hidden}
+.pane.active{display:flex}
+/* shared */
+canvas{display:block;background:var(--bg2);border-radius:6px;cursor:crosshair}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.78rem;font-family:'Share Tech Mono',monospace;transition:.15s;white-space:nowrap}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.act{border-color:var(--accent);color:var(--accent);background:rgba(255,204,0,.1)}
+label{font-size:.75rem;color:var(--dim)}
+input[type=range]{accent-color:var(--accent);cursor:pointer;width:100px}
+.vval{color:var(--accent);font-size:.78rem;min-width:36px;display:inline-block}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:.73rem;color:var(--dim);line-height:1.7}
+.info-box strong{color:var(--text)}
+.info-box .hilite{color:var(--accent)}
+.side-panel{width:280px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:14px 12px;gap:10px;flex-shrink:0}
+.side-panel h3{font-size:.85rem;color:var(--accent);margin-bottom:2px}
+.sep{height:1px;background:var(--border);margin:2px 0}
+.stat-row{font-size:.74rem;color:var(--text);padding:2px 0;display:flex;justify-content:space-between}
+.stat-row span{color:var(--accent)}
+/* TAB 0 */
+#pane0.active{flex-direction:row}
+.p0-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p0-canvas-col canvas{flex:1;min-height:0;width:100%}
+.ctrls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 0}
+/* TAB 1 */
+#pane1.active{flex-direction:row}
+.p1-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p1-canvas-col canvas{flex:1;min-height:0;width:100%}
+/* TAB 2 */
+#pane2.active{flex-direction:row}
+.p2-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p2-canvas-col canvas{flex:1;min-height:0;width:100%}
+.attr-btns{display:flex;gap:4px;flex-wrap:wrap}
+/* TAB 3 — Lyapunov */
+#pane3.active{flex-direction:row}
+.p3-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p3-canvas-col canvas{min-height:0;width:100%}
+.p3-top{flex:1.2}
+.p3-bot{flex:0.8}
+/* TAB 4 — Feigenbaum */
+#pane4.active{flex-direction:row}
+.p4-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p4-canvas-col canvas{flex:1;min-height:0;width:100%}
+/* TAB 5 — KAM / Standard Map */
+#pane5.active{flex-direction:row}
+.p5-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p5-canvas-col canvas{flex:1;min-height:0;width:100%}
+/* TAB 6 — Quantum Chaos */
+#pane6.active{flex-direction:row}
+.p6-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p6-canvas-col canvas{min-height:0;width:100%}
+.p6-top{flex:1}
+.p6-bot{flex:1}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">&#8592; Back</a>
+  <span class="badge">Ch. 20</span>
+  <div class="title-block">
+    <h1>Chaos &amp; Poincaré Sections</h1>
+    <p>Sensitive dependence, KAM tori, strange attractors, and the boundary of integrability</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Double Pendulum</div>
+  <div class="tab" onclick="switchTab(1)">Poincaré Sections</div>
+  <div class="tab" onclick="switchTab(2)">Strange Attractors</div>
+  <div class="tab" onclick="switchTab(3)">Lyapunov Exponents</div>
+  <div class="tab" onclick="switchTab(4)">Feigenbaum Universality</div>
+  <div class="tab" onclick="switchTab(5)">KAM / Standard Map</div>
+  <div class="tab" onclick="switchTab(6)">Quantum Chaos</div>
+</div>
+
+<!-- ═══════════════════  TAB 0  ═══════════════════ -->
+<div class="pane active" id="pane0">
+  <div class="p0-canvas-col">
+    <canvas id="c0"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay0" class="animBtn" onclick="togglePlay0()">▶ Animate</button>
+      <button onclick="resetPend()">Reset</button>
+      <button id="btnTwin" onclick="addTwin()">Add Twin</button>
+      <button onclick="clearTrail()">Clear Trail</button>
+      <label style="margin-left:6px">θ₁ <input type="range" id="sl_th1" min="-314" max="314" value="120" oninput="onSlInit()"> <span class="vval" id="vth1">1.2</span></label>
+      <label>θ₂ <input type="range" id="sl_th2" min="-314" max="314" value="100" oninput="onSlInit()"> <span class="vval" id="vth2">1.0</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Energy E = <span id="e0" class="hilite">—</span> &nbsp;|&nbsp;
+      λ (Lyapunov est.) = <span id="lyap" class="hilite">—</span> &nbsp;|&nbsp;
+      Twin sep. = <span id="tsep" class="hilite">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Double Pendulum</h3>
+    <div class="info-box">
+      Equations of motion (m₁=m₂=1, L₁=L₂=1, g=9.8):
+      <br>$$\frac{d}{dt}\vec{q}=\{H,\vec{q}\}$$
+      <br><strong>Lyapunov exponent:</strong>
+      $$\lambda=\lim_{t\to\infty}\frac{1}{t}\ln\frac{|\delta\vec{x}(t)|}{|\delta\vec{x}(0)|}$$
+      Positive $\lambda$ = exponential divergence = chaos.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>KAM Theorem</strong> (Kolmogorov-Arnold-Moser): most invariant tori survive small perturbations of an integrable system. The double pendulum is <span class="hilite">non-integrable</span>; for large energy nearly all orbits are chaotic.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Energy drift<span id="edrift">—</span></div>
+    <div class="stat-row">Step count<span id="stepct">0</span></div>
+    <div class="stat-row">Twin active<span id="twinact">No</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 1  ═══════════════════ -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="p1-canvas-col">
+    <canvas id="c1"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay1" class="animBtn" onclick="togglePlay1()">▶ Animate</button>
+      <button onclick="resetPoincare()">Reset</button>
+      <button onclick="addOrbit()">Add Orbit</button>
+      <button onclick="clearPoincare()">Clear</button>
+      <label>A <input type="range" id="sl_A" min="0" max="150" value="50" oninput="onPoincareParam()"> <span class="vval" id="vA">0.50</span></label>
+      <label>ω <input type="range" id="sl_om" min="50" max="200" value="100" oninput="onPoincareParam()"> <span class="vval" id="vom">1.00</span></label>
+      <label>γ <input type="range" id="sl_gam" min="0" max="50" value="5" oninput="onPoincareParam()"> <span class="vval" id="vgam">0.05</span></label>
+      <label>N <input type="range" id="sl_N" min="100" max="5000" value="1000" oninput="onPoincareParam()"> <span class="vval" id="vN">1000</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Driven pendulum: θ'' + γθ' + sin(θ) = A·cos(ω<sub>d</sub>t) &nbsp;|&nbsp;
+      Dots recorded every drive period T = 2π/ω<sub>d</sub> &nbsp;|&nbsp;
+      Orbits: <span id="norb" class="hilite">1</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Poincaré Section</h3>
+    <div class="info-box">
+      A Poincaré section is a <strong>stroboscopic snapshot</strong>: sample $(θ, \dot{θ})$ once per drive period. Integrable orbits $\Rightarrow$ closed curves (KAM tori). Chaos $\Rightarrow$ scattered cloud.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>KAM theory:</strong> as $A$ grows, rational tori break into <span class="hilite">Birkhoff island chains</span> first (Poincaré-Birkhoff theorem), surrounded by thin chaotic layers (homoclinic tangles). Irrational tori survive longest (noble numbers).
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Arnold diffusion</strong>: in $\geq 3$ DOF systems, chaotic regions are connected — trajectories can wander through all of phase space, even if KAM tori block it in 2 DOF.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Drive amplitude A<span id="s1A">—</span></div>
+    <div class="stat-row">Drive freq ω<span id="s1om">—</span></div>
+    <div class="stat-row">Total pts<span id="s1pts">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 2  ═══════════════════ -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="p2-canvas-col">
+    <canvas id="c2"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <div class="attr-btns">
+        <button id="btnLorenz" class="act" onclick="setAttractor('lorenz')">Lorenz</button>
+        <button id="btnRossler" onclick="setAttractor('rossler')">Rössler</button>
+        <button id="btnHenon" onclick="setAttractor('henon')">Hénon Map</button>
+        <button id="btnLogistic" onclick="setAttractor('logistic')">Logistic Bifurcation</button>
+      </div>
+      <button id="btnPlay2" class="animBtn" onclick="togglePlay2()">▶ Animate</button>
+      <button onclick="resetAttractor()">Reset</button>
+      <button id="btnTrace" onclick="toggleTrace()">Trace ON</button>
+      <button onclick="fitAttractor()">Fit</button>
+      <button onclick="zoomAttrIn()">＋</button>
+      <button onclick="zoomAttrOut()">－</button>
+      <span style="font-size:.72rem;color:var(--dim);margin-left:4px">Drag to rotate / pan (3D)</span>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      <span id="attrInfo">Lorenz attractor — σ=10, ρ=28, β=8/3 — fractal dim ≈ 2.06</span>
+      &nbsp;|&nbsp; pts: <span id="attrPts" class="hilite">0</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Strange Attractors</h3>
+    <div class="info-box">
+      <strong>Lorenz equations:</strong>
+      $$\dot{x}=\sigma(y-x)$$
+      $$\dot{y}=x(\rho-z)-y$$
+      $$\dot{z}=xy-\beta z$$
+      Volume contracts at rate $-(\sigma+1+\beta)$, yet the attractor has fractal structure.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Feigenbaum constant</strong> $\delta\approx4.669$: ratio of successive period-doubling bifurcation intervals. Universal for all unimodal maps.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Takens embedding theorem:</strong> a scalar time series $x(t)$ can reconstruct the full attractor geometry via delay embedding $\vec{v}(t)=(x(t),x(t{+}\tau),\ldots)$.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Attractor<span id="s2attr">Lorenz</span></div>
+    <div class="stat-row">Fractal dim<span id="s2dim">≈ 2.06</span></div>
+    <div class="stat-row">Points<span id="s2pts">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 3 — LYAPUNOV  ═══════════════════ -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="p3-canvas-col">
+    <canvas id="c3top" class="p3-top"></canvas>
+    <canvas id="c3bot" class="p3-bot"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay3" class="animBtn" onclick="togglePlay3()">▶ Animate</button>
+      <button onclick="resetLyapunov()">Reset</button>
+      <label>ε &nbsp;<input type="range" id="sl_eps" min="1" max="50" value="5" oninput="updateEps()"> <span class="vval" id="veps">1e-5</span></label>
+      <span style="font-size:.72rem;color:var(--dim)">Click bifurcation diagram to set r</span>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      r = <span id="lyap3r" class="hilite">3.70</span> &nbsp;|&nbsp;
+      λ = <span id="lyap3lam" class="hilite">—</span> &nbsp;|&nbsp;
+      |Δx(t)| = <span id="lyap3sep" class="hilite">—</span> &nbsp;|&nbsp;
+      <span id="lyap3status" class="hilite">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Lyapunov Exponents</h3>
+    <div class="info-box">
+      For the logistic map $f(x)=rx(1-x)$:
+      $$\lambda = \lim_{N\to\infty}\frac{1}{N}\sum_{n=0}^{N-1}\ln|f'(x_n)|$$
+      where $f'(x)=r(1-2x)$.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Two nearby orbits</strong> diverge as $|\delta x(t)|\sim\varepsilon\,e^{\lambda t}$.
+      <br><br>
+      <span class="hilite">λ &gt; 0</span>: chaos — exponential divergence.<br>
+      <span class="hilite">λ &lt; 0</span>: periodic — orbits converge.<br>
+      <span class="hilite">λ = 0</span>: bifurcation boundary.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Top canvas:</strong> bifurcation diagram (click to set r) + λ(r) overlay in red.<br>
+      <strong>Bottom canvas:</strong> live trajectory separation |Δx(t)| on log scale.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Current r<span id="s3r">3.70</span></div>
+    <div class="stat-row">λ(r)<span id="s3lam">—</span></div>
+    <div class="stat-row">Iter count<span id="s3iter">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 4 — FEIGENBAUM  ═══════════════════ -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="p4-canvas-col">
+    <canvas id="c4"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay4" class="animBtn" onclick="togglePlay4()">▶ Animate</button>
+      <button onclick="resetFeigenbaum()">Reset / Recompute</button>
+      <button onclick="zoomFgIn()">Zoom In</button>
+      <button onclick="zoomFgOut()">Zoom Out</button>
+      <button onclick="fitFg()">Fit</button>
+      <label>Map &nbsp;
+        <select id="fgMapSel" onchange="onFgMapChange()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.78rem;padding:3px 6px;border-radius:4px">
+          <option value="logistic">Logistic</option>
+          <option value="sine">Sine</option>
+          <option value="tent">Tent</option>
+        </select>
+      </label>
+      <span style="font-size:.72rem;color:var(--dim)">Scroll to zoom · drag to pan</span>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Map: <span id="fg4map" class="hilite">Logistic</span> &nbsp;|&nbsp;
+      δ computed: <span id="fg4delta" class="hilite">—</span> &nbsp;|&nbsp;
+      Feigenbaum δ = 4.66920…
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Feigenbaum Universality</h3>
+    <div class="info-box">
+      <strong>Period-doubling cascade:</strong>
+      $$r_\infty = \lim_{n\to\infty} r_n,\quad \delta = \lim_{n\to\infty}\frac{r_n - r_{n-1}}{r_{n+1}-r_n}\approx 4.6692$$
+      Universal for <em>all unimodal maps</em> — logistic, sine, tent, Hénon slice, etc.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Bifurcation points</strong> $r_n$ (logistic):
+      <br>$r_1\approx 3.000$ (1→2)
+      <br>$r_2\approx 3.449$ (2→4)
+      <br>$r_3\approx 3.544$ (4→8)
+      <br>$r_4\approx 3.5688$ (8→16)
+      <br>$r_\infty\approx 3.5699$
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Second constant</strong> $\alpha\approx2.5029$: ratio of successive attractor widths. Also universal.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">r₁→₂<span id="fg_r1">3.000</span></div>
+    <div class="stat-row">r₂→₄<span id="fg_r2">3.449</span></div>
+    <div class="stat-row">r₃→₈<span id="fg_r3">3.5440</span></div>
+    <div class="stat-row">r₄→₁₆<span id="fg_r4">3.5688</span></div>
+    <div class="stat-row">δ₁=(r₂-r₁)/(r₃-r₂)<span id="fg_d1">—</span></div>
+    <div class="stat-row">δ₂=(r₃-r₂)/(r₄-r₃)<span id="fg_d2">—</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 5 — KAM / STANDARD MAP  ═══════════════════ -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="p5-canvas-col">
+    <canvas id="c5"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay5" class="animBtn" onclick="togglePlay5()">▶ Animate</button>
+      <button onclick="clearStdMap()">Clear</button>
+      <button onclick="fillStdMap()">Fill Grid</button>
+      <label>K <input type="range" id="sl_K" min="0" max="200" value="50" oninput="onKChange()"> <span class="vval" id="vK">0.50</span></label>
+      <label>N <input type="range" id="sl_Nkam" min="50" max="1000" value="300" oninput="onKChange()"> <span class="vval" id="vNkam">300</span></label>
+      <span style="font-size:.72rem;color:var(--dim)">Click canvas to add orbit</span>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      K = <span id="kam5K" class="hilite">0.50</span> &nbsp;|&nbsp;
+      Chirikov threshold K* ≈ <span class="hilite">0.9716</span> &nbsp;|&nbsp;
+      Orbits: <span id="kam5orb" class="hilite">0</span> &nbsp;|&nbsp;
+      <span id="kam5status" class="hilite">KAM tori intact</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>KAM Theory &amp; Standard Map</h3>
+    <div class="info-box">
+      <strong>Chirikov Standard Map:</strong>
+      $$p_{n+1} = p_n + K\sin(q_n)$$
+      $$q_{n+1} = q_n + p_{n+1} \pmod{2\pi}$$
+      Area-preserving (Hamiltonian). Derived from a kicked rotor.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>KAM Theorem:</strong> For small $K$, most invariant tori of the integrable system persist as <span class="hilite">quasiperiodic orbits</span> (closed curves). Rational tori break first → <span class="hilite">Birkhoff island chains</span>.<br><br>
+      <strong>Chirikov criterion:</strong> global chaos at $K\gtrsim0.9716$. The last KAM torus to break has winding number equal to the <em>golden ratio</em>.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Arnold diffusion</strong>: in ≥3 DOF, chaotic regions connect across all of phase space even when 2D tori block transport locally.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">K parameter<span id="s5K">0.50</span></div>
+    <div class="stat-row">Chaos onset K*<span>≈ 0.9716</span></div>
+    <div class="stat-row">Total pts<span id="s5pts">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 6 — QUANTUM CHAOS  ═══════════════════ -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="p6-canvas-col">
+    <canvas id="c6top" class="p6-top"></canvas>
+    <canvas id="c6bot" class="p6-bot"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay6" class="animBtn" onclick="togglePlay6()">▶ Animate</button>
+      <button onclick="regenQChaos()">Regenerate</button>
+      <label>N levels <input type="range" id="sl_qN" min="50" max="500" value="200" oninput="regenQChaos()"> <span class="vval" id="vqN">200</span></label>
+      <button id="btnOTOC" onclick="toggleOTOC()">Show OTOC</button>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Top: <span class="hilite">P(s)</span> level-spacing distribution — Poisson vs Wigner-Dyson (GUE) &nbsp;|&nbsp;
+      Bottom: <span id="q6botLabel" class="hilite">OTOC C(t) — quantum chaos scrambling</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Quantum Chaos</h3>
+    <div class="info-box">
+      <strong>BGS conjecture</strong> (Bohigas, Giannoni, Schmit 1984): energy level statistics of quantum systems whose classical counterparts are chaotic follow <span class="hilite">random matrix theory</span>.<br><br>
+      <strong>Integrable:</strong> Poisson spacing $P(s)=e^{-s}$<br>
+      <strong>Chaotic:</strong> Wigner-Dyson $P(s)=\frac{\pi s}{2}e^{-\pi s^2/4}$ (GUE)
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Random Matrix Theory:</strong> eigenvalues of large random Hermitian matrices (GUE) show <em>level repulsion</em> — consecutive levels almost never coincide. This matches chaotic quantum spectra.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>OTOC</strong> (out-of-time-order correlator):
+      $$C(t)=-\langle[W(t),V]^2\rangle$$
+      Grows as $\sim e^{\lambda_L t}$ until scrambling time. $\lambda_L\leq 2\pi k_BT/\hbar$ (Maldacena-Shenker-Susskind bound). Saturates at $\sim 1/N$ — information scrambled across all degrees of freedom.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Quantum kicked rotor:</strong> dynamical localization suppresses classical diffusion $\langle p^2\rangle\sim Dt$ → quantum saturation at localization length $\ell\sim D/\hbar^2$.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">N levels<span id="s6N">200</span></div>
+    <div class="stat-row">Mean spacing<span id="s6ms">—</span></div>
+    <div class="stat-row">Scrambling time<span id="s6st">—</span></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════
+const TAU = Math.PI * 2;
+
+function makeCanvas(id) {
+  const cv = document.getElementById(id);
+  const parent = cv.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  function resize() {
+    const W = parent.clientWidth - (id === 'c0' || id === 'c1' || id === 'c2' ? 0 : 0);
+    const H = parent.clientHeight;
+    cv.style.width = '100%';
+    cv.style.height = '100%';
+    const rW = cv.clientWidth;
+    const rH = cv.clientHeight;
+    cv.width = rW * dpr;
+    cv.height = rH * dpr;
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return [rW, rH, ctx];
+  }
+  return { cv, resize, dpr };
+}
+
+function switchTab(n) {
+  _cancelAllAnims40();
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === n));
+  document.querySelectorAll('.pane').forEach((p, i) => p.classList.toggle('active', i === n));
+  if (n === 0) scheduleLoop0();
+  if (n === 1) scheduleLoop1();
+  if (n === 2) scheduleLoop2();
+  if (n === 3) scheduleLoop3();
+  if (n === 4) scheduleLoop4();
+  if (n === 5) scheduleLoop5();
+  if (n === 6) scheduleLoop6();
+}
+
+function _cancelAllAnims40() {
+  const btns = ['btnPlay0','btnPlay1','btnPlay2','btnPlay3','btnPlay4','btnPlay5','btnPlay6'];
+  btns.forEach(id => {
+    const b = document.getElementById(id);
+    if(b){ b.textContent='▶ Animate'; b.classList.remove('act'); }
+  });
+}
+
+// Speed is controlled globally via window.animSpeed
+
+// ═══════════════════════════════════════════════
+// RK4 helper
+// ═══════════════════════════════════════════════
+function rk4(state, dt, deriv) {
+  const k1 = deriv(state);
+  const k2 = deriv(state.map((s, i) => s + 0.5 * dt * k1[i]));
+  const k3 = deriv(state.map((s, i) => s + 0.5 * dt * k2[i]));
+  const k4 = deriv(state.map((s, i) => s + dt * k3[i]));
+  return state.map((s, i) => s + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+}
+
+// ═══════════════════════════════════════════════
+// TAB 0 — DOUBLE PENDULUM
+// ═══════════════════════════════════════════════
+const G = 9.8, L1 = 1, L2 = 1, M1 = 1, M2 = 1;
+let pend = null, twin = null;
+let trail = [], trailColors = [];
+let twinTrail = [];
+let playing0 = true;
+let lyapSum = 0, lyapN = 0;
+let initSep = 0.001;
+let twinActive = false;
+let stepCount = 0;
+let initEnergy = null;
+let raf0 = null;
+let hueOffset = 0;
+
+function makePend(th1, th2) {
+  return [th1, th2, 0, 0]; // [theta1, theta2, omega1, omega2]
+}
+
+function pendDeriv(s) {
+  const [th1, th2, w1, w2] = s;
+  const dth = th1 - th2;
+  const M = M1 + M2;
+  const denom1 = (M * L1 - M2 * L1 * Math.cos(dth) * Math.cos(dth));
+  const denom2 = (L2 / L1) * denom1;
+  const dw1 = (M2 * L1 * w1 * w1 * Math.sin(dth) * Math.cos(dth)
+    + M2 * G * Math.sin(th2) * Math.cos(dth)
+    + M2 * L2 * w2 * w2 * Math.sin(dth)
+    - M * G * Math.sin(th1)) / denom1;
+  const dw2 = (-M2 * L2 * w2 * w2 * Math.sin(dth) * Math.cos(dth)
+    + M * G * Math.sin(th1) * Math.cos(dth)
+    - M * L1 * w1 * w1 * Math.sin(dth)
+    - M * G * Math.sin(th2)) / denom2;
+  return [w1, w2, dw1, dw2];
+}
+
+function pendEnergy(s) {
+  const [th1, th2, w1, w2] = s;
+  const y1 = -L1 * Math.cos(th1);
+  const y2 = y1 - L2 * Math.cos(th2);
+  const vx1 = L1 * w1 * Math.cos(th1);
+  const vy1 = L1 * w1 * Math.sin(th1);
+  const vx2 = vx1 + L2 * w2 * Math.cos(th2);
+  const vy2 = vy1 + L2 * w2 * Math.sin(th2);
+  const KE = 0.5 * M1 * (vx1 * vx1 + vy1 * vy1) + 0.5 * M2 * (vx2 * vx2 + vy2 * vy2);
+  const PE = M1 * G * (y1 + L1) + M2 * G * (y2 + L1 + L2);
+  return KE + PE;
+}
+
+function resetPend() {
+  const th1 = parseInt(document.getElementById('sl_th1').value) / 100;
+  const th2 = parseInt(document.getElementById('sl_th2').value) / 100;
+  pend = makePend(th1, th2);
+  twin = null;
+  twinActive = false;
+  trail = []; trailColors = [];
+  twinTrail = [];
+  lyapSum = 0; lyapN = 0;
+  stepCount = 0;
+  initEnergy = pendEnergy(pend);
+  hueOffset = 0;
+  document.getElementById('twinact').textContent = 'No';
+}
+
+function addTwin() {
+  if (!pend) return;
+  twin = [...pend];
+  twin[0] += initSep;
+  twinActive = true;
+  twinTrail = [];
+  lyapSum = 0; lyapN = 0;
+  document.getElementById('twinact').textContent = 'Yes';
+}
+
+function clearTrail() { trail = []; trailColors = []; twinTrail = []; }
+
+function onSlInit() {
+  document.getElementById('vth1').textContent = (parseInt(document.getElementById('sl_th1').value) / 100).toFixed(2);
+  document.getElementById('vth2').textContent = (parseInt(document.getElementById('sl_th2').value) / 100).toFixed(2);
+  resetPend();
+}
+
+function togglePlay0() {
+  playing0 = !playing0;
+  const btn = document.getElementById('btnPlay0');
+  btn.textContent = playing0 ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('act', playing0);
+}
+
+function pendPos(s, cx, cy, scale) {
+  const [th1, th2] = s;
+  const x1 = cx + scale * L1 * Math.sin(th1);
+  const y1 = cy + scale * L1 * Math.cos(th1);
+  const x2 = x1 + scale * L2 * Math.sin(th2);
+  const y2 = y1 + scale * L2 * Math.cos(th2);
+  return [cx, cy, x1, y1, x2, y2];
+}
+
+function drawPend(ctx, W, H) {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W * 0.5, cy = H * 0.3;
+  const scale = Math.min(W, H) * 0.22;
+
+  // grid
+  ctx.strokeStyle = 'rgba(255,204,0,0.06)';
+  ctx.lineWidth = 1;
+  for (let i = -3; i <= 3; i++) {
+    ctx.beginPath(); ctx.moveTo(cx + i * scale * 0.5, 0); ctx.lineTo(cx + i * scale * 0.5, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, cy + i * scale * 0.5); ctx.lineTo(W, cy + i * scale * 0.5); ctx.stroke();
+  }
+
+  // trails
+  if (trail.length > 1) {
+    for (let i = 1; i < trail.length; i++) {
+      const alpha = (i / trail.length) * 0.7 + 0.05;
+      ctx.strokeStyle = trailColors[i] || `hsla(${hueOffset},100%,65%,${alpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(trail[i - 1][0], trail[i - 1][1]);
+      ctx.lineTo(trail[i][0], trail[i][1]);
+      ctx.stroke();
+    }
+  }
+
+  if (twinActive && twinTrail.length > 1) {
+    for (let i = 1; i < twinTrail.length; i++) {
+      const alpha = (i / twinTrail.length) * 0.5 + 0.05;
+      ctx.strokeStyle = `rgba(255,80,80,${alpha})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(twinTrail[i - 1][0], twinTrail[i - 1][1]);
+      ctx.lineTo(twinTrail[i][0], twinTrail[i][1]);
+      ctx.stroke();
+    }
+  }
+
+  function drawRods(s, color, bobColor) {
+    const [ox, oy, x1, y1, x2, y2] = pendPos(s, cx, cy, scale);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(x1, y1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.shadowBlur = 0;
+    // pivot
+    ctx.fillStyle = '#aaa';
+    ctx.beginPath(); ctx.arc(ox, oy, 5, 0, TAU); ctx.fill();
+    // bob 1
+    ctx.fillStyle = color;
+    ctx.shadowColor = color; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(x1, y1, 7, 0, TAU); ctx.fill();
+    // bob 2
+    ctx.fillStyle = bobColor;
+    ctx.beginPath(); ctx.arc(x2, y2, 9, 0, TAU); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  if (twinActive && twin) drawRods(twin, 'rgba(255,80,80,0.8)', 'rgba(255,120,120,0.9)');
+  if (pend) drawRods(pend, 'rgba(255,204,0,0.9)', '#ffcc00');
+}
+
+const cv0info = makeCanvas('c0');
+let W0, H0, ctx0;
+
+function initCanvas0() {
+  [W0, H0, ctx0] = cv0info.resize();
+}
+
+function loop0() {
+  if (playing0 && pend) {
+    const dt = 0.008;
+    const stepsPerFrame = 4;
+    for (let i = 0; i < stepsPerFrame; i++) {
+      pend = rk4(pend, dt, pendDeriv);
+      if (twinActive && twin) twin = rk4(twin, dt, pendDeriv);
+      stepCount++;
+    }
+    hueOffset = (hueOffset + 0.4) % 360;
+
+    // trail
+    const [,, , , x2, y2] = pendPos(pend, W0 * 0.5, H0 * 0.3, Math.min(W0, H0) * 0.22);
+    trail.push([x2, y2]);
+    trailColors.push(`hsla(${hueOffset},100%,65%,0.6)`);
+    if (trail.length > 500) { trail.shift(); trailColors.shift(); }
+
+    if (twinActive && twin) {
+      const [,, , , tx2, ty2] = pendPos(twin, W0 * 0.5, H0 * 0.3, Math.min(W0, H0) * 0.22);
+      twinTrail.push([tx2, ty2]);
+      if (twinTrail.length > 500) twinTrail.shift();
+      // Lyapunov
+      const sep = Math.sqrt(
+        Math.pow(pend[0] - twin[0], 2) + Math.pow(pend[1] - twin[1], 2) +
+        Math.pow(pend[2] - twin[2], 2) + Math.pow(pend[3] - twin[3], 2)
+      );
+      if (sep > 0) {
+        lyapSum += Math.log(sep / initSep);
+        lyapN++;
+      }
+    }
+
+    // stats
+    const E = pendEnergy(pend);
+    if (initEnergy === null) initEnergy = E;
+    document.getElementById('e0').textContent = E.toFixed(4);
+    document.getElementById('edrift').textContent = Math.abs(E - initEnergy).toExponential(2);
+    document.getElementById('stepct').textContent = stepCount;
+    if (twinActive && twin && lyapN > 0) {
+      const lam = lyapSum / (lyapN * 0.008);
+      document.getElementById('lyap').textContent = lam.toFixed(3);
+      const sep2 = Math.sqrt(
+        Math.pow(pend[0] - twin[0], 2) + Math.pow(pend[1] - twin[1], 2) +
+        Math.pow(pend[2] - twin[2], 2) + Math.pow(pend[3] - twin[3], 2)
+      );
+      document.getElementById('tsep').textContent = sep2.toExponential(2);
+    }
+  }
+  [W0, H0, ctx0] = cv0info.resize();
+  drawPend(ctx0, W0, H0);
+  raf0 = requestAnimationFrame(loop0);
+}
+
+function scheduleLoop0() {
+  if (raf0) cancelAnimationFrame(raf0);
+  [W0, H0, ctx0] = cv0info.resize();
+  loop0();
+}
+
+// init tab0
+resetPend();
+
+// ═══════════════════════════════════════════════
+// TAB 1 — POINCARÉ SECTIONS
+// ═══════════════════════════════════════════════
+let orbits = []; // [{th, w, color, pts:[]}]
+let poincParams = { A: 0.50, om: 1.0, gam: 0.05, N: 1000 };
+let poincPlaying = true;
+let poincRaf = null;
+let poincBuildIdx = 0;
+
+const ORBIT_COLORS = ['#ffcc00','#00ddff','#ff6666','#88ff88','#ff88ff','#ffaa44','#44ffcc','#aaaaff'];
+
+function poincDeriv(s, t) {
+  const [th, w] = s;
+  const { A, om, gam } = poincParams;
+  const dth = w;
+  const dw = -gam * w - Math.sin(th) + A * Math.cos(om * t);
+  return [dth, dw];
+}
+
+function computeOrbit(th0, w0) {
+  const { om, gam, A, N } = poincParams;
+  const T = TAU / om;
+  const dt = T / 60;
+  let state = [th0, w0];
+  let t = 0;
+  const pts = [];
+  // transient
+  for (let i = 0; i < 200; i++) {
+    state = rk4(state, dt, s => poincDeriv(s, t));
+    t += dt;
+  }
+  // record
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < 60; j++) {
+      state = rk4(state, dt, s => poincDeriv(s, t));
+      t += dt;
+    }
+    if (!isFinite(state[0]) || !isFinite(state[1])) break;
+    // wrap theta to [-pi, pi]
+    let th = state[0];
+    th = th - TAU * Math.floor((th + Math.PI) / TAU);
+    pts.push([th, state[1]]);
+  }
+  return pts;
+}
+
+function resetPoincare() {
+  orbits = [];
+  const c = ORBIT_COLORS[0];
+  const pts = computeOrbit(0.1, 0.0);
+  orbits.push({ color: c, pts, drawIdx: 0 });
+  poincBuildIdx = 0;
+  updatePoincStats();
+}
+
+function addOrbit() {
+  const th0 = (Math.random() - 0.5) * TAU;
+  const w0 = (Math.random() - 0.5) * 4;
+  const c = ORBIT_COLORS[orbits.length % ORBIT_COLORS.length];
+  const pts = computeOrbit(th0, w0);
+  orbits.push({ color: c, pts, drawIdx: 0 });
+  document.getElementById('norb').textContent = orbits.length;
+  updatePoincStats();
+}
+
+function clearPoincare() { orbits = []; document.getElementById('norb').textContent = 0; updatePoincStats(); }
+
+function onPoincareParam() {
+  poincParams.A = parseInt(document.getElementById('sl_A').value) / 100;
+  poincParams.om = parseInt(document.getElementById('sl_om').value) / 100;
+  poincParams.gam = parseInt(document.getElementById('sl_gam').value) / 100;
+  poincParams.N = parseInt(document.getElementById('sl_N').value);
+  document.getElementById('vA').textContent = poincParams.A.toFixed(2);
+  document.getElementById('vom').textContent = poincParams.om.toFixed(2);
+  document.getElementById('vgam').textContent = poincParams.gam.toFixed(2);
+  document.getElementById('vN').textContent = poincParams.N;
+  resetPoincare();
+}
+
+function updatePoincStats() {
+  document.getElementById('s1A').textContent = poincParams.A.toFixed(2);
+  document.getElementById('s1om').textContent = poincParams.om.toFixed(2);
+  let total = 0;
+  orbits.forEach(o => total += o.drawIdx);
+  document.getElementById('s1pts').textContent = total;
+  document.getElementById('norb').textContent = orbits.length;
+}
+
+function togglePlay1() {
+  poincPlaying = !poincPlaying;
+  const btn = document.getElementById('btnPlay1');
+  btn.textContent = poincPlaying ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('act', poincPlaying);
+}
+
+const cv1info = makeCanvas('c1');
+let W1, H1, ctx1;
+
+function drawPoincare() {
+  [W1, H1, ctx1] = cv1info.resize();
+  ctx1.clearRect(0, 0, W1, H1);
+  ctx1.fillStyle = '#05050f';
+  ctx1.fillRect(0, 0, W1, H1);
+
+  // axes
+  const cx = W1 / 2, cy = H1 / 2;
+  const scaleX = W1 / (TAU + 0.5);
+  const scaleY = H1 / 9;
+
+  ctx1.strokeStyle = 'rgba(255,204,0,0.15)';
+  ctx1.lineWidth = 1;
+  ctx1.beginPath(); ctx1.moveTo(0, cy); ctx1.lineTo(W1, cy); ctx1.stroke();
+  ctx1.beginPath(); ctx1.moveTo(cx, 0); ctx1.lineTo(cx, H1); ctx1.stroke();
+
+  // axis labels
+  ctx1.fillStyle = 'rgba(255,204,0,0.4)';
+  ctx1.font = '12px Share Tech Mono';
+  ctx1.fillText('θ', W1 - 20, cy - 6);
+  ctx1.fillText('ω', cx + 6, 16);
+  ctx1.fillText('-π', 6, cy - 4);
+  ctx1.fillText('π', W1 - 20, cy - 4);
+
+  orbits.forEach(orb => {
+    ctx1.fillStyle = orb.color;
+    for (let i = 0; i < orb.drawIdx; i++) {
+      const [th, w] = orb.pts[i];
+      if (!isFinite(th) || !isFinite(w)) continue;
+      const px = cx + th * scaleX;
+      const py = cy - w * scaleY;
+      if (px >= 0 && px <= W1 && py >= 0 && py <= H1) {
+        ctx1.beginPath();
+        ctx1.arc(px, py, 1.5, 0, TAU);
+        ctx1.fill();
+      }
+    }
+  });
+}
+
+function loop1() {
+  if (poincPlaying) {
+    // advance each orbit's draw index
+    let advance = 8;
+    orbits.forEach(o => {
+      o.drawIdx = Math.min(o.pts.length, o.drawIdx + advance);
+    });
+    updatePoincStats();
+  }
+  drawPoincare();
+  poincRaf = requestAnimationFrame(loop1);
+}
+
+function scheduleLoop1() {
+  if (poincRaf) cancelAnimationFrame(poincRaf);
+  resetPoincare();
+  loop1();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 2 — STRANGE ATTRACTORS
+// ═══════════════════════════════════════════════
+let attractorType = 'lorenz';
+let attrPoints = [];
+let attrColors = [];
+let attrRaf = null;
+let attrPlaying = true;
+let traceOn = false;
+let traceState = null;
+let traceTrail = [];
+
+// zoom/pan state
+let attrZoom = 1.0, attrPanX = 0, attrPanY = 0;
+
+// Hénon progressive animation
+let henonDrawIdx = 0;
+
+// Logistic progressive animation
+let logisticRevealR = 2.5;
+
+// 3D rotation for Lorenz/Rössler
+let azimuth = 0.5, elevation = 0.3;
+let isDragging = false, lastMX = 0, lastMY = 0;
+let isPanning = false, panStartX = 0, panStartY = 0, panStartPanX = 0, panStartPanY = 0;
+
+// Lorenz
+let lorenzState = [0.1, 0, 0];
+const lorenzSigma = 10, lorenzRho = 28, lorenzBeta = 8 / 3;
+
+function lorenzDeriv(s) {
+  const [x, y, z] = s;
+  return [lorenzSigma * (y - x), x * (lorenzRho - z) - y, x * y - lorenzBeta * z];
+}
+
+// Rössler
+let rosslerState = [0.1, 0, 0];
+const rosslerA = 0.2, rosslerB = 0.2, rosslerC = 5.7;
+
+function rosslerDeriv(s) {
+  const [x, y, z] = s;
+  return [-(y + z), x + rosslerA * y, rosslerB + z * (x - rosslerC)];
+}
+
+// Hénon map
+let henonPts = [];
+function computeHenon() {
+  henonPts = [];
+  const a = 1.4, b = 0.3;
+  let x = 0, y = 0;
+  for (let i = 0; i < 60000; i++) {
+    const xn = 1 - a * x * x + y;
+    const yn = b * x;
+    x = xn; y = yn;
+    if (i > 100) henonPts.push([x, y]);
+  }
+}
+
+// Logistic bifurcation
+let logisticPts = [];
+function computeLogistic() {
+  logisticPts = [];
+  const steps = 600;
+  for (let ri = 0; ri < steps; ri++) {
+    const r = 2.5 + ri * (4.0 - 2.5) / steps;
+    let x = 0.5;
+    for (let i = 0; i < 400; i++) x = r * x * (1 - x);
+    for (let i = 0; i < 300; i++) {
+      x = r * x * (1 - x);
+      logisticPts.push([r, x]);
+    }
+  }
+}
+
+function project3d(x, y, z, W, H) {
+  const cosA = Math.cos(azimuth), sinA = Math.sin(azimuth);
+  const cosE = Math.cos(elevation), sinE = Math.sin(elevation);
+  // rotate around Y then X
+  const rx = x * cosA - z * sinA;
+  const ry = y * cosE - (x * sinA + z * cosA) * sinE;
+  const screenX = W * 0.5 + rx * 5.5;
+  const screenY = H * 0.5 - ry * 5.5;
+  const finalX = (screenX - W / 2) * attrZoom + W / 2 + attrPanX;
+  const finalY = (screenY - H / 2) * attrZoom + H / 2 + attrPanY;
+  return [finalX, finalY];
+}
+
+function velColor(vx, vy, vz) {
+  const spd = Math.sqrt(vx * vx + vy * vy + vz * vz);
+  const t = Math.min(spd / 30, 1);
+  const r = Math.floor(30 + t * 225);
+  const g = Math.floor(100 + t * 80);
+  const b = Math.floor(200 - t * 100);
+  return `rgb(${r},${g},${b})`;
+}
+
+function setAttractor(type) {
+  attractorType = type;
+  attrPoints = [];
+  attrColors = [];
+  traceTrail = [];
+  traceState = null;
+  lorenzState = [0.1 + Math.random() * 0.01, 0, 0];
+  rosslerState = [0.1, 0, 0];
+  // reset zoom/pan
+  attrZoom = 1.0; attrPanX = 0; attrPanY = 0;
+  // reset Hénon progressive
+  henonDrawIdx = 0;
+  // reset logistic progressive
+  logisticRevealR = logZoomR0;
+  document.querySelectorAll('.attr-btns button').forEach(b => b.classList.remove('act'));
+  const ids = { lorenz: 'btnLorenz', rossler: 'btnRossler', henon: 'btnHenon', logistic: 'btnLogistic' };
+  document.getElementById(ids[type]).classList.add('act');
+  const infos = {
+    lorenz: 'Lorenz attractor — σ=10, ρ=28, β=8/3 — fractal dim ≈ 2.06',
+    rossler: 'Rössler attractor — a=0.2, b=0.2, c=5.7 — fractal dim ≈ 2.01',
+    henon: 'Hénon map — a=1.4, b=0.3 — fractal dim ≈ 1.26',
+    logistic: 'Logistic map bifurcation — xₙ₊₁=r·xₙ(1−xₙ) — Feigenbaum δ≈4.669'
+  };
+  const dims = { lorenz: '≈ 2.06', rossler: '≈ 2.01', henon: '≈ 1.26', logistic: 'N/A' };
+  const names = { lorenz: 'Lorenz', rossler: 'Rössler', henon: 'Hénon', logistic: 'Logistic' };
+  document.getElementById('attrInfo').textContent = infos[type];
+  document.getElementById('s2attr').textContent = names[type];
+  document.getElementById('s2dim').textContent = dims[type];
+  if (type === 'henon') computeHenon();
+  if (type === 'logistic') computeLogistic();
+}
+
+function fitAttractor() { attrZoom = 1.0; attrPanX = 0; attrPanY = 0; }
+function zoomAttrIn() { attrZoom = Math.min(20, attrZoom * 1.3); }
+function zoomAttrOut() { attrZoom = Math.max(0.2, attrZoom / 1.3); }
+
+function resetAttractor() { setAttractor(attractorType); }
+
+function toggleTrace() {
+  traceOn = !traceOn;
+  document.getElementById('btnTrace').textContent = traceOn ? 'Trace OFF' : 'Trace ON';
+  document.getElementById('btnTrace').classList.toggle('act', traceOn);
+  if (traceOn) {
+    traceState = attractorType === 'lorenz' ? [0.01, 0.01, 0.01] : [0.01, 0.01, 0.01];
+    traceTrail = [];
+  }
+}
+
+function togglePlay2() {
+  attrPlaying = !attrPlaying;
+  const btn = document.getElementById('btnPlay2');
+  btn.textContent = attrPlaying ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('act', attrPlaying);
+}
+
+const cv2info = makeCanvas('c2');
+let W2, H2, ctx2;
+
+// mouse drag for rotation
+// mouse drag for rotation (3D) or pan (2D)
+document.getElementById('c2').addEventListener('mousedown', e => {
+  if (attractorType === 'lorenz' || attractorType === 'rossler') {
+    isDragging = true;
+    lastMX = e.clientX; lastMY = e.clientY;
+    cv2info.cv.style.cursor = 'grabbing';
+  } else {
+    isPanning = true;
+    panStartX = e.clientX; panStartY = e.clientY;
+    panStartPanX = attrPanX; panStartPanY = attrPanY;
+    cv2info.cv.style.cursor = 'grabbing';
+  }
+});
+document.getElementById('c2').addEventListener('mouseover', () => {
+  if (!isDragging && !isPanning) cv2info.cv.style.cursor = 'grab';
+});
+document.getElementById('c2').addEventListener('mouseout', () => {
+  if (!isDragging && !isPanning) cv2info.cv.style.cursor = 'crosshair';
+});
+document.addEventListener('mousemove', e => {
+  if (isDragging) {
+    azimuth += (e.clientX - lastMX) * 0.008;
+    elevation += (e.clientY - lastMY) * 0.008;
+    elevation = Math.max(-1.4, Math.min(1.4, elevation));
+    lastMX = e.clientX; lastMY = e.clientY;
+  }
+  if (isPanning) {
+    attrPanX = panStartPanX + (e.clientX - panStartX);
+    attrPanY = panStartPanY + (e.clientY - panStartY);
+  }
+});
+document.addEventListener('mouseup', () => {
+  isDragging = false; isPanning = false;
+  cv2info.cv.style.cursor = 'grab';
+});
+
+// wheel: logistic r-zoom OR general attrZoom
+let logZoomR0 = 2.5, logZoomR1 = 4.0;
+document.getElementById('c2').addEventListener('wheel', e => {
+  e.preventDefault();
+  if (attractorType === 'logistic') {
+    const span = logZoomR1 - logZoomR0;
+    const frac = (e.clientX - cv2info.cv.getBoundingClientRect().left) / W2;
+    const focus = logZoomR0 + frac * span;
+    const delta = e.deltaY > 0 ? 1.15 : 0.87;
+    const newSpan = span * delta;
+    logZoomR0 = focus - frac * newSpan;
+    logZoomR1 = focus + (1 - frac) * newSpan;
+    logZoomR0 = Math.max(0, logZoomR0);
+    logZoomR1 = Math.min(4.05, logZoomR1);
+    logisticRevealR = Math.max(logZoomR0, Math.min(logisticRevealR, logZoomR1));
+    computeLogisticZoom();
+  } else {
+    if (e.deltaY < 0) attrZoom *= 1.15; else attrZoom /= 1.15;
+    attrZoom = Math.max(0.2, Math.min(20, attrZoom));
+  }
+}, { passive: false });
+
+function computeLogisticZoom() {
+  logisticPts = [];
+  const steps = 700;
+  for (let ri = 0; ri < steps; ri++) {
+    const r = logZoomR0 + ri * (logZoomR1 - logZoomR0) / steps;
+    let x = 0.5;
+    for (let i = 0; i < 500; i++) x = r * x * (1 - x);
+    for (let i = 0; i < 200; i++) {
+      x = r * x * (1 - x);
+      logisticPts.push([r, x]);
+    }
+  }
+}
+
+function drawAttractor() {
+  [W2, H2, ctx2] = cv2info.resize();
+  ctx2.clearRect(0, 0, W2, H2);
+  ctx2.fillStyle = '#03030c';
+  ctx2.fillRect(0, 0, W2, H2);
+
+  if (attractorType === 'lorenz' || attractorType === 'rossler') {
+    // draw accumulated points
+    for (let i = 0; i < attrPoints.length; i++) {
+      const [px, py] = attrPoints[i];
+      ctx2.fillStyle = attrColors[i] || '#ffcc0066';
+      ctx2.fillRect(px, py, 1, 1);
+    }
+    // trace trail
+    if (traceOn && traceTrail.length > 1) {
+      ctx2.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx2.lineWidth = 1.5;
+      ctx2.beginPath();
+      for (let i = 0; i < traceTrail.length; i++) {
+        const [px, py] = traceTrail[i];
+        if (i === 0) ctx2.moveTo(px, py); else ctx2.lineTo(px, py);
+      }
+      ctx2.stroke();
+    }
+    // trace dot — bright glowing dot at tip
+    if (traceOn && traceTrail.length > 0) {
+      const [lpx, lpy] = traceTrail[traceTrail.length - 1];
+      // outer glow
+      const glowColor = attractorType === 'lorenz' ? '#00ccff' : '#ff88ff';
+      ctx2.shadowColor = glowColor; ctx2.shadowBlur = 18;
+      ctx2.fillStyle = glowColor;
+      ctx2.beginPath(); ctx2.arc(lpx, lpy, 6, 0, TAU); ctx2.fill();
+      // white center
+      ctx2.shadowColor = '#ffffff'; ctx2.shadowBlur = 8;
+      ctx2.fillStyle = '#ffffff';
+      ctx2.beginPath(); ctx2.arc(lpx, lpy, 3, 0, TAU); ctx2.fill();
+      ctx2.shadowBlur = 0;
+    }
+    // label
+    ctx2.fillStyle = 'rgba(255,204,0,0.4)';
+    ctx2.font = '12px Share Tech Mono';
+    ctx2.fillText('Drag to rotate · scroll to zoom', 10, 18);
+  } else if (attractorType === 'henon') {
+    const scX = W2 / 3.5;
+    const scY = H2 / 1.8;
+    const drawCount = Math.min(henonDrawIdx, henonPts.length);
+    for (let i = 0; i < drawCount; i++) {
+      const [x, y] = henonPts[i];
+      const rawX = W2 / 2 + x * scX;
+      const rawY = H2 / 2 - y * scY;
+      const px = (rawX - W2 / 2) * attrZoom + W2 / 2 + attrPanX;
+      const py = (rawY - H2 / 2) * attrZoom + H2 / 2 + attrPanY;
+      ctx2.fillStyle = '#ffcc00';
+      ctx2.fillRect(px, py, 1, 1);
+    }
+    ctx2.fillStyle = 'rgba(255,204,0,0.4)';
+    ctx2.font = '12px Share Tech Mono';
+    ctx2.fillText('Hénon map: (xₙ₊₁, yₙ₊₁) = (1 − ax² + y, bx)', 10, 18);
+    // progress indicator right-aligned
+    ctx2.textAlign = 'right';
+    ctx2.fillText(`${drawCount}/${henonPts.length} pts`, W2 - 10, 20);
+    ctx2.textAlign = 'left';
+    document.getElementById('attrPts').textContent = drawCount;
+  } else if (attractorType === 'logistic') {
+    const span = logZoomR1 - logZoomR0;
+    const revealPx = ((logisticRevealR - logZoomR0) / span) * W2;
+    // draw points up to reveal line
+    ctx2.fillStyle = '#ffcc00';
+    for (let i = 0; i < logisticPts.length; i++) {
+      const [r, x] = logisticPts[i];
+      if (r > logisticRevealR) continue;
+      const px = ((r - logZoomR0) / span) * W2;
+      const py = (1 - x) * H2;
+      ctx2.fillRect(px, py, 1, 1);
+    }
+    // Feigenbaum markers
+    ctx2.strokeStyle = 'rgba(255,100,100,0.3)';
+    ctx2.lineWidth = 1;
+    ctx2.setLineDash([3, 4]);
+    [3.0, 3.449, 3.544, 3.5644, 3.5688].forEach(r => {
+      if (r >= logZoomR0 && r <= logZoomR1 && r <= logisticRevealR) {
+        const px = ((r - logZoomR0) / span) * W2;
+        ctx2.beginPath(); ctx2.moveTo(px, 0); ctx2.lineTo(px, H2); ctx2.stroke();
+      }
+    });
+    ctx2.setLineDash([]);
+    // glowing scan line at frontier
+    if (logisticRevealR < logZoomR1) {
+      const grad = ctx2.createLinearGradient(revealPx - 6, 0, revealPx + 2, 0);
+      grad.addColorStop(0, 'rgba(0,255,180,0)');
+      grad.addColorStop(0.7, 'rgba(0,255,180,0.35)');
+      grad.addColorStop(1, 'rgba(0,255,255,0.9)');
+      ctx2.fillStyle = grad;
+      ctx2.fillRect(revealPx - 6, 0, 8, H2);
+      ctx2.strokeStyle = 'rgba(0,255,220,0.95)';
+      ctx2.lineWidth = 1.5;
+      ctx2.shadowColor = '#00ffcc';
+      ctx2.shadowBlur = 12;
+      ctx2.beginPath(); ctx2.moveTo(revealPx, 0); ctx2.lineTo(revealPx, H2); ctx2.stroke();
+      ctx2.shadowBlur = 0;
+    }
+    ctx2.fillStyle = 'rgba(255,204,0,0.5)';
+    ctx2.font = '12px Share Tech Mono';
+    ctx2.fillText(`r: [${logZoomR0.toFixed(3)}, ${logZoomR1.toFixed(3)}]   scroll to zoom   δ≈4.669`, 10, 18);
+    document.getElementById('attrPts').textContent = logisticPts.filter(([r]) => r <= logisticRevealR).length;
+  }
+}
+
+function loop2() {
+  if (attrPlaying) {
+    if (attractorType === 'lorenz') {
+      const dt = 0.005;
+      for (let i = 0; i < 80; i++) {
+        const prev = [...lorenzState];
+        lorenzState = rk4(lorenzState, dt, lorenzDeriv);
+        const [px, py] = project3d(lorenzState[0], lorenzState[1], lorenzState[2] - 25, W2, H2);
+        const vel = lorenzDeriv(lorenzState);
+        attrPoints.push([px, py]);
+        attrColors.push(velColor(vel[0], vel[1], vel[2]));
+        if (attrPoints.length > 80000) { attrPoints.shift(); attrColors.shift(); }
+      }
+      if (traceOn && traceState) {
+        for (let i = 0; i < 5; i++) {
+          traceState = rk4(traceState, dt, lorenzDeriv);
+          const [px, py] = project3d(traceState[0], traceState[1], traceState[2] - 25, W2, H2);
+          traceTrail.push([px, py]);
+          if (traceTrail.length > 300) traceTrail.shift();
+        }
+      }
+      document.getElementById('attrPts').textContent = attrPoints.length;
+    } else if (attractorType === 'rossler') {
+      const dt = 0.006;
+      for (let i = 0; i < 80; i++) {
+        rosslerState = rk4(rosslerState, dt, rosslerDeriv);
+        const [px, py] = project3d(rosslerState[0], rosslerState[1], rosslerState[2] - 5, W2, H2);
+        const vel = rosslerDeriv(rosslerState);
+        attrPoints.push([px, py]);
+        attrColors.push(velColor(vel[0], vel[1], vel[2]));
+        if (attrPoints.length > 80000) { attrPoints.shift(); attrColors.shift(); }
+      }
+      if (traceOn && traceState) {
+        for (let i = 0; i < 5; i++) {
+          traceState = rk4(traceState, dt, rosslerDeriv);
+          const [px, py] = project3d(traceState[0], traceState[1], traceState[2] - 5, W2, H2);
+          traceTrail.push([px, py]);
+          if (traceTrail.length > 300) traceTrail.shift();
+        }
+      }
+      document.getElementById('attrPts').textContent = attrPoints.length;
+    } else if (attractorType === 'henon') {
+      // progressive animation: advance henonDrawIdx
+      henonDrawIdx = Math.min(henonPts.length, henonDrawIdx + 150);
+    } else if (attractorType === 'logistic') {
+      // progressive reveal: advance logisticRevealR
+      const revealStep = (logZoomR1 - logZoomR0) / 180;
+      logisticRevealR = Math.min(logZoomR1, logisticRevealR + revealStep);
+    }
+  }
+  drawAttractor();
+  document.getElementById('s2pts').textContent = attrPoints.length || (henonPts.length || logisticPts.length);
+  attrRaf = requestAnimationFrame(loop2);
+}
+
+function scheduleLoop2() {
+  if (attrRaf) cancelAnimationFrame(attrRaf);
+  [W2, H2, ctx2] = cv2info.resize();
+  loop2();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 3 — LYAPUNOV EXPONENTS
+// ═══════════════════════════════════════════════
+let lyap3r = 3.70;
+let lyap3eps = 1e-5;
+let lyap3x = 0.5, lyap3xp = 0.5 + 1e-5;
+let lyap3sum = 0, lyap3n = 0;
+let lyap3sepLog = [];
+let lyap3bif = []; // [{r, xs:[]}]
+let lyap3LamData = []; // [{r, lam}]
+let lyap3Playing = true;
+let raf3 = null;
+
+const cv3topInfo = makeCanvas('c3top');
+const cv3botInfo = makeCanvas('c3bot');
+let W3t, H3t, ctx3t, W3b, H3b, ctx3b;
+
+function buildLyap3Background() {
+  // Compute bifurcation + λ(r) over full range
+  lyap3bif = [];
+  lyap3LamData = [];
+  const NR = 600;
+  for (let ri = 0; ri < NR; ri++) {
+    const r = 2.5 + ri * (4.0 - 2.5) / NR;
+    let x = 0.5;
+    // transient
+    for (let i = 0; i < 500; i++) x = r * x * (1 - x);
+    const xs = [];
+    let lamAcc = 0;
+    for (let i = 0; i < 200; i++) {
+      const deriv = Math.abs(r * (1 - 2 * x));
+      if (deriv > 0) lamAcc += Math.log(deriv);
+      x = r * x * (1 - x);
+      if (i >= 100) xs.push(x);
+    }
+    lyap3bif.push({ r, xs });
+    lyap3LamData.push({ r, lam: lamAcc / 200 });
+  }
+}
+
+function resetLyapunov() {
+  lyap3x = 0.5;
+  lyap3xp = 0.5 + lyap3eps;
+  lyap3sum = 0; lyap3n = 0;
+  lyap3sepLog = [];
+  document.getElementById('lyap3r').textContent = lyap3r.toFixed(4);
+  document.getElementById('lyap3lam').textContent = '—';
+  document.getElementById('lyap3sep').textContent = '—';
+  document.getElementById('lyap3status').textContent = '—';
+  document.getElementById('s3r').textContent = lyap3r.toFixed(4);
+  document.getElementById('s3lam').textContent = '—';
+  document.getElementById('s3iter').textContent = '0';
+}
+
+function updateEps() {
+  const v = parseInt(document.getElementById('sl_eps').value);
+  lyap3eps = Math.pow(10, -(10 - v / 5));
+  document.getElementById('veps').textContent = lyap3eps.toExponential(0);
+  resetLyapunov();
+}
+
+function togglePlay3() {
+  lyap3Playing = !lyap3Playing;
+  const btn = document.getElementById('btnPlay3');
+  btn.textContent = lyap3Playing ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('act', lyap3Playing);
+}
+
+function drawLyap3Top() {
+  [W3t, H3t, ctx3t] = cv3topInfo.resize();
+  ctx3t.clearRect(0, 0, W3t, H3t);
+  ctx3t.fillStyle = '#03030c';
+  ctx3t.fillRect(0, 0, W3t, H3t);
+
+  const rMin = 2.5, rMax = 4.0;
+  const lamMin = -3, lamMax = 1;
+
+  function rToX(r) { return (r - rMin) / (rMax - rMin) * W3t; }
+  function xToR(px) { return rMin + (px / W3t) * (rMax - rMin); }
+  function lamToY(l) { return H3t - (l - lamMin) / (lamMax - lamMin) * H3t; }
+
+  // bifurcation diagram (faint gold)
+  ctx3t.fillStyle = 'rgba(255,204,0,0.35)';
+  lyap3bif.forEach(({ r, xs }) => {
+    const px = rToX(r);
+    xs.forEach(x => {
+      const py = (1 - x) * H3t;
+      ctx3t.fillRect(px, py, 1, 1);
+    });
+  });
+
+  // λ=0 line
+  ctx3t.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx3t.lineWidth = 1;
+  ctx3t.setLineDash([4, 4]);
+  ctx3t.beginPath();
+  ctx3t.moveTo(0, lamToY(0));
+  ctx3t.lineTo(W3t, lamToY(0));
+  ctx3t.stroke();
+  ctx3t.setLineDash([]);
+
+  // λ(r) curve (red)
+  ctx3t.strokeStyle = '#ff4444';
+  ctx3t.lineWidth = 1.5;
+  ctx3t.beginPath();
+  let firstLam = true;
+  lyap3LamData.forEach(({ r, lam }) => {
+    const px = rToX(r);
+    const py = lamToY(Math.max(lamMin, Math.min(lamMax, lam)));
+    if (firstLam) { ctx3t.moveTo(px, py); firstLam = false; }
+    else ctx3t.lineTo(px, py);
+  });
+  ctx3t.stroke();
+
+  // current r marker
+  const rx = rToX(lyap3r);
+  ctx3t.strokeStyle = '#00ffcc';
+  ctx3t.lineWidth = 1.5;
+  ctx3t.shadowColor = '#00ffcc';
+  ctx3t.shadowBlur = 8;
+  ctx3t.beginPath();
+  ctx3t.moveTo(rx, 0);
+  ctx3t.lineTo(rx, H3t);
+  ctx3t.stroke();
+  ctx3t.shadowBlur = 0;
+
+  // labels
+  ctx3t.fillStyle = 'rgba(255,204,0,0.6)';
+  ctx3t.font = '12px Share Tech Mono';
+  ctx3t.fillText('r', W3t - 12, H3t - 4);
+  ctx3t.fillStyle = '#ff4444';
+  ctx3t.fillText('λ(r)', 8, 14);
+  ctx3t.fillStyle = 'rgba(255,204,0,0.4)';
+  ctx3t.fillText('Bifurcation diagram + Lyapunov exponent  (click to set r)', 40, 14);
+}
+
+function drawLyap3Bot() {
+  [W3b, H3b, ctx3b] = cv3botInfo.resize();
+  ctx3b.clearRect(0, 0, W3b, H3b);
+  ctx3b.fillStyle = '#03030c';
+  ctx3b.fillRect(0, 0, W3b, H3b);
+
+  const N = lyap3sepLog.length;
+  if (N < 2) {
+    ctx3b.fillStyle = 'rgba(255,204,0,0.3)';
+    ctx3b.font = '12px Share Tech Mono';
+    ctx3b.fillText('|Δx(t)| on log scale — waiting for data…', 10, H3b / 2);
+    return;
+  }
+
+  const logMin = -16, logMax = 2;
+  function tToX(t) { return (t / N) * W3b; }
+  function logToY(l) { return H3b - (l - logMin) / (logMax - logMin) * H3b; }
+
+  // grid
+  ctx3b.strokeStyle = 'rgba(255,204,0,0.06)';
+  ctx3b.lineWidth = 1;
+  for (let l = logMin; l <= logMax; l += 2) {
+    const py = logToY(l);
+    ctx3b.beginPath(); ctx3b.moveTo(0, py); ctx3b.lineTo(W3b, py); ctx3b.stroke();
+  }
+
+  // λt reference line
+  const lam = lyap3sum / Math.max(lyap3n, 1);
+  if (isFinite(lam)) {
+    ctx3b.strokeStyle = 'rgba(255,100,100,0.5)';
+    ctx3b.lineWidth = 1;
+    ctx3b.setLineDash([5, 5]);
+    ctx3b.beginPath();
+    const y0 = logToY(Math.log(lyap3eps) / Math.log(10));
+    ctx3b.moveTo(0, y0);
+    const yN = logToY(Math.log(lyap3eps) / Math.log(10) + lam * N / Math.log(10));
+    ctx3b.lineTo(W3b, yN);
+    ctx3b.stroke();
+    ctx3b.setLineDash([]);
+  }
+
+  // separation curve
+  ctx3b.strokeStyle = '#00ffcc';
+  ctx3b.lineWidth = 1.5;
+  ctx3b.beginPath();
+  for (let i = 0; i < N; i++) {
+    const px = tToX(i);
+    const val = lyap3sepLog[i];
+    if (!isFinite(val)) continue;
+    const py = logToY(val);
+    if (i === 0) ctx3b.moveTo(px, py); else ctx3b.lineTo(px, py);
+  }
+  ctx3b.stroke();
+
+  // labels
+  ctx3b.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx3b.font = '12px Share Tech Mono';
+  ctx3b.fillText('log₁₀|Δx(t)|', 8, 14);
+  ctx3b.fillStyle = '#ff4444';
+  ctx3b.fillText('slope = λ', W3b - 90, 14);
+}
+
+function loop3() {
+  if (lyap3Playing) {
+    const stepsPerFrame = 30;
+    for (let i = 0; i < stepsPerFrame; i++) {
+      const xNew = lyap3r * lyap3x * (1 - lyap3x);
+      const xpNew = lyap3r * lyap3xp * (1 - lyap3xp);
+      const sep = Math.abs(xpNew - xNew);
+      if (!isFinite(sep) || sep === 0) {
+        // renormalize
+        lyap3x = xNew;
+        lyap3xp = xNew + lyap3eps;
+      } else {
+        const logSep = Math.log(sep) / Math.LN10;
+        lyap3sepLog.push(logSep);
+        if (lyap3sepLog.length > 600) lyap3sepLog.shift();
+        // accumulate λ
+        const deriv = Math.abs(lyap3r * (1 - 2 * lyap3x));
+        if (deriv > 0) lyap3sum += Math.log(deriv);
+        lyap3n++;
+        // renormalize
+        lyap3x = xNew;
+        lyap3xp = xNew + lyap3eps * (sep > 0 ? (xpNew - xNew) / Math.abs(xpNew - xNew) : 1);
+        if (Math.abs(lyap3xp - lyap3x) < 1e-15) lyap3xp = lyap3x + lyap3eps;
+      }
+    }
+
+    const lam = lyap3sum / Math.max(lyap3n, 1);
+    const lamStr = isFinite(lam) ? lam.toFixed(5) : '—';
+    document.getElementById('lyap3lam').textContent = lamStr;
+    document.getElementById('s3lam').textContent = lamStr;
+    document.getElementById('s3iter').textContent = lyap3n;
+    const lastSep = lyap3sepLog.length > 0 ? Math.pow(10, lyap3sepLog[lyap3sepLog.length - 1]) : 0;
+    document.getElementById('lyap3sep').textContent = lastSep.toExponential(2);
+    document.getElementById('lyap3status').textContent = lam > 0.01 ? 'CHAOTIC (λ>0)' : lam < -0.01 ? 'Periodic (λ<0)' : 'Bifurcation (λ≈0)';
+  }
+
+  drawLyap3Top();
+  drawLyap3Bot();
+  raf3 = requestAnimationFrame(loop3);
+}
+
+function scheduleLoop3() {
+  if (raf3) cancelAnimationFrame(raf3);
+  buildLyap3Background();
+  resetLyapunov();
+  loop3();
+}
+
+// click on top canvas → set r
+document.getElementById('c3top').addEventListener('click', e => {
+  const rect = cv3topInfo.cv.getBoundingClientRect();
+  const fx = (e.clientX - rect.left) / rect.width;
+  lyap3r = 2.5 + fx * (4.0 - 2.5);
+  lyap3r = Math.max(2.5, Math.min(4.0, lyap3r));
+  document.getElementById('lyap3r').textContent = lyap3r.toFixed(4);
+  document.getElementById('s3r').textContent = lyap3r.toFixed(4);
+  resetLyapunov();
+});
+
+// ═══════════════════════════════════════════════
+// TAB 4 — FEIGENBAUM UNIVERSALITY
+// ═══════════════════════════════════════════════
+let fg4map = 'logistic';
+let fg4pts = [];
+let fg4zoomR0 = 2.5, fg4zoomR1 = 4.0;
+let fg4ZoomX = 0, fg4ZoomY = 0; // pan in [0,1] space
+let fg4Scale = 1.0;
+let fg4Dragging = false, fg4DragX = 0, fg4DragY = 0;
+let fg4DragR0 = 2.5, fg4DragR1 = 4.0;
+let fg4Raf = null;
+let playing4 = true;
+
+// Bifurcation points (logistic) for Feigenbaum display
+const FG_BIFS = [3.0, 3.4495, 3.5441, 3.5644, 3.5688];
+const FG_LABELS = ['1→2', '2→4', '4→8', '8→16', '16→32'];
+
+function fgMapFn(r, x) {
+  if (fg4map === 'logistic') return r * x * (1 - x);
+  if (fg4map === 'sine') return r * Math.sin(Math.PI * x);
+  if (fg4map === 'tent') return x < 0.5 ? r * x : r * (1 - x);
+  return r * x * (1 - x);
+}
+
+function fgMapRange() {
+  if (fg4map === 'logistic') return { rMin: 2.5, rMax: 4.0 };
+  if (fg4map === 'sine') return { rMin: 0.7, rMax: 1.0 };
+  if (fg4map === 'tent') return { rMin: 0.5, rMax: 1.0 };
+  return { rMin: 2.5, rMax: 4.0 };
+}
+
+function buildFg4() {
+  fg4pts = [];
+  const { rMin, rMax } = fgMapRange();
+  // initial zoom covers full range
+  fg4zoomR0 = rMin; fg4zoomR1 = rMax;
+  const NR = 800;
+  for (let ri = 0; ri < NR; ri++) {
+    const r = fg4zoomR0 + ri * (fg4zoomR1 - fg4zoomR0) / NR;
+    let x = 0.5;
+    for (let i = 0; i < 600; i++) x = fgMapFn(r, x);
+    for (let i = 0; i < 200; i++) {
+      x = fgMapFn(r, x);
+      fg4pts.push([r, x]);
+    }
+  }
+  computeFgDeltas();
+}
+
+function computeFgDeltasForMap() {
+  // For non-logistic maps, approximate Feigenbaum ratio from period-doubling
+  return 4.6692;
+}
+
+function computeFgDeltas() {
+  // logistic-specific
+  if (fg4map === 'logistic') {
+    const d1 = (FG_BIFS[1] - FG_BIFS[0]) / (FG_BIFS[2] - FG_BIFS[1]);
+    const d2 = (FG_BIFS[2] - FG_BIFS[1]) / (FG_BIFS[3] - FG_BIFS[2]);
+    document.getElementById('fg4delta').textContent = ((d1 + d2) / 2).toFixed(4);
+    document.getElementById('fg_d1').textContent = d1.toFixed(4);
+    document.getElementById('fg_d2').textContent = d2.toFixed(4);
+  } else {
+    document.getElementById('fg4delta').textContent = '≈4.6692 (universal)';
+    document.getElementById('fg_d1').textContent = '—';
+    document.getElementById('fg_d2').textContent = '—';
+  }
+}
+
+function resetFeigenbaum() {
+  buildFg4();
+  document.getElementById('fg4map').textContent =
+    fg4map === 'logistic' ? 'Logistic' : fg4map === 'sine' ? 'Sine' : 'Tent';
+}
+
+function onFgMapChange() {
+  fg4map = document.getElementById('fgMapSel').value;
+  resetFeigenbaum();
+}
+
+function zoomFgIn() {
+  const { rMin, rMax } = fgMapRange();
+  const cx = (fg4zoomR0 + fg4zoomR1) / 2;
+  const span = (fg4zoomR1 - fg4zoomR0) / 1.4;
+  fg4zoomR0 = Math.max(rMin, cx - span / 2);
+  fg4zoomR1 = Math.min(rMax, cx + span / 2);
+  rebuildFg4Zoom();
+}
+
+function zoomFgOut() {
+  const { rMin, rMax } = fgMapRange();
+  const cx = (fg4zoomR0 + fg4zoomR1) / 2;
+  const span = (fg4zoomR1 - fg4zoomR0) * 1.4;
+  fg4zoomR0 = Math.max(rMin, cx - span / 2);
+  fg4zoomR1 = Math.min(rMax, cx + span / 2);
+  rebuildFg4Zoom();
+}
+
+function fitFg() {
+  const { rMin, rMax } = fgMapRange();
+  fg4zoomR0 = rMin; fg4zoomR1 = rMax;
+  rebuildFg4Zoom();
+}
+
+function rebuildFg4Zoom() {
+  fg4pts = [];
+  const NR = 800;
+  for (let ri = 0; ri < NR; ri++) {
+    const r = fg4zoomR0 + ri * (fg4zoomR1 - fg4zoomR0) / NR;
+    let x = 0.5;
+    for (let i = 0; i < 600; i++) x = fgMapFn(r, x);
+    for (let i = 0; i < 200; i++) {
+      x = fgMapFn(r, x);
+      fg4pts.push([r, x]);
+    }
+  }
+}
+
+const cv4Info = makeCanvas('c4');
+let W4, H4, ctx4;
+
+// Scroll zoom on c4
+document.getElementById('c4').addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = cv4Info.cv.getBoundingClientRect();
+  const { rMin, rMax } = fgMapRange();
+  const frac = (e.clientX - rect.left) / rect.width;
+  const focus = fg4zoomR0 + frac * (fg4zoomR1 - fg4zoomR0);
+  const factor = e.deltaY > 0 ? 1.15 : 0.87;
+  const newSpan = (fg4zoomR1 - fg4zoomR0) * factor;
+  fg4zoomR0 = Math.max(rMin, focus - frac * newSpan);
+  fg4zoomR1 = Math.min(rMax, focus + (1 - frac) * newSpan);
+  rebuildFg4Zoom();
+}, { passive: false });
+
+// Drag pan on c4
+document.getElementById('c4').addEventListener('mousedown', e => {
+  fg4Dragging = true;
+  fg4DragX = e.clientX;
+  fg4DragR0 = fg4zoomR0; fg4DragR1 = fg4zoomR1;
+  cv4Info.cv.style.cursor = 'grabbing';
+});
+document.addEventListener('mousemove', e => {
+  if (!fg4Dragging) return;
+  const { rMin, rMax } = fgMapRange();
+  const span = fg4DragR1 - fg4DragR0;
+  const rect = cv4Info.cv.getBoundingClientRect();
+  const dx = -(e.clientX - fg4DragX) / rect.width * span;
+  fg4zoomR0 = Math.max(rMin, fg4DragR0 + dx);
+  fg4zoomR1 = Math.min(rMax, fg4DragR1 + dx);
+  rebuildFg4Zoom();
+});
+document.addEventListener('mouseup', () => {
+  if (fg4Dragging) { fg4Dragging = false; cv4Info.cv.style.cursor = 'crosshair'; }
+});
+
+function drawFeigenbaum() {
+  [W4, H4, ctx4] = cv4Info.resize();
+  ctx4.clearRect(0, 0, W4, H4);
+  ctx4.fillStyle = '#03030c';
+  ctx4.fillRect(0, 0, W4, H4);
+
+  const rMin = fg4zoomR0, rMax = fg4zoomR1;
+  function rToX(r) { return (r - rMin) / (rMax - rMin) * W4; }
+
+  // period-window markers (logistic only)
+  if (fg4map === 'logistic') {
+    const periodColors = ['rgba(255,80,80,0.35)', 'rgba(255,140,0,0.35)', 'rgba(200,255,80,0.35)', 'rgba(80,200,255,0.35)', 'rgba(200,80,255,0.35)'];
+    FG_BIFS.forEach((r, idx) => {
+      if (r >= rMin && r <= rMax) {
+        const px = rToX(r);
+        ctx4.strokeStyle = periodColors[idx % periodColors.length];
+        ctx4.lineWidth = 1;
+        ctx4.setLineDash([3, 3]);
+        ctx4.beginPath(); ctx4.moveTo(px, 0); ctx4.lineTo(px, H4); ctx4.stroke();
+        ctx4.setLineDash([]);
+        // label
+        ctx4.fillStyle = periodColors[idx % periodColors.length];
+        ctx4.font = '12px Share Tech Mono';
+        ctx4.fillText(FG_LABELS[idx], px + 3, 16 + idx * 14);
+      }
+    });
+
+    // Feigenbaum δ annotations between markers
+    for (let i = 0; i + 1 < FG_BIFS.length - 1; i++) {
+      const r0 = FG_BIFS[i], r1 = FG_BIFS[i + 1], r2 = FG_BIFS[i + 2];
+      if (r0 >= rMin && r2 <= rMax) {
+        const mid = (r1 + r0) / 2;
+        const px = rToX(mid);
+        const δ = ((r1 - r0) / (r2 - r1)).toFixed(3);
+        ctx4.fillStyle = 'rgba(255,200,0,0.6)';
+        ctx4.font = '12px Share Tech Mono';
+        ctx4.fillText('δ≈' + δ, px, H4 - 10 - i * 12);
+      }
+    }
+  }
+
+  // bifurcation points
+  ctx4.fillStyle = '#ffcc00';
+  fg4pts.forEach(([r, x]) => {
+    const px = rToX(r);
+    const py = (1 - x) * H4;
+    ctx4.fillRect(px, py, 1, 1);
+  });
+
+  // axis labels
+  ctx4.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx4.font = '12px Share Tech Mono';
+  ctx4.fillText(`r ∈ [${rMin.toFixed(4)}, ${rMax.toFixed(4)}]  ·  scroll=zoom  drag=pan`, 10, H4 - 8);
+  ctx4.fillText(`Feigenbaum δ = 4.66920160910…  (universal for all unimodal maps)`, 10, 14);
+}
+
+function loop4() {
+  drawFeigenbaum();
+  fg4Raf = requestAnimationFrame(loop4);
+}
+
+function scheduleLoop4() {
+  if (fg4Raf) cancelAnimationFrame(fg4Raf);
+  buildFg4();
+  loop4();
+}
+
+function togglePlay4() {
+  playing4 = !playing4;
+  const btn = document.getElementById('btnPlay4');
+  btn.textContent = playing4 ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('act', playing4);
+  if (playing4) {
+    loop4();
+  } else {
+    if (fg4Raf) cancelAnimationFrame(fg4Raf);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// TAB 5 — KAM / STANDARD MAP
+// ═══════════════════════════════════════════════
+let kamK = 0.50;
+let kamN = 300;
+let kamOrbits = []; // [{pts:[[p,q],...], color}]
+let kamRaf = null;
+let kamTotalPts = 0;
+let playing5 = true;
+
+const cv5Info = makeCanvas('c5');
+let W5, H5, ctx5;
+
+function onKChange() {
+  kamK = parseInt(document.getElementById('sl_K').value) / 100;
+  kamN = parseInt(document.getElementById('sl_Nkam').value);
+  document.getElementById('vK').textContent = kamK.toFixed(2);
+  document.getElementById('vNkam').textContent = kamN;
+  document.getElementById('kam5K').textContent = kamK.toFixed(4);
+  document.getElementById('s5K').textContent = kamK.toFixed(4);
+  document.getElementById('kam5status').textContent = kamK < 0.9716 ? 'KAM tori intact' : 'Global chaos (K > K*)';
+}
+
+function stdMapStep(p, q) {
+  const pn = ((p + kamK * Math.sin(q)) % TAU + TAU) % TAU;
+  const qn = ((q + pn) % TAU + TAU) % TAU;
+  return [pn, qn];
+}
+
+function addStdOrbit(p0, q0) {
+  const color = ORBIT_COLORS[kamOrbits.length % ORBIT_COLORS.length];
+  const pts = [[p0, q0]];
+  let p = p0, q = q0;
+  for (let i = 1; i < kamN; i++) {
+    [p, q] = stdMapStep(p, q);
+    pts.push([p, q]);
+  }
+  kamOrbits.push({ pts, color });
+  kamTotalPts += pts.length;
+  document.getElementById('kam5orb').textContent = kamOrbits.length;
+  document.getElementById('s5pts').textContent = kamTotalPts;
+}
+
+function clearStdMap() {
+  kamOrbits = [];
+  kamTotalPts = 0;
+  document.getElementById('kam5orb').textContent = 0;
+  document.getElementById('s5pts').textContent = 0;
+}
+
+function fillStdMap() {
+  clearStdMap();
+  // add a grid of initial conditions
+  const NGrid = 18;
+  for (let pi = 0; pi < NGrid; pi++) {
+    for (let qi = 0; qi < NGrid; qi++) {
+      const p0 = (pi + 0.5) * TAU / NGrid;
+      const q0 = (qi + 0.5) * TAU / NGrid;
+      addStdOrbit(p0, q0);
+    }
+  }
+}
+
+document.getElementById('c5').addEventListener('click', e => {
+  const rect = cv5Info.cv.getBoundingClientRect();
+  const q0 = (e.clientX - rect.left) / rect.width * TAU;
+  const p0 = (1 - (e.clientY - rect.top) / rect.height) * TAU;
+  addStdOrbit(p0, q0);
+});
+
+function drawStdMap() {
+  [W5, H5, ctx5] = cv5Info.resize();
+  ctx5.clearRect(0, 0, W5, H5);
+  ctx5.fillStyle = '#03030c';
+  ctx5.fillRect(0, 0, W5, H5);
+
+  // axes
+  ctx5.strokeStyle = 'rgba(255,204,0,0.12)';
+  ctx5.lineWidth = 1;
+  ctx5.beginPath(); ctx5.moveTo(W5 / 2, 0); ctx5.lineTo(W5 / 2, H5); ctx5.stroke();
+  ctx5.beginPath(); ctx5.moveTo(0, H5 / 2); ctx5.lineTo(W5, H5 / 2); ctx5.stroke();
+
+  // draw orbits
+  kamOrbits.forEach(({ pts, color }) => {
+    ctx5.fillStyle = color;
+    pts.forEach(([p, q]) => {
+      const px = (q / TAU) * W5;
+      const py = (1 - p / TAU) * H5;
+      ctx5.beginPath();
+      ctx5.arc(px, py, 1, 0, TAU);
+      ctx5.fill();
+    });
+  });
+
+  // labels
+  ctx5.fillStyle = 'rgba(255,204,0,0.45)';
+  ctx5.font = '12px Share Tech Mono';
+  ctx5.fillText('q ∈ [0, 2π]', W5 / 2 + 8, H5 - 4);
+  ctx5.fillText('p ∈ [0, 2π]', 4, 14);
+  ctx5.fillText(`K = ${kamK.toFixed(4)}  |  K* = 0.9716 (Chirikov)`, 10, H5 - 20);
+
+  // hint
+  if (kamOrbits.length === 0) {
+    ctx5.fillStyle = 'rgba(255,204,0,0.3)';
+    ctx5.font = '13px Share Tech Mono';
+    ctx5.textAlign = 'center';
+    ctx5.fillText('Click to add orbit  ·  "Fill Grid" for overview', W5 / 2, H5 / 2);
+    ctx5.textAlign = 'left';
+  }
+}
+
+function loop5() {
+  if (playing5) {
+    drawStdMap();
+  }
+  kamRaf = requestAnimationFrame(loop5);
+}
+
+function togglePlay6() {
+  playing6 = !playing6;
+  const btn = document.getElementById('btnPlay6');
+  btn.textContent = playing6 ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('act', playing6);
+}
+
+function scheduleLoop5() {
+  if (kamRaf) cancelAnimationFrame(kamRaf);
+  onKChange();
+  // auto-fill on first load
+  if (kamOrbits.length === 0) fillStdMap();
+  loop5();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 6 — QUANTUM CHAOS
+// ═══════════════════════════════════════════════
+let qN = 200;
+let qcRaf = null;
+let showOTOC = true;
+let otocPhase = 0;
+let playing6 = true;
+
+const cv6topInfo = makeCanvas('c6top');
+const cv6botInfo = makeCanvas('c6bot');
+let W6t, H6t, ctx6t, W6b, H6b, ctx6b;
+
+// Generate energy level spacings from random matrix (GUE-like) or Poisson
+function genGUESpacings(N) {
+  // Approximate GUE spacings: generate random Hermitian matrix eigenvalues via
+  // Gram-Schmidt tridiagonal Gaussian beta=2 ensemble (Householder-tridiag trick)
+  // Simple approach: use random normal β=2 Jacobi matrix
+  const diag = Array.from({ length: N }, () => gaussRand() * Math.sqrt(N));
+  const off = Array.from({ length: N - 1 }, () => {
+    // β=2: off-diagonal entries are complex → magnitude is chi(2(N-i)) ~ sqrt(chi^2)
+    const re = gaussRand(), im = gaussRand();
+    return Math.sqrt(re * re + im * im);
+  });
+  // Compute eigenvalues via QL algorithm (simplified: just use spacings from sorted random normal for GOE)
+  // For display purposes, use the Wigner surmise directly for GUE vs Poisson
+  const spacings = [];
+  // GUE Wigner surmise: P(s) = (32s²/π²) e^{-4s²/π}  (β=2)
+  // We generate samples: if u = rand, invert CDF numerically
+  for (let i = 0; i < N; i++) {
+    spacings.push(sampleGUESpacing());
+  }
+  return spacings;
+}
+
+function sampleGUESpacing() {
+  // Inverse CDF sampling for GUE Wigner surmise: P(s) = (32s²/π²) e^{-4s²/π}
+  // CDF: F(s) = 1 - (1 + 4s²/π) e^{-4s²/π}  (approx)
+  // Use rejection sampling: envelope is gamma(3)
+  while (true) {
+    const u = Math.random();
+    const s = -Math.log(Math.random()) * 0.7 + Math.random() * 0.7; // rough envelope
+    const ps = (32 * s * s / (Math.PI * Math.PI)) * Math.exp(-4 * s * s / Math.PI);
+    const env = 0.9;
+    if (Math.random() < ps / env) return s;
+  }
+}
+
+function genPoissonSpacings(N) {
+  return Array.from({ length: N }, () => -Math.log(Math.random() + 1e-10));
+}
+
+function gaussRand() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(TAU * v);
+}
+
+let qPoissonHist = [], qGUEHist = [];
+
+function regenQChaos() {
+  qN = parseInt(document.getElementById('sl_qN').value);
+  document.getElementById('vqN').textContent = qN;
+  document.getElementById('s6N').textContent = qN;
+
+  // Normalize spacings to mean=1
+  const poisRaw = genPoissonSpacings(qN);
+  const poisMean = poisRaw.reduce((a, b) => a + b, 0) / poisRaw.length;
+  const poisSpacings = poisRaw.map(s => s / poisMean);
+
+  const gueRaw = genGUESpacings(qN);
+  const gueMean = gueRaw.reduce((a, b) => a + b, 0) / gueRaw.length;
+  const gueSpacings = gueRaw.map(s => s / gueMean);
+
+  // Build histogram
+  const bins = 40, sMax = 4;
+  qPoissonHist = new Array(bins).fill(0);
+  qGUEHist = new Array(bins).fill(0);
+  poisSpacings.forEach(s => {
+    const b = Math.floor(s / sMax * bins);
+    if (b >= 0 && b < bins) qPoissonHist[b]++;
+  });
+  gueSpacings.forEach(s => {
+    const b = Math.floor(s / sMax * bins);
+    if (b >= 0 && b < bins) qGUEHist[b]++;
+  });
+
+  // Normalize to density
+  const dS = sMax / bins;
+  qPoissonHist = qPoissonHist.map(h => h / (qN * dS));
+  qGUEHist = qGUEHist.map(h => h / (qN * dS));
+
+  // Update stats
+  document.getElementById('s6ms').textContent = '1.000 (normalized)';
+  document.getElementById('s6st').textContent = `t* ~ ${(Math.log(qN) / (2 * Math.PI)).toFixed(2)} ℏβ⁻¹`;
+}
+
+function toggleOTOC() {
+  showOTOC = !showOTOC;
+  document.getElementById('btnOTOC').textContent = showOTOC ? 'Show Level Corr.' : 'Show OTOC';
+  document.getElementById('q6botLabel').textContent = showOTOC
+    ? 'OTOC C(t) — quantum chaos scrambling'
+    : 'Two-point level correlation R₂(s)';
+}
+
+function drawQChaosTop() {
+  [W6t, H6t, ctx6t] = cv6topInfo.resize();
+  ctx6t.clearRect(0, 0, W6t, H6t);
+  ctx6t.fillStyle = '#03030c';
+  ctx6t.fillRect(0, 0, W6t, H6t);
+
+  const bins = qPoissonHist.length || 40;
+  const sMax = 4;
+  const padL = 50, padR = 20, padT = 30, padB = 40;
+  const plotW = W6t - padL - padR, plotH = H6t - padT - padB;
+  const maxY = 1.2;
+
+  function sToX(s) { return padL + (s / sMax) * plotW; }
+  function probToY(p) { return padT + plotH - (p / maxY) * plotH; }
+  function bToX(b) { return padL + (b / bins) * plotW; }
+
+  // grid
+  ctx6t.strokeStyle = 'rgba(255,204,0,0.06)';
+  ctx6t.lineWidth = 1;
+  for (let p = 0; p <= maxY; p += 0.2) {
+    const py = probToY(p);
+    ctx6t.beginPath(); ctx6t.moveTo(padL, py); ctx6t.lineTo(padL + plotW, py); ctx6t.stroke();
+  }
+
+  // Poisson histogram bars
+  if (qPoissonHist.length > 0) {
+    const barW = plotW / bins;
+    qPoissonHist.forEach((h, i) => {
+      const px = padL + i * barW;
+      const ph = (h / maxY) * plotH;
+      ctx6t.fillStyle = 'rgba(80,200,255,0.35)';
+      ctx6t.fillRect(px, padT + plotH - ph, barW - 1, ph);
+    });
+  }
+
+  // GUE histogram bars
+  if (qGUEHist.length > 0) {
+    const barW = plotW / bins;
+    qGUEHist.forEach((h, i) => {
+      const px = padL + i * barW;
+      const ph = (h / maxY) * plotH;
+      ctx6t.fillStyle = 'rgba(255,100,80,0.35)';
+      ctx6t.fillRect(px, padT + plotH - ph, barW - 1, ph);
+    });
+  }
+
+  // Theoretical curves
+  // Poisson: P(s) = e^{-s}
+  ctx6t.strokeStyle = '#00ccff';
+  ctx6t.lineWidth = 2;
+  ctx6t.beginPath();
+  for (let px = 0; px <= plotW; px += 2) {
+    const s = (px / plotW) * sMax;
+    const p = Math.exp(-s);
+    const py = probToY(p);
+    if (px === 0) ctx6t.moveTo(padL + px, py); else ctx6t.lineTo(padL + px, py);
+  }
+  ctx6t.stroke();
+
+  // GUE Wigner surmise: P(s) = (32s²/π²) e^{-4s²/π}
+  ctx6t.strokeStyle = '#ff6644';
+  ctx6t.lineWidth = 2;
+  ctx6t.beginPath();
+  for (let px = 0; px <= plotW; px += 2) {
+    const s = (px / plotW) * sMax;
+    const p = (32 * s * s / (Math.PI * Math.PI)) * Math.exp(-4 * s * s / Math.PI);
+    const py = probToY(p);
+    if (px === 0) ctx6t.moveTo(padL + px, py); else ctx6t.lineTo(padL + px, py);
+  }
+  ctx6t.stroke();
+
+  // axes
+  ctx6t.strokeStyle = 'rgba(255,204,0,0.3)';
+  ctx6t.lineWidth = 1;
+  ctx6t.beginPath(); ctx6t.moveTo(padL, padT); ctx6t.lineTo(padL, padT + plotH); ctx6t.lineTo(padL + plotW, padT + plotH); ctx6t.stroke();
+
+  // axis labels
+  ctx6t.fillStyle = 'rgba(255,204,0,0.6)';
+  ctx6t.font = '12px Share Tech Mono';
+  ctx6t.fillText('s (normalized spacing)', padL + plotW / 2 - 60, H6t - 6);
+  ctx6t.fillText('P(s)', 4, padT + 6);
+
+  // tick marks
+  ctx6t.fillStyle = 'rgba(255,204,0,0.4)';
+  ctx6t.font = '12px Share Tech Mono';
+  for (let s = 0; s <= sMax; s++) {
+    const px = sToX(s);
+    ctx6t.fillText(s, px - 3, padT + plotH + 12);
+  }
+
+  // legend
+  ctx6t.fillStyle = '#00ccff';
+  ctx6t.font = '12px Share Tech Mono';
+  ctx6t.fillText('■ Poisson P(s)=e⁻ˢ  (integrable)', padL + 10, padT + 16);
+  ctx6t.fillStyle = '#ff6644';
+  ctx6t.fillText('■ Wigner-Dyson GUE  (chaotic)', padL + 10, padT + 30);
+
+  // title
+  ctx6t.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx6t.font = '12px Share Tech Mono';
+  ctx6t.fillText('Level spacing distribution P(s) — BGS conjecture (1984)', padL + plotW / 2 - 130, padT - 8);
+}
+
+function drawQChaosBot() {
+  [W6b, H6b, ctx6b] = cv6botInfo.resize();
+  ctx6b.clearRect(0, 0, W6b, H6b);
+  ctx6b.fillStyle = '#03030c';
+  ctx6b.fillRect(0, 0, W6b, H6b);
+
+  const padL = 50, padR = 20, padT = 20, padB = 35;
+  const plotW = W6b - padL - padR, plotH = H6b - padT - padB;
+
+  if (showOTOC) {
+    // Draw OTOC growth: C(t) ~ e^{λ_L t} until scrambling, then saturates ~ 1/N
+    // Animate with otocPhase
+    const tMax = 5;
+    const lambdaL = 1.2; // quantum Lyapunov exponent
+    const tScramble = Math.log(qN) / lambdaL;
+    const normC0 = 0.001;
+
+    function tToX(t) { return padL + (t / tMax) * plotW; }
+    function cToY(c) {
+      const logMax = 1, logMin = -4;
+      const logC = Math.log10(Math.max(c, 1e-5));
+      return padT + plotH - ((logC - logMin) / (logMax - logMin)) * plotH;
+    }
+
+    // grid
+    ctx6b.strokeStyle = 'rgba(255,204,0,0.06)';
+    ctx6b.lineWidth = 1;
+    for (let lv = -4; lv <= 1; lv++) {
+      const py = cToY(Math.pow(10, lv));
+      ctx6b.beginPath(); ctx6b.moveTo(padL, py); ctx6b.lineTo(padL + plotW, py); ctx6b.stroke();
+    }
+
+    // scrambling time marker
+    if (tScramble < tMax) {
+      ctx6b.strokeStyle = 'rgba(255,80,80,0.4)';
+      ctx6b.lineWidth = 1;
+      ctx6b.setLineDash([4, 4]);
+      const sx = tToX(tScramble);
+      ctx6b.beginPath(); ctx6b.moveTo(sx, padT); ctx6b.lineTo(sx, padT + plotH); ctx6b.stroke();
+      ctx6b.setLineDash([]);
+      ctx6b.fillStyle = 'rgba(255,80,80,0.7)';
+      ctx6b.font = '12px Share Tech Mono';
+      ctx6b.fillText('t*', sx + 2, padT + 12);
+    }
+
+    // OTOC curve — animated to grow in real time
+    const tCurrent = (otocPhase % 1) * tMax; // 0..tMax cycling
+    ctx6b.strokeStyle = '#00ffcc';
+    ctx6b.lineWidth = 2;
+    ctx6b.beginPath();
+    let started = false;
+    for (let px = 0; px <= plotW; px += 1) {
+      const t = (px / plotW) * tMax;
+      let c;
+      if (t < tScramble) {
+        c = normC0 * Math.exp(lambdaL * t);
+      } else {
+        // Saturation: approaches ~ 1/N with ramp-down
+        c = Math.min(1.0, normC0 * Math.exp(lambdaL * tScramble)) * Math.exp(-(t - tScramble) * 0.4) + 1 / qN;
+      }
+      const py = cToY(Math.min(1.5, c));
+      if (!started) { ctx6b.moveTo(padL + px, py); started = true; }
+      else ctx6b.lineTo(padL + px, py);
+    }
+    ctx6b.stroke();
+
+    // exponential growth reference: slope = λ_L
+    ctx6b.strokeStyle = 'rgba(255,100,100,0.5)';
+    ctx6b.lineWidth = 1;
+    ctx6b.setLineDash([5, 5]);
+    ctx6b.beginPath();
+    ctx6b.moveTo(padL, cToY(normC0));
+    ctx6b.lineTo(tToX(tScramble), cToY(normC0 * Math.exp(lambdaL * tScramble)));
+    ctx6b.stroke();
+    ctx6b.setLineDash([]);
+
+    // axes
+    ctx6b.strokeStyle = 'rgba(255,204,0,0.3)';
+    ctx6b.lineWidth = 1;
+    ctx6b.beginPath(); ctx6b.moveTo(padL, padT); ctx6b.lineTo(padL, padT + plotH); ctx6b.lineTo(padL + plotW, padT + plotH); ctx6b.stroke();
+
+    // labels
+    ctx6b.fillStyle = 'rgba(255,204,0,0.5)';
+    ctx6b.font = '12px Share Tech Mono';
+    ctx6b.fillText('t', padL + plotW + 4, padT + plotH + 4);
+    ctx6b.fillText('log C(t)', 4, padT + 12);
+    ctx6b.fillStyle = '#00ffcc';
+    ctx6b.font = '12px Share Tech Mono';
+    ctx6b.fillText(`C(t) ~ e^{λ_L t}  λ_L = ${lambdaL} (≤ 2πk_BT/ℏ)`, padL + 10, padT + 14);
+    ctx6b.fillStyle = 'rgba(200,200,200,0.5)';
+    ctx6b.fillText(`Scrambling time t* = ln(N)/λ_L ≈ ${tScramble.toFixed(2)}`, padL + 10, padT + 26);
+  } else {
+    // Two-point level correlation R₂(s)
+    const sMax = 4;
+    function sToX(s) { return padL + (s / sMax) * plotW; }
+    function R2toY(r) { return padT + plotH - (r / 2) * plotH; }
+
+    // Grid
+    ctx6b.strokeStyle = 'rgba(255,204,0,0.06)';
+    ctx6b.lineWidth = 1;
+    for (let r = 0; r <= 2; r += 0.5) {
+      ctx6b.beginPath(); ctx6b.moveTo(padL, R2toY(r)); ctx6b.lineTo(padL + plotW, R2toY(r)); ctx6b.stroke();
+    }
+
+    // Poisson: R₂ = 1 (no correlation)
+    ctx6b.strokeStyle = '#00ccff';
+    ctx6b.lineWidth = 2;
+    ctx6b.setLineDash([6, 4]);
+    ctx6b.beginPath();
+    ctx6b.moveTo(padL, R2toY(1)); ctx6b.lineTo(padL + plotW, R2toY(1));
+    ctx6b.stroke();
+    ctx6b.setLineDash([]);
+
+    // GUE: R₂(s) = 1 - (sin(πs)/(πs))² (simplified)
+    ctx6b.strokeStyle = '#ff6644';
+    ctx6b.lineWidth = 2;
+    ctx6b.beginPath();
+    for (let px = 1; px <= plotW; px += 1) {
+      const s = (px / plotW) * sMax;
+      const sinc = Math.sin(Math.PI * s) / (Math.PI * s);
+      const R2 = 1 - sinc * sinc;
+      const py = R2toY(R2);
+      if (px === 1) ctx6b.moveTo(padL + px, py); else ctx6b.lineTo(padL + px, py);
+    }
+    ctx6b.stroke();
+
+    // axes
+    ctx6b.strokeStyle = 'rgba(255,204,0,0.3)';
+    ctx6b.lineWidth = 1;
+    ctx6b.beginPath(); ctx6b.moveTo(padL, padT); ctx6b.lineTo(padL, padT + plotH); ctx6b.lineTo(padL + plotW, padT + plotH); ctx6b.stroke();
+
+    // labels
+    ctx6b.fillStyle = 'rgba(255,204,0,0.5)';
+    ctx6b.font = '12px Share Tech Mono';
+    ctx6b.fillText('s', padL + plotW + 4, padT + plotH + 4);
+    ctx6b.fillText('R₂(s)', 4, padT + 12);
+    ctx6b.fillStyle = '#00ccff';
+    ctx6b.font = '12px Share Tech Mono';
+    ctx6b.fillText('Poisson R₂=1 (no repulsion)', padL + 10, padT + 14);
+    ctx6b.fillStyle = '#ff6644';
+    ctx6b.fillText('GUE R₂(s)=1−(sinπs/πs)² (level repulsion)', padL + 10, padT + 26);
+  }
+}
+
+function loop6() {
+  if (playing6) {
+    otocPhase += 0.003*(window.animSpeed||0.1);
+    drawQChaosTop();
+    drawQChaosBot();
+  }
+  qcRaf = requestAnimationFrame(loop6);
+}
+
+function togglePlay6() {
+  playing6 = !playing6;
+  document.getElementById('btnPlay6').textContent = playing6 ? '⏸ Pause' : '▶ Animate';
+  document.getElementById('btnPlay6').classList.toggle('act', playing6);
+}
+
+function scheduleLoop6() {
+  if (qcRaf) cancelAnimationFrame(qcRaf);
+  regenQChaos();
+  loop6();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('resize', () => {
+  cv0info.resize();
+  cv1info.resize();
+  cv2info.resize();
+});
+
+// Start tab 0 immediately
+scheduleLoop0();
+
+// Initialize speed controls
+window.animSpeed = 0.1;
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

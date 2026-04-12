@@ -1,0 +1,2836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>45 · Bell's Theorem &amp; Quantum Nonlocality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg1:#0d0d1a; --bg2:#12122a; --bg3:#1a1a35;
+  --border:#2a2a50; --text:#e8e8f8; --muted:#8888aa;
+  --accent:#ff6688;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg1);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.83rem;opacity:.6}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.76rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.25rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.74rem;color:var(--muted);margin-top:2px}
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 20px;flex-shrink:0}
+.tab{padding:9px 18px;cursor:pointer;font-size:.82rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden}
+.panel.active{display:flex}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.75rem;color:var(--muted)}
+.controls input[type=range]{width:90px;accent-color:var(--accent)}
+.controls span.val{font-size:.75rem;color:var(--accent);min-width:34px;display:inline-block}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.77rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.on{border-color:var(--accent);color:var(--accent);background:#200010}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.75rem;color:var(--muted);line-height:1.65;flex-shrink:0}
+.info-box .hi{color:var(--accent);font-weight:600}
+.side{width:300px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:12px 12px;gap:8px;flex-shrink:0}
+.side h3{font-size:.85rem;color:var(--accent);margin-bottom:2px}
+.side p,.side li{font-size:.73rem;color:var(--muted);line-height:1.65}
+.side ul{padding-left:14px;margin-top:3px}
+.eq{font-size:.77rem;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--accent);margin:3px 0}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+/* Tab 1 two-column */
+.p1-left{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p1-right{display:flex;flex-direction:column;flex:0 0 260px;padding:10px;gap:6px;overflow:hidden;border-left:1px solid var(--border)}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:22px 24px;max-width:480px;width:90%;color:var(--text)}
+.modal-box h2{color:var(--accent);font-size:1.1rem;margin-bottom:10px}
+.modal-box p{font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:8px}
+.modal-close{margin-top:10px;float:right}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 23</span>
+  <div class="title-block">
+    <h1>⟨AB⟩ Bell's Theorem &amp; Quantum Nonlocality</h1>
+    <p>EPR paradox, CHSH inequality, Aspect's experiment, GHZ state — Nobel Prize in Physics 2022</p>
+  </div>
+</header>
+
+<div class="tab-bar" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">EPR Paradox</div>
+  <div class="tab" onclick="switchTab(1)">Bell Inequality (CHSH)</div>
+  <div class="tab" onclick="switchTab(2)">Aspect's Experiment</div>
+  <div class="tab" onclick="switchTab(3)">GHZ State</div>
+  <div class="tab" onclick="switchTab(4)">CHSH Game &amp; Tsirelson</div>
+  <div class="tab" onclick="switchTab(5)">Loophole-Free Tests</div>
+  <div class="tab" onclick="switchTab(6)">GHZ Nonlocality</div>
+  <div class="tab" onclick="switchTab(7)">Steering &amp; Contextuality</div>
+  <div class="tab" onclick="switchTab(8)">DI Quantum Crypto</div>
+</div>
+
+<div id="main">
+
+<!-- ===== TAB 0: EPR PARADOX ===== -->
+<div class="panel active" id="panel0">
+  <div class="canvas-col">
+    <canvas id="c0" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+      <label>Alice θ:</label>
+      <input type="range" id="aliceAngle" min="0" max="180" value="0" oninput="updateAngle0()">
+      <span class="val" id="aliceAngleVal">0°</span>
+      <label>Bob θ:</label>
+      <input type="range" id="bobAngle" min="0" max="180" value="0" oninput="updateAngle0()">
+      <span class="val" id="bobAngleVal">0°</span>
+      <button onclick="setSameBasis()">Same Basis</button>
+      <button onclick="setOrthoBasis()">Orthogonal</button>
+      <label>Speed:</label>
+      <input type="range" id="eprSpeed" min="0" max="3" step="1" value="2" oninput="updateEprSpeedLabel()">
+      <span class="val" id="eprSpeedVal">1x</span>
+      <label>Global:</label><input type="range" id="speed0" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal0">0.1x</span>
+    </div>
+    <div class="info-box">
+      Singlet state: $|\Psi^-\rangle = \tfrac{1}{\sqrt{2}}(|\!\uparrow\downarrow\rangle - |\!\downarrow\uparrow\rangle)$ &nbsp;|&nbsp;
+      Alice: <span class="hi" id="aliceResult">—</span> &nbsp; Bob: <span class="hi" id="bobResult">—</span> &nbsp;|&nbsp;
+      Correlation: <span class="hi" id="eprCorr">—</span>
+    </div>
+  </div>
+  <div class="side" id="about0">
+    <h3>EPR Paradox (1935)</h3>
+    <p>Einstein, Podolsky, and Rosen argued that quantum mechanics is <em>incomplete</em>. If two particles interact and then fly apart, measuring one instantly determines the other — no matter the separation.</p>
+    <div class="eq">$$|\Psi^-\rangle = \frac{1}{\sqrt{2}}\bigl(|\uparrow\downarrow\rangle - |\downarrow\uparrow\rangle\bigr)$$</div>
+    <p>This is the <strong style="color:var(--text)">singlet state</strong>: total spin zero. If Alice measures spin-up along any axis, Bob <em>must</em> measure spin-down along the same axis — instantaneously.</p>
+    <h3>Entanglement</h3>
+    <p>A state is <em>entangled</em> if it cannot be written as a product $|\psi_A\rangle \otimes |\psi_B\rangle$. The singlet is maximally entangled: measuring either qubit collapses the joint state.</p>
+    <div class="eq">$P(+,+|\theta_A,\theta_B) = \tfrac{1}{2}\sin^2\!\tfrac{\theta_A-\theta_B}{2}$</div>
+    <h3>Hidden Variables</h3>
+    <p>Einstein's "locality + realism" intuition: the correlations must be explained by <strong style="color:var(--text)">hidden variables</strong> $\lambda$ pre-programmed at the source — like a pair of gloves sent to opposite cities. Measuring one (left glove) instantly "determines" the other (right glove), but no spooky action occurs.</p>
+    <p>Bell (1964) proved this intuition is <em>wrong</em>.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 1: BELL INEQUALITY ===== -->
+<div class="panel" data-role="panel" id="panel1">
+  <div class="p1-left">
+    <div style="font-size:.78rem;color:var(--accent);flex-shrink:0">Quantum vs Classical Correlation: $E(\theta) = -\cos\theta$ (QM) vs piecewise-linear (LHV)</div>
+    <canvas id="c1" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Alice $a$:</label>
+      <input type="range" id="ang_a" min="0" max="180" value="0" oninput="updateBell()">
+      <span class="val" id="v_a">0°</span>
+      <label>Alice $a'$:</label>
+      <input type="range" id="ang_ap" min="0" max="180" value="45" oninput="updateBell()">
+      <span class="val" id="v_ap">45°</span>
+      <label>Bob $b$:</label>
+      <input type="range" id="ang_b" min="0" max="180" value="22" oninput="updateBell()">
+      <span class="val" id="v_b">22°</span>
+      <label>Bob $b'$:</label>
+      <input type="range" id="ang_bp" min="0" max="180" value="67" oninput="updateBell()">
+      <span class="val" id="v_bp">67°</span>
+      <button onclick="setOptimalQM()">Optimal QM</button>
+      <button onclick="setClassical()">Reset Classical</button>
+      <label>Speed:</label><input type="range" id="speed1" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal1">0.1x</span>
+    </div>
+    <div class="info-box">
+      $S = \langle AB\rangle - \langle AB'\rangle + \langle A'B\rangle + \langle A'B'\rangle$ &nbsp;|&nbsp;
+      Classical: $|S|\leq 2$ &nbsp;|&nbsp; Tsirelson: $|S|\leq 2\sqrt{2}\approx 2.828$ &nbsp;|&nbsp;
+      Current $S =$ <span class="hi" id="sVal">—</span>
+    </div>
+  </div>
+  <div class="p1-right">
+    <div style="font-size:.78rem;color:var(--accent);flex-shrink:0">CHSH Meter</div>
+    <canvas id="c1b" style="flex:1;min-height:0"></canvas>
+    <div class="side" style="width:100%;border-left:none;border-top:1px solid var(--border);padding:10px;max-height:230px;overflow-y:auto" id="about1">
+      <h3>Bell's Theorem</h3>
+      <p>Any <strong style="color:var(--text)">local hidden variable (LHV)</strong> theory must satisfy the CHSH inequality:</p>
+      <div class="eq">$$|S| = |\langle AB\rangle - \langle AB'\rangle + \langle A'B\rangle + \langle A'B'\rangle| \leq 2$$</div>
+      <p>Quantum mechanics predicts (for the singlet state):</p>
+      <div class="eq">$$E(\theta_A - \theta_B) = -\cos(\theta_A - \theta_B)$$</div>
+      <div class="eq">$$S_{\max} = 2\sqrt{2} \approx 2.828$$</div>
+      <p>Achieved at $a=0°$, $a'=45°$, $b=22.5°$, $b'=67.5°$. This <em>Tsirelson bound</em> exceeds the classical limit by $\sqrt{2}$, ruling out all LHV theories.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 2: ASPECT'S EXPERIMENT ===== -->
+<div class="panel" data-role="panel" id="panel2">
+  <div class="canvas-col">
+    <canvas id="c2" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnRunExp" onclick="toggleExperiment()">▶ Run Experiment</button>
+      <button id="btnQMFit" class="on" onclick="toggleQMFit()">QM Fit</button>
+      <button id="btnClassBound" class="on" onclick="toggleClassBound()">Classical Bound</button>
+      <button onclick="showNobelModal()">2022 Nobel ★</button>
+      <label>Speed:</label>
+      <input type="range" id="aspectSpeedSlider" min="0.1" max="1" step="0.1" value="0.5"
+        oninput="aspectSpeed=+this.value;document.getElementById('aspectSpeedVal').textContent=aspectSpeed.toFixed(1)+'x'">
+      <span class="val" id="aspectSpeedVal">0.5x</span>
+      <label>Global:</label><input type="range" id="speed2" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal2">0.1x</span>
+    </div>
+    <div class="info-box">
+      Aspect 1982: <span class="hi">$S = 2.697 \pm 0.015$</span> &nbsp;|&nbsp;
+      Classical limit: <span class="hi">2.000</span> &nbsp;|&nbsp;
+      Tsirelson: <span class="hi">$2\sqrt{2} \approx 2.828$</span> &nbsp;|&nbsp;
+      Coincidences: <span class="hi" id="coincCount">0</span>
+    </div>
+  </div>
+  <div class="side" id="about2">
+    <h3>Bell Test Timeline</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Clauser 1972</strong> — First experimental Bell test. Violated classical bound but had loopholes.</li>
+      <li><strong style="color:var(--text)">Aspect 1982</strong> — Added fast electro-optic switching, closing the locality loophole.</li>
+      <li><strong style="color:var(--text)">Zeilinger 1997</strong> — Entangled photons over 400 m; satellite experiments to 1200 km.</li>
+      <li><strong style="color:var(--text)">Hensen 2015</strong> — First <em>loophole-free</em> Bell test (nitrogen-vacancy centers, 1.3 km apart).</li>
+      <li><strong style="color:var(--text)">2022 Nobel</strong> — Aspect, Clauser, Zeilinger awarded Nobel Prize in Physics.</li>
+    </ul>
+    <h3>Loopholes</h3>
+    <p><strong style="color:var(--text)">Locality loophole:</strong> Alice and Bob's settings must be chosen after the photons leave the source, so no light-speed signal can carry the information. Aspect's fast switching closes this.</p>
+    <p><strong style="color:var(--text)">Detection loophole:</strong> If detectors miss too many photons, the detected subset might be biased. Hensen's 2015 experiment used near-unity detection efficiency to close both loopholes simultaneously.</p>
+    <div class="eq">$\eta > \frac{2(\sqrt{2}-1)}{1} \approx 82.8\%$</div>
+    <p>Minimum detection efficiency needed for a loophole-free test.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 3: GHZ STATE ===== -->
+<div class="panel" data-role="panel" id="panel3">
+  <div class="canvas-col">
+    <canvas id="c3" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="runGHZOne()">Run GHZ Test</button>
+      <button onclick="runGHZ100()">Run 100 Rounds</button>
+      <button id="btnGHZAnim" onclick="toggleGHZAnim()">▶ Animate</button>
+      <button id="btnLHV" onclick="toggleLHV()">Show LHV</button>
+      <label>Speed:</label><input type="range" id="speed3" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal3">0.1x</span>
+      <span class="val" id="ghzScore" style="min-width:120px;color:var(--text)">QM: 0/0 &nbsp; LHV: 0/0</span>
+    </div>
+    <div class="info-box">
+      GHZ state: $|GHZ\rangle = \tfrac{1}{\sqrt{2}}(|000\rangle + |111\rangle)$ &nbsp;|&nbsp;
+      QM rule: $X_AX_BX_C = +1$, $X_AY_BY_C = -1$ &nbsp;|&nbsp;
+      LHV contradiction: $+1 = -1$
+    </div>
+  </div>
+  <div class="side" id="about3">
+    <h3>GHZ State</h3>
+    <p>Greenberger, Horne, Zeilinger (1989) found a <em>deterministic</em> contradiction with local hidden variables — no statistical argument needed.</p>
+    <div class="eq">$$|GHZ\rangle = \frac{1}{\sqrt{2}}\bigl(|000\rangle + |111\rangle\bigr)$$</div>
+    <h3>QM Predictions</h3>
+    <p>For the GHZ state, quantum mechanics predicts:</p>
+    <div class="eq">$X_A X_B X_C = +1$</div>
+    <div class="eq">$X_A Y_B Y_C = -1$</div>
+    <div class="eq">$Y_A X_B Y_C = -1$</div>
+    <div class="eq">$Y_A Y_B X_C = -1$</div>
+    <h3>LHV Contradiction</h3>
+    <p>Multiplying all four equations: $(X_AY_AX_AY_A)(X_BY_BY_A X_B)(X_CY_CY_CX_C) = +1\cdot(-1)^3 = -1$. But each $X_i^2=Y_i^2=1$, so the left side is $+1$. Thus $+1=-1$ — a logical contradiction! LHV must be wrong.</p>
+    <h3>Mermin's "Impossible Boxes"</h3>
+    <p>Mermin phrased this as three boxes each with buttons 1 and 2 and lights R/G. Whenever all press button 1: even number of R lights. Whenever one presses 1 and two press 2: odd number of R lights. No pre-programmed boxes can satisfy both rules — yet QM does.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 4: CHSH GAME & TSIRELSON BOUND ===== -->
+<div class="panel" data-role="panel" id="panel4">
+  <div class="canvas-col">
+    <canvas id="c4" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Entanglement angle θ:</label>
+      <input type="range" id="chshGameAngle" min="0" max="90" value="22" step="1" oninput="updateCHSHGame()">
+      <span class="val" id="chshGameAngleVal">22°</span>
+      <button onclick="runCHSHRound()">Play Round</button>
+      <button onclick="runCHSH1000()">Run 1000</button>
+      <button id="btnCHSHAnim" onclick="toggleCHSHAnim()">▶ Animate</button>
+      <button onclick="setCHSHTsirelson()">Tsirelson Angle</button>
+      <label>Speed:</label><input type="range" id="speed4" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal4">0.1x</span>
+      <span class="val" id="chshWinRate" style="min-width:120px;color:var(--text)">Wins: 0/0</span>
+    </div>
+    <div class="info-box">
+      CHSH Game: win if $a \oplus b = x \wedge y$ &nbsp;|&nbsp;
+      Classical max: <span class="hi">75%</span> &nbsp;|&nbsp;
+      Tsirelson bound: <span class="hi">$\cos^2(\pi/8) \approx 85.36\%$</span> &nbsp;|&nbsp;
+      Current: <span class="hi" id="chshPct">—</span>
+    </div>
+  </div>
+  <div class="side" id="about4">
+    <h3>CHSH Game</h3>
+    <p>Alice receives bit $x\in\{0,1\}$, Bob receives $y\in\{0,1\}$, each outputs $a,b\in\{0,1\}$. They win if:</p>
+    <div class="eq">$$a \oplus b = x \wedge y$$</div>
+    <p>No communication allowed after receiving inputs. Classical strategies cannot exceed 75% win rate — one of the four input pairs always loses.</p>
+    <h3>CHSH Inequality</h3>
+    <div class="eq">$$|\langle AB\rangle + \langle AB'\rangle + \langle A'B\rangle - \langle A'B'\rangle| \leq 2$$</div>
+    <p>Classical (LHV): $\leq 2$. Quantum (Tsirelson 1980): $\leq 2\sqrt{2}$. No-signaling (PR boxes): $\leq 4$.</p>
+    <h3>Quantum Strategy</h3>
+    <p>Share a singlet $|\Psi^-\rangle$. Alice measures at $0°$ (x=0) or $45°$ (x=1). Bob at $22.5°$ (y=0) or $67.5°$ (y=1). Win probability:</p>
+    <div class="eq">$$P_{\rm win} = \cos^2\!\tfrac{\pi}{8} = \tfrac{1}{2}(1+\tfrac{1}{\sqrt{2}}) \approx 85.36\%$$</div>
+    <h3>Tsirelson's Theorem (1980)</h3>
+    <p>The quantum maximum $2\sqrt{2}$ cannot be exceeded by any quantum strategy — it is the tight upper bound for quantum mechanics. The no-signaling bound of 4 (achieved by hypothetical PR boxes) exceeds quantum mechanics, showing QM is not the most nonlocal theory consistent with relativity.</p>
+    <h3>Device-Independent Cryptography</h3>
+    <p>A measured CHSH value $S > 2$ certifies entanglement <em>without trusting the devices</em>. The violation directly bounds Eve's information, enabling device-independent quantum key distribution (DI-QKD).</p>
+  </div>
+</div>
+
+<!-- ===== TAB 5: LOOPHOLE-FREE BELL TESTS ===== -->
+<div class="panel" data-role="panel" id="panel5">
+  <div class="canvas-col">
+    <canvas id="c5" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnLoopholeAnim" onclick="toggleLoopholeAnim()">▶ Animate</button>
+      <button onclick="resetLoopholes()">Reset</button>
+      <label>Highlight:</label>
+      <select id="loopholeHighlight" onchange="drawLoopholes()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:.75rem">
+        <option value="all">All Experiments</option>
+        <option value="locality">Locality Loophole</option>
+        <option value="detection">Detection Loophole</option>
+        <option value="free">Freedom of Choice</option>
+      </select>
+      <label>Speed:</label><input type="range" id="speed5" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal5">0.1x</span>
+    </div>
+    <div class="info-box">
+      Hensen 2015 (loophole-free): <span class="hi">$p < 3.9\times10^{-5}$</span> &nbsp;|&nbsp;
+      Distance: <span class="hi">1.3 km</span> &nbsp;|&nbsp;
+      Method: <span class="hi">NV centers in diamond</span>
+    </div>
+  </div>
+  <div class="side" id="about5">
+    <h3>Three Major Loopholes</h3>
+    <p><strong style="color:var(--text)">Locality loophole:</strong> Alice and Bob's settings must be chosen after the particles leave the source, spacelike-separated. Aspect 1982 partially closed this with fast switching.</p>
+    <p><strong style="color:var(--text)">Detection loophole:</strong> Low detector efficiency means only a biased subset of pairs is detected (fair sampling assumption). Requires $\eta > 82.8\%$.</p>
+    <p><strong style="color:var(--text)">Freedom-of-choice loophole:</strong> The random number generators choosing measurement settings could be correlated with the hidden variables. BIG Bell Test 2018 used 100,000 human choices.</p>
+    <h3>Key Experiments</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Clauser 1972</strong> — First Bell test, violated LHV but both loopholes open.</li>
+      <li><strong style="color:var(--text)">Aspect 1982</strong> — Fast switching, $S=2.697\pm0.015$. Locality loophole reduced.</li>
+      <li><strong style="color:var(--text)">Weihs 1998</strong> — Spacelike separation enforced, locality loophole closed.</li>
+      <li><strong style="color:var(--text)">Rowe 2001</strong> — Ion trap, detection loophole closed (but not locality).</li>
+      <li><strong style="color:var(--text)">Hensen 2015</strong> — NV centers 1.3 km apart, both loopholes closed simultaneously. $p < 3.9\times10^{-5}$.</li>
+      <li><strong style="color:var(--text)">Giustina/Shalm 2015</strong> — Optical, loophole-free with high-efficiency detectors.</li>
+      <li><strong style="color:var(--text)">BIG Bell Test 2018</strong> — 100,000 humans generated random bits for settings worldwide.</li>
+    </ul>
+    <h3>Hensen 2015 Significance</h3>
+    <div class="eq">$p < 3.9 \times 10^{-5}$</div>
+    <p>Equivalent to: if LHV were true, the probability of the observed result is less than 1 in 25,000. Combined with spacelike separation of 1.3 km, this is the most stringent test of local realism to date.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 6: GHZ STATES & QUANTUM NONLOCALITY ===== -->
+<div class="panel" data-role="panel" id="panel6">
+  <div class="canvas-col">
+    <canvas id="c6" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="runGHZNLRound()">Run GHZ Game</button>
+      <button onclick="runGHZNL100()">Run 100 Rounds</button>
+      <button id="btnGHZNLAnim" onclick="toggleGHZNLAnim()">▶ Animate</button>
+      <button onclick="showGHZCircuit()">Show Circuit</button>
+      <label>Speed:</label><input type="range" id="speed6" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal6">0.1x</span>
+      <span class="val" id="ghzNLScore" style="min-width:150px;color:var(--text)">QM: 0/0 &nbsp; Classical: 0/0</span>
+    </div>
+    <div class="info-box">
+      GHZ game: $s_A \oplus s_B \oplus s_C = 0$; win if $a \oplus b \oplus c = s_A \vee s_B \vee s_C$ &nbsp;|&nbsp;
+      Classical: <span class="hi">always fails</span> some case &nbsp;|&nbsp; QM: <span class="hi">always wins</span>
+    </div>
+  </div>
+  <div class="side" id="about6">
+    <h3>GHZ Nonlocality Game</h3>
+    <p>Three players Alice, Bob, Charlie. Referee sends bits $s_A, s_B, s_C$ with $s_A \oplus s_B \oplus s_C = 0$. Each outputs $a, b, c \in \{0,1\}$. Win condition:</p>
+    <div class="eq">$$a \oplus b \oplus c = s_A \vee s_B \vee s_C$$</div>
+    <p>All-zero input $(0,0,0)$: must have $a\oplus b\oplus c=0$. Any input with two 1s: must have $a\oplus b\oplus c=1$.</p>
+    <h3>Classical Impossibility</h3>
+    <p>Any deterministic strategy assigns fixed parities. Let $p_A, p_B, p_C \in \{0,1\}$. For $(0,0,0)$: need $p_A\oplus p_B\oplus p_C=0$. For each pair-of-ones case, need parity 1. Multiplying all four parity constraints: $0 = 1$ — contradiction. No classical strategy wins all cases.</p>
+    <h3>GHZ Quantum Strategy</h3>
+    <p>Prepare $|GHZ\rangle = (|000\rangle + |111\rangle)/\sqrt{2}$. Measure in $X$ basis if $s_i=0$, in $Y$ basis if $s_i=1$. QM predictions are:</p>
+    <div class="eq">$X_AX_BX_C|GHZ\rangle: +1$</div>
+    <div class="eq">$X_AY_BY_C|GHZ\rangle: -1$</div>
+    <p>Remapping $\pm 1 \to \{0,1\}$: quantum always wins — <em>deterministically</em>, with no statistical argument needed.</p>
+    <h3>GHZ vs CHSH</h3>
+    <p>CHSH requires statistics (many rounds) to see the violation. GHZ produces a <em>logical contradiction</em>: a single correct measurement set would simultaneously prove $+1 = -1$ for LHV. This is Mermin's "all-or-nothing" nonlocality.</p>
+    <h3>Applications</h3>
+    <ul>
+      <li>Quantum secret sharing (3-party key distribution)</li>
+      <li>Quantum error correction (stabilizer codes)</li>
+      <li>Genuine multipartite entanglement witness</li>
+      <li>Monogamy of entanglement: GHZ cannot be shared with a 4th party without degrading correlations</li>
+    </ul>
+    <div class="eq">$$\text{GHZ circuit: } H\otimes I\otimes I \cdot \text{CNOT}_{1\to2} \cdot \text{CNOT}_{1\to3}$$</div>
+  </div>
+</div>
+
+<!-- ===== TAB 7: QUANTUM STEERING & CONTEXTUALITY ===== -->
+<div class="panel" data-role="panel" id="panel7">
+  <div class="canvas-col">
+    <canvas id="c7" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>View:</label>
+      <select id="steeringView" onchange="drawSteering()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:.75rem">
+        <option value="steering">Quantum Steering</option>
+        <option value="ks">Kochen-Specker</option>
+        <option value="kcbs">KCBS Pentagram</option>
+      </select>
+      <button id="btnSteerAnim" onclick="toggleSteerAnim()">▶ Animate</button>
+      <label>Alice basis:</label>
+      <input type="range" id="steerAngle" min="0" max="180" value="0" step="5" oninput="drawSteering()">
+      <span class="val" id="steerAngleVal">0°</span>
+      <label>Speed:</label><input type="range" id="speed7" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal7">0.1x</span>
+    </div>
+    <div class="info-box">
+      Steering: Alice's choice of measurement remotely prepares Bob's state ensemble &nbsp;|&nbsp;
+      KS: no consistent $\{0,1\}$ coloring of a sphere exists
+    </div>
+  </div>
+  <div class="side" id="about7">
+    <h3>Quantum Steering</h3>
+    <p>Intermediate between entanglement and Bell nonlocality. Alice and Bob share an entangled state. Alice measures and remotely prepares different ensembles of Bob's states — even if Bob does not trust Alice's device.</p>
+    <p>An <em>assemblage</em> $\{\sigma_{a|x}\}$ describes Bob's conditional states for Alice's measurement $x$, outcome $a$:</p>
+    <div class="eq">$$\sigma_{a|x} = \text{tr}_A\bigl[(M_{a|x}\otimes I)\rho_{AB}\bigr]$$</div>
+    <p>Steering is unsteerable if and only if $\sigma_{a|x} = \sum_\lambda p(\lambda)p(a|x,\lambda)\rho_\lambda^B$ (a local hidden state model).</p>
+    <h3>EPR-Steering Inequality</h3>
+    <div class="eq">$$F_n = \frac{1}{n}\sum_{k=1}^n \langle A_k \otimes B_k \rangle \leq C_{\rm LHS}$$</div>
+    <p>For $n=2$ incompatible measurements: $C_{\rm LHS} = 1/\sqrt{2} \approx 0.707$. Quantum mechanics achieves 1, violating the bound.</p>
+    <h3>Kochen-Specker Theorem</h3>
+    <p>No assignment of definite values $v(A)\in\{0,1\}$ to all quantum observables can be consistent with the algebraic structure of QM. Specifically: in $\geq 3$ dimensions, no <em>non-contextual hidden variable</em> theory can reproduce all quantum predictions.</p>
+    <div class="eq">$$\text{No coloring of } S^2 \text{ exists s.t. any orthonormal basis sums to 1}$$</div>
+    <h3>KCBS Inequality</h3>
+    <p>Klyachko-Can-Binicioğlu-Shumovsky (2008): 5 observables $A_1,\ldots,A_5$ in a cycle where adjacent pairs are compatible:</p>
+    <div class="eq">$$\sum_{i=1}^5 \langle A_i A_{i+1}\rangle \geq -3 \quad \text{(classical)}$$</div>
+    <div class="eq">$$\sum_{i=1}^5 \langle A_i A_{i+1}\rangle = -\sqrt{5} \approx -2.236 \quad \text{(quantum)}$$</div>
+    <p>Quantum violates the classical KCBS bound, proving contextuality with just 5 observables.</p>
+    <h3>Contextuality as a Resource</h3>
+    <p>Bravyi-Gottesman-Kitaev (2005): Contextuality is the key resource for universal quantum computation beyond stabilizer circuits. Magic state distillation requires contextuality. This connects foundational nonlocality tests to practical quantum advantage.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 8: DEVICE-INDEPENDENT QUANTUM CRYPTOGRAPHY ===== -->
+<div class="panel" data-role="panel" id="panel8">
+  <div class="canvas-col">
+    <canvas id="c8" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnDIAnim" onclick="toggleDIAnim()">▶ Animate</button>
+      <button onclick="resetDIQKD()">Reset</button>
+      <label>Error rate (QBER):</label>
+      <input type="range" id="diErrorRate" min="0" max="15" value="3" step="0.5" oninput="updateDIQKD()">
+      <span class="val" id="diErrorVal">3.0%</span>
+      <label>View:</label>
+      <select id="diView" onchange="drawDIQKD()" style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:.75rem">
+        <option value="protocol">E91 Protocol</option>
+        <option value="keyrate">Key Rate Plot</option>
+        <option value="security">Security Proof</option>
+      </select>
+      <label>Speed:</label><input type="range" id="speed8" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal8">0.1x</span>
+    </div>
+    <div class="info-box">
+      E91 protocol: CHSH violation certifies security &nbsp;|&nbsp;
+      Key rate: $r \geq 1 - h(e) - \chi_{\rm Eve}(S)$ &nbsp;|&nbsp;
+      CHSH $S$: <span class="hi" id="diSVal">—</span> &nbsp;|&nbsp;
+      Key bits: <span class="hi" id="diKeyBits">0</span>
+    </div>
+  </div>
+  <div class="side" id="about8">
+    <h3>Ekert 1991 Protocol (E91)</h3>
+    <p>Artur Ekert proposed using entangled pairs and Bell inequality violation to distribute secret keys. Unlike BB84, security does not rely on trusting quantum devices.</p>
+    <ul>
+      <li>Alice and Bob each receive one qubit of a shared entangled pair</li>
+      <li>Each independently chooses a random measurement basis</li>
+      <li>Correlated results (same basis) form the raw key</li>
+      <li>Discordant results (different basis) test the CHSH inequality</li>
+      <li>CHSH violation $S > 2$ certifies no eavesdropper obtained information</li>
+    </ul>
+    <h3>Device-Independent Security</h3>
+    <p>Acín et al. (2007) proved that a measured CHSH value $S$ bounds Eve's information:</p>
+    <div class="eq">$$r \geq 1 - h\!\left(\tfrac{1+\sqrt{(S/2)^2-1}}{2}\right) - h(e)$$</div>
+    <p>where $h$ is the binary entropy function and $e$ is the quantum bit error rate (QBER). For $S = 2\sqrt{2}$ (no noise): $r \to 1$ bit/pair.</p>
+    <h3>BB84 vs E91</h3>
+    <ul>
+      <li><strong style="color:var(--text)">BB84:</strong> Prepare-and-measure; security requires trusted devices; proven secure under coherent attacks.</li>
+      <li><strong style="color:var(--text)">E91:</strong> Entanglement-based; security certified by Bell violation; fully device-independent (no trust in hardware).</li>
+    </ul>
+    <h3>Randomness Certification</h3>
+    <p>A measured CHSH value $S$ also certifies randomness: the outputs cannot be predicted by any adversary limited by quantum mechanics, even if they built the devices. This enables <em>device-independent random number generation</em> from Bell tests.</p>
+    <div class="eq">$$H_{\min}(A|E) \geq 1 - \log_2\!\left(1 + \sqrt{2 - \tfrac{S^2}{4}}\right)$$</div>
+    <h3>Current Experimental State</h3>
+    <p>Full DI-QKD requires loophole-free Bell tests with high key rates — challenging experimentally. Current experiments achieve "semi-device-independent" QKD. The 2022 Nobel work (Aspect, Clauser, Zeilinger) laid the experimental foundation. Groups at Delft, Vienna, and NIST are pursuing loophole-free DI-QKD over metropolitan distances for the quantum internet.</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<!-- Nobel Modal -->
+<div class="modal-overlay" id="nobelModal">
+  <div class="modal-box">
+    <h2>2022 Nobel Prize in Physics</h2>
+    <p><strong>Alain Aspect</strong> (Institut d'Optique, France), <strong>John F. Clauser</strong> (USA), and <strong>Anton Zeilinger</strong> (University of Vienna, Austria) were awarded the Nobel Prize "for experiments with entangled photons, establishing the violation of Bell inequalities and pioneering quantum information science."</p>
+    <p>Their work proved conclusively that nature is nonlocal at the quantum level: there are no hidden variables that can explain quantum correlations while respecting Einstein's locality. This foundational result also underpins quantum cryptography, quantum teleportation, and quantum computing.</p>
+    <p style="color:var(--accent);font-size:.8rem">Prize amount: 10 million Swedish kronor (shared)</p>
+    <button class="modal-close" onclick="hideNobelModal()">Close</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// Utilities
+// ─────────────────────────────────────────────────────────────
+function _cancelAllAnims45(){
+  // Cancel all animation frames and reset button states
+  const btns=[
+    ['btnRunExp','\u25b6 Run Experiment'],
+    ['btnGHZAnim','\u25b6 Animate'],
+    ['btnCHSHAnim','\u25b6 Animate'],
+    ['btnLoopholeAnim','\u25b6 Animate'],
+    ['btnGHZNLAnim','\u25b6 Animate'],
+    ['btnSteerAnim','\u25b6 Animate'],
+    ['btnDIAnim','\u25b6 Animate E91']
+  ];
+  btns.forEach(([id,text])=>{
+    const b=document.getElementById(id);
+    if(b){b.textContent=text;b.classList.remove('on');}
+  });
+}
+function syncSpeedControl45(i){
+  const slider=document.getElementById('speed'+i);
+  const display=document.getElementById('speedVal'+i);
+  if(slider&&display){
+    display.textContent=''+(slider.value/100)+'x';
+  }
+}
+function switchTab(i){
+  _cancelAllAnims45();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',i===j));
+  activeTab=i;
+  resizeAll();
+  syncSpeedControl45(i);
+  // Re-draw tabs whose canvases were invisible (zero-size) on initial load
+  if(i===1){drawBell();}
+  if(i===2){drawExp2();}
+  if(i===3){drawGHZ();}
+  if(i===4){drawCHSHGame();}
+  if(i===5){drawLoopholes();}
+  if(i===6){drawGHZNL();}
+  if(i===7){drawSteering();}
+  if(i===8){drawDIQKD();}
+}
+let activeTab=0;
+
+function resizeCanvas(cv){
+  const dpr=window.devicePixelRatio||1;
+  const rect=cv.getBoundingClientRect();
+  if(rect.width<2||rect.height<2)return;
+  cv.width=rect.width*dpr; cv.height=rect.height*dpr;
+  cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+}
+function resizeAll(){
+  ['c0','c1','c1b','c2','c3','c4','c5','c6','c7','c8'].forEach(id=>{
+    const cv=document.getElementById(id);
+    if(cv)resizeCanvas(cv);
+  });
+}
+window.addEventListener('resize',resizeAll);
+setTimeout(resizeAll,100);
+
+function showNobelModal(){document.getElementById('nobelModal').classList.add('show')}
+function hideNobelModal(){document.getElementById('nobelModal').classList.remove('show')}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 0 — EPR PARADOX
+// ─────────────────────────────────────────────────────────────
+let epr={
+  t:0, phase:0,
+  aliceAngle:0, bobAngle:0,
+  state:'flying', // flying | measured
+  photonX:0.5,   // 0..1 progress
+  aliceResult:null, bobResult:null,
+  flash:0
+};
+
+function updateAngle0(){
+  epr.aliceAngle=+document.getElementById('aliceAngle').value;
+  epr.bobAngle=+document.getElementById('bobAngle').value;
+  document.getElementById('aliceAngleVal').textContent=epr.aliceAngle+'°';
+  document.getElementById('bobAngleVal').textContent=epr.bobAngle+'°';
+}
+function setSameBasis(){
+  document.getElementById('aliceAngle').value=0;
+  document.getElementById('bobAngle').value=0;
+  updateAngle0();
+}
+function setOrthoBasis(){
+  document.getElementById('aliceAngle').value=0;
+  document.getElementById('bobAngle').value=90;
+  updateAngle0();
+}
+
+function measureEPR(){
+  // QM singlet: P(same)=sin²(Δθ/2), P(diff)=cos²(Δθ/2)
+  const dtheta=(epr.aliceAngle-epr.bobAngle)*Math.PI/180;
+  const pSame=Math.sin(dtheta/2)**2;
+  epr.aliceResult=Math.random()<0.5?1:-1;
+  epr.bobResult=Math.random()<pSame?epr.aliceResult:-epr.aliceResult;
+  document.getElementById('aliceResult').textContent=(epr.aliceResult>0?'+1':'-1');
+  document.getElementById('bobResult').textContent=(epr.bobResult>0?'+1':'-1');
+  const corr=-Math.cos(dtheta).toFixed(3);
+  document.getElementById('eprCorr').textContent='E='+corr;
+}
+
+function getEprSpeedMult(){
+  const steps=[0.25,0.5,1,2];
+  return steps[+document.getElementById('eprSpeed').value]||1;
+}
+function updateEprSpeedLabel(){
+  const steps=['0.25x','0.5x','1x','2x'];
+  document.getElementById('eprSpeedVal').textContent=steps[+document.getElementById('eprSpeed').value]||'1x';
+}
+
+function drawEPR(){
+  if(activeTab!==0)return;
+  const cv=document.getElementById('c0');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||600;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+
+  const speed=getEprSpeedMult();
+  epr.t+=0.016*(window.animSpeed||0.1);
+  epr.phase+=0.05*(window.animSpeed||0.1);
+
+  // cycle: 4 seconds at 1x (cycleLen=4, travel portion=2.0s, rest=2.0s)
+  const cycleLen=4.0;
+  const cycleT=epr.t%cycleLen;
+  const progress=Math.min(cycleT/2.0,1.0);
+
+  // bg
+  ctx.fillStyle='#0d0d1a';
+  ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, cy=H/2;
+  // Labels — placed above the wave area but within canvas
+  const labelY=Math.max(16, cy-80);
+  ctx.fillStyle='#ff6688';
+  ctx.font='bold 13px Segoe UI';
+  ctx.textAlign='left';
+  ctx.fillText('Alice',18,labelY);
+  ctx.textAlign='right';
+  ctx.fillText('Bob',W-18,labelY);
+
+  // Source glow
+  const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,28);
+  grd.addColorStop(0,'rgba(255,102,136,0.5)');
+  grd.addColorStop(1,'rgba(255,102,136,0)');
+  ctx.fillStyle=grd;
+  ctx.beginPath();ctx.arc(cx,cy,28,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,cy,12,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('source',cx,cy+24);
+
+  // Detector x positions — keep them inset enough to be fully visible
+  const detInset=56;
+  const srcR=12; // source circle radius — waves start from its edge
+  // Photon left (Alice): travels from the left edge of the source toward detInset
+  const ax=cx - srcR - progress*(cx-srcR-detInset);
+  // Photon right (Bob): travels from the right edge of the source toward W-detInset
+  const bx=cx + srcR + progress*(W-cx-srcR-detInset);
+
+  // Wave amplitude capped at 30px; also clamp each y point to stay >=10 and <=H-10
+  const waveAmp=Math.min(30, Math.max(0, (H/2)-40));
+
+  // Draw photon as sine wave segment along the center line (cy)
+  function drawPhoton(x1,x2,yc,colR,colB,polarAngle,measured,result){
+    const steps=80;
+    const dx=(x2-x1)/steps;
+    ctx.save();
+    ctx.beginPath();
+    for(let i=0;i<=steps;i++){
+      const px=x1+i*dx;
+      const rawOff=waveAmp*Math.sin((i/steps)*Math.PI*6+epr.phase*(colR?1:-1));
+      const py=Math.max(10, Math.min(H-10, yc+rawOff));
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.strokeStyle=measured?(result>0?'#44ffaa':'#ff4466'):(colR?'#ff9955':'#55aaff');
+    ctx.lineWidth=2.2;ctx.stroke();ctx.restore();
+
+    // polarization arrow at the leading edge (x1 = photon tip for left wave, x2 for right wave)
+    // x1 < x2 always; left photon travels rightward so its tip is x2 (toward source edge), but
+    // we want the tip in the direction away from the source.  For left wave x1 is the leading tip;
+    // for right wave x2 is the leading tip.  We detect direction by which end is farther from cx.
+    const tipX = Math.abs(x1-W/2) > Math.abs(x2-W/2) ? x1 : x2;
+    const len=18;
+    const ang=polarAngle*Math.PI/180;
+    ctx.save();
+    ctx.strokeStyle=measured?(result>0?'#44ffaa':'#ff4466'):'rgba(255,200,100,0.9)';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(tipX-Math.cos(ang)*len,yc-Math.sin(ang)*len);
+    ctx.lineTo(tipX+Math.cos(ang)*len,yc+Math.sin(ang)*len);
+    ctx.stroke();ctx.restore();
+  }
+
+  const measured=progress>=1.0;
+  if(measured && cycleT<2.02){measureEPR();epr.flash=15;}
+
+  // Both waves start from the EDGE of the source circle (srcR away from center)
+  drawPhoton(ax,cx-srcR,cy,true,false,epr.aliceAngle+epr.phase*20%180,measured,epr.aliceResult);
+  drawPhoton(cx+srcR,bx,cy,false,true,epr.bobAngle+epr.phase*20%180,measured,epr.bobResult);
+
+  // Detectors — kept at cy, result text pushed down but clamped
+  function drawDetector(x,y,angle,label,result,side){
+    ctx.save();
+    ctx.translate(x,y);
+    // Polarizer rectangle
+    ctx.rotate(angle*Math.PI/180);
+    ctx.strokeStyle='#ff6688';ctx.lineWidth=2;
+    ctx.strokeRect(-18,-28,36,56);
+    ctx.restore();
+    ctx.fillStyle='rgba(255,102,136,0.12)';
+    ctx.save();ctx.translate(x,y);ctx.rotate(angle*Math.PI/180);
+    ctx.fillRect(-18,-28,36,56);ctx.restore();
+    ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';
+    ctx.textAlign=side<0?'right':'left';
+    ctx.fillText(label+('  θ='+Math.round(angle)+'°'),x+(side<0?-28:28),y);
+    if(measured&&result!==null){
+      ctx.font='bold 18px Segoe UI';
+      ctx.fillStyle=result>0?'#44ffaa':'#ff4466';
+      ctx.textAlign='center';
+      const resultY=Math.min(H-10, y+50);
+      ctx.fillText(result>0?'+1':'-1',x,resultY);
+    }
+  }
+  drawDetector(detInset,cy,epr.aliceAngle,'Alice'+(measured?'':' '),measured?epr.aliceResult:null,-1);
+  drawDetector(W-detInset,cy,epr.bobAngle,'Bob'+(measured?'':' '),measured?epr.bobResult:null,1);
+
+  // Reset for new pair
+  if(cycleT>=cycleLen-0.05){
+    epr.aliceResult=null;epr.bobResult=null;
+    document.getElementById('aliceResult').textContent='—';
+    document.getElementById('bobResult').textContent='—';
+  }
+
+  requestAnimationFrame(drawEPR);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 1 — BELL INEQUALITY
+// ─────────────────────────────────────────────────────────────
+function E(theta){return -Math.cos(theta*Math.PI/180);}
+function Eclassical(theta){
+  const t=Math.abs(theta)*Math.PI/180;
+  return t<=Math.PI/2?1-2*t/Math.PI:2*t/Math.PI-3;// piecewise linear
+}
+
+let bellAngles={a:0,ap:45,b:22,bp:67};
+let currentS=0;
+
+function updateBell(){
+  bellAngles.a=+document.getElementById('ang_a').value;
+  bellAngles.ap=+document.getElementById('ang_ap').value;
+  bellAngles.b=+document.getElementById('ang_b').value;
+  bellAngles.bp=+document.getElementById('ang_bp').value;
+  ['a','ap','b','bp'].forEach(k=>{
+    const id='v_'+k;
+    document.getElementById(id).textContent=bellAngles[k]+'°';
+  });
+  currentS=E(bellAngles.a-bellAngles.b)-E(bellAngles.a-bellAngles.bp)+E(bellAngles.ap-bellAngles.b)+E(bellAngles.ap-bellAngles.bp);
+  document.getElementById('sVal').textContent=currentS.toFixed(4);
+  drawBell();
+}
+
+function setOptimalQM(){
+  document.getElementById('ang_a').value=0;
+  document.getElementById('ang_ap').value=45;
+  document.getElementById('ang_b').value=22;
+  document.getElementById('ang_bp').value=67;
+  updateBell();
+}
+function setClassical(){
+  document.getElementById('ang_a').value=0;
+  document.getElementById('ang_ap').value=90;
+  document.getElementById('ang_b').value=45;
+  document.getElementById('ang_bp').value=135;
+  updateBell();
+}
+
+function drawBell(){
+  const cv=document.getElementById('c1');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||400;
+  const H=cv.getBoundingClientRect().height||300;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  const pad={l:44,r:16,t:20,b:36};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const ox=pad.l, oy=pad.t+ph;
+
+  // Grid
+  ctx.strokeStyle='#1e1e38';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=oy-ph*i/4;
+    ctx.beginPath();ctx.moveTo(ox,y);ctx.lineTo(ox+pw,y);ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle='#3a3a60';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+pw,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,pad.t);ctx.lineTo(ox,oy);ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('0°',ox,oy+14);ctx.fillText('90°',ox+pw/2,oy+14);ctx.fillText('180°',ox+pw,oy+14);
+  ctx.fillText('Δθ',ox+pw/2,oy+28);
+  ctx.save();ctx.translate(ox-28,oy-ph/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('E(θ)',0,0);ctx.restore();
+  for(let v=-1;v<=1;v+=0.5){
+    const y=oy-ph*(v+1)/2;
+    ctx.fillText(v.toFixed(1),ox-6,y+4);
+    ctx.strokeStyle='#1e1e38';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(ox,y);ctx.lineTo(ox+pw,y);ctx.stroke();
+  }
+
+  // Classical LHV (orange)
+  ctx.beginPath();ctx.strokeStyle='#ff8844';ctx.lineWidth=2;
+  for(let i=0;i<=pw;i++){
+    const th=i/pw*180;
+    const val=Eclassical(th);
+    const px=ox+i, py=oy-ph*(val+1)/2;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // QM curve
+  ctx.beginPath();ctx.strokeStyle='#44ccff';ctx.lineWidth=2.5;
+  for(let i=0;i<=pw;i++){
+    const th=i/pw*180;
+    const val=E(th);
+    const px=ox+i, py=oy-ph*(val+1)/2;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // Violation zone (shaded between curves in 0..90 range roughly)
+  ctx.save();
+  ctx.beginPath();
+  for(let i=0;i<=pw;i++){
+    const th=i/pw*180;
+    const y=oy-ph*(Eclassical(th)+1)/2;
+    i===0?ctx.moveTo(ox+i,y):ctx.lineTo(ox+i,y);
+  }
+  for(let i=pw;i>=0;i--){
+    const th=i/pw*180;
+    const y=oy-ph*(E(th)+1)/2;
+    ctx.lineTo(ox+i,y);
+  }
+  ctx.closePath();
+  ctx.fillStyle='rgba(255,102,136,0.12)';ctx.fill();
+  ctx.restore();
+
+  // Angle markers
+  function markAngle(angleDeg,label,col){
+    const x=ox+angleDeg/180*pw;
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,oy);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=col;ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(label,x,pad.t+12);
+  }
+  // Show the 4 angle differences
+  markAngle(Math.abs(bellAngles.a-bellAngles.b)%180,'a-b','#ff6688');
+  markAngle(Math.abs(bellAngles.a-bellAngles.bp)%180,'a-b\'','#ffaa44');
+  markAngle(Math.abs(bellAngles.ap-bellAngles.b)%180,'a\'-b','#44ffaa');
+  markAngle(Math.abs(bellAngles.ap-bellAngles.bp)%180,'a\'-b\'','#aa88ff');
+
+  // Legend
+  ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillStyle='#44ccff';ctx.fillText('QM: −cos θ',ox+4,pad.t+16);
+  ctx.fillStyle='#ff8844';ctx.fillText('LHV (piecewise linear)',ox+4,pad.t+30);
+
+  drawCHSHMeter();
+}
+
+function drawCHSHMeter(){
+  const cv=document.getElementById('c1b');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||240;
+  const H=cv.getBoundingClientRect().height||300;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  const cx=W/2, barW=40;
+  const yTop=30, yBot=H-40;
+  const range=3.0; // -3 to +3
+
+  function yOf(v){return yTop+(yBot-yTop)*(1-(v+range)/(2*range));}
+
+  // Background bar
+  ctx.fillStyle='#1a1a35';
+  ctx.fillRect(cx-barW/2,yTop,barW,yBot-yTop);
+
+  // Violation zone fill
+  const y2=yOf(2), yt2=yOf(2*Math.SQRT2), yn2=yOf(-2), ynt2=yOf(-2*Math.SQRT2);
+  ctx.fillStyle='rgba(255,102,136,0.15)';
+  ctx.fillRect(cx-barW/2,yt2,barW,y2-yt2);
+  ctx.fillRect(cx-barW/2,yn2,barW,ynt2-yn2);
+
+  // S value bar
+  const sv=Math.max(-3,Math.min(3,currentS));
+  const yS=yOf(sv), yZ=yOf(0);
+  ctx.fillStyle=Math.abs(sv)>2?'#ff6688':'#44aaff';
+  ctx.fillRect(cx-barW/2+2,Math.min(yS,yZ),barW-4,Math.abs(yS-yZ));
+
+  // Reference lines
+  function hline(v,col,dash,lbl){
+    const y=yOf(v);
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;
+    if(dash)ctx.setLineDash([5,4]);else ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(cx-barW/2-10,y);ctx.lineTo(cx+barW/2+10,y);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=col;ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText(lbl,cx+barW/2+14,y+4);
+  }
+  hline(0,'#3a3a60',false,'0');
+  hline(2,'#ff8844',true,'+2 (classical)');
+  hline(-2,'#ff8844',true,'-2');
+  hline(2*Math.SQRT2,'#44ffaa',true,`+2√2`);
+  hline(-2*Math.SQRT2,'#44ffaa',true,`-2√2`);
+
+  // S label
+  ctx.fillStyle='#e8e8f8';ctx.font='bold 14px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('S',cx,yTop-10);
+  ctx.fillStyle=Math.abs(sv)>2?'#ff6688':'#44aaff';
+  ctx.font='bold 13px Segoe UI';
+  ctx.fillText(sv.toFixed(3),cx,yBot+22);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 2 — ASPECT'S EXPERIMENT
+// ─────────────────────────────────────────────────────────────
+let aspectSpeed=0.5; // default half-speed
+let exp2={
+  running:false, t:0, coincidences:0,
+  showQM:true, showClassical:true,
+  dataPoints:[],
+  switchState:[0,0], switchTimer:0
+};
+const aspectAngles=[0,22.5,45,67.5,90];
+const aspectQM=aspectAngles.map(a=>-Math.cos(a*Math.PI/180));
+const aspectData=[-1.0,-0.707,0.0,0.707,1.0].map((v,i)=>v+0.03*(Math.random()-.5));
+
+function toggleExperiment(){
+  exp2.running=!exp2.running;
+  document.getElementById('btnRunExp').textContent=exp2.running?'\u23f8 Pause':'\u25b6 Run Experiment';
+  document.getElementById('btnRunExp').classList.toggle('on',exp2.running);
+  if(exp2.running)animExp2();
+}
+function toggleQMFit(){
+  exp2.showQM=!exp2.showQM;
+  document.getElementById('btnQMFit').classList.toggle('on',exp2.showQM);
+}
+function toggleClassBound(){
+  exp2.showClassical=!exp2.showClassical;
+  document.getElementById('btnClassBound').classList.toggle('on',exp2.showClassical);
+}
+
+function animExp2(){
+  if(!exp2.running)return;
+  exp2.t+=0.016*(window.animSpeed||0.1);
+  exp2.switchTimer+=0.016*(window.animSpeed||0.1);
+  if(exp2.switchTimer>0.12){
+    exp2.switchState[0]=Math.floor(Math.random()*2);
+    exp2.switchState[1]=Math.floor(Math.random()*2);
+    exp2.switchTimer=0;
+    exp2.coincidences++;
+    document.getElementById('coincCount').textContent=exp2.coincidences;
+    // Accumulate data points slowly
+    if(exp2.coincidences%20===0 && exp2.dataPoints.length<5){
+      exp2.dataPoints.push(exp2.dataPoints.length);
+    }
+  }
+  drawExp2();
+  requestAnimationFrame(animExp2);
+}
+
+function drawExp2(){
+  const cv=document.getElementById('c2');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||600;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  const topH=Math.min(200,H*0.45);
+  const botY=topH+10;
+  const botH=H-botY;
+
+  // ── TOP: Aspect setup diagram ──
+  const cx=W/2, cy=topH/2;
+  // Source
+  ctx.fillStyle='rgba(255,102,136,0.2)';
+  ctx.beginPath();ctx.arc(cx,cy,18,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,cy,18,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Ca source',cx,cy+30);
+
+  // Photon beams (animated)
+  const beamLen=W*0.35;
+  const phaseFrac=(exp2.t*0.8)%1;
+  function drawBeam(dir){
+    const x0=cx+dir*18, x1=cx+dir*beamLen;
+    // Fiber
+    ctx.strokeStyle='rgba(100,100,200,0.3)';ctx.lineWidth=4;ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(x0,cy);ctx.lineTo(x1,cy);ctx.stroke();
+    // Moving photon dot
+    const px=x0+(x1-x0)*phaseFrac;
+    ctx.fillStyle='#ffdd44';
+    ctx.beginPath();ctx.arc(px,cy,4,0,Math.PI*2);ctx.fill();
+  }
+  drawBeam(-1);drawBeam(1);
+
+  // Switches
+  const swColors=[['#44aaff','#ff8844'],['#44aaff','#ff8844']];
+  [-1,1].forEach((dir,i)=>{
+    const sx=cx+dir*(beamLen*0.55);
+    const sc=swColors[i][exp2.switchState[i]];
+    ctx.fillStyle=sc;ctx.strokeStyle=sc;ctx.lineWidth=2;
+    ctx.strokeRect(sx-14,cy-20,28,40);
+    ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillStyle=sc;
+    ctx.fillText('switch',sx,cy-24);
+    ctx.fillText(exp2.switchState[i]===0?'0°':'45°',sx,cy+34);
+  });
+
+  // Analyzers
+  [-1,1].forEach((dir,i)=>{
+    const ax=cx+dir*(beamLen*0.85);
+    ctx.strokeStyle='#8888ff';ctx.lineWidth=2;
+    ctx.strokeRect(ax-14,cy-22,28,44);
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(dir<0?'Alice':'Bob',ax,cy-26);
+    ctx.fillText('analyzer',ax,cy+38);
+    // Flash on detection
+    if(exp2.coincidences>0 && exp2.switchTimer<0.06){
+      ctx.fillStyle='rgba(255,200,50,0.5)';
+      ctx.beginPath();ctx.arc(ax,cy,16,0,Math.PI*2);ctx.fill();
+    }
+  });
+
+  // Coincidence counter display
+  ctx.fillStyle='#1a1a35';ctx.fillRect(cx-50,cy-14,100,28);
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1;ctx.strokeRect(cx-50,cy-14,100,28);
+  ctx.fillStyle='#44ffaa';ctx.font='bold 13px monospace';ctx.textAlign='center';
+  ctx.fillText('N='+exp2.coincidences,cx,cy+5);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('coincidences',cx,cy+22);
+
+  // ── BOTTOM: Correlation plot (Aspect 1982 style) ──
+  const pad={l:50,r:20,t:botY+16,b:30};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const ox=pad.l, oy=pad.t+ph;
+
+  // Axes
+  ctx.strokeStyle='#3a3a60';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+pw,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,pad.t);ctx.lineTo(ox,oy);ctx.stroke();
+
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Δθ (degrees)',ox+pw/2,H-4);
+  for(let a=0;a<=180;a+=45){
+    const x=ox+a/180*pw;
+    ctx.fillText(a+'°',x,oy+14);
+    ctx.strokeStyle='#1e1e38';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,oy);ctx.stroke();
+  }
+  for(let v=-1;v<=1;v+=0.5){
+    const y=oy-ph*(v+1)/2;
+    ctx.fillStyle='#8888aa';ctx.textAlign='right';
+    ctx.fillText(v.toFixed(1),ox-5,y+4);
+  }
+
+  // Classical bound
+  if(exp2.showClassical){
+    ctx.strokeStyle='#ff884466';ctx.lineWidth=2;ctx.setLineDash([8,5]);
+    ctx.beginPath();
+    for(let i=0;i<=pw;i++){
+      const th=i/pw*180;
+      const val=Eclassical(th);
+      const x=ox+i, y=oy-ph*(val+1)/2;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#ff8844';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('Classical LHV',ox+4,pad.t+14);
+  }
+
+  // QM fit
+  if(exp2.showQM){
+    ctx.strokeStyle='#44ccff';ctx.lineWidth=2;ctx.setLineDash([]);
+    ctx.beginPath();
+    for(let i=0;i<=pw;i++){
+      const th=i/pw*180;
+      const val=-Math.cos(th*Math.PI/180);
+      const x=ox+i, y=oy-ph*(val+1)/2;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#44ccff';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('QM: −cos θ',ox+4,pad.t+26);
+  }
+
+  // Data points (Aspect 1982 style) — show all or accumulating
+  const nShow=exp2.running?Math.min(5,Math.floor(exp2.coincidences/20)+1):5;
+  for(let i=0;i<nShow;i++){
+    const angle=aspectAngles[i];
+    const val=aspectQM[i]+0.025*(Math.sin(i*1.7+exp2.t*0.3));
+    const x=ox+angle/180*pw;
+    const y=oy-ph*(val+1)/2;
+    // Error bar
+    const errH=ph*0.015;
+    ctx.strokeStyle='#ff6688';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(x,y-errH);ctx.lineTo(x,y+errH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-5,y-errH);ctx.lineTo(x+5,y-errH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x-5,y+errH);ctx.lineTo(x+5,y+errH);ctx.stroke();
+    // Dot
+    ctx.fillStyle='#ff6688';
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+  }
+
+  // S value annotation
+  ctx.fillStyle='#ff6688';ctx.font='bold 12px Segoe UI';ctx.textAlign='right';
+  ctx.fillText('S = 2.697 ± 0.015  (Aspect 1982)',ox+pw,pad.t+14);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 3 — GHZ STATE
+// ─────────────────────────────────────────────────────────────
+let ghz={
+  showLHV:false,
+  rounds:0, qmPass:0, lhvFail:0,
+  currentRound:null, animT:0, animating:false,
+  history:[]
+};
+
+function toggleLHV(){
+  ghz.showLHV=!ghz.showLHV;
+  document.getElementById('btnLHV').classList.toggle('on',ghz.showLHV);
+  drawGHZ();
+}
+
+function ghzMeasure(){
+  // Random measurement choice: X or Y for each
+  const choices=['X','Y'];
+  const m=[choices[Math.floor(Math.random()*2)],choices[Math.floor(Math.random()*2)],choices[Math.floor(Math.random()*2)]];
+  const nY=m.filter(x=>x==='Y').length;
+  // QM result: if 0 Y's (XXX): product=+1; if 2 Y's: product=-1; otherwise: no fixed product (1 or 3 Y's in GHZ have product ±1)
+  let qmExpected;
+  if(nY===0){qmExpected=1;}
+  else if(nY===2){qmExpected=-1;}
+  else{qmExpected=Math.random()<0.5?1:-1;}// GHZ doesn't fix these cases uniquely (1 or 3 Y)
+
+  // QM always produces outcomes consistent with its prediction
+  let r=[1,1,1];
+  if(nY===0){
+    // XXX: product must be +1
+    r[0]=Math.random()<0.5?1:-1;
+    r[1]=Math.random()<0.5?1:-1;
+    r[2]=r[0]*r[1]; // force product +1
+  } else if(nY===2){
+    // Product must be -1
+    r[0]=Math.random()<0.5?1:-1;
+    r[1]=Math.random()<0.5?1:-1;
+    r[2]=-(r[0]*r[1]); // force product -1
+  } else {
+    r[0]=Math.random()<0.5?1:-1;
+    r[1]=Math.random()<0.5?1:-1;
+    r[2]=Math.random()<0.5?1:-1;
+  }
+
+  // LHV prediction: assume hidden vars λ_A,λ_B,λ_C ∈ {±1} for X; μ_A,μ_B,μ_C for Y
+  // LHV says XXX product = λ_A λ_B λ_C and XYY=λ_A μ_B μ_C etc.
+  // If LHV is true, multiplying all four rules: (λ_AμBμC)(μAλBμC)(μAμBλC)(λAλBλC)=(μA²μB²μC²)(λA²λB²λC²)=1
+  // But QM says product of those = (+1)(-1)(-1)(-1)=-1. Contradiction.
+  // So for the 4 critical measurement combos: LHV fails on one of them.
+  const criticalCombos=[
+    ['X','X','X'],['X','Y','Y'],['Y','X','Y'],['Y','Y','X']
+  ];
+  let isCritical=criticalCombos.some(c=>c[0]===m[0]&&c[1]===m[1]&&c[2]===m[2]);
+  let lhvCorrect=true;
+  if(isCritical){
+    // LHV gets 3/4 of critical combos right (it fails on one), but since QM always passes, LHV fails ~25% of critical
+    lhvCorrect=Math.random()<0.75;
+  }
+
+  return {m, r, nY, isCritical, qmPass:true, lhvCorrect};
+}
+
+function runGHZOne(){
+  ghz.currentRound=ghzMeasure();
+  ghz.rounds++;
+  ghz.qmPass++;
+  if(!ghz.currentRound.lhvCorrect)ghz.lhvFail++;
+  ghz.history.unshift(ghz.currentRound);
+  if(ghz.history.length>8)ghz.history.pop();
+  updateGHZScore();
+  drawGHZ();
+}
+
+function runGHZ100(){
+  for(let i=0;i<100;i++){
+    const round=ghzMeasure();
+    ghz.rounds++;
+    ghz.qmPass++;
+    if(!round.lhvCorrect)ghz.lhvFail++;
+    if(i<8){ghz.history.unshift(round);}
+  }
+  if(ghz.history.length>8)ghz.history.length=8;
+  ghz.currentRound=ghz.history[0];
+  updateGHZScore();
+  drawGHZ();
+}
+
+function updateGHZScore(){
+  const lhvPass=ghz.rounds-ghz.lhvFail;
+  document.getElementById('ghzScore').textContent=
+    `QM: ${ghz.qmPass}/${ghz.rounds} ✓   LHV: ${lhvPass}/${ghz.rounds}`;
+}
+
+function drawGHZ(){
+  const cv=document.getElementById('c3');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||600;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  // Three observers in triangle
+  const cx=W*0.38, cy=H*0.46;
+  const R=Math.min(W,H)*0.28;
+  const positions=[
+    {x:cx+R*Math.cos(-Math.PI/2),    y:cy+R*Math.sin(-Math.PI/2),    name:'Alice', idx:0},
+    {x:cx+R*Math.cos(-Math.PI/2+2*Math.PI/3),y:cy+R*Math.sin(-Math.PI/2+2*Math.PI/3),name:'Bob',idx:1},
+    {x:cx+R*Math.cos(-Math.PI/2+4*Math.PI/3),y:cy+R*Math.sin(-Math.PI/2+4*Math.PI/3),name:'Charlie',idx:2},
+  ];
+
+  // Entanglement lines
+  for(let i=0;i<3;i++){
+    for(let j=i+1;j<3;j++){
+      const p1=positions[i], p2=positions[j];
+      const grd=ctx.createLinearGradient(p1.x,p1.y,p2.x,p2.y);
+      grd.addColorStop(0,'rgba(255,102,136,0.6)');
+      grd.addColorStop(0.5,'rgba(255,102,136,0.2)');
+      grd.addColorStop(1,'rgba(255,102,136,0.6)');
+      ctx.strokeStyle=grd;ctx.lineWidth=2;ctx.setLineDash([6,4]);
+      ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+    }
+  }
+  ctx.setLineDash([]);
+
+  // Source at center
+  ctx.fillStyle='rgba(255,102,136,0.18)';
+  ctx.beginPath();ctx.arc(cx,cy,14,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,14,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('GHZ',cx,cy+4);
+
+  // Observers
+  const round=ghz.currentRound;
+  positions.forEach((p,i)=>{
+    const hasResult=round!==null;
+    const meas=hasResult?round.m[i]:'?';
+    const res=hasResult?round.r[i]:null;
+    const col=meas==='X'?'#44aaff':meas==='Y'?'#aa44ff':'#8888aa';
+
+    // Circle
+    ctx.fillStyle=hasResult?(res>0?'rgba(68,255,170,0.2)':'rgba(255,68,100,0.2)'):'rgba(40,40,80,0.6)';
+    ctx.beginPath();ctx.arc(p.x,p.y,30,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=col;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(p.x,p.y,30,0,Math.PI*2);ctx.stroke();
+
+    // Name
+    ctx.fillStyle=col;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(p.name,p.x,p.y-38);
+
+    // Measurement basis
+    ctx.fillStyle=col;ctx.font='bold 14px Segoe UI';
+    ctx.fillText(meas,p.x,p.y-6);
+
+    // Result
+    if(res!==null){
+      ctx.fillStyle=res>0?'#44ffaa':'#ff4466';
+      ctx.font='bold 16px Segoe UI';
+      ctx.fillText(res>0?'+1':'-1',p.x,p.y+14);
+    }
+  });
+
+  // Product display
+  if(round!==null){
+    const product=round.r[0]*round.r[1]*round.r[2];
+    const nY=round.nY;
+    const expected=nY===0?1:nY===2?-1:null;
+    const matches=expected===null||product===expected;
+    ctx.fillStyle='#1a1a35';
+    ctx.fillRect(cx-80,cy-120,160,32);
+    ctx.strokeStyle=matches?'#44ffaa':'#ff4466';ctx.lineWidth=1.5;
+    ctx.strokeRect(cx-80,cy-120,160,32);
+    ctx.fillStyle=matches?'#44ffaa':'#ff4466';
+    ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    const measStr=round.m.join('');
+    ctx.fillText(measStr+': product = '+(product>0?'+1':'-1'),cx,cy-100);
+
+    // QM vs LHV
+    const rightX=W*0.78;
+    const topY=60;
+    ctx.fillStyle='#1a1a35';ctx.fillRect(rightX-90,topY,180,H-topY-20);
+    ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(rightX-90,topY,180,H-topY-20);
+
+    ctx.fillStyle='#ff6688';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Round History',rightX,topY+16);
+    ctx.strokeStyle='#2a2a50';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(rightX-90,topY+22);ctx.lineTo(rightX+90,topY+22);ctx.stroke();
+
+    // Header
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+    ctx.fillText('Meas   QM   LHV',rightX,topY+34);
+
+    ghz.history.forEach((rnd,idx)=>{
+      const y=topY+48+idx*18;
+      const mstr=rnd.m.join('');
+      ctx.fillStyle='#ccccee';ctx.textAlign='left';
+      ctx.fillText(mstr,rightX-85,y);
+      ctx.fillStyle='#44ffaa';ctx.textAlign='center';
+      ctx.fillText('✓',rightX+22,y);
+      if(ghz.showLHV){
+        ctx.fillStyle=rnd.lhvCorrect?'#44ffaa':'#ff4466';
+        ctx.fillText(rnd.lhvCorrect?'✓':'✗',rightX+64,y);
+      } else {
+        ctx.fillStyle='#555577';
+        ctx.fillText('?',rightX+64,y);
+      }
+    });
+
+    // Score summary
+    if(ghz.rounds>0){
+      const scoreY=topY+52+ghz.history.length*18+10;
+      ctx.fillStyle='#2a2a50';ctx.fillRect(rightX-86,scoreY,172,50);
+      ctx.fillStyle='#44ffaa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+      ctx.fillText(`QM: ${ghz.qmPass}/${ghz.rounds} passed`,rightX,scoreY+16);
+      if(ghz.showLHV){
+        const lhvPass=ghz.rounds-ghz.lhvFail;
+        ctx.fillStyle=ghz.lhvFail>0?'#ff4466':'#44ffaa';
+        ctx.fillText(`LHV: ${lhvPass}/${ghz.rounds} passed`,rightX,scoreY+34);
+      }
+    }
+  } else {
+    // Prompt
+    ctx.fillStyle='#8888aa';ctx.font='13px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Press "Run GHZ Test" to start',cx,cy+60);
+  }
+
+  // Axis label for GHZ state equation
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('|GHZ⟩ = (1/√2)(|000⟩ + |111⟩)',14,H-12);
+}
+
+// ─────────────────────────────────────────────────────────────
+// GHZ Animation (slow, ~0.3× speed)
+// ─────────────────────────────────────────────────────────────
+let ghzAnim={running:false, t:0, phase:'idle', particleT:0};
+const GHZ_ANIM_SPEED=0.3;
+
+function toggleGHZAnim(){
+  ghzAnim.running=!ghzAnim.running;
+  document.getElementById('btnGHZAnim').classList.toggle('on',ghzAnim.running);
+  document.getElementById('btnGHZAnim').textContent=ghzAnim.running?'\u23f8 Pause':'\u25b6 Animate';
+  if(ghzAnim.running){
+    ghzAnim.t=0; ghzAnim.phase='launching'; ghzAnim.particleT=0;
+    animGHZ();
+  }
+}
+
+function animGHZ(){
+  if(!ghzAnim.running)return;
+  ghzAnim.t+=0.016*(window.animSpeed||0.1);
+  ghzAnim.particleT+=0.016*(window.animSpeed||0.1);
+
+  const cv=document.getElementById('c3');
+  if(!cv){ghzAnim.running=false;return;}
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||600;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  // Draw full GHZ setup first (observers, lines, source)
+  const cx2=W*0.38, cy2=H*0.46;
+  const R2=Math.min(W,H)*0.28;
+  const positions=[
+    {x:cx2+R2*Math.cos(-Math.PI/2),    y:cy2+R2*Math.sin(-Math.PI/2),    name:'Alice'},
+    {x:cx2+R2*Math.cos(-Math.PI/2+2*Math.PI/3),y:cy2+R2*Math.sin(-Math.PI/2+2*Math.PI/3),name:'Bob'},
+    {x:cx2+R2*Math.cos(-Math.PI/2+4*Math.PI/3),y:cy2+R2*Math.sin(-Math.PI/2+4*Math.PI/3),name:'Charlie'},
+  ];
+
+  // Entanglement lines
+  for(let i=0;i<3;i++){
+    for(let j=i+1;j<3;j++){
+      const p1=positions[i],p2=positions[j];
+      const grd=ctx.createLinearGradient(p1.x,p1.y,p2.x,p2.y);
+      grd.addColorStop(0,'rgba(255,102,136,0.6)');
+      grd.addColorStop(0.5,'rgba(255,102,136,0.2)');
+      grd.addColorStop(1,'rgba(255,102,136,0.6)');
+      ctx.strokeStyle=grd;ctx.lineWidth=2;ctx.setLineDash([6,4]);
+      ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+    }
+  }
+  ctx.setLineDash([]);
+
+  // Source
+  const pulse=0.5+0.5*Math.sin(ghzAnim.t*4);
+  ctx.fillStyle=`rgba(255,102,136,${0.12+0.1*pulse})`;
+  ctx.beginPath();ctx.arc(cx2,cy2,14+4*pulse,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1.5+pulse;
+  ctx.beginPath();ctx.arc(cx2,cy2,14,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('GHZ',cx2,cy2+4);
+
+  // Particle travel progress (0..1 over ~2 seconds at 0.3x = ~6.7s real)
+  const travelDur=2.0; // seconds of animation time
+  const pt=Math.min(ghzAnim.particleT/travelDur,1.0);
+
+  // Animated particles flying from source to observers
+  positions.forEach((p,i)=>{
+    // Observer circle
+    const arrived=pt>0.85;
+    const col=arrived?'#44ffaa':'#8888aa';
+    ctx.fillStyle=arrived?'rgba(68,255,170,0.2)':'rgba(40,40,80,0.6)';
+    ctx.beginPath();ctx.arc(p.x,p.y,30,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=col;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(p.x,p.y,30,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle=col;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(p.name,p.x,p.y-38);
+
+    // Flying particle dot
+    if(pt<1.0){
+      const px=cx2+(p.x-cx2)*pt;
+      const py=cy2+(p.y-cy2)*pt;
+      // Trail
+      ctx.strokeStyle='rgba(255,200,50,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([3,4]);
+      ctx.beginPath();ctx.moveTo(cx2,cy2);ctx.lineTo(px,py);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffdd44';
+      ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+    }
+
+    // Show measurement result when arrived
+    if(arrived&&ghzAnim.phase==='measured'&&ghz.currentRound){
+      const res=ghz.currentRound.r[i];
+      const meas=ghz.currentRound.m[i];
+      const mc=meas==='X'?'#44aaff':'#aa44ff';
+      ctx.fillStyle=mc;ctx.font='bold 14px Segoe UI';ctx.textAlign='center';
+      ctx.fillText(meas,p.x,p.y-6);
+      ctx.fillStyle=res>0?'#44ffaa':'#ff4466';
+      ctx.font='bold 16px Segoe UI';
+      ctx.fillText(res>0?'+1':'-1',p.x,p.y+14);
+    }
+  });
+
+  // Phase transitions
+  if(pt>=1.0 && ghzAnim.phase==='launching'){
+    ghzAnim.phase='measured';
+    // perform measurement
+    const round=ghzMeasure();
+    ghz.currentRound=round;
+    ghz.rounds++;ghz.qmPass++;
+    if(!round.lhvCorrect)ghz.lhvFail++;
+    ghz.history.unshift(round);
+    if(ghz.history.length>8)ghz.history.length=8;
+    updateGHZScore();
+  }
+
+  // Status text
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  if(ghzAnim.phase==='launching'){
+    ctx.fillText('Sending entangled particles…',cx2,cy2+60);
+  } else {
+    ctx.fillText('Particles measured — correlations confirmed',cx2,cy2+60);
+  }
+
+  // Restart cycle after showing result for ~1.5 anim seconds
+  if(ghzAnim.phase==='measured' && ghzAnim.particleT>travelDur+1.5){
+    ghzAnim.particleT=0; ghzAnim.phase='launching';
+  }
+
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('|GHZ⟩ = (1/√2)(|000⟩ + |111⟩)',14,H-12);
+
+  requestAnimationFrame(animGHZ);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 4 — CHSH GAME & TSIRELSON BOUND
+// ─────────────────────────────────────────────────────────────
+let chshGame={
+  rounds:0, wins:0,
+  angle:22, // degrees — measurement angle for quantum strategy
+  animRunning:false, animT:0,
+  history:[], // {x,y,a,b,win,qmWin}
+  plotData:[] // {angle, winPct}
+};
+
+function setCHSHTsirelson(){
+  document.getElementById('chshGameAngle').value=22;
+  updateCHSHGame();
+}
+
+function updateCHSHGame(){
+  chshGame.angle=+document.getElementById('chshGameAngle').value;
+  document.getElementById('chshGameAngleVal').textContent=chshGame.angle+'°';
+  drawCHSHGame();
+}
+
+function chshQMWin(x,y,angle){
+  // Quantum strategy: share singlet, Alice measures at 0° (x=0) or angle (x=1)
+  // Bob measures at angle/2 (y=0) or -angle/2 (y=1)
+  const thA=x===0?0:angle*Math.PI/180;
+  const thB=y===0?(angle/2)*Math.PI/180:-(angle/2)*Math.PI/180;
+  const delta=thA-thB;
+  // P(a⊕b=0) = cos²(Δθ/2), win condition a⊕b=x∧y
+  const pSame=Math.cos(delta/2)**2;
+  const pDiff=1-pSame;
+  const need=(x&y)===1?1:0; // need a⊕b = x AND y
+  return need===0?pSame:pDiff;
+}
+
+function runCHSHRound(){
+  const x=Math.random()<0.5?0:1;
+  const y=Math.random()<0.5?0:1;
+  const angle=chshGame.angle;
+  const pWin=chshQMWin(x,y,angle);
+  const win=Math.random()<pWin;
+  chshGame.rounds++;
+  if(win)chshGame.wins++;
+  chshGame.history.unshift({x,y,a:(x&y)?win?1:0:win?0:1,b:win?1:0,win});
+  if(chshGame.history.length>10)chshGame.history.length=10;
+  updateCHSHGameUI();
+  drawCHSHGame();
+}
+
+function runCHSH1000(){
+  const angle=chshGame.angle;
+  for(let i=0;i<1000;i++){
+    const x=Math.random()<0.5?0:1;
+    const y=Math.random()<0.5?0:1;
+    const pWin=chshQMWin(x,y,angle);
+    if(Math.random()<pWin)chshGame.wins++;
+    chshGame.rounds++;
+  }
+  updateCHSHGameUI();
+  drawCHSHGame();
+}
+
+function updateCHSHGameUI(){
+  const pct=(chshGame.rounds>0?chshGame.wins/chshGame.rounds*100:0).toFixed(1);
+  document.getElementById('chshWinRate').textContent=`Wins: ${chshGame.wins}/${chshGame.rounds}`;
+  document.getElementById('chshPct').textContent=pct+'%';
+}
+
+function toggleCHSHAnim(){
+  chshGame.animRunning=!chshGame.animRunning;
+  document.getElementById('btnCHSHAnim').classList.toggle('on',chshGame.animRunning);
+  document.getElementById('btnCHSHAnim').textContent=chshGame.animRunning?'\u23f8 Pause':'\u25b6 Animate';
+  if(chshGame.animRunning)animCHSHGame();
+}
+
+function animCHSHGame(){
+  if(!chshGame.animRunning)return;
+  chshGame.animT+=0.016*(window.animSpeed||0.1);
+  if(chshGame.animT%0.8<0.016*(window.animSpeed||0.1)){
+    runCHSHRound();
+  }
+  drawCHSHGame();
+  requestAnimationFrame(animCHSHGame);
+}
+
+function drawCHSHGame(){
+  const cv=document.getElementById('c4');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||700;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  // Left panel: game diagram (~45% width)
+  const midX=W*0.45;
+  drawCHSHGameDiagram(ctx,W,H,midX);
+  // Right panel: win probability vs angle
+  drawCHSHWinPlot(ctx,W,H,midX);
+}
+
+function drawCHSHGameDiagram(ctx,W,H,midX){
+  const cx=midX*0.5, cy=H*0.48;
+  const angle=chshGame.angle;
+  const latest=chshGame.history[0]||null;
+
+  // Title
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('CHSH Nonlocal Game',cx,22);
+
+  // Alice box
+  const aX=30, aW=100, aH=80, aY=cy-aH/2;
+  ctx.fillStyle='rgba(68,170,255,0.12)';ctx.fillRect(aX,aY,aW,aH);
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=1.5;ctx.strokeRect(aX,aY,aW,aH);
+  ctx.fillStyle='#44aaff';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Alice',aX+aW/2,aY-6);
+  if(latest){
+    ctx.fillStyle='#ccccee';ctx.font='13px Segoe UI';
+    ctx.fillText('x = '+latest.x,aX+aW/2,aY+28);
+    ctx.fillStyle=latest.win?'#44ffaa':'#ff4466';ctx.font='bold 15px Segoe UI';
+    ctx.fillText('a = '+latest.a,aX+aW/2,aY+52);
+  } else {
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+    ctx.fillText('x ∈ {0,1}',aX+aW/2,aY+28);
+    ctx.fillText('→ a',aX+aW/2,aY+50);
+  }
+
+  // Bob box
+  const bX=midX-130, bW=100, bH=80, bY=cy-bH/2;
+  ctx.fillStyle='rgba(170,68,255,0.12)';ctx.fillRect(bX,bY,bW,bH);
+  ctx.strokeStyle='#aa44ff';ctx.lineWidth=1.5;ctx.strokeRect(bX,bY,bW,bH);
+  ctx.fillStyle='#aa44ff';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Bob',bX+bW/2,bY-6);
+  if(latest){
+    ctx.fillStyle='#ccccee';ctx.font='13px Segoe UI';
+    ctx.fillText('y = '+latest.y,bX+bW/2,bY+28);
+    ctx.fillStyle=latest.win?'#44ffaa':'#ff4466';ctx.font='bold 15px Segoe UI';
+    ctx.fillText('b = '+latest.b,bX+bW/2,bY+52);
+  } else {
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+    ctx.fillText('y ∈ {0,1}',bX+bW/2,bY+28);
+    ctx.fillText('→ b',bX+bW/2,bY+50);
+  }
+
+  // Entanglement channel between Alice & Bob
+  const eY=cy+70;
+  ctx.strokeStyle='rgba(255,102,136,0.5)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(aX+aW,eY);ctx.lineTo(bX,eY);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,102,136,0.2)';
+  ctx.beginPath();ctx.arc((aX+aW+bX)/2,eY,10,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc((aX+aW+bX)/2,eY,10,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('|Ψ⁻⟩',( aX+aW+bX)/2,eY+22);
+
+  // Measurement angle indicator
+  const aAngle=latest?latest.x===0?0:angle:angle;
+  const mX=(aX+aW+bX)/2, mY=eY-80;
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=1.5;
+  ctx.save();ctx.translate(mX-60,mY);
+  ctx.beginPath();ctx.arc(0,0,20,0,Math.PI*2);ctx.strokeStyle='rgba(68,170,255,0.3)';ctx.stroke();
+  ctx.strokeStyle='#44aaff';
+  ctx.beginPath();ctx.moveTo(0,0);
+  ctx.lineTo(20*Math.cos(aAngle*Math.PI/180),-20*Math.sin(aAngle*Math.PI/180));ctx.stroke();
+  ctx.fillStyle='#44aaff';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Alice',0,32);ctx.restore();
+
+  const bAngle=latest?latest.y===0?angle/2:-angle/2:angle/2;
+  ctx.save();ctx.translate(mX+60,mY);
+  ctx.beginPath();ctx.arc(0,0,20,0,Math.PI*2);ctx.strokeStyle='rgba(170,68,255,0.3)';ctx.stroke();
+  ctx.strokeStyle='#aa44ff';
+  ctx.beginPath();ctx.moveTo(0,0);
+  ctx.lineTo(20*Math.cos(bAngle*Math.PI/180),-20*Math.sin(bAngle*Math.PI/180));ctx.stroke();
+  ctx.fillStyle='#aa44ff';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Bob',0,32);ctx.restore();
+
+  // Win/Lose indicator
+  if(latest){
+    ctx.fillStyle=latest.win?'rgba(68,255,170,0.15)':'rgba(255,68,100,0.15)';
+    ctx.fillRect(cx-80,H-55,160,38);
+    ctx.strokeStyle=latest.win?'#44ffaa':'#ff4466';ctx.lineWidth=1.5;
+    ctx.strokeRect(cx-80,H-55,160,38);
+    ctx.fillStyle=latest.win?'#44ffaa':'#ff4466';ctx.font='bold 14px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(latest.win?'✓ WIN':'✗ LOSE',cx,H-32);
+    ctx.font='12px Segoe UI';
+    const cond='a⊕b='+(latest.a^latest.b)+', x∧y='+(latest.x&latest.y);
+    ctx.fillText(cond,cx,H-16);
+  }
+
+  // Probability bars (classical 75%, quantum, no-signal)
+  const barY=H-130, barH=12;
+  const pW=midX-60;
+  const pX=30;
+  const qPct=chshGame.rounds>0?chshGame.wins/chshGame.rounds:chshQMWin(1,1,angle)*0.25+0.75*0.25+0.5; // approx
+
+  // Expected QM win rate at current angle
+  const expQM=(chshQMWin(0,0,angle)+chshQMWin(0,1,angle)+chshQMWin(1,0,angle)+chshQMWin(1,1,angle))/4;
+
+  const bars=[
+    {label:'Classical max',pct:0.75,col:'#ff8844'},
+    {label:'QM (θ='+angle+'°)',pct:expQM,col:'#44ccff'},
+    {label:'Tsirelson',pct:Math.cos(Math.PI/8)**2,col:'#44ffaa'},
+    {label:'No-signal (PR)',pct:1.0,col:'#ff6688'},
+  ];
+  bars.forEach((b,i)=>{
+    const by=barY-i*22;
+    ctx.fillStyle='#1a1a35';ctx.fillRect(pX,by,pW,barH);
+    ctx.fillStyle=b.col;ctx.fillRect(pX,by,pW*b.pct,barH);
+    ctx.fillStyle=b.col;ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText(b.label+': '+(b.pct*100).toFixed(1)+'%',pX+pW+6,by+10);
+  });
+
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Win probability comparison:',pX,barY-bars.length*22-6);
+}
+
+function drawCHSHWinPlot(ctx,W,H,midX){
+  const pad={l:midX+30,r:20,t:30,b:46};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const ox=pad.l, oy=pad.t+ph;
+
+  ctx.fillStyle='#ff6688';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Win Probability vs Measurement Angle',ox+pw/2,pad.t-8);
+
+  // Grid & axes
+  ctx.strokeStyle='#1e1e38';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=oy-ph*i/4;
+    ctx.beginPath();ctx.moveTo(ox,y);ctx.lineTo(ox+pw,y);ctx.stroke();
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='right';
+    ctx.fillText((50+i*12.5).toFixed(0)+'%',ox-4,y+4);
+  }
+  ctx.strokeStyle='#3a3a60';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+pw,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,pad.t);ctx.lineTo(ox,oy);ctx.stroke();
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  for(let a=0;a<=90;a+=22.5){
+    const x=ox+a/90*pw;
+    ctx.fillText(a+'°',x,oy+14);
+    ctx.strokeStyle='#1e1e38';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,oy);ctx.stroke();
+  }
+  ctx.fillText('Measurement angle θ',ox+pw/2,oy+30);
+
+  // QM win curve
+  ctx.beginPath();ctx.strokeStyle='#44ccff';ctx.lineWidth=2.5;
+  for(let i=0;i<=pw;i++){
+    const th=i/pw*90;
+    const pWin=(chshQMWin(0,0,th)+chshQMWin(0,1,th)+chshQMWin(1,0,th)+chshQMWin(1,1,th))/4;
+    const x=ox+i, y=oy-ph*(pWin-0.5)/0.5;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Classical 75% line
+  const yClass=oy-ph*(0.75-0.5)/0.5;
+  ctx.strokeStyle='#ff8844';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(ox,yClass);ctx.lineTo(ox+pw,yClass);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff8844';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Classical 75%',ox+4,yClass-4);
+
+  // Tsirelson 85.36% line
+  const yTs=oy-ph*(Math.cos(Math.PI/8)**2-0.5)/0.5;
+  ctx.strokeStyle='#44ffaa';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(ox,yTs);ctx.lineTo(ox+pw,yTs);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#44ffaa';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Tsirelson 85.4%',ox+4,yTs-4);
+
+  // Current angle marker
+  const curAngle=chshGame.angle;
+  const xCur=ox+curAngle/90*pw;
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(xCur,pad.t);ctx.lineTo(xCur,oy);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Current win rate dot
+  if(chshGame.rounds>0){
+    const pct=chshGame.wins/chshGame.rounds;
+    const yCur=oy-ph*(pct-0.5)/0.5;
+    ctx.fillStyle='#ff6688';
+    ctx.beginPath();ctx.arc(xCur,yCur,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText((pct*100).toFixed(1)+'%',xCur,yCur-10);
+  }
+
+  // Legend
+  ctx.fillStyle='#44ccff';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('QM quantum strategy',ox+4,pad.t+14);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 5 — LOOPHOLE-FREE BELL TESTS
+// ─────────────────────────────────────────────────────────────
+const loopholeExps=[
+  {year:1972,name:'Clauser',detail:'First Bell test\nFrequency filtered photons',locality:false,detection:false,free:false,pval:0.05,S:2.0},
+  {year:1982,name:'Aspect',detail:'Fast electro-optic switching\nCa photon pairs',locality:'partial',detection:false,free:false,pval:0.01,S:2.697},
+  {year:1998,name:'Weihs',detail:'Spacelike-separated\nfiber-optic channels',locality:true,detection:false,free:false,pval:4e-4,S:2.73},
+  {year:2001,name:'Rowe',detail:'Ion trap\nηdet ≈ 99%',locality:false,detection:true,free:false,pval:3e-8,S:2.25},
+  {year:2015,name:'Hensen',detail:'NV centers in diamond\n1.3 km separation',locality:true,detection:true,free:false,pval:3.9e-5,S:2.42},
+  {year:2015,name:'Giustina',detail:'High-efficiency optical\nphoton detectors',locality:true,detection:true,free:false,pval:3.7e-31,S:2.37},
+  {year:2015,name:'Shalm (NIST)',detail:'Atomic cascade\nhigh efficiency',locality:true,detection:true,free:false,pval:2.3e-7,S:2.35},
+  {year:2018,name:'BIG Bell Test',detail:'100,000 human RNGs\nglobal coordination',locality:true,detection:true,free:true,pval:1e-10,S:2.41},
+];
+
+let loopholeAnim={running:false,t:0,revealIdx:0};
+
+function toggleLoopholeAnim(){
+  loopholeAnim.running=!loopholeAnim.running;
+  document.getElementById('btnLoopholeAnim').classList.toggle('on',loopholeAnim.running);
+  document.getElementById('btnLoopholeAnim').textContent=loopholeAnim.running?'\u23f8 Pause':'\u25b6 Animate';
+  if(loopholeAnim.running){loopholeAnim.revealIdx=0;loopholeAnim.t=0;animLoopholes();}
+}
+function resetLoopholes(){loopholeAnim.revealIdx=loopholeExps.length;loopholeAnim.running=false;drawLoopholes();}
+
+function animLoopholes(){
+  if(!loopholeAnim.running)return;
+  loopholeAnim.t+=0.016*(window.animSpeed||0.1);
+  if(loopholeAnim.t>1.2&&loopholeAnim.revealIdx<loopholeExps.length){
+    loopholeAnim.revealIdx++;loopholeAnim.t=0;
+  }
+  drawLoopholes();
+  if(loopholeAnim.revealIdx<loopholeExps.length)requestAnimationFrame(animLoopholes);
+  else{loopholeAnim.running=false;document.getElementById('btnLoopholeAnim').classList.remove('on');document.getElementById('btnLoopholeAnim').textContent='\u25b6 Animate';}
+}
+
+function drawLoopholes(){
+  const cv=document.getElementById('c5');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||700;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  const nShow=loopholeAnim.running?loopholeAnim.revealIdx:loopholeExps.length;
+  const highlight=document.getElementById('loopholeHighlight')?document.getElementById('loopholeHighlight').value:'all';
+
+  // Draw two sections: top timeline, bottom bar chart
+  const topH=Math.min(H*0.48,200);
+  const botY=topH+10;
+
+  // ── TOP: Timeline ──
+  const tPad={l:60,r:20};
+  const tW=W-tPad.l-tPad.r;
+  const yearMin=1970, yearMax=2020;
+  function xOfYear(y){return tPad.l+tW*(y-yearMin)/(yearMax-yearMin);}
+  const lineY=topH*0.55;
+
+  // Timeline axis
+  ctx.strokeStyle='#3a3a60';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(tPad.l,lineY);ctx.lineTo(tPad.l+tW,lineY);ctx.stroke();
+  for(let y=1970;y<=2020;y+=10){
+    const x=xOfYear(y);
+    ctx.strokeStyle='#3a3a60';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x,lineY-5);ctx.lineTo(x,lineY+5);ctx.stroke();
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(y,x,lineY+18);
+  }
+
+  loopholeExps.slice(0,nShow).forEach((e,i)=>{
+    const x=xOfYear(e.year);
+    const bothClosed=e.locality&&e.detection;
+    const highlighted=highlight==='all'||(highlight==='locality'&&e.locality)||(highlight==='detection'&&e.detection)||(highlight==='free'&&e.free);
+    const alpha=highlighted?1.0:0.3;
+    const col=bothClosed?'#44ffaa':(e.locality||e.detection)?'#ffaa44':'#ff4466';
+
+    ctx.globalAlpha=alpha;
+    // Dot on timeline
+    ctx.fillStyle=col;
+    ctx.beginPath();ctx.arc(x,lineY,6,0,Math.PI*2);ctx.fill();
+
+    // Alternating above/below
+    const above=i%2===0;
+    const textY=above?lineY-20:lineY+30;
+    const connY=above?lineY-6:lineY+6;
+    ctx.strokeStyle=col;ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(x,connY);ctx.lineTo(x,textY+(above?-10:10));ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle=col;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(e.name+' '+e.year,x,textY);
+
+    // Loophole badges
+    const badges=[];
+    if(e.locality===true)badges.push({t:'L',c:'#44aaff'});
+    else if(e.locality==='partial')badges.push({t:'L~',c:'#aaaa44'});
+    if(e.detection)badges.push({t:'D',c:'#aa44ff'});
+    if(e.free)badges.push({t:'F',c:'#44ffaa'});
+    badges.forEach((b,bi)=>{
+      ctx.fillStyle=b.c;ctx.font='12px Segoe UI';
+      ctx.fillText(b.t,x-8+bi*10,textY+(above?12:-14));
+    });
+
+    ctx.globalAlpha=1.0;
+  });
+
+  // Legend for loophole badges
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('L = locality closed   D = detection closed   F = freedom-of-choice closed',tPad.l,topH-6);
+
+  // ── BOTTOM: Bar chart of p-values ──
+  const botPad={l:110,r:20,t:botY+20,b:28};
+  const bpW=W-botPad.l-botPad.r, bpH=H-botPad.t-botPad.b;
+  const box=botY+16, rH=bpH/loopholeExps.length*0.72;
+
+  ctx.fillStyle='#ff6688';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('p-values (log scale — smaller is better)',W/2,botY+12);
+
+  // Axes: x is log10(p) from 0 to -35
+  const logMin=-35, logMax=0;
+  const bxL=botPad.l, bxW=bpW;
+
+  loopholeExps.slice(0,nShow).forEach((e,i)=>{
+    const highlighted=highlight==='all'||(highlight==='locality'&&e.locality)||(highlight==='detection'&&e.detection)||(highlight==='free'&&e.free);
+    ctx.globalAlpha=highlighted?1.0:0.25;
+    const logP=Math.log10(e.pval);
+    const barLen=bxW*Math.min(1,(logP-logMax)/(logMin-logMax));
+    const by=botPad.t+i*(bpH/loopholeExps.length);
+    const col=e.locality&&e.detection?'#44ffaa':e.locality?'#44aaff':e.detection?'#aa44ff':'#ff4466';
+
+    ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fillRect(bxL,by,bxW,rH);
+    ctx.fillStyle=col;ctx.fillRect(bxL,by,barLen,rH);
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='right';
+    ctx.fillText(e.name+' '+e.year,bxL-4,by+rH*0.7);
+    ctx.fillStyle=col;ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('p='+e.pval.toExponential(0),bxL+barLen+3,by+rH*0.7);
+    ctx.globalAlpha=1.0;
+  });
+
+  // p-value axis labels
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  for(let lp=0;lp>=-35;lp-=5){
+    const x=bxL+bxW*(lp-logMax)/(logMin-logMax);
+    ctx.fillText('10^'+lp,x,botPad.t+bpH+14);
+    ctx.strokeStyle='#1e1e38';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(x,botPad.t);ctx.lineTo(x,botPad.t+bpH);ctx.stroke();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 6 — GHZ STATES & QUANTUM NONLOCALITY (deep game)
+// ─────────────────────────────────────────────────────────────
+let ghzNL={
+  rounds:0,qmWins:0,classWins:0,
+  history:[],
+  animRunning:false,animT:0,animPhase:'idle',
+  showCircuit:false
+};
+
+function runGHZNLRound(){
+  // Three-party GHZ game
+  // Referee sends (s_A,s_B,s_C) with s_A XOR s_B XOR s_C = 0
+  // Valid inputs: (0,0,0),(0,1,1),(1,0,1),(1,1,0)
+  const inputs=[[0,0,0],[0,1,1],[1,0,1],[1,1,0]];
+  const inp=inputs[Math.floor(Math.random()*4)];
+  const [sA,sB,sC]=inp;
+  const target=sA|sB|sC; // OR: 0 for all-zero, 1 otherwise
+
+  // QM always wins: measure X if s=0, Y if s=1 on GHZ state
+  // QM outcomes: a XOR b XOR c = target (always)
+  let a=Math.random()<0.5?0:1;
+  let b=Math.random()<0.5?0:1;
+  let c=(a^b^target); // force correct parity
+  const qmWin=true;
+
+  // Classical strategy: deterministic assignment, can't satisfy all cases
+  // Best classical strategy wins 3/4 cases (misses one input type)
+  const classA=sA, classB=sB, classC=(sA^sB); // a naive strategy
+  const classWin=((classA^classB^classC)===target);
+
+  ghzNL.rounds++;
+  if(qmWin)ghzNL.qmWins++;
+  if(classWin)ghzNL.classWins++;
+  ghzNL.history.unshift({sA,sB,sC,a,b,c,target,qmWin,classWin});
+  if(ghzNL.history.length>8)ghzNL.history.length=8;
+  updateGHZNLUI();
+  drawGHZNL();
+}
+
+function runGHZNL100(){
+  const inputs=[[0,0,0],[0,1,1],[1,0,1],[1,1,0]];
+  for(let i=0;i<100;i++){
+    const inp=inputs[Math.floor(Math.random()*4)];
+    const [sA,sB,sC]=inp;
+    const target=sA|sB|sC;
+    const a=Math.random()<0.5?0:1;
+    const b=Math.random()<0.5?0:1;
+    const c=(a^b^target);
+    const classA=sA,classB=sB,classC=(sA^sB);
+    const classWin=((classA^classB^classC)===target);
+    ghzNL.rounds++;
+    ghzNL.qmWins++;
+    if(classWin)ghzNL.classWins++;
+  }
+  updateGHZNLUI();
+  drawGHZNL();
+}
+
+function showGHZCircuit(){
+  ghzNL.showCircuit=!ghzNL.showCircuit;
+  drawGHZNL();
+}
+
+function updateGHZNLUI(){
+  document.getElementById('ghzNLScore').textContent=
+    `QM: ${ghzNL.qmWins}/${ghzNL.rounds}   Classical: ${ghzNL.classWins}/${ghzNL.rounds}`;
+}
+
+function toggleGHZNLAnim(){
+  ghzNL.animRunning=!ghzNL.animRunning;
+  document.getElementById('btnGHZNLAnim').classList.toggle('on',ghzNL.animRunning);
+  document.getElementById('btnGHZNLAnim').textContent=ghzNL.animRunning?'\u23f8 Pause':'\u25b6 Animate';
+  if(ghzNL.animRunning){ghzNL.animT=0;ghzNL.animPhase='launch';animGHZNL();}
+}
+
+function animGHZNL(){
+  if(!ghzNL.animRunning)return;
+  ghzNL.animT+=0.016*(window.animSpeed||0.1);
+  if(ghzNL.animT>2.0){
+    runGHZNLRound();
+    ghzNL.animT=0;
+  }
+  drawGHZNL();
+  requestAnimationFrame(animGHZNL);
+}
+
+function drawGHZNL(){
+  const cv=document.getElementById('c6');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||700;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  if(ghzNL.showCircuit){
+    drawGHZCircuit(ctx,W,H);
+    return;
+  }
+
+  const midX=W*0.55;
+  // Left: 3-party game
+  const cx=midX*0.45, cy=H*0.45;
+  const R=Math.min(midX,H)*0.30;
+  const pos=[
+    {x:cx,y:cy-R,name:'Alice',col:'#44aaff'},
+    {x:cx+R*Math.sin(2*Math.PI/3),y:cy-R*Math.cos(2*Math.PI/3),name:'Bob',col:'#aa44ff'},
+    {x:cx+R*Math.sin(4*Math.PI/3),y:cy-R*Math.cos(4*Math.PI/3),name:'Charlie',col:'#44ffaa'},
+  ];
+  const latest=ghzNL.history[0]||null;
+
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('GHZ Nonlocality Game',cx,18);
+
+  // Entanglement source
+  const pulse=0.5+0.5*Math.sin(ghzNL.animT*4);
+  ctx.fillStyle=`rgba(255,102,136,${0.1+0.08*pulse})`;
+  ctx.beginPath();ctx.arc(cx,cy,16+4*pulse,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,16,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('GHZ',cx,cy+4);
+
+  pos.forEach((p,i)=>{
+    // Entanglement lines
+    ctx.strokeStyle='rgba(255,102,136,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(p.x,p.y);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Observer circle
+    const s=latest?[latest.sA,latest.sB,latest.sC][i]:null;
+    const out=latest?[latest.a,latest.b,latest.c][i]:null;
+    ctx.fillStyle=latest?`rgba(${out?'68,255,170':'255,68,100'},0.18)`:'rgba(30,30,60,0.7)';
+    ctx.beginPath();ctx.arc(p.x,p.y,32,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=p.col;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(p.x,p.y,32,0,Math.PI*2);ctx.stroke();
+
+    ctx.fillStyle=p.col;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(p.name,p.x,p.y-40);
+
+    if(latest){
+      const basis=s===0?'X':'Y';
+      ctx.fillStyle='#ccccee';ctx.font='12px Segoe UI';
+      ctx.fillText('s='+s+' ('+basis+')',p.x,p.y-6);
+      ctx.fillStyle=out===1?'#44ffaa':'#aaaaee';ctx.font='bold 13px Segoe UI';
+      ctx.fillText('out='+out,p.x,p.y+12);
+    } else {
+      ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+      ctx.fillText('s=?',p.x,p.y);
+    }
+  });
+
+  // Animated particle travel
+  if(ghzNL.animRunning){
+    const pt=Math.min(ghzNL.animT/1.0,1.0);
+    pos.forEach(p=>{
+      if(pt<1.0){
+        const px=cx+(p.x-cx)*pt, py=cy+(p.y-cy)*pt;
+        ctx.fillStyle='#ffdd44';
+        ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+      }
+    });
+  }
+
+  // Win/lose result box
+  if(latest){
+    const parity=latest.a^latest.b^latest.c;
+    const correct=parity===latest.target;
+    ctx.fillStyle=correct?'rgba(68,255,170,0.12)':'rgba(255,68,100,0.12)';
+    ctx.fillRect(cx-100,cy-160,200,44);
+    ctx.strokeStyle=correct?'#44ffaa':'#ff4466';ctx.lineWidth=1.5;
+    ctx.strokeRect(cx-100,cy-160,200,44);
+    ctx.fillStyle=correct?'#44ffaa':'#ff4466';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(correct?'QM WINS ✓':'FAIL ✗',cx,cy-142);
+    ctx.font='12px Segoe UI';
+    ctx.fillText(`a⊕b⊕c=${parity}  target=${latest.target}`,cx,cy-126);
+  }
+
+  // Right: history & score
+  const rX=midX+10, rW=W-midX-20;
+  ctx.fillStyle='#1a1a35';ctx.fillRect(rX,20,rW,H-40);
+  ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(rX,20,rW,H-40);
+
+  ctx.fillStyle='#ff6688';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Round History',rX+rW/2,38);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('Input   QM   Classic',rX+rW/2,56);
+
+  ghzNL.history.forEach((h,i)=>{
+    const y=70+i*22;
+    const inp=h.sA+''+h.sB+''+h.sC;
+    ctx.fillStyle='#ccccee';ctx.textAlign='left';ctx.font='12px Segoe UI';
+    ctx.fillText(inp,rX+10,y);
+    ctx.fillStyle='#44ffaa';ctx.textAlign='center';
+    ctx.fillText('✓',rX+rW*0.55,y);
+    ctx.fillStyle=h.classWin?'#44ffaa':'#ff4466';
+    ctx.fillText(h.classWin?'✓':'✗',rX+rW*0.8,y);
+  });
+
+  if(ghzNL.rounds>0){
+    const scoreY=70+Math.min(ghzNL.history.length,8)*22+12;
+    ctx.fillStyle='#2a2a50';ctx.fillRect(rX+8,scoreY,rW-16,52);
+    ctx.fillStyle='#44ffaa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(`QM: ${ghzNL.qmWins}/${ghzNL.rounds} (100%)`,rX+rW/2,scoreY+16);
+    const classPct=(ghzNL.classWins/ghzNL.rounds*100).toFixed(1);
+    ctx.fillStyle=classPct<90?'#ff8844':'#ccccee';
+    ctx.fillText(`Classic: ${ghzNL.classWins}/${ghzNL.rounds} (${classPct}%)`,rX+rW/2,scoreY+34);
+  }
+
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('|GHZ⟩=(|000⟩+|111⟩)/√2',rX+8,H-10);
+}
+
+function drawGHZCircuit(ctx,W,H){
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('GHZ State Preparation Circuit',W/2,24);
+
+  const startX=80, wireY=[H*0.3,H*0.5,H*0.7];
+  const endX=W-80;
+  const cols=['#44aaff','#aa44ff','#44ffaa'];
+  const labels=['|0⟩ → Alice','|0⟩ → Bob','|0⟩ → Charlie'];
+
+  // Wires
+  cols.forEach((c,i)=>{
+    ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(startX,wireY[i]);ctx.lineTo(endX,wireY[i]);ctx.stroke();
+    ctx.fillStyle=c;ctx.font='12px Segoe UI';ctx.textAlign='right';
+    ctx.fillText(labels[i],endX+60>W?endX:endX+4,wireY[i]+4);
+    ctx.textAlign='right';
+    ctx.fillText('|0⟩',startX-6,wireY[i]+4);
+  });
+
+  // Hadamard gate on qubit 0
+  const hX=W*0.28;
+  ctx.fillStyle='rgba(68,170,255,0.2)';ctx.fillRect(hX-20,wireY[0]-18,40,36);
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=1.5;ctx.strokeRect(hX-20,wireY[0]-18,40,36);
+  ctx.fillStyle='#44aaff';ctx.font='bold 14px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('H',hX,wireY[0]+5);
+
+  // CNOT 1→2
+  const cnot1X=W*0.50;
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(cnot1X,wireY[0]);ctx.lineTo(cnot1X,wireY[1]);ctx.stroke();
+  // Control dot
+  ctx.fillStyle='#44aaff';ctx.beginPath();ctx.arc(cnot1X,wireY[0],5,0,Math.PI*2);ctx.fill();
+  // Target circle
+  ctx.strokeStyle='#aa44ff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cnot1X,wireY[1],12,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cnot1X-12,wireY[1]);ctx.lineTo(cnot1X+12,wireY[1]);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cnot1X,wireY[1]-12);ctx.lineTo(cnot1X,wireY[1]+12);ctx.stroke();
+
+  // CNOT 1→3
+  const cnot2X=W*0.65;
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(cnot2X,wireY[0]);ctx.lineTo(cnot2X,wireY[2]);ctx.stroke();
+  ctx.fillStyle='#44aaff';ctx.beginPath();ctx.arc(cnot2X,wireY[0],5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#44ffaa';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cnot2X,wireY[2],12,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cnot2X-12,wireY[2]);ctx.lineTo(cnot2X+12,wireY[2]);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cnot2X,wireY[2]-12);ctx.lineTo(cnot2X,wireY[2]+12);ctx.stroke();
+
+  // Labels
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('H gate',hX,wireY[0]+38);
+  ctx.fillText('CNOT',cnot1X,wireY[1]+38);
+  ctx.fillText('CNOT',cnot2X,wireY[2]+38);
+
+  // State labels
+  ctx.fillStyle='#44ffaa';ctx.font='12px Segoe UI';
+  ctx.fillText('|0⟩',hX-40,wireY[0]+4);
+  ctx.fillText('(|0⟩+|1⟩)/√2',hX+60,wireY[0]+4);
+  ctx.fillText('|GHZ⟩ = (|000⟩+|111⟩)/√2',W*0.76,wireY[1]+4);
+
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('Click "Show Circuit" again to return to game view',W/2,H-16);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 7 — QUANTUM STEERING & CONTEXTUALITY
+// ─────────────────────────────────────────────────────────────
+let steeringAnim={running:false,t:0};
+
+function toggleSteerAnim(){
+  steeringAnim.running=!steeringAnim.running;
+  document.getElementById('btnSteerAnim').classList.toggle('on',steeringAnim.running);
+  document.getElementById('btnSteerAnim').textContent=steeringAnim.running?'\u23f8 Pause':'\u25b6 Animate';
+  if(steeringAnim.running)animSteering();
+}
+
+function animSteering(){
+  if(!steeringAnim.running)return;
+  steeringAnim.t+=0.016*(window.animSpeed||0.1);
+  drawSteering();
+  requestAnimationFrame(animSteering);
+}
+
+function drawSteering(){
+  const cv=document.getElementById('c7');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||700;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  const view=document.getElementById('steeringView')?document.getElementById('steeringView').value:'steering';
+  const angle=+(document.getElementById('steerAngle')?document.getElementById('steerAngle').value:0);
+  if(document.getElementById('steerAngleVal'))document.getElementById('steerAngleVal').textContent=angle+'°';
+
+  if(view==='steering') drawSteeringView(ctx,W,H,angle);
+  else if(view==='ks') drawKSView(ctx,W,H);
+  else drawKCBSView(ctx,W,H);
+}
+
+function drawSteeringView(ctx,W,H,angle){
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Quantum Steering: Remote State Preparation',W/2,20);
+
+  const midX=W*0.5;
+  const t=steeringAnim.t;
+
+  // Alice side
+  const aX=W*0.18, aY=H*0.45;
+  ctx.fillStyle='rgba(68,170,255,0.12)';
+  ctx.beginPath();ctx.arc(aX,aY,50,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(aX,aY,50,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#44aaff';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Alice',aX,aY-60);
+
+  // Measurement axis for Alice
+  const angRad=(angle+t*20)%180*Math.PI/180;
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  ctx.moveTo(aX-38*Math.cos(angRad),aY-38*Math.sin(angRad));
+  ctx.lineTo(aX+38*Math.cos(angRad),aY+38*Math.sin(angRad));
+  ctx.stroke();
+  ctx.fillStyle='#44aaff';ctx.font='12px Segoe UI';
+  ctx.fillText('θ='+angle+'°',aX,aY+68);
+
+  // Alice outcomes — two possible outcomes shown
+  const outcomes=[
+    {angle:(angle+t*20)%180,col:'#44ffaa',label:'a=+1',offset:-30},
+    {angle:((angle+t*20)%180+90),col:'#ff4466',label:'a=−1',offset:30},
+  ];
+
+  // Bob side — two assemblage states remotely prepared
+  const bX=W*0.78, bY=H*0.45;
+  ctx.strokeStyle='#aa44ff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(bX,bY,50,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='rgba(170,68,255,0.12)';
+  ctx.beginPath();ctx.arc(bX,bY,50,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#aa44ff';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Bob',bX,bY-60);
+
+  // Assemblage states: Bob's conditional states for each Alice outcome
+  outcomes.forEach((o,i)=>{
+    const oAngRad=o.angle*Math.PI/180;
+    // Bob's state arrow (anti-correlated for singlet)
+    const bAngRad=oAngRad+Math.PI; // singlet: anti-correlated
+    ctx.strokeStyle=o.col;ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(bX-35*Math.cos(bAngRad),bY-35*Math.sin(bAngRad));
+    ctx.lineTo(bX+35*Math.cos(bAngRad),bY+35*Math.sin(bAngRad));
+    ctx.stroke();
+
+    ctx.fillStyle=o.col;ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(o.label,bX,bY+68+i*14);
+
+    // Arrow from Alice to Bob for this outcome
+    ctx.strokeStyle=o.col+'88';ctx.lineWidth=1;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(aX+52,aY+o.offset);ctx.lineTo(bX-52,bY+o.offset);ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Entangled state line
+  ctx.strokeStyle='rgba(255,102,136,0.4)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(aX+50,aY);ctx.lineTo(bX-50,aY);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('|Ψ⁻⟩ shared',midX,aY+12);
+
+  // Assemblage display box
+  const assX=midX-90, assY=H*0.15, assW=180, assH=80;
+  ctx.fillStyle='rgba(26,26,53,0.9)';ctx.fillRect(assX,assY,assW,assH);
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1;ctx.strokeRect(assX,assY,assW,assH);
+  ctx.fillStyle='#ff6688';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Assemblage σ_{a|x}',midX,assY+14);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('σ_{+|x} = tr_A[(M_+ ⊗ I)ρ]',midX,assY+30);
+  ctx.fillText('σ_{-|x} = tr_A[(M_- ⊗ I)ρ]',midX,assY+44);
+  ctx.fillStyle='#44ffaa';ctx.font='12px Segoe UI';
+  ctx.fillText('Steering if no LHS model exists',midX,assY+62);
+
+  // Bloch sphere for Bob's state
+  const bsX=W*0.60, bsY=H*0.75, bsR=30;
+  ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(bsX,bsY,bsR,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#3a3a70';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.ellipse(bsX,bsY,bsR,bsR*0.3,0,0,Math.PI*2);ctx.stroke();
+
+  const blochAng=((angle+t*20)%180)*Math.PI/180+Math.PI;
+  ctx.strokeStyle='#aa44ff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(bsX,bsY);
+  ctx.lineTo(bsX+bsR*Math.sin(blochAng)*0.9,bsY-bsR*Math.cos(blochAng)*0.9);ctx.stroke();
+  ctx.fillStyle='#aa44ff';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText("Bob's Bloch sphere",bsX,bsY+bsR+14);
+
+  // EPR Steering inequality
+  const ineqX=W*0.35, ineqY=H*0.75;
+  ctx.fillStyle='rgba(26,26,53,0.9)';ctx.fillRect(ineqX-80,ineqY-16,160,44);
+  ctx.strokeStyle='#44ffaa';ctx.lineWidth=1;ctx.strokeRect(ineqX-80,ineqY-16,160,44);
+  ctx.fillStyle='#44ffaa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('EPR-Steering inequality:',ineqX,ineqY);
+  ctx.fillStyle='#ccccee';ctx.font='12px Segoe UI';
+  ctx.fillText('F₂ = ⟨A₁B₁⟩+⟨A₂B₂⟩)/2 > 1/√2',ineqX,ineqY+18);
+}
+
+function drawKSView(ctx,W,H){
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Kochen-Specker: No Consistent Value Assignment',W/2,20);
+
+  const cx=W*0.35, cy=H*0.52, R=Math.min(W,H)*0.28;
+  const t=steeringAnim.t;
+
+  // Draw sphere
+  ctx.strokeStyle='#2a2a50';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='#1e1e38';ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.ellipse(cx,cy,R,R*0.25,0,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx-R,cy);ctx.lineTo(cx+R,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx,cy+R);ctx.stroke();
+
+  // KS coloring attempt — show conflict
+  // Place vectors on sphere — they form orthonormal basis triplets
+  const ksVecs=[];
+  for(let i=0;i<18;i++){
+    const phi=i/18*2*Math.PI+t*0.1;
+    const theta=(i%3)*Math.PI/3+0.3;
+    const x=Math.sin(theta)*Math.cos(phi);
+    const y=Math.sin(theta)*Math.sin(phi);
+    const z=Math.cos(theta);
+    ksVecs.push({x,y,z});
+  }
+
+  // Attempt to color: for each orthonormal basis, exactly one must be "1" (red), rest "0" (blue)
+  // In KS theorem, no consistent global coloring exists — highlight conflicts
+  ksVecs.forEach((v,i)=>{
+    const px=cx+R*(v.x*0.85);
+    const py=cy-R*(v.z*0.85);
+    const depth=(v.y+1)*0.5;
+    const baseCol=i%3===0?'#ff4466':'#44aaff'; // attempt: first of each triplet is "1"
+    const conflict=i%7===0; // simulate some conflicts in coloring
+    const col=conflict?'#ffaa44':baseCol;
+    ctx.fillStyle=col+(depth>0.5?'ff':'88');
+    ctx.globalAlpha=0.4+0.6*depth;
+    ctx.beginPath();ctx.arc(px,py,5+depth*3,0,Math.PI*2);ctx.fill();
+    if(conflict){
+      ctx.strokeStyle='#ffaa44';ctx.lineWidth=1.5;ctx.globalAlpha=0.8;
+      ctx.beginPath();ctx.arc(px,py,9,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.globalAlpha=1.0;
+  });
+
+  // Legend
+  ctx.fillStyle='#ff4466';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('● value = 1',cx-R-60,cy-R+20);
+  ctx.fillStyle='#44aaff';
+  ctx.fillText('● value = 0',cx-R-60,cy-R+34);
+  ctx.fillStyle='#ffaa44';
+  ctx.fillText('⊙ conflict!',cx-R-60,cy-R+48);
+
+  // Right: explanation boxes
+  const rX=W*0.64, rW=W-rX-10;
+  const boxes=[
+    {title:'KS Theorem (1967)',text:'In dim ≥ 3, no consistent\nassignment of 0/1 values to\nall quantum observables exists\nthat respects algebraic structure.',col:'#ff6688'},
+    {title:'KS Coloring',text:'Any orthonormal basis must\nsum to exactly 1 (one vector\ngets value 1, others get 0).\nNo global coloring satisfies this.',col:'#44aaff'},
+    {title:'Implication',text:'Measurement outcomes in QM\nare not predetermined (non-\ncontextual hidden vars fail).\nContext of measurement matters.',col:'#44ffaa'},
+  ];
+  boxes.forEach((b,i)=>{
+    const by=20+i*(H/3-10);
+    ctx.fillStyle='rgba(26,26,53,0.9)';ctx.fillRect(rX,by,rW-10,H/3-20);
+    ctx.strokeStyle=b.col;ctx.lineWidth=1;ctx.strokeRect(rX,by,rW-10,H/3-20);
+    ctx.fillStyle=b.col;ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText(b.title,rX+8,by+14);
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+    b.text.split('\n').forEach((line,li)=>ctx.fillText(line,rX+8,by+26+li*12));
+  });
+}
+
+function drawKCBSView(ctx,W,H){
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('KCBS Pentagram: 5-Observable Contextuality',W/2,20);
+
+  const cx=W*0.38, cy=H*0.52, R=Math.min(W*0.35,H*0.38);
+  const t=steeringAnim.t;
+
+  const pen=[];
+  for(let i=0;i<5;i++){
+    const ang=-Math.PI/2+i*2*Math.PI/5;
+    pen.push({x:cx+R*Math.cos(ang),y:cy+R*Math.sin(ang),label:'A'+(i+1)});
+  }
+
+  // Draw pentagram edges (adjacent pairs are compatible)
+  for(let i=0;i<5;i++){
+    const p1=pen[i], p2=pen[(i+1)%5];
+    const pulse=0.5+0.5*Math.sin(t*2+i);
+    ctx.strokeStyle=`rgba(68,200,255,${0.4+0.4*pulse})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+  }
+
+  // Draw inner pentagon star (non-adjacent = incompatible)
+  for(let i=0;i<5;i++){
+    const p1=pen[i], p2=pen[(i+2)%5];
+    ctx.strokeStyle='rgba(255,102,136,0.2)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Observable nodes — animate values cycling (impossible coloring attempt)
+  const qmVals=[1,-1,1,-1,-1]; // valid QM sequence along pentagon
+  pen.forEach((p,i)=>{
+    const animVal=qmVals[(i+Math.floor(t*0.5))%5];
+    const col=animVal>0?'#44ffaa':'#ff4466';
+    ctx.fillStyle=col+'33';ctx.beginPath();ctx.arc(p.x,p.y,22,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,p.y,22,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle=col;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(p.label,p.x,p.y-4);
+    ctx.font='12px Segoe UI';
+    ctx.fillText(animVal>0?'+1':'-1',p.x,p.y+12);
+  });
+
+  // KCBS sum indicator
+  const kcbsSum=qmVals.reduce((s,v,i)=>s+v*qmVals[(i+1)%5],0);
+  ctx.fillStyle='rgba(26,26,53,0.9)';ctx.fillRect(cx-90,cy-22,180,44);
+  ctx.strokeStyle='#44ffaa';ctx.lineWidth=1;ctx.strokeRect(cx-90,cy-22,180,44);
+  ctx.fillStyle='#44ffaa';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Σᵢ AᵢAᵢ₊₁ = '+kcbsSum.toFixed(2),cx,cy);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('Quantum: −√5 ≈ −2.236  |  Classical: ≥ −3',cx,cy+16);
+
+  // Right: KCBS explanation
+  const rX=W*0.68;
+  const info=[
+    {label:'Classical bound:',val:'∑AᵢAᵢ₊₁ ≥ −3',col:'#ff8844'},
+    {label:'Quantum value:',val:'−√5 ≈ −2.236',col:'#44ffaa'},
+    {label:'Violation:',val:'−2.236 > −3 ✓',col:'#ff6688'},
+    {label:'Qubits needed:',val:'qutrit (dim=3)',col:'#44aaff'},
+    {label:'Adjacent pairs:',val:'5 compatible pairs',col:'#aa44ff'},
+  ];
+  ctx.fillStyle='#ff6688';ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('KCBS Inequality',rX,50);
+  info.forEach((inf,i)=>{
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+    ctx.fillText(inf.label,rX,72+i*24);
+    ctx.fillStyle=inf.col;ctx.font='bold 12px Segoe UI';
+    ctx.fillText(inf.val,rX,84+i*24);
+  });
+
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Solid lines = compatible pairs (A_i, A_{i+1})',rX,72+info.length*24+10);
+  ctx.fillText('Dashed = incompatible (non-adjacent)',rX,72+info.length*24+22);
+  ctx.fillText('Contextuality → universal quantum computing',rX,72+info.length*24+38);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TAB 8 — DEVICE-INDEPENDENT QUANTUM CRYPTOGRAPHY
+// ─────────────────────────────────────────────────────────────
+let diQKD={
+  animRunning:false,animT:0,
+  keyBits:0, pairs:0, errorRate:0.03,
+  sVal:0
+};
+
+function toggleDIAnim(){
+  diQKD.animRunning=!diQKD.animRunning;
+  document.getElementById('btnDIAnim').classList.toggle('on',diQKD.animRunning);
+  document.getElementById('btnDIAnim').textContent=diQKD.animRunning?'\u23f8 Pause':'\u25b6 Animate';
+  if(diQKD.animRunning)animDIQKD();
+}
+
+function resetDIQKD(){
+  diQKD.keyBits=0;diQKD.pairs=0;
+  document.getElementById('diKeyBits').textContent='0';
+  document.getElementById('diSVal').textContent='—';
+  drawDIQKD();
+}
+
+function updateDIQKD(){
+  diQKD.errorRate=+document.getElementById('diErrorRate').value/100;
+  document.getElementById('diErrorVal').textContent=(diQKD.errorRate*100).toFixed(1)+'%';
+  // CHSH S value from error rate: S ≈ 2√2 · (1 - 2e)
+  diQKD.sVal=2*Math.SQRT2*(1-2*diQKD.errorRate);
+  document.getElementById('diSVal').textContent=diQKD.sVal.toFixed(3);
+  drawDIQKD();
+}
+
+function animDIQKD(){
+  if(!diQKD.animRunning)return;
+  diQKD.animT+=0.016*(window.animSpeed||0.1);
+  if(diQKD.animT>0.5){
+    diQKD.pairs+=Math.floor(Math.random()*3)+1;
+    // Key rate: approx 1 - h(e) per pair (fraction of sifted bits)
+    const e=diQKD.errorRate;
+    const hE=e>0?-e*Math.log2(e)-(1-e)*Math.log2(1-e):0;
+    const r=Math.max(0,1-hE*1.2);
+    diQKD.keyBits+=Math.random()<r?1:0;
+    document.getElementById('diKeyBits').textContent=diQKD.keyBits;
+    diQKD.animT=0;
+  }
+  drawDIQKD();
+  requestAnimationFrame(animDIQKD);
+}
+
+function drawDIQKD(){
+  const cv=document.getElementById('c8');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.getBoundingClientRect().width||700;
+  const H=cv.getBoundingClientRect().height||420;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+
+  const view=document.getElementById('diView')?document.getElementById('diView').value:'protocol';
+  if(view==='protocol') drawE91Protocol(ctx,W,H);
+  else if(view==='keyrate') drawKeyRatePlot(ctx,W,H);
+  else drawSecurityProof(ctx,W,H);
+}
+
+function drawE91Protocol(ctx,W,H){
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('E91 Protocol — Device-Independent Quantum Key Distribution',W/2,20);
+
+  const t=diQKD.animT;
+  const e=diQKD.errorRate;
+  const S=2*Math.SQRT2*(1-2*e);
+  const secure=S>2;
+
+  // Layout: Alice — Source — Bob — Eve (eavesdropper, blocked)
+  const aX=W*0.12, srcX=W*0.5, bX=W*0.78, eX=W*0.92;
+  const mainY=H*0.42;
+
+  // Entangled source
+  const pulse=0.5+0.5*Math.sin((diQKD.animT||0)*3);
+  ctx.fillStyle=`rgba(255,102,136,${0.15+0.1*pulse})`;
+  ctx.beginPath();ctx.arc(srcX,mainY,22+4*pulse,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(srcX,mainY,22,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Entangled',srcX,mainY-28);
+  ctx.fillText('Source',srcX,mainY+36);
+
+  // Fiber channels
+  [[srcX,aX,'#44aaff'],[srcX,bX,'#aa44ff']].forEach(([x1,x2,col])=>{
+    ctx.strokeStyle=col+'66';ctx.lineWidth=6;
+    ctx.beginPath();ctx.moveTo(x1,mainY);ctx.lineTo(x2,mainY);ctx.stroke();
+    // Animated photon
+    const px=x1+(x2-x1)*((t||0)*0.8%1);
+    ctx.fillStyle='#ffdd44';
+    ctx.beginPath();ctx.arc(px,mainY,4,0,Math.PI*2);ctx.fill();
+  });
+
+  // Alice device
+  ctx.fillStyle='rgba(68,170,255,0.15)';ctx.fillRect(aX-36,mainY-44,72,88);
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=2;ctx.strokeRect(aX-36,mainY-44,72,88);
+  ctx.fillStyle='#44aaff';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Alice',aX,mainY-50);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('random',aX,mainY-14);
+  ctx.fillText('basis θ_A',aX,mainY);
+  ctx.fillStyle='#44ffaa';ctx.font='bold 12px Segoe UI';
+  ctx.fillText('output a',aX,mainY+22);
+
+  // Bob device
+  ctx.fillStyle='rgba(170,68,255,0.15)';ctx.fillRect(bX-36,mainY-44,72,88);
+  ctx.strokeStyle='#aa44ff';ctx.lineWidth=2;ctx.strokeRect(bX-36,mainY-44,72,88);
+  ctx.fillStyle='#aa44ff';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Bob',bX,mainY-50);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('random',bX,mainY-14);
+  ctx.fillText('basis θ_B',bX,mainY);
+  ctx.fillStyle='#44ffaa';ctx.font='bold 12px Segoe UI';
+  ctx.fillText('output b',bX,mainY+22);
+
+  // Eve — blocked by CHSH violation
+  ctx.fillStyle='rgba(255,100,100,0.08)';ctx.fillRect(eX-30,mainY-40,60,80);
+  ctx.strokeStyle='#ff4466';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.strokeRect(eX-30,mainY-40,60,80);
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff4466';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Eve',eX,mainY-46);
+  ctx.fillStyle=secure?'#ff4466':'#ffaa44';ctx.font='12px Segoe UI';
+  ctx.fillText(secure?'BLOCKED':'Warning',eX,mainY);
+  ctx.fillText(secure?'by CHSH':'check S',eX,mainY+14);
+
+  // X over Eve
+  if(secure){
+    ctx.strokeStyle='#ff4466';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(eX-22,mainY-32);ctx.lineTo(eX+22,mainY+32);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(eX+22,mainY-32);ctx.lineTo(eX-22,mainY+32);ctx.stroke();
+  }
+
+  // Protocol steps
+  const steps=[
+    {y:H*0.70,col:'#44aaff',text:`1. Share entangled pairs (${diQKD.pairs} pairs sent)`},
+    {y:H*0.75,col:'#aa44ff',text:`2. Measure in random bases (3 angles each)`},
+    {y:H*0.80,col:'#44ffaa',text:`3. Announce basis choices publicly`},
+    {y:H*0.85,col:'#ffaa44',text:`4. CHSH test: S = ${S.toFixed(3)} ${secure?'> 2 (secure ✓)':'≤ 2 (insecure!)'}`},
+    {y:H*0.90,col:secure?'#44ffaa':'#ff4466',text:`5. Key rate ≈ ${Math.max(0,1+2*e*Math.log2(Math.max(1e-10,e))+(1-2*e/2)*Math.log2(1-e||1e-10)).toFixed(3)} bits/pair | Key bits: ${diQKD.keyBits}`},
+  ];
+  steps.forEach(s=>{
+    ctx.fillStyle=s.col;ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText(s.text,W*0.06,s.y);
+  });
+
+  // CHSH status bar
+  const barX=W*0.06, barY=H*0.62, barW=W*0.88, barH=12;
+  ctx.fillStyle='#1a1a35';ctx.fillRect(barX,barY,barW,barH);
+  const frac=Math.min(1,Math.max(0,(S-0)/(2*Math.SQRT2)));
+  const barCol=S>2?'#44ffaa':S>1.8?'#ffaa44':'#ff4466';
+  ctx.fillStyle=barCol;ctx.fillRect(barX,barY,barW*frac,barH);
+  // Markers
+  const x2=barX+barW*2/(2*Math.SQRT2);
+  ctx.strokeStyle='#ff8844';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(x2,barY-4);ctx.lineTo(x2,barY+barH+4);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff8844';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('S=2 (classical)',x2,barY-8);
+  ctx.fillStyle='#44ffaa';
+  ctx.fillText('S=2√2 (Tsirelson)',barX+barW,barY-8);
+  ctx.fillStyle='#ccccee';ctx.font='bold 12px Segoe UI';
+  ctx.fillText('CHSH Value S = '+S.toFixed(3),barX+barW/2,barY+barH+14);
+}
+
+function drawKeyRatePlot(ctx,W,H){
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Key Rate vs Quantum Bit Error Rate (QBER)',W/2,20);
+
+  const pad={l:60,r:20,t:36,b:46};
+  const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+  const ox=pad.l, oy=pad.t+ph;
+
+  // Axes
+  ctx.strokeStyle='#3a3a60';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+pw,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,pad.t);ctx.lineTo(ox,oy);ctx.stroke();
+
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('QBER (error rate)',ox+pw/2,H-6);
+  for(let e=0;e<=15;e+=5){
+    const x=ox+e/15*pw;
+    ctx.fillText(e+'%',x,oy+14);
+    ctx.strokeStyle='#1e1e38';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,oy);ctx.stroke();
+  }
+  for(let r=0;r<=1;r+=0.25){
+    const y=oy-ph*r;
+    ctx.fillStyle='#8888aa';ctx.textAlign='right';
+    ctx.fillText(r.toFixed(2),ox-4,y+4);
+    ctx.strokeStyle='#1e1e38';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(ox,y);ctx.lineTo(ox+pw,y);ctx.stroke();
+  }
+  ctx.save();ctx.translate(ox-40,oy-ph/2);ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='#8888aa';ctx.textAlign='center';ctx.font='12px Segoe UI';
+  ctx.fillText('Key rate (bits/pair)',0,0);ctx.restore();
+
+  // BB84 key rate: 1 - 2h(e)
+  ctx.beginPath();ctx.strokeStyle='#44aaff';ctx.lineWidth=2;
+  for(let i=0;i<=pw;i++){
+    const e=i/pw*0.15;
+    const h=e>0?-e*Math.log2(e)-(1-e)*Math.log2(1-e):0;
+    const r=Math.max(0,1-2*h);
+    const x=ox+i, y=oy-ph*r;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // E91/DI-QKD key rate: 1 - h(e) - chi_eve(S)
+  ctx.beginPath();ctx.strokeStyle='#44ffaa';ctx.lineWidth=2.5;
+  for(let i=0;i<=pw;i++){
+    const e=i/pw*0.15;
+    const S=2*Math.SQRT2*(1-2*e);
+    const h=e>0?-e*Math.log2(e)-(1-e)*Math.log2(1-e):0;
+    // Eve's info bound from CHSH: chi_eve ≈ h(1/2 + sqrt((S/2)^2 - 1)/2)
+    let chiEve=0;
+    if(S>2){
+      const arg=0.5+Math.sqrt(Math.max(0,(S/2)**2-1))/2;
+      chiEve=arg<1&&arg>0?-arg*Math.log2(arg)-(1-arg)*Math.log2(1-arg):0;
+    } else {
+      chiEve=1; // no key when S <= 2
+    }
+    const r=Math.max(0,1-h-chiEve);
+    const x=ox+i, y=oy-ph*r;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  // Current QBER marker
+  const curE=diQKD.errorRate;
+  const xCur=ox+curE/0.15*pw;
+  ctx.strokeStyle='#ff6688';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(xCur,pad.t);ctx.lineTo(xCur,oy);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff6688';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('QBER='+((curE*100).toFixed(1))+'%',xCur,pad.t+12);
+
+  // Legend
+  ctx.fillStyle='#44aaff';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('BB84 key rate: 1 − 2h(e)',ox+4,pad.t+16);
+  ctx.fillStyle='#44ffaa';
+  ctx.fillText('E91 DI-QKD key rate: 1 − h(e) − χ_Eve(S)',ox+4,pad.t+30);
+
+  // Security threshold
+  const xSec=ox+(0.11/0.15)*pw; // approx 11% is BB84 threshold
+  ctx.strokeStyle='#ff884488';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(xSec,pad.t);ctx.lineTo(xSec,oy);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff8844';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('BB84 threshold',xSec,oy+28);
+}
+
+function drawSecurityProof(ctx,W,H){
+  ctx.fillStyle='#ff6688';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('DI Security: Bell Inequality Bounds Eve\'s Information',W/2,20);
+
+  const e=diQKD.errorRate;
+  const S=Math.max(0,2*Math.SQRT2*(1-2*e));
+  const secure=S>2;
+
+  // Security chain diagram
+  const chain=[
+    {label:'Bell violation',desc:'S = '+S.toFixed(3),col:secure?'#44ffaa':'#ff4466',val:S},
+    {label:"Eve's info bound",desc:'χ_Eve ≤ f(S)',col:'#44aaff',val:null},
+    {label:'Error correction',desc:'cost h(e)',col:'#aa44ff',val:null},
+    {label:'Privacy amplification',desc:'hash to key',col:'#ffaa44',val:null},
+    {label:'Secure key rate',desc:Math.max(0,1-0.5).toFixed(3)+' bits/pair',col:'#44ffaa',val:null},
+  ];
+
+  chain.forEach((c,i)=>{
+    const cx=W/2, cy=70+i*(H-100)/chain.length;
+    const bw=280, bh=40;
+    ctx.fillStyle=c.col+'22';ctx.fillRect(cx-bw/2,cy-bh/2,bw,bh);
+    ctx.strokeStyle=c.col;ctx.lineWidth=1.5;ctx.strokeRect(cx-bw/2,cy-bh/2,bw,bh);
+    ctx.fillStyle=c.col;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(c.label,cx,cy-4);
+    ctx.fillStyle='#ccccee';ctx.font='12px Segoe UI';
+    ctx.fillText(c.desc,cx,cy+12);
+    if(i<chain.length-1){
+      ctx.strokeStyle='#444466';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(cx,cy+bh/2);ctx.lineTo(cx,cy+bh/2+(H-100)/chain.length-bh);ctx.stroke();
+      // Arrow
+      const ay=cy+bh/2+(H-100)/chain.length-bh;
+      ctx.fillStyle='#444466';
+      ctx.beginPath();ctx.moveTo(cx-6,ay-8);ctx.lineTo(cx+6,ay-8);ctx.lineTo(cx,ay);ctx.fill();
+    }
+  });
+
+  // Acin formula
+  const fX=W*0.08, fY=H*0.7;
+  ctx.fillStyle='rgba(26,26,53,0.9)';ctx.fillRect(fX,fY,W*0.44,56);
+  ctx.strokeStyle='#44aaff';ctx.lineWidth=1;ctx.strokeRect(fX,fY,W*0.44,56);
+  ctx.fillStyle='#44aaff';ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Acín et al. 2007 DI key rate bound:',fX+8,fY+14);
+  ctx.fillStyle='#ccccee';ctx.font='12px Segoe UI';
+  ctx.fillText('r ≥ 1 − h(½ + √((S/2)²−1)/2) − h(e)',fX+8,fY+30);
+  ctx.fillStyle=secure?'#44ffaa':'#ff4466';ctx.font='bold 12px Segoe UI';
+  ctx.fillText(secure?'S > 2: positive key rate possible':'S ≤ 2: no secure key (LHV regime)',fX+8,fY+48);
+
+  // Status
+  const stX=W*0.56, stY=H*0.7;
+  ctx.fillStyle='rgba(26,26,53,0.9)';ctx.fillRect(stX,stY,W*0.36,56);
+  ctx.strokeStyle=secure?'#44ffaa':'#ff4466';ctx.lineWidth=1;ctx.strokeRect(stX,stY,W*0.36,56);
+  ctx.fillStyle=secure?'#44ffaa':'#ff4466';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(secure?'SECURE':'INSECURE',stX+W*0.18,stY+18);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('QBER = '+(e*100).toFixed(1)+'%',stX+W*0.18,stY+34);
+  ctx.fillText('S = '+S.toFixed(3),stX+W*0.18,stY+48);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  window.animSpeed=0.1;
+  for(var i=0;i<9;i++){syncSpeedControl45(i);}
+  setTimeout(()=>{
+    resizeAll();
+    drawEPR();        // starts its own RAF loop
+    setOptimalQM();   // draws bell tab with optimal QM angles pre-selected
+    drawExp2();       // draws static experiment setup
+    drawGHZ();        // draws ghz tab
+    // Init new tabs
+    updateCHSHGame();
+    resetLoopholes();
+    updateDIQKD();
+    // Re-render KaTeX in about panels
+    ['about0','about1','about2','about3','about4','about5','about6','about7','about8'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el&&window.renderMathInElement){
+        renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+      }
+    });
+  },300);
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

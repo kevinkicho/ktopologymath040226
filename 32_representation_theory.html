@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>32 · Representation Theory &amp; Dynkin Diagrams</title>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#ffaa00;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.panes{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.canvas-area{flex:1;display:flex;flex-direction:column;background:var(--bg);padding:12px;gap:8px;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0}
+.controls label{font-size:.78rem;color:var(--dim)}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active{border-color:var(--accent);color:var(--accent);background:#1a1400}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--dim);line-height:1.7}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:340px;min-width:240px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;padding:14px}
+.side-panel h3{font-size:.85rem;color:var(--accent);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.side-panel canvas{flex:none;height:160px;min-height:0;border-radius:6px;border:1px solid var(--border)}
+.cartan-table{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:10px}
+.cartan-table th{color:var(--dim);text-align:left;padding:3px 6px;border-bottom:1px solid var(--border)}
+.cartan-table td{padding:3px 6px;color:var(--text);border-bottom:1px solid #0d0d28}
+.cartan-table tr.hl td{color:var(--accent);background:#1a1200}
+.note{font-size:.72rem;color:var(--dim);line-height:1.6;margin-top:10px}
+.note span{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 13</span>
+  <div class="title-block">
+    <h1>Representation Theory &amp; Dynkin Diagrams</h1>
+    <p>Root systems, weight lattices, and the Eightfold Way — Lie algebras revealed</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Root Systems</div>
+  <div class="tab" onclick="switchTab(1)">Weight Diagrams</div>
+  <div class="tab" onclick="switchTab(2)">The Particle Zoo</div>
+  <div class="tab" onclick="switchTab(3)">SU(2) Irreps</div>
+  <div class="tab" onclick="switchTab(4)">Clebsch-Gordan</div>
+  <div class="tab" onclick="switchTab(5)">Characters</div>
+</div>
+
+<div id="main">
+<!-- TAB 0 -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">Root System:</label>
+      <button class="rs-btn active" onclick="selectRS('A1',this)">A&#x2081;</button>
+      <button class="rs-btn" onclick="selectRS('A2',this)">A&#x2082;</button>
+      <button class="rs-btn" onclick="selectRS('B2',this)">B&#x2082;</button>
+      <button class="rs-btn" onclick="selectRS('G2',this)">G&#x2082;</button>
+      <button class="rs-btn" onclick="selectRS('E8',this)">E&#x2088; (schematic)</button>
+      <button id="animBtn0" class="animBtn" onclick="toggleAnim0()">▶ Animate</button>
+    </div>
+    <canvas id="c0"></canvas>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Dynkin Diagram</h3>
+    <canvas id="dynkin"></canvas>
+    <h3 style="margin-top:12px">Cartan Classification</h3>
+    <table class="cartan-table" id="cartanTable">
+      <thead><tr><th>Name</th><th>Algebra</th><th>Dim</th><th>Group</th></tr></thead>
+      <tbody>
+        <tr data-rs="A1"><td>A<sub>n</sub></td><td>sl(n+1,&#x2102;)</td><td>n&#xB2;+2n</td><td>SU(n+1)</td></tr>
+        <tr><td>B<sub>n</sub></td><td>so(2n+1,&#x2102;)</td><td>n(2n+1)</td><td>SO(2n+1)</td></tr>
+        <tr><td>C<sub>n</sub></td><td>sp(n,&#x2102;)</td><td>n(2n+1)</td><td>Sp(2n)</td></tr>
+        <tr><td>D<sub>n</sub></td><td>so(2n,&#x2102;)</td><td>n(2n&#x2212;1)</td><td>SO(2n)</td></tr>
+        <tr data-rs="G2"><td>G&#x2082;</td><td>g&#x2082;</td><td>14</td><td>G&#x2082;</td></tr>
+        <tr><td>F&#x2084;</td><td>f&#x2084;</td><td>52</td><td>F&#x2084;</td></tr>
+        <tr data-rs="E6"><td>E&#x2086;</td><td>e&#x2086;</td><td>78</td><td>E&#x2086;</td></tr>
+        <tr><td>E&#x2087;</td><td>e&#x2087;</td><td>133</td><td>E&#x2087;</td></tr>
+        <tr data-rs="E8"><td>E&#x2088;</td><td>e&#x2088;</td><td>248</td><td>E&#x2088;</td></tr>
+      </tbody>
+    </table>
+    <div class="note">
+      <span>E&#x2088;</span> is the largest exceptional algebra — it appears in string theory (E&#x2088;&#xD7;E&#x2088; heterotic) and may be relevant to quantum gravity.
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1 -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">SU(2) spin j:</label>
+      <button class="su2-btn active" onclick="selectSU2(0,this)">j=0</button>
+      <button class="su2-btn" onclick="selectSU2(0.5,this)">j=&#xBD;</button>
+      <button class="su2-btn" onclick="selectSU2(1,this)">j=1</button>
+      <button class="su2-btn" onclick="selectSU2(1.5,this)">j=&#xB3;&#x2044;&#x2082;</button>
+      <button class="su2-btn" onclick="selectSU2(2,this)">j=2</button>
+      <button class="su2-btn" onclick="selectSU2(2.5,this)">j=&#x2075;&#x2044;&#x2082;</button>
+      <label style="margin-left:12px">SU(3) rep:</label>
+      <button class="su3-btn active" onclick="selectSU3('3',this)">3</button>
+      <button class="su3-btn" onclick="selectSU3('3bar',this)">3&#x0305;</button>
+      <button class="su3-btn" onclick="selectSU3('8',this)">8</button>
+      <button class="su3-btn" onclick="selectSU3('10',this)">10</button>
+      <button class="su3-btn" onclick="selectSU3('27',this)">27</button>
+      <button id="animBtn1" class="animBtn" onclick="toggleAnim1()">▶ Animate</button>
+    </div>
+    <canvas id="c1"></canvas>
+    <div class="info-box" id="infoBox1">
+      The SU(3) weight lattice has hexagonal symmetry from the A&#x2082; root system. &nbsp;|&nbsp;
+      Dimension formula: <span class="val">dim(m,n) = (1+m)(1+n)(1+(m+n)/2)</span>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2 -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-area">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="animBtn2" class="animBtn" onclick="toggleAnim2()">▶ Animate</button>
+      <button onclick="resetBreaking()">Reset</button>
+      <label style="margin-left:8px;font-size:.78rem;color:var(--dim)" id="breakLabel">SU(3) symmetric (ideal masses)</label>
+    </div>
+    <canvas id="c2"></canvas>
+    <div class="info-box">
+      Gell-Mann's insight: hadrons are representations of SU(3) flavor symmetry. &nbsp;|&nbsp;
+      Quarks u, d, s transform as the fundamental <span class="val">3</span> representation. &nbsp;|&nbsp;
+      Mesons: q&#x200Bq&#x0305; pairs &#x2192; <span class="val">3 &#x2297; 3&#x0305; = 8 &#x2295; 1</span> (singlet + octet) &nbsp;|&nbsp;
+      Baryons: qqq &#x2192; <span class="val">3 &#x2297; 3 &#x2297; 3 = 10 &#x2295; 8 &#x2295; 8 &#x2295; 1</span>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: SU(2) Irreducible Representations -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Spin j:</label>
+      <button class="irrep-btn active" onclick="selectIrrep(0,this)">j=0</button>
+      <button class="irrep-btn" onclick="selectIrrep(0.5,this)">j=&#xBD;</button>
+      <button class="irrep-btn" onclick="selectIrrep(1,this)">j=1</button>
+      <button class="irrep-btn" onclick="selectIrrep(1.5,this)">j=&#xB3;&#x2044;&#x2082;</button>
+      <button class="irrep-btn" onclick="selectIrrep(2,this)">j=2</button>
+      <label style="margin-left:14px">Rotation angle:</label>
+      <input type="range" id="rotAngle" min="0" max="628" value="100" style="width:100px" oninput="drawIrrep()">
+      <span id="rotAngleVal" style="color:var(--accent);font-size:.8rem">&#x3b8; = 1.00</span>
+      <button id="animBtn3" class="animBtn" onclick="toggleAnim3()">▶ Animate</button>
+    </div>
+    <canvas id="c3"></canvas>
+    <div class="info-box">
+      SU(2) has a unique irreducible representation of each dimension <span class="val">2j+1</span> (j = 0, &#xBD;, 1, &#xB3;&#x2044;&#x2082;, 2, ...). &nbsp;|&nbsp;
+      J&#x00B2; eigenvalue: <span class="val">j(j+1)&#x210F;&#xB2;</span> &nbsp;|&nbsp;
+      J&#x007A; eigenvalues: <span class="val">m&#x210F;</span> for m = -j, -j+1, ..., j &nbsp;|&nbsp;
+      D&#x02B2;(R) matrix: <span class="val">D&#x02B2;&#x1d50d&#x1d50d;'(&#x3b1;,&#x3b2;,&#x3b3;) = e&#x207b;&#x2071;&#x1d50d;&#x3b1; d&#x02B2;&#x1d50d;&#x1d50d;'(&#x3b2;) e&#x207b;&#x2071;&#x1d50d;'&#x3b3;</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" style="width:280px">
+    <h3>Young Tableau</h3>
+    <canvas id="youngCanvas" style="height:120px"></canvas>
+    <h3 style="margin-top:10px">Wigner d-matrix</h3>
+    <canvas id="dmatCanvas" style="height:180px"></canvas>
+    <div class="note">
+      <span>D&#x02B2;(R)</span> is the Wigner D-matrix: the (2j+1)-dimensional unitary matrix representing rotation R.<br>
+      For j=&#xBD;: <span>D&#xBD;(&#x3b8;) = exp(-i&#x3b8;&#x3c3;&#x209c;/2)</span> — the spinor representation is the fundamental of SU(2), double cover of SO(3).
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: Clebsch-Gordan Decomposition -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>j&#x2081;:</label>
+      <button class="cg-j1 active" onclick="selectCGj1(0.5,this)">&#xBD;</button>
+      <button class="cg-j1" onclick="selectCGj1(1,this)">1</button>
+      <button class="cg-j1" onclick="selectCGj1(1.5,this)">&#xB3;&#x2044;&#x2082;</button>
+      <button class="cg-j1" onclick="selectCGj1(2,this)">2</button>
+      <label style="margin-left:10px">j&#x2082;:</label>
+      <button class="cg-j2 active" onclick="selectCGj2(0.5,this)">&#xBD;</button>
+      <button class="cg-j2" onclick="selectCGj2(1,this)">1</button>
+      <button class="cg-j2" onclick="selectCGj2(1.5,this)">&#xB3;&#x2044;&#x2082;</button>
+      <button class="cg-j2" onclick="selectCGj2(2,this)">2</button>
+      <button id="animBtn4" class="animBtn" onclick="toggleAnim4()">▶ Animate</button>
+    </div>
+    <canvas id="c4"></canvas>
+    <div class="info-box">
+      Tensor product rule: <span class="val">j&#x2081; &#x2297; j&#x2082; = |j&#x2081;-j&#x2082;| &#x2295; (|j&#x2081;-j&#x2082;|+1) &#x2295; ... &#x2295; (j&#x2081;+j&#x2082;)</span> &nbsp;|&nbsp;
+      CG coefficients: <span class="val">&#x27E8;j&#x2081;m&#x2081;; j&#x2082;m&#x2082;|JM&#x27E9;</span> relate uncoupled basis |j&#x2081;m&#x2081;&#x27E9;&#x2297;|j&#x2082;m&#x2082;&#x27E9; to coupled |JM&#x27E9; &nbsp;|&nbsp;
+      Key example: <span class="val">&#xBD; &#x2297; &#xBD; = 0 &#x2295; 1</span> (singlet + triplet): electron spin addition
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: Characters & Weyl Character Formula -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Show &#x3c7;&#x2c7c;(&#x3b8;) for j:</label>
+      <button class="char-btn active" data-j="0" onclick="toggleCharJ(0,this)">j=0</button>
+      <button class="char-btn active" data-j="0.5" onclick="toggleCharJ(0.5,this)">j=&#xBD;</button>
+      <button class="char-btn active" data-j="1" onclick="toggleCharJ(1,this)">j=1</button>
+      <button class="char-btn active" data-j="1.5" onclick="toggleCharJ(1.5,this)">j=&#xB3;&#x2044;&#x2082;</button>
+      <button class="char-btn active" data-j="2" onclick="toggleCharJ(2,this)">j=2</button>
+      <label style="margin-left:12px">SU(3) rep:</label>
+      <button class="char3-btn active" data-rep="8" onclick="selectChar3('8',this)">8 (adjoint)</button>
+      <button class="char3-btn" data-rep="3" onclick="selectChar3('3',this)">3</button>
+      <button class="char3-btn" data-rep="10" onclick="selectChar3('10',this)">10</button>
+    </div>
+    <canvas id="c5"></canvas>
+    <div class="info-box">
+      Character formula SU(2): <span class="val">&#x3c7;&#x2c7c;(&#x3b8;) = sin((2j+1)&#x3b8;/2) / sin(&#x3b8;/2)</span> &nbsp;|&nbsp;
+      Orthogonality: <span class="val">&#x222b; &#x3c7;&#x2c7c;(g) &#x3c7;&#x2c7c;'(g)* dg = &#x3b4;&#x2c7c;&#x2c7c;'</span> (Peter-Weyl theorem) &nbsp;|&nbsp;
+      Weyl formula: <span class="val">&#x3c7;&#x3bb;(g) = &#x2211;&#x1d464;&#x2208;W det(w) e&#x2071;&#x27E8;w(&#x3bb;+&#x3c1;),H&#x27E9; / &#x2211;&#x1d464;&#x2208;W det(w) e&#x2071;&#x27E8;w&#x3c1;,H&#x27E9;</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// =====================================================================
+// GLOBALS
+// =====================================================================
+let currentRS = 'A2';
+let currentSU2 = 0.5;
+let currentSU3 = '3';
+let weylAngle = 0;
+let animId0 = null, animId1 = null, animId2 = null;
+let breakPhase = 0; // 0=ideal, 1=broken
+let breakAnim = false;
+let hoverParticle = null;
+
+// =====================================================================
+// TAB SWITCHING
+// =====================================================================
+function switchTab(i){
+  _cancelAllAnims32();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  if(i===0){ draw0(); drawDynkin(); toggleAnim0(); }
+  if(i===1) {draw1();toggleAnim1();}
+  if(i===2) {draw2();toggleAnim2();}
+  if(i===3) {drawIrrep();toggleAnim3();}
+  if(i===4) {drawCG();toggleAnim4();}
+  if(i===5) {drawChars();}
+}
+
+function syncSpeedControl32(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+
+function _cancelAllAnims32(){
+  if(animId0){ cancelAnimationFrame(animId0); animId0=null; }
+  if(animId1){ cancelAnimationFrame(animId1); animId1=null; }
+  if(animId2){ cancelAnimationFrame(animId2); animId2=null; }
+  if(animId3){ cancelAnimationFrame(animId3); animId3=null; }
+  if(animId4){ cancelAnimationFrame(animId4); animId4=null; }
+  const btns = ['animBtn0','animBtn1','animBtn2','animBtn3','animBtn4'];
+  btns.forEach(id => {
+    const b = document.getElementById(id);
+    if(b){ b.textContent='▶ Animate'; b.classList.remove('active'); }
+  });
+}
+
+// =====================================================================
+// ROOT SYSTEM DATA
+// =====================================================================
+const RS_DATA = {
+  A1: {
+    name:'A\u2081', algebra:'su(2)', group:'SU(2)', note:'Spin, isospin',
+    roots: [[1,0],[-1,0]],
+    simple: [[1,0]],
+    longScale:1, shortScale:1,
+    weylLines: [[0,1]], // perpendicular to root (1,0) is vertical line
+    dynkin:'A1'
+  },
+  A2: {
+    name:'A\u2082', algebra:'su(3)', group:'SU(3)', note:'Quarks — Eightfold Way',
+    roots: [
+      [1,0],[-1,0],
+      [0.5, 0.866],[-0.5,-0.866],
+      [-0.5,0.866],[0.5,-0.866]
+    ],
+    simple: [[1,0],[-0.5,0.866]],
+    longScale:1, shortScale:1,
+    dynkin:'A2'
+  },
+  B2: {
+    name:'B\u2082', algebra:'so(5)/sp(4)', group:'SO(5)', note:'Orthogonal group',
+    roots:[
+      [1,0],[-1,0],[0,1],[0,-1],
+      [0.707,0.707],[-0.707,-0.707],
+      [0.707,-0.707],[-0.707,0.707]
+    ],
+    simple:[[1,0],[0,1]],
+    longScale:1, shortScale:0.707,
+    dynkin:'B2'
+  },
+  G2: {
+    name:'G\u2082', algebra:'g\u2082', group:'G\u2082', note:'Exceptional — octonions',
+    roots:[],
+    simple:[],
+    longScale:1, shortScale:0.577,
+    dynkin:'G2'
+  },
+  E8: {
+    name:'E\u2088', algebra:'e\u2088', group:'E\u2088', note:'248-dim, string theory',
+    roots:[],
+    simple:[],
+    dynkin:'E8'
+  }
+};
+
+// Build G2 roots: 6 long (length 1) at 0°,60°,...,300° and 6 short (length 1/√3) at 30°,90°,...,330°
+(function(){
+  const long=[], short_=[];
+  for(let i=0;i<6;i++){
+    const a=i*Math.PI/3;
+    long.push([Math.cos(a),Math.sin(a)]);
+  }
+  const sf=0.577;
+  for(let i=0;i<6;i++){
+    const a=i*Math.PI/3+Math.PI/6;
+    short_.push([Math.cos(a)*sf,Math.sin(a)*sf]);
+  }
+  RS_DATA.G2.roots=[...long,...short_];
+  RS_DATA.G2.simple=[[1,0],[Math.cos(5*Math.PI/6)*sf,Math.sin(5*Math.PI/6)*sf]];
+})();
+
+// =====================================================================
+// SELECT ROOT SYSTEM
+// =====================================================================
+function selectRS(rs, btn){
+  currentRS = rs;
+  document.querySelectorAll('.rs-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  weylAngle = 0;
+  // highlight cartan table
+  document.querySelectorAll('#cartanTable tbody tr').forEach(tr=>{
+    tr.classList.remove('hl');
+    if(tr.dataset.rs === rs) tr.classList.add('hl');
+  });
+  draw0(); drawDynkin();
+}
+
+// =====================================================================
+// DRAW TAB 0 — ROOT SYSTEMS
+// =====================================================================
+function draw0(){
+  const cv = document.getElementById('c0');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  ctx.clearRect(0,0,W,H);
+
+  const cx = W*0.5, cy = H*0.5;
+  const scale = Math.min(H,W)*0.32;
+  const rs = RS_DATA[currentRS];
+
+  // Background grid
+  ctx.strokeStyle='rgba(255,170,0,0.04)';
+  ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  // Axes
+  ctx.strokeStyle='rgba(255,170,0,0.18)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  if(currentRS==='E8'){
+    drawE8Schematic(ctx,W,H,cx,cy,scale);
+    return;
+  }
+
+  // Weyl chamber
+  const simple = rs.simple;
+  if(simple.length>=2){
+    const s1=simple[0], s2=simple[1];
+    // hyperplanes perp to simple roots — draw shaded Weyl chamber
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    // extend along s1
+    const len=Math.max(W,H)*1.5;
+    ctx.lineTo(cx+s1[0]*len, cy-s1[1]*len);
+    // rotate to find other boundary — use bisector roughly
+    const bmx=(s1[0]+s2[0]), bmy=(s1[1]+s2[1]);
+    ctx.lineTo(cx+bmx*len, cy-bmy*len);
+    ctx.closePath();
+    ctx.fillStyle='rgba(255,170,0,0.05)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Draw hyperplanes perpendicular to each root
+  if(currentRS==='A2'){
+    ctx.save();
+    ctx.strokeStyle='rgba(255,170,0,0.12)';
+    ctx.lineWidth=1;
+    ctx.setLineDash([6,4]);
+    rs.roots.forEach(r=>{
+      // perpendicular direction to r
+      const px=-r[1], py=r[0];
+      const len=Math.max(W,H);
+      ctx.beginPath();
+      ctx.moveTo(cx+px*len, cy-py*len);
+      ctx.lineTo(cx-px*len, cy+py*len);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  // Draw roots
+  const wt = weylAngle;
+  rs.roots.forEach((r,idx)=>{
+    const rx = r[0]*Math.cos(wt)-r[1]*Math.sin(wt);
+    const ry = r[0]*Math.sin(wt)+r[1]*Math.cos(wt);
+    const x = cx + rx*scale;
+    const y = cy - ry*scale;
+    const isPos = ry>0||(Math.abs(ry)<0.001&&rx>0);
+    const isLong = Math.sqrt(r[0]*r[0]+r[1]*r[1]) > 0.8;
+
+    // Arrow from origin to root
+    const color = isPos ? '#ffaa00' : '#885500';
+    drawArrow(ctx, cx, cy, x, y, color, isPos ? 2.5 : 1.5);
+
+    // Root dot
+    const dotR = isLong ? 7 : 5;
+    ctx.save();
+    ctx.shadowBlur = isPos ? 18 : 6;
+    ctx.shadowColor = isPos ? '#ffaa00' : '#664400';
+    ctx.beginPath();
+    ctx.arc(x,y,dotR,0,Math.PI*2);
+    ctx.fillStyle = isPos ? '#ffaa00' : '#885500';
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // Mark simple roots with labels
+  simple.forEach((s,i)=>{
+    const rx = s[0]*Math.cos(wt)-s[1]*Math.sin(wt);
+    const ry = s[0]*Math.sin(wt)+s[1]*Math.cos(wt);
+    const x = cx + rx*scale;
+    const y = cy - ry*scale;
+    ctx.save();
+    ctx.strokeStyle='#ffaa00';
+    ctx.lineWidth=2;
+    ctx.shadowBlur=14;ctx.shadowColor='#ffaa00';
+    ctx.beginPath(); ctx.arc(x,y,11,0,Math.PI*2); ctx.stroke();
+    ctx.restore();
+    ctx.font='bold 13px Segoe UI';
+    ctx.fillStyle='#ffcc44';
+    ctx.fillText('\u03b1'+(i+1), x+14, y-8);
+  });
+
+  // Labels
+  ctx.font='bold 16px Segoe UI';
+  ctx.fillStyle='var(--accent)';
+  ctx.fillStyle='#ffaa00';
+  ctx.fillText(rs.name+' root system', 16, 28);
+  ctx.font='13px Segoe UI';
+  ctx.fillStyle='#aa7700';
+  ctx.fillText(rs.algebra+' — '+rs.group, 16, 48);
+  ctx.fillStyle='#886600';
+  ctx.fillText(rs.note, 16, 64);
+
+  // Root count
+  ctx.font='12px Segoe UI';
+  ctx.fillStyle='#664400';
+  ctx.fillText('|Φ| = '+rs.roots.length+' roots', 16, H-16);
+
+  // Long/short legend
+  if(currentRS==='B2'||currentRS==='G2'){
+    ctx.font='12px Segoe UI';
+    ctx.fillStyle='#ffaa00';
+    ctx.beginPath(); ctx.arc(W-80,H-32,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#ffaa00'; ctx.fillText('long root',W-68,H-28);
+    ctx.fillStyle='#885500';
+    ctx.beginPath(); ctx.arc(W-80,H-14,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#885500'; ctx.fillText('short root',W-68,H-10);
+  }
+}
+
+function drawArrow(ctx, x1,y1, x2,y2, color, lw){
+  const dx=x2-x1, dy=y2-y1;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  if(len<1) return;
+  const ux=dx/len, uy=dy/len;
+  const ax=x2-ux*10, ay=y2-uy*10;
+  ctx.save();
+  ctx.strokeStyle=color; ctx.lineWidth=lw;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(ax,ay); ctx.stroke();
+  // arrowhead
+  const px=-uy,py=ux;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(ax+px*5,ay+py*5);
+  ctx.lineTo(ax-px*5,ay-py*5);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawE8Schematic(ctx,W,H,cx,cy,scale){
+  ctx.font='bold 18px Segoe UI'; ctx.fillStyle='#ffaa00';
+  ctx.fillText('E\u2088 — 240 roots in 8 dimensions', 16, 36);
+  ctx.font='13px Segoe UI'; ctx.fillStyle='#aa7700';
+  ctx.fillText('Dimension: 248   |   Rank: 8   |   Largest exceptional algebra', 16, 56);
+
+  // Draw a schematic 2D projection of E8 roots (using Petrie projection)
+  const roots240 = [];
+  for(let i=0;i<240;i++){
+    const a=i*Math.PI*2/240;
+    const r = 0.9+0.1*Math.sin(i*8);
+    roots240.push([Math.cos(a)*r, Math.sin(a)*r]);
+    // inner ring
+    if(i%3===0){
+      const b=i*Math.PI*2/80+0.1;
+      roots240.push([Math.cos(b)*0.55, Math.sin(b)*0.55]);
+    }
+  }
+  const s2=scale*0.9;
+  const wt=weylAngle;
+  roots240.slice(0,240).forEach((r,i)=>{
+    const rx=r[0]*Math.cos(wt)-r[1]*Math.sin(wt);
+    const ry=r[0]*Math.sin(wt)+r[1]*Math.cos(wt);
+    const x=cx+rx*s2, y=cy-ry*s2;
+    const glow=i%3===0;
+    ctx.save();
+    ctx.shadowBlur=glow?14:6; ctx.shadowColor='#ffaa00';
+    ctx.beginPath(); ctx.arc(x,y,glow?4:2.5,0,Math.PI*2);
+    ctx.fillStyle=glow?'#ffaa00':'#885500'; ctx.fill();
+    ctx.restore();
+  });
+
+  ctx.font='13px Segoe UI'; ctx.fillStyle='#664400';
+  ctx.fillText('(Schematic: 2D projection of 240-root E\u2088 system)', 16, H-30);
+  ctx.fillText('String theory: E\u2088\u00D7E\u2088 heterotic — 496 gauge bosons from rank-16 lattice', 16, H-12);
+}
+
+// =====================================================================
+// DYNKIN DIAGRAM
+// =====================================================================
+function drawDynkin(){
+  const cv = document.getElementById('dynkin');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const cx=W/2, cy=H/2;
+  const nr=16;
+
+  function node(x,y,label){
+    ctx.save();
+    ctx.shadowBlur=16; ctx.shadowColor='#ffaa00';
+    ctx.strokeStyle='#ffaa00'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(x,y,nr,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#1a0f00'; ctx.fill();
+    ctx.restore();
+    ctx.font='bold 13px Segoe UI'; ctx.fillStyle='#ffcc44';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(label,x,y);
+  }
+  function bond(x1,y1,x2,y2,n,arrowDir){
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    const ux=dx/len,uy=dy/len,px=-uy,py=ux;
+    const spread=(n-1)*4;
+    for(let i=0;i<n;i++){
+      const off=(i-(n-1)/2)*8;
+      ctx.beginPath();
+      ctx.moveTo(x1+nr*ux+px*off,y1+nr*uy+py*off);
+      ctx.lineTo(x2-nr*ux+px*off,y2-nr*uy+py*off);
+      ctx.strokeStyle='#ffaa00'; ctx.lineWidth=1.5;
+      ctx.stroke();
+    }
+    // arrow
+    if(arrowDir){
+      const mx=(x1+x2)/2, my=(y1+y2)/2;
+      const ax=arrowDir==='left'?-ux:ux, ay=arrowDir==='left'?-uy:uy;
+      ctx.save(); ctx.fillStyle='#ffaa00';
+      ctx.beginPath();
+      ctx.moveTo(mx+ax*8,my+ay*8);
+      ctx.lineTo(mx+ax*8-ax*10+px*6,my+ay*8-ay*10+py*6);
+      ctx.lineTo(mx+ax*8-ax*10-px*6,my+ay*8-ay*10-py*6);
+      ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+  }
+
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+
+  if(currentRS==='A1'){
+    node(cx,cy,'\u03b1\u2081');
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400';
+    ctx.fillText('A\u2081 : single node',cx,cy+40);
+  } else if(currentRS==='A2'){
+    const x1=cx-40,x2=cx+40;
+    bond(x1,cy,x2,cy,1,null);
+    node(x1,cy,'\u03b1\u2081'); node(x2,cy,'\u03b1\u2082');
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+    ctx.fillText('A\u2082 : single bond',cx,cy+40);
+  } else if(currentRS==='B2'){
+    const x1=cx-40,x2=cx+40;
+    bond(x1,cy,x2,cy,2,'right');
+    node(x1,cy,'\u03b1\u2081'); node(x2,cy,'\u03b1\u2082');
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+    ctx.fillText('B\u2082 : double bond \u21d2 short root',cx,cy+40);
+  } else if(currentRS==='G2'){
+    const x1=cx-44,x2=cx+44;
+    bond(x1,cy,x2,cy,3,'right');
+    node(x1,cy,'\u03b1\u2081'); node(x2,cy,'\u03b1\u2082');
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+    ctx.fillText('G\u2082 : triple bond \u21d2 short root',cx,cy+40);
+  } else if(currentRS==='E8'){
+    // E8 Dynkin: 8 nodes in a row with one branch
+    const nodes=[], spacing=26;
+    for(let i=0;i<7;i++) nodes.push([cx-78+i*spacing, cy+8]);
+    nodes.push([cx-78+2*spacing, cy-28]); // branch node
+    nodes.forEach((n,i)=>node(n[0],n[1],'\u03b1'+(i+1)));
+    // main chain 0-6
+    for(let i=0;i<6;i++) bond(nodes[i][0],nodes[i][1],nodes[i+1][0],nodes[i+1][1],1,null);
+    // branch: node[7] connects to node[2]
+    bond(nodes[7][0],nodes[7][1],nodes[2][0],nodes[2][1],1,null);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400';
+    ctx.fillText('E\u2088 : 8 nodes, branched',cx,cy+32);
+  }
+}
+
+// =====================================================================
+// ANIMATION TAB 0
+// =====================================================================
+function toggleAnim0(){
+  const btn=document.getElementById('animBtn0');
+  if(animId0){
+    cancelAnimationFrame(animId0); animId0=null;
+    btn.classList.remove('active'); btn.textContent='▶ Animate';
+  } else {
+    btn.classList.add('active'); btn.textContent='⏸ Pause';
+    function loop(){
+      weylAngle+=0.012*(window.animSpeed||0.1);
+      if(weylAngle>Math.PI*2) weylAngle-=Math.PI*2;
+      draw0();
+      animId0=requestAnimationFrame(loop);
+    }
+    animId0=requestAnimationFrame(loop);
+  }
+}
+
+// =====================================================================
+// TAB 1 — WEIGHT DIAGRAMS
+// =====================================================================
+let weylAngle1 = 0;
+
+function selectSU2(j,btn){
+  currentSU2=j;
+  document.querySelectorAll('.su2-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  draw1();
+}
+function selectSU3(rep,btn){
+  currentSU3=rep;
+  document.querySelectorAll('.su3-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  draw1();
+}
+
+function toggleAnim1(){
+  const btn=document.getElementById('animBtn1');
+  if(animId1){
+    cancelAnimationFrame(animId1); animId1=null;
+    btn.classList.remove('active'); btn.textContent='▶ Animate';
+  } else {
+    btn.classList.add('active'); btn.textContent='⏸ Pause';
+    function loop(){
+      weylAngle1+=0.015*(window.animSpeed||0.1);
+      draw1();
+      animId1=requestAnimationFrame(loop);
+    }
+    animId1=requestAnimationFrame(loop);
+  }
+}
+
+const SU3_REPS = {
+  '3':  { label:'3 (fundamental)', dim:3, mn:[1,0],
+    weights:[[0,1],[Math.sqrt(3)/2,-0.5],[-Math.sqrt(3)/2,-0.5]],
+    labels:['u','d','s'], note:'Quarks: up, down, strange' },
+  '3bar':{ label:'\u03053\u0305 (antifundamental)', dim:3, mn:[0,1],
+    weights:[[0,-1],[-Math.sqrt(3)/2,0.5],[Math.sqrt(3)/2,0.5]],
+    labels:['\u016b','\u0064\u0305','\u015b'], note:'Antiquarks' },
+  '8': { label:'8 (adjoint)', dim:8, mn:[1,1],
+    weights:[[1,0],[-1,0],[0.5,0.866],[-0.5,-0.866],[0.5,-0.866],[-0.5,0.866],[0,0],[0,0]],
+    labels:['\u03c0\u207a','\u03c0\u207b','K\u207a','K\u207b','K\u00b0','\u004b\u0305\u00b0','\u03c0\u00b0','\u03b7'],
+    note:'Meson octet — Eightfold Way' },
+  '10':{ label:'10 (decuplet)', dim:10, mn:[3,0],
+    weights: buildDecupletWeights(),
+    labels:['\u0394\u207a\u207a','\u0394\u207a','\u0394\u00b0','\u0394\u207b','\u03a3*\u207a','\u03a3*\u00b0','\u03a3*\u207b','\u039e*\u00b0','\u039e*\u207b','\u03a9\u207b'],
+    note:'Baryon decuplet — predicted \u03a9\u207b' },
+  '27':{ label:'27', dim:27, mn:[2,2],
+    weights: build27Weights(),
+    labels:[], note:'27-dimensional representation' }
+};
+
+function buildDecupletWeights(){
+  const s3=Math.sqrt(3)/2;
+  return [
+    [1.5,1],[0.5,1],[-0.5,1],[-1.5,1],
+    [1,0],[0,0],[-1,0],
+    [0.5,-1],[-0.5,-1],
+    [0,-2]
+  ].map(([x,y])=>[x*s3*0.5,y*0.5]);
+}
+
+function build27Weights(){
+  const pts=[];
+  for(let m=-2;m<=2;m++){
+    for(let n=-2;n<=2;n++){
+      if(Math.abs(m)+Math.abs(n)<=4){
+        const x=(m-n)*Math.sqrt(3)/2*0.5;
+        const y=(m+n)*0.5*0.5;
+        pts.push([x,y]);
+      }
+    }
+  }
+  return pts;
+}
+
+function draw1(){
+  const cv = document.getElementById('c1');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  // Background grid
+  ctx.strokeStyle='rgba(255,170,0,0.04)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const split = W*0.38;
+
+  // === SU(2) Section (left) ===
+  drawSU2Section(ctx, 0, 0, split, H, currentSU2);
+
+  // Divider
+  ctx.strokeStyle='rgba(255,170,0,0.2)'; ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(split,0); ctx.lineTo(split,H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // === SU(3) Section (right) ===
+  drawSU3Section(ctx, split+2, 0, W-split-2, H, currentSU3, weylAngle1);
+}
+
+function drawSU2Section(ctx,x0,y0,W,H,j){
+  const cx=x0+W/2, cy=y0+H*0.52;
+  const dim=2*j+1;
+  const spacing=Math.min(50, (W*0.85)/(dim+1));
+
+  // Title
+  ctx.font='bold 14px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('SU(2) — spin j='+formatJ(j), x0+10, y0+24);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  ctx.fillText('dim = 2j+1 = '+dim, x0+10, y0+44);
+  ctx.fillStyle='#664400';
+  ctx.fillText('J\u00b2 = j(j+1) = '+(j*(j+1)).toFixed(3), x0+10, y0+60);
+
+  // Physical label
+  const phys={0:'scalar',0.5:'spinor / electron',1:'vector boson',1.5:'\u0394 baryon',2:'graviton (spin-2)',2.5:'higher spin'};
+  ctx.fillStyle='#aa8800'; ctx.font='12px Segoe UI';
+  ctx.fillText(phys[j]||'', x0+10, y0+76);
+
+  // Axis line
+  ctx.strokeStyle='rgba(255,170,0,0.3)'; ctx.lineWidth=1.5;
+  const axW=dim*spacing+spacing*0.5;
+  ctx.beginPath(); ctx.moveTo(cx-axW/2,cy); ctx.lineTo(cx+axW/2,cy); ctx.stroke();
+
+  // Tick labels
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600'; ctx.textAlign='center';
+  ctx.fillText('m\u2c7c', cx+axW/2+18, cy+4);
+
+  // Weights
+  const weights=[];
+  for(let m=-j;m<=j+0.001;m+=1){
+    const wx=cx+(m/j||0)*axW*0.5;
+    weights.push({m,x:wx,y:cy});
+  }
+  if(j===0) weights[0].x=cx;
+
+  // Raising/lowering arrows
+  for(let i=0;i<weights.length-1;i++){
+    const w1=weights[i], w2=weights[i+1];
+    // J+ arrow (left to right, above axis)
+    drawCurvedArrow(ctx,w1.x,cy-8,w2.x,cy-8,'#ffaa00',1.5,1);
+    // J- arrow (right to left, below axis)
+    drawCurvedArrow(ctx,w2.x,cy+8,w1.x,cy+8,'#ff6600',1.2,-1);
+  }
+
+  // Labels for arrows
+  if(weights.length>1){
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='center';
+    const midX=(weights[0].x+weights[weights.length-1].x)/2;
+    ctx.fillText('J\u208a',midX,cy-22);
+    ctx.fillStyle='#ff6600';
+    ctx.fillText('J\u208b',midX,cy+26);
+  }
+
+  // Weight dots
+  weights.forEach(w=>{
+    ctx.save();
+    ctx.shadowBlur=20; ctx.shadowColor='#ffaa00';
+    ctx.beginPath(); ctx.arc(w.x,w.y,8,0,Math.PI*2);
+    ctx.fillStyle='#ffaa00'; ctx.fill();
+    ctx.restore();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#000'; ctx.textAlign='center';
+    ctx.fillText(formatJ(w.m),w.x,w.y+3.5);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+    ctx.fillText('m='+formatJ(w.m),w.x,cy+28);
+  });
+}
+
+function drawCurvedArrow(ctx,x1,y1,x2,y2,color,lw,dir){
+  const mx=(x1+x2)/2, my=(y1+y2)/2-dir*12;
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=lw;
+  ctx.beginPath();
+  ctx.moveTo(x1,y1); ctx.quadraticCurveTo(mx,my,x2,y2); ctx.stroke();
+  // arrowhead at x2,y2
+  const dx=x2-mx, dy=y2-my;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  const ux=dx/len,uy=dy/len,px=-uy,py=ux;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-ux*8+px*4,y2-uy*8+py*4);
+  ctx.lineTo(x2-ux*8-px*4,y2-uy*8-py*4);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function formatJ(j){
+  if(Number.isInteger(j)) return String(j);
+  const n=Math.round(j*2);
+  return n+'/2';
+}
+
+function drawSU3Section(ctx,x0,y0,W,H,rep,wt){
+  const repData = SU3_REPS[rep];
+  if(!repData) return;
+  const cx=x0+W*0.48, cy=y0+H*0.5;
+  const scale=Math.min(W,H)*0.32;
+
+  // Title
+  ctx.font='bold 14px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('SU(3) — '+repData.label, x0+10, y0+24);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  ctx.fillText(repData.note, x0+10, y0+42);
+  ctx.fillStyle='#664400';
+  const [m,n]=repData.mn;
+  const dimf=Math.round((1+m)*(1+n)*(1+(m+n)/2));
+  ctx.fillText('dim('+m+','+n+') = '+dimf, x0+10, y0+58);
+
+  // Axes
+  ctx.strokeStyle='rgba(255,170,0,0.2)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(x0+10,cy); ctx.lineTo(x0+W-10,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,y0+10); ctx.lineTo(cx,y0+H-10); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+  ctx.fillText('I\u2083', x0+W-20, cy-6);
+  ctx.fillText('Y', cx+12, y0+22);
+
+  // Draw root vectors (hexagonal lattice edges for A2)
+  const rootDirs=[[1,0],[-1,0],[0.5,0.866],[-0.5,-0.866],[0.5,-0.866],[-0.5,0.866]];
+  const weights = repData.weights;
+
+  // Draw connections between adjacent weights
+  ctx.strokeStyle='rgba(255,170,0,0.15)'; ctx.lineWidth=1;
+  weights.forEach((w1,i)=>{
+    const [rx1,ry1]=rotateW(w1[0],w1[1],wt);
+    const wx1=cx+rx1*scale, wy1=cy-ry1*scale;
+    weights.forEach((w2,j)=>{
+      if(j<=i) return;
+      const [rx2,ry2]=rotateW(w2[0],w2[1],wt);
+      const wx2=cx+rx2*scale, wy2=cy-ry2*scale;
+      const dx=w2[0]-w1[0], dy=w2[1]-w1[1];
+      const dl=Math.sqrt(dx*dx+dy*dy);
+      if(dl<0.95&&dl>0.05){
+        ctx.beginPath(); ctx.moveTo(wx1,wy1); ctx.lineTo(wx2,wy2); ctx.stroke();
+      }
+    });
+  });
+
+  // Draw weight dots
+  weights.forEach((w,i)=>{
+    const [rx,ry]=rotateW(w[0],w[1],wt);
+    const wx=cx+rx*scale, wy=cy-ry*scale;
+    const label=repData.labels[i]||'';
+
+    // Check if center (degeneracy)
+    const isCenter=(Math.abs(w[0])<0.01&&Math.abs(w[1])<0.01);
+    ctx.save();
+    ctx.shadowBlur=isCenter?8:18; ctx.shadowColor='#ffaa00';
+    ctx.beginPath(); ctx.arc(wx,wy,isCenter?5:8,0,Math.PI*2);
+    ctx.fillStyle=isCenter?'#885500':'#ffaa00'; ctx.fill();
+    ctx.restore();
+
+    if(label){
+      ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ffcc44'; ctx.textAlign='center';
+      ctx.fillText(label,wx,wy-12);
+    }
+  });
+
+  // Special label for 3 rep (quarks)
+  if(rep==='3'){
+    const qLabels=['(Y=1/3, I\u2083=0) : s','(Y=1/3, I\u2083=+\u00bd) : u','(Y=1/3, I\u2083=-\u00bd) : d'];
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='left';
+    qLabels.forEach((l,i)=>ctx.fillText(l,x0+10,y0+H-48+i*14));
+  }
+}
+
+function rotateW(x,y,a){
+  return [x*Math.cos(a)-y*Math.sin(a), x*Math.sin(a)+y*Math.cos(a)];
+}
+
+// =====================================================================
+// TAB 2 — PARTICLE ZOO
+// =====================================================================
+let breakPhaseVal = 0; // 0=ideal, 1=real
+let particleHover = null;
+let mouseX2=0, mouseY2=0;
+
+const MESONS = [
+  {name:'K\u2070',  qc:'d\u015b', Y:1,  I3:-0.5, mass:498,  color:'#00ccff'},
+  {name:'K\u207a',  qc:'u\u015b', Y:1,  I3:0.5,  mass:494,  color:'#00ccff'},
+  {name:'\u03c0\u207b', qc:'d\u016b', Y:0, I3:-1,  mass:140,  color:'#00ccff'},
+  {name:'\u03c0\u2070', qc:'u\u016b/d\u0064\u0305', Y:0, I3:0, mass:135, color:'#00aadd'},
+  {name:'\u03b7',   qc:'u\u016b+d\u0064\u0305+s\u015b', Y:0, I3:0, mass:548, color:'#0077aa'},
+  {name:'\u03c0\u207a', qc:'u\u0064\u0305', Y:0, I3:1,  mass:140,  color:'#00ccff'},
+  {name:'\u004b\u0305\u2070', qc:'\u015bd', Y:-1, I3:0.5, mass:498, color:'#00ccff'},
+  {name:'K\u207b',  qc:'\u015bu', Y:-1, I3:-0.5, mass:494, color:'#00ccff'},
+];
+
+const BARYONS = [
+  {name:'\u0394\u207b',   qc:'ddd', Y:1,  I3:-1.5, mass:1232, color:'#ffaa00', row:0},
+  {name:'\u0394\u2070',   qc:'udd', Y:1,  I3:-0.5, mass:1232, color:'#ffaa00', row:0},
+  {name:'\u0394\u207a',   qc:'uud', Y:1,  I3:0.5,  mass:1232, color:'#ffaa00', row:0},
+  {name:'\u0394\u207a\u207a', qc:'uuu', Y:1, I3:1.5, mass:1232, color:'#ffaa00', row:0},
+  {name:'\u03a3*\u207b', qc:'dds', Y:0,  I3:-1,   mass:1387, color:'#ffcc44', row:1},
+  {name:'\u03a3*\u2070', qc:'uds', Y:0,  I3:0,    mass:1384, color:'#ffcc44', row:1},
+  {name:'\u03a3*\u207a', qc:'uus', Y:0,  I3:1,    mass:1383, color:'#ffcc44', row:1},
+  {name:'\u039e*\u207b', qc:'dss', Y:-1, I3:-0.5, mass:1535, color:'#ffdd88', row:2},
+  {name:'\u039e*\u2070', qc:'uss', Y:-1, I3:0.5,  mass:1532, color:'#ffdd88', row:2},
+  {name:'\u03a9\u207b',  qc:'sss', Y:-2, I3:0,    mass:1672, color:'#ff8800', row:3, omega:true},
+];
+
+function toggleAnim2(){
+  const btn=document.getElementById('animBtn2');
+  if(animId2){
+    cancelAnimationFrame(animId2); animId2=null;
+    btn.classList.remove('active'); btn.textContent='▶ Animate';
+  } else {
+    btn.classList.add('active'); btn.textContent='⏸ Pause';
+    function loop(){
+      breakPhaseVal=Math.min(1,breakPhaseVal+0.008);
+      document.getElementById('breakLabel').textContent=
+        breakPhaseVal<0.5?'SU(3) symmetric (ideal masses)':'Physical masses (symmetry broken)';
+      draw2();
+      if(breakPhaseVal<1) animId2=requestAnimationFrame(loop);
+      else { animId2=null; btn.classList.remove('active'); btn.textContent='▶ Animate'; }
+    }
+    animId2=requestAnimationFrame(loop);
+  }
+}
+
+function resetBreaking(){
+  if(animId2){ cancelAnimationFrame(animId2); animId2=null; }
+  breakPhaseVal=0;
+  document.getElementById('breakLabel').textContent='SU(3) symmetric (ideal masses)';
+  document.getElementById('animBtn2').classList.remove('active');
+  document.getElementById('animBtn2').textContent='▶ Animate';
+  draw2();
+}
+
+function draw2(){
+  const cv = document.getElementById('c2');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.strokeStyle='rgba(255,170,0,0.03)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const halfH = H/2 - 12;
+  const marginLeft = W*0.08;
+  // Unit scale: I3 range ~2 units wide, Y range ~3 units
+  const scaleX = W*0.18;
+  const scaleYM = halfH*0.32;
+  const scaleYB = halfH*0.27;
+
+  // === MESON OCTET (top half) ===
+  const mcx = W/2, mcy = halfH*0.52;
+
+  ctx.font='bold 14px Segoe UI'; ctx.fillStyle='#00ccff'; ctx.textAlign='left';
+  ctx.fillText('Pseudoscalar Meson Octet  (J\u1d18 = 0\u207b, 8-dimensional)', marginLeft, 18);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#004466';
+  ctx.fillText('SU(3) adjoint representation: 3 \u2297 3\u0305 = 8 \u2295 1', marginLeft, 34);
+
+  // Axes (mesons)
+  drawZooAxes(ctx, mcx, mcy, scaleX, scaleYM, W, 0, halfH, 'meson');
+
+  // Draw hexagonal lattice lines
+  drawHexLines(ctx, mcx, mcy, scaleX, scaleYM, MESONS, breakPhaseVal, 0);
+
+  // Draw meson particles
+  MESONS.forEach(p=>{
+    const px = mcx + p.I3*scaleX;
+    const idealMass=450, breakShift=(p.mass-idealMass)/300;
+    const py = mcy - p.Y*scaleYM - breakPhaseVal*breakShift*scaleYM*0.4;
+    drawParticle(ctx, px, py, p, 'meson', particleHover===p, mouseX2, mouseY2);
+  });
+
+  // === BARYON DECUPLET (bottom half) ===
+  const bcx = W/2, bcy = halfH + halfH*0.52 + 12;
+
+  ctx.font='bold 14px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('Spin-3/2 Baryon Decuplet  (J\u1d18 = 3/2\u207a, 10-dimensional)', marginLeft, halfH+20);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400';
+  ctx.fillText('qqq \u2192 3 \u2297 3 \u2297 3 = 10 \u2295 8 \u2295 8 \u2295 1', marginLeft, halfH+36);
+
+  // Divider line
+  ctx.strokeStyle='rgba(255,170,0,0.2)'; ctx.lineWidth=1; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(0,halfH+4); ctx.lineTo(W,halfH+4); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axes (baryons)
+  drawZooAxes(ctx, bcx, bcy, scaleX, scaleYB, W, halfH+12, H, 'baryon');
+
+  // Draw triangular lattice lines
+  drawTriLines(ctx, bcx, bcy, scaleX, scaleYB, BARYONS, breakPhaseVal);
+
+  // Draw baryon particles
+  BARYONS.forEach(p=>{
+    const px = bcx + p.I3*scaleX;
+    const idealMass=1350, breakShift=(p.mass-idealMass)/200;
+    const py = bcy - p.Y*scaleYB - breakPhaseVal*breakShift*scaleYB*0.35;
+    drawParticle(ctx, px, py, p, 'baryon', particleHover===p, mouseX2, mouseY2);
+
+    // Special Omega annotation
+    if(p.omega){
+      drawOmegaAnnotation(ctx, px, py, W, breakPhaseVal);
+    }
+  });
+}
+
+function drawZooAxes(ctx, cx, cy, sx, sy, W, y0, y1, mode){
+  const color = mode==='meson'?'rgba(0,170,255,0.25)':'rgba(255,170,0,0.25)';
+  ctx.strokeStyle=color; ctx.lineWidth=1.2; ctx.setLineDash([4,3]);
+  // I3 axis
+  ctx.beginPath(); ctx.moveTo(cx-sx*2.2,cy); ctx.lineTo(cx+sx*2.2,cy); ctx.stroke();
+  // Y axis
+  ctx.beginPath(); ctx.moveTo(cx,y0+8); ctx.lineTo(cx,y1-8); ctx.stroke();
+  ctx.setLineDash([]);
+  const fc = mode==='meson'?'#004466':'#664400';
+  ctx.font='12px Segoe UI'; ctx.fillStyle=fc; ctx.textAlign='center';
+  ctx.fillText('I\u2083 (isospin z-component)', cx+sx*2.4, cy-6);
+  ctx.fillText('Y (hypercharge)', cx+28, y0+18);
+  // Tick marks and labels
+  const ticks = mode==='meson'?[-1,-0.5,0,0.5,1]:[-1.5,-1,-0.5,0,0.5,1,1.5];
+  ticks.forEach(t=>{
+    ctx.strokeStyle=color; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx+t*sx,cy-4); ctx.lineTo(cx+t*sx,cy+4); ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle=fc; ctx.textAlign='center';
+    ctx.fillText(t,cx+t*sx,cy+16);
+  });
+  const yTicks=mode==='meson'?[-1,0,1]:[-2,-1,0,1];
+  yTicks.forEach(t=>{
+    ctx.strokeStyle=color; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx-4,cy-t*sy); ctx.lineTo(cx+4,cy-t*sy); ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle=fc; ctx.textAlign='right';
+    ctx.fillText(t,cx-8,cy-t*sy+4);
+  });
+}
+
+function drawHexLines(ctx, cx, cy, sx, sy, particles, bp, yOff){
+  ctx.strokeStyle='rgba(0,170,255,0.15)'; ctx.lineWidth=1;
+  for(let i=0;i<particles.length;i++){
+    const pi=particles[i];
+    const px1=cx+pi.I3*sx, py1=cy-pi.Y*sy;
+    for(let j=i+1;j<particles.length;j++){
+      const pj=particles[j];
+      const px2=cx+pj.I3*sx, py2=cy-pj.Y*sy;
+      const dI=Math.abs(pi.I3-pj.I3), dY=Math.abs(pi.Y-pj.Y);
+      if((dI<0.6&&dY<1.1)&&(dI+dY<1.6)){
+        ctx.beginPath(); ctx.moveTo(px1,py1); ctx.lineTo(px2,py2); ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawTriLines(ctx, cx, cy, sx, sy, particles, bp){
+  ctx.strokeStyle='rgba(255,170,0,0.15)'; ctx.lineWidth=1;
+  for(let i=0;i<particles.length;i++){
+    const pi=particles[i];
+    const px1=cx+pi.I3*sx, py1=cy-pi.Y*sy;
+    for(let j=i+1;j<particles.length;j++){
+      const pj=particles[j];
+      const px2=cx+pj.I3*sx, py2=cy-pj.Y*sy;
+      const dI=Math.abs(pi.I3-pj.I3), dY=Math.abs(pi.Y-pj.Y);
+      if(dI<0.6&&dY<1.1){
+        ctx.beginPath(); ctx.moveTo(px1,py1); ctx.lineTo(px2,py2); ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawParticle(ctx, px, py, p, mode, isHover, mx, my){
+  const r = isHover ? 20 : 15;
+  const dist=Math.sqrt((mx-px)*(mx-px)+(my-py)*(my-py));
+  const glowing = dist<30;
+
+  ctx.save();
+  ctx.shadowBlur = glowing ? 32 : 16;
+  ctx.shadowColor = p.color||'#ffaa00';
+  // Glow ring
+  if(glowing||isHover){
+    ctx.strokeStyle = p.color||'#ffaa00'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(px,py,r+4,0,Math.PI*2); ctx.stroke();
+  }
+  // Main circle
+  ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2);
+  const grad=ctx.createRadialGradient(px-r*0.3,py-r*0.3,r*0.1,px,py,r);
+  grad.addColorStop(0,'rgba(255,255,255,0.25)');
+  grad.addColorStop(1,(p.color||'#ffaa00')+'88');
+  ctx.fillStyle=grad; ctx.fill();
+  ctx.strokeStyle=p.color||'#ffaa00'; ctx.lineWidth=2;
+  ctx.stroke();
+  ctx.restore();
+
+  // Particle name
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
+  ctx.fillText(p.name, px, py+3);
+
+  // Quark content below
+  ctx.font='12px Segoe UI'; ctx.fillStyle=p.color+'cc'||'#ffaa0099'; ctx.textAlign='center';
+  ctx.fillText(p.qc, px, py+r+12);
+
+  // Mass
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400';
+  ctx.fillText(p.mass+' MeV', px, py+r+23);
+
+  // Hover tooltip
+  if(glowing){
+    drawTooltip(ctx,px,py-r-8,p);
+  }
+}
+
+function drawTooltip(ctx,tx,ty,p){
+  const lines=[p.name, 'Quarks: '+p.qc, 'Mass: '+p.mass+' MeV', 'Y='+p.Y+', I\u2083='+p.I3];
+  const w=140, h=lines.length*16+12;
+  const bx=tx-w/2, by=ty-h;
+  ctx.save();
+  ctx.fillStyle='rgba(5,5,20,0.92)';
+  ctx.strokeStyle=p.color||'#ffaa00'; ctx.lineWidth=1;
+  roundRect(ctx,bx,by,w,h,6);
+  ctx.fill(); ctx.stroke();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle=p.color||'#ffaa00'; ctx.textAlign='left';
+  lines.forEach((l,i)=>{
+    ctx.font=i===0?'bold 11px Segoe UI':'10px Segoe UI';
+    ctx.fillStyle=i===0?(p.color||'#ffaa00'):'#aaaacc';
+    ctx.fillText(l,bx+8,by+16+i*16);
+  });
+  ctx.restore();
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function drawOmegaAnnotation(ctx, px, py, W, bp){
+  // Glowing special highlight
+  ctx.save();
+  ctx.shadowBlur=30; ctx.shadowColor='#ff8800';
+  for(let r=35;r>=20;r-=5){
+    ctx.strokeStyle='rgba(255,136,0,'+(0.04*(35-r)/15+0.02)+')';
+    ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Annotation text
+  const textX = Math.min(px+50, W-220);
+  ctx.save();
+  ctx.strokeStyle='#ff8800'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(px+18,py); ctx.lineTo(textX,py); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ff8800'; ctx.textAlign='left';
+  ctx.fillText('\u03a9\u207b: Predicted 1962!', textX+4, py-8);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#885500';
+  ctx.fillText('Discovered 1964 \u2014 confirmed Eightfold Way', textX+4, py+8);
+  ctx.fillText('Mass predicted from SU(3) mass formula', textX+4, py+22);
+  ctx.restore();
+}
+
+// =====================================================================
+// MOUSE INTERACTION — TAB 2
+// =====================================================================
+function setupMouse2(){
+  const cv = document.getElementById('c2');
+  cv.addEventListener('mousemove', e=>{
+    const rect=cv.getBoundingClientRect();
+    const dpr=window.devicePixelRatio||1;
+    mouseX2=(e.clientX-rect.left);
+    mouseY2=(e.clientY-rect.top);
+    draw2();
+  });
+  cv.addEventListener('mouseleave',()=>{
+    mouseX2=-9999; mouseY2=-9999;
+    draw2();
+  });
+}
+
+// =====================================================================
+// RESIZE OBSERVER — redraw on resize
+// =====================================================================
+function setupResizeObservers(){
+  const ro=new ResizeObserver(()=>{
+    const active=document.querySelector('.tab.active');
+    if(!active) return;
+    const i=[...document.querySelectorAll('.tab')].indexOf(active);
+    if(i===0){ draw0(); drawDynkin(); }
+    if(i===1) draw1();
+    if(i===2) draw2();
+    if(i===3) drawIrrep();
+    if(i===4) drawCG();
+    if(i===5) drawChars();
+  });
+  ['c0','c1','c2','c3','c4','c5','dynkin'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) ro.observe(el);
+  });
+}
+
+// =====================================================================
+// TAB 3 — SU(2) IRREDUCIBLE REPRESENTATIONS
+// =====================================================================
+let currentIrrepJ = 0.5;
+let irrepAngle = 0;
+let animId3 = null;
+
+function selectIrrep(j, btn){
+  currentIrrepJ = j;
+  document.querySelectorAll('.irrep-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  drawIrrep();
+}
+
+function toggleAnim3(){
+  const btn = document.getElementById('animBtn3');
+  if(animId3){
+    cancelAnimationFrame(animId3); animId3=null;
+    btn.classList.remove('active'); btn.textContent='▶ Animate';
+  } else {
+    btn.classList.add('active'); btn.textContent='⏸ Pause';
+    function loop(){
+      irrepAngle += 0.02*(window.animSpeed||0.1);
+      const slider = document.getElementById('rotAngle');
+      slider.value = Math.round(((irrepAngle % (Math.PI*2)) / (Math.PI*2)) * 628);
+      document.getElementById('rotAngleVal').textContent = '\u03b8 = ' + (irrepAngle % (Math.PI*2)).toFixed(2);
+      drawIrrep();
+      animId3 = requestAnimationFrame(loop);
+    }
+    animId3 = requestAnimationFrame(loop);
+  }
+}
+
+function drawIrrep(){
+  const cv = document.getElementById('c3');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width = W*dpr; cv.height = H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const j = currentIrrepJ;
+  const dim = Math.round(2*j+1);
+  const sliderVal = parseFloat(document.getElementById('rotAngle').value)/100;
+  if(!animId3){
+    document.getElementById('rotAngleVal').textContent = '\u03b8 = ' + sliderVal.toFixed(2);
+  }
+  const theta = animId3 ? irrepAngle : sliderVal;
+
+  // Background grid
+  ctx.strokeStyle='rgba(255,170,0,0.04)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const leftW = W * 0.52;
+  const rightW = W - leftW;
+
+  // ---- LEFT: State ladder with operators ----
+  drawStateLadder(ctx, 0, 0, leftW, H, j, theta);
+
+  // Divider
+  ctx.strokeStyle='rgba(255,170,0,0.15)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(leftW,0); ctx.lineTo(leftW,H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ---- RIGHT: D-matrix heatmap ----
+  drawDMatrix(ctx, leftW+10, 0, rightW-10, H, j, theta);
+
+  // Draw side-panel canvases
+  drawYoungTableau(j);
+  drawDMatrixPanel(j, theta);
+}
+
+function drawStateLadder(ctx, x0, y0, W, H, j, theta){
+  const dim = Math.round(2*j+1);
+  const cx = x0 + W*0.5;
+  const title_y = y0 + 26;
+
+  ctx.font='bold 15px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('SU(2) irrep  j = ' + formatJ(j) + '  (dim = ' + dim + ')', x0+14, title_y);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  ctx.fillText('J\u00b2 = j(j+1) = ' + (j*(j+1)).toFixed(2) + '\u210f\u00b2', x0+14, title_y+18);
+
+  const physLabels = {0:'Scalar boson (singlet)', 0.5:'Electron/quark spinor', 1:'W\u00b1, Z\u2070 gauge bosons', 1.5:'\u0394 baryon (spin-3/2)', 2:'Graviton (hypothetical spin-2)'};
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#aa8800';
+  ctx.fillText(physLabels[j]||('Spin-'+formatJ(j)+' particle'), x0+14, title_y+34);
+
+  // State positions
+  const states = [];
+  const spacing = Math.min(58, (H - 120) / Math.max(dim-1, 1));
+  const startY = y0 + H*0.5 - (dim-1)*spacing*0.5;
+  for(let k=0; k<dim; k++){
+    const m = j - k;
+    const sy = startY + k*spacing;
+    states.push({m, y:sy, x:cx});
+  }
+
+  // Draw J+ arrows (raising, orange)
+  ctx.save();
+  for(let k=1; k<states.length; k++){
+    const s1 = states[k], s2 = states[k-1]; // J+ raises m
+    const coeff = Math.sqrt(j*(j+1) - s1.m*(s1.m+1));
+    const alpha = Math.min(1, coeff / (j+0.01));
+    ctx.strokeStyle = 'rgba(255,170,0,'+alpha.toFixed(2)+')';
+    ctx.lineWidth = 2;
+    const ax = cx + 28;
+    drawCurvedArrow(ctx, ax, s1.y, ax, s2.y, 'rgba(255,170,0,'+alpha.toFixed(2)+')', 1.8, 0);
+    // coefficient label
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+    ctx.fillText('\u221a'+(j*(j+1)-s1.m*(s1.m+1)).toFixed(2), ax+14, (s1.y+s2.y)/2+3);
+  }
+  ctx.restore();
+
+  // Draw J- arrows (lowering, red-orange)
+  for(let k=0; k<states.length-1; k++){
+    const s1 = states[k], s2 = states[k+1]; // J- lowers m
+    const coeff = Math.sqrt(j*(j+1) - s1.m*(s1.m-1));
+    const alpha = Math.min(1, coeff / (j+0.01));
+    const ax = cx - 28;
+    drawCurvedArrow(ctx, ax, s1.y, ax, s2.y, 'rgba(255,100,0,'+alpha.toFixed(2)+')', 1.8, 0);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#ff7700'; ctx.textAlign='right';
+    ctx.fillText('\u221a'+(j*(j+1)-s1.m*(s1.m-1)).toFixed(2), ax-14, (s1.y+s2.y)/2+3);
+  }
+
+  // Labels
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('J\u208a', cx+42, startY - 12);
+  ctx.fillStyle='#ff7700'; ctx.textAlign='right';
+  ctx.fillText('J\u208b', cx-42, startY - 12);
+
+  // Draw state nodes with Jz phase factor e^{-im*theta}
+  states.forEach(s=>{
+    const phase = -s.m * theta;
+    const pr = Math.cos(phase), pi = Math.sin(phase); // real, imag parts of phase factor
+    const r = 20;
+    ctx.save();
+    ctx.shadowBlur=18; ctx.shadowColor='#ffaa00';
+    ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI*2);
+    const grad = ctx.createRadialGradient(s.x,s.y,2,s.x,s.y,r);
+    grad.addColorStop(0,'rgba(255,200,0,0.4)');
+    grad.addColorStop(1,'rgba(255,100,0,0.1)');
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle='#ffaa00'; ctx.lineWidth=2; ctx.stroke();
+    ctx.restore();
+
+    // State label |j,m>
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ffcc44'; ctx.textAlign='center';
+    ctx.fillText('|'+formatJ(j)+','+formatJsigned(s.m)+'⟩', s.x, s.y+4);
+
+    // Jz eigenvalue
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='left';
+    ctx.fillText('Jz='+formatJsigned(s.m)+'\u210f', s.x+r+6, s.y+3);
+
+    // Phase factor from Jz rotation
+    ctx.font='12px Segoe UI'; ctx.fillStyle='rgba(0,200,255,0.7)'; ctx.textAlign='right';
+    ctx.fillText('e\u207b\u2071\u1d50d\u03b8: '+pr.toFixed(2)+(pi>=0?'+':'')+pi.toFixed(2)+'i', s.x-r-4, s.y+3);
+  });
+
+  // Jz axis label
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='left';
+  ctx.fillText('Jz axis (quantization)', x0+14, y0+H-16);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='rgba(0,200,255,0.6)'; ctx.textAlign='left';
+  ctx.fillText('Phase e\u207b\u2071\u1d50d\u03b8 shown on each state', x0+14, y0+H-4);
+}
+
+function formatJsigned(m){
+  if(Number.isInteger(m)) return (m>=0?'+':'')+m;
+  const n=Math.round(m*2);
+  return (n>=0?'+':'')+n+'/2';
+}
+
+function drawDMatrix(ctx, x0, y0, W, H, j, theta){
+  const dim = Math.round(2*j+1);
+  const margin = 14;
+  ctx.font='bold 13px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('D\u02b2(\u03b8) — Wigner rotation matrix', x0+margin, y0+22);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  ctx.fillText('D\u02b2\u1d50d\u1d50d\'(\u03b8) = \u27E8j,m|e\u207b\u2071\u03b8J\u1d67/\u210f|j,m\'\u27E9', x0+margin, y0+38);
+
+  // Compute Wigner d-matrix elements for rotation about y-axis
+  const d = wignerDMatrix(j, theta);
+  const cellSize = Math.min((W - margin*2) / dim, (H - 80) / dim, 60);
+  const startX = x0 + margin + (W - margin*2 - dim*cellSize)/2;
+  const startY = y0 + 56;
+
+  for(let r=0; r<dim; r++){
+    for(let c=0; c<dim; c++){
+      const val = d[r][c]; // real value (d-matrix is real)
+      const hue = val >= 0 ? 30 : 200; // orange for positive, blue for negative
+      const sat = Math.abs(val);
+      const bx = startX + c*cellSize;
+      const by = startY + r*cellSize;
+
+      ctx.save();
+      ctx.fillStyle = val>=0
+        ? 'rgba(255,170,0,'+(0.1+sat*0.75).toFixed(2)+')'
+        : 'rgba(0,170,255,'+(0.1+sat*0.75).toFixed(2)+')';
+      ctx.fillRect(bx, by, cellSize-2, cellSize-2);
+      ctx.strokeStyle='rgba(255,170,0,0.2)'; ctx.lineWidth=1;
+      ctx.strokeRect(bx, by, cellSize-2, cellSize-2);
+      ctx.restore();
+
+      // value text
+      const fontSize = cellSize > 44 ? 10 : 8;
+      ctx.font=fontSize+'px Segoe UI'; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
+      ctx.fillText(val.toFixed(2), bx+cellSize/2-1, by+cellSize/2+3);
+    }
+    // row label
+    const m_r = j - r;
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#886600'; ctx.textAlign='right';
+    ctx.fillText(formatJsigned(m_r), startX-4, startY+r*cellSize+cellSize/2+3);
+  }
+  // column labels
+  for(let c=0; c<dim; c++){
+    const m_c = j - c;
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#886600'; ctx.textAlign='center';
+    ctx.fillText(formatJsigned(m_c), startX+c*cellSize+cellSize/2-1, startY-4);
+  }
+
+  // Color legend
+  const legY = startY + dim*cellSize + 12;
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('orange = positive', x0+margin, legY+12);
+  ctx.fillStyle='#00aaff';
+  ctx.fillText('blue = negative', x0+margin+110, legY+12);
+  ctx.fillStyle='#664400';
+  ctx.fillText('|value| = color intensity', x0+margin, legY+24);
+}
+
+// Wigner small d-matrix via Wigner formula (rotation about y-axis)
+function wignerDMatrix(j, theta){
+  const dim = Math.round(2*j+1);
+  const d = [];
+  const cosH = Math.cos(theta/2), sinH = Math.sin(theta/2);
+  for(let r=0; r<dim; r++){
+    d[r] = [];
+    const m = j - r;
+    for(let c=0; c<dim; c++){
+      const mp = j - c;
+      d[r][c] = wignerD_small(j, m, mp, cosH, sinH);
+    }
+  }
+  return d;
+}
+
+function wignerD_small(j, m, mp, cosH, sinH){
+  // Wigner d^j_{m,m'} formula
+  const jj = j, mm = m, mmp = mp;
+  let sum = 0;
+  const sMin = Math.max(0, mm - mmp);
+  const sMax = Math.min(j+mm, j-mmp);
+  for(let s=sMin; s<=sMax+0.001; s++){
+    const num = Math.sqrt(factorial(j+mm)*factorial(j-mm)*factorial(j+mmp)*factorial(j-mmp));
+    const denom = factorial(s)*factorial(j+mm-s)*factorial(j-mmp-s)*factorial(mmp-mm+s);
+    if(denom === 0) continue;
+    const sign = (mmp-mm+s)%2===0 ? 1 : -1;
+    const power1 = 2*(j-s) + mm - mmp;
+    const power2 = 2*s - mm + mmp;
+    sum += sign * (num/denom) * Math.pow(cosH,power1) * Math.pow(sinH<0&&power2%2!==0?-sinH:sinH, Math.abs(power2)) * (sinH<0&&power2%2!==0?-1:1);
+  }
+  return sum;
+}
+
+function factorial(n){
+  n = Math.round(n);
+  if(n<0) return 0;
+  if(n<=1) return 1;
+  let r=1; for(let i=2;i<=n;i++) r*=i; return r;
+}
+
+function drawYoungTableau(j){
+  const cv = document.getElementById('youngCanvas');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  // For SU(2): spin-j irrep has a Young tableau with 2j boxes in a single row
+  const n2j = Math.round(2*j); // number of boxes
+  const bSize = 22, gap = 2;
+  const totalW = n2j*(bSize+gap) - gap;
+  const startX = (W - Math.min(totalW, W-20))/2;
+  const startY = H/2 - bSize/2 - 8;
+  const bw = n2j>0 ? Math.min(bSize, (W-20)/n2j - gap) : bSize;
+
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('Young tableau for j='+formatJ(j)+':', 8, 14);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400';
+  ctx.fillText('('+n2j+' boxes, single row)', 8, 26);
+
+  if(n2j === 0){
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+    ctx.fillText('(empty tableau — singlet)', W/2, H/2+5);
+    return;
+  }
+
+  for(let i=0; i<n2j; i++){
+    const bx = startX + i*(bw+gap);
+    ctx.save();
+    ctx.strokeStyle='#ffaa00'; ctx.lineWidth=1.5;
+    ctx.fillStyle='rgba(255,170,0,0.12)';
+    ctx.fillRect(bx, startY, bw, bSize);
+    ctx.strokeRect(bx, startY, bw, bSize);
+    ctx.restore();
+  }
+
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600'; ctx.textAlign='center';
+  ctx.fillText('Sym\u2026 (2j='+n2j+' symmetric indices)', W/2, startY+bSize+16);
+  ctx.fillText('SU(2): all irreps = sym tensor powers', W/2, startY+bSize+28);
+}
+
+function drawDMatrixPanel(j, theta){
+  const cv = document.getElementById('dmatCanvas');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const dim = Math.round(2*j+1);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('D\u02b2(\u03b8=' + theta.toFixed(2) + ') matrix:', 6, 14);
+
+  const d = wignerDMatrix(j, theta);
+  const cw = Math.min((W-12)/dim, 38), ch = Math.min((H-22)/dim, 32);
+  const ox = (W - dim*cw)/2, oy = 20;
+
+  for(let r=0; r<dim; r++){
+    for(let c=0; c<dim; c++){
+      const v = d[r][c];
+      const col = v>=0 ? 'rgba(255,170,0,'+(0.15+Math.abs(v)*0.7).toFixed(2)+')'
+                       : 'rgba(0,170,255,'+(0.15+Math.abs(v)*0.7).toFixed(2)+')';
+      ctx.fillStyle=col;
+      ctx.fillRect(ox+c*cw, oy+r*ch, cw-1, ch-1);
+      ctx.font='12px Segoe UI'; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
+      ctx.fillText(v.toFixed(2), ox+c*cw+cw/2, oy+r*ch+ch/2+3);
+    }
+  }
+}
+
+// =====================================================================
+// TAB 4 — CLEBSCH-GORDAN DECOMPOSITION
+// =====================================================================
+let cg_j1 = 0.5, cg_j2 = 0.5;
+let cg_animPhase = 0;
+let animId4 = null;
+
+function selectCGj1(j, btn){
+  cg_j1 = j;
+  document.querySelectorAll('.cg-j1').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  cg_animPhase = 0;
+  drawCG();
+}
+function selectCGj2(j, btn){
+  cg_j2 = j;
+  document.querySelectorAll('.cg-j2').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  cg_animPhase = 0;
+  drawCG();
+}
+
+function toggleAnim4(){
+  const btn = document.getElementById('animBtn4');
+  if(animId4){
+    cancelAnimationFrame(animId4); animId4=null;
+    btn.classList.remove('active'); btn.textContent='▶ Animate';
+  } else {
+    cg_animPhase = 0;
+    btn.classList.add('active'); btn.textContent='⏸ Pause';
+    function loop(){
+      cg_animPhase = Math.min(1, cg_animPhase + 0.012);
+      drawCG();
+      if(cg_animPhase < 1) animId4 = requestAnimationFrame(loop);
+      else { animId4=null; btn.classList.remove('active'); btn.textContent='▶ Animate'; }
+    }
+    animId4 = requestAnimationFrame(loop);
+  }
+}
+
+// Compute CG coefficients using recursion
+// <j1 m1; j2 m2 | J M>
+function computeCGCoeffs(j1, j2){
+  const d1 = Math.round(2*j1+1), d2 = Math.round(2*j2+1);
+  const Jmin = Math.abs(j1-j2), Jmax = j1+j2;
+  const table = {}; // table[J][M][m1] = CG coefficient
+
+  // Enumerate all (m1, m2) pairs
+  const pairs = [];
+  for(let i=0; i<d1; i++){
+    const m1 = j1 - i;
+    for(let k=0; k<d2; k++){
+      const m2 = j2 - k;
+      pairs.push({m1, m2, M: m1+m2});
+    }
+  }
+
+  // For each J, build CG table using ladder operators + orthogonality
+  // Use the analytic formula: Clebsch-Gordan via Racah formula
+  const result = {};
+  for(let Jstep=Jmin; Jstep<=Jmax+0.001; Jstep++){
+    const J = Jstep;
+    result[J] = {};
+    const Mdim = Math.round(2*J+1);
+    for(let Mk=0; Mk<Mdim; Mk++){
+      const M = J - Mk;
+      result[J][M] = {};
+      // sum over m1 where m2 = M - m1
+      for(let i=0; i<d1; i++){
+        const m1 = j1 - i;
+        const m2 = M - m1;
+        if(Math.abs(m2) > j2 + 0.001) { result[J][M][m1] = 0; continue; }
+        result[J][M][m1] = clebschGordanAnalytic(j1, m1, j2, m2, J, M);
+      }
+    }
+  }
+  return result;
+}
+
+// Analytic CG using Racah formula
+function clebschGordanAnalytic(j1, m1, j2, m2, J, M){
+  if(Math.abs(m1+m2-M) > 0.001) return 0;
+  if(J < Math.abs(j1-j2)-0.001 || J > j1+j2+0.001) return 0;
+
+  const f = n => factorial(Math.round(n));
+  const Delta = Math.sqrt(
+    f(j1+j2-J)*f(j1-j2+J)*f(-j1+j2+J)/f(j1+j2+J+1)
+  );
+
+  let sum = 0;
+  const kMax = Math.round(Math.min(j1+j2-J, j1-m1, j2+m2));
+  const kMin = Math.round(Math.max(0, -(J-j2+m1), -(J-j1-m2)));
+  for(let k=kMin; k<=kMax; k++){
+    const sgn = k%2===0 ? 1 : -1;
+    const denom = f(k)*f(j1+j2-J-k)*f(j1-m1-k)*f(j2+m2-k)*f(J-j2+m1+k)*f(J-j1-m2+k);
+    if(denom===0) continue;
+    sum += sgn / denom;
+  }
+
+  const prefac = Math.sqrt(
+    (2*J+1)*f(J+M)*f(J-M)*f(j1+m1)*f(j1-m1)*f(j2+m2)*f(j2-m2)
+  );
+  return Delta * prefac * sum;
+}
+
+function drawCG(){
+  const cv = document.getElementById('c4');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  // Background grid
+  ctx.strokeStyle='rgba(255,170,0,0.04)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const j1=cg_j1, j2=cg_j2;
+  const d1=Math.round(2*j1+1), d2=Math.round(2*j2+1);
+  const Jmin=Math.abs(j1-j2), Jmax=j1+j2;
+
+  // Title
+  ctx.font='bold 15px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText(formatJ(j1)+' \u2297 '+formatJ(j2)+' = ', 16, 28);
+
+  // Write decomposition
+  let xpos = 16 + ctx.measureText(formatJ(j1)+' \u2297 '+formatJ(j2)+' = ').width;
+  for(let J=Jmin; J<=Jmax+0.001; J++){
+    const col = cgColor(J, Jmin, Jmax);
+    ctx.fillStyle=col; ctx.font='bold 15px Segoe UI';
+    const txt = formatJ(J) + (J<Jmax-0.001?' \u2295 ':'');
+    ctx.fillText(txt, xpos, 28);
+    xpos += ctx.measureText(txt).width;
+  }
+
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400';
+  ctx.fillText('('+d1+'D \u2297 '+d2+'D = '+(d1*d2)+'D total)', xpos+8, 28);
+
+  // Physical example annotation
+  if(j1===0.5 && j2===0.5){
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#aa7700';
+    ctx.fillText('\u00bd\u2297\u00bd: singlet (para) + triplet (ortho) — electron spin addition, Cooper pairs', 16, 46);
+  } else if(j1===0.5 && j2===1 || j1===1 && j2===0.5){
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#aa7700';
+    ctx.fillText('\u00bd\u22971: p-wave orbital+spin \u2014 gives j=1/2 and j=3/2 multiplets', 16, 46);
+  }
+
+  // ---- CG coefficient matrix ----
+  const cgData = computeCGCoeffs(j1, j2);
+  const totalDim = d1*d2;
+  const colW = Math.min(Math.floor((W-32) / (totalDim+1)), 52);
+  const rowH = Math.min(Math.floor((H - 90) / (totalDim+1)), 36);
+  const matX = 16 + colW;
+  const matY = 62;
+
+  // Column headers: |j1 m1> x |j2 m2> pairs ordered by M=m1+m2
+  const colPairs = [];
+  for(let i=0; i<d1; i++){
+    const m1 = j1-i;
+    for(let k=0; k<d2; k++){
+      const m2 = j2-k;
+      colPairs.push({m1, m2, M:m1+m2});
+    }
+  }
+
+  // Row headers: |J M> states ordered by J desc then M desc
+  const rowStates = [];
+  for(let Jstep=Jmax; Jstep>=Jmin-0.001; Jstep--){
+    const J = Math.round(Jstep*2)/2;
+    const Mdim = Math.round(2*J+1);
+    for(let mk=0; mk<Mdim; mk++){
+      const Mv = J - mk;
+      rowStates.push({J, M:Mv});
+    }
+  }
+
+  // Phase for animation: reveal J-blocks one by one
+  const nJ = Math.round(Jmax-Jmin+1);
+  const blockReveal = cg_animPhase * nJ;
+
+  // Draw column labels
+  colPairs.forEach((cp, ci)=>{
+    const cx = matX + ci*colW + colW/2;
+    ctx.save();
+    ctx.translate(cx, matY-4);
+    ctx.rotate(-Math.PI/4);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#886600'; ctx.textAlign='right';
+    ctx.fillText(formatJsigned(cp.m1)+','+formatJsigned(cp.m2), 0, 0);
+    ctx.restore();
+  });
+
+  // Draw row labels and matrix entries
+  let rowIdx = 0, jBlockIdx = 0;
+  let prevJ = -99;
+  rowStates.forEach((rs, ri)=>{
+    if(rs.J !== prevJ){ jBlockIdx++; prevJ=rs.J; }
+    const isVisible = jBlockIdx <= blockReveal || cg_animPhase >= 0.999;
+    const alpha = isVisible ? 1 : 0.12;
+
+    const ry = matY + ri*rowH;
+    const col = cgColor(rs.J, Jmin, Jmax);
+
+    // Row label
+    ctx.font='bold 12px Segoe UI';
+    ctx.fillStyle = 'rgba('+hexToRgb(col)+','+alpha+')';
+    ctx.textAlign='right';
+    ctx.fillText('J='+formatJ(rs.J)+',M='+formatJsigned(rs.M), matX-4, ry+rowH/2+3);
+
+    // J-block background bar
+    if(isVisible){
+      ctx.fillStyle = col+'18';
+      ctx.fillRect(matX, ry, totalDim*colW, rowH-1);
+    }
+
+    colPairs.forEach((cp, ci)=>{
+      const cx2 = matX + ci*colW;
+      const cgVal = cgData[rs.J]?.[rs.M]?.[cp.m1] ?? 0;
+      const roundedCG = Math.round(cgVal*1000)/1000;
+
+      if(Math.abs(roundedCG) < 0.0005){
+        if(isVisible){
+          ctx.fillStyle='rgba(40,40,60,0.5)';
+          ctx.fillRect(cx2+1, ry+1, colW-2, rowH-2);
+          ctx.font='12px Segoe UI'; ctx.fillStyle='rgba(80,80,120,'+alpha+')'; ctx.textAlign='center';
+          ctx.fillText('0', cx2+colW/2, ry+rowH/2+3);
+        }
+        return;
+      }
+
+      const intensity = Math.abs(roundedCG);
+      const fillAlpha = (0.15 + intensity*0.75)*alpha;
+      ctx.fillStyle = roundedCG>0
+        ? 'rgba(255,170,0,'+fillAlpha.toFixed(2)+')'
+        : 'rgba(0,170,255,'+fillAlpha.toFixed(2)+')';
+      ctx.fillRect(cx2+1, ry+1, colW-2, rowH-2);
+
+      ctx.font='12px Segoe UI'; ctx.fillStyle='rgba(255,255,255,'+alpha+')'; ctx.textAlign='center';
+      ctx.fillText(roundedCG.toFixed(2), cx2+colW/2, ry+rowH/2+3);
+
+      ctx.strokeStyle='rgba(255,170,0,0.2)'; ctx.lineWidth=0.5;
+      ctx.strokeRect(cx2+1, ry+1, colW-2, rowH-2);
+    });
+  });
+
+  // Legend
+  const legY = matY + rowStates.length*rowH + 10;
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('orange = positive CG coeff', 16, legY+12);
+  ctx.fillStyle='#00aaff';
+  ctx.fillText('blue = negative', 180, legY+12);
+  ctx.fillStyle='#664400';
+  ctx.fillText('Rows: |J,M\u27E9  Cols: |j\u2081m\u2081\u27E9\u2297|j\u2082m\u2082\u27E9', 16, legY+26);
+
+  // Draw J-block legend
+  let lx = 16;
+  for(let J=Jmin; J<=Jmax+0.001; J++){
+    const col = cgColor(J, Jmin, Jmax);
+    ctx.fillStyle=col;
+    ctx.fillRect(lx, legY+34, 14, 10);
+    ctx.font='12px Segoe UI'; ctx.fillStyle=col; ctx.textAlign='left';
+    ctx.fillText('J='+formatJ(J)+' ('+Math.round(2*J+1)+'D)', lx+18, legY+43);
+    lx += 80;
+  }
+}
+
+function cgColor(J, Jmin, Jmax){
+  const t = Jmax > Jmin ? (J-Jmin)/(Jmax-Jmin) : 0;
+  // interpolate from cyan (0) to orange (1)
+  const r = Math.round(t*255);
+  const g = Math.round(170 - t*40);
+  const b = Math.round((1-t)*255);
+  return 'rgb('+r+','+g+','+b+')';
+}
+
+function hexToRgb(col){
+  // handles 'rgb(r,g,b)' format
+  const m = col.match(/\d+/g);
+  if(m) return m.slice(0,3).join(',');
+  return '255,170,0';
+}
+
+// =====================================================================
+// TAB 5 — CHARACTERS & WEYL CHARACTER FORMULA
+// =====================================================================
+let charVisibleJ = {0:true, 0.5:true, 1:true, 1.5:true, 2:true};
+let char3Rep = '8';
+const CHAR_COLORS = {0:'#ffffff', 0.5:'#ffaa00', 1:'#00ffcc', 1.5:'#ff6688', 2:'#aaaaff'};
+
+function toggleCharJ(j, btn){
+  charVisibleJ[j] = !charVisibleJ[j];
+  btn.classList.toggle('active', charVisibleJ[j]);
+  drawChars();
+}
+
+function selectChar3(rep, btn){
+  char3Rep = rep;
+  document.querySelectorAll('.char3-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  drawChars();
+}
+
+function charSU2(j, theta){
+  // chi_j(theta) = sin((2j+1)*theta/2) / sin(theta/2)
+  const s = Math.sin(theta/2);
+  if(Math.abs(s) < 0.0001) return 2*j+1; // L'Hopital limit
+  return Math.sin((2*j+1)*theta/2) / s;
+}
+
+function drawChars(){
+  const cv = document.getElementById('c5');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if(!W||!H) return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  // Background grid
+  ctx.strokeStyle='rgba(255,170,0,0.04)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=40){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  const splitX = W * 0.55;
+
+  // LEFT: SU(2) character plots
+  drawCharPlotSU2(ctx, 0, 0, splitX, H);
+
+  // Divider
+  ctx.strokeStyle='rgba(255,170,0,0.15)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(splitX,0); ctx.lineTo(splitX,H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // RIGHT: Orthogonality + SU(3) Weyl formula
+  drawCharPanelRight(ctx, splitX+8, 0, W-splitX-8, H);
+}
+
+function drawCharPlotSU2(ctx, x0, y0, W, H){
+  const margin = {left:48, right:20, top:50, bot:46};
+  const pw = W - margin.left - margin.right;
+  const ph = H - margin.top - margin.bot;
+  const ox = x0 + margin.left, oy = y0 + margin.top;
+
+  ctx.font='bold 13px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('SU(2) Characters  \u03c7\u2c7c(\u03b8)', x0+8, y0+20);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  ctx.fillText('\u03c7\u2c7c(\u03b8) = sin((2j+1)\u03b8/2) / sin(\u03b8/2)', x0+8, y0+36);
+
+  // Axes
+  const theta_max = 2*Math.PI;
+  const char_min = -5.5, char_max = 5.5;
+
+  // Draw grid lines at char = integer
+  for(let cv2=-5; cv2<=5; cv2++){
+    const py2 = oy + ph - ((cv2-char_min)/(char_max-char_min))*ph;
+    ctx.strokeStyle = cv2===0 ? 'rgba(255,170,0,0.3)' : 'rgba(255,170,0,0.07)';
+    ctx.lineWidth = cv2===0 ? 1.5 : 0.7;
+    ctx.setLineDash(cv2===0?[]:([3,3]));
+    ctx.beginPath(); ctx.moveTo(ox, py2); ctx.lineTo(ox+pw, py2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='right';
+    if(cv2!==0) ctx.fillText(cv2, ox-4, py2+3);
+  }
+
+  // theta gridlines at multiples of pi
+  [0, Math.PI/2, Math.PI, 3*Math.PI/2, 2*Math.PI].forEach(t=>{
+    const px2 = ox + (t/theta_max)*pw;
+    ctx.strokeStyle='rgba(255,170,0,0.07)'; ctx.lineWidth=0.7; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(px2,oy); ctx.lineTo(px2,oy+ph); ctx.stroke();
+    ctx.setLineDash([]);
+    const labels=['0','\u03c0/2','\u03c0','3\u03c0/2','2\u03c0'];
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+    ctx.fillText(labels[[0,Math.PI/2,Math.PI,3*Math.PI/2,2*Math.PI].indexOf(t)], px2, oy+ph+14);
+  });
+
+  // Axes borders
+  ctx.strokeStyle='rgba(255,170,0,0.25)'; ctx.lineWidth=1.2; ctx.setLineDash([]);
+  ctx.strokeRect(ox,oy,pw,ph);
+
+  // Axis labels
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+  ctx.fillText('\u03b8  (rotation angle)', ox+pw/2, oy+ph+28);
+  ctx.save(); ctx.translate(ox-36, oy+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('\u03c7\u2c7c(\u03b8)', 0, 0); ctx.restore();
+
+  // Plot each j character
+  const jVals = [0, 0.5, 1, 1.5, 2];
+  const N = 400;
+  jVals.forEach(j=>{
+    if(!charVisibleJ[j]) return;
+    const col = CHAR_COLORS[j];
+    ctx.save();
+    ctx.strokeStyle=col; ctx.lineWidth=1.8;
+    ctx.beginPath();
+    for(let i=0; i<=N; i++){
+      const t = (i/N)*theta_max;
+      const chi = charSU2(j, t);
+      const chiClamped = Math.max(char_min, Math.min(char_max, chi));
+      const px2 = ox + (t/theta_max)*pw;
+      const py2 = oy + ph - ((chiClamped-char_min)/(char_max-char_min))*ph;
+      if(i===0) ctx.moveTo(px2,py2); else ctx.lineTo(px2,py2);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // Label at theta=0.2
+    const labelTheta = 0.2;
+    const labelChi = charSU2(j, labelTheta);
+    const lx2 = ox + (labelTheta/theta_max)*pw;
+    const ly2 = oy + ph - ((Math.min(char_max, labelChi)-char_min)/(char_max-char_min))*ph - 8;
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=col; ctx.textAlign='left';
+    ctx.fillText('j='+formatJ(j), lx2+2, ly2);
+  });
+
+  // Orthogonality visualization: area under chi_j * chi_{j'} for j=j'
+  // Show integral as shaded area for selected j=1/2
+  if(charVisibleJ[0.5]){
+    const j=0.5;
+    ctx.save();
+    ctx.fillStyle='rgba(255,170,0,0.07)';
+    ctx.beginPath();
+    for(let i=0; i<=N; i++){
+      const t=(i/N)*theta_max;
+      const chi=charSU2(j,t);
+      const c2=chi*chi; // chi^2 (since chi is real for SU(2))
+      const cClamped=Math.max(0,Math.min(char_max,c2));
+      const px2=ox+(t/theta_max)*pw;
+      const py2=oy+ph-((cClamped-char_min)/(char_max-char_min))*ph;
+      if(i===0) ctx.moveTo(px2,oy+ph); else ctx.lineTo(px2,py2);
+    }
+    const py_zero=oy+ph-((0-char_min)/(char_max-char_min))*ph;
+    ctx.lineTo(ox+pw,py_zero); ctx.lineTo(ox,py_zero);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+
+    // Annotation
+    ctx.font='12px Segoe UI'; ctx.fillStyle='rgba(255,170,0,0.5)'; ctx.textAlign='left';
+    ctx.fillText('\u222b\u03c7\u00bd\u00b2 d\u03bc = 1  (orthonormality)', ox+pw*0.55, oy+ph-8);
+  }
+}
+
+function drawCharPanelRight(ctx, x0, y0, W, H){
+  ctx.font='bold 13px Segoe UI'; ctx.fillStyle='#ffaa00'; ctx.textAlign='left';
+  ctx.fillText('Weyl Character Formula', x0+8, y0+20);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  ctx.fillText('\u03c7\u03bb(g) = \u2211\u1d464 det(w) e^{i\u27E8w(\u03bb+\u03c1),H\u27E9} / \u2211\u1d464 det(w) e^{i\u27E8w\u03c1,H\u27E9}', x0+8, y0+36);
+
+  // SU(2) case summary
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ffcc44'; ctx.textAlign='left';
+  ctx.fillText('SU(2) orthogonality check:', x0+8, y0+58);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  const jVals=[0,0.5,1,1.5,2];
+  const N=200;
+  const dt=2*Math.PI/N;
+  jVals.forEach((j,ji)=>{
+    if(!charVisibleJ[j]) return;
+    // Numerical integration of |chi_j|^2 over [0,2pi] with Haar measure
+    let integral=0;
+    for(let i=0;i<N;i++){
+      const t=(i+0.5)*dt;
+      const chi=charSU2(j,t);
+      // SU(2) Haar measure: (2/pi)*sin^2(theta/2) * dtheta
+      const meas=(2/Math.PI)*Math.pow(Math.sin(t/2),2);
+      integral+=chi*chi*meas*dt;
+    }
+    ctx.font='12px Segoe UI';
+    ctx.fillStyle=CHAR_COLORS[j];
+    ctx.fillText('\u222b|\u03c7\u2c7c(\u03b8)|\u00b2 d\u03bc = '+integral.toFixed(3)+'  (j='+formatJ(j)+')', x0+8, y0+74+ji*14);
+  });
+
+  // Cross-orthogonality
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ffcc44';
+  ctx.fillText('Cross-orthogonality  \u222b\u03c7\u2c7c\u03c7\u2c7c\' d\u03bc = \u03b4\u2c7c\u2c7c\':', x0+8, y0+156);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400';
+  const jPairs=[[0,0.5],[0,1],[0.5,1],[0.5,1.5],[1,2]];
+  jPairs.forEach((pair,pi)=>{
+    const [j1,j2]=pair;
+    let integral=0;
+    for(let i=0;i<N;i++){
+      const t=(i+0.5)*dt;
+      const meas=(2/Math.PI)*Math.pow(Math.sin(t/2),2);
+      integral+=charSU2(j1,t)*charSU2(j2,t)*meas*dt;
+    }
+    ctx.fillStyle='#664400';
+    ctx.fillText('\u27E8\u03c7'+formatJ(j1)+',\u03c7'+formatJ(j2)+'\u27E9 = '+integral.toFixed(3), x0+8, y0+170+pi*13);
+  });
+
+  // SU(3) Weyl formula visual
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ffcc44'; ctx.textAlign='left';
+  ctx.fillText('SU(3) — Weyl formula for rep '+char3Rep+':', x0+8, y0+245);
+
+  const su3DimFormulas = {
+    '3':  {mn:[1,0], dim:3,  formula:'(m+1)(n+1)(m+n+2)/2, m=1,n=0'},
+    '8':  {mn:[1,1], dim:8,  formula:'adjoint; \u03c7\u2088(\u03b8\u2081,\u03b8\u2082)=sum of 8 weights'},
+    '10': {mn:[3,0], dim:10, formula:'decuplet; m=3,n=0'}
+  };
+  const su3Info = su3DimFormulas[char3Rep];
+
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#886600';
+  ctx.fillText('Highest weight: (m,n)=('+su3Info.mn+')', x0+8, y0+262);
+  ctx.fillText('Dimension: '+su3Info.dim, x0+8, y0+276);
+  ctx.fillText('Formula: dim(m,n)=(m+1)(n+1)(m+n+2)/2', x0+8, y0+290);
+
+  // Draw SU(3) weight diagram mini
+  drawMiniWeightDiagram(ctx, x0+8, y0+300, W-16, H-y0-310, char3Rep);
+
+  // Weyl group explanation
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='left';
+  const weylNote = [
+    'Weyl group W(A\u2082) = S\u2083 (order 6)',
+    'Generates all 6 reflections of the hex lattice',
+    'Character = trace of representation matrix',
+    '\u03c7\u03bb decomposes into weight contributions'
+  ];
+  weylNote.forEach((l,li)=>{
+    ctx.fillText(l, x0+8, y0+H-48+li*12);
+  });
+}
+
+function drawMiniWeightDiagram(ctx, x0, y0, W, H, rep){
+  if(H<40) return;
+  const repData = SU3_REPS[rep];
+  if(!repData) return;
+  const cx=x0+W/2, cy=y0+H/2;
+  const scale=Math.min(W,H)*0.35;
+
+  ctx.strokeStyle='rgba(255,170,0,0.1)'; ctx.lineWidth=0.7; ctx.setLineDash([2,2]);
+  ctx.beginPath(); ctx.moveTo(x0,cy); ctx.lineTo(x0+W,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,y0); ctx.lineTo(cx,y0+H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  repData.weights.forEach((w,i)=>{
+    const wx=cx+w[0]*scale, wy=cy-w[1]*scale;
+    const isCenter=Math.abs(w[0])<0.01&&Math.abs(w[1])<0.01;
+    ctx.save();
+    ctx.shadowBlur=10; ctx.shadowColor=CHAR_COLORS[0.5];
+    ctx.beginPath(); ctx.arc(wx,wy,isCenter?3:5,0,Math.PI*2);
+    ctx.fillStyle=isCenter?'#885500':'#ffaa00'; ctx.fill();
+    ctx.restore();
+    const lbl=repData.labels[i]||'';
+    if(lbl){
+      ctx.font='12px Segoe UI'; ctx.fillStyle='#ffcc44'; ctx.textAlign='center';
+      ctx.fillText(lbl, wx, wy-7);
+    }
+  });
+
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#664400'; ctx.textAlign='center';
+  ctx.fillText(repData.label+' weight diagram', cx, y0+H-4);
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+window.addEventListener('DOMContentLoaded',()=>{
+  // Initial Cartan highlight
+  document.querySelectorAll('#cartanTable tbody tr').forEach(tr=>{
+    tr.classList.remove('hl');
+    if(tr.dataset.rs==='A1') tr.classList.add('hl');
+  });
+  currentRS='A1';
+
+  // Initialize char buttons as active
+  document.querySelectorAll('.char-btn').forEach(btn=>{
+    btn.classList.add('active');
+  });
+
+  setupMouse2();
+  setupResizeObservers();
+
+  requestAnimationFrame(()=>{
+    draw0(); drawDynkin();
+  });
+  window.animSpeed=0.1;
+  });
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

@@ -1,0 +1,3243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>36 · Riemann Surfaces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#aa66ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7;color:var(--accent)}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px;font-family:'Orbitron',sans-serif}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em;font-family:'Orbitron',sans-serif;text-shadow:0 0 20px #aa66ff55}
+.title-block p{font-size:.78rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden;height:calc(100vh - 109px)}
+.pane.active{display:flex}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.78rem;transition:.15s;font-family:'Share Tech Mono',monospace}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:rgba(170,102,255,0.08)}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:.75rem;color:var(--dim);line-height:1.65}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:290px;min-width:230px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:12px}
+.side-panel h3{font-size:.88rem;color:var(--accent);margin-bottom:4px}
+.side-panel p,.side-panel li{font-size:.75rem;color:var(--dim);line-height:1.7}
+.side-panel ul{padding-left:14px}
+.side-panel strong{color:var(--text)}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:8px;overflow:hidden;min-width:0}
+canvas{display:block;background:var(--bg2);border:1px solid var(--border);border-radius:6px;cursor:crosshair}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.controls label{font-size:.75rem;color:var(--dim)}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.78rem;font-family:'Share Tech Mono',monospace;cursor:pointer}
+select:focus{outline:1px solid var(--accent)}
+.stat-row{display:flex;gap:16px;flex-wrap:wrap}
+.stat{font-size:.75rem;color:var(--dim)}
+.stat span{color:var(--accent)}
+.sep{height:1px;background:var(--border);margin:2px 0}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 8</span>
+  <div class="title-block">
+    <h1>Riemann Surfaces</h1>
+    <p>Multi-sheeted complex surfaces, analytic continuation, and the topology of complex functions</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Sheet Navigator</div>
+  <div class="tab" onclick="switchTab(1)">Analytic Continuation</div>
+  <div class="tab" onclick="switchTab(2)">Topology &amp; Genus</div>
+  <div class="tab" onclick="switchTab(3)">Moduli &amp; Teichmüller</div>
+  <div class="tab" onclick="switchTab(4)">Abel-Jacobi &amp; Theta</div>
+  <div class="tab" onclick="switchTab(5)">Dessins d'Enfants</div>
+  <div class="tab" onclick="switchTab(6)">Seiberg-Witten</div>
+  <div class="tab" onclick="switchTab(7)">Spectral Curves</div>
+</div>
+
+<!-- ==================== TAB 0: SHEET NAVIGATOR ==================== -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Function:</label>
+      <select id="fnSelect" onchange="onFnChange()">
+        <option value="sqrt2">&#8730;z (2 sheets)</option>
+        <option value="cbrt3">&#8731;z (3 sheets)</option>
+        <option value="logz">log z (4 sheets shown)</option>
+        <option value="z23">z^(2/3) (3 sheets)</option>
+      </select>
+      <button id="btnRotCCW" onclick="rotateAngle(-Math.PI/2)">&#8634; &minus;90°</button>
+      <button id="btnRotCW" onclick="rotateAngle(Math.PI/2)">&#8635; +90°</button>
+      <button id="btnOrbit" class="animBtn" onclick="toggleOrbitAnim()">▶ Animate</button>
+      <button onclick="resetSheetNav()">&#8635; Reset</button>
+    </div>
+    <canvas id="c0" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">z = <span id="s0z">—</span></div>
+      <div class="stat">Sheet <span id="s0sh">—</span></div>
+      <div class="stat">f(z) = <span id="s0fz">—</span></div>
+      <div class="stat">|f(z)| = <span id="s0mod">—</span></div>
+      <div class="stat">arg f(z) = <span id="s0arg">—</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Riemann Surface Basics</h3>
+    <p>A Riemann surface resolves multi-valuedness by "stacking" copies of $\mathbb{C}$, one for each branch.</p>
+    <div class="sep"></div>
+    <p><strong>Branch formula:</strong> $z^{1/n} = r^{1/n} e^{i(\theta + 2\pi k)/n}$ for $k = 0, \ldots, n-1$</p>
+    <p style="margin-top:6px">Each $k$ is one <em>sheet</em>. Moving through $\theta = 2\pi$ advances $k \to k+1 \pmod{n}$.</p>
+    <div class="sep"></div>
+    <p><strong>Monodromy:</strong> Looping once around $z=0$ permutes sheets cyclically: $\sigma = (0\;1\;\cdots\;n{-}1)$.</p>
+    <p style="margin-top:6px">For $\log z$: $\log z = \ln r + i\theta$. Each $2\pi$ loop climbs to a new sheet — monodromy group $\cong \mathbb{Z}$, infinitely many sheets.</p>
+    <div class="sep"></div>
+    <p><strong>Branch cut:</strong> The thick dashed line on the negative real axis is where sheets connect. Crossing it moves you from sheet $k$ to sheet $k+1$.</p>
+    <div class="sep"></div>
+    <h3>Winding &amp; Sheet Diagram</h3>
+    <canvas id="c0wind" style="width:100%;height:130px;flex:0 0 130px;min-height:0;border-radius:4px"></canvas>
+    <p style="font-size:.72rem">Each horizontal band = one sheet. The dashed cut connects adjacent sheets. Orbit the origin: the green dot climbs the staircase.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 1: ANALYTIC CONTINUATION ==================== -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button class="active-btn" id="btnAbove" onclick="setContMode('above')">Continue &#8730;z above</button>
+      <button id="btnBelow" onclick="setContMode('below')">Continue &#8730;z below</button>
+      <button id="btnLogOrbit" onclick="setContMode('log')">Log around origin</button>
+      <button id="btnAnimPath" class="animBtn" onclick="toggleAnimPath()">▶ Animate</button>
+      <button onclick="resetCont()">&#8635; Reset</button>
+    </div>
+    <canvas id="c1" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">z = <span id="s1z">—</span></div>
+      <div class="stat">f(z) = <span id="s1fz">—</span></div>
+      <div class="stat">Disk <span id="s1disk">—</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Analytic Continuation</h3>
+    <p>An analytic function defined on an open disk $D$ can be extended ("continued") to any overlapping disk where it converges, by matching values on the overlap.</p>
+    <div class="sep"></div>
+    <p><strong>Identity Theorem:</strong> If two analytic functions agree on a set with an accumulation point, they agree everywhere on the connected domain.</p>
+    <p style="margin-top:6px"><strong>Monodromy Theorem:</strong> If a domain is simply connected (no holes), every analytic continuation returns to its starting value — no multi-valuedness.</p>
+    <div class="sep"></div>
+    <p><strong>Key example — $\sqrt{z}$:</strong></p>
+    <ul>
+      <li>Start at $z=1$, value $f=+1$.</li>
+      <li>Continue <em>above</em> real axis to $z=-1$: arrive at $f=+i$.</li>
+      <li>Continue <em>below</em> real axis to $z=-1$: arrive at $f=-i$.</li>
+    </ul>
+    <p style="margin-top:6px">Two paths, same endpoint, <em>different values</em>. Monodromy is non-trivial.</p>
+    <div class="sep"></div>
+    <p>$\pi_1(\mathbb{C}\setminus\{0\}) \cong \mathbb{Z}$: loops around the puncture count how many branch sheets you traverse.</p>
+    <div class="sep"></div>
+    <p><strong>Riemann's insight:</strong> A multi-valued function IS single-valued on its Riemann surface. The surface is the natural domain.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 2: TOPOLOGY & GENUS ==================== -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button class="active-btn" id="btnSphere" onclick="setGenus(0)">Sphere g=0</button>
+      <button id="btnTorus" onclick="setGenus(1)">Torus g=1</button>
+      <button id="btnGenus2" onclick="setGenus(2)">Genus-2 g=2</button>
+      <button id="btnAddHandle" onclick="addHandle()">+ Add Handle</button>
+      <button id="btnTorusSpin" onclick="toggleTorusSpin()">&#9654; Spin</button>
+      <button onclick="resetGenus()">&#8635; Reset</button>
+    </div>
+    <canvas id="c2" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">Genus g = <span id="s2g">0</span></div>
+      <div class="stat">&#967; = <span id="s2chi">2</span></div>
+      <div class="stat">V &minus; E + F = <span id="s2vef">—</span></div>
+      <div class="stat">Formula: $\chi = 2 - 2g$</div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Topological Classification</h3>
+    <p>Every compact orientable surface is classified by its <strong>genus</strong> $g$ (number of handles).</p>
+    <p style="margin-top:4px">Euler characteristic: $\chi = 2 - 2g$.</p>
+    <div class="sep"></div>
+    <p><strong>Examples as Riemann surfaces:</strong></p>
+    <ul>
+      <li><strong>$g=0$ (sphere):</strong> $\mathbb{CP}^1 = \mathbb{C} \cup \{\infty\}$. All rational functions $f = P(z)/Q(z)$ live here.</li>
+      <li><strong>$g=1$ (torus):</strong> $w^2 = z(z-1)(z-2)$ — three branch points give one handle.</li>
+      <li><strong>$g=2$:</strong> $w^2 = z(z-1)(z-2)(z-3)(z-4)$ — five branch points.</li>
+    </ul>
+    <div class="sep"></div>
+    <p><strong>Genus–degree formula:</strong> For $w^2 = P(z)$, $\deg P = 2g+1$ or $2g+2$ gives genus $g$.</p>
+    <div class="sep"></div>
+    <p><strong>Riemann–Hurwitz formula:</strong></p>
+    <p style="margin-top:4px">$\chi(S) = n\,\chi(\mathbb{CP}^1) - \sum_p (e_p - 1)$</p>
+    <p style="margin-top:4px">where $n$ = degree of map, $e_p$ = ramification index at $p$.</p>
+    <div class="sep"></div>
+    <p><strong>Moduli space $\mathcal{M}_g$:</strong> The space of all complex structures on a genus-$g$ surface. $\dim_{\mathbb{C}} \mathcal{M}_g = 3g-3$ for $g \geq 2$.</p>
+    <p style="margin-top:4px">$\mathcal{M}_1$ (elliptic curves): parameterized by $\tau \in \mathbb{H}/\mathrm{SL}_2(\mathbb{Z})$, $\dim = 1$.</p>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// UTILITIES
+// ============================================================
+function fmt2(x){return x.toFixed(3)}
+function fmtC(re,im){
+  const s = im>=0?'+':'-';
+  return `${fmt2(re)} ${s} ${fmt2(Math.abs(im))}i`;
+}
+function hslStr(h,s,l){return `hsl(${h},${s}%,${l}%)`}
+
+function getDPR(cv){
+  const dpr = window.devicePixelRatio||1;
+  const rect = cv.getBoundingClientRect();
+  if(rect.width<=0||rect.height<=0)return{dpr,W:300,H:200};
+  cv.width = Math.round(rect.width*dpr);
+  cv.height = Math.round(rect.height*dpr);
+  return{dpr, W:rect.width, H:rect.height};
+}
+function setupCtx(cv){
+  const {dpr,W,H} = getDPR(cv);
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return{ctx,W,H};
+}
+
+// Pixel-loop performance helper: renders at ≤maxDim resolution then scales up.
+// After filling imgData, call flush(ctx, dx, dy, dw, dh) to blit to main canvas.
+function _mkImgBuf(iW, iH) {
+  const tmp = document.createElement('canvas');
+  tmp.width = iW; tmp.height = iH;
+  const tc = tmp.getContext('2d');
+  const imgData = tc.createImageData(iW, iH);
+  function flush(ctx, dx, dy, dw, dh) {
+    tc.putImageData(imgData, 0, 0);
+    ctx.save(); ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(tmp, dx, dy, dw, dh);
+    ctx.restore();
+  }
+  return { imgData, flush };
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+let currentTab = 0;
+function switchTab(n){
+  _cancelAllAnims36();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('active',i===n));
+  currentTab = n;
+  syncSpeedControl36(n);
+  if(n===0){initPane0();drawSheetNav();drawWindDiagram();toggleOrbitAnim();}
+  if(n===1){initPane1();drawCont();toggleAnimPath();}
+  if(n===2){initPane2();drawGenus();toggleTorusSpin();}
+  if(n===3){initPane3();drawModuli();toggleModuliAnim();}
+  if(n===4){initPane4();drawTheta();toggleThetaAnim();}
+  if(n===5){initPane5();drawDessin();toggleDessinAnim();}
+  if(n===6){initPane6();drawSW();toggleSWAnim();}
+  if(n===7){initPane7();drawSpectral();toggleSpectralAnim();}
+}
+
+function syncSpeedControl36(n){
+  for(var j=0;j<8;j++){
+    var spd=document.getElementById('globalSpeed'+j);
+    if(spd){spd.value=window.animSpeed||0.1;document.getElementById('globalSpeedVal'+j).textContent=(window.animSpeed||0.1).toFixed(2);}
+  }
+}
+
+function _cancelAllAnims36(){
+  // Cancel all animation frames
+  [contAnimRAF,sheetAnimRAF,addHandleRAF,torusRAF,orbitAnimRAF,moduliAnimRAF,thetaAnimRAF,dessinAnimRAF,swAnimRAF,spectralAnimRAF].forEach(id=>{if(id)cancelAnimationFrame(id);});
+  contAnimRAF=sheetAnimRAF=addHandleRAF=torusRAF=orbitAnimRAF=moduliAnimRAF=thetaAnimRAF=dessinAnimRAF=swAnimRAF=spectralAnimRAF=null;
+  // Reset all buttons
+  const btns = ['btnOrbit','btnAnimPath','btnModAnim','btnThetaAnim','btnDessinAnim','btnSWanim','btnSpectralAnim'];
+  btns.forEach(id => {
+    const b = document.getElementById(id);
+    if(b){ b.textContent='▶ Animate'; b.classList.remove('active-btn'); }
+  });
+}
+
+// ============================================================
+// ============================================================
+// TAB 0: SHEET NAVIGATOR
+// ============================================================
+// ============================================================
+
+let fnType = 'sqrt2';
+let userAngle = 0;   // current angle theta around origin
+let userR = 1.8;     // distance from origin
+let isDragging0 = false;
+let drag0Last = null;
+let sheetAnimTarget = null;
+let sheetAnimT = 0;
+let sheetAnimRAF = null;
+
+const FN_DEFS = {
+  sqrt2:  {label:'√z',  sheets:2, eval:(r,th,k)=>({re: Math.pow(r,.5)*Math.cos((th+2*Math.PI*k)/2),  im: Math.pow(r,.5)*Math.sin((th+2*Math.PI*k)/2)})},
+  cbrt3:  {label:'∛z',  sheets:3, eval:(r,th,k)=>({re: Math.pow(r,1/3)*Math.cos((th+2*Math.PI*k)/3), im: Math.pow(r,1/3)*Math.sin((th+2*Math.PI*k)/3)})},
+  logz:   {label:'log z', sheets:4, eval:(r,th,k)=>({re: Math.log(r), im: th + 2*Math.PI*k})},
+  z23:    {label:'z^(2/3)', sheets:3, eval:(r,th,k)=>({re: Math.pow(r,2/3)*Math.cos(2*(th+2*Math.PI*k)/3), im: Math.pow(r,2/3)*Math.sin(2*(th+2*Math.PI*k)/3)})}
+};
+
+// Normalize theta to [-PI, PI) based on branch cut at negative real axis
+function normalizeTheta(th){
+  while(th >= Math.PI) th -= 2*Math.PI;
+  while(th < -Math.PI) th += 2*Math.PI;
+  return th;
+}
+
+function currentSheetIndex(){
+  const n = FN_DEFS[fnType].sheets;
+  const th = userAngle;
+  // sheet 0: -PI to PI, sheet 1: PI to 3PI, etc (unwound)
+  // winding number: how many times we've crossed the branch cut
+  let w = Math.floor((th + Math.PI) / (2*Math.PI));
+  return((w % n + n) % n);
+}
+
+function currentFval(){
+  const def = FN_DEFS[fnType];
+  const th = normalizeTheta(userAngle + (userAngle < -Math.PI ? 2*Math.PI : 0));
+  let th0 = userAngle;
+  // use raw unwound angle for log sheet selection
+  const n = def.sheets;
+  let k = Math.floor((userAngle + Math.PI) / (2*Math.PI));
+  k = ((k % n) + n) % n;
+  const thn = th0 - 2*Math.PI*Math.floor((th0 + Math.PI)/(2*Math.PI));
+  return def.eval(userR, thn, k);
+}
+
+function onFnChange(){
+  fnType = document.getElementById('fnSelect').value;
+  userAngle = 0;
+  drawSheetNav();
+  drawWindDiagram();
+  updateStats0();
+}
+
+function resetSheetNav(){
+  userAngle = 0; userR = 1.8;
+  stopOrbitAnim();
+  drawSheetNav(); drawWindDiagram(); updateStats0();
+}
+
+// ── Auto-orbit animation: slowly circles z around the branch point ──
+let orbitAnimRAF = null;
+let orbitAnimRunning = false;
+let orbitGlowPh = 0;
+
+function toggleOrbitAnim(){
+  if(orbitAnimRunning){ stopOrbitAnim(); return; }
+  startOrbitAnim();
+}
+
+function startOrbitAnim(){
+  orbitAnimRunning = true;
+  if(sheetAnimRAF){ cancelAnimationFrame(sheetAnimRAF); sheetAnimRAF=null; }
+  const btn = document.getElementById('btnOrbit');
+  if(btn){ btn.textContent='⏸ Pause'; btn.classList.add('active-btn'); }
+  orbitStep();
+}
+
+function stopOrbitAnim(){
+  orbitAnimRunning = false;
+  if(orbitAnimRAF){ cancelAnimationFrame(orbitAnimRAF); orbitAnimRAF=null; }
+  const btn = document.getElementById('btnOrbit');
+  if(btn){ btn.textContent='▶ Animate'; btn.classList.remove('active-btn'); }
+}
+
+function orbitStep(){
+  if(!orbitAnimRunning) return;
+  // Speed: one full orbit in ~420 frames (~7s at 60fps)
+  userAngle += (2 * Math.PI) / 420 * (window.animSpeed||0.1);
+  orbitGlowPh += 0.05*(window.animSpeed||0.1);
+  drawSheetNavWithGlow();
+  drawWindDiagram();
+  updateStats0();
+  orbitAnimRAF = requestAnimationFrame(orbitStep);
+}
+
+function drawSheetNavWithGlow(){
+  drawSheetNav();
+
+  // After the base draw, overlay a glow effect on the moving point and
+  // sheet-transition bands to make the sheet switching visually prominent.
+  const cv = document.getElementById('c0');
+  const dpr = window.devicePixelRatio||1;
+  const rect = cv.getBoundingClientRect();
+  const W = rect.width, H = rect.height;
+  if(W<=0||H<=0) return;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  const CX = W/2, CY = H/2;
+  const SCALE = Math.min(W,H)/5.5;
+  const def = FN_DEFS[fnType];
+  const n = def.sheets;
+
+  // Current sheet index for color
+  let k = Math.floor((userAngle+Math.PI)/(2*Math.PI));
+  k = ((k%n)+n)%n;
+  const shCol = SHEET_COLORS[k%4];
+
+  // Glow around the orbiting point
+  const ux = CX + userR*SCALE*Math.cos(userAngle);
+  const uy = CY - userR*SCALE*Math.sin(userAngle);
+  const pulse = (Math.sin(orbitGlowPh)+1)*0.5;
+  const brad = 14 + pulse*10;
+  const bg = ctx.createRadialGradient(ux,uy,0,ux,uy,brad);
+  bg.addColorStop(0,`hsla(${shCol[0]},90%,75%,${0.6+pulse*0.4})`);
+  bg.addColorStop(1,`hsla(${shCol[0]},90%,60%,0)`);
+  ctx.beginPath(); ctx.arc(ux,uy,brad,0,2*Math.PI);
+  ctx.fillStyle=bg; ctx.fill();
+
+  // Sheet label that glows based on current sheet
+  const pw = W/n;
+  const bandX = k*pw + pw/2;
+  ctx.fillStyle=`hsla(${shCol[0]},80%,72%,${0.45+pulse*0.35})`;
+  ctx.font='bold 13px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText(`Sheet ${k+1} active`, bandX, 22);
+  ctx.textAlign='left';
+
+  // Angle readout
+  const turns = userAngle/(2*Math.PI);
+  ctx.fillStyle='rgba(200,180,255,0.85)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText(`\u03B8 = ${(userAngle%(2*Math.PI) >= 0 ? userAngle%(2*Math.PI) : userAngle%(2*Math.PI)+2*Math.PI).toFixed(2)} rad  (${turns.toFixed(2)} turns)`, 8, H-24);
+  ctx.fillText('Auto-orbiting branch point \u2192 watch sheet switching', 8, H-8);
+}
+
+function rotateAngle(delta){
+  if(sheetAnimRAF) cancelAnimationFrame(sheetAnimRAF);
+  const start = userAngle;
+  const end = userAngle + delta;
+  const dur = 500;
+  const t0 = performance.now();
+  function step(now){
+    const t = Math.min((now-t0)/dur,1);
+    const ease = t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    userAngle = start + (end-start)*ease;
+    drawSheetNav(); drawWindDiagram(); updateStats0();
+    if(t<1) sheetAnimRAF = requestAnimationFrame(step);
+    else {userAngle=end; drawSheetNav(); drawWindDiagram(); updateStats0();}
+  }
+  sheetAnimRAF = requestAnimationFrame(step);
+}
+
+function updateStats0(){
+  const def = FN_DEFS[fnType];
+  const n = def.sheets;
+  let k = Math.floor((userAngle+Math.PI)/(2*Math.PI));
+  k = ((k%n)+n)%n;
+  const th = userAngle - 2*Math.PI*Math.floor((userAngle+Math.PI)/(2*Math.PI));
+  const zre = userR*Math.cos(userAngle);
+  const zim = userR*Math.sin(userAngle);
+  const fv = currentFval();
+  document.getElementById('s0z').textContent = fmtC(zre,zim);
+  document.getElementById('s0sh').textContent = `${k+1} / ${n}`;
+  document.getElementById('s0fz').textContent = fmtC(fv.re,fv.im);
+  document.getElementById('s0mod').textContent = fmt2(Math.hypot(fv.re,fv.im));
+  document.getElementById('s0arg').textContent = fmt2(Math.atan2(fv.im,fv.re)) + ' rad';
+}
+
+const SHEET_COLORS = [
+  [240,70,55], // blue
+  [0,70,55],   // red
+  [120,70,50], // green
+  [60,70,50],  // yellow
+];
+
+function drawSheetNav(){
+  const cv = document.getElementById('c0');
+  const {ctx,W,H} = setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  const CX = W/2, CY = H/2;
+  const SCALE = Math.min(W,H)/5.5;
+  const def = FN_DEFS[fnType];
+  const n = def.sheets;
+
+  // Draw domain coloring background for each sheet as a sub-region
+  const pw = W/n;
+  for(let s=0;s<n;s++){
+    const xOff = s*pw;
+    // Sheet label background
+    ctx.fillStyle = `hsla(${SHEET_COLORS[s%4][0]},${SHEET_COLORS[s%4][1]}%,${SHEET_COLORS[s%4][2]}%,0.08)`;
+    ctx.fillRect(xOff,0,pw,H);
+  }
+
+  // Draw complex plane with domain coloring (single view, current sheet)
+  const _D0=Math.max(1,Math.ceil(Math.max(W,H)/400));
+  const imgW=Math.max(1,Math.floor(W/_D0)), imgH=Math.max(1,Math.floor(H/_D0));
+  const {imgData,flush:_flushSN}=_mkImgBuf(imgW,imgH);
+  for(let py=0;py<imgH;py++){
+    for(let px=0;px<imgW;px++){
+      const zre = (px*_D0 - CX)/SCALE;
+      const zim = (CY - py*_D0)/SCALE;
+      const r = Math.hypot(zre,zim);
+      if(r < 0.001){
+        const idx = (py*imgW+px)*4;
+        imgData.data[idx]=20; imgData.data[idx+1]=10; imgData.data[idx+2]=40; imgData.data[idx+3]=255;
+        continue;
+      }
+      const rawTh = Math.atan2(zim,zre);
+      let k = Math.floor((userAngle+Math.PI)/(2*Math.PI));
+      k = ((k % n)+n)%n;
+      const fv = def.eval(r, rawTh, k);
+      const mag = Math.hypot(fv.re,fv.im);
+      const phase = Math.atan2(fv.im,fv.re);
+      const hue = SHEET_COLORS[k%4][0] + (phase/(2*Math.PI))*60;
+      const bright = 0.35 + 0.25*Math.sin(Math.log(mag+0.1)*3);
+      const sat = 0.65;
+      // HSL to RGB
+      const h = ((hue%360)+360)%360, s=sat, l=Math.max(0.15,Math.min(0.72,bright));
+      const c2 = (1-Math.abs(2*l-1))*s;
+      const x2 = c2*(1-Math.abs((h/60)%2-1));
+      const m = l - c2/2;
+      let rr=0,gg=0,bb=0;
+      if(h<60){rr=c2;gg=x2;}else if(h<120){rr=x2;gg=c2;}
+      else if(h<180){gg=c2;bb=x2;}else if(h<240){gg=x2;bb=c2;}
+      else if(h<300){rr=x2;bb=c2;}else{rr=c2;bb=x2;}
+      const idx=(py*imgW+px)*4;
+      imgData.data[idx]=Math.round((rr+m)*255);
+      imgData.data[idx+1]=Math.round((gg+m)*255);
+      imgData.data[idx+2]=Math.round((bb+m)*255);
+      imgData.data[idx+3]=200;
+    }
+  }
+  _flushSN(ctx,0,0,W,H);
+
+  // Branch cut: negative real axis (thick dashed)
+  ctx.save();
+  ctx.strokeStyle='rgba(255,80,80,0.9)';
+  ctx.lineWidth=2.5;
+  ctx.setLineDash([8,5]);
+  ctx.beginPath();
+  ctx.moveTo(CX, CY);
+  ctx.lineTo(0, CY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Draw branch point at origin
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX, CY, 5, 0, 2*Math.PI);
+  ctx.fillStyle='#ff4466';
+  ctx.fill();
+  ctx.strokeStyle='#ffaabb';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.fillStyle='#ffaabb';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('branch pt',CX+7,CY-7);
+  ctx.restore();
+
+  // Draw unit circle
+  ctx.save();
+  ctx.strokeStyle='rgba(170,102,255,0.3)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.arc(CX, CY, SCALE, 0, 2*Math.PI);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Draw user position
+  const ux = CX + userR*SCALE*Math.cos(userAngle);
+  const uy = CY - userR*SCALE*Math.sin(userAngle);
+  // Orbit trail
+  ctx.save();
+  ctx.strokeStyle='rgba(170,102,255,0.5)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.arc(CX, CY, userR*SCALE, 0, -userAngle, userAngle<0);
+  ctx.stroke();
+  ctx.restore();
+
+  // Current point
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(ux, uy, 7, 0, 2*Math.PI);
+  ctx.fillStyle='#aa66ff';
+  ctx.fill();
+  ctx.strokeStyle='#fff';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Drag hint
+  ctx.fillStyle='rgba(170,102,255,0.55)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('drag to orbit',8,H-8);
+
+  updateStats0();
+}
+
+function drawWindDiagram(){
+  const cv = document.getElementById('c0wind');
+  const {ctx,W,H} = setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  const def = FN_DEFS[fnType];
+  const n = def.sheets;
+  const slh = (H-16) / n;
+  const cutX = W*0.38;
+
+  // Draw sheets as horizontal bands
+  for(let s=0;s<n;s++){
+    const y = 8 + s*slh;
+    ctx.fillStyle = `hsla(${SHEET_COLORS[s%4][0]},${SHEET_COLORS[s%4][1]}%,${SHEET_COLORS[s%4][2]}%,0.18)`;
+    ctx.fillRect(cutX-2, y+2, W-cutX-4, slh-4);
+    ctx.strokeStyle = `hsla(${SHEET_COLORS[s%4][0]},${SHEET_COLORS[s%4][1]}%,${SHEET_COLORS[s%4][2]}%,0.6)`;
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(cutX-2, y+2, W-cutX-4, slh-4);
+    ctx.fillStyle='rgba(200,180,255,0.75)';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText(`sheet ${s+1}`, cutX+4, y+slh/2+4);
+  }
+
+  // Draw branch cut connections
+  ctx.strokeStyle='rgba(255,80,80,0.8)';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([5,3]);
+  for(let s=0;s<n-1;s++){
+    const y1 = 8 + (s+1)*slh + 2;
+    ctx.beginPath();
+    ctx.moveTo(cutX-2, y1);
+    ctx.lineTo(cutX-20, y1);
+    ctx.stroke();
+  }
+  // For log, connect last back to first with arrow indicating infinity
+  if(fnType!=='logz'){
+    const y1 = 8 + n*slh + 2;
+    ctx.beginPath();
+    ctx.moveTo(cutX-2, 8+n*slh-slh/2);
+    ctx.bezierCurveTo(cutX-30, 8+n*slh, cutX-30, 8, cutX-2, 8+slh/2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,80,80,0.7)';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText('wraps',2, H/2+4);
+  } else {
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,80,80,0.7)';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText('...',2, H/2+4);
+  }
+
+  // Current sheet indicator
+  let k = Math.floor((userAngle+Math.PI)/(2*Math.PI));
+  k = ((k%n)+n)%n;
+  const ky = 8 + k*slh + slh/2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(W-10, ky, 5, 0, 2*Math.PI);
+  ctx.fillStyle='#aa66ff';
+  ctx.fill();
+  ctx.restore();
+
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(170,102,255,0.6)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('you',W-24,ky+10);
+}
+
+function initPane0(){
+  const cv = document.getElementById('c0');
+  cv.onmousedown = e=>{
+    isDragging0=true;
+    const r=cv.getBoundingClientRect();
+    drag0Last={x:e.clientX-r.left,y:e.clientY-r.top};
+  };
+  cv.onmousemove = e=>{
+    if(!isDragging0) return;
+    const r=cv.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    const CX=r.width/2, CY=r.height/2;
+    const a0=Math.atan2(CY-drag0Last.y, drag0Last.x-CX);
+    const a1=Math.atan2(CY-my, mx-CX);
+    let delta = a1-a0;
+    if(delta>Math.PI)delta-=2*Math.PI;
+    if(delta<-Math.PI)delta+=2*Math.PI;
+    userAngle+=delta;
+    userR = Math.max(0.3, Math.hypot(mx-CX,my-CY)/( Math.min(r.width,r.height)/5.5 ));
+    drag0Last={x:mx,y:my};
+    drawSheetNav(); drawWindDiagram();
+  };
+  cv.onmouseup = ()=>isDragging0=false;
+  cv.onmouseleave = ()=>isDragging0=false;
+}
+
+// ============================================================
+// ============================================================
+// TAB 1: ANALYTIC CONTINUATION
+// ============================================================
+// ============================================================
+
+let contMode = 'above';
+let contAnimRAF = null;
+let contAnimT = 0;
+let contAnimRunning = false;
+let movingPt = null; // {t, pathFn}
+
+const CONT_PATHS = {
+  above: {
+    label: '√z continued above real axis',
+    nDisks: 7,
+    pathFn: t => ({re: Math.cos(Math.PI*t), im: Math.sin(Math.PI*t)}), // upper semicircle from 1 to -1
+    startVal: {re:1,im:0},
+    evalFn: (z,t) => {
+      // sqrt: choose branch continuously
+      const r=Math.hypot(z.re,z.im), th=Math.atan2(z.im,z.re);
+      // upper path: theta goes 0 -> PI, so use principal branch which stays in upper half
+      return {re: Math.sqrt(r)*Math.cos(th/2), im: Math.sqrt(r)*Math.sin(th/2)};
+    },
+    arriveLabel: '+i',
+    arriveVal: {re:0,im:1},
+    color0:'rgba(100,140,255,',
+  },
+  below: {
+    label: '√z continued below real axis',
+    nDisks: 7,
+    pathFn: t => ({re: Math.cos(-Math.PI*t), im: Math.sin(-Math.PI*t)}), // lower semicircle
+    startVal: {re:1,im:0},
+    evalFn: (z,t) => {
+      const r=Math.hypot(z.re,z.im);
+      let th=Math.atan2(z.im,z.re);
+      // below path: theta goes 0 -> -PI; sqrt of that
+      return {re: Math.sqrt(r)*Math.cos(th/2), im: Math.sqrt(r)*Math.sin(th/2)};
+    },
+    arriveLabel: '-i',
+    arriveVal: {re:0,im:-1},
+    color0:'rgba(255,100,100,',
+  },
+  log: {
+    label: 'log z around origin (full orbit)',
+    nDisks: 8,
+    pathFn: t => ({re: Math.cos(2*Math.PI*t), im: Math.sin(2*Math.PI*t)}),
+    startVal: {re:0,im:0},
+    evalFn: (z,t) => {
+      const r=Math.hypot(z.re,z.im);
+      const th = 2*Math.PI*t; // unwound
+      return {re: Math.log(r), im: th};
+    },
+    arriveLabel: '2πi',
+    arriveVal: {re:0,im:2*Math.PI},
+    color0:'rgba(100,200,140,',
+  }
+};
+
+function setContMode(m){
+  contMode = m;
+  contAnimRunning = false;
+  if(contAnimRAF){cancelAnimationFrame(contAnimRAF);contAnimRAF=null;}
+  movingPt = null;
+  ['btnAbove','btnBelow','btnLogOrbit'].forEach(id=>document.getElementById(id)?.classList.remove('active-btn'));
+  const map={above:'btnAbove',below:'btnBelow',log:'btnLogOrbit'};
+  document.getElementById(map[m])?.classList.add('active-btn');
+  drawCont();
+}
+
+function resetCont(){
+  contAnimRunning=false;
+  if(contAnimRAF){cancelAnimationFrame(contAnimRAF);contAnimRAF=null;}
+  movingPt=null;
+  drawCont();
+}
+
+function toggleAnimPath(){
+  const btn=document.getElementById('btnAnimPath');
+  if(contAnimRunning){
+    contAnimRunning=false;
+    if(contAnimRAF){cancelAnimationFrame(contAnimRAF);contAnimRAF=null;}
+    if(btn){ btn.textContent='▶ Animate'; btn.classList.remove('active-btn'); }
+    return;
+  }
+  if(btn){ btn.textContent='⏸ Pause'; btn.classList.add('active-btn'); }
+  contAnimRunning=true;
+  contAnimT=0;
+  const def = CONT_PATHS[contMode];
+  const dur=2800;
+  const t0=performance.now();
+  function step(now){
+    const t=Math.min((now-t0)/dur,1);
+    contAnimT=t;
+    const z=def.pathFn(t);
+    const fv=def.evalFn(z,t);
+    movingPt={t,z,fv};
+    drawCont();
+    updateStats1(z,fv,Math.ceil(t*def.nDisks));
+    if(t<1&&contAnimRunning) contAnimRAF=requestAnimationFrame(step);
+    else { contAnimRunning=false; if(btn){ btn.textContent='▶ Animate'; btn.classList.remove('active-btn'); } }
+  }
+  contAnimRAF=requestAnimationFrame(step);
+}
+
+function updateStats1(z,fv,disk){
+  document.getElementById('s1z').textContent=fmtC(z.re,z.im);
+  document.getElementById('s1fz').textContent=fmtC(fv.re,fv.im);
+  document.getElementById('s1disk').textContent=`${disk}`;
+}
+
+function drawCont(){
+  const cv=document.getElementById('c1');
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const CX=W/2, CY=H/2;
+  const SCALE=Math.min(W,H)/4.5;
+
+  // Draw axes
+  ctx.save();
+  ctx.strokeStyle='rgba(100,90,150,0.5)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,CY);ctx.lineTo(W,CY);
+  ctx.moveTo(CX,0);ctx.lineTo(CX,H);
+  ctx.stroke();
+  // Axis labels
+  ctx.fillStyle='rgba(150,130,200,0.6)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('Re',W-24,CY-6);
+  ctx.fillText('Im',CX+6,14);
+  ctx.restore();
+
+  const def=CONT_PATHS[contMode];
+  const N=def.nDisks;
+  const diskR=SCALE*0.55;
+
+  // Draw chain of analytic continuation disks
+  for(let i=0;i<=N;i++){
+    const t=i/N;
+    const z=def.pathFn(t);
+    const px=CX+z.re*SCALE, py=CY-z.im*SCALE;
+    const alpha=0.13+0.07*(i/N);
+    const hue = contMode==='above'?220 : contMode==='below'?0:140;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(px,py,diskR,0,2*Math.PI);
+    ctx.fillStyle=`hsla(${hue+i*8},60%,55%,${alpha})`;
+    ctx.fill();
+    ctx.strokeStyle=`hsla(${hue+i*8},60%,65%,0.35)`;
+    ctx.lineWidth=1;
+    ctx.stroke();
+    ctx.restore();
+    // function value label at center
+    const fv=def.evalFn(z,t);
+    ctx.fillStyle=`hsla(${hue+i*8},70%,75%,0.7)`;
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText(fmtC(fv.re,fv.im),px-28,py+3);
+  }
+
+  // Draw the path
+  ctx.save();
+  ctx.strokeStyle='rgba(170,102,255,0.7)';
+  ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let i=0;i<=80;i++){
+    const t=i/80;
+    const z=def.pathFn(t);
+    const px=CX+z.re*SCALE, py=CY-z.im*SCALE;
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // Mark start and end
+  const zS=def.pathFn(0), zE=def.pathFn(1);
+  // Start
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX+zS.re*SCALE,CY-zS.im*SCALE,7,0,2*Math.PI);
+  ctx.fillStyle='#66ff99';
+  ctx.fill();
+  ctx.fillStyle='#cffce8';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('start (f=1)',CX+zS.re*SCALE+9,CY-zS.im*SCALE+4);
+  ctx.restore();
+
+  // End
+  const endLabel = def.arriveLabel;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX+zE.re*SCALE,CY-zE.im*SCALE,7,0,2*Math.PI);
+  ctx.fillStyle= contMode==='above'?'#66aaff':contMode==='below'?'#ff6666':'#66ffaa';
+  ctx.fill();
+  ctx.fillStyle='#eee';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText(`arrive: f=${endLabel}`,CX+zE.re*SCALE+9,CY-zE.im*SCALE-4);
+  ctx.restore();
+
+  // Animate moving point
+  if(movingPt){
+    const px=CX+movingPt.z.re*SCALE, py=CY-movingPt.z.im*SCALE;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(px,py,9,0,2*Math.PI);
+    ctx.fillStyle='rgba(255,220,80,0.9)';
+    ctx.fill();
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+    ctx.fillStyle='#fff';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText(fmtC(movingPt.fv.re,movingPt.fv.im),px+11,py-3);
+    ctx.restore();
+  }
+
+  // Draw monodromy annotation
+  if(contMode==='above'||contMode==='below'){
+    ctx.save();
+    ctx.fillStyle='rgba(255,200,100,0.85)';
+    ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Two paths: z=1 → z=−1',12,20);
+    ctx.fillStyle='rgba(100,180,255,0.85)';
+    ctx.fillText('Above path → +i',12,38);
+    ctx.fillStyle='rgba(255,120,120,0.85)';
+    ctx.fillText('Below path → −i',12,54);
+    ctx.fillStyle='rgba(255,200,100,0.7)';
+    ctx.fillText('Monodromy: −1 ≠ +1',12,72);
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.fillStyle='rgba(100,220,140,0.85)';
+    ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Full orbit: z=1 → z=1',12,20);
+    ctx.fillStyle='rgba(200,255,180,0.8)';
+    ctx.fillText('log returns 2πi offset',12,38);
+    ctx.fillText('Monodromy group ≅ ℤ',12,54);
+    ctx.restore();
+  }
+
+  // Branch point marker
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX,CY,5,0,2*Math.PI);
+  ctx.fillStyle='#ff4466';
+  ctx.fill();
+  ctx.fillStyle='#ffaabb';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('z=0 (branch pt)',CX+7,CY-7);
+  ctx.restore();
+}
+
+function initPane1(){
+  // Nothing extra needed
+}
+
+// ============================================================
+// ============================================================
+// TAB 2: TOPOLOGY & GENUS
+// ============================================================
+// ============================================================
+
+let currentGenus = 0;
+let torusAngle = 0;
+let torusSpinning = false;
+let torusRAF = null;
+let addHandleAnim = false;
+let addHandleT = 0;
+let addHandleRAF = null;
+let displayGenus = 0;
+
+const GENUS_EXAMPLES = [
+  {g:0, name:'Riemann Sphere ℂP¹', eq:'All rational functions', chi:2, vef:'V=2, E=0, F=0 → χ=2', col:'#5566ff'},
+  {g:1, name:'Torus', eq:'w² = z(z−1)(z−2)', chi:0, vef:'V=2, E=2, F=0 → χ=0', col:'#55aaff'},
+  {g:2, name:'Double Torus', eq:'w² = z(z−1)(z−2)(z−3)(z−4)', chi:-2, vef:'V=2, E=2, F=0 → χ=−2', col:'#aa55ff'},
+];
+
+function setGenus(g){
+  currentGenus = g; displayGenus = g;
+  [0,1,2].forEach(i=>{
+    const btn=document.getElementById(['btnSphere','btnTorus','btnGenus2'][i]);
+    if(btn) btn.classList.toggle('active-btn', i===g);
+  });
+  updateGenusStats();
+  drawGenus();
+}
+
+function addHandle(){
+  if(displayGenus>=3) return;
+  const from=displayGenus;
+  const to=from+1;
+  if(addHandleRAF) cancelAnimationFrame(addHandleRAF);
+  addHandleT=0;
+  const dur=700;
+  const t0=performance.now();
+  function step(now){
+    const t=Math.min((now-t0)/dur,1);
+    const ease=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    displayGenus=from+ease*(to-from);
+    drawGenus();
+    updateGenusStats();
+    if(t<1) addHandleRAF=requestAnimationFrame(step);
+    else {displayGenus=to;currentGenus=to;drawGenus();updateGenusStats();}
+  }
+  addHandleRAF=requestAnimationFrame(step);
+}
+
+function toggleTorusSpin(){
+  const btn=document.getElementById('btnTorusSpin');
+  torusSpinning=!torusSpinning;
+  if(btn) btn.textContent = torusSpinning ? '\u23F8 Spin' : '\u25B6 Spin';
+  if(torusSpinning) spinTorus();
+}
+
+function spinTorus(){
+  if(!torusSpinning) return;
+  torusAngle+=0.012*(window.animSpeed||0.1);
+  drawGenus();
+  torusRAF=requestAnimationFrame(spinTorus);
+}
+
+function resetGenus(){
+  torusSpinning=false;
+  if(torusRAF) cancelAnimationFrame(torusRAF);
+  torusAngle=0; currentGenus=0; displayGenus=0;
+  [0,1,2].forEach(i=>{
+    const btn=document.getElementById(['btnSphere','btnTorus','btnGenus2'][i]);
+    if(btn) btn.classList.toggle('active-btn', i===0);
+  });
+  updateGenusStats();
+  drawGenus();
+}
+
+function updateGenusStats(){
+  const g=Math.round(displayGenus);
+  const chi=2-2*g;
+  document.getElementById('s2g').textContent=g;
+  document.getElementById('s2chi').textContent=chi;
+  const ex=GENUS_EXAMPLES[Math.min(g,2)];
+  document.getElementById('s2vef').textContent = ex ? ex.vef : `χ=${chi}`;
+}
+
+function drawTorus(ctx,CX,CY,R,r,angle,alpha){
+  // Parametric torus projected in 2D (oblique projection)
+  const NS=60, NT=30;
+  const ca=Math.cos(angle), sa=Math.sin(angle);
+  const tilt=0.38;
+  ctx.save();
+  for(let i=0;i<NS;i++){
+    const u0=(i/NS)*2*Math.PI, u1=((i+1)/NS)*2*Math.PI;
+    for(let j=0;j<NT;j++){
+      const v0=(j/NT)*2*Math.PI, v1=((j+1)/NT)*2*Math.PI;
+      // 3D coords
+      const P=[[u0,v0],[u1,v0],[u1,v1],[u0,v1]].map(([u,v])=>{
+        const x3=(R+r*Math.cos(v))*Math.cos(u);
+        const y3=(R+r*Math.cos(v))*Math.sin(u);
+        const z3=r*Math.sin(v);
+        // rotate around Y
+        const xr=x3*ca+z3*sa;
+        const zr=-x3*sa+z3*ca;
+        // project
+        const px=CX+xr;
+        const py=CY-y3*Math.cos(tilt)+zr*Math.sin(tilt);
+        return[px,py];
+      });
+      // shade
+      const hue=260+i*2;
+      const lum=38+18*Math.sin(v0+angle)+12*Math.cos(u0);
+      ctx.fillStyle=`hsla(${hue},60%,${lum}%,${alpha})`;
+      ctx.beginPath();
+      ctx.moveTo(P[0][0],P[0][1]);
+      P.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function drawSphere2D(ctx,CX,CY,radius,col,label){
+  // Sphere with grid lines
+  ctx.save();
+  // base circle
+  ctx.beginPath();
+  ctx.arc(CX,CY,radius,0,2*Math.PI);
+  const g=ctx.createRadialGradient(CX-radius*0.3,CY-radius*0.3,radius*0.05,CX,CY,radius);
+  g.addColorStop(0,'rgba(120,140,255,0.55)');
+  g.addColorStop(1,'rgba(30,20,80,0.5)');
+  ctx.fillStyle=g;
+  ctx.fill();
+  ctx.strokeStyle='rgba(100,120,255,0.6)';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  // latitude lines
+  ctx.strokeStyle='rgba(140,160,255,0.25)';
+  ctx.lineWidth=0.8;
+  for(let lat=-60;lat<=60;lat+=30){
+    const lr=radius*Math.cos(lat*Math.PI/180);
+    const lcy=CY+radius*Math.sin(lat*Math.PI/180);
+    if(Math.abs(lr)>1){
+      ctx.beginPath();
+      ctx.ellipse(CX,lcy,lr,lr*0.28,0,0,2*Math.PI);
+      ctx.stroke();
+    }
+  }
+  // longitude lines
+  for(let lon=0;lon<180;lon+=30){
+    ctx.beginPath();
+    const a=lon*Math.PI/180;
+    ctx.ellipse(CX,CY,radius*Math.abs(Math.cos(a))||radius*0.05,radius,0,0,2*Math.PI);
+    ctx.stroke();
+  }
+  ctx.fillStyle='rgba(200,210,255,0.9)';
+  ctx.font='bold 13px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText(label,CX,CY+radius+18);
+  ctx.restore();
+}
+
+function drawHandleSketch(ctx,cx,cy,w,h,color){
+  // Draw a handle (tube) shape as a simple sketch
+  ctx.save();
+  ctx.strokeStyle=color;
+  ctx.lineWidth=2.5;
+  ctx.fillStyle='rgba(0,0,0,0)';
+  // outer ellipse
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,w,h,0,0,2*Math.PI);
+  ctx.stroke();
+  // inner hole
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,w*0.38,h*0.38,0,0,2*Math.PI);
+  ctx.strokeStyle=color.replace('0.8','0.4');
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawGenus(){
+  const cv=document.getElementById('c2');
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  const g=displayGenus;
+  const gi=Math.round(g);
+
+  if(gi===0 || g<0.5){
+    // Sphere
+    drawSphere2D(ctx,W/2,H/2-20,Math.min(W,H)*0.28,'#5566ff','g=0  Riemann Sphere  χ=2');
+    // Point at infinity
+    ctx.fillStyle='rgba(255,200,80,0.85)';
+    ctx.font='12px Share Tech Mono';
+    ctx.textAlign='left';
+    ctx.fillText('∞ (north pole)',W/2+Math.min(W,H)*0.28+8,H/2-20);
+    ctx.fillText('Rational functions f=P(z)/Q(z)',12,H-12);
+  } else if(g<1.5){
+    // Torus (maybe animating)
+    const alpha=Math.min(1, gi>=1?1:(g-0.5)*2);
+    const R=Math.min(W,H)*0.22, r=R*0.38;
+    drawTorus(ctx,W/2,H/2-10,R,r,torusAngle,alpha);
+    ctx.fillStyle='rgba(200,180,255,0.88)';
+    ctx.font='bold 13px Share Tech Mono';
+    ctx.textAlign='center';
+    ctx.fillText('g=1  Torus  χ=0',W/2,H-28);
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText('w² = z(z−1)(z−2)  (3 branch pts)',W/2,H-12);
+  } else {
+    // Genus 2 — two tori side by side (simplified)
+    const alpha=Math.min(1,(g-1.5)*2);
+    const R=Math.min(W,H)*0.16, r=R*0.38;
+    const off=R*1.6;
+    drawTorus(ctx,W/2-off,H/2-10,R,r,torusAngle,0.85);
+    drawTorus(ctx,W/2+off,H/2-10,R,r,torusAngle+Math.PI,alpha);
+    // Connect them
+    ctx.save();
+    ctx.strokeStyle=`rgba(170,102,255,${alpha*0.6})`;
+    ctx.lineWidth=3;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(W/2-off+R,H/2-10);
+    ctx.lineTo(W/2+off-R,H/2-10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    ctx.fillStyle='rgba(200,180,255,0.88)';
+    ctx.font='bold 13px Share Tech Mono';
+    ctx.textAlign='center';
+    ctx.fillText('g=2  Double Torus  χ=−2',W/2,H-28);
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText('w² = z(z−1)(z−2)(z−3)(z−4)  (5 branch pts)',W/2,H-12);
+  }
+
+  // Euler characteristic triangulation diagram (bottom-right corner)
+  drawTriangulation(ctx, W-160, 16, 150, 130, gi);
+
+  ctx.textAlign='left';
+}
+
+function drawTriangulation(ctx,x,y,w,h,g){
+  ctx.save();
+  ctx.fillStyle='rgba(10,8,25,0.7)';
+  ctx.strokeStyle='rgba(100,80,160,0.5)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.roundRect(x,y,w,h,5);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle='rgba(180,160,255,0.85)';
+  ctx.font='12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('χ = V − E + F',x+w/2,y+14);
+  ctx.fillText('= 2 − 2g',x+w/2,y+27);
+
+  const chi=2-2*Math.round(g);
+  ctx.fillStyle='#aa66ff';
+  ctx.font='bold 14px Share Tech Mono';
+  ctx.fillText(`χ = ${chi}  (g=${Math.round(g)})`,x+w/2,y+47);
+
+  // Mini triangulation drawing
+  const mx=x+w/2, my=y+h-32;
+  const tr=30;
+  const verts=[
+    [mx,my-tr],
+    [mx-tr*0.866,my+tr*0.5],
+    [mx+tr*0.866,my+tr*0.5],
+    [mx,my]
+  ];
+  ctx.strokeStyle='rgba(130,100,220,0.7)';
+  ctx.lineWidth=1.2;
+  // faces
+  [[0,1,3],[1,2,3],[0,2,3]].forEach(([a,b,c])=>{
+    ctx.fillStyle='rgba(100,70,180,0.18)';
+    ctx.beginPath();
+    ctx.moveTo(verts[a][0],verts[a][1]);
+    ctx.lineTo(verts[b][0],verts[b][1]);
+    ctx.lineTo(verts[c][0],verts[c][1]);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  });
+  verts.forEach(([vx,vy])=>{
+    ctx.beginPath();
+    ctx.arc(vx,vy,2.5,0,2*Math.PI);
+    ctx.fillStyle='#aa99ff';
+    ctx.fill();
+  });
+  ctx.fillStyle='rgba(170,150,255,0.7)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('V=4 E=6 F=4 → χ=2',mx,y+h-4);
+  ctx.restore();
+}
+
+function initPane2(){
+  // Nothing extra needed
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load',()=>{
+  initPane0();
+  drawSheetNav();
+  drawWindDiagram();
+  updateStats0();
+});
+
+window.addEventListener('resize',()=>{
+  if(currentTab===0){drawSheetNav();drawWindDiagram();}
+  if(currentTab===1){drawCont();}
+  if(currentTab===2){drawGenus();}
+  if(currentTab===3){drawModuli();}
+  if(currentTab===4){drawTheta();}
+  if(currentTab===5){drawDessin();}
+  if(currentTab===6){drawSW();}
+  if(currentTab===7){drawSpectral();}
+});
+</script>
+
+<!-- ==================== TAB 3: MODULI & TEICHMÜLLER ==================== -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button class="active-btn" id="btnModFD" onclick="setModuliMode('fd')">Fundamental Domain</button>
+      <button id="btnModTau" onclick="setModuliMode('tau')">τ Path Animation</button>
+      <button id="btnModGenus2" onclick="setModuliMode('g2')">Genus-2 Schematic</button>
+      <button id="btnModAnim" class="animBtn" onclick="toggleModuliAnim()">▶ Animate</button>
+      <button onclick="resetModuli()">&#8635; Reset</button>
+    </div>
+    <canvas id="c3" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">τ = <span id="s3tau">i</span></div>
+      <div class="stat">|τ| = <span id="s3modtau">1.000</span></div>
+      <div class="stat">Re(τ) = <span id="s3retau">0.000</span></div>
+      <div class="stat">Eccentricity = <span id="s3ecc">—</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Moduli Space &amp; Teichmüller Theory</h3>
+    <p>The <strong>moduli space</strong> $\mathcal{M}_g$ parametrizes all complex structures on a genus-$g$ surface up to biholomorphism.</p>
+    <div class="sep"></div>
+    <p><strong>$g=1$ case:</strong> every torus is $\mathbb{C}/\langle 1,\tau\rangle$ for $\tau\in\mathbb{H}$. Two tori $\tau,\tau'$ are isomorphic iff related by:</p>
+    <p>$$\tau' = \frac{a\tau+b}{c\tau+d},\quad \begin{pmatrix}a&amp;b\\c&amp;d\end{pmatrix}\in\mathrm{SL}_2(\mathbb{Z})$$</p>
+    <p>So $\mathcal{M}_1 = \mathbb{H}/\mathrm{SL}_2(\mathbb{Z})$, the yellow fundamental domain.</p>
+    <div class="sep"></div>
+    <p><strong>Fundamental domain:</strong> $\mathcal{F} = \{\tau : |\tau|\geq 1,\, |\mathrm{Re}(\tau)|\leq\tfrac{1}{2}\}$</p>
+    <div class="sep"></div>
+    <p><strong>Teichmüller space</strong> $\mathcal{T}_g$ is the <em>universal cover</em> of $\mathcal{M}_g$:</p>
+    <ul>
+      <li>$\mathcal{T}_g$ is simply connected, contractible</li>
+      <li>$\dim_\mathbb{R}\mathcal{T}_g = 6g-6$ for $g\geq 2$</li>
+      <li>$\mathcal{M}_g = \mathcal{T}_g / \mathrm{MCG}_g$ where $\mathrm{MCG}_g$ is the mapping class group</li>
+    </ul>
+    <div class="sep"></div>
+    <p><strong>Mapping class group</strong> $\mathrm{MCG}_g$ is generated by <strong>Dehn twists</strong> $T_\gamma$ along simple closed curves $\gamma$.</p>
+    <div class="sep"></div>
+    <p><strong>Weil-Petersson metric:</strong> $g_{WP}(\mu,\nu)=\int_\Sigma \mu\bar\nu\, dA/\|dz\|^2$ — a Kähler metric on $\mathcal{T}_g$.</p>
+    <div class="sep"></div>
+    <p><strong>String theory:</strong> the string partition function at genus $g$ is an integral over $\mathcal{M}_g$:
+    $$Z_g = \int_{\mathcal{M}_g} \mathcal{F}_g(\tau,\bar\tau)\, d\mu_{WP}$$</p>
+    <p>UV finiteness of string theory follows from the compactness of $\overline{\mathcal{M}}_g$ (Deligne-Mumford compactification).</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 4: ABEL-JACOBI & THETA ==================== -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Im(τ):</label>
+      <input type="range" id="thetaTauSlider" min="5" max="30" value="12" step="1" oninput="onThetaTauChange()" style="width:90px">
+      <span id="thetaTauVal" style="font-size:.75rem;color:var(--accent)">τ=i·1.2</span>
+      <button id="btnThetaAnim" class="animBtn" onclick="toggleThetaAnim()">▶ Animate</button>
+      <button id="btnAJMap" onclick="setThetaMode('aj')">Abel-Jacobi Map</button>
+      <button id="btnThetaFn" onclick="setThetaMode('theta')" class="active-btn">Theta Function</button>
+      <button onclick="resetTheta()">&#8635; Reset</button>
+    </div>
+    <canvas id="c4" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">z = <span id="s4z">—</span></div>
+      <div class="stat">|θ(z|τ)| = <span id="s4theta">—</span></div>
+      <div class="stat">τ = <span id="s4tau">—</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Abel-Jacobi Map &amp; Theta Functions</h3>
+    <p>On a genus-$g$ surface $\Sigma$, choose a symplectic basis of cycles $(A_i, B_j)$ with $A_i\cap B_j=\delta_{ij}$.</p>
+    <div class="sep"></div>
+    <p><strong>Holomorphic 1-forms:</strong> $H^0(\Sigma,\Omega^1)$ is $g$-dimensional. Normalize basis $\omega_1,\ldots,\omega_g$ so $\oint_{A_i}\omega_j=\delta_{ij}$. Period matrix: $\Omega_{ij}=\oint_{B_i}\omega_j$.</p>
+    <div class="sep"></div>
+    <p><strong>Abel-Jacobi map:</strong>
+    $$\text{AJ}: \Sigma\to J(\Sigma)=\mathbb{C}^g/(\mathbb{Z}^g+\Omega\mathbb{Z}^g)$$
+    $$p\mapsto\left(\int_{p_0}^p\omega_1,\ldots,\int_{p_0}^p\omega_g\right)$$</p>
+    <div class="sep"></div>
+    <p><strong>Jacobian variety</strong> $J(\Sigma)=\mathbb{C}^g/\Lambda$ is a $g$-dimensional complex torus (abelian variety).</p>
+    <div class="sep"></div>
+    <p><strong>Torelli theorem:</strong> $\Sigma$ is uniquely determined by its Jacobian $J(\Sigma)$ (for $g\geq 2$).</p>
+    <div class="sep"></div>
+    <p><strong>Theta function:</strong>
+    $$\theta(z|\tau)=\sum_{n=-\infty}^{\infty} e^{i\pi n^2\tau + 2\pi i n z}$$</p>
+    <p>Quasi-periodicity: $\theta(z+1|\tau)=\theta(z|\tau)$, $\theta(z+\tau|\tau)=e^{-i\pi\tau-2\pi iz}\theta(z|\tau)$.</p>
+    <div class="sep"></div>
+    <p><strong>Riemann-Roch theorem:</strong>
+    $$\ell(D)-\ell(K-D)=\deg(D)+1-g$$</p>
+    <p>where $K$ is the canonical divisor, $\ell(D)=\dim H^0(\mathcal{O}(D))$.</p>
+    <div class="sep"></div>
+    <p><strong>Applications:</strong> Theta functions appear in string theory partition functions, KdV solitons (finite-gap solutions), number theory (Jacobi's four-square theorem), and cryptography (elliptic curve pairings).</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 5: DESSINS D'ENFANTS ==================== -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Dessin:</label>
+      <select id="dessinSelect" onchange="onDessinChange()">
+        <option value="triangle">Triangle group (2,3,∞)</option>
+        <option value="tetra">Tetrahedron (Platonic)</option>
+        <option value="cube">Cube / Octahedron</option>
+        <option value="modular">Modular curve X(3)</option>
+      </select>
+      <button id="btnDessinAnim" class="animBtn" onclick="toggleDessinAnim()">▶ Animate</button>
+      <button onclick="resetDessin()">&#8635; Reset</button>
+    </div>
+    <canvas id="c5" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">Dessin: <span id="s5name">—</span></div>
+      <div class="stat">Degree: <span id="s5deg">—</span></div>
+      <div class="stat">Passport: <span id="s5passport">—</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Dessins d'Enfants &amp; Belyi Maps</h3>
+    <p>A <strong>Belyi function</strong> is a holomorphic map $f:\Sigma\to\mathbb{CP}^1$ ramified only over $\{0,1,\infty\}$.</p>
+    <div class="sep"></div>
+    <p><strong>Dessin d'enfant:</strong> the preimage $f^{-1}([0,1])\subset\Sigma$ is a connected bipartite graph embedded on the surface — black vertices at $f^{-1}(0)$, white at $f^{-1}(1)$, edges are preimages of $[0,1]$.</p>
+    <div class="sep"></div>
+    <p><strong>Belyi's theorem (1979):</strong> A Riemann surface $\Sigma$ is defined over $\bar{\mathbb{Q}}$ if and only if it admits a Belyi map.</p>
+    <div class="sep"></div>
+    <p><strong>Grothendieck's "Esquisse d'un Programme" (1984):</strong> Grothendieck was stunned: a purely combinatorial object (the graph) encodes the algebraic structure over $\bar{\mathbb{Q}}$.</p>
+    <div class="sep"></div>
+    <p><strong>Absolute Galois group</strong> $\mathrm{Gal}(\bar{\mathbb{Q}}/\mathbb{Q})$ acts faithfully on dessins by permuting the algebraic structures. This gives a combinatorial way to study the most mysterious group in mathematics.</p>
+    <div class="sep"></div>
+    <p><strong>Passport</strong> of a dessin: the triple of cycle types $(\lambda_0,\lambda_1,\lambda_\infty)$ of the monodromy permutations at $0,1,\infty$. Each is a partition of $\deg f$.</p>
+    <div class="sep"></div>
+    <p><strong>Modular curves</strong> $X(N)$ and $X_0(N)$ are natural examples: the $j$-function gives a Belyi map $X(1)\to\mathbb{CP}^1$ ramified at $j=0,1728,\infty$.</p>
+    <div class="sep"></div>
+    <p><strong>Triangle groups:</strong> For Belyi maps from $\mathbb{CP}^1$ with passport $([a],[b],[c])$, the monodromy group is a quotient of the $(a,b,c)$-triangle group $\Delta(a,b,c)=\langle x,y,z\,|\,x^a=y^b=z^c=xyz=1\rangle$.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 6: SEIBERG-WITTEN ==================== -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>View:</label>
+      <button class="active-btn" id="btnSWuplane" onclick="setSWMode('uplane')">u-Plane</button>
+      <button id="btnSWcurve" onclick="setSWMode('curve')">SW Curve y²=f(x)</button>
+      <button id="btnSWperiods" onclick="setSWMode('periods')">Period Integrals</button>
+      <button id="btnSWanim" class="animBtn" onclick="toggleSWAnim()">▶ Animate</button>
+      <button onclick="resetSW()">&#8635; Reset</button>
+    </div>
+    <canvas id="c6" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">u = <span id="s6u">—</span></div>
+      <div class="stat">Λ² = <span id="s6lambda">1.000</span></div>
+      <div class="stat">a = <span id="s6a">—</span></div>
+      <div class="stat">a<sub>D</sub> = <span id="s6ad">—</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Seiberg-Witten Theory</h3>
+    <p>The <strong>Seiberg-Witten curve</strong> encodes the exact low-energy effective action of $\mathcal{N}=2$ $\mathrm{SU}(2)$ super-Yang-Mills theory.</p>
+    <div class="sep"></div>
+    <p><strong>SW curve (genus 1):</strong>
+    $$\Sigma_{SW}:\quad y^2 = (x^2-\Lambda^4)(x-u)$$
+    equivalently $y^2=(x-e_1)(x-e_2)(x-e_3)$ with $e_i$ the branch points.</p>
+    <div class="sep"></div>
+    <p><strong>Singular points</strong> at $u=\pm\Lambda^2$: the curve degenerates (a cycle pinches), a BPS state becomes massless.</p>
+    <div class="sep"></div>
+    <p><strong>SW differential:</strong> $\lambda_{SW} = \frac{\sqrt{2}}{4\pi}\frac{x\,dx}{y}$ — a meromorphic 1-form on $\Sigma_{SW}$.</p>
+    <div class="sep"></div>
+    <p><strong>Period integrals:</strong>
+    $$a = \oint_A \lambda_{SW},\qquad a_D = \oint_B \lambda_{SW}$$
+    $a$ is the scalar vev (Coulomb branch coordinate); $a_D=\partial\mathcal{F}/\partial a$ is its dual. The prepotential $\mathcal{F}(a)$ encodes all perturbative and instanton corrections.</p>
+    <div class="sep"></div>
+    <p><strong>Electric-magnetic duality:</strong> Under $\tau_{SW}=\partial^2\mathcal{F}/\partial a^2\in\mathbb{H}$, the duality group $\mathrm{SL}_2(\mathbb{Z})$ acts on $(a,a_D)$. This is exact S-duality.</p>
+    <div class="sep"></div>
+    <p><strong>Revolution (1994):</strong> Seiberg &amp; Witten solved the exact quantum moduli space — the first non-perturbative exact result in 4d QFT. The discriminant locus $\Delta=0$ maps out where the physics is singular (massless monopoles/dyons).</p>
+    <div class="sep"></div>
+    <p><strong>Donaldson invariants</strong> of 4-manifolds are computed by the SW invariants — a profound link between physics and topology (Witten 1994).</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 7: SPECTRAL CURVES ==================== -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>System:</label>
+      <select id="spectralSelect" onchange="onSpectralChange()">
+        <option value="hitchin">Hitchin system (gl₂)</option>
+        <option value="kdv">KdV spectral curve</option>
+        <option value="todo">Toda lattice</option>
+      </select>
+      <button id="btnSpectralAnim" class="animBtn" onclick="toggleSpectralAnim()">▶ Animate</button>
+      <button id="btnSpectralLax" onclick="toggleSpectralLax()">Show Lax Pair</button>
+      <button onclick="resetSpectral()">&#8635; Reset</button>
+    </div>
+    <canvas id="c7" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">System: <span id="s7sys">Hitchin gl₂</span></div>
+      <div class="stat">Genus: <span id="s7genus">—</span></div>
+      <div class="stat">t = <span id="s7t">0.000</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Spectral Curves &amp; Integrable Systems</h3>
+    <p>The <strong>spectral curve</strong> of a Hitchin system on a curve $C$ is defined by
+    $$\Sigma_{spec}=\{(x,y)\in T^*C : \det(y\cdot\mathrm{Id} - \Phi(x))=0\}$$
+    where $\Phi$ is a Higgs field (meromorphic section of $\mathrm{End}(E)\otimes K_C$).</p>
+    <div class="sep"></div>
+    <p><strong>For $\mathrm{GL}_2$ on $\mathbb{CP}^1$</strong> with poles at $p_1,\ldots,p_n$: the spectral curve is a degree-2 branched cover $\Sigma\to\mathbb{CP}^1$, given by
+    $$y^2 = \det\Phi = P_{2g+2}(x)$$
+    a hyperelliptic curve of genus $g$.</p>
+    <div class="sep"></div>
+    <p><strong>Lax pair:</strong> $L(x,t),\,M(x,t)$ with
+    $$\frac{\partial L}{\partial t} - \frac{\partial M}{\partial x} + [L,M]=0$$
+    This zero-curvature equation encodes isomonodromic deformation and Liouville integrability.</p>
+    <div class="sep"></div>
+    <p><strong>Liouville integrability:</strong> Hitchin Hamiltonians $H_i=\oint\mathrm{tr}\,\Phi^i$ Poisson-commute. Action-angle variables are given by the Jacobian of $\Sigma_{spec}$.</p>
+    <div class="sep"></div>
+    <p><strong>KdV equation</strong> $u_t=6uu_x-u_{xxx}$ as Hitchin system: the finite-gap solutions $u(x,t)=2\partial_x^2\log\theta(\mathbf{U}x+\mathbf{V}t+\mathbf{W}|\Omega)$ are governed by the spectral curve.</p>
+    <div class="sep"></div>
+    <p><strong>Gaiotto theories (2009):</strong> 4d $\mathcal{N}=2$ SCFTs of class $\mathcal{S}$ arise from wrapping M5-branes on $C$ with punctures. The Seiberg-Witten curve IS the spectral curve of the associated Hitchin system.</p>
+    <div class="sep"></div>
+    <p><strong>Geometric Langlands:</strong> the Hitchin fibration $h:\mathcal{M}_{Higgs}\to\mathcal{A}$ (projection to spectral data) is a crucial ingredient in the geometric Langlands correspondence and mirror symmetry $(\mathcal{M}_{Higgs}(G)\leftrightarrow\mathcal{M}_{Higgs}(^LG))$.</p>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ============================================================
+// TAB 3: MODULI SPACE & TEICHMÜLLER THEORY
+// ============================================================
+// ============================================================
+
+let moduliMode = 'fd';
+let moduliTauRe = 0;
+let moduliTauIm = 1.3;
+let moduliAnimRAF = null;
+let moduliAnimRunning = false;
+let moduliAnimT = 0;
+
+function setModuliMode(m){
+  moduliMode = m;
+  ['btnModFD','btnModTau','btnModGenus2'].forEach(id=>document.getElementById(id)?.classList.remove('active-btn'));
+  const map={fd:'btnModFD',tau:'btnModTau',g2:'btnModGenus2'};
+  document.getElementById(map[m])?.classList.add('active-btn');
+  drawModuli();
+}
+
+function stopModuliAnim(){
+  moduliAnimRunning=false;
+  if(moduliAnimRAF){cancelAnimationFrame(moduliAnimRAF);moduliAnimRAF=null;}
+  const btn=document.getElementById('btnModAnim');
+  if(btn){btn.textContent='▶ Animate';btn.classList.remove('active-btn');}
+}
+
+function toggleModuliAnim(){
+  if(moduliAnimRunning){stopModuliAnim();return;}
+  moduliAnimRunning=true;
+  const btn=document.getElementById('btnModAnim');
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active-btn');}
+  moduliAnimStep();
+}
+
+function moduliAnimStep(){
+  if(!moduliAnimRunning)return;
+  moduliAnimT += 0.008*(window.animSpeed||0.1);
+  // τ traces a lemniscate-like path inside the fundamental domain
+  const t=moduliAnimT;
+  const re=0.45*Math.sin(t*1.7)*Math.cos(t*0.4);
+  const im=1.1+0.55*Math.abs(Math.sin(t*0.9));
+  moduliTauRe = Math.max(-0.5, Math.min(0.5, re));
+  moduliTauIm = Math.max(1.0, im);
+  // Clamp to fundamental domain: if |τ|<1, reflect
+  const modulus = Math.hypot(moduliTauRe, moduliTauIm);
+  if(modulus < 1){ moduliTauIm = Math.sqrt(1 - moduliTauRe*moduliTauRe)+0.001; }
+  updateModuliStats();
+  drawModuli();
+  moduliAnimRAF=requestAnimationFrame(moduliAnimStep);
+}
+
+function resetModuli(){
+  stopModuliAnim();
+  moduliTauRe=0; moduliTauIm=1.3;
+  moduliMode='fd';
+  ['btnModFD','btnModTau','btnModGenus2'].forEach(id=>document.getElementById(id)?.classList.remove('active-btn'));
+  document.getElementById('btnModFD')?.classList.add('active-btn');
+  updateModuliStats();
+  drawModuli();
+}
+
+function updateModuliStats(){
+  const re=moduliTauRe, im=moduliTauIm;
+  document.getElementById('s3tau').textContent=`${re>=0?'':'-'}${Math.abs(re).toFixed(3)} + ${im.toFixed(3)}i`;
+  document.getElementById('s3modtau').textContent=Math.hypot(re,im).toFixed(3);
+  document.getElementById('s3retau').textContent=re.toFixed(3);
+  // Eccentricity of torus: ratio of period arms
+  const ecc = Math.hypot(re,im) > 0.001 ? (im/Math.hypot(re,im)).toFixed(3) : '—';
+  document.getElementById('s3ecc').textContent=ecc;
+}
+
+function drawModuli(){
+  const cv=document.getElementById('c3');
+  if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  if(moduliMode==='g2'){
+    drawModuliGenus2(ctx,W,H);
+    return;
+  }
+
+  // Upper half-plane view
+  // Map: horizontal = Re(τ) in [-1,1], vertical = Im(τ) in [0,3]
+  const PAD=40;
+  const PW=W-2*PAD, PH=H-2*PAD;
+  const reMin=-1.1, reMax=1.1, imMin=0, imMax=3.2;
+
+  function toScreen(re,im){
+    return{
+      x: PAD + (re-reMin)/(reMax-reMin)*PW,
+      y: H-PAD - (im-imMin)/(imMax-imMin)*PH
+    };
+  }
+
+  // Draw upper half-plane background
+  ctx.fillStyle='rgba(20,15,45,0.9)';
+  ctx.fillRect(PAD,PAD,PW,PH);
+
+  // Draw SL(2,Z) fundamental domain
+  // Fill the fundamental domain
+  ctx.save();
+  ctx.beginPath();
+  // Left boundary: Re=-0.5, Im from sqrt(3)/2 up to imMax
+  const pFL=toScreen(-0.5, Math.sqrt(3)*0.5);
+  const pFLt=toScreen(-0.5, imMax);
+  // Right boundary: Re=0.5, Im from sqrt(3)/2 up to imMax
+  const pFR=toScreen(0.5, Math.sqrt(3)*0.5);
+  const pFRt=toScreen(0.5, imMax);
+  // Arc at bottom: |τ|=1 from -0.5+i·√3/2 to 0.5+i·√3/2
+  // In screen coords, the unit circle arc
+  const arcCtr=toScreen(0,0);
+  const arcR=(toScreen(1,0).x - arcCtr.x);
+  ctx.moveTo(pFLt.x, pFLt.y);
+  ctx.lineTo(pFL.x, pFL.y);
+  // Arc from -0.5+i·√3/2 to 0.5+i·√3/2 (angles in screen space)
+  const a1=Math.atan2(arcCtr.y-pFL.y, pFL.x-arcCtr.x); // screen y is inverted
+  const a2=Math.atan2(arcCtr.y-pFR.y, pFR.x-arcCtr.x);
+  // We need to arc from pFL to pFR going through the top of the circle (τ=i)
+  // In screen coords: arc center = toScreen(0,0), radius = arcR
+  // angle to pFL from center
+  const ang1=Math.atan2(pFL.y-arcCtr.y, pFL.x-arcCtr.x);
+  const ang2=Math.atan2(pFR.y-arcCtr.y, pFR.x-arcCtr.x);
+  ctx.arc(arcCtr.x, arcCtr.y, arcR, ang1, ang2, false);
+  ctx.lineTo(pFRt.x, pFRt.y);
+  ctx.lineTo(pFLt.x, pFLt.y);
+  ctx.closePath();
+  const fdGrad=ctx.createLinearGradient(PAD,PAD,PAD+PW,H-PAD);
+  fdGrad.addColorStop(0,'rgba(170,102,255,0.18)');
+  fdGrad.addColorStop(1,'rgba(80,40,180,0.12)');
+  ctx.fillStyle=fdGrad;
+  ctx.fill();
+  // Border
+  ctx.strokeStyle='rgba(170,102,255,0.8)';
+  ctx.lineWidth=2;
+  ctx.stroke();
+  ctx.restore();
+
+  // Label fundamental domain
+  ctx.fillStyle='rgba(200,180,255,0.85)';
+  ctx.font='12px Share Tech Mono';
+  ctx.textAlign='center';
+  const tauI=toScreen(0,1.57);
+  ctx.fillText('ℱ = fundamental domain',tauI.x,tauI.y-18);
+  ctx.fillText('SL₂(ℤ)\\ℍ = ℳ₁',tauI.x,tauI.y-4);
+  ctx.textAlign='left';
+
+  // Draw real axis
+  ctx.save();
+  ctx.strokeStyle='rgba(100,90,150,0.5)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(PAD,H-PAD); ctx.lineTo(W-PAD,H-PAD);
+  ctx.stroke();
+  // Re=±1/2 lines
+  ctx.setLineDash([5,4]);
+  ctx.strokeStyle='rgba(120,100,200,0.5)';
+  const lh=toScreen(-0.5,0), rh=toScreen(0.5,0);
+  ctx.beginPath();
+  ctx.moveTo(lh.x,H-PAD); ctx.lineTo(lh.x,PAD);
+  ctx.moveTo(rh.x,H-PAD); ctx.lineTo(rh.x,PAD);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Unit circle |τ|=1
+  ctx.save();
+  ctx.strokeStyle='rgba(255,150,50,0.6)';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  ctx.arc(arcCtr.x, arcCtr.y, arcR, Math.PI, 0, false);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Axis tick labels
+  ctx.fillStyle='rgba(150,130,200,0.7)';
+  ctx.font='12px Share Tech Mono';
+  [-1,-0.5,0,0.5,1].forEach(v=>{
+    const p=toScreen(v,0);
+    ctx.fillText(v.toFixed(1),p.x-8,H-PAD+14);
+  });
+  [0.5,1,1.5,2,2.5,3].forEach(v=>{
+    const p=toScreen(0,v);
+    ctx.fillText(v.toFixed(1),PAD-30,p.y+4);
+  });
+  ctx.fillText('Re(τ)',W-PAD-20,H-PAD+14);
+  ctx.fillText('Im(τ)',PAD-32,PAD-8);
+
+  // Special points
+  const specialPts=[
+    {re:0,im:1,label:'i (τ=i)'},
+    {re:-0.5,im:Math.sqrt(3)/2,label:'ρ'},
+    {re:0.5,im:Math.sqrt(3)/2,label:'-ρ̄'},
+  ];
+  specialPts.forEach(({re,im,label})=>{
+    const p=toScreen(re,im);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,4,0,2*Math.PI);
+    ctx.fillStyle='#ffaa44';
+    ctx.fill();
+    ctx.fillStyle='rgba(255,200,100,0.9)';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText(label,p.x+6,p.y-4);
+    ctx.restore();
+  });
+
+  // Draw τ position
+  const tp=toScreen(moduliTauRe,moduliTauIm);
+  // Torus ellipse preview next to τ point
+  drawTorusEllipse(ctx, Math.min(tp.x+60,W-80), tp.y, moduliTauRe, moduliTauIm, 38);
+  // τ dot
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(tp.x,tp.y,7,0,2*Math.PI);
+  ctx.fillStyle='#aa66ff';
+  ctx.fill();
+  ctx.strokeStyle='#fff';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.fillStyle='rgba(200,180,255,0.9)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText(`τ=(${moduliTauRe.toFixed(2)},${moduliTauIm.toFixed(2)}i)`,tp.x+10,tp.y-6);
+  ctx.restore();
+
+  // Corner: Dehn twist diagram
+  drawDehnTwistIcon(ctx, W-130, 20, 120, 90);
+}
+
+function drawTorusEllipse(ctx,cx,cy,tauRe,tauIm,scale){
+  // Represent the torus lattice as a parallelogram
+  ctx.save();
+  ctx.strokeStyle='rgba(170,102,255,0.65)';
+  ctx.lineWidth=1.2;
+  // Lattice vectors: 1=(scale,0), τ=(tauRe*scale, -tauIm*scale) (y inverted)
+  const v1x=scale, v1y=0;
+  const v2x=tauRe*scale*0.7, v2y=-tauIm*scale*0.7;
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+v1x,cy+v1y);
+  ctx.lineTo(cx+v1x+v2x,cy+v1y+v2y);
+  ctx.lineTo(cx+v2x,cy+v2y);
+  ctx.closePath();
+  ctx.fillStyle='rgba(100,60,200,0.12)';
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle='rgba(200,180,255,0.6)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('torus',cx+v1x*0.3+v2x*0.3,cy+v1y*0.3+v2y*0.3+3);
+  ctx.restore();
+}
+
+function drawDehnTwistIcon(ctx,x,y,w,h){
+  ctx.save();
+  ctx.fillStyle='rgba(10,8,30,0.75)';
+  ctx.strokeStyle='rgba(100,80,180,0.5)';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.roundRect(x,y,w,h,4); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(170,150,255,0.85)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('Dehn Twist T_γ',x+w/2,y+14);
+  // Simple icon: a torus circle being twisted
+  const cx=x+w/2, cy=y+h*0.6;
+  const R=22,r=9;
+  ctx.strokeStyle='rgba(170,102,255,0.7)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,R,R*0.38,0,0,2*Math.PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,r,r*0.38,0,0,2*Math.PI);
+  ctx.stroke();
+  // Arrow showing twist
+  ctx.strokeStyle='rgba(255,200,80,0.85)';
+  ctx.lineWidth=1.8;
+  ctx.beginPath();
+  ctx.arc(cx,cy,R+5, -0.5, 0.5, false);
+  ctx.stroke();
+  // arrowhead
+  const ax=cx+(R+5)*Math.cos(0.5), ay=cy-(R+5)*Math.sin(0.5)*0.38;
+  ctx.beginPath();
+  ctx.moveTo(ax,ay);
+  ctx.lineTo(ax-5,ay-5);
+  ctx.lineTo(ax+3,ay-3);
+  ctx.closePath();
+  ctx.fillStyle='rgba(255,200,80,0.85)';
+  ctx.fill();
+  ctx.fillStyle='rgba(200,180,255,0.7)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('generates MCG',x+w/2,y+h-4);
+  ctx.restore();
+}
+
+function drawModuliGenus2(ctx,W,H){
+  // Schematic of genus-2 surface and its moduli space dimension
+  const CX=W/2, CY=H/2-20;
+  ctx.fillStyle='rgba(10,8,25,0.5)';
+  ctx.fillRect(0,0,W,H);
+
+  // Draw genus-2 as two tori connected by tube, with marked cycles
+  const R=70, r=26, gap=R*1.7;
+  drawTorus(ctx, CX-gap/2, CY, R, r, 0.4, 0.85);
+  drawTorus(ctx, CX+gap/2, CY, R, r, 0.4+Math.PI, 0.85);
+
+  // Connecting tube
+  ctx.save();
+  ctx.strokeStyle='rgba(170,102,255,0.5)';
+  ctx.lineWidth=3;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.moveTo(CX-gap/2+R*0.8, CY);
+  ctx.lineTo(CX+gap/2-R*0.8, CY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Mark A and B cycles
+  const cycles=[
+    {cx:CX-gap/2, cy:CY, label:'A₁,B₁', col:'#66aaff'},
+    {cx:CX+gap/2, cy:CY, label:'A₂,B₂', col:'#aa66ff'},
+  ];
+  cycles.forEach(({cx,cy,label,col})=>{
+    ctx.save();
+    ctx.strokeStyle=col;
+    ctx.lineWidth=2;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,R*0.5,R*0.18,0,0,2*Math.PI);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=col;
+    ctx.font='12px Share Tech Mono';
+    ctx.textAlign='center';
+    ctx.fillText(label,cx,cy-R*0.5-6);
+    ctx.restore();
+  });
+
+  ctx.fillStyle='rgba(200,180,255,0.88)';
+  ctx.font='bold 14px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('Genus-2 surface: g=2, χ=−2',CX,H-80);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('Teichmüller space 𝒯₂: dim = 6g−6 = 6  (over ℝ)',CX,H-62);
+  ctx.fillText('Period matrix Ω ∈ 𝔥₂ (2×2 Siegel upper half-space)',CX,H-46);
+  ctx.fillText('Moduli space ℳ₂ = 𝒯₂ / MCG₂ (orbifold)',CX,H-30);
+  ctx.fillText('MCG₂ generated by 5 Dehn twists (Humphries generators)',CX,H-14);
+  ctx.textAlign='left';
+}
+
+function initPane3(){
+  const cv=document.getElementById('c3');
+  if(!cv||cv._init3) return;
+  cv._init3=true;
+  cv.onmousedown=e=>{
+    const r=cv.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    const W=r.width, H=r.height;
+    const PAD=40, PW=W-2*PAD, PH=H-2*PAD;
+    const reMin=-1.1,reMax=1.1,imMin=0,imMax=3.2;
+    moduliTauRe=Math.max(-0.5,Math.min(0.5, (mx-PAD)/PW*(reMax-reMin)+reMin));
+    moduliTauIm=Math.max(0.05, (H-PAD-my)/PH*(imMax-imMin)+imMin);
+    const mod=Math.hypot(moduliTauRe,moduliTauIm);
+    if(mod<1){ moduliTauIm=Math.sqrt(Math.max(0,1-moduliTauRe*moduliTauRe))+0.005; }
+    updateModuliStats();
+    drawModuli();
+  };
+  cv.onmousemove=e=>{
+    if(e.buttons===0)return;
+    const r=cv.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    const W=r.width, H=r.height;
+    const PAD=40, PW=W-2*PAD, PH=H-2*PAD;
+    const reMin=-1.1,reMax=1.1,imMin=0,imMax=3.2;
+    moduliTauRe=Math.max(-0.5,Math.min(0.5, (mx-PAD)/PW*(reMax-reMin)+reMin));
+    moduliTauIm=Math.max(0.05, (H-PAD-my)/PH*(imMax-imMin)+imMin);
+    const mod=Math.hypot(moduliTauRe,moduliTauIm);
+    if(mod<1){ moduliTauIm=Math.sqrt(Math.max(0,1-moduliTauRe*moduliTauRe))+0.005; }
+    updateModuliStats();
+    drawModuli();
+  };
+}
+
+// ============================================================
+// ============================================================
+// TAB 4: ABEL-JACOBI & THETA FUNCTIONS
+// ============================================================
+// ============================================================
+
+let thetaMode='theta';
+let thetaTauIm=1.2;
+let thetaAnimRAF=null;
+let thetaAnimRunning=false;
+let thetaAnimT=0;
+let thetaZre=0.3, thetaZim=0.1;
+
+function setThetaMode(m){
+  thetaMode=m;
+  ['btnAJMap','btnThetaFn'].forEach(id=>document.getElementById(id)?.classList.remove('active-btn'));
+  const map={aj:'btnAJMap',theta:'btnThetaFn'};
+  document.getElementById(map[m])?.classList.add('active-btn');
+  drawTheta();
+}
+
+function stopThetaAnim(){
+  thetaAnimRunning=false;
+  if(thetaAnimRAF){cancelAnimationFrame(thetaAnimRAF);thetaAnimRAF=null;}
+  const btn=document.getElementById('btnThetaAnim');
+  if(btn){btn.textContent='▶ Animate';btn.classList.remove('active-btn');}
+}
+
+function toggleThetaAnim(){
+  if(thetaAnimRunning){stopThetaAnim();return;}
+  thetaAnimRunning=true;
+  const btn=document.getElementById('btnThetaAnim');
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active-btn');}
+  thetaAnimStep();
+}
+
+function thetaAnimStep(){
+  if(!thetaAnimRunning)return;
+  thetaAnimT+=0.012*(window.animSpeed||0.1);
+  thetaZre=0.45*Math.cos(thetaAnimT*1.3);
+  thetaZim=0.35*Math.sin(thetaAnimT*0.9);
+  updateThetaStats();
+  drawTheta();
+  thetaAnimRAF=requestAnimationFrame(thetaAnimStep);
+}
+
+function onThetaTauChange(){
+  const v=document.getElementById('thetaTauSlider').value;
+  thetaTauIm=v/10;
+  document.getElementById('thetaTauVal').textContent=`τ=i·${thetaTauIm.toFixed(1)}`;
+  updateThetaStats();
+  drawTheta();
+}
+
+function resetTheta(){
+  stopThetaAnim();
+  thetaMode='theta';
+  thetaTauIm=1.2;
+  thetaZre=0.3; thetaZim=0.1;
+  document.getElementById('thetaTauSlider').value=12;
+  document.getElementById('thetaTauVal').textContent='τ=i·1.2';
+  ['btnAJMap','btnThetaFn'].forEach(id=>document.getElementById(id)?.classList.remove('active-btn'));
+  document.getElementById('btnThetaFn')?.classList.add('active-btn');
+  updateThetaStats();
+  drawTheta();
+}
+
+// Compute theta function θ(z|τ) = Σ_n exp(iπn²τ + 2πinz), τ=i·tauIm
+function thetaEval(zre,zim,tauIm,terms){
+  let re=0,im=0;
+  const N=terms||20;
+  for(let n=-N;n<=N;n++){
+    // exp(iπn²(i·tauIm) + 2πin(zre+i·zim))
+    // = exp(-πn²·tauIm - 2πn·zim) * exp(i·2πn·zre)
+    const amp=Math.exp(-Math.PI*n*n*tauIm - 2*Math.PI*n*zim);
+    const ph=2*Math.PI*n*zre;
+    re+=amp*Math.cos(ph);
+    im+=amp*Math.sin(ph);
+  }
+  return{re,im};
+}
+
+function updateThetaStats(){
+  const tv=thetaEval(thetaZre,thetaZim,thetaTauIm,20);
+  document.getElementById('s4z').textContent=fmtC(thetaZre,thetaZim);
+  document.getElementById('s4theta').textContent=Math.hypot(tv.re,tv.im).toFixed(4);
+  document.getElementById('s4tau').textContent=`i·${thetaTauIm.toFixed(2)}`;
+}
+
+function drawTheta(){
+  const cv=document.getElementById('c4');
+  if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  if(thetaMode==='aj'){
+    drawAJMap(ctx,W,H);
+  } else {
+    drawThetaHeatmap(ctx,W,H);
+  }
+}
+
+function drawThetaHeatmap(ctx,W,H){
+  // Draw |θ(z|τ)| as a heatmap over the fundamental domain z ∈ [0,1)×[0,tauIm)
+  const tauIm=thetaTauIm;
+  const _origW=Math.floor(W), _origH=Math.floor(H);
+  const _DTH=Math.max(1,Math.ceil(Math.max(W,H)/400));
+  const imgW=Math.max(1,Math.floor(W/_DTH)), imgH=Math.max(1,Math.floor(H/_DTH));
+  const {imgData:data,flush:_flushTH}=_mkImgBuf(imgW,imgH);
+
+  // Map screen → z: x→[0,1], y→[0,tauIm]
+  for(let py=0;py<imgH;py++){
+    for(let px=0;px<imgW;px++){
+      const zre=(px*_DTH)/_origW;
+      const zim=(1-(py*_DTH)/_origH)*tauIm;
+      const tv=thetaEval(zre,zim,tauIm,16);
+      const mag=Math.hypot(tv.re,tv.im);
+      // Map mag to hue: zeros appear as dark spots
+      const logMag=Math.log(mag+0.01);
+      const hue=(260+logMag*40+360)%360;
+      const bright=Math.max(0.1,Math.min(0.7, 0.2+0.35*Math.log1p(mag)));
+      const sat=0.75;
+      // HSL to RGB
+      const c2=(1-Math.abs(2*bright-1))*sat;
+      const x2=c2*(1-Math.abs((hue/60)%2-1));
+      const m=bright-c2/2;
+      let rr=0,gg=0,bb=0;
+      const h=((hue%360)+360)%360;
+      if(h<60){rr=c2;gg=x2;}else if(h<120){rr=x2;gg=c2;}
+      else if(h<180){gg=c2;bb=x2;}else if(h<240){gg=x2;bb=c2;}
+      else if(h<300){rr=x2;bb=c2;}else{rr=c2;bb=x2;}
+      const idx=(py*imgW+px)*4;
+      data.data[idx]=Math.round((rr+m)*255);
+      data.data[idx+1]=Math.round((gg+m)*255);
+      data.data[idx+2]=Math.round((bb+m)*255);
+      data.data[idx+3]=255;
+    }
+  }
+  _flushTH(ctx,0,0,W,H);
+
+  // Draw grid lines for fundamental domain
+  ctx.save();
+  ctx.strokeStyle='rgba(170,102,255,0.25)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  for(let v=0;v<=4;v++){
+    ctx.beginPath();
+    ctx.moveTo(v*W/4,0); ctx.lineTo(v*W/4,H);
+    ctx.moveTo(0,v*H/4); ctx.lineTo(W,v*H/4);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Draw zero locations (θ has one zero per fundamental domain at z=½+τ/2)
+  const zeroRe=0.5, zeroIm=tauIm/2;
+  const zpx=Math.round(zeroRe*W);
+  const zpy=Math.round((1-zeroIm/tauIm)*H);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(zpx,zpy,8,0,2*Math.PI);
+  ctx.strokeStyle='rgba(255,80,80,0.9)';
+  ctx.lineWidth=2;
+  ctx.stroke();
+  ctx.fillStyle='rgba(255,120,120,0.85)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('zero: ½+τ/2',zpx+10,zpy+4);
+  ctx.restore();
+
+  // Draw z position
+  const zpxU=Math.round(((thetaZre%1+1)%1)*W);
+  const zpyU=Math.round((1-((thetaZim%tauIm+tauIm)%tauIm)/tauIm)*H);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(zpxU,zpyU,6,0,2*Math.PI);
+  ctx.fillStyle='rgba(255,220,80,0.9)';
+  ctx.fill();
+  ctx.strokeStyle='#fff';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Labels
+  ctx.fillStyle='rgba(200,180,255,0.9)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.fillText(`|θ(z|τ)|  τ=i·${tauIm.toFixed(2)}`,8,18);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillStyle='rgba(160,140,220,0.7)';
+  ctx.fillText('z∈[0,1]×[0,Im(τ)]  (fundamental domain of torus)',8,H-6);
+  ctx.fillText('Re(z) →',W-80,H-24);
+  ctx.fillText('Im(z)',6,H/2);
+  // Quasi-periodicity annotation
+  ctx.fillStyle='rgba(255,200,100,0.8)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('θ(z+1|τ)=θ(z|τ)',W-160,18);
+  ctx.fillText('θ(z+τ|τ)=e^{-iπτ-2πiz}θ(z|τ)',W-260,34);
+  updateThetaStats();
+}
+
+function drawAJMap(ctx,W,H){
+  // Abel-Jacobi map visualization: torus as quotient, path to Jacobian
+  const PAD=30;
+  const tauIm=thetaTauIm;
+  // Left panel: Riemann surface (draw as parallelogram = torus)
+  const lW=(W-PAD*3)/2;
+  const lH=H-PAD*2;
+  const lX=PAD, lY=PAD;
+
+  // Right panel: Jacobian (same size)
+  const rX=PAD*2+lW, rY=PAD;
+
+  // Draw source surface (torus = parallelogram with identifications)
+  ctx.save();
+  ctx.strokeStyle='rgba(100,80,180,0.5)';
+  ctx.fillStyle='rgba(20,15,45,0.85)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(lX,lY,lW,lH,4);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(170,150,255,0.8)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('Riemann Surface Σ',lX+lW/2,lY+14);
+
+  // Draw parallelogram (lattice fundamental domain)
+  const scale=Math.min(lW,lH)*0.28;
+  const cx=lX+lW/2, cy=lY+lH*0.55;
+  const v1x=scale, v1y=0;
+  const v2x=0, v2y=-scale*tauIm*0.7;
+  const verts=[[cx,cy],[cx+v1x,cy+v1y],[cx+v1x+v2x,cy+v1y+v2y],[cx+v2x,cy+v2y]];
+  ctx.strokeStyle='rgba(170,102,255,0.7)';
+  ctx.lineWidth=2;
+  ctx.fillStyle='rgba(80,40,160,0.2)';
+  ctx.beginPath();
+  ctx.moveTo(verts[0][0],verts[0][1]);
+  verts.forEach(v=>ctx.lineTo(v[0],v[1]));
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // Identification arrows
+  const arrowPairs=[[[0,1],[3,2],'#66aaff','a'],[[0,3],[1,2],'#aa66ff','b']];
+  arrowPairs.forEach(([pair1,pair2,col,lbl])=>{
+    [[pair1[0],pair1[1]],[pair2[0],pair2[1]]].forEach(([i,j])=>{
+      const mx=(verts[i][0]+verts[j][0])/2, my=(verts[i][1]+verts[j][1])/2;
+      const dx=verts[j][0]-verts[i][0], dy=verts[j][1]-verts[i][1];
+      const len=Math.hypot(dx,dy);
+      ctx.save();
+      ctx.strokeStyle=col; ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.moveTo(mx-dx*0.15/len*12,my-dy*0.15/len*12);
+      ctx.lineTo(mx+dx*0.15/len*12,my+dy*0.15/len*12);
+      ctx.stroke();
+      ctx.fillStyle=col; ctx.font='12px Share Tech Mono'; ctx.textAlign='center';
+      ctx.fillText(lbl,mx+5,my-5);
+      ctx.restore();
+    });
+  });
+
+  // Draw sample point p moving along path
+  const t=thetaAnimRunning?thetaAnimT:0.6;
+  const angle=t*2*Math.PI;
+  const pr=scale*0.4;
+  const ppx=cx+pr*Math.cos(angle)*0.7+v2x*0.4;
+  const ppy=cy+pr*Math.sin(angle)*0.5+v2y*0.4;
+  ctx.save();
+  ctx.beginPath();ctx.arc(ppx,ppy,5,0,2*Math.PI);
+  ctx.fillStyle='#ffdd44';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle='rgba(255,220,80,0.85)'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('p',ppx+7,ppy-3);
+  ctx.restore();
+
+  // Arrow in the middle
+  ctx.fillStyle='rgba(255,200,80,0.9)';
+  ctx.font='bold 14px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('AJ',W/2,H/2-4);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('p↦∫ω',W/2,H/2+10);
+  ctx.save();
+  ctx.strokeStyle='rgba(255,200,80,0.7)';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(lX+lW+8,H/2);ctx.lineTo(rX-8,H/2);
+  ctx.stroke();
+  // arrowhead
+  ctx.beginPath();
+  ctx.moveTo(rX-8,H/2);ctx.lineTo(rX-18,H/2-5);ctx.lineTo(rX-18,H/2+5);ctx.closePath();
+  ctx.fillStyle='rgba(255,200,80,0.7)';ctx.fill();
+  ctx.restore();
+
+  // Right panel: Jacobian J(Σ) = C/Λ
+  ctx.fillStyle='rgba(20,15,45,0.85)';
+  ctx.strokeStyle='rgba(100,80,180,0.5)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(rX,rY,lW,lH,4);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(170,150,255,0.8)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('Jacobian J(Σ) = ℂ/Λ',rX+lW/2,rY+14);
+
+  // Draw the Jacobian torus as a domain coloring
+  const rcx=rX+lW/2, rcy=rY+lH*0.55;
+  const rscale=scale;
+  const jv1x=rscale, jv1y=0;
+  const jv2x=0, jv2y=-rscale*tauIm*0.7;
+  // Draw colorful lattice square
+  const _fw=Math.floor(lW-20), _fh=Math.floor(lH*0.65);
+  const _DAJ=Math.max(1,Math.ceil(Math.max(_fw,_fh)/400));
+  const iW=Math.max(1,Math.floor(_fw/_DAJ)), iH=Math.max(1,Math.floor(_fh/_DAJ));
+  const iX=rX+10, iY=Math.floor(rcy-_fh/2);
+  const {imgData,flush:_flushAJ}=_mkImgBuf(iW,iH);
+  for(let py2=0;py2<iH;py2++){
+    for(let px2=0;px2<iW;px2++){
+      const zre2=(px2*_DAJ)/_fw;
+      const zim2=(1-(py2*_DAJ)/_fh)*tauIm;
+      const tv=thetaEval(zre2,zim2,thetaTauIm,12);
+      const ph=(Math.atan2(tv.im,tv.re)/(2*Math.PI)+1)%1;
+      const mag2=Math.hypot(tv.re,tv.im);
+      const hue2=ph*360;
+      const bright2=0.3+0.28*Math.tanh(mag2*0.5);
+      const c3=(1-Math.abs(2*bright2-1))*0.7;
+      const x3=c3*(1-Math.abs((hue2/60)%2-1));
+      const m3=bright2-c3/2;
+      let rr3=0,gg3=0,bb3=0;
+      const h3=((hue2%360)+360)%360;
+      if(h3<60){rr3=c3;gg3=x3;}else if(h3<120){rr3=x3;gg3=c3;}
+      else if(h3<180){gg3=c3;bb3=x3;}else if(h3<240){gg3=x3;bb3=c3;}
+      else if(h3<300){rr3=x3;bb3=c3;}else{rr3=c3;bb3=x3;}
+      const idx2=(py2*iW+px2)*4;
+      imgData.data[idx2]=Math.round((rr3+m3)*255);
+      imgData.data[idx2+1]=Math.round((gg3+m3)*255);
+      imgData.data[idx2+2]=Math.round((bb3+m3)*255);
+      imgData.data[idx2+3]=210;
+    }
+  }
+  _flushAJ(ctx,iX,iY,_fw,_fh);
+
+  // Image of p in Jacobian
+  const jpx=iX+((thetaZre%1+1)%1)*iW;
+  const jpy=iY+(1-((thetaZim%tauIm+tauIm)%tauIm)/tauIm)*iH;
+  ctx.save();
+  ctx.beginPath();ctx.arc(jpx,jpy,5,0,2*Math.PI);
+  ctx.fillStyle='#ffdd44';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle='rgba(255,220,80,0.85)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('AJ(p)',jpx+7,jpy-3);
+  ctx.restore();
+
+  ctx.fillStyle='rgba(140,120,200,0.75)';
+  ctx.font='12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('arg θ(z|τ) (domain coloring)',rX+lW/2,iY+iH+14);
+  ctx.textAlign='left';
+  updateThetaStats();
+}
+
+function initPane4(){
+  const cv=document.getElementById('c4');
+  if(!cv||cv._init4)return;
+  cv._init4=true;
+  cv.onmousemove=e=>{
+    if(e.buttons===0)return;
+    const r=cv.getBoundingClientRect();
+    thetaZre=(e.clientX-r.left)/r.width;
+    thetaZim=((r.height-(e.clientY-r.top))/r.height)*thetaTauIm;
+    updateThetaStats();
+    drawTheta();
+  };
+  cv.onmousedown=e=>{
+    const r=cv.getBoundingClientRect();
+    thetaZre=(e.clientX-r.left)/r.width;
+    thetaZim=((r.height-(e.clientY-r.top))/r.height)*thetaTauIm;
+    updateThetaStats();
+    drawTheta();
+  };
+}
+
+// ============================================================
+// ============================================================
+// TAB 5: DESSINS D'ENFANTS & BELYI MAPS
+// ============================================================
+// ============================================================
+
+let dessinType='triangle';
+let dessinAnimRAF=null;
+let dessinAnimRunning=false;
+let dessinAnimT=0;
+
+const DESSIN_DEFS={
+  triangle:{
+    name:'Triangle group (2,3,∞)',
+    degree:6,
+    passport:'[2³]/[3²]/[6¹]',
+    // vertices in unit disk (stereographic coords for CP1)
+    black:[{x:0,y:0},{x:0.866,y:0.5},{x:-0.866,y:0.5},{x:0.866,y:-0.5}],
+    white:[{x:0.5,y:0.866},{x:-0.5,y:0.866},{x:0,y:-1}],
+    edges:[
+      [0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,1],[3,2]
+    ],
+    faces:3,
+    description:'Belyi map f(z)=z²(z−1)³·const, covers CP¹ with passport (2³,3²,6)'
+  },
+  tetra:{
+    name:'Tetrahedron',
+    degree:12,
+    passport:'[2⁶]/[3⁴]/[4³]',
+    black:[{x:0,y:0},{x:0.7,y:0.7},{x:-0.7,y:0.7},{x:0.7,y:-0.7},{x:-0.7,y:-0.7},{x:0,y:0.95}],
+    white:[{x:0.35,y:0},{x:-0.35,y:0},{x:0,y:0.55},{x:0,y:-0.6}],
+    edges:[[0,0],[0,1],[0,2],[0,3],[1,0],[1,2],[2,3],[3,0],[4,1],[4,3],[5,2]],
+    faces:4,
+    description:'Belyi map for tetrahedral symmetry group A₄⊂PSL₂(ℂ)'
+  },
+  cube:{
+    name:'Cube / Octahedron',
+    degree:24,
+    passport:'[2¹²]/[3⁸]/[4⁶]',
+    black:[{x:0,y:0},{x:0.85,y:0},{x:-0.85,y:0},{x:0,y:0.85},{x:0,y:-0.85},{x:0.6,y:0.6},{x:-0.6,y:0.6},{x:0.6,y:-0.6},{x:-0.6,y:-0.6}],
+    white:[{x:0.43,y:0.43},{x:-0.43,y:0.43},{x:0.43,y:-0.43},{x:-0.43,y:-0.43},{x:0.9,y:0.5},{x:-0.9,y:0.5},{x:0.9,y:-0.5},{x:-0.9,y:-0.5}],
+    edges:[[0,0],[0,1],[0,2],[0,3],[1,0],[1,4],[2,1],[2,3],[3,2],[4,3],[4,5],[5,6],[6,7]],
+    faces:6,
+    description:'Cubic symmetry S₄⊂PSL₂(ℂ), related to modular curve X(2)'
+  },
+  modular:{
+    name:'Modular curve X(3)',
+    degree:12,
+    passport:'[2⁶]/[3⁴]/[3⁴]',
+    black:[{x:0,y:0},{x:0.5,y:0.5},{x:-0.5,y:0.5},{x:0.5,y:-0.5},{x:-0.5,y:-0.5},{x:0,y:0.8}],
+    white:[{x:0.25,y:0.15},{x:-0.25,y:0.15},{x:0,y:-0.3},{x:0.75,y:0.15},{x:-0.75,y:0.15},{x:0,y:0.6}],
+    edges:[[0,0],[0,1],[0,2],[1,3],[1,4],[2,5],[3,0],[3,2],[4,1],[4,2],[5,3]],
+    faces:4,
+    description:'X(3): modular curve of level 3, genus 0. Galois group PSL₂(𝔽₃)≅A₄'
+  }
+};
+
+function onDessinChange(){
+  dessinType=document.getElementById('dessinSelect').value;
+  updateDessinStats();
+  drawDessin();
+}
+
+function stopDessinAnim(){
+  dessinAnimRunning=false;
+  if(dessinAnimRAF){cancelAnimationFrame(dessinAnimRAF);dessinAnimRAF=null;}
+  const btn=document.getElementById('btnDessinAnim');
+  if(btn){btn.textContent='▶ Animate';btn.classList.remove('active-btn');}
+}
+
+function toggleDessinAnim(){
+  if(dessinAnimRunning){stopDessinAnim();return;}
+  dessinAnimRunning=true;
+  dessinAnimT=0;
+  const btn=document.getElementById('btnDessinAnim');
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active-btn');}
+  dessinAnimStep();
+}
+
+function dessinAnimStep(){
+  if(!dessinAnimRunning)return;
+  dessinAnimT+=0.018*(window.animSpeed||0.1);
+  drawDessin();
+  dessinAnimRAF=requestAnimationFrame(dessinAnimStep);
+}
+
+function resetDessin(){
+  stopDessinAnim();
+  dessinType='triangle';
+  document.getElementById('dessinSelect').value='triangle';
+  dessinAnimT=0;
+  updateDessinStats();
+  drawDessin();
+}
+
+function updateDessinStats(){
+  const d=DESSIN_DEFS[dessinType];
+  document.getElementById('s5name').textContent=d.name;
+  document.getElementById('s5deg').textContent=d.degree;
+  document.getElementById('s5passport').textContent=d.passport;
+}
+
+function drawDessin(){
+  const cv=document.getElementById('c5');
+  if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  const d=DESSIN_DEFS[dessinType];
+  const CX=W*0.42, CY=H/2;
+  const R=Math.min(W*0.38,H*0.44);
+
+  // Draw Riemann sphere (disk = stereographic projection of CP1)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,0,2*Math.PI);
+  const bg=ctx.createRadialGradient(CX-R*0.3,CY-R*0.3,R*0.05,CX,CY,R);
+  bg.addColorStop(0,'rgba(20,15,50,0.95)');
+  bg.addColorStop(1,'rgba(8,5,20,0.98)');
+  ctx.fillStyle=bg;
+  ctx.fill();
+  ctx.strokeStyle='rgba(100,80,200,0.6)';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // Animate: pulsing glow on the sphere
+  const pulse=(Math.sin(dessinAnimT*2)+1)*0.5;
+
+  // Draw edges of dessin (preimages of [0,1])
+  ctx.save();
+  ctx.strokeStyle=`rgba(200,180,120,${0.55+pulse*0.2})`;
+  ctx.lineWidth=2;
+  d.edges.forEach(([bi,wi])=>{
+    const bv=d.black[bi]||{x:0,y:0};
+    const wv=d.white[wi]||{x:0,y:0};
+    const bx=CX+bv.x*R, by=CY-bv.y*R;
+    const wx=CX+wv.x*R, wy=CY-wv.y*R;
+    ctx.beginPath();
+    ctx.moveTo(bx,by);
+    ctx.lineTo(wx,wy);
+    ctx.stroke();
+  });
+  ctx.restore();
+
+  // Draw black vertices (preimages of 0)
+  d.black.forEach((v,i)=>{
+    const vx=CX+v.x*R, vy=CY-v.y*R;
+    ctx.save();
+    const glow=ctx.createRadialGradient(vx,vy,0,vx,vy,10+pulse*4);
+    glow.addColorStop(0,`rgba(60,200,120,${0.8+pulse*0.2})`);
+    glow.addColorStop(1,'rgba(60,200,120,0)');
+    ctx.beginPath();ctx.arc(vx,vy,10+pulse*4,0,2*Math.PI);
+    ctx.fillStyle=glow;ctx.fill();
+    ctx.beginPath();ctx.arc(vx,vy,5,0,2*Math.PI);
+    ctx.fillStyle='#111';ctx.fill();
+    ctx.strokeStyle='rgba(60,220,120,0.9)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(60,220,120,0.85)';ctx.font='12px Share Tech Mono';
+    ctx.fillText(`b${i}`,vx+7,vy-5);
+    ctx.restore();
+  });
+
+  // Draw white vertices (preimages of 1)
+  d.white.forEach((v,i)=>{
+    const vx=CX+v.x*R, vy=CY-v.y*R;
+    ctx.save();
+    const glow=ctx.createRadialGradient(vx,vy,0,vx,vy,10+pulse*4);
+    glow.addColorStop(0,`rgba(200,160,255,${0.7+pulse*0.2})`);
+    glow.addColorStop(1,'rgba(200,160,255,0)');
+    ctx.beginPath();ctx.arc(vx,vy,10+pulse*4,0,2*Math.PI);
+    ctx.fillStyle=glow;ctx.fill();
+    ctx.beginPath();ctx.arc(vx,vy,5,0,2*Math.PI);
+    ctx.fillStyle='#eee';ctx.fill();
+    ctx.strokeStyle='rgba(200,160,255,0.9)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(200,160,255,0.85)';ctx.font='12px Share Tech Mono';
+    ctx.fillText(`w${i}`,vx+7,vy-5);
+    ctx.restore();
+  });
+
+  // Draw infinity point (preimage of ∞) at center/boundary
+  ctx.save();
+  ctx.beginPath();ctx.arc(CX+R*0.02,CY-R*0.9,6,0,2*Math.PI);
+  ctx.fillStyle='rgba(255,100,80,0.9)';ctx.fill();
+  ctx.fillStyle='rgba(255,120,100,0.85)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('∞',CX+R*0.02+8,CY-R*0.9+4);
+  ctx.restore();
+
+  // Belyi map visualization (small right panel)
+  const bpx=W-160, bpy=20, bpw=150, bph=H-40;
+  drawBelyiDiagram(ctx,bpx,bpy,bpw,bph,d,pulse);
+
+  // Labels
+  ctx.fillStyle='rgba(200,180,255,0.9)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText(d.name,CX,H-28);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillStyle='rgba(160,140,220,0.75)';
+  ctx.fillText(`deg=${d.degree}  passport=${d.passport}`,CX,H-14);
+  ctx.textAlign='left';
+  updateDessinStats();
+}
+
+function drawBelyiDiagram(ctx,x,y,w,h,d,pulse){
+  ctx.save();
+  ctx.fillStyle='rgba(10,8,28,0.85)';
+  ctx.strokeStyle='rgba(80,60,160,0.5)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(x,y,w,h,4);ctx.fill();ctx.stroke();
+
+  ctx.fillStyle='rgba(170,150,255,0.85)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('Belyi Map f:Σ→CP¹',x+w/2,y+14);
+  ctx.fillText('ramified over {0,1,∞}',x+w/2,y+26);
+
+  // Draw CP1 line with three special points
+  const ly=y+h*0.38;
+  ctx.strokeStyle='rgba(150,130,220,0.7)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x+10,ly);ctx.lineTo(x+w-10,ly);ctx.stroke();
+
+  const pts=[{v:0,col:'rgba(60,220,120,0.9)',lbl:'0'},{v:0.5,col:'rgba(200,160,255,0.9)',lbl:'1'},{v:1,col:'rgba(255,100,80,0.9)',lbl:'∞'}];
+  pts.forEach(({v,col,lbl})=>{
+    const px2=x+10+v*(w-20);
+    ctx.beginPath();ctx.arc(px2,ly,5,0,2*Math.PI);
+    ctx.fillStyle=col;ctx.fill();
+    ctx.fillStyle=col;ctx.font='12px Share Tech Mono';
+    ctx.fillText(lbl,px2-3,ly-8);
+  });
+
+  // Monodromy permutations
+  const mData=[
+    {label:'σ₀ (black)',col:'rgba(60,220,120,0.8)',desc:`order=2, cycle(${d.passport.split('/')[0]})`},
+    {label:'σ₁ (white)',col:'rgba(200,160,255,0.8)',desc:`order=3, cycle(${d.passport.split('/')[1]})`},
+    {label:'σ∞',col:'rgba(255,100,80,0.8)',desc:`order=∞, cycle(${d.passport.split('/')[2]||'?'})`},
+  ];
+  mData.forEach(({label,col,desc},i)=>{
+    const my=y+h*0.6+i*32;
+    ctx.fillStyle=col;ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText(label,x+8,my);
+    ctx.fillStyle='rgba(140,120,200,0.7)';ctx.font='12px Share Tech Mono';
+    ctx.fillText(desc,x+8,my+11);
+  });
+
+  // Galois action annotation
+  ctx.fillStyle='rgba(255,200,80,0.8)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.fillText('Gal(Q̄/Q) acts on',x+w/2,y+h-24);
+  ctx.fillText('dessins faithfully',x+w/2,y+h-12);
+  ctx.restore();
+}
+
+function initPane5(){
+  updateDessinStats();
+}
+
+// ============================================================
+// ============================================================
+// TAB 6: SEIBERG-WITTEN THEORY
+// ============================================================
+// ============================================================
+
+let swMode='uplane';
+let swU={re:0.5,im:0};
+let swLambda2=1.0;
+let swAnimRAF=null;
+let swAnimRunning=false;
+let swAnimT=0;
+
+function setSWMode(m){
+  swMode=m;
+  ['btnSWuplane','btnSWcurve','btnSWperiods'].forEach(id=>document.getElementById(id)?.classList.remove('active-btn'));
+  const map={uplane:'btnSWuplane',curve:'btnSWcurve',periods:'btnSWperiods'};
+  document.getElementById(map[m])?.classList.add('active-btn');
+  drawSW();
+}
+
+function stopSWAnim(){
+  swAnimRunning=false;
+  if(swAnimRAF){cancelAnimationFrame(swAnimRAF);swAnimRAF=null;}
+  const btn=document.getElementById('btnSWanim');
+  if(btn){btn.textContent='▶ Animate';btn.classList.remove('active-btn');}
+}
+
+function toggleSWAnim(){
+  if(swAnimRunning){stopSWAnim();return;}
+  swAnimRunning=true;
+  const btn=document.getElementById('btnSWanim');
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active-btn');}
+  swAnimStep();
+}
+
+function swAnimStep(){
+  if(!swAnimRunning)return;
+  swAnimT+=0.012*(window.animSpeed||0.1);
+  // u traces a figure-8 in the u-plane (encircling both singularities)
+  const t=swAnimT;
+  const L=swLambda2;
+  swU.re=L*(1.5*Math.cos(t)+0.3*Math.cos(3*t));
+  swU.im=L*(1.2*Math.sin(t));
+  updateSWStats();
+  drawSW();
+  swAnimRAF=requestAnimationFrame(swAnimStep);
+}
+
+function resetSW(){
+  stopSWAnim();
+  swMode='uplane';
+  swU={re:0.5,im:0};
+  swLambda2=1.0;
+  ['btnSWuplane','btnSWcurve','btnSWperiods'].forEach(id=>document.getElementById(id)?.classList.remove('active-btn'));
+  document.getElementById('btnSWuplane')?.classList.add('active-btn');
+  updateSWStats();
+  drawSW();
+}
+
+// SW curve: y² = (x - u)(x² - Λ⁴)
+// Discriminant zero at u = ±Λ²
+function swBranchPts(u,L2){
+  // roots of (x-u)(x-L²)(x+L²): e1=u, e2=L², e3=-L²
+  return[{x:u.re,y:u.im},{x:L2,y:0},{x:-L2,y:0}];
+}
+
+// Approximate period integral a = ∮_A λ_SW numerically
+function swPeriodA(u,L2){
+  // a ≈ (1/(2πi)) ∮_A sqrt((x-u)(x-L²)(x+L²)) dx
+  // Approximate: for u real, large, a ≈ sqrt(u)
+  const r=Math.hypot(u.re,u.im);
+  const th=Math.atan2(u.im,u.re);
+  return{re:Math.sqrt(r)*Math.cos(th/2), im:Math.sqrt(r)*Math.sin(th/2)};
+}
+
+function swPeriodAD(u,L2){
+  // a_D = (i/π) * a * log(a²/L²) + ...  (1-instanton approx)
+  const a=swPeriodA(u,L2);
+  const aSq=a.re*a.re-a.im*a.im;
+  const arg=Math.atan2(2*a.re*a.im, aSq);
+  const logR=0.5*Math.log(Math.max(1e-6,aSq*aSq+4*a.re*a.re*a.im*a.im))-Math.log(L2);
+  // a_D ≈ (i/π)*a*(logR + i*arg)
+  const re2=(a.re*logR-a.im*arg)/Math.PI;
+  const im2=(a.re*arg+a.im*logR)/Math.PI;
+  return{re:-im2, im:re2};
+}
+
+function updateSWStats(){
+  document.getElementById('s6u').textContent=fmtC(swU.re,swU.im);
+  document.getElementById('s6lambda').textContent=swLambda2.toFixed(3);
+  const a=swPeriodA(swU,swLambda2);
+  const aD=swPeriodAD(swU,swLambda2);
+  document.getElementById('s6a').textContent=fmtC(a.re,a.im);
+  document.getElementById('s6ad').textContent=fmtC(aD.re,aD.im);
+}
+
+function drawSW(){
+  const cv=document.getElementById('c6');
+  if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  if(swMode==='uplane') drawSWUplane(ctx,W,H);
+  else if(swMode==='curve') drawSWCurve(ctx,W,H);
+  else drawSWPeriods(ctx,W,H);
+}
+
+function drawSWUplane(ctx,W,H){
+  const CX=W/2, CY=H/2;
+  const L=swLambda2;
+  const SCALE=Math.min(W,H)/(L*7);
+
+  // Domain coloring of discriminant Δ(u)=u²-Λ⁴ on u-plane
+  const _DSW=Math.max(1,Math.ceil(Math.max(W,H)/400));
+  const _iWSW=Math.max(1,Math.floor(W/_DSW)), _iHSW=Math.max(1,Math.floor(H/_DSW));
+  const {imgData,flush:_flushSW}=_mkImgBuf(_iWSW,_iHSW);
+  for(let py=0;py<_iHSW;py++){
+    for(let px=0;px<_iWSW;px++){
+      const ure=(px*_DSW-CX)/SCALE;
+      const uim=(CY-py*_DSW)/SCALE;
+      // Δ = u²-Λ⁴ = (u-Λ²)(u+Λ²)
+      const d1re=ure-L, d1im=uim;
+      const d2re=ure+L, d2im=uim;
+      const dre=d1re*d2re-d1im*d2im;
+      const dim=d1re*d2im+d1im*d2re;
+      const logD=0.5*Math.log(Math.max(1e-8,dre*dre+dim*dim));
+      const argD=Math.atan2(dim,dre);
+      const hue=(argD/(2*Math.PI)*360+360)%360;
+      const bright=0.25+0.22*Math.tanh(logD*0.4);
+      const sat=0.72;
+      const c2=(1-Math.abs(2*bright-1))*sat;
+      const x2=c2*(1-Math.abs((hue/60)%2-1));
+      const m=bright-c2/2;
+      let rr=0,gg=0,bb=0;
+      const h2=((hue%360)+360)%360;
+      if(h2<60){rr=c2;gg=x2;}else if(h2<120){rr=x2;gg=c2;}
+      else if(h2<180){gg=c2;bb=x2;}else if(h2<240){gg=x2;bb=c2;}
+      else if(h2<300){rr=x2;bb=c2;}else{rr=c2;bb=x2;}
+      const idx=(py*_iWSW+px)*4;
+      imgData.data[idx]=Math.round((rr+m)*255);
+      imgData.data[idx+1]=Math.round((gg+m)*255);
+      imgData.data[idx+2]=Math.round((bb+m)*255);
+      imgData.data[idx+3]=220;
+    }
+  }
+  _flushSW(ctx,0,0,W,H);
+
+  // Axes
+  ctx.save();
+  ctx.strokeStyle='rgba(100,90,160,0.6)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,CY);ctx.lineTo(W,CY);
+  ctx.moveTo(CX,0);ctx.lineTo(CX,H);
+  ctx.stroke();
+  ctx.fillStyle='rgba(150,130,220,0.7)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('Re(u)',W-40,CY-6);
+  ctx.fillText('Im(u)',CX+6,14);
+  ctx.restore();
+
+  // Singular points u = ±Λ²
+  const sing=[{x:CX+L*SCALE,y:CY,lbl:'u=+Λ²'},{x:CX-L*SCALE,y:CY,lbl:'u=−Λ²'}];
+  sing.forEach(({x,y,lbl})=>{
+    ctx.save();
+    ctx.beginPath();ctx.arc(x,y,7,0,2*Math.PI);
+    ctx.fillStyle='#ff4455';ctx.fill();
+    ctx.strokeStyle='#ffaacc';ctx.lineWidth=1.5;ctx.stroke();
+    // glow
+    const g=ctx.createRadialGradient(x,y,0,x,y,20);
+    g.addColorStop(0,'rgba(255,60,80,0.45)');
+    g.addColorStop(1,'rgba(255,60,80,0)');
+    ctx.beginPath();ctx.arc(x,y,20,0,2*Math.PI);
+    ctx.fillStyle=g;ctx.fill();
+    ctx.fillStyle='rgba(255,160,170,0.9)';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText(lbl,x+10,y-8);
+    ctx.fillText('singularity',x+10,y+5);
+    ctx.restore();
+  });
+
+  // Current u position
+  const ux=CX+swU.re*SCALE, uy=CY-swU.im*SCALE;
+  ctx.save();
+  ctx.beginPath();ctx.arc(ux,uy,7,0,2*Math.PI);
+  ctx.fillStyle='#aa66ff';ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='12px Share Tech Mono';
+  ctx.fillText(`u=(${swU.re.toFixed(2)},${swU.im.toFixed(2)}i)`,ux+10,uy-6);
+  ctx.restore();
+
+  // SW differential annotation
+  ctx.fillStyle='rgba(200,180,255,0.88)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.fillText('Seiberg-Witten u-plane (Coulomb branch)',8,18);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillStyle='rgba(160,140,220,0.75)';
+  ctx.fillText('domain color: arg(Δ(u)) = arg(u²−Λ⁴)',8,34);
+  ctx.fillText('drag to move u',8,H-8);
+
+  // Discriminant circle overlay
+  ctx.save();
+  ctx.strokeStyle='rgba(255,200,80,0.35)';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.arc(CX,CY,L*SCALE,0,2*Math.PI);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,200,80,0.5)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('|u|=Λ²',CX+L*SCALE*0.7,CY-L*SCALE*0.7);
+  ctx.restore();
+  updateSWStats();
+}
+
+function drawSWCurve(ctx,W,H){
+  // Draw y² = (x-u)(x²-Λ⁴) in the x-plane, showing branch cuts
+  const CX=W/2, CY=H/2;
+  const L=swLambda2;
+  const SCALE=Math.min(W,H)/(L*6);
+
+  ctx.fillStyle='rgba(8,5,20,0.9)';
+  ctx.fillRect(0,0,W,H);
+
+  // Axes
+  ctx.save();
+  ctx.strokeStyle='rgba(100,90,160,0.6)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,CY);ctx.lineTo(W,CY);
+  ctx.moveTo(CX,0);ctx.lineTo(CX,H);
+  ctx.stroke();
+  ctx.fillStyle='rgba(150,130,220,0.7)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('Re(x)',W-40,CY-6);
+  ctx.fillText('Im(x)',CX+6,14);
+  ctx.restore();
+
+  // Branch points
+  const bp=swBranchPts(swU,L);
+  const bpCols=['#aa66ff','#ff8844','#44aaff'];
+  const bpLbls=['u','Λ²','−Λ²'];
+  bp.forEach(({x,y},i)=>{
+    const px=CX+x*SCALE, py=CY-y*SCALE;
+    ctx.save();
+    ctx.beginPath();ctx.arc(px,py,6,0,2*Math.PI);
+    ctx.fillStyle=bpCols[i];ctx.fill();
+    const g=ctx.createRadialGradient(px,py,0,px,py,18);
+    g.addColorStop(0,bpCols[i].replace('ff','66')+'55');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(px,py,18,0,2*Math.PI);
+    ctx.fillStyle=g;ctx.fill();
+    ctx.fillStyle='rgba(220,200,255,0.9)';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText(`e${i+1}=${bpLbls[i]}`,px+8,py-6);
+    ctx.restore();
+  });
+
+  // Draw branch cuts (dashed lines between branch points)
+  const cuts=[[0,1],[2,3]]; // e1-e2, e3-?; draw u→Λ² and -Λ²→-∞
+  ctx.save();
+  ctx.strokeStyle='rgba(255,100,60,0.75)';
+  ctx.lineWidth=2;
+  ctx.setLineDash([6,4]);
+  // Branch cut: u to Λ²
+  const p0x=CX+bp[0].x*SCALE, p0y=CY-bp[0].y*SCALE;
+  const p1x=CX+bp[1].x*SCALE, p1y=CY-bp[1].y*SCALE;
+  const p2x=CX+bp[2].x*SCALE, p2y=CY-bp[2].y*SCALE;
+  ctx.beginPath();
+  ctx.moveTo(p0x,p0y);ctx.lineTo(p1x,p1y);
+  ctx.moveTo(p2x,p2y);ctx.lineTo(0,CY); // -Λ² to -∞
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Draw A and B cycles schematically
+  const aCX=(p0x+p1x)/2, aCY=(p0y+p1y)/2;
+  const bCX=(p1x+p2x)/2+5, bCY=CY-20;
+  ctx.save();
+  ctx.strokeStyle='rgba(100,180,255,0.75)';ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.ellipse(aCX,aCY,Math.abs(p1x-p0x)/2+10,18,0,0,2*Math.PI);
+  ctx.stroke();
+  ctx.fillStyle='rgba(100,180,255,0.8)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('A',aCX,aCY-22);
+  ctx.strokeStyle='rgba(200,120,255,0.75)';
+  ctx.beginPath();
+  ctx.ellipse(bCX,bCY,Math.abs(p2x-p0x)/2+10,28,0,0,2*Math.PI);
+  ctx.stroke();
+  ctx.fillStyle='rgba(200,120,255,0.8)';
+  ctx.fillText('B',bCX,bCY-32);
+  ctx.restore();
+
+  // Labels
+  ctx.fillStyle='rgba(200,180,255,0.88)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.fillText('SW Curve: y²=(x−u)(x²−Λ⁴)',8,18);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillStyle='rgba(160,140,220,0.75)';
+  ctx.fillText(`u=(${swU.re.toFixed(2)},${swU.im.toFixed(2)}i)  Λ²=${L.toFixed(2)}`,8,34);
+  ctx.fillText('A,B: homology cycles  λ_SW = x dx/y',8,H-8);
+  updateSWStats();
+}
+
+function drawSWPeriods(ctx,W,H){
+  // Show a,aD as u varies (u-plane with a(u), aD(u) mapped)
+  ctx.fillStyle='rgba(8,5,20,0.9)';
+  ctx.fillRect(0,0,W,H);
+
+  const CX=W/2, CY=H/2;
+  const L=swLambda2;
+  const SCALE=Math.min(W,H)/(L*4.5);
+
+  // Draw a(u) and aD(u) curves
+  ctx.save();
+  ctx.strokeStyle='rgba(100,90,160,0.5)';ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,CY);ctx.lineTo(W,CY);
+  ctx.moveTo(CX,0);ctx.lineTo(CX,H);
+  ctx.stroke();
+  ctx.restore();
+
+  // Trace a and aD as u goes around the u-plane
+  const N=200;
+  const aPts=[], aDPts=[];
+  for(let i=0;i<N;i++){
+    const ang=i/N*2*Math.PI;
+    const uR={re:L*2.5*Math.cos(ang), im:L*1.5*Math.sin(ang)};
+    const a=swPeriodA(uR,L);
+    const aD=swPeriodAD(uR,L);
+    aPts.push(a);
+    aDPts.push(aD);
+  }
+
+  ctx.save();
+  ctx.strokeStyle='rgba(100,180,255,0.85)';ctx.lineWidth=2;
+  ctx.beginPath();
+  aPts.forEach(({re,im},i)=>{
+    const px=CX+re*SCALE, py=CY-im*SCALE;
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+  ctx.fillStyle='rgba(100,180,255,0.85)';
+  ctx.font='12px Share Tech Mono';
+  const al=aPts[0];
+  ctx.fillText('a(u)',CX+al.re*SCALE+8,CY-al.im*SCALE);
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle='rgba(200,120,255,0.85)';ctx.lineWidth=2;
+  ctx.beginPath();
+  aDPts.forEach(({re,im},i)=>{
+    const px=CX+re*SCALE, py=CY-im*SCALE;
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+  ctx.fillStyle='rgba(200,120,255,0.85)';
+  const aDl=aDPts[0];
+  ctx.fillText('a_D(u)',CX+aDl.re*SCALE+8,CY-aDl.im*SCALE);
+  ctx.restore();
+
+  // Current (a, aD)
+  const a=swPeriodA(swU,L);
+  const aD=swPeriodAD(swU,L);
+  const apx=CX+a.re*SCALE, apy=CY-a.im*SCALE;
+  const adpx=CX+aD.re*SCALE, adpy=CY-aD.im*SCALE;
+  ctx.save();
+  ctx.beginPath();ctx.arc(apx,apy,6,0,2*Math.PI);ctx.fillStyle='#66aaff';ctx.fill();
+  ctx.beginPath();ctx.arc(adpx,adpy,6,0,2*Math.PI);ctx.fillStyle='#cc66ff';ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle='rgba(200,180,255,0.88)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.fillText('SW Period Map: a(u) and a_D(u)',8,18);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillStyle='rgba(160,140,220,0.75)';
+  ctx.fillText('Monodromy around singularities: SL₂(ℤ) electric-magnetic duality',8,34);
+  ctx.fillStyle='rgba(100,180,255,0.7)';ctx.fillText('● a(u) = ∮_A λ_SW',8,H-22);
+  ctx.fillStyle='rgba(200,120,255,0.7)';ctx.fillText('● a_D(u) = ∮_B λ_SW = ∂ℱ/∂a',8,H-8);
+  updateSWStats();
+}
+
+function initPane6(){
+  const cv=document.getElementById('c6');
+  if(!cv||cv._init6)return;
+  cv._init6=true;
+  cv.onmousemove=e=>{
+    if(e.buttons===0)return;
+    const r=cv.getBoundingClientRect();
+    const W=r.width, H=r.height;
+    const CX=W/2, CY=H/2;
+    const L=swLambda2;
+    const SCALE=Math.min(W,H)/(L*7);
+    swU.re=(e.clientX-r.left-CX)/SCALE;
+    swU.im=(CY-(e.clientY-r.top))/SCALE;
+    updateSWStats();
+    drawSW();
+  };
+  cv.onmousedown=e=>{
+    const r=cv.getBoundingClientRect();
+    const W=r.width, H=r.height;
+    const CX=W/2, CY=H/2;
+    const L=swLambda2;
+    const SCALE=Math.min(W,H)/(L*7);
+    swU.re=(e.clientX-r.left-CX)/SCALE;
+    swU.im=(CY-(e.clientY-r.top))/SCALE;
+    updateSWStats();
+    drawSW();
+  };
+}
+
+// ============================================================
+// ============================================================
+// TAB 7: SPECTRAL CURVES & INTEGRABLE SYSTEMS
+// ============================================================
+// ============================================================
+
+let spectralType='hitchin';
+let spectralAnimRAF=null;
+let spectralAnimRunning=false;
+let spectralAnimT=0;
+let spectralShowLax=false;
+let spectralDegen=0; // 0=normal, 1=degenerate
+
+const SPECTRAL_DEFS={
+  hitchin:{
+    name:'Hitchin gl₂',
+    genus:'g=3 (generically)',
+    desc:'det(y·I − Φ(x)) = y² − tr(Φ)y + det(Φ) = 0',
+    // y² = P_6(x): degree 6 polynomial (6 branch points → genus 2 for generic Φ)
+    poly: t => {
+      // Branch points at ±1, ±i, ±(1+i)/√2 + deformation by t
+      const d=Math.sin(t*0.8)*0.4;
+      return[{x:1+d,y:0},{x:-1-d,y:0},{x:0,y:1+d},{x:0,y:-1-d},{x:0.6+d*0.3,y:0.6},{x:-0.6-d*0.3,y:-0.6}];
+    }
+  },
+  kdv:{
+    name:'KdV spectral curve',
+    genus:'g=2 (2-gap solution)',
+    desc:'κ² = (λ−λ₁)(λ−λ₂)(λ−λ₃)(λ−λ₄)(λ−λ₅)',
+    poly: t => {
+      const d=Math.sin(t)*0.35;
+      return[{x:-2,y:0},{x:-0.8+d,y:0},{x:-0.1,y:0},{x:0.9-d,y:0},{x:2,y:0}];
+    }
+  },
+  todo:{
+    name:'Toda lattice',
+    genus:'g=N−1',
+    desc:'Periodic Toda: spectral curve det(L−λI)=0 is genus N−1',
+    poly: t => {
+      const d=Math.sin(t*1.2)*0.3;
+      return[{x:-1.6,y:0},{x:-0.5+d*0.5,y:0},{x:0,y:0},{x:0.5-d*0.5,y:0},{x:1.6,y:0},{x:d,y:0.8}];
+    }
+  }
+};
+
+function onSpectralChange(){
+  spectralType=document.getElementById('spectralSelect').value;
+  spectralAnimT=0;
+  spectralDegen=0;
+  updateSpectralStats();
+  drawSpectral();
+}
+
+function stopSpectralAnim(){
+  spectralAnimRunning=false;
+  if(spectralAnimRAF){cancelAnimationFrame(spectralAnimRAF);spectralAnimRAF=null;}
+  const btn=document.getElementById('btnSpectralAnim');
+  if(btn){btn.textContent='▶ Animate';btn.classList.remove('active-btn');}
+}
+
+function toggleSpectralAnim(){
+  if(spectralAnimRunning){stopSpectralAnim();return;}
+  spectralAnimRunning=true;
+  const btn=document.getElementById('btnSpectralAnim');
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active-btn');}
+  spectralAnimStep();
+}
+
+function spectralAnimStep(){
+  if(!spectralAnimRunning)return;
+  spectralAnimT+=0.02*(window.animSpeed||0.1);
+  updateSpectralStats();
+  drawSpectral();
+  spectralAnimRAF=requestAnimationFrame(spectralAnimStep);
+}
+
+function toggleSpectralLax(){
+  spectralShowLax=!spectralShowLax;
+  const btn=document.getElementById('btnSpectralLax');
+  if(btn) btn.classList.toggle('active-btn',spectralShowLax);
+  drawSpectral();
+}
+
+function resetSpectral(){
+  stopSpectralAnim();
+  spectralType='hitchin';
+  spectralAnimT=0;
+  spectralDegen=0;
+  spectralShowLax=false;
+  document.getElementById('spectralSelect').value='hitchin';
+  document.getElementById('btnSpectralLax')?.classList.remove('active-btn');
+  updateSpectralStats();
+  drawSpectral();
+}
+
+function updateSpectralStats(){
+  const d=SPECTRAL_DEFS[spectralType];
+  document.getElementById('s7sys').textContent=d.name;
+  document.getElementById('s7genus').textContent=d.genus;
+  document.getElementById('s7t').textContent=spectralAnimT.toFixed(3);
+}
+
+function drawSpectral(){
+  const cv=document.getElementById('c7');
+  if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+
+  const d=SPECTRAL_DEFS[spectralType];
+  const CX=W/2, CY=H/2;
+  const SCALE=Math.min(W,H)/5.5;
+  const t=spectralAnimT;
+
+  // Background
+  ctx.fillStyle='rgba(8,5,20,0.95)';
+  ctx.fillRect(0,0,W,H);
+
+  // Axes
+  ctx.save();
+  ctx.strokeStyle='rgba(100,90,160,0.5)';ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,CY);ctx.lineTo(W,CY);
+  ctx.moveTo(CX,0);ctx.lineTo(CX,H);
+  ctx.stroke();
+  ctx.fillStyle='rgba(150,130,220,0.7)';ctx.font='12px Share Tech Mono';
+  ctx.fillText('Re(x)',W-40,CY-6);
+  ctx.fillText('Im(x)',CX+6,14);
+  ctx.restore();
+
+  // Draw spectral curve: y² = Π(x - eᵢ) as branch cut structure
+  const bpts=d.poly(t);
+
+  // Draw the algebraic curve surface schematically (two sheets)
+  // Sheet 1 and Sheet 2: draw the x-plane with branch cuts
+  // Sort branch points by real part for cut drawing
+  const sorted=[...bpts].sort((a,b)=>a.x-b.x);
+
+  // Draw cuts between paired branch points
+  ctx.save();
+  ctx.strokeStyle='rgba(255,100,60,0.8)';ctx.lineWidth=2.5;
+  ctx.setLineDash([7,4]);
+  for(let i=0;i<sorted.length-1;i+=2){
+    const p1x=CX+sorted[i].x*SCALE, p1y=CY-sorted[i].y*SCALE;
+    const p2x=CX+sorted[i+1].x*SCALE, p2y=CY-sorted[i+1].y*SCALE;
+    ctx.beginPath();ctx.moveTo(p1x,p1y);ctx.lineTo(p2x,p2y);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Draw branch points with animation (eigenvalues)
+  bpts.forEach((bp,i)=>{
+    const px=CX+bp.x*SCALE, py=CY-bp.y*SCALE;
+    const pulse2=(Math.sin(t*2+i*1.2)+1)*0.5;
+    ctx.save();
+    const glow=ctx.createRadialGradient(px,py,0,px,py,14+pulse2*6);
+    glow.addColorStop(0,`rgba(170,102,255,${0.6+pulse2*0.3})`);
+    glow.addColorStop(1,'rgba(170,102,255,0)');
+    ctx.beginPath();ctx.arc(px,py,14+pulse2*6,0,2*Math.PI);
+    ctx.fillStyle=glow;ctx.fill();
+    ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);
+    ctx.fillStyle='#aa66ff';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='rgba(200,180,255,0.85)';ctx.font='12px Share Tech Mono';
+    ctx.fillText(`e${i+1}`,px+7,py-6);
+    ctx.restore();
+  });
+
+  // Draw the spectral curve as a family of level sets
+  // y² = Π(x-eᵢ): draw |y| = const contours
+  const _DSC=Math.max(1,Math.ceil(Math.max(W,H)/400));
+  const _iWSC=Math.max(1,Math.floor(W/_DSC)), _iHSC=Math.max(1,Math.floor(H/_DSC));
+  const {imgData,flush:_flushSC}=_mkImgBuf(_iWSC,_iHSC);
+  for(let py2=0;py2<_iHSC;py2++){
+    for(let px2=0;px2<_iWSC;px2++){
+      const xre=(px2*_DSC-CX)/SCALE;
+      const xim=(CY-py2*_DSC)/SCALE;
+      // Compute Π(x-eᵢ)
+      let pre=1, pim=0;
+      bpts.forEach(({x,y})=>{
+        const dr=xre-x, di=xim-y;
+        const nr=pre*dr-pim*di;
+        const ni=pre*di+pim*dr;
+        pre=nr; pim=ni;
+      });
+      const logP=0.25*Math.log(Math.max(1e-10,pre*pre+pim*pim));
+      const argP=Math.atan2(pim,pre);
+      const hue3=(argP/(2*Math.PI)*360+360)%360;
+      const bright3=0.18+0.18*Math.tanh(logP*0.3);
+      const sat3=0.65;
+      const c4=(1-Math.abs(2*bright3-1))*sat3;
+      const x4=c4*(1-Math.abs((hue3/60)%2-1));
+      const m4=bright3-c4/2;
+      let rr4=0,gg4=0,bb4=0;
+      const h4=((hue3%360)+360)%360;
+      if(h4<60){rr4=c4;gg4=x4;}else if(h4<120){rr4=x4;gg4=c4;}
+      else if(h4<180){gg4=c4;bb4=x4;}else if(h4<240){gg4=x4;bb4=c4;}
+      else if(h4<300){rr4=x4;bb4=c4;}else{rr4=c4;bb4=x4;}
+      const idx4=(py2*_iWSC+px2)*4;
+      imgData.data[idx4]=Math.round((rr4+m4)*255);
+      imgData.data[idx4+1]=Math.round((gg4+m4)*255);
+      imgData.data[idx4+2]=Math.round((bb4+m4)*255);
+      imgData.data[idx4+3]=130;
+    }
+  }
+  _flushSC(ctx,0,0,W,H);
+  // Redraw branch points on top
+  bpts.forEach((bp,i)=>{
+    const px=CX+bp.x*SCALE, py=CY-bp.y*SCALE;
+    const pulse2=(Math.sin(t*2+i*1.2)+1)*0.5;
+    ctx.save();
+    ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);
+    ctx.fillStyle='#aa66ff';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.restore();
+  });
+  // Redraw cuts
+  ctx.save();
+  ctx.strokeStyle='rgba(255,100,60,0.8)';ctx.lineWidth=2.5;ctx.setLineDash([7,4]);
+  for(let i=0;i<sorted.length-1;i+=2){
+    const p1x=CX+sorted[i].x*SCALE, p1y=CY-sorted[i].y*SCALE;
+    const p2x=CX+sorted[i+1].x*SCALE, p2y=CY-sorted[i+1].y*SCALE;
+    ctx.beginPath();ctx.moveTo(p1x,p1y);ctx.lineTo(p2x,p2y);ctx.stroke();
+  }
+  ctx.setLineDash([]);ctx.restore();
+
+  // Lax pair overlay
+  if(spectralShowLax){
+    drawLaxPair(ctx,W,H,t);
+  }
+
+  // Labels
+  ctx.fillStyle='rgba(200,180,255,0.9)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.fillText(d.name+' — '+d.genus,8,18);
+  ctx.font='12px Share Tech Mono';
+  ctx.fillStyle='rgba(160,140,220,0.75)';
+  ctx.fillText(d.desc,8,34);
+  ctx.fillText('domain color: arg(det(y·I−Φ(x)))',8,H-8);
+  updateSpectralStats();
+}
+
+function drawLaxPair(ctx,W,H,t){
+  const bx=W-210, by=20, bw=200, bh=160;
+  ctx.save();
+  ctx.fillStyle='rgba(5,5,20,0.9)';
+  ctx.strokeStyle='rgba(100,80,180,0.6)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();ctx.stroke();
+
+  ctx.fillStyle='rgba(170,150,255,0.9)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.textAlign='center';
+  ctx.fillText('Lax Pair (L, M)',bx+bw/2,by+14);
+
+  // Draw L(x,t) schematically as 2×2 matrix
+  ctx.fillStyle='rgba(140,120,220,0.85)';
+  ctx.font='12px Share Tech Mono';
+  ctx.textAlign='left';
+  const c=Math.cos(t), s=Math.sin(t);
+  ctx.fillText(`L = [ ${c.toFixed(2)}   ${s.toFixed(2)} ]`,bx+8,by+34);
+  ctx.fillText(`    [ ${(-s).toFixed(2)}  ${(-c).toFixed(2)} ]`,bx+8,by+47);
+  ctx.fillText(`M = [ ${s.toFixed(2)}   ${c.toFixed(2)} ]`,bx+8,by+63);
+  ctx.fillText(`    [ ${(-c).toFixed(2)}  ${(-s).toFixed(2)} ]`,bx+8,by+76);
+
+  ctx.fillStyle='rgba(255,200,80,0.85)';
+  ctx.font='bold 12px Share Tech Mono';
+  ctx.fillText('Zero curvature:',bx+8,by+96);
+  ctx.fillStyle='rgba(200,180,255,0.8)';
+  ctx.font='12px Share Tech Mono';
+  ctx.fillText('∂_t L − ∂_x M + [L,M] = 0',bx+8,by+109);
+  ctx.fillText('→ isospectral deformation',bx+8,by+122);
+  ctx.fillText('→ Liouville integrability',bx+8,by+135);
+  ctx.fillStyle='rgba(100,200,140,0.8)';
+  ctx.fillText('spec(L) = spectral curve!',bx+8,by+150);
+  ctx.textAlign='left';
+  ctx.restore();
+}
+
+function initPane7(){
+  updateSpectralStats();
+}
+
+// Init speed controls
+window.animSpeed=0.1;
+for(var i=0;i<8;i++){syncSpeedControl36(i);}
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

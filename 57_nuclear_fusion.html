@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuclear Fusion & NIF | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --accent:#ff8844;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:12px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.back{font-size:.75rem;color:var(--dim);text-decoration:none;transition:.15s}
+.back:hover{color:var(--accent)}
+h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
+.content{flex:1;display:flex;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden}
+.panel.active{display:flex}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:270px}
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+canvas{display:block;width:100%;height:100%}
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.77rem;margin-top:3px;font-family:monospace;color:var(--accent)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s;font-family:inherit}
+.btn:hover,.btn.active{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <a href="/" class="back">← Dashboard</a>
+    <h1>Nuclear Fusion & NIF</h1>
+    <span class="sub">NIF Ignition · December 5, 2022</span>
+  </div>
+  <div class="tabs" data-role="tab-bar">
+    <button class="tab active" onclick="switchTab(1)">Lawson Criterion</button>
+    <button class="tab" onclick="switchTab(2)">Implosion Dynamics</button>
+    <button class="tab" onclick="switchTab(3)">Gain Curve</button>
+    <button class="tab" onclick="switchTab(4)">Nuclear Physics</button>
+    <button class="tab" onclick="switchTab(5)">Tokamak MHD</button>
+    <button class="tab" onclick="switchTab(6)">ICF & NIF</button>
+    <button class="tab" onclick="switchTab(7)">Turbulence</button>
+    <button class="tab" onclick="switchTab(8)">Power Plants</button>
+  </div>
+</header>
+
+<div class="content">
+  <!-- Panel 1 -->
+  <div class="panel active" id="p1">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Fusion Reaction</div>
+      <div class="btn-row">
+        <button class="btn active" onclick="fusionReaction='DT';setBtn(this)">D-T</button>
+        <button class="btn" onclick="fusionReaction='DD';setBtn(this)">D-D</button>
+        <button class="btn" onclick="fusionReaction='pB';setBtn(this)">p-¹¹B</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p1Paused=!p1Paused;this.textContent=p1Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="callout" style="margin-top:10px">NIF 2022 achieved the first ever $Q>1$ — 3.15 MJ out from 2.05 MJ in. The ignition region is shaded above the contour.</div>
+    </div>
+    <div class="main-area"><canvas id="cv1"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Lawson Criterion</div>
+      <div class="eq-block">$$n\tau_E T \geq 3\times10^{21}\,\text{keV} \cdot \text{s/m}^3$$</div>
+      <div class="eq-block">$$^2\text{H}+^3\text{H}\to^4\text{He}+n$$<br>Q = 17.6 MeV</div>
+      <div class="callout">All three factors must be simultaneously large: density $n$, confinement time $\tau_E$, and temperature $T$.</div>
+    </div>
+  </div>
+  <!-- Panel 2 -->
+  <div class="panel" data-role="panel" id="p2">
+    <div class="sidebar" data-role="sidebar">
+      <div class="btn-row">
+        <button class="btn" onclick="imp2Paused=!imp2Paused;this.textContent=imp2Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div style="margin-top:8px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--dim);cursor:pointer">
+          <input type="checkbox" id="rtCheck" onchange="showRT=this.checked">
+          Show RT instability
+        </label>
+      </div>
+      <div class="callout" style="margin-top:10px">
+        <strong>Rayleigh-Taylor instability</strong> grows at the ablation front, seeding mix that quenches ignition. NIF uses indirect drive (hohlraum X-rays) to reduce asymmetry.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv2"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">RT Instability</div>
+      <div class="eq-block">$$\gamma_{RT} = \sqrt{A k g}$$</div>
+      <div class="callout">A = Atwood number, k = wavenumber, g = effective gravity. Higher k modes grow fastest but are stabilized by ablative flow at the surface.</div>
+    </div>
+  </div>
+  <!-- Panel 3 -->
+  <div class="panel" data-role="panel" id="p3">
+    <div class="sidebar" data-role="sidebar">
+      <div class="btn-row">
+        <button class="btn active" onclick="logScale3=false;setBtn(this)">Linear</button>
+        <button class="btn" onclick="logScale3=true;setBtn(this)">Log</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p3Paused=!p3Paused;this.textContent=p3Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="callout" style="margin-top:10px">Each point is an NIF implosion shot. The Dec 2022 shot (gold) crossed Q=1 for the first time.</div>
+    </div>
+    <div class="main-area"><canvas id="cv3"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Ignition Gain</div>
+      <div class="eq-block">$$Q = \frac{E_{fusion}}{E_{laser}}$$</div>
+      <div class="callout">NIF Dec 2022: $E_{laser}=2.05$ MJ, $E_{fusion}=3.15$ MJ → $Q\approx1.54$. Commercial power requires $Q\gtrsim100$.</div>
+    </div>
+  </div>
+
+  <!-- Panel 4 — Nuclear Physics of Fusion -->
+  <div class="panel" data-role="panel" id="p4">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">View</div>
+      <div class="btn-row">
+        <button class="btn active" id="p4v1" onclick="p4View='barrier';setBtn(this);p4Redraw()">Coulomb Barrier</button>
+        <button class="btn" id="p4v2" onclick="p4View='cross';setBtn(this);p4Redraw()">Cross-Section</button>
+        <button class="btn" id="p4v3" onclick="p4View='gamow';setBtn(this);p4Redraw()">Gamow Window</button>
+      </div>
+      <div style="margin-top:10px" id="p4TempRow">
+        <label>Temperature (keV): <span class="val-disp" id="p4TempVal">20</span></label>
+        <input type="range" id="p4TempSlider" min="1" max="100" value="20"
+          oninput="document.getElementById('p4TempVal').textContent=this.value;p4Temp=+this.value;p4Redraw()">
+      </div>
+      <div class="callout" style="margin-top:10px">
+        <strong>Gamow window:</strong> narrow energy range where tunneling probability and thermal population overlap. Peak shifts with temperature.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        D-T cross-section peaks at <strong>64 keV</strong> — ~1000× higher than D-D at same energy.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv4"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Gamow Factor</div>
+      <div class="eq-block">$$P_{tunnel} \propto e^{-2\pi\eta}$$$$\eta = \frac{Z_1 Z_2 e^2}{\hbar v}$$</div>
+      <div class="eq-title">Astrophysical S-Factor</div>
+      <div class="eq-block">$$\sigma(E) = \frac{S(E)}{E}\,e^{-2\pi\eta(E)}$$</div>
+      <div class="eq-title">D-T Reaction</div>
+      <div class="eq-block">$$^2\text{H}+^3\text{H}\to ^4\text{He}(3.5\,\text{MeV})+n(14.1\,\text{MeV})$$</div>
+      <div class="eq-title">Lawson (Triple Product)</div>
+      <div class="eq-block">$$n T \tau_E \geq 3\times10^{21}\,\text{keV}\cdot\text{m}^{-3}\text{s}$$</div>
+      <div class="callout">
+        <strong>Q=10 breakeven (physics):</strong> ITER goal. Engineering breakeven (wall-plug) requires $Q\gtrsim50$.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        S-factor for D-T: $S(0)\approx 6.27\times10^{-2}$ MeV·b. Nearly constant near peak — tunneling factor dominates the energy dependence.
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 5 — Tokamak Confinement -->
+  <div class="panel" data-role="panel" id="p5">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Tokamak Parameters</div>
+      <div>
+        <label>Aspect ratio R/a: <span class="val-disp" id="p5ARVal">3.1</span></label>
+        <input type="range" id="p5AR" min="2.0" max="5.0" step="0.1" value="3.1"
+          oninput="document.getElementById('p5ARVal').textContent=(+this.value).toFixed(1);p5AR_val=+this.value">
+      </div>
+      <div>
+        <label>Elongation κ: <span class="val-disp" id="p5KapVal">1.7</span></label>
+        <input type="range" id="p5Kap" min="1.0" max="2.5" step="0.05" value="1.7"
+          oninput="document.getElementById('p5KapVal').textContent=(+this.value).toFixed(2);p5Kap_val=+this.value">
+      </div>
+      <div>
+        <label>Triangularity δ: <span class="val-disp" id="p5DelVal">0.33</span></label>
+        <input type="range" id="p5Del" min="0" max="0.8" step="0.01" value="0.33"
+          oninput="document.getElementById('p5DelVal').textContent=(+this.value).toFixed(2);p5Del_val=+this.value">
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn active" onclick="p5Mode='static';setBtn(this)">Static</button>
+        <button class="btn" onclick="p5Mode='kink';setBtn(this)">Kink Mode</button>
+        <button class="btn" onclick="p5Mode='elm';setBtn(this)">ELM</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p5Paused=!p5Paused;this.textContent=p5Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>H-mode</strong> (high confinement) discovered at ASDEX 1982. L-H transition doubles energy confinement time $\tau_E$.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv5"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">MHD Equilibrium</div>
+      <div class="eq-block">$$\nabla p = \mathbf{J}\times\mathbf{B}$$</div>
+      <div class="eq-title">Grad-Shafranov Equation</div>
+      <div class="eq-block">$$\Delta^*\psi = -\mu_0 R^2 p'(\psi) - FF'(\psi)$$</div>
+      <div class="eq-title">Safety Factor</div>
+      <div class="eq-block">$$q = \frac{r B_t}{R B_p}$$</div>
+      <div class="callout">Kink instability (m=1,n=1) occurs when $q<1$ on axis — Kruskal-Shafranov limit.</div>
+      <div class="eq-title">ITER Parameters</div>
+      <div class="vrow"><span class="vlbl">R (major)</span><span>6.2 m</span></div>
+      <div class="vrow"><span class="vlbl">a (minor)</span><span>2.0 m</span></div>
+      <div class="vrow"><span class="vlbl">B toroidal</span><span>5.3 T</span></div>
+      <div class="vrow"><span class="vlbl">P fusion</span><span>500 MW</span></div>
+      <div class="vrow"><span class="vlbl">Q (goal)</span><span>10</span></div>
+      <div class="vrow"><span class="vlbl">JET 2022</span><span>59 MJ</span></div>
+      <div class="callout" style="margin-top:6px">
+        <strong>SPARC</strong> (Commonwealth Fusion): 20 T REBCO magnets, R=1.85 m, Q>2 planned ~2025.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        Heating: NBI (neutral beam injection), ICRH (ion cyclotron), ECRH (electron cyclotron).
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 6 — ICF & NIF Ignition -->
+  <div class="panel" data-role="panel" id="p6">
+    <div class="sidebar" data-role="sidebar">
+      <div class="btn-row">
+        <button class="btn" onclick="icf6Paused=!icf6Paused;this.textContent=icf6Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="icf6T=0">↺ Reset</button>
+      </div>
+      <div style="margin-top:8px">
+        <label>Laser energy (MJ): <span class="val-disp" id="p6LaserVal">2.05</span></label>
+        <input type="range" id="p6Laser" min="0.5" max="3.0" step="0.05" value="2.05"
+          oninput="document.getElementById('p6LaserVal').textContent=(+this.value).toFixed(2);p6Laser_val=+this.value">
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn active" onclick="p6Drive='indirect';setBtn(this)">Indirect Drive</button>
+        <button class="btn" onclick="p6Drive='direct';setBtn(this)">Direct Drive</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>NIF Dec 5, 2022:</strong> 2.05 MJ laser in → 3.15 MJ fusion out. First ignition. Gain G=1.54.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv6"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">NIF Ignition 2022</div>
+      <div class="vrow"><span class="vlbl">Laser energy</span><span>2.05 MJ</span></div>
+      <div class="vrow"><span class="vlbl">Fusion yield</span><span>3.15 MJ</span></div>
+      <div class="vrow"><span class="vlbl">Gain G</span><span>1.54</span></div>
+      <div class="vrow"><span class="vlbl">Hot spot T</span><span>~100 keV</span></div>
+      <div class="vrow"><span class="vlbl">ρR (burn)</span><span>~0.3 g/cm²</span></div>
+      <div class="eq-title" style="margin-top:8px">Burn Propagation</div>
+      <div class="eq-block">$$\alpha\text{-heating: }^4\text{He}(3.5\,\text{MeV})\text{ deposits in fuel}$$</div>
+      <div class="callout">Ignition condition: $\alpha$-particle energy deposition exceeds heat losses. Requires $\rho R_{hs} \gtrsim 0.3\,\text{g/cm}^2$.</div>
+      <div class="callout" style="margin-top:6px">
+        <strong>Hohlraum</strong>: gold cylinder converts laser light to X-rays (indirect drive), smoothing illumination. Alternative: direct drive (ablator directly irradiated). Fast ignition (LFEX laser) uses separate ignition pulse.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        Facilities: NIF (1.8 MJ), Omega (30 kJ, Rochester), SG-III (China, 200 kJ), ELI-NP (Europe).
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 7 — Plasma Turbulence & Transport -->
+  <div class="panel" data-role="panel" id="p7">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Turbulence Drive</div>
+      <div>
+        <label>Norm. gradient R/L_T: <span class="val-disp" id="p7RLTVal">6.0</span></label>
+        <input type="range" id="p7RLT" min="1.0" max="15.0" step="0.1" value="6.0"
+          oninput="document.getElementById('p7RLTVal').textContent=(+this.value).toFixed(1);p7RLT_val=+this.value">
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn active" onclick="p7Mode='turb';setBtn(this)">ITG Turbulence</button>
+        <button class="btn" onclick="p7Mode='neo';setBtn(this)">Neoclassical</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p7Paused=!p7Paused;this.textContent=p7Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>Critical threshold:</strong> ITG turbulence activates for $R/L_T \gtrsim 4$–6. Below threshold: near-neoclassical transport. Above: strongly anomalous.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>W7-X stellarator</strong> (Germany): no disruptions, steady-state, demonstrated neoclassical transport level 2018.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv7"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Gyrokinetic Equation</div>
+      <div class="eq-block" style="font-size:.76rem">$$\frac{\partial f}{\partial t}+\dot{\mathbf{R}}\cdot\nabla f+\dot{v}_\parallel\frac{\partial f}{\partial v_\parallel}=C[f]+S$$</div>
+      <div class="eq-title">Thermal Diffusivity</div>
+      <div class="eq-block">$$\chi_i^{gB} = \frac{\rho_i v_{ti}}{a}\quad\text{(gyro-Bohm)}$$$$\chi_i^{Bohm} = \frac{T}{eB}\quad\text{(Bohm)}$$</div>
+      <div class="callout">Anomalous transport: measured $\chi_i$ is 10–100× neoclassical prediction. ITG (ion temperature gradient) and TEM (trapped electron mode) dominate.</div>
+      <div class="eq-title" style="margin-top:8px">Neoclassical</div>
+      <div class="callout">Banana orbit width $\Delta_b \sim q\rho_i\epsilon^{-1/2}$. Bootstrap current: toroidal current driven by pressure gradient — essential for steady-state tokamak.</div>
+      <div class="callout" style="margin-top:6px">
+        <strong>ITER confinement</strong> projection: $H_{98}\approx1$ (ELMy H-mode). Energy confinement time $\tau_E\approx3.7$ s. ITER relies on gyro-Bohm scaling holding.
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 8 — Fusion Power Plants & Energy Future -->
+  <div class="panel" data-role="panel" id="p8">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Schematic</div>
+      <div class="btn-row">
+        <button class="btn active" onclick="p8View='plant';setBtn(this)">Power Plant</button>
+        <button class="btn" onclick="p8View='breeding';setBtn(this)">T Breeding</button>
+        <button class="btn" onclick="p8View='lcoe';setBtn(this)">LCOE</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="p8Paused=!p8Paused;this.textContent=p8Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>Deuterium</strong>: 33 g per cubic metre of seawater — essentially unlimited. <strong>Tritium</strong>: bred from $^6$Li blanket, self-sufficient cycle.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        Private fusion investment: <strong>~$6 billion</strong> by 2023 across 40+ companies.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv8"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Tritium Breeding</div>
+      <div class="eq-block">$$^6\text{Li}+n\to T+^4\text{He}+4.78\,\text{MeV}$$$$^7\text{Li}+n\to T+^4\text{He}+n'-2.47\,\text{MeV}$$</div>
+      <div class="eq-title">Fusion Ventures</div>
+      <div class="vrow"><span class="vlbl">Commonwealth Fusion</span><span>SPARC/ARC</span></div>
+      <div class="vrow"><span class="vlbl">Helion Energy</span><span>FRC, ~2028</span></div>
+      <div class="vrow"><span class="vlbl">TAE Technologies</span><span>p-¹¹B</span></div>
+      <div class="vrow"><span class="vlbl">General Fusion</span><span>Mag. target</span></div>
+      <div class="vrow"><span class="vlbl">EU DEMO</span><span>~2050</span></div>
+      <div class="vrow"><span class="vlbl">ITER first plasma</span><span>~2025–2026</span></div>
+      <div class="callout" style="margin-top:6px">
+        <strong>ARC concept</strong>: compact (R=3.3 m), high-field (9.2 T on axis, 20 T at coil) REBCO superconducting magnets — enables smaller, cheaper plants.
+      </div>
+      <div class="callout" style="margin-top:6px">
+        <strong>TAE p-¹¹B</strong>: aneutronic — no 14 MeV neutrons, minimal activation. Requires $T\sim300$ keV — far harder than D-T.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims57();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims57(){
+  // Cancel any running animations
+}
+
+let _stops = [];
+let currentTab = 1;
+window.fusionReaction = 'DT';
+window.showRT = false;
+window.imp2Paused = false;
+window.logScale3 = false;
+
+// Tab 4 state
+window.p4View = 'barrier';
+window.p4Temp = 20;
+
+// Tab 5 state
+window.p5AR_val = 3.1;
+window.p5Kap_val = 1.7;
+window.p5Del_val = 0.33;
+window.p5Mode = 'static';
+
+// Tab 6 state
+window.icf6Paused = false;
+window.icf6T = 0;
+window.p6Laser_val = 2.05;
+window.p6Drive = 'indirect';
+
+// Tab 7 state
+window.p7RLT_val = 6.0;
+window.p7Mode = 'turb';
+
+// Tab 8 state
+window.p8View = 'plant';
+
+window.switchTab = function(n) {
+  _stops.forEach(s => s && s.stop && s.stop());
+  _stops = [];
+  currentTab = n;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
+  if(n===1) _stops.push(initTab1());
+  if(n===2) _stops.push(initTab2());
+  if(n===3) _stops.push(initTab3());
+  if(n===4) _stops.push(initTab4());
+  if(n===5) _stops.push(initTab5());
+  if(n===6) _stops.push(initTab6());
+  if(n===7) _stops.push(initTab7());
+  if(n===8) _stops.push(initTab8());
+};
+
+function fitCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.parentElement.clientWidth;
+  const H = cv.parentElement.clientHeight;
+  if(Math.round(cv.width) !== Math.round(W*dpr)) {
+    cv.width = W*dpr; cv.height = H*dpr;
+    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  }
+  return {W, H, ctx: cv.getContext('2d')};
+}
+
+function setBtn(btn) {
+  btn.closest('.btn-row').querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Tab 1 — Lawson Criterion ──────────────────────────────────
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  let raf1;
+  window.p1Paused = false;
+
+  const reactParams = {
+    DT: { criterion:3e21, Topt:20, color:'#ff8844', label:'D-T (tokamak standard)' },
+    DD: { criterion:1e23, Topt:100, color:'#00e5ff', label:'D-D (no tritium)' },
+    pB:  { criterion:1e26, Topt:300, color:'#aa77ff', label:'p-¹¹B (aneutronic)' },
+  };
+
+  const devices = [
+    { name:'JET 1997',   nTauT:1.5e20, T:13, col:'#55558a' },
+    { name:'JET 2022',   nTauT:5e20,   T:15, col:'#7777aa' },
+    { name:'NIF 2022',   nTauT:2e23,   T:50, col:'#ffd700' },
+    { name:'ITER (proj)',nTauT:3e21,   T:20, col:'#00ffcc' },
+  ];
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const pad={l:70,r:20,t:30,b:60};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const Tmin=1, Tmax=1000;
+    const nttMin=1e18, nttMax=1e25;
+
+    function toX(T){return pad.l+Math.log10(T/Tmin)/Math.log10(Tmax/Tmin)*pw;}
+    function toY(ntt){return pad.t+ph-Math.log10(ntt/nttMin)/Math.log10(nttMax/nttMin)*ph;}
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('T (keV)', pad.l+pw/2-20, pad.t+ph+35);
+    ctx.save(); ctx.translate(16,pad.t+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('nτE·T (keV·s/m³)',0,0); ctx.restore();
+
+    for(let i=0;i<=3;i++){
+      const T=Math.pow(10,i)*Tmin;
+      const x=toX(T);
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('10'+i, x-8, pad.t+ph+16);
+    }
+    for(let i=18;i<=25;i+=1){
+      const y=toY(Math.pow(10,i));
+      if(y>=pad.t&&y<=pad.t+ph){
+        ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+        ctx.fillText('10'+i, pad.l-30, y+4);
+      }
+    }
+
+    Object.entries(reactParams).forEach(([key,rp])=>{
+      ctx.beginPath();
+      let started=false;
+      for(let px=0;px<pw;px++){
+        const T=Tmin*Math.pow(Tmax/Tmin,px/pw);
+        const ntt=rp.criterion*(T/rp.Topt)**2*Math.exp(Math.abs(T-rp.Topt)/rp.Topt);
+        if(ntt>nttMin&&ntt<nttMax){
+          const y=toY(ntt);
+          if(!started){ctx.moveTo(pad.l+px,y);started=true;}
+          else ctx.lineTo(pad.l+px,y);
+        }
+      }
+      ctx.strokeStyle=key===window.fusionReaction?rp.color:rp.color+'44';
+      ctx.lineWidth=key===window.fusionReaction?2.5:1;
+      ctx.stroke();
+      ctx.fillStyle=rp.color; ctx.font='12px monospace';
+      if(key===window.fusionReaction) ctx.fillText(rp.label, pad.l+pw*0.5, pad.t+20);
+    });
+
+    devices.forEach(d=>{
+      const x=toX(d.T), y=toY(d.nTauT);
+      if(y<pad.t||y>pad.t+ph) return;
+      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2);
+      ctx.fillStyle=d.col; ctx.fill();
+      ctx.fillStyle=d.col; ctx.font='12px monospace';
+      ctx.fillText(d.name, x+9, y+4);
+    });
+
+    if(!window.p1Paused) {
+      raf1=requestAnimationFrame(draw);
+    }
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf1);}};
+}
+
+// ── Tab 2 — Implosion Dynamics ────────────────────────────────
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  let raf2, t2=0;
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const cx=W/2, cy=H/2;
+
+    const phase = (t2*0.005) % 1;
+
+    ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=2;
+    const hr=Math.min(W,H)*0.4;
+    ctx.strokeRect(cx-hr*0.35, cy-hr*0.7, hr*0.7, hr*1.4);
+    ctx.fillStyle='rgba(255,215,0,0.05)';
+    ctx.fillRect(cx-hr*0.35, cy-hr*0.7, hr*0.7, hr*1.4);
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+    ctx.fillText('hohlraum', cx+hr*0.36, cy+4);
+
+    if(phase<0.3){
+      for(let i=0;i<6;i++){
+        const bx=cx+hr*0.35*(i%2?1:-1), by=cy+hr*0.7*(i<3?-1:1)*0.4;
+        ctx.beginPath();
+        ctx.moveTo(cx+(i%2?hr*0.6:-hr*0.6), cy+(i<3?-hr*0.9:hr*0.9));
+        ctx.lineTo(bx,by);
+        ctx.strokeStyle=`rgba(126,200,255,${0.7*(1-phase/0.3)})`; ctx.lineWidth=2; ctx.stroke();
+      }
+    }
+
+    const R0 = hr*0.28, Rmin=hr*0.06;
+    const Rnow = R0 - (R0-Rmin)*Math.min(phase*2,1);
+
+    ctx.beginPath();
+    for(let a=0;a<Math.PI*2;a+=0.05){
+      const rt = window.showRT ? Rnow*(1 + 0.06*phase*Math.sin(8*a)*Math.cos(5*a+t2*0.02)) : 0;
+      const r=Rnow+rt;
+      const px=cx+r*Math.cos(a), py=cy+r*Math.sin(a);
+      a<0.05?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    const shellGrad=ctx.createRadialGradient(cx,cy,Rnow*0.5,cx,cy,Rnow*1.1);
+    shellGrad.addColorStop(0,'rgba(0,200,255,0.1)');
+    shellGrad.addColorStop(0.7,'rgba(0,200,255,0.4)');
+    shellGrad.addColorStop(1,'rgba(255,136,68,0.6)');
+    ctx.fillStyle=shellGrad; ctx.fill();
+    ctx.strokeStyle='#ff8844'; ctx.lineWidth=1.5; ctx.stroke();
+
+    if(phase>0.4){
+      const hsR=Rnow*0.35*(phase-0.4)/0.6;
+      const hsGrad=ctx.createRadialGradient(cx,cy,0,cx,cy,hsR);
+      hsGrad.addColorStop(0,'rgba(255,255,200,0.9)');
+      hsGrad.addColorStop(0.5,'rgba(255,136,68,0.6)');
+      hsGrad.addColorStop(1,'rgba(255,68,0,0)');
+      ctx.beginPath(); ctx.arc(cx,cy,hsR,0,Math.PI*2);
+      ctx.fillStyle=hsGrad; ctx.fill();
+      if(phase>0.85){ ctx.fillStyle='#fff'; ctx.font='bold 14px monospace'; ctx.textAlign='center';
+        ctx.fillText('Ignition!', cx, cy+4); ctx.textAlign='left'; }
+    }
+
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText(`Compression: ${(phase*100).toFixed(0)}%  R: ${(Rnow/R0*100).toFixed(0)}% R₀`, 12, H-14);
+
+    if(!window.imp2Paused) t2+=(window.animSpeed||0.1);
+    raf2=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf2);}};
+}
+
+// ── Tab 3 — NIF Gain Curve ────────────────────────────────────
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  let raf3;
+  window.p3Paused = false;
+
+  const shots=[
+    {year:2018,Ein:1.3,Eout:0.003,label:''},
+    {year:2019,Ein:1.5,Eout:0.010,label:''},
+    {year:2020,Ein:1.7,Eout:0.040,label:''},
+    {year:2021,Ein:1.9,Eout:0.13, label:'N210808'},
+    {year:2022,Ein:1.92,Eout:0.70,label:'N220919'},
+    {year:2022,Ein:2.05,Eout:3.15,label:'N221205 (ignition!)'},
+  ];
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const pad={l:70,r:20,t:40,b:60};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const Emax=4;
+    function toX(E){return pad.l+(E/Emax)*pw;}
+    function toY(E){return pad.t+ph-(Math.min(E,Emax)/Emax)*ph;}
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Laser Energy In (MJ)', pad.l+pw/2-50, pad.t+ph+35);
+    ctx.save(); ctx.translate(16,pad.t+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('Fusion Yield (MJ)',0,0); ctx.restore();
+
+    ctx.beginPath();
+    ctx.moveTo(toX(0.5),toY(0.5)); ctx.lineTo(toX(3.5),toY(3.5));
+    ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace'; ctx.fillText('Q=1', toX(3)+5, toY(3)-5);
+
+    shots.forEach(s=>{
+      const x=toX(s.Ein), y=toY(s.Eout);
+      if(y<pad.t||y>pad.t+ph) return;
+      ctx.beginPath(); ctx.arc(x,y,s.label?9:6,0,Math.PI*2);
+      ctx.fillStyle=s.label.includes('ignition')?'#ffd700':'#ff8844';
+      ctx.shadowColor=s.label.includes('ignition')?'#ffd700':'transparent';
+      ctx.shadowBlur=s.label.includes('ignition')?18:0;
+      ctx.fill(); ctx.shadowBlur=0;
+      if(s.label){
+        ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace';
+        ctx.fillText(s.label, x+12, y+4);
+      }
+    });
+
+    if(!window.p3Paused) {
+      raf3=requestAnimationFrame(draw);
+    }
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf3);}};
+}
+
+// ── Tab 4 — Nuclear Physics of Fusion ────────────────────────
+function initTab4() {
+  const cv = document.getElementById('cv4');
+  let raf4;
+  let dirty = true;
+
+  window.p4Redraw = function(){ dirty = true; };
+
+  // Cross-section data (parametric, keV -> millibarns)
+  function sigmaDT(E){ // E in keV, returns mb
+    if(E<=0) return 0;
+    // Bosch-Hale simplified approximation
+    const BG = 34.38; // Gamow energy sqrt for D-T
+    const S0 = 6.27e4; // S-factor in keV·b scaled
+    const exponent = -BG / Math.sqrt(E);
+    return (S0 / E) * Math.exp(exponent);
+  }
+  function sigmaDD(E){
+    if(E<=0) return 0;
+    const BG = 31.39;
+    const S0 = 55;
+    return (S0 / E) * Math.exp(-BG / Math.sqrt(E));
+  }
+  function sigmaDHe3(E){
+    if(E<=0) return 0;
+    const BG = 68.75;
+    const S0 = 6e5;
+    return (S0 / E) * Math.exp(-BG / Math.sqrt(E));
+  }
+
+  function maxwellBoltzmann(E, T){ // T in keV
+    if(T<=0||E<0) return 0;
+    return (2/Math.sqrt(Math.PI)) * Math.sqrt(E) * Math.pow(T,-1.5) * Math.exp(-E/T);
+  }
+
+  function gamowPeak(E, T, Z1Z2){
+    // Gamow window = MB distribution * tunneling factor
+    const BG = 31.39 * Z1Z2; // approximate scaling
+    const tunnel = Math.exp(-BG / Math.sqrt(Math.max(E,0.001)));
+    const mb = maxwellBoltzmann(E, T);
+    return mb * tunnel;
+  }
+
+  // Coulomb potential + nuclear well (dimensionless r in fm)
+  function potentialV(r){ // returns in MeV
+    if(r <= 0) return 1000;
+    const Z1=1, Z2=1;
+    const kee2 = 1.44; // MeV·fm (ke²)
+    const coulomb = kee2 * Z1 * Z2 / r;
+    // nuclear well: Yukawa-like attractive
+    const nuc = r < 3 ? -50 * Math.exp(-(r-1.2)/0.8) : 0;
+    return coulomb + nuc;
+  }
+
+  function drawBarrier(ctx, W, H){
+    const pad={l:65,r:30,t:35,b:55};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const rMin=0.5, rMax=20; // fm
+    const VMin=-60, VMax=120;
+
+    function toX(r){ return pad.l + (r-rMin)/(rMax-rMin)*pw; }
+    function toY(V){ return pad.t + ph - (V-VMin)/(VMax-VMin)*ph; }
+
+    // Axes
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t+ph);
+    ctx.lineTo(pad.l+pw, pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('r (fm)', pad.l+pw/2-15, pad.t+ph+35);
+    ctx.save(); ctx.translate(14, pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('V(r) [MeV]', -20, 0); ctx.restore();
+
+    // Zero line
+    const y0 = toY(0);
+    ctx.strokeStyle='#333360'; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(pad.l+pw, y0); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Potential curve
+    ctx.beginPath();
+    let started=false;
+    for(let px=0; px<pw; px++){
+      const r = rMin + (px/pw)*(rMax-rMin);
+      const V = potentialV(r);
+      if(V<VMin||V>VMax){ started=false; continue; }
+      const x=pad.l+px, y=toY(V);
+      if(!started){ ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='#ff8844'; ctx.lineWidth=2.5; ctx.stroke();
+
+    // Coulomb barrier peak annotation
+    const Epeak = 0.3; // typical deuteron beam energy in MeV (300 keV)
+    const rTurn = 1.44/(Epeak); // classical turning point in fm
+    if(rTurn>rMin && rTurn<rMax){
+      const xt = toX(rTurn), yt = toY(Epeak);
+      ctx.strokeStyle='#ffd70088'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(xt, yt); ctx.lineTo(xt, pad.t+ph); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+      ctx.fillText('classical', xt+4, yt-8);
+      ctx.fillText('turning pt', xt+4, yt+5);
+    }
+
+    // Beam energy line
+    const Ebeam = 0.3;
+    const ybeam = toY(Ebeam);
+    ctx.strokeStyle='#00e5ff88'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(pad.l, ybeam); ctx.lineTo(pad.l+pw*0.7, ybeam); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#00e5ff'; ctx.font='12px monospace';
+    ctx.fillText('E_beam', pad.l+pw*0.72, ybeam+4);
+
+    // Tunneling arrow
+    ctx.fillStyle='#aa77ff'; ctx.font='12px monospace';
+    ctx.fillText('← quantum tunneling →', pad.l+pw*0.05, ybeam-12);
+
+    // Labels
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    for(let r=0;r<=20;r+=5){
+      const x=toX(r);
+      if(x>=pad.l && x<=pad.l+pw) ctx.fillText(r, x-4, pad.t+ph+16);
+    }
+    for(let V=-50;V<=120;V+=50){
+      const y=toY(V);
+      if(y>=pad.t && y<=pad.t+ph) ctx.fillText(V, pad.l-38, y+4);
+    }
+
+    // Title
+    ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
+    ctx.fillText('Coulomb Barrier + Nuclear Well  (D-T)', pad.l+10, pad.t-10);
+  }
+
+  function drawCrossSection(ctx, W, H){
+    const pad={l:75,r:30,t:35,b:55};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const Emin=1, Emax=1000; // keV
+    const sMin=0.001, sMax=1e6; // mb (log)
+
+    function toX(E){ return pad.l + Math.log10(E/Emin)/Math.log10(Emax/Emin)*pw; }
+    function toY(s){ return pad.t + ph - Math.log10(s/sMin)/Math.log10(sMax/sMin)*ph; }
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Energy (keV)', pad.l+pw/2-30, pad.t+ph+35);
+    ctx.save(); ctx.translate(14,pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('σ(E) [mb]', -15, 0); ctx.restore();
+
+    // Grid
+    ctx.strokeStyle='#111130'; ctx.lineWidth=0.5;
+    for(let e=1;e<=3;e++){
+      const x=toX(Math.pow(10,e));
+      ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke();
+    }
+
+    const reactions = [
+      { fn: sigmaDT,   col:'#ff8844', lbl:'D-T', peakE:64 },
+      { fn: sigmaDD,   col:'#00e5ff', lbl:'D-D', peakE:300 },
+      { fn: sigmaDHe3, col:'#aa77ff', lbl:'D-³He', peakE:200 },
+    ];
+
+    reactions.forEach(rxn=>{
+      ctx.beginPath();
+      let started=false;
+      for(let px=0;px<pw;px++){
+        const E = Emin * Math.pow(Emax/Emin, px/pw);
+        const s = rxn.fn(E);
+        if(s<sMin||s>sMax||isNaN(s)||!isFinite(s)){started=false;continue;}
+        const x=pad.l+px, y=toY(s);
+        if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle=rxn.col; ctx.lineWidth=2; ctx.stroke();
+
+      // Label near right side
+      const Elbl = 500;
+      const s0 = rxn.fn(Elbl);
+      if(s0>sMin && s0<sMax){
+        ctx.fillStyle=rxn.col; ctx.font='12px monospace';
+        ctx.fillText(rxn.lbl, toX(Elbl)+5, toY(s0));
+      }
+    });
+
+    // D-T peak marker at 64 keV
+    const xpk=toX(64), ypk=toY(sigmaDT(64));
+    ctx.strokeStyle='#ffd70077'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(xpk,ypk); ctx.lineTo(xpk,pad.t+ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+    ctx.fillText('64 keV peak', xpk+4, ypk-8);
+
+    // Axes labels
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    for(let e=0;e<=3;e++){
+      const x=toX(Math.pow(10,e));
+      if(x>=pad.l && x<=pad.l+pw) ctx.fillText('10'+e, x-8, pad.t+ph+16);
+    }
+    for(let s=0;s<=6;s+=2){
+      const y=toY(Math.pow(10,s));
+      if(y>=pad.t && y<=pad.t+ph) ctx.fillText('10'+s, pad.l-46, y+4);
+    }
+
+    ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
+    ctx.fillText('Fusion Cross-Sections  σ(E)', pad.l+10, pad.t-10);
+  }
+
+  function drawGamow(ctx, W, H){
+    const T = window.p4Temp; // keV
+    const pad={l:70,r:30,t:35,b:55};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const Emax = Math.max(T*5, 50);
+
+    function toX(E){ return pad.l + (E/Emax)*pw; }
+    function toY(v,vmax){ return pad.t + ph - (v/vmax)*ph; }
+
+    // Compute curves
+    const N=400;
+    let mbArr=[], tunnArr=[], gamArr=[];
+    let mbMax=0, tunnMax=0, gamMax=0;
+    for(let i=0;i<N;i++){
+      const E=0.1+i*(Emax/N);
+      const mb = maxwellBoltzmann(E,T);
+      const BG=34.38; // D-T
+      const tunn = Math.exp(-BG/Math.sqrt(Math.max(E,0.001)));
+      const gam = mb*tunn;
+      mbArr.push({E,v:mb}); tunnArr.push({E,v:tunn}); gamArr.push({E,v:gam});
+      if(mb>mbMax) mbMax=mb;
+      if(tunn>tunnMax) tunnMax=tunn;
+      if(gam>gamMax) gamMax=gam;
+    }
+
+    // Axes
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Energy (keV)', pad.l+pw/2-30, pad.t+ph+35);
+    ctx.save(); ctx.translate(14,pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Normalized', -15, 0); ctx.restore();
+
+    const curves=[
+      {arr:mbArr, max:mbMax, col:'#00e5ff', lbl:'Maxwell-Boltzmann'},
+      {arr:tunnArr, max:tunnMax, col:'#aa77ff', lbl:'Tunneling P(E)'},
+      {arr:gamArr, max:gamMax, col:'#ff8844', lbl:'Gamow window'},
+    ];
+
+    curves.forEach(c=>{
+      if(c.max<=0) return;
+      ctx.beginPath();
+      let started=false;
+      c.arr.forEach(pt=>{
+        const x=toX(pt.E), y=toY(pt.v,c.max);
+        if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);
+      });
+      ctx.strokeStyle=c.col; ctx.lineWidth=2; ctx.stroke();
+      // Label at peak
+      let peakPt=c.arr.reduce((a,b)=>b.v>a.v?b:a,{E:0,v:-1});
+      ctx.fillStyle=c.col; ctx.font='12px monospace';
+      ctx.fillText(c.lbl, toX(peakPt.E)+3, toY(peakPt.v,c.max)-8);
+    });
+
+    // Gamow peak fill
+    if(gamMax>0){
+      ctx.beginPath();
+      gamArr.forEach((pt,i)=>{
+        const x=toX(pt.E), y=toY(pt.v,gamMax);
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.lineTo(toX(gamArr[gamArr.length-1].E), pad.t+ph);
+      ctx.lineTo(toX(gamArr[0].E), pad.t+ph);
+      ctx.closePath();
+      ctx.fillStyle='rgba(255,136,68,0.12)'; ctx.fill();
+    }
+
+    // E axis ticks
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    for(let E=0;E<=Emax;E+=Math.round(Emax/5)){
+      const x=toX(E);
+      if(x>=pad.l && x<=pad.l+pw) ctx.fillText(E, x-6, pad.t+ph+16);
+    }
+
+    ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
+    ctx.fillText(`Gamow Window  (T = ${T} keV)`, pad.l+10, pad.t-10);
+  }
+
+  function draw() {
+    if(!dirty){ raf4=requestAnimationFrame(draw); return; }
+    dirty=false;
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const v=window.p4View;
+    if(v==='barrier') drawBarrier(ctx,W,H);
+    else if(v==='cross') drawCrossSection(ctx,W,H);
+    else drawGamow(ctx,W,H);
+    raf4=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf4);}};
+}
+
+// ── Tab 5 — Tokamak Confinement ───────────────────────────────
+function initTab5() {
+  const cv = document.getElementById('cv5');
+  let raf5, t5=0;
+  window.p5Paused = false;
+
+  function drawFluxSurfaces(ctx, W, H){
+    const cx=W*0.45, cy=H*0.5;
+    const R = Math.min(W,H)*0.28;
+    const a = R / window.p5AR_val;
+    const kap = window.p5Kap_val;
+    const del = window.p5Del_val;
+
+    // draw flux surfaces from inside out
+    const nSurf=8;
+    for(let s=nSurf;s>=1;s--){
+      const frac = s/nSurf;
+      const ai = a*frac;
+      ctx.beginPath();
+      for(let th=0;th<Math.PI*2;th+=0.04){
+        // Miller parametrization
+        const X = R + ai*Math.cos(th + Math.asin(del)*Math.sin(th));
+        const Y = ai*kap*Math.sin(th);
+        const px=cx+(X-R)/R*R*0.9, py=cy-Y/a*a*0.9;
+        th<0.04?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+      const alpha = 0.12 + frac*0.25;
+      ctx.fillStyle=`rgba(255,100,30,${alpha})`;
+      ctx.strokeStyle=`rgba(255,100,30,${0.3+frac*0.4})`;
+      ctx.lineWidth=0.8;
+      ctx.fill(); ctx.stroke();
+    }
+
+    // Separatrix / last closed flux surface
+    ctx.beginPath();
+    for(let th=0;th<Math.PI*2;th+=0.03){
+      const X = R + a*Math.cos(th + Math.asin(del)*Math.sin(th));
+      const Y = a*kap*Math.sin(th);
+      const px=cx+(X-R)/R*R*0.9, py=cy-Y/a*a*0.9;
+      th<0.03?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.strokeStyle='#ff884488'; ctx.lineWidth=2; ctx.stroke();
+
+    // Toroidal field coils (simplified rectangles)
+    const nCoils=12;
+    for(let i=0;i<nCoils;i++){
+      const ang=(i/nCoils)*Math.PI*2;
+      const xc=cx+R*Math.cos(ang)*0.9;
+      const yc=cy+R*Math.sin(ang)*0.35;
+      const hw=6, hh=a*0.9*kap*0.9;
+      ctx.strokeStyle='#4488ff'; ctx.lineWidth=2;
+      ctx.strokeRect(xc-hw, yc-hh, hw*2, hh*2);
+    }
+
+    // Poloidal coils
+    const coilR=R*1.12;
+    [0.25,0.75,-0.25,-0.75].forEach(frac=>{
+      const yc=cy+frac*a*kap*2;
+      ctx.beginPath();
+      ctx.arc(cx, yc, 7, 0, Math.PI*2);
+      ctx.strokeStyle='#ff4466'; ctx.lineWidth=2; ctx.stroke();
+    });
+
+    // Magnetic field lines spiraling
+    if(window.p5Mode==='static'){
+      const nLines=4;
+      for(let li=0;li<nLines;li++){
+        const frac=(li+1)/(nLines+1);
+        const ai=a*frac*0.8;
+        ctx.beginPath();
+        let started=false;
+        for(let phi=0;phi<Math.PI*6;phi+=0.12){
+          const th = phi*0.18 + li*1.5; // twist for helical winding
+          const X=R+ai*Math.cos(th+Math.asin(del)*Math.sin(th));
+          const Y=ai*kap*Math.sin(th);
+          // project helix: modulate x by sin(phi) for 3D feel
+          const xs = (X-R)*Math.cos(phi*0.15)*0.9;
+          const px=cx+xs, py=cy-Y/a*a*0.9;
+          if(!started){ctx.moveTo(px,py);started=true;}else ctx.lineTo(px,py);
+        }
+        ctx.strokeStyle=`rgba(0,229,255,${0.2+frac*0.3})`; ctx.lineWidth=1; ctx.stroke();
+      }
+    }
+
+    // Kink mode perturbation
+    if(window.p5Mode==='kink'){
+      ctx.beginPath();
+      for(let th=0;th<Math.PI*2;th+=0.03){
+        const amp=a*0.18*Math.sin(th - t5*0.05);
+        const X=R+(a*0.4+amp)*Math.cos(th+Math.asin(del)*Math.sin(th));
+        const Y=(a*0.4+amp)*kap*Math.sin(th);
+        const px=cx+(X-R)/R*R*0.9, py=cy-Y/a*a*0.9;
+        th<0.03?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle='#ff4444'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#ff000020'; ctx.fill();
+      ctx.fillStyle='#ff4444'; ctx.font='bold 12px monospace';
+      ctx.fillText('m=1 kink instability', cx-60, cy+a*kap*0.9+25);
+    }
+
+    // ELM flash
+    if(window.p5Mode==='elm'){
+      const elmPhase=(t5*0.04)%1;
+      if(elmPhase<0.3){
+        const flash=Math.sin(elmPhase*Math.PI/0.3);
+        ctx.beginPath();
+        for(let th=0;th<Math.PI*2;th+=0.04){
+          const amp=a*(0.05+0.15*flash*Math.random()*0.3);
+          const X=R+(a+amp)*Math.cos(th+Math.asin(del)*Math.sin(th));
+          const Y=(a+amp)*kap*Math.sin(th);
+          const px=cx+(X-R)/R*R*0.9, py=cy-Y/a*a*0.9;
+          th<0.04?ctx.moveTo(px,py):ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+        ctx.strokeStyle=`rgba(255,200,0,${flash})`;
+        ctx.lineWidth=3; ctx.stroke();
+        ctx.fillStyle=`rgba(255,150,0,${flash*0.3})`; ctx.fill();
+        ctx.fillStyle='#ffd700'; ctx.font='bold 12px monospace';
+        ctx.fillText('ELM burst!', cx-30, cy-a*kap*0.9-15);
+      }
+    }
+
+    // q-profile label
+    const q = (a/R)*window.p5AR_val * 1.5;
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText(`q(a) ≈ ${q.toFixed(2)}, κ=${kap.toFixed(2)}, δ=${del.toFixed(2)}`, 12, H-30);
+    ctx.fillText(`R/a = ${window.p5AR_val.toFixed(1)}  (ITER: 6.2m / 2m = 3.1)`, 12, H-14);
+
+    // Legend
+    ctx.fillStyle='#4488ff'; ctx.font='12px monospace'; ctx.fillText('■ TF coils',  W-110, 20);
+    ctx.fillStyle='#ff4466'; ctx.fillText('● PF coils',  W-110, 34);
+    ctx.fillStyle='#ff8844'; ctx.fillText('— flux surfaces', W-120, 48);
+  }
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    drawFluxSurfaces(ctx,W,H);
+    if(!window.p5Paused) t5+=(window.animSpeed||0.1);
+    raf5=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf5);}};
+}
+
+// ── Tab 6 — ICF & NIF Ignition ────────────────────────────────
+function initTab6() {
+  const cv = document.getElementById('cv6');
+  let raf6;
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    if(!window.icf6Paused) window.icf6T++;
+    const t = window.icf6T;
+
+    // Two side-by-side panels: left=implosion animation, right=yield vs energy plot
+    const leftW = Math.floor(W*0.55);
+    const rightX = leftW;
+    const rightW = W - leftW;
+
+    // ── Left: ICF implosion stages ──
+    const cx=leftW/2, cy=H/2;
+    const phase=(t*0.004)%1;
+    const hr=Math.min(leftW,H)*0.38;
+
+    if(window.p6Drive==='indirect'){
+      // Hohlraum outline
+      ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=2;
+      ctx.strokeRect(cx-hr*0.38, cy-hr*0.8, hr*0.76, hr*1.6);
+      ctx.fillStyle='rgba(255,215,0,0.04)';
+      ctx.fillRect(cx-hr*0.38, cy-hr*0.8, hr*0.76, hr*1.6);
+      ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+      ctx.fillText('hohlraum', cx-hr*0.38, cy-hr*0.82);
+
+      // X-ray arrows (indirect drive)
+      if(phase<0.25){
+        const alpha=1-phase/0.25;
+        for(let i=0;i<8;i++){
+          const ang=(i/8)*Math.PI*2;
+          const r1=hr*0.5, r2=hr*0.3;
+          ctx.strokeStyle=`rgba(255,180,80,${alpha*0.8})`; ctx.lineWidth=1.5;
+          ctx.beginPath();
+          ctx.moveTo(cx+r1*Math.cos(ang), cy+r1*Math.sin(ang)*0.5);
+          ctx.lineTo(cx+r2*Math.cos(ang), cy+r2*Math.sin(ang)*0.5);
+          ctx.stroke();
+        }
+      }
+    } else {
+      // Direct drive: laser beams
+      if(phase<0.3){
+        const alpha=1-phase/0.3;
+        for(let i=0;i<12;i++){
+          const ang=(i/12)*Math.PI*2;
+          ctx.strokeStyle=`rgba(100,200,255,${alpha*0.9})`; ctx.lineWidth=1.5;
+          ctx.beginPath();
+          ctx.moveTo(cx+hr*1.1*Math.cos(ang), cy+hr*0.7*Math.sin(ang));
+          ctx.lineTo(cx+hr*0.32*Math.cos(ang), cy+hr*0.32*Math.sin(ang));
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Capsule shell
+    const R0=hr*0.3, Rmin=hr*0.05;
+    const Rnow=R0-(R0-Rmin)*Math.min(phase*2.5,1);
+    const doRT = phase>0.1 && phase<0.7;
+
+    ctx.beginPath();
+    for(let a=0;a<Math.PI*2;a+=0.04){
+      const rt=doRT?Rnow*(0.04*phase*Math.sin(9*a+t*0.03)*Math.cos(6*a)):0;
+      const r=Rnow+rt;
+      const px=cx+r*Math.cos(a), py=cy+r*Math.sin(a);
+      a<0.04?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    const grad=ctx.createRadialGradient(cx,cy,Rnow*0.3,cx,cy,Rnow*1.2);
+    grad.addColorStop(0,'rgba(0,180,255,0.1)');
+    grad.addColorStop(0.7,'rgba(0,180,255,0.35)');
+    grad.addColorStop(1,'rgba(255,120,40,0.55)');
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.strokeStyle='#ff8844'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // Hot spot
+    if(phase>0.45){
+      const hsR=Rnow*0.4*(phase-0.45)/0.55;
+      const hsG=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(hsR,1));
+      hsG.addColorStop(0,'rgba(255,255,220,0.95)');
+      hsG.addColorStop(0.5,'rgba(255,140,40,0.6)');
+      hsG.addColorStop(1,'rgba(255,60,0,0)');
+      ctx.beginPath(); ctx.arc(cx,cy,Math.max(hsR,1),0,Math.PI*2);
+      ctx.fillStyle=hsG; ctx.fill();
+    }
+
+    // Burn wave
+    if(phase>0.75){
+      const bwR=Rnow*(1+(phase-0.75)*4);
+      const bwG=ctx.createRadialGradient(cx,cy,bwR*0.7,cx,cy,bwR);
+      bwG.addColorStop(0,'rgba(255,200,50,0.0)');
+      bwG.addColorStop(1,`rgba(255,200,50,${(phase-0.75)*0.7})`);
+      ctx.beginPath(); ctx.arc(cx,cy,bwR,0,Math.PI*2);
+      ctx.fillStyle=bwG; ctx.fill();
+    }
+
+    const ignitionE = 1.8; // threshold MJ
+    const gained = window.p6Laser_val >= ignitionE;
+    if(phase>0.88 && gained){
+      ctx.fillStyle='#fff'; ctx.font='bold 13px monospace'; ctx.textAlign='center';
+      ctx.fillText('IGNITION', cx, cy-5);
+      ctx.font='12px monospace'; ctx.fillStyle='#ffd700';
+      ctx.fillText(`G = ${(window.p6Laser_val*1.54/2.05).toFixed(2)}`, cx, cy+12);
+      ctx.textAlign='left';
+    }
+
+    // Stage label
+    let stageLabel='';
+    if(phase<0.15) stageLabel='1. Laser/X-ray drive';
+    else if(phase<0.35) stageLabel='2. Ablation & shock';
+    else if(phase<0.6)  stageLabel='3. Implosion';
+    else if(phase<0.78) stageLabel='4. Hot spot formation';
+    else                stageLabel='5. Burn wave propagation';
+    ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace';
+    ctx.fillText(stageLabel, 8, H-14);
+
+    // ── Right: Yield vs Laser Energy plot ──
+    const pad={l:55,r:15,t:35,b:50};
+    const pw=rightW-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const Emin=0.5, Emax=3.0;
+    const Ymin=0.001, Ymax=10;
+
+    function rX(E){ return rightX+pad.l+(E-Emin)/(Emax-Emin)*pw; }
+    function rY(Y){ return pad.t+ph-Math.log10(Y/Ymin)/Math.log10(Ymax/Ymin)*ph; }
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(rightX+pad.l,pad.t); ctx.lineTo(rightX+pad.l,pad.t+ph);
+    ctx.lineTo(rightX+pad.l+pw,pad.t+ph); ctx.stroke();
+
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Laser (MJ)', rightX+pad.l+pw/2-25, pad.t+ph+35);
+    ctx.save(); ctx.translate(rightX+12,pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Yield (MJ)', -20, 0); ctx.restore();
+
+    // Q=1 line
+    ctx.beginPath(); ctx.moveTo(rX(Emin),rY(Emin)); ctx.lineTo(rX(Emax),rY(Emax));
+    ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffd700aa'; ctx.font='12px monospace'; ctx.fillText('Q=1', rX(2.5)+3, rY(2.5)-5);
+
+    // Ignition threshold curve: sigmoid-like
+    ctx.beginPath();
+    let first=true;
+    for(let px=0;px<pw;px++){
+      const E=Emin+(px/pw)*(Emax-Emin);
+      // sharp threshold near 1.9 MJ
+      const Y=0.001 * Math.pow(10, 6*(E-1.9)/1.0) / (1+Math.pow(10,3*(E-2.3)/0.5));
+      const yy=rY(Math.max(Y,Ymin));
+      if(yy<pad.t||yy>pad.t+ph){first=true;continue;}
+      if(first){ctx.moveTo(rightX+pad.l+px,yy);first=false;}else ctx.lineTo(rightX+pad.l+px,yy);
+    }
+    ctx.strokeStyle='#aa77ff'; ctx.lineWidth=2; ctx.stroke();
+
+    // NIF shots
+    const nifShots=[
+      {E:1.3,Y:0.003},{E:1.5,Y:0.01},{E:1.7,Y:0.04},
+      {E:1.9,Y:0.13},{E:1.92,Y:0.70},{E:2.05,Y:3.15},
+    ];
+    nifShots.forEach((s,i)=>{
+      const x=rX(s.E), y=rY(s.Y);
+      if(y<pad.t||y>pad.t+ph) return;
+      ctx.beginPath(); ctx.arc(x,y,i===5?8:5,0,Math.PI*2);
+      ctx.fillStyle=i===5?'#ffd700':'#ff8844';
+      ctx.shadowColor=i===5?'#ffd700':'transparent';
+      ctx.shadowBlur=i===5?16:0;
+      ctx.fill(); ctx.shadowBlur=0;
+    });
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+    ctx.fillText('Dec 2022', rX(2.05)+5, rY(3.15)-5);
+
+    // Current slider position
+    const xCur=rX(window.p6Laser_val);
+    ctx.strokeStyle='#ff884488'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(xCur,pad.t); ctx.lineTo(xCur,pad.t+ph); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Y-axis ticks
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    [0.01,0.1,1,10].forEach(Y=>{
+      const y=rY(Y);
+      if(y>=pad.t&&y<=pad.t+ph) ctx.fillText(Y, rightX+pad.l-38, y+4);
+    });
+    [0.5,1,1.5,2,2.5,3].forEach(E=>{
+      const x=rX(E);
+      if(x>=rightX+pad.l&&x<=rightX+pad.l+pw) ctx.fillText(E, x-8, pad.t+ph+16);
+    });
+
+    ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
+    ctx.fillText('NIF Yield vs Laser Energy', rightX+pad.l+5, pad.t-10);
+
+    raf6=requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf6);}};
+}
+
+// ── Tab 7 — Plasma Turbulence & Transport ────────────────────
+function initTab7() {
+  const cv = document.getElementById('cv7');
+  let raf7, t7=0;
+  window.p7Paused = false;
+
+  // Gaussian blob turbulence eddies
+  const eddies=[];
+  for(let i=0;i<30;i++){
+    eddies.push({
+      x:Math.random(), y:Math.random(),
+      vx:(Math.random()-0.5)*0.002, vy:(Math.random()-0.5)*0.002,
+      r:0.04+Math.random()*0.08,
+      phase:Math.random()*Math.PI*2,
+      sign:Math.random()<0.5?1:-1,
+    });
+  }
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    const RLT = window.p7RLT_val;
+    const critical=5.0;
+    const turbActive = RLT>critical;
+    const turbAmp = turbActive ? Math.min((RLT-critical)/critical, 1.5) : 0;
+    const speed = (window.animSpeed||0.1)*(turbActive?1:0.2);
+
+    // Left 60%: turbulence map; Right 40%: chi plot
+    const leftW=Math.floor(W*0.6);
+    const rightX=leftW;
+    const rightW=W-leftW;
+
+    // ── Left panel: 2D tokamak cross-section with eddies ──
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    // Plasma cross-section background
+    const cx=leftW/2, cy=H/2;
+    const plR=Math.min(leftW,H)*0.38;
+    const kap=1.7;
+
+    // Plasma shape
+    ctx.beginPath();
+    for(let th=0;th<Math.PI*2;th+=0.04){
+      const r=plR;
+      const px=cx+r*Math.cos(th), py=cy-r*kap*Math.sin(th);
+      th<0.04?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.fillStyle='rgba(20,20,60,0.8)'; ctx.fill();
+    ctx.strokeStyle='#ff884444'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // Eddies (ITG turbulence blobs)
+    if(turbActive) t7+=speed;
+    eddies.forEach(e=>{
+      e.x=(e.x+e.vx*speed+1)%1;
+      e.y=(e.y+e.vy*speed+1)%1;
+      // map to ellipse interior
+      const dx=(e.x-0.5)*1.8, dy=(e.y-0.5)*1.2;
+      if(dx*dx+dy*dy>0.85) return; // outside ellipse
+      const ex=cx+dx*plR, ey=cy+dy*plR*kap;
+      const intensity=turbAmp*(0.5+0.5*Math.sin(t7*0.05+e.phase));
+      const rr=plR*e.r*(0.6+0.4*intensity);
+      const grad=ctx.createRadialGradient(ex,ey,0,ex,ey,rr);
+      const hue=e.sign>0?'255,80,30':'30,180,255';
+      grad.addColorStop(0,`rgba(${hue},${0.35*intensity})`);
+      grad.addColorStop(1,`rgba(${hue},0)`);
+      ctx.beginPath(); ctx.arc(ex,ey,rr,0,Math.PI*2);
+      ctx.fillStyle=grad; ctx.fill();
+    });
+
+    // Flux surfaces (thin rings)
+    for(let s=1;s<=5;s++){
+      const fr=s/5;
+      ctx.beginPath();
+      for(let th=0;th<Math.PI*2;th+=0.05){
+        const r=plR*fr;
+        const px=cx+r*Math.cos(th), py=cy-r*kap*Math.sin(th);
+        th<0.05?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle=`rgba(255,136,68,${0.08+fr*0.06})`; ctx.lineWidth=0.7; ctx.stroke();
+    }
+
+    // Label
+    ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
+    ctx.fillText(turbActive?'ITG Turbulence Active':'Near-Neoclassical', cx-60, cy+plR*kap+20);
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText(`R/L_T = ${RLT.toFixed(1)}  (crit ≈ ${critical})`, 8, H-14);
+
+    // ── Right panel: χ_i vs R/L_T plot ──
+    const pad={l:55,r:15,t:35,b:50};
+    const pw=rightW-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const rlMin=0, rlMax=15;
+    const chiMin=0, chiMax=5;
+
+    function rX2(rl){ return rightX+pad.l+(rl-rlMin)/(rlMax-rlMin)*pw; }
+    function rY2(chi){ return pad.t+ph-(chi-chiMin)/(chiMax-chiMin)*ph; }
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(rightX+pad.l,pad.t); ctx.lineTo(rightX+pad.l,pad.t+ph);
+    ctx.lineTo(rightX+pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('R/L_T', rightX+pad.l+pw/2-12, pad.t+ph+35);
+    ctx.save(); ctx.translate(rightX+12, pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('χ_i (m²/s)', -20, 0); ctx.restore();
+
+    // Neoclassical (nearly flat low line)
+    ctx.beginPath();
+    for(let px=0;px<pw;px++){
+      const rl=rlMin+(px/pw)*(rlMax-rlMin);
+      const chi=0.1+rl*0.02;
+      ctx.lineTo(rightX+pad.l+px, rY2(chi));
+    }
+    ctx.strokeStyle='#00e5ff'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#00e5ff'; ctx.font='12px monospace'; ctx.fillText('neoclassical', rightX+pad.l+pw*0.6, rY2(0.25));
+
+    // Anomalous (ITG threshold stiffness)
+    ctx.beginPath();
+    for(let px=0;px<pw;px++){
+      const rl=rlMin+(px/pw)*(rlMax-rlMin);
+      const chi = rl>critical ? 0.1+0.8*(rl-critical) : 0.1+rl*0.01;
+      if(rY2(chi)<pad.t) break;
+      ctx.lineTo(rightX+pad.l+px, rY2(chi));
+    }
+    ctx.strokeStyle='#ff8844'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#ff8844'; ctx.font='12px monospace'; ctx.fillText('anomalous (ITG)', rightX+pad.l+pw*0.55, rY2(2.2));
+
+    // Critical threshold line
+    const xcrit=rX2(critical);
+    ctx.strokeStyle='#ffd70077'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(xcrit,pad.t); ctx.lineTo(xcrit,pad.t+ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+    ctx.fillText('R/L_T*', xcrit-12, pad.t+14);
+
+    // Current marker
+    const xCur=rX2(RLT);
+    const chi_now = RLT>critical ? 0.1+0.8*(RLT-critical) : 0.1+RLT*0.01;
+    ctx.beginPath(); ctx.arc(xCur, rY2(chi_now), 7, 0, Math.PI*2);
+    ctx.fillStyle=turbActive?'#ff8844':'#00e5ff'; ctx.fill();
+
+    // Axes ticks
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    for(let rl=0;rl<=15;rl+=5){
+      const x=rX2(rl);
+      if(x>=rightX+pad.l&&x<=rightX+pad.l+pw) ctx.fillText(rl, x-5, pad.t+ph+16);
+    }
+    for(let c=0;c<=5;c++){
+      const y=rY2(c);
+      if(y>=pad.t&&y<=pad.t+ph) ctx.fillText(c, rightX+pad.l-24, y+4);
+    }
+
+    ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
+    ctx.fillText('Ion Thermal Diffusivity', rightX+pad.l+3, pad.t-10);
+
+    if(!window.p7Paused) {
+      raf7=requestAnimationFrame(draw);
+    }
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf7);}};
+}
+
+// ── Tab 8 — Fusion Power Plants ──────────────────────────────
+function initTab8() {
+  const cv = document.getElementById('cv8');
+  let raf8, t8=0;
+  let dirty8=true;
+  window.p8Paused = false;
+
+  window.p8ViewPrev='';
+
+  function drawPlant(ctx,W,H){
+    t8++;
+    const cx=W/2, cy=H/2;
+    const pulse=(Math.sin(t8*0.04)+1)/2;
+
+    // Reactor vessel (torus simplified as circle)
+    ctx.beginPath(); ctx.arc(cx*0.22, cy, 60, 0, Math.PI*2);
+    const gReactor=ctx.createRadialGradient(cx*0.22,cy,10,cx*0.22,cy,60);
+    gReactor.addColorStop(0,`rgba(255,${100+Math.floor(pulse*80)},30,0.9)`);
+    gReactor.addColorStop(0.6,'rgba(255,80,10,0.4)');
+    gReactor.addColorStop(1,'rgba(100,30,0,0)');
+    ctx.fillStyle=gReactor; ctx.fill();
+    ctx.strokeStyle='#ff8844'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Fusion', cx*0.22, cy-68);
+    ctx.fillText('Reactor', cx*0.22, cy-55);
+
+    // Arrows (heat flow)
+    const arrowY=[cy-20,cy,cy+20];
+    function arrow(x1,y1,x2,y2,col){
+      ctx.strokeStyle=col; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+      const ang=Math.atan2(y2-y1,x2-x1);
+      ctx.lineTo(x2-10*Math.cos(ang-0.4),y2-10*Math.sin(ang-0.4));
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-10*Math.cos(ang+0.4),y2-10*Math.sin(ang+0.4));
+      ctx.stroke();
+    }
+    // Reactor → Heat exchanger
+    arrowY.forEach(y=>arrow(cx*0.22+62, y, cx*0.5-45, y, '#ff884488'));
+
+    // Heat exchanger
+    const hxX=cx*0.5, hxY=cy;
+    ctx.fillStyle='#1a1a44'; ctx.strokeStyle='#4466ff'; ctx.lineWidth=2;
+    ctx.fillRect(hxX-45, hxY-40, 90, 80);
+    ctx.strokeRect(hxX-45, hxY-40, 90, 80);
+    ctx.fillStyle='#4466ff'; ctx.font='12px monospace';
+    ctx.fillText('Heat', hxX, hxY-12);
+    ctx.fillText('Exchanger', hxX, hxY+4);
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('(tritium breeding)', hxX, hxY+20);
+
+    // Heat exchanger → Steam turbine
+    arrowY.forEach(y=>arrow(hxX+45, y, cx*0.82-50, y, '#88aaff88'));
+
+    // Steam turbine
+    const stX=cx*0.82, stY=cy;
+    ctx.fillStyle='#1a2244'; ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2;
+    ctx.fillRect(stX-50, stY-40, 100, 80); ctx.strokeRect(stX-50, stY-40, 100, 80);
+    ctx.fillStyle='#00e5ff'; ctx.font='12px monospace';
+    ctx.fillText('Steam', stX, stY-12);
+    ctx.fillText('Turbine', stX, stY+4);
+
+    // Turbine → Generator
+    arrowY.forEach(y=>arrow(stX+50, y, cx*1.15-40, y, '#00e5ff88'));
+
+    // Generator
+    const genX=cx*1.15, genY=cy;
+    ctx.fillStyle='#1a2a1a'; ctx.strokeStyle='#44ff88'; ctx.lineWidth=2;
+    ctx.fillRect(genX-40, genY-40, 80, 80); ctx.strokeRect(genX-40, genY-40, 80, 80);
+    ctx.fillStyle='#44ff88'; ctx.font='12px monospace';
+    ctx.fillText('Generator', genX, genY);
+
+    // Generator → Grid
+    arrowY.forEach(y=>arrow(genX+40, y, cx*1.4, y, '#44ff8888'));
+
+    // Grid icon
+    const gX=cx*1.4+10, gY=cy;
+    ctx.fillStyle='#44ff88'; ctx.font='bold 12px monospace';
+    ctx.fillText('⚡ Grid', gX, gY+5);
+
+    // Tritium breeding loop
+    ctx.strokeStyle='rgba(180,100,255,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    ctx.moveTo(hxX, hxY+40); ctx.lineTo(hxX, hxY+80);
+    ctx.lineTo(cx*0.22, hxY+80); ctx.lineTo(cx*0.22, cy+62);
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#aa77ff'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Tritium breeding (Li-6 blanket)', cx*0.45, hxY+95);
+
+    // Efficiency label
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Thermal efficiency ~33%  |  Net electric ~500 MW (DEMO)', cx, H-14);
+    ctx.textAlign='left';
+  }
+
+  function drawBreeding(ctx,W,H){
+    t8++;
+    // Show Li blanket schematic + reaction
+    const cx=W/2, cy=H/2;
+
+    // Plasma core
+    ctx.beginPath(); ctx.arc(cx, cy, 70, 0, Math.PI*2);
+    const gP=ctx.createRadialGradient(cx,cy,10,cx,cy,70);
+    gP.addColorStop(0,'rgba(255,180,50,0.9)');
+    gP.addColorStop(1,'rgba(255,50,0,0.1)');
+    ctx.fillStyle=gP; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Plasma', cx, cy-3);
+    ctx.font='12px monospace'; ctx.fillStyle='#ffd700';
+    ctx.fillText('D-T fusion', cx, cy+12);
+
+    // Neutron arrows
+    const nNeutron=12;
+    for(let i=0;i<nNeutron;i++){
+      const ang=(i/nNeutron)*Math.PI*2 + t8*0.01;
+      const r1=72, r2=105+Math.random()*15;
+      ctx.strokeStyle='rgba(0,229,255,0.7)'; ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx+r1*Math.cos(ang), cy+r1*Math.sin(ang));
+      ctx.lineTo(cx+r2*Math.cos(ang), cy+r2*Math.sin(ang));
+      ctx.stroke();
+    }
+    ctx.fillStyle='#00e5ff'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('14.1 MeV neutrons', cx+76, cy-5);
+
+    // Li blanket ring
+    ctx.beginPath(); ctx.arc(cx,cy,130,0,Math.PI*2);
+    ctx.strokeStyle='rgba(180,100,255,0.6)'; ctx.lineWidth=18;
+    ctx.shadowColor='rgba(180,100,255,0.3)'; ctx.shadowBlur=12;
+    ctx.stroke(); ctx.shadowBlur=0;
+    ctx.fillStyle='#aa77ff'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('⁶Li blanket', cx+0, cy-133);
+
+    // Tritium products
+    const nProds=6;
+    for(let i=0;i<nProds;i++){
+      const ang=(i/nProds)*Math.PI*2 + t8*0.008;
+      const r=160;
+      ctx.beginPath(); ctx.arc(cx+r*Math.cos(ang), cy+r*Math.sin(ang), 8, 0, Math.PI*2);
+      ctx.fillStyle='rgba(255,150,30,0.7)'; ctx.fill();
+      ctx.fillStyle='#ffa020'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText('T', cx+r*Math.cos(ang), cy+r*Math.sin(ang)+4);
+    }
+    ctx.fillStyle='#ff8844'; ctx.font='12px monospace';
+    ctx.fillText('Tritium products → back to reactor', cx, cy+175);
+
+    // Reactions text
+    ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('⁶Li + n → T + ⁴He + 4.78 MeV', 18, 30);
+    ctx.fillText('⁷Li + n → T + ⁴He + n\' − 2.47 MeV', 18, 46);
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Tritium Breeding Ratio (TBR) must exceed 1.05 for self-sufficiency', 18, H-14);
+  }
+
+  function drawLCOE(ctx,W,H){
+    // Bar chart: LCOE comparison
+    const pad={l:120,r:30,t:50,b:60};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+
+    const sources=[
+      {name:'Fusion (proj)',  lcoe:80,  col:'#ff8844', note:'~2050 est.'},
+      {name:'Nuclear (new)',  lcoe:120, col:'#4488ff', note:'current'},
+      {name:'Gas CCGT',       lcoe:55,  col:'#ff4466', note:'fossil'},
+      {name:'Offshore Wind',  lcoe:90,  col:'#44ddff', note:'variable'},
+      {name:'Solar PV (util)',lcoe:45,  col:'#ffd700', note:'variable'},
+      {name:'Coal',           lcoe:105, col:'#888888', note:'fossil'},
+    ];
+
+    const lcoeMax=150;
+    const barH=(ph-10)/(sources.length)*0.7;
+    const barGap=(ph-10)/sources.length;
+
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Levelized Cost of Energy ($/MWh) — illustrative', pad.l, pad.t-20);
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph);
+    ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('$/MWh', pad.l+pw/2-15, pad.t+ph+35);
+
+    sources.forEach((s,i)=>{
+      const y=pad.t+i*barGap+5;
+      const bw=(s.lcoe/lcoeMax)*pw;
+      ctx.fillStyle=s.col+'44';
+      ctx.fillRect(pad.l, y, bw, barH);
+      ctx.strokeStyle=s.col; ctx.lineWidth=1.5;
+      ctx.strokeRect(pad.l, y, bw, barH);
+      ctx.fillStyle=s.col; ctx.font='12px monospace';
+      ctx.fillText(s.name, pad.l-s.name.length*6.2, y+barH*0.7);
+      ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace';
+      ctx.fillText(`$${s.lcoe}  (${s.note})`, pad.l+bw+6, y+barH*0.7);
+    });
+
+    // X axis ticks
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    for(let v=0;v<=150;v+=50){
+      const x=pad.l+(v/lcoeMax)*pw;
+      ctx.fillText(v, x-8, pad.t+ph+16);
+      ctx.strokeStyle='#1a1a38'; ctx.lineWidth=0.5;
+      ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke();
+    }
+
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Note: fusion LCOE highly uncertain — depends on Q, plant efficiency, capital cost', W/2, H-14);
+    ctx.textAlign='left';
+  }
+
+  function draw() {
+    const {W,H,ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    ctx.textAlign='left';
+
+    const v=window.p8View;
+    if(v==='plant') drawPlant(ctx,W,H);
+    else if(v==='breeding') drawBreeding(ctx,W,H);
+    else drawLCOE(ctx,W,H);
+
+    if(!window.p8Paused) {
+      raf8=requestAnimationFrame(draw);
+    }
+  }
+  draw();
+  return { stop(){cancelAnimationFrame(raf8);}};
+}
+
+switchTab(1);
+window.addEventListener('resize', () => { _stops.forEach(s=>s&&s.stop&&s.stop()); _stops=[]; switchTab(currentTab); });
+
+window.animSpeed=0.1;
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

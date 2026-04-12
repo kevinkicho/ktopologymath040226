@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept Graph — Road to Reality</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --cyan:#00e5ff;--gold:#ffd700;--green:#00ff99;
+  --pink:#ff44ff;--orange:#ff8844;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden}
+
+/* ── HEADER BAR ── */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;gap:14px;
+  padding:10px 20px;
+  background:rgba(5,5,15,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.back-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.7rem;color:var(--dim);text-decoration:none;
+  letter-spacing:.06em;text-transform:uppercase;transition:.15s;flex-shrink:0;
+}
+.back-link:hover{color:var(--cyan)}
+.top-title{font-size:.78rem;font-weight:700;letter-spacing:.06em;color:var(--text);flex:1}
+.top-hint{font-size:.65rem;color:var(--dim);flex-shrink:0}
+
+/* ── LEGEND ── */
+.legend{
+  position:fixed;bottom:20px;left:20px;z-index:100;
+  background:rgba(11,11,30,.9);border:1px solid var(--border);
+  border-radius:9px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;
+}
+.legend-title{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:2px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:.65rem;color:var(--text)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ── SEARCH ── */
+#graphSearch{
+  background:#0b0b20;border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-size:.74rem;padding:4px 10px;width:180px;outline:none;
+  transition:.15s;
+}
+#graphSearch:focus{border-color:var(--cyan)88;box-shadow:0 0 0 2px var(--cyan)18}
+#graphSearch::placeholder{color:var(--dim)}
+
+/* ── DOMAIN FILTERS ── */
+#domainFilters{
+  position:fixed;bottom:20px;left:20px;z-index:100;
+  background:rgba(11,11,30,.92);border:1px solid var(--border);
+  border-radius:9px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;
+}
+#domainFilters .filter-title{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:2px}
+.df-row{display:flex;gap:5px;flex-wrap:wrap}
+.df-pill{
+  display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;
+  font-size:.62rem;cursor:pointer;transition:.15s;
+  background:var(--bg3);border:1px solid var(--border);color:var(--dim);
+  user-select:none;
+}
+.df-pill:hover{border-color:currentColor;opacity:.9}
+.df-pill.active{background:color-mix(in srgb, var(--dc,#fff) 15%, transparent);border-color:var(--dc,#fff);color:var(--dc,#fff)}
+.df-dot{width:7px;height:7px;border-radius:50%;background:var(--dc,#fff);flex-shrink:0}
+.df-count{opacity:.6;font-size:.58rem}
+
+/* ── INFO PANEL ── */
+#infoPanel{
+  position:fixed;top:54px;right:20px;z-index:100;
+  width:280px;
+  background:rgba(11,11,30,.95);border:1px solid var(--border);
+  border-radius:11px;padding:18px 18px 14px;
+  opacity:0;pointer-events:none;transition:.22s;
+  transform:translateX(10px);
+}
+#infoPanel.show{opacity:1;pointer-events:auto;transform:translateX(0)}
+.info-num{font-size:.58rem;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.info-title{font-size:.92rem;font-weight:700;color:#e8e8ff;margin-bottom:8px;line-height:1.25}
+.info-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.info-tag{padding:2px 7px;border-radius:3px;font-size:.6rem;
+  background:#ffffff09;border:1px solid #ffffff12;color:#7070a0}
+.info-connections{font-size:.68rem;color:var(--dim);margin-bottom:12px;line-height:1.5}
+.info-connections span{color:var(--text)}
+.info-open-btn{
+  display:block;text-align:center;
+  padding:7px 14px;border-radius:6px;font-size:.75rem;font-weight:600;
+  border:1px solid rgba(0,229,255,.35);background:rgba(0,229,255,.07);
+  color:var(--cyan);text-decoration:none;transition:.14s;
+}
+.info-open-btn:hover{background:rgba(0,229,255,.18);border-color:var(--cyan)}
+.info-close{
+  position:absolute;top:10px;right:12px;background:none;border:none;
+  color:var(--dim);cursor:pointer;font-size:.95rem;padding:3px;line-height:1;
+}
+.info-close:hover{color:var(--text)}
+
+canvas#graph{
+  position:fixed;top:46px;left:0;right:0;bottom:0;
+  width:100%;height:calc(100% - 46px);cursor:grab;
+}
+canvas#graph:active{cursor:grabbing}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="/" class="back-link">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,3 5,8 10,13"/></svg>
+    Playground
+  </a>
+  <span class="top-title">Concept Graph Explorer</span>
+  <input id="graphSearch" type="search" placeholder="Search modules…" autocomplete="off" spellcheck="false">
+  <a href="/graph3d.html" class="back-link" style="color:var(--cyan);margin-left:8px">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12L8 3l6 9H2z"/><circle cx="8" cy="8" r="1"/></svg>
+    3D View
+  </a>
+  <span class="top-hint">Click a node to explore · drag to pan · scroll to zoom</span>
+</div>
+
+<canvas id="graph"></canvas>
+
+<div id="infoPanel">
+  <button class="info-close" id="infoPanelClose">✕</button>
+  <div class="info-num" id="infoNum"></div>
+  <div class="info-title" id="infoTitle"></div>
+  <div class="info-tags" id="infoTagsEl"></div>
+  <div class="info-connections" id="infoConn"></div>
+  <a class="info-open-btn" id="infoOpenBtn" href="#" target="_blank">Open Module →</a>
+</div>
+
+<div id="domainFilters">
+  <div class="filter-title">Filter by domain</div>
+  <div class="df-row" id="domainPills"></div>
+</div>
+
+<script>
+// ── NODE DATA ──
+const NODES = [
+  {id:"01",label:"Complex Explorer",file:"01_complex_explorer.html",color:"#00e5ff",group:"complex",tags:["Argand Plane","Euler's Formula","Conformal Maps"]},
+  {id:"02",label:"Penrose Tiling",file:"02_penrose_tiling.html",color:"#ffd700",group:"geometry",tags:["Aperiodic","Golden Ratio","5-fold Symmetry"]},
+  {id:"03",label:"Mandelbrot",file:"03_mandelbrot.html",color:"#00e5ff",group:"complex",tags:["Fractals","Complex Iteration","Julia Sets"]},
+  {id:"04",label:"Hyperbolic Geometry",file:"04_hyperbolic.html",color:"#00e5ff",group:"geometry",tags:["Poincaré Disk","Negative Curvature","Tessellations"]},
+  {id:"05",label:"Fourier Series",file:"05_fourier.html",color:"#ff8844",group:"analysis",tags:["Frequency Analysis","Epicycles","Gibbs Phenomenon"]},
+  {id:"06",label:"Complex Calculus",file:"06_complex_calculus.html",color:"#00e5ff",group:"complex",tags:["Contour Integration","Residues","Cauchy's Theorem"]},
+  {id:"07",label:"Spinors & Lie Groups",file:"07_spinors_lie.html",color:"#ffd700",group:"algebra",tags:["SU(2)","SO(3)","Spinors"]},
+  {id:"08",label:"Spacetime",file:"08_spacetime.html",color:"#00ff99",group:"physics",tags:["Special Relativity","Lorentz Boost","Light Cone"]},
+  {id:"09",label:"Quantum Mechanics",file:"09_quantum.html",color:"#ff44ff",group:"quantum",tags:["Wavefunctions","Uncertainty","Schrödinger"]},
+  {id:"10",label:"Lagrangian Mechanics",file:"10_lagrangian.html",color:"#00ff99",group:"physics",tags:["Action","Noether's Theorem","Euler-Lagrange"]},
+  {id:"11",label:"Dirac Equation",file:"11_dirac.html",color:"#ff44ff",group:"quantum",tags:["Relativistic QM","Antiparticles","Gamma Matrices"]},
+  {id:"12",label:"Gauge Theory",file:"12_gauge_theory.html",color:"#ffd700",group:"algebra",tags:["Gauge Invariance","Yang-Mills","U(1)"]},
+  {id:"13",label:"Cosmology",file:"13_cosmology.html",color:"#00ff99",group:"physics",tags:["Friedmann Equation","Inflation","CMB"]},
+  {id:"14",label:"Differential Geometry",file:"14_diff_geometry.html",color:"#ff8844",group:"geometry",tags:["Manifolds","Curvature","Geodesics"]},
+  {id:"15",label:"Quaternions",file:"15_quaternions.html",color:"#ffd700",group:"algebra",tags:["Hamilton","Rotations","Division Algebra"]},
+  {id:"16",label:"Differential Forms",file:"16_diff_forms.html",color:"#ff8844",group:"topology",tags:["Exterior Derivative","Stokes' Theorem","k-forms"]},
+  {id:"17",label:"Fiber Bundles",file:"17_fiber_bundles.html",color:"#ff8844",group:"topology",tags:["Connections","Holonomy","Principal Bundles"]},
+  {id:"18",label:"Infinity & Cantor",file:"18_infinity.html",color:"#ff8844",group:"analysis",tags:["Cardinality","Riemann Sphere","Uncountability"]},
+  {id:"19",label:"General Relativity",file:"19_general_relativity.html",color:"#00ff99",group:"physics",tags:["Einstein Equations","Geodesics","Spacetime Curvature"]},
+  {id:"20",label:"Thermodynamics",file:"20_thermodynamics.html",color:"#00ff99",group:"physics",tags:["Entropy","Boltzmann","Black Hole Thermo"]},
+  {id:"21",label:"Quantum Measurement",file:"21_quantum_measurement.html",color:"#ff44ff",group:"quantum",tags:["Decoherence","Wavefunction Collapse","OR"]},
+  {id:"22",label:"Path Integrals",file:"22_path_integrals.html",color:"#ff44ff",group:"quantum",tags:["Feynman","Action","Wick Rotation"]},
+  {id:"23",label:"Twistor Theory",file:"23_twistor_theory.html",color:"#00e5ff",group:"complex",tags:["Null Rays","Penrose","ℂP³"]},
+  {id:"24",label:"Loop Quantum Gravity",file:"24_loop_quantum_gravity.html",color:"#ff44ff",group:"quantum",tags:["Spin Networks","Discrete Space","Bounce"]},
+  {id:"25a",label:"String Theory",file:"25_string_theory.html",color:"#ff8844",group:"topology",tags:["Strings","Compactification","T-Duality"]},
+  {id:"25b",label:"Higgs Field",file:"25_higgs_field.html",color:"#ffd700",group:"algebra",tags:["Symmetry Breaking","Higgs Boson","LHC"]},
+  {id:"26",label:"Number Systems",file:"26_number_systems.html",color:"#ff8844",group:"analysis",tags:["p-adic","Surreal Numbers","Hensel's Lemma"]},
+  {id:"27",label:"Visual Calculus",file:"27_visual_calculus.html",color:"#ff8844",group:"analysis",tags:["Derivatives","Integrals","Taylor Series"]},
+  {id:"28",label:"CCC & OR",file:"28_ccc_or.html",color:"#ff44ff",group:"quantum",tags:["Penrose","Conformal Cycles","Objective Reduction"]},
+  {id:"29",label:"Symplectic Geometry",file:"29_symplectic.html",color:"#ff8844",group:"topology",tags:["Phase Space","Poisson Brackets","Darboux"]},
+  {id:"30",label:"Spinor Calculus",file:"30_spinor_calculus.html",color:"#ffd700",group:"algebra",tags:["2-Spinors","SL(2,ℂ)","Newman-Penrose"]},
+  {id:"31",label:"Instantons",file:"31_instantons.html",color:"#ffd700",group:"algebra",tags:["Self-Dual","Tunneling","Topology"]},
+  {id:"32",label:"Representation Theory",file:"32_representation_theory.html",color:"#ffd700",group:"algebra",tags:["Irreps","Characters","Schur's Lemma"]},
+  {id:"33",label:"De Rham Cohomology",file:"33_cohomology.html",color:"#ff8844",group:"topology",tags:["Betti Numbers","Euler Characteristic","Poincaré Duality"]},
+  {id:"34",label:"Riemann Zeta",file:"34_riemann_zeta.html",color:"#00e5ff",group:"complex",tags:["Riemann Hypothesis","Primes","Critical Line"]},
+  {id:"35",label:"Black Holes",file:"35_black_holes.html",color:"#00ff99",group:"physics",tags:["Event Horizon","Singularity","Hawking Radiation"]},
+  {id:"36",label:"Riemann Surfaces",file:"36_riemann_surfaces.html",color:"#00e5ff",group:"complex",tags:["Genus","Uniformization","Branch Cuts"]},
+  {id:"37",label:"Maxwell's Equations",file:"37_maxwell.html",color:"#00ff99",group:"physics",tags:["EM Field Tensor","Gauge Theory","Duality"]},
+  {id:"38",label:"Standard Model",file:"38_standard_model.html",color:"#ffd700",group:"algebra",tags:["SU(3)×SU(2)×U(1)","Quarks","QCD"]},
+  {id:"39",label:"QFT",file:"39_quantum_field_theory.html",color:"#ff44ff",group:"quantum",tags:["Feynman Diagrams","Renormalization","LSZ"]},
+  {id:"40",label:"Chaos",file:"40_chaos.html",color:"#ff8844",group:"analysis",tags:["Lyapunov Exponent","Strange Attractor","KAM"]},
+  {id:"41",label:"Homotopy Theory",file:"41_homotopy.html",color:"#ff8844",group:"topology",tags:["Fundamental Group","Hopf Fibration","Homotopy Equivalence"]},
+  {id:"42",label:"Clifford Algebras",file:"42_clifford_algebras.html",color:"#ffd700",group:"algebra",tags:["Clifford Algebra","Pseudoscalar","Rotors"]},
+  {id:"43",label:"Conformal Field Theory",file:"43_conformal_field_theory.html",color:"#00e5ff",group:"complex",tags:["Primary Operators","Central Charge","AdS/CFT"]},
+  {id:"44",label:"Twistors (Amplitudes)",file:"44_twistors.html",color:"#00e5ff",group:"complex",tags:["MHV Amplitudes","Amplituhedron","Ward Transform"]},
+  {id:"45",label:"Bell's Theorem",file:"45_bell_theorem.html",color:"#ff44ff",group:"quantum",tags:["Entanglement","CHSH","Local Realism"]},
+  {id:"46",label:"Gravitational Waves",file:"46_gravitational_waves.html",color:"#00ff99",group:"physics",tags:["LIGO","Chirp","Quadrupole Radiation"]},
+  {id:"47",label:"Quantum Optics",file:"47_quantum_optics.html",color:"#ff44ff",group:"quantum",tags:["Coherent States","HOM Effect","Squeezed Light"]},
+  {id:"48",label:"Topological Matter",file:"48_topological_matter.html",color:"#ff8844",group:"topology",tags:["Quantum Hall","Anyons","Topological Insulators"]},
+  {id:"49",label:"Quantum Networks",file:"49_quantum_networks.html",color:"#ff44ff",group:"quantum",tags:["QKD","Teleportation","Quantum Repeaters"]},
+  {id:"50",label:"Semiconductor Quantum",file:"50_semiconductor_quantum.html",color:"#ff44ff",group:"quantum",tags:["Quantum Dots","Josephson Effect","Landau Levels"]},
+  {id:"51",label:"Photonics & Fiber",file:"51_photonics_fiber.html",color:"#00ff99",group:"physics",tags:["Total Internal Reflection","Photonic Crystals","Solitons"]},
+  {id:"52",label:"Category Theory",file:"52_category_theory.html",color:"#ff8844",group:"topology",tags:["Functors","Natural Transformations","Adjunctions"]},
+  {id:"53",label:"Attosecond Physics",file:"53_attosecond.html",color:"#7ec8ff",group:"physics",tags:["HHG","Keldysh Parameter","Ultrafast"]},
+  {id:"54",label:"Trapped Ions",file:"54_trapped_ions.html",color:"#00ffcc",group:"quantum",tags:["Paul Trap","Jaynes-Cummings","Wigner Function"]},
+  {id:"55",label:"Neutrino Oscillations",file:"55_neutrino_oscillations.html",color:"#ffd700",group:"physics",tags:["PMNS Matrix","CP Violation","Mass Hierarchy"]},
+  {id:"56",label:"Muon g-2",file:"56_muon_g2.html",color:"#ff44aa",group:"physics",tags:["Anomalous Moment","Feynman Diagrams","BSM"]},
+  {id:"57",label:"Nuclear Fusion",file:"57_nuclear_fusion.html",color:"#ff8844",group:"physics",tags:["Lawson Criterion","Hohlraum","NIF"]},
+  {id:"58",label:"Dark Energy",file:"58_dark_energy.html",color:"#66aaff",group:"physics",tags:["ΛCDM","Hubble Tension","SN Ia"]},
+  {id:"59",label:"Spin Glasses",file:"59_spin_glasses.html",color:"#ff88cc",group:"quantum",tags:["Edwards-Anderson","Parisi RSB","Frustration"]},
+  {id:"60",label:"Penrose Singularity",file:"60_penrose_singularity.html",color:"#cc88ff",group:"topology",tags:["Raychaudhuri","Trapped Surface","GR"]},
+];
+
+// ── EDGES (conceptual connections) ──
+const EDGES = [
+  // Complex analysis cluster
+  ["01","03"],["01","04"],["01","06"],["01","36"],["01","18"],
+  ["03","04"],["03","36"],
+  ["06","36"],["06","18"],["06","34"],["06","43"],
+  ["36","34"],["36","44"],["36","43"],
+  ["23","44"],["23","30"],["23","01"],
+  ["34","18"],
+
+  // Geometry / Topology
+  ["02","04"],["02","40"],
+  ["14","16"],["14","17"],["14","19"],["14","29"],
+  ["16","17"],["16","33"],["16","37"],
+  ["17","12"],["17","31"],["17","33"],
+  ["33","41"],["33","16"],["33","48"],
+  ["41","48"],["41","17"],["41","25a"],
+  ["29","10"],["29","40"],["29","22"],
+
+  // Algebra / Groups
+  ["07","09"],["07","11"],["07","32"],["07","15"],["07","42"],["07","30"],
+  ["15","42"],["15","07"],
+  ["32","07"],["32","38"],["32","12"],["32","31"],
+  ["42","07"],["42","30"],["42","11"],
+  ["12","37"],["12","38"],["12","31"],["12","17"],
+  ["31","12"],["31","22"],["31","17"],
+  ["25b","38"],["25b","12"],
+  ["38","12"],["38","39"],["38","11"],
+
+  // Physics
+  ["08","09"],["08","11"],["08","19"],["08","37"],
+  ["10","09"],["10","22"],["10","19"],
+  ["13","19"],["13","28"],["13","35"],
+  ["19","14"],["19","35"],["19","46"],["19","20"],
+  ["35","20"],["35","19"],["35","28"],["35","46"],
+  ["20","09"],["20","28"],
+  ["37","08"],["37","12"],["37","46"],
+  ["46","19"],["46","35"],["46","37"],
+  ["05","27"],["05","47"],["05","09"],
+  ["27","05"],["27","10"],
+
+  // Quantum
+  ["09","11"],["09","22"],["09","21"],["09","45"],["09","47"],
+  ["11","39"],["11","07"],
+  ["21","28"],["21","45"],["21","09"],
+  ["22","09"],["22","39"],["22","10"],
+  ["24","19"],["24","28"],["24","41"],
+  ["39","11"],["39","22"],["39","38"],
+  ["45","09"],["45","21"],["45","47"],["45","49"],
+  ["47","09"],["47","45"],["47","49"],["47","51"],
+  ["49","45"],["49","47"],["49","50"],
+  ["50","47"],["50","48"],
+  ["25a","24"],["25a","43"],["25a","17"],["25a","39"],
+  ["28","21"],["28","35"],["28","13"],
+
+  // Cross-cluster
+  ["23","43"],["23","44"],["43","36"],["43","25a"],
+  ["48","33"],["48","41"],["48","16"],
+  ["52","17"],["52","32"],["52","41"],
+  ["30","23"],["30","07"],["30","11"],
+  ["26","34"],["26","18"],
+  ["18","36"],["18","26"],["18","06"],
+  ["05","51"],["51","47"],
+  ["40","29"],["40","02"],
+  ["44","23"],["44","43"],
+
+  // Experimental Frontiers (53–60)
+  ["53","09"],["53","47"],["53","05"],          // attosecond: QM, laser physics, Fourier
+  ["54","09"],["54","45"],["54","47"],["54","49"], // trapped ions: QM, Bell, optics, networks
+  ["55","09"],["55","38"],["55","11"],           // neutrino osc.: QM, standard model, Dirac
+  ["56","39"],["56","38"],["56","22"],           // muon g-2: QFT, standard model, path integrals
+  ["57","20"],["57","13"],["57","09"],           // nuclear fusion: thermodynamics, cosmology, QM
+  ["58","13"],["58","19"],["58","35"],["58","20"], // dark energy: cosmology, GR, black holes, thermo
+  ["59","09"],["59","20"],["59","22"],           // spin glasses: QM, thermodynamics, path integrals
+  ["60","19"],["60","35"],["60","14"],["60","24"], // Penrose sing.: GR, black holes, diff. geom., LQG
+];
+
+// Build adjacency for connection count
+const CONN = {};
+NODES.forEach(n=>CONN[n.id]=new Set());
+EDGES.forEach(([a,b])=>{CONN[a].add(b);CONN[b].add(a);});
+
+// ── CANVAS SETUP ──
+const canvas = document.getElementById('graph');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+function resize(){
+  W=canvas.width=canvas.offsetWidth;
+  H=canvas.height=canvas.offsetHeight;
+}
+resize();
+window.addEventListener('resize',()=>{resize(); layoutDefault();});
+
+// ── LAYOUT CONSTANTS ──
+const GROUP_ORDER = ['complex','geometry','algebra','physics','quantum','topology','analysis'];
+const CIRCLE_R = 0.72;
+const NODE_R_BASE = 8;
+
+// Sort nodes by group then id for clean arc-clustering on the ring
+const sortedNodes = [...NODES].sort((a,b)=>{
+  const ga=GROUP_ORDER.indexOf(a.group), gb=GROUP_ORDER.indexOf(b.group);
+  return ga!==gb ? ga-gb : a.id.localeCompare(b.id);
+});
+
+// Build node objects with animation state
+const nodes = sortedNodes.map((n,i)=>{
+  const angle = (i/sortedNodes.length)*Math.PI*2 - Math.PI/2;
+  const defX = Math.cos(angle)*CIRCLE_R;
+  const defY = Math.sin(angle)*CIRCLE_R;
+  return {
+    ...n,
+    r: NODE_R_BASE + Math.min(CONN[n.id].size, 10)*0.6,
+    x: defX, y: defY,
+    tx: defX, ty: defY,
+    defX, defY, defAngle: angle,
+    alpha: 1, talpha: 1,
+    scale: 1, tscale: 1,
+  };
+});
+const nodeMap = {};
+nodes.forEach(n => nodeMap[n.id] = n);
+
+// ── CAMERA ──
+let camX=0, camY=0, camZ=1;
+let camTX=0, camTY=0, camTZ=1;
+let dragging=false, dragLast={x:0,y:0};
+let selectedNode=null;
+
+function wx(x){ return W/2+(x-camX)*camZ*Math.min(W,H)*0.45; }
+function wy(y){ return H/2+(y-camY)*camZ*Math.min(W,H)*0.45; }
+function sx(px){ return (px-W/2)/(camZ*Math.min(W,H)*0.45)+camX; }
+function sy(py){ return (py-H/2)/(camZ*Math.min(W,H)*0.45)+camY; }
+
+// ── LAYOUTS ──
+function layoutDefault(){
+  const N = nodes.length;
+  nodes.forEach((nd,i)=>{
+    const angle = (i/N)*Math.PI*2 - Math.PI/2;
+    nd.defX = Math.cos(angle)*CIRCLE_R;
+    nd.defY = Math.sin(angle)*CIRCLE_R;
+    nd.defAngle = angle;
+    nd.tx = nd.defX; nd.ty = nd.defY;
+    nd.talpha = 1; nd.tscale = 1;
+  });
+}
+
+function layoutFocus(sel){
+  const neighborIds = CONN[sel.id];
+  const neighbors = nodes.filter(n => neighborIds.has(n.id));
+  const others    = nodes.filter(n => n.id!==sel.id && !neighborIds.has(n.id));
+
+  // Selected node → center, slightly enlarged
+  sel.tx = 0; sel.ty = 0; sel.talpha = 1; sel.tscale = 1.4;
+
+  // Neighbors → inner ring, radius scales with count
+  const innerR = Math.max(0.24, Math.min(0.36, neighbors.length * 0.03));
+  neighbors.sort((a,b) => a.defAngle - b.defAngle);
+  neighbors.forEach((nd,i)=>{
+    const angle = (i/neighbors.length)*Math.PI*2 - Math.PI/2;
+    nd.tx = Math.cos(angle)*innerR;
+    nd.ty = Math.sin(angle)*innerR;
+    nd.talpha = 1; nd.tscale = 1;
+  });
+
+  // Others → outer ring, dimmed, same angular order as default
+  const outerR = 0.92;
+  others.sort((a,b) => a.defAngle - b.defAngle);
+  others.forEach((nd,i)=>{
+    const angle = (i/others.length)*Math.PI*2 - Math.PI/2;
+    nd.tx = Math.cos(angle)*outerR;
+    nd.ty = Math.sin(angle)*outerR;
+    nd.talpha = 0.1; nd.tscale = 0.8;
+  });
+}
+
+// ── ANIMATION ──
+const LERP = 0.09;
+function animate(){
+  nodes.forEach(n=>{
+    n.x     += (n.tx     - n.x)     * LERP;
+    n.y     += (n.ty     - n.y)     * LERP;
+    n.alpha += (n.talpha - n.alpha) * LERP;
+    n.scale += (n.tscale - n.scale) * LERP;
+  });
+  camX += (camTX - camX) * 0.1;
+  camY += (camTY - camY) * 0.1;
+  camZ += (camTZ - camZ) * 0.1;
+}
+
+// ── DRAW ──
+let hoverNode = null;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const isFocused = !!selectedNode;
+  const selConn   = selectedNode ? CONN[selectedNode.id] : null;
+
+  // Build set of edges to highlight
+  const highlightEdges = new Set();
+  if(selectedNode){
+    EDGES.forEach(([a,b])=>{
+      if(a===selectedNode.id||b===selectedNode.id) highlightEdges.add(a+'>'+b);
+    });
+  }
+
+  // Edges
+  EDGES.forEach(([aid,bid])=>{
+    const a=nodeMap[aid], b=nodeMap[bid];
+    if(!a||!b) return;
+    const key = aid+'>'+bid;
+    const isHighlit = highlightEdges.has(key);
+    if(isFocused && !isHighlit) return;
+    const isHovEdge = !isFocused && hoverNode && (hoverNode.id===aid||hoverNode.id===bid);
+    ctx.beginPath();
+    ctx.moveTo(wx(a.x),wy(a.y));
+    ctx.lineTo(wx(b.x),wy(b.y));
+    if(isHighlit){
+      const x1=wx(a.x),y1=wy(a.y),x2=wx(b.x),y2=wy(b.y);
+      const g=ctx.createLinearGradient(x1,y1,x2,y2);
+      g.addColorStop(0, a.color+'bb');
+      g.addColorStop(1, b.color+'bb');
+      ctx.strokeStyle=g; ctx.lineWidth=1.6;
+    } else {
+      ctx.strokeStyle = isHovEdge ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.06)';
+      ctx.lineWidth   = isHovEdge ? 1 : 0.7;
+    }
+    ctx.stroke();
+  });
+
+  // ── PASS 1: Dots + numbers ──
+  // In default ring view with a hover, dim unrelated dots
+  nodes.forEach(n=>{
+    const x = wx(n.x), y = wy(n.y);
+    const r = n.r * n.scale * (camZ>1 ? Math.pow(camZ,0.45) : 1);
+    const isSel      = selectedNode && n.id===selectedNode.id;
+    const isNeighbor = selConn && selConn.has(n.id);
+    const isHov      = hoverNode && hoverNode.id===n.id;
+
+    // Hover-dim: in default view (no selection) dim nodes unrelated to hovered
+    let hoverDim = 1;
+    if(!isFocused && hoverNode){
+      if(isHov) hoverDim = 1;
+      else if(CONN[hoverNode.id].has(n.id)) hoverDim = 1;
+      else hoverDim = 0.15;
+    }
+    ctx.globalAlpha = n.alpha * hoverDim;
+
+    // Glow halo (focus mode, or hover in default)
+    if(isSel || isNeighbor || isHov){
+      ctx.save();
+      ctx.shadowColor = n.color;
+      ctx.shadowBlur  = isSel ? 30 : 14;
+      ctx.beginPath(); ctx.arc(x,y, r+(isSel?6:2), 0, Math.PI*2);
+      ctx.fillStyle = n.color+(isSel?'30':'18');
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Dot fill
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = n.color;
+    ctx.fill();
+
+    // Stroke: soft highlight ring on hover (default view), white ring on selected
+    if(isSel){
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.2;
+    } else if(isHov && !isFocused){
+      // Soft bright border on hover in ring view
+      ctx.strokeStyle = n.color; ctx.lineWidth = 2.5;
+    } else {
+      ctx.strokeStyle = n.color+'66'; ctx.lineWidth = 1;
+    }
+    ctx.stroke();
+
+    // Progress indicator
+    if(n._completed){
+      ctx.save();
+      ctx.globalAlpha = n.alpha * 0.9;
+      ctx.beginPath(); ctx.arc(x,y, r+4, 0, Math.PI*2);
+      ctx.strokeStyle = '#00ff99'; ctx.lineWidth = 2;
+      ctx.stroke();
+      // Checkmark
+      ctx.beginPath();
+      ctx.moveTo(x-r*0.3, y); ctx.lineTo(x-r*0.05, y+r*0.3); ctx.lineTo(x+r*0.35, y-r*0.25);
+      ctx.strokeStyle = '#00ff99'; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.stroke();
+      ctx.restore();
+    } else if(n._visited){
+      ctx.save();
+      ctx.globalAlpha = n.alpha * 0.6;
+      ctx.beginPath(); ctx.arc(x,y, r+4, -Math.PI/2, Math.PI);
+      ctx.strokeStyle = '#55558a'; ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Extra outer ring for hover highlight in default view
+    if(isHov && !isFocused){
+      ctx.save();
+      ctx.globalAlpha = n.alpha * 0.55;
+      ctx.beginPath(); ctx.arc(x,y, r+5, 0, Math.PI*2);
+      ctx.strokeStyle = n.color;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([3,3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // Number inside dot
+    if(r > 7){
+      ctx.save();
+      ctx.globalAlpha = n.alpha * hoverDim * 0.88;
+      const fs2 = Math.max(7, Math.min(10, r*0.85));
+      ctx.font         = '700 '+fs2+'px Segoe UI,sans-serif';
+      ctx.fillStyle    = 'rgba(5,5,15,0.9)';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(n.id, x, y);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  });
+
+  // ── PASS 2: Labels — drawn after ALL dots so they're always on top ──
+  nodes.forEach(n=>{
+    const isSel      = selectedNode && n.id===selectedNode.id;
+    const isNeighbor = selConn && selConn.has(n.id);
+    const isHov      = hoverNode && hoverNode.id===n.id;
+
+    const showLabel = isSel || isNeighbor || isHov;
+    if(!showLabel) return;
+
+    const x = wx(n.x), y = wy(n.y);
+    const r = n.r * n.scale * (camZ>1 ? Math.pow(camZ,0.45) : 1);
+
+    let lx, ly, tAlign, tBase;
+
+    if(isSel){
+      // Selected node is at screen center — place label directly below the dot
+      // using a fixed screen-space gap so it never lands on a neighbor circle
+      lx     = x;
+      ly     = y + r + 14;
+      tAlign = 'center';
+      tBase  = 'top';
+    } else {
+      // Neighbors / hovered: radially outward in world space with generous offset
+      const dist     = Math.sqrt(n.x*n.x + n.y*n.y);
+      const dirAngle = dist > 0.01 ? Math.atan2(n.y, n.x) : n.defAngle;
+      const cosA = Math.cos(dirAngle), sinA = Math.sin(dirAngle);
+      const labelWorldR = dist + 0.15;
+      lx = wx(cosA * labelWorldR);
+      ly = wy(sinA * labelWorldR);
+
+      // Text grows away from the dot — never back toward center
+      if(Math.abs(cosA) > 0.42){
+        tAlign = cosA > 0 ? 'left' : 'right';
+        tBase  = 'middle';
+      } else {
+        tAlign = 'center';
+        tBase  = sinA > 0 ? 'top' : 'bottom';
+      }
+    }
+
+    const fsize = isSel ? 13 : 11;
+    ctx.save();
+    ctx.globalAlpha = n.alpha * (isSel ? 1 : isNeighbor ? 0.95 : 0.9);
+    ctx.shadowColor = 'rgba(5,5,15,1)';
+    ctx.shadowBlur  = 6;
+    ctx.font         = (isSel?'700 ':'')+fsize+'px Segoe UI,sans-serif';
+    ctx.fillStyle    = isSel ? n.color : isNeighbor ? '#d8d8ff' : '#e0e0ff';
+    ctx.textAlign    = tAlign;
+    ctx.textBaseline = tBase;
+    ctx.fillText(n.label, lx, ly);
+    ctx.restore();
+  });
+
+  // ── PASS 3: Group arc labels (default overview only) ──
+  if(!isFocused && camZ < 1.8){
+    const groupAngles = {};
+    nodes.forEach(n=>{
+      if(!groupAngles[n.group]) groupAngles[n.group]={sum:0,cnt:0};
+      groupAngles[n.group].sum += n.defAngle;
+      groupAngles[n.group].cnt++;
+    });
+    ctx.save();
+    ctx.globalAlpha = 0.38;
+    ctx.font = '600 9px Segoe UI,sans-serif';
+    ctx.fillStyle = '#9090b0';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const arcR = CIRCLE_R + 0.17;
+    const GLABELS = {complex:'Complex',geometry:'Geometry',algebra:'Algebra',
+      physics:'Physics',quantum:'Quantum',topology:'Topology',analysis:'Analysis'};
+    Object.entries(groupAngles).forEach(([g,v])=>{
+      const mid = v.sum/v.cnt;
+      ctx.fillText(GLABELS[g]||g, wx(Math.cos(mid)*arcR), wy(Math.sin(mid)*arcR));
+    });
+    ctx.restore();
+  }
+}
+
+// ── LOOP ──
+function loop(){
+  requestAnimationFrame(loop);
+  animate();
+  draw();
+}
+loop();
+
+// ── HIT TEST ──
+function nodeAt(px,py){
+  const wx_ = sx(px), wy_ = sy(py);
+  for(let i=nodes.length-1;i>=0;i--){
+    const n = nodes[i];
+    const dx = n.x-wx_, dy = n.y-wy_;
+    const r  = (n.r*n.scale) / (Math.min(W,H)*0.45*camZ);
+    if(dx*dx+dy*dy < r*r*2.5) return n;
+  }
+  return null;
+}
+
+// ── INTERACTION ──
+canvas.addEventListener('mousemove',e=>{
+  if(dragging){
+    camTX -= (e.offsetX-dragLast.x)/(camZ*Math.min(W,H)*0.45);
+    camTY -= (e.offsetY-dragLast.y)/(camZ*Math.min(W,H)*0.45);
+    camX=camTX; camY=camTY;
+    dragLast = {x:e.offsetX, y:e.offsetY};
+  }
+  hoverNode = nodeAt(e.offsetX, e.offsetY);
+  canvas.style.cursor = hoverNode ? 'pointer' : dragging ? 'grabbing' : 'grab';
+});
+
+canvas.addEventListener('mousedown',e=>{ dragging=true; dragLast={x:e.offsetX,y:e.offsetY}; });
+
+canvas.addEventListener('mouseup',e=>{
+  const moved = Math.abs(e.offsetX-dragLast.x)>4 || Math.abs(e.offsetY-dragLast.y)>4;
+  dragging = false;
+  if(moved) return;
+  const n = nodeAt(e.offsetX, e.offsetY);
+  if(n){
+    (selectedNode && selectedNode.id===n.id) ? deselectNode() : selectNode(n);
+  } else {
+    deselectNode();
+  }
+});
+
+canvas.addEventListener('mouseleave',()=>{ dragging=false; hoverNode=null; });
+
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const factor = e.deltaY>0 ? 0.88 : 1.12;
+  const wx_ = sx(e.offsetX), wy_ = sy(e.offsetY);
+  camTZ = Math.max(0.3, Math.min(6, camTZ*factor));
+  camTX = wx_ - (e.offsetX-W/2)/(camTZ*Math.min(W,H)*0.45);
+  camTY = wy_ - (e.offsetY-H/2)/(camTZ*Math.min(W,H)*0.45);
+},{passive:false});
+
+let pinchDist=0;
+canvas.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){ dragging=true; dragLast={x:e.touches[0].clientX,y:e.touches[0].clientY}; }
+  if(e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    pinchDist=Math.sqrt(dx*dx+dy*dy);
+  }
+},{passive:true});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(e.touches.length===1&&dragging){
+    camTX -= (e.touches[0].clientX-dragLast.x)/(camZ*Math.min(W,H)*0.45);
+    camTY -= (e.touches[0].clientY-dragLast.y)/(camZ*Math.min(W,H)*0.45);
+    camX=camTX; camY=camTY;
+    dragLast = {x:e.touches[0].clientX, y:e.touches[0].clientY};
+  }
+  if(e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    const d=Math.sqrt(dx*dx+dy*dy);
+    camTZ=Math.max(0.3,Math.min(6,camTZ*(d/pinchDist)));
+    camZ=camTZ; pinchDist=d;
+  }
+},{passive:false});
+canvas.addEventListener('touchend',e=>{
+  if(e.changedTouches.length===1&&!dragging){
+    const rect=canvas.getBoundingClientRect();
+    const t=e.changedTouches[0];
+    const n=nodeAt(t.clientX-rect.left, t.clientY-rect.top);
+    if(n) (n===selectedNode)?deselectNode():selectNode(n);
+    else deselectNode();
+  }
+  dragging=false;
+},{passive:true});
+
+// ── SELECT / DESELECT ──
+function selectNode(n){
+  selectedNode = n;
+  layoutFocus(n);
+  document.getElementById('infoNum').textContent = 'Module '+n.id;
+  document.getElementById('infoTitle').textContent = n.label;
+  document.getElementById('infoTagsEl').innerHTML =
+    n.tags.map(t=>'<span class="info-tag">'+t+'</span>').join('');
+  const connIds = [...CONN[n.id]];
+  const connNames = connIds.map(id=>nodeMap[id]?.label||id).slice(0,5);
+  document.getElementById('infoConn').innerHTML =
+    'Connected to <span>'+connIds.length+' module'+(connIds.length!==1?'s':'')+'</span>: '+
+    connNames.join(', ')+(connIds.length>5?'…':'');
+  document.getElementById('infoOpenBtn').href = '/'+n.file;
+  document.getElementById('infoPanel').classList.add('show');
+}
+
+function deselectNode(){
+  selectedNode = null;
+  layoutDefault();
+  document.getElementById('infoPanel').classList.remove('show');
+}
+
+document.getElementById('infoPanelClose').addEventListener('click', deselectNode);
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+let searchQuery = '';
+const searchInput = document.getElementById('graphSearch');
+searchInput.addEventListener('input', function () {
+  searchQuery = this.value.trim().toLowerCase();
+  if (selectedNode) deselectNode();
+  if (searchQuery) activeDomain = null;
+  updateDomainPills();
+});
+
+function nodeMatchesSearch(n) {
+  if (!searchQuery) return true;
+  if (n.label.toLowerCase().includes(searchQuery)) return true;
+  if (n.group.toLowerCase().includes(searchQuery)) return true;
+  return n.tags.some(function(t) { return t.toLowerCase().includes(searchQuery); });
+}
+
+// ── DOMAIN FILTERS ────────────────────────────────────────────────────────────
+var DOMAIN_META = {
+  complex:  { label:'Complex',  color:'#00e5ff' },
+  geometry: { label:'Geometry', color:'#00e5ff' },
+  algebra:  { label:'Algebra',  color:'#ffd700' },
+  physics:  { label:'Physics',  color:'#00ff99' },
+  quantum:  { label:'Quantum',  color:'#ff44ff' },
+  topology: { label:'Topology', color:'#ff8844' },
+  analysis: { label:'Analysis', color:'#ff8844' },
+};
+var activeDomain = null;
+
+function buildDomainPills() {
+  var counts = {};
+  NODES.forEach(function(n) { counts[n.group] = (counts[n.group] || 0) + 1; });
+  var pillsEl = document.getElementById('domainPills');
+  while (pillsEl.firstChild) pillsEl.removeChild(pillsEl.firstChild);
+  Object.keys(DOMAIN_META).forEach(function(g) {
+    var m = DOMAIN_META[g];
+    if (!counts[g]) return;
+    var pill = document.createElement('button');
+    pill.className = 'df-pill';
+    pill.dataset.group = g;
+    pill.style.setProperty('--dc', m.color);
+
+    var dot = document.createElement('span');
+    dot.className = 'df-dot';
+    var lbl = document.createTextNode(' ' + m.label + ' ');
+    var cnt = document.createElement('span');
+    cnt.className = 'df-count';
+    cnt.textContent = String(counts[g]);
+
+    pill.appendChild(dot);
+    pill.appendChild(lbl);
+    pill.appendChild(cnt);
+    pill.addEventListener('click', function() {
+      activeDomain = (activeDomain === g) ? null : g;
+      searchQuery = ''; searchInput.value = '';
+      if (selectedNode) deselectNode();
+      updateDomainPills();
+    });
+    pillsEl.appendChild(pill);
+  });
+}
+buildDomainPills();
+
+function updateDomainPills() {
+  document.querySelectorAll('.df-pill').forEach(function(p) {
+    p.classList.toggle('active', p.dataset.group === activeDomain);
+  });
+}
+
+function nodeIsActive(n) {
+  if (activeDomain && n.group !== activeDomain) return false;
+  return nodeMatchesSearch(n);
+}
+
+// ── PATCH animate() FOR SEARCH / DOMAIN FILTER ───────────────────────────────
+var _origAnimate = animate;
+animate = function() {
+  _origAnimate();
+  var anyFilter = searchQuery || activeDomain;
+  if (anyFilter && !selectedNode) {
+    nodes.forEach(function(n) { n.talpha = nodeIsActive(n) ? 1 : 0.05; });
+  }
+};
+
+
+</script>
+
+<!-- Progress overlay for graph nodes -->
+<script src="firebase-progress.js"></script>
+<script>
+(function() {
+  if (!window.localProgress) return;
+  window.localProgress.init();
+  window.localProgress.onReady(function() {
+    var progress = window.localProgress.getProgress();
+    if (typeof nodes === 'undefined') return;
+    nodes.forEach(function(n) {
+      var moduleId = n.file.replace('.html', '');
+      var p = progress[moduleId];
+      n._visited = p && p.visited;
+      n._completed = p && p.completed;
+    });
+  });
+})();
+</script>
+</body>
+</html>

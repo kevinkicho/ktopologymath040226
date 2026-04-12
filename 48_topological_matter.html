@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>48 · Topological Quantum Matter</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg1:#0d0d1a; --bg2:#12122a; --bg3:#1a1a35;
+  --border:#2a2a50; --text:#e8e8f8; --muted:#8888aa;
+  --accent:#44ff88;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg1);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.85rem;opacity:.65}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.78rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.3rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.76rem;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 22px;flex-shrink:0}
+.tab{padding:10px 18px;cursor:pointer;font-size:.83rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.pane{display:none;flex:1;overflow:hidden}
+.pane.active{display:flex}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.76rem;color:var(--muted)}
+.controls input[type=range]{width:100px;accent-color:var(--accent)}
+.controls span{font-size:.76rem;color:var(--accent);min-width:34px}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.78rem;cursor:pointer}
+select:focus{outline:none;border-color:var(--accent)}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 13px;border-radius:4px;cursor:pointer;font-size:.78rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:#001a0d}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 13px;font-size:.76rem;color:var(--muted);line-height:1.7;flex-shrink:0}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:320px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:14px 13px;gap:10px;flex-shrink:0}
+.side-panel h3{font-size:.88rem;color:var(--accent);margin-bottom:3px}
+.side-panel p,.side-panel li{font-size:.74rem;color:var(--muted);line-height:1.68}
+.side-panel ul{padding-left:14px}
+.side-panel .eq{font-size:.78rem;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--accent);margin:3px 0}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:11px;gap:7px;overflow:hidden;min-width:0}
+/* Pane layouts */
+#pane0.active{flex-direction:row}
+#pane1.active{flex-direction:row}
+#pane2.active{flex-direction:row}
+#pane3.active{flex-direction:row}
+#pane4.active{flex-direction:row}
+.p-left{display:flex;flex-direction:column;flex:1;padding:11px;gap:7px;overflow:hidden;min-width:0}
+.p-right{display:flex;flex-direction:column;flex:1;padding:11px;gap:7px;overflow:hidden;min-width:0;border-left:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 15</span>
+  <div class="title-block">
+    <h1>Topological Quantum Matter</h1>
+    <p>Quantum Hall effect, Berry phase, topological insulators, and giant magnetoresistance</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Quantum Hall Effect</div>
+  <div class="tab" onclick="switchTab(1)">Berry Phase &amp; BZ</div>
+  <div class="tab" onclick="switchTab(2)">Chern / TKNN</div>
+  <div class="tab" onclick="switchTab(3)">Edge States &amp; Z₂</div>
+  <div class="tab" onclick="switchTab(4)">Giant Magnetoresistance</div>
+</div>
+
+<div id="main">
+
+<!-- ===== TAB 0: QUANTUM HALL EFFECT ===== -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <canvas id="c0" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+      <label>B field:</label>
+      <input type="range" id="bSlider" min="1" max="100" value="40" oninput="onBChange()">
+      <span id="bVal">4.0 T</span>
+      <button id="btnEdge" class="active-btn" onclick="toggleEdge()">Edge States</button>
+      <button id="btnLandau" class="active-btn" onclick="toggleLandau()">Landau Levels</button>
+      <button id="btnCyclotron" onclick="toggleCyclotron()">Cyclotron Orbit</button>
+      <button id="btnFQHE" onclick="toggleFQHE()">Fractional QHE</button>
+      <button id="btnAnimQHE" onclick="toggleAnimQHE()" style="background:#1a1a38;color:var(--accent);border:1px solid rgba(0,245,255,0.35);border-radius:4px;padding:4px 12px">▶</button>
+      <label>Speed:</label><input type="range" id="speed0" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal0">0.1x</span>
+    </div>
+    <div class="info-box">
+      Filling factor: $\nu =$ <span class="val" id="nuVal">—</span>
+      &nbsp;|&nbsp; $\sigma_{xy} = \nu\,\dfrac{e^2}{h}$
+      &nbsp;|&nbsp; Chern number $n =$ <span class="val" id="chernVal">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about0">
+    <h3>Quantum Hall Effect</h3>
+    <p>In a 2D electron gas at low temperature and strong magnetic field, the Hall conductance is precisely quantized:</p>
+    <div class="eq">$$\sigma_{xy} = n\frac{e^2}{h}$$</div>
+    <p>The integer $n$ is a topological invariant — the <em>Chern number</em> — immune to disorder.</p>
+    <h3 style="margin-top:6px">Landau Levels</h3>
+    <div class="eq">$$E_n = \hbar\omega_c\!\left(n+\tfrac{1}{2}\right),\quad \omega_c = \frac{eB}{m}$$</div>
+    <p>Electrons in a magnetic field form discrete energy levels. When the Fermi energy lies between levels, $\sigma_{xy}$ is on a plateau.</p>
+    <h3 style="margin-top:6px">Filling Factor</h3>
+    <div class="eq">$$\nu = \frac{nh}{eB}$$</div>
+    <h3 style="margin-top:6px">Chern Number (TKNN)</h3>
+    <div class="eq">$$C = \frac{1}{2\pi}\int_{\mathrm{BZ}} \Omega_n\,d^2k$$</div>
+    <p>The Berry curvature $\Omega_n$ integrated over the Brillouin zone gives an integer. This is the topological origin of quantization.</p>
+    <h3 style="margin-top:6px">Fractional QHE</h3>
+    <p>At filling $\nu = 1/3, 2/5, \ldots$ strong electron–electron interactions produce a new topological state with fractionally charged quasi-particles (anyons).</p>
+    <p style="margin-top:6px;color:var(--accent);font-size:.72rem">2016 Nobel Prize: Thouless, Haldane, Kosterlitz</p>
+  </div>
+</div>
+
+<!-- ===== TAB 1: BERRY PHASE ===== -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="p-left">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">k-space BZ loop — drag to set path, watch Berry phase $\gamma$ accumulate on Bloch sphere</div>
+    <canvas id="c1" style="flex:1;min-height:0;cursor:crosshair"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Loop radius:</label>
+      <input type="range" id="loopR" min="10" max="90" value="50" oninput="draw1();draw1b()">
+      <span id="loopRVal">50%</span>
+      <button id="btnAnim1" onclick="toggleAnim1()">▶</button>
+      <button id="btnAnimBerry" onclick="toggleAnim1()" style="background:#1a1a38;color:var(--accent);border:1px solid rgba(0,245,255,0.35);border-radius:4px;padding:4px 12px">▶</button>
+      <label>Speed:</label><input type="range" id="speed1" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal1">0.1x</span>
+      <button id="btnBCurv" class="active-btn" onclick="toggleBCurv()">Berry Curvature</button>
+      <button id="btnBConn" onclick="toggleBConn()">Berry Connection</button>
+      <label>Shape:</label>
+      <select id="loopShape" onchange="draw1();draw1b()">
+        <option value="circle">Circle — encloses monopole (γ=π)</option>
+        <option value="figure8">Figure-8 — cancels (γ≈0)</option>
+        <option value="square">Square BZ boundary</option>
+      </select>
+    </div>
+    <div class="info-box">
+      Berry phase $\gamma = i\oint\langle u_k|\nabla_k|u_k\rangle\cdot dk =$ <span class="val" id="berryPhaseVal">—</span> rad
+      &nbsp;|&nbsp; $\gamma/\pi =$ <span class="val" id="berryPiVal">—</span>
+      &nbsp;|&nbsp; Solid angle $= $ <span class="val" id="solidAngleVal">—</span> sr
+    </div>
+  </div>
+  <div class="p-right">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Bloch sphere — holonomy: spin vector traces geodesic, returns rotated by γ</div>
+    <canvas id="c1b" style="flex:1;min-height:0"></canvas>
+    <div class="side-panel" data-role="sidebar" style="width:100%;border-left:none;border-top:1px solid var(--border);padding:10px 13px;flex-shrink:0;max-height:260px;overflow-y:auto" id="about1">
+      <h3>Berry Phase &amp; Holonomy</h3>
+      <div class="eq">$$\gamma_n = i\oint_C \langle u_k|\nabla_{\!k}|u_k\rangle\cdot dk$$</div>
+      <p>A geometric phase accumulated when a Bloch state $|u_k\rangle$ is adiabatically transported around a closed loop $C$ in the Brillouin zone. It is gauge-invariant for closed loops.</p>
+      <div class="eq">$$\boldsymbol{\mathcal{A}}_k = i\langle u_k|\nabla_k u_k\rangle\quad\text{(Berry connection)}$$</div>
+      <div class="eq">$$\boldsymbol{\Omega} = \nabla_k\times\boldsymbol{\mathcal{A}}\quad\text{(Berry curvature)}$$</div>
+      <p>For a spin-1/2 in a magnetic field, a Dirac monopole at the origin of parameter space sources the curvature. The Berry phase equals half the solid angle subtended on the Bloch sphere:</p>
+      <div class="eq">$$\gamma = \frac{\Omega_{\mathrm{solid}}}{2}$$</div>
+      <p>A non-contractible loop enclosing the monopole gives $\gamma = \pi$ — a sign flip of the wavefunction, the topological signature of Chern number $= 1$.</p>
+      <h3 style="margin-top:6px">Holonomy</h3>
+      <p>The spin vector on the Bloch sphere is parallel-transported along the loop. After completing the circuit it returns <em>rotated</em> by $\gamma$ — holonomy in the fiber bundle sense (Penrose §15.4).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 2: CHERN NUMBER / TKNN ===== -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="p-left">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Berry curvature $\Omega_{xy}(\mathbf{k})$ — 2D Brillouin zone heat map</div>
+    <canvas id="c2b" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Band topology:</label>
+      <select id="chernBandSel" onchange="drawChern()">
+        <option value="trivial">Trivial band (C = 0)</option>
+        <option value="chern1">Topological band (C = 1)</option>
+        <option value="chern2">C = 2 (double monopole)</option>
+      </select>
+      <button id="btnChernAnim" onclick="toggleChernAnim()" style="background:#1a1a38;color:var(--accent);border:1px solid rgba(0,245,255,0.35);border-radius:4px;padding:4px 12px">▶</button>
+      <label>Speed:</label><input type="range" id="speed2" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal2">0.1x</span>
+      <button id="btnShowCurvVec" class="active-btn" onclick="toggleCurvVec()">Berry vectors</button>
+    </div>
+    <div class="info-box">
+      Chern number $C = \frac{1}{2\pi}\iint_{\mathrm{BZ}} \Omega_{xy}\,dk_x\,dk_y =$ <span class="val" id="chernNumVal">0</span>
+      &nbsp;|&nbsp; $\sigma_{xy} = C\,e^2/h$
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about2b">
+    <h3>TKNN Invariant</h3>
+    <p>Thouless, Kohmoto, Nightingale &amp; den Nijs (1982) showed the Hall conductance equals a topological integer:</p>
+    <div class="eq">$$C = \frac{1}{2\pi}\int_{\mathrm{BZ}} \Omega_{xy}(\mathbf{k})\,d^2k \in \mathbb{Z}$$</div>
+    <h3 style="margin-top:6px">Berry Curvature</h3>
+    <div class="eq">$$\Omega_{xy} = -2\,\mathrm{Im}\!\left\langle\frac{\partial u}{\partial k_x}\Bigg|\frac{\partial u}{\partial k_y}\right\rangle$$</div>
+    <p>Acts as a "magnetic field" in k-space. Sources/sinks are Weyl-point monopoles. Color map: red = positive, blue = negative curvature.</p>
+    <h3 style="margin-top:6px">Haldane Model</h3>
+    <p>A honeycomb lattice with complex next-nearest-neighbor hopping $t_2 e^{i\phi}$ can have $C = \pm 1$ without net flux — the first realization of a Chern insulator.</p>
+    <div class="eq">$$H(\mathbf{k}) = \mathbf{d}(\mathbf{k})\cdot\boldsymbol{\sigma}$$</div>
+    <p>Phase transition at $|M| = 3\sqrt{3}\,t_2|\sin\phi|$: gap closes at a Dirac point where $\Omega$ diverges.</p>
+    <h3 style="margin-top:6px">Bulk–Boundary</h3>
+    <p>$C$ counts the net number of chiral edge modes. Each carries conductance $e^2/h$, giving the quantized plateau.</p>
+    <p style="margin-top:6px;color:var(--accent);font-size:.72rem">2016 Nobel Prize: Thouless, Haldane, Kosterlitz</p>
+  </div>
+</div>
+
+<!-- ===== TAB 3: EDGE STATES & Z₂ TI ===== -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="p-left" style="flex:1.4">
+    <!-- Top: old TI sample with edge currents -->
+    <div style="font-size:.78rem;color:var(--accent);flex-shrink:0">2D TI ribbon — real-space edge currents &amp; bulk insulator</div>
+    <canvas id="c2" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar" style="flex-shrink:0">
+      <button id="btnTopo" class="active-btn" onclick="toggleTopo()">Topological</button>
+      <button id="btnImpurity" onclick="addImpurity()">Add Impurity</button>
+      <button id="btnBands" class="active-btn" onclick="toggleBands()">Band Structure</button>
+      <button id="btnEdgeCurr" class="active-btn" onclick="toggleEdgeCurr()">Edge Current</button>
+      <button id="btnAnimTopo" onclick="toggleAnimTopo()" style="background:#1a1a38;color:var(--accent);border:1px solid rgba(0,245,255,0.35);border-radius:4px;padding:4px 12px">▶</button>
+      <label>Speed:</label><input type="range" id="speed3a" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal3a">0.1x</span>
+    </div>
+    <div class="info-box" id="topoInfo" style="flex-shrink:0">
+      State: <span class="val" id="topoStateVal">Topological</span>
+      &nbsp;|&nbsp; $\mathbb{Z}_2$ invariant $\nu =$ <span class="val" id="z2Val">1</span>
+      &nbsp;|&nbsp; Edge modes: <span class="val" id="edgeModeVal">2 (helical)</span>
+    </div>
+  </div>
+  <div class="p-right" style="flex:1.4">
+    <div style="font-size:.78rem;color:var(--accent);flex-shrink:0">Ribbon band structure — disorder protection &amp; Kramers pairs at TRIM</div>
+    <canvas id="c3b" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar" style="flex-shrink:0">
+      <button id="btnRibbonTopo" class="active-btn" onclick="toggleRibbonTopo()">Topological (ν=1)</button>
+      <button id="btnRibbonTrivial" onclick="toggleRibbonTrivial()">Trivial (ν=0)</button>
+      <label>Disorder:</label>
+      <input type="range" id="disorderSlider" min="0" max="100" value="0" oninput="onDisorderChange()">
+      <span id="disorderVal">0%</span>
+      <button id="btnZ2Anim" onclick="toggleZ2Anim()" style="background:#1a1a38;color:var(--accent);border:1px solid rgba(0,245,255,0.35);border-radius:4px;padding:4px 12px">▶</button>
+      <label>Speed:</label><input type="range" id="speed3b" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal3b">0.1x</span>
+    </div>
+    <div class="info-box" id="z2Info" style="flex-shrink:0">
+      $\mathbb{Z}_2$ invariant $\nu =$ <span class="val" id="z2RibbonVal">1</span>
+      &nbsp;|&nbsp; Edge modes: <span class="val" id="z2EdgeVal">Helical (protected)</span>
+      &nbsp;|&nbsp; Disorder: <span class="val" id="z2DisorderVal">0%</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about3b">
+    <h3>Z₂ Topological Insulators</h3>
+    <p>Time-reversal symmetry $\mathcal{T}^2 = -1$ (spin-1/2) forces Kramers degeneracy at time-reversal invariant momenta (TRIM): $\Gamma, M, X$.</p>
+    <div class="eq">$$\nu = \prod_{i\in\mathrm{TRIM}} \frac{\sqrt{\det[\mathbf{w}(\Lambda_i)]}}{\mathrm{Pf}[\mathbf{w}(\Lambda_i)]} = 0,1$$</div>
+    <h3 style="margin-top:6px">Kane-Mele Model</h3>
+    <p>Graphene with spin-orbit coupling: intrinsic SOC opens a gap without breaking TR. The $\mathbb{Z}_2$ invariant $\nu = 1$ when SOC exceeds Rashba coupling.</p>
+    <div class="eq">$$H = t\sum_{\langle ij\rangle}c^\dagger_i c_j + i\lambda_{\rm SO}\sum_{\langle\langle ij\rangle\rangle}\nu_{ij}c^\dagger_i s_z c_j$$</div>
+    <h3 style="margin-top:6px">Topological Protection</h3>
+    <p>Edge modes are helical: spin-up moves right, spin-down moves left. Backscattering requires a spin flip — forbidden by TR symmetry. Disorder cannot open a gap in the edge spectrum.</p>
+    <h3 style="margin-top:6px">Kramers Pairs</h3>
+    <p>At TRIM points, edge states come in degenerate pairs. They cannot hybridize without breaking TR, guaranteeing gapless crossings.</p>
+    <h3 style="margin-top:6px">Real 2D TIs</h3>
+    <ul>
+      <li>HgTe/CdTe quantum wells (König et al. 2007)</li>
+      <li>InAs/GaSb bilayers</li>
+      <li>Monolayer WTe₂</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== TAB 4: GIANT MAGNETORESISTANCE ===== -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="p-left">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">FM / NM / FM spin-valve — spin-dependent electron transport</div>
+    <canvas id="c3" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnParallel" class="active-btn" onclick="setGMRMode('parallel')">Parallel</button>
+      <button id="btnAntiparallel" onclick="setGMRMode('antiparallel')">Antiparallel</button>
+      <button id="btnRotating" onclick="setGMRMode('rotating')">Rotating</button>
+      <label>Field:</label>
+      <input type="range" id="fieldSlider" min="0" max="100" value="100" oninput="onFieldChange()">
+      <span id="fieldVal">100%</span>
+      <button id="btnHardDrive" onclick="toggleHardDrive()">Hard Drive</button>
+      <label>Speed:</label><input type="range" id="speed4" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal4">0.1x</span>
+    </div>
+    <div class="info-box">
+      Mode: <span class="val" id="gmrModeVal">Parallel</span>
+      &nbsp;|&nbsp; Resistance: <span class="val" id="resistanceVal">R_P (low)</span>
+      &nbsp;|&nbsp; GMR ratio: <span class="val" id="gmrRatio">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about3">
+    <h3>Giant Magnetoresistance</h3>
+    <p>In alternating ferromagnet / normal-metal / ferromagnet stacks, resistance depends strongly on the relative magnetic alignment.</p>
+    <div class="eq">$$\frac{\Delta R}{R} = \frac{2P^2}{1-P^2}$$</div>
+    <p>where $P$ = spin polarization of the ferromagnet. Discovered by Fert (Fe/Cr, 1988) and independently by Grünberg.</p>
+    <h3 style="margin-top:6px">Two-Current Model</h3>
+    <p>Spin-up and spin-down electrons are independent channels. In the parallel configuration, one channel passes easily (low $\rho$) and one is scattered (high $\rho$) — overall low resistance. In antiparallel, <em>both</em> channels are scattered — high resistance.</p>
+    <h3 style="margin-top:6px">Applications</h3>
+    <ul>
+      <li>Hard drive read heads (enabled terabyte drives)</li>
+      <li>Magnetic field sensors</li>
+      <li>MRAM (magnetic RAM)</li>
+      <li>Biosensors</li>
+    </ul>
+    <h3 style="margin-top:6px">Hard Drive Bit Reading</h3>
+    <p>The read head scans magnetic domains. Domain walls cause transitions in resistance $R_P \leftrightarrow R_{AP}$, encoding bits 0 and 1.</p>
+    <p style="margin-top:6px;color:var(--accent);font-size:.72rem">2007 Nobel Prize: Albert Fert &amp; Peter Grünberg</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ─── Utilities ──────────────────────────────────────────────────────────────
+function _cancelAllAnims48(){
+  if(raf0){cancelAnimationFrame(raf0);raf0=null;}
+  if(raf1){cancelAnimationFrame(raf1);raf1=null;}
+  if(raf3){cancelAnimationFrame(raf3);raf3=null;}
+  if(rafChern){cancelAnimationFrame(rafChern);rafChern=null;}
+  if(rafZ2){cancelAnimationFrame(rafZ2);rafZ2=null;}
+  const btns=['btnAnimQHE','btnAnim1','btnAnimBerry','btnAnimTopo'];
+  btns.forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.textContent='\u25b6';b.classList.remove('active-btn');}
+  });
+}
+function syncSpeedControl48(i){
+  if(i===3){
+    const sliderA=document.getElementById('speed3a');
+    const displayA=document.getElementById('speedVal3a');
+    if(sliderA&&displayA) displayA.textContent=''+(sliderA.value/100)+'x';
+    const sliderB=document.getElementById('speed3b');
+    const displayB=document.getElementById('speedVal3b');
+    if(sliderB&&displayB) displayB.textContent=''+(sliderB.value/100)+'x';
+  } else {
+    const slider=document.getElementById('speed'+i);
+    const display=document.getElementById('speedVal'+i);
+    if(slider&&display){
+      display.textContent=''+(slider.value/100)+'x';
+    }
+  }
+}
+function switchTab(i){
+  _cancelAllAnims48();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  syncSpeedControl48(i);
+  resizeAll();
+}
+
+function setupCanvas(id){
+  const cv=document.getElementById(id);
+  if(!cv) return null;
+  const dpr=window.devicePixelRatio||1;
+  const rect=cv.getBoundingClientRect();
+  const W=rect.width||cv.offsetWidth||400;
+  const H=rect.height||cv.offsetHeight||300;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {cv,ctx,W,H};
+}
+
+function resizeAll(){
+  draw0(); draw1(); draw1b(); drawChern(); drawZ2Ribbon(); draw3();
+}
+
+window.addEventListener('resize',resizeAll);
+
+// ─── TAB 0: QUANTUM HALL EFFECT ─────────────────────────────────────────────
+let showEdge=true, showLandau=true, showCyclotron=false, showFQHE=false;
+let bValue=40; // slider 1-100
+let cyclotronAngle=0;
+let raf0=null;
+let animQHE=false; // master animate flag for pane0
+
+function toggleEdge(){showEdge=!showEdge;document.getElementById('btnEdge').classList.toggle('active-btn',showEdge);draw0();}
+function toggleLandau(){showLandau=!showLandau;document.getElementById('btnLandau').classList.toggle('active-btn',showLandau);draw0();}
+function toggleCyclotron(){showCyclotron=!showCyclotron;document.getElementById('btnCyclotron').classList.toggle('active-btn',showCyclotron);if(showCyclotron)animCyclotron();else{if(!animQHE){cancelAnimationFrame(raf0);raf0=null;}draw0();}}
+function toggleFQHE(){showFQHE=!showFQHE;document.getElementById('btnFQHE').classList.toggle('active-btn',showFQHE);draw0();}
+function onBChange(){bValue=parseInt(document.getElementById('bSlider').value);document.getElementById('bVal').textContent=(bValue/10).toFixed(1)+' T';draw0();}
+
+function toggleAnimQHE(){
+  animQHE=!animQHE;
+  document.getElementById('btnAnimQHE').textContent=animQHE?'\u23f8':'\u25b6';
+  document.getElementById('btnAnimQHE').classList.toggle('active-btn',animQHE);
+  if(animQHE){
+    // also turn on cyclotron visuals for best effect
+    showCyclotron=true;
+    showEdge=true;
+    showLandau=true;
+    document.getElementById('btnCyclotron').classList.add('active-btn');
+    document.getElementById('btnEdge').classList.add('active-btn');
+    document.getElementById('btnLandau').classList.add('active-btn');
+    loopAnimQHE();
+  } else {
+    cancelAnimationFrame(raf0);
+    raf0=null;
+    showCyclotron=false;
+    document.getElementById('btnCyclotron').classList.remove('active-btn');
+    draw0();
+  }
+}
+
+function loopAnimQHE(){
+  cyclotronAngle+=0.045*(window.animSpeed||0.1);
+  draw0();
+  if(animQHE) raf0=window.requestAnimationFrame(loopAnimQHE);
+}
+
+function animCyclotron(){
+  cyclotronAngle+=0.04*(window.animSpeed||0.1);
+  draw0();
+  if(showCyclotron && !animQHE) raf0=window.requestAnimationFrame(animCyclotron);
+}
+
+function draw0(){
+  const {cv,ctx,W,H}=setupCanvas('c0');
+  ctx.clearRect(0,0,W,H);
+
+  // Layout: left side = sample, right side = sigma_xy vs nu plot, middle-right = Landau level diagram
+  const sW=Math.min(W*0.45,340), sH=H*0.72;
+  const sX=(W*0.01), sY=(H-sH)/2;
+
+  // ─── 2D sample rectangle ───
+  ctx.fillStyle='#0a1a22';
+  ctx.strokeStyle='#2a4a5a';
+  ctx.lineWidth=2;
+  ctx.fillRect(sX,sY,sW,sH);
+  ctx.strokeRect(sX,sY,sW,sH);
+
+  // Magnetic field dots (out of page)
+  ctx.fillStyle='rgba(68,255,136,0.35)';
+  const dotSpacing=28;
+  for(let x=sX+14;x<sX+sW-10;x+=dotSpacing){
+    for(let y=sY+14;y<sY+sH-10;y+=dotSpacing){
+      ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  // B label
+  ctx.fillStyle='#44ff88';ctx.font='bold 13px Segoe UI';
+  ctx.fillText('B ⊙',sX+8,sY+18);
+
+  // Current arrows (left→right through sample)
+  ctx.strokeStyle='#ffaa44'; ctx.lineWidth=2;
+  const midY=sY+sH/2;
+  for(let arx=sX+20;arx<sX+sW-20;arx+=40){
+    ctx.beginPath();ctx.moveTo(arx,midY);ctx.lineTo(arx+28,midY);
+    ctx.moveTo(arx+28,midY);ctx.lineTo(arx+22,midY-5);
+    ctx.moveTo(arx+28,midY);ctx.lineTo(arx+22,midY+5);
+    ctx.stroke();
+  }
+  ctx.fillStyle='#ffaa44';ctx.font='12px Segoe UI';
+  ctx.fillText('I →',sX+sW/2-10,midY-10);
+
+  // ─── Edge states ───
+  if(showEdge){
+    // Top edge: right-moving
+    ctx.strokeStyle='#44aaff'; ctx.lineWidth=2.5;
+    for(let ex=sX+20;ex<sX+sW-10;ex+=44){
+      ctx.beginPath();ctx.moveTo(ex,sY+8);ctx.lineTo(ex+32,sY+8);
+      ctx.moveTo(ex+32,sY+8);ctx.lineTo(ex+25,sY+3);
+      ctx.moveTo(ex+32,sY+8);ctx.lineTo(ex+25,sY+13);
+      ctx.stroke();
+    }
+    ctx.fillStyle='#44aaff';ctx.font='12px Segoe UI';ctx.fillText('→',sX+2,sY+11);
+    // Bottom edge: left-moving
+    ctx.strokeStyle='#ff44aa'; ctx.lineWidth=2.5;
+    for(let ex=sX+sW-20;ex>sX+10;ex-=44){
+      ctx.beginPath();ctx.moveTo(ex,sY+sH-8);ctx.lineTo(ex-32,sY+sH-8);
+      ctx.moveTo(ex-32,sY+sH-8);ctx.lineTo(ex-25,sY+sH-13);
+      ctx.moveTo(ex-32,sY+sH-8);ctx.lineTo(ex-25,sY+sH-3);
+      ctx.stroke();
+    }
+    ctx.fillStyle='#ff44aa';ctx.font='12px Segoe UI';ctx.fillText('←',sX+sW-16,sY+sH-4);
+  }
+
+  // ─── Cyclotron orbits ───
+  if(showCyclotron){
+    const rCyc=Math.max(10, 32 - bValue*0.22); // r_c ∝ 1/B
+    // Bulk orbits (3 rows, interior)
+    const nCols=3, nRows=2;
+    ctx.strokeStyle='rgba(255,200,80,0.45)'; ctx.lineWidth=1.5;
+    for(let row=0;row<nRows;row++){
+      for(let col=0;col<nCols;col++){
+        const ocx=sX+sW*(0.18+(col+0.5)*(0.64/nCols));
+        const ocy=sY+sH*(0.28+row*0.38);
+        ctx.beginPath();ctx.arc(ocx,ocy,rCyc,0,Math.PI*2);ctx.stroke();
+        const ea=cyclotronAngle+col*2.1+row*0.9;
+        const edx=ocx+rCyc*Math.cos(ea), edy=ocy+rCyc*Math.sin(ea);
+        ctx.fillStyle='rgba(255,210,80,0.85)';
+        ctx.beginPath();ctx.arc(edx,edy,3,0,Math.PI*2);ctx.fill();
+      }
+    }
+    // Top-edge skipping orbits (semicircles bouncing off top, moving right)
+    const nSkip=4;
+    const skipPhase=(cyclotronAngle*0.6)%(rCyc*2);
+    ctx.strokeStyle='rgba(68,170,255,0.75)'; ctx.lineWidth=2;
+    for(let si=0;si<nSkip;si++){
+      const scx=sX+rCyc+(si*rCyc*2)+skipPhase;
+      if(scx-rCyc<sX||scx+rCyc>sX+sW) continue;
+      const scy=sY+2;
+      // bottom semicircle arcing downward from top
+      ctx.beginPath();ctx.arc(scx,scy,rCyc,0,Math.PI);ctx.stroke();
+      // electron dot on arc
+      const saFrac=(cyclotronAngle*0.6*0.5/rCyc+si*0.5)%(Math.PI);
+      const sedx=scx+rCyc*Math.cos(Math.PI-saFrac);
+      const sedy=scy+rCyc*Math.sin(Math.PI-saFrac);
+      ctx.fillStyle='#44aaff';
+      ctx.beginPath();ctx.arc(sedx,sedy,4,0,Math.PI*2);ctx.fill();
+    }
+    // Bottom-edge skipping orbits (semicircles, moving left)
+    ctx.strokeStyle='rgba(255,68,170,0.75)'; ctx.lineWidth=2;
+    for(let si=0;si<nSkip;si++){
+      const scx=sX+sW-rCyc-(si*rCyc*2)-skipPhase;
+      if(scx-rCyc<sX||scx+rCyc>sX+sW) continue;
+      const scy=sY+sH-2;
+      ctx.beginPath();ctx.arc(scx,scy,rCyc,Math.PI,Math.PI*2);ctx.stroke();
+      const saFrac=(cyclotronAngle*0.6*0.5/rCyc+si*0.5)%(Math.PI);
+      const sedx=scx+rCyc*Math.cos(Math.PI+saFrac);
+      const sedy=scy+rCyc*Math.sin(Math.PI+saFrac);
+      ctx.fillStyle='#ff44aa';
+      ctx.beginPath();ctx.arc(sedx,sedy,4,0,Math.PI*2);ctx.fill();
+    }
+    // r_c label
+    ctx.fillStyle='rgba(255,200,80,0.6)';ctx.font='12px Segoe UI';
+    ctx.fillText('r_c='+(rCyc.toFixed(0))+'nm',sX+4,sY+sH-6);
+  } else {
+    // Static electrons
+    ctx.fillStyle='rgba(100,180,255,0.6)';
+    for(let i=0;i<18;i++){
+      const ex=sX+30+Math.floor(i%6)*(sW-40)/5;
+      const ey=sY+40+Math.floor(i/6)*(sH-60)/2;
+      ctx.beginPath();ctx.arc(ex,ey,3,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  // Hall voltage bar
+  const vH=sX+sW+10;
+  const vBarH=sH*0.75;
+  const vBarY=sY+(sH-vBarH)/2;
+  ctx.strokeStyle='var(--border)';ctx.lineWidth=1;
+  ctx.strokeRect(vH,vBarY,14,vBarH);
+  // Compute filling factor and plateau
+  const nuRaw=bValue*0.15;
+  const plateau=Math.max(1,Math.round(nuRaw));
+  const nu=plateau;
+  const frac=[1/3,2/5,2/3];
+  let platLabel=String(plateau);
+  if(showFQHE){
+    const dists=frac.map(f=>Math.abs(nuRaw-f*10));
+    const minD=Math.min(...dists);
+    if(minD<0.8){
+      const fi=dists.indexOf(minD);
+      platLabel=['1/3','2/5','2/3'][fi];
+    }
+  }
+  // fill bar proportional
+  const fillFrac=Math.min(1,nu/8);
+  const fillH=vBarH*fillFrac;
+  const grad=ctx.createLinearGradient(0,vBarY+vBarH-fillH,0,vBarY+vBarH);
+  grad.addColorStop(0,'#44ff88');grad.addColorStop(1,'#00aa44');
+  ctx.fillStyle=grad;
+  ctx.fillRect(vH+1,vBarY+vBarH-fillH,12,fillH);
+  ctx.fillStyle='#44ff88';ctx.font='12px Segoe UI';
+  ctx.fillText('V_H',vH-2,vBarY-4);
+  ctx.fillStyle='var(--text)';ctx.font='bold 12px Segoe UI';
+  ctx.fillText(platLabel,vH,vBarY+vBarH+14);
+
+  // ─── σ_xy vs ν plot ───
+  const pX=vH+34, pY=sY, pW=W-pX-8, pH=sH;
+  const nuMax=8;
+  if(pW>60){
+    ctx.fillStyle='#0a0f18';ctx.fillRect(pX,pY,pW,pH);
+    ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(pX,pY,pW,pH);
+    // Axes
+    ctx.strokeStyle='#44556677'; ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pX+30,pY+8);ctx.lineTo(pX+30,pY+pH-20);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(pX+28,pY+pH-20);ctx.lineTo(pX+pW-8,pY+pH-20);ctx.stroke();
+    // Axis labels
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+    ctx.fillText('ν',pX+pW/2,pY+pH-4);
+    ctx.save();ctx.translate(pX+10,pY+pH/2);ctx.rotate(-Math.PI/2);ctx.fillText('σ_xy',0,0);ctx.restore();
+
+    const plotW=pW-40, plotH=pH-30;
+    const px0=pX+30, py0=pY+pH-20;
+    const plateaus=showFQHE?[1/3,2/5,2/3,1,2,3,4,5,6]:[1,2,3,4,5,6];
+    // Draw step function
+    ctx.strokeStyle='#44ff88'; ctx.lineWidth=2;
+    ctx.beginPath();
+    let prevNu=0;
+    plateaus.forEach(p=>{
+      const xStart=px0+(prevNu/nuMax)*plotW;
+      const xEnd=px0+(p/nuMax)*plotW;
+      const y=py0-(p/6)*plotH;
+      ctx.moveTo(xStart,y);ctx.lineTo(xEnd,y);
+      ctx.moveTo(xEnd,py0-(prevNu/6)*plotH);ctx.lineTo(xEnd,y);
+      prevNu=p+0.15;
+    });
+    ctx.stroke();
+
+    // Mark current position
+    const curX=px0+(nuRaw/nuMax)*plotW;
+    ctx.strokeStyle='#ffaa44'; ctx.lineWidth=1.5;
+    ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(curX,py0);ctx.lineTo(curX,pY+8);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ffaa44'; ctx.font='12px Segoe UI';
+    ctx.fillText('ν='+nuRaw.toFixed(1),curX-10,pY+18);
+
+    ctx.fillStyle='#44ff88';ctx.font='bold 12px Segoe UI';
+    ctx.fillText('σ_xy vs ν',pX+pW/2-20,pY+10);
+  }
+
+  // ─── Landau levels diagram ───
+  if(showLandau){
+    const lX=pX, lY=pY, lW=Math.min(pW,180), lH=pH;
+    // Draw in a small inset top-right of the plot
+    const llX=pX+pW-lW-2, llY=pY+4, llW=lW-4, llH=Math.min(110,pH*0.5);
+    ctx.fillStyle='rgba(10,15,30,0.85)';ctx.fillRect(llX,llY,llW,llH);
+    ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(llX,llY,llW,llH);
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText('Landau Levels',llX+4,llY+11);
+    const nLevels=5;
+    const hbar_wc=1/(bValue/30);
+    for(let n=0;n<nLevels;n++){
+      const E=(n+0.5)*hbar_wc;
+      const ly=llY+llH-10-(E/((nLevels+0.5)*hbar_wc))*(llH-20);
+      ctx.strokeStyle='rgba(100,180,255,0.7)';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(llX+6,ly);ctx.lineTo(llX+llW-30,ly);ctx.stroke();
+      ctx.fillStyle='#6ab4ff';ctx.font='12px Segoe UI';
+      ctx.fillText('n='+n,llX+llW-26,ly+3);
+    }
+    // Fermi energy line
+    const EF_frac=0.15+(nuRaw/nuMax)*0.75;
+    const lyF=llY+llH-10-EF_frac*(llH-20);
+    ctx.strokeStyle='#ff8844'; ctx.lineWidth=1.5;ctx.setLineDash([3,2]);
+    ctx.beginPath();ctx.moveTo(llX+6,lyF);ctx.lineTo(llX+llW-30,lyF);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ff8844';ctx.font='12px Segoe UI';ctx.fillText('E_F',llX+llW-26,lyF+3);
+  }
+
+  // Update info display
+  const nuDisplay=nuRaw.toFixed(2);
+  const chern=Math.max(1,plateau);
+  document.getElementById('nuVal').textContent=nuDisplay;
+  document.getElementById('chernVal').textContent=showFQHE&&platLabel.includes('/')?platLabel:String(chern);
+}
+
+// ─── TAB 1: BERRY PHASE ─────────────────────────────────────────────────────
+let showBCurv=true, showBConn=false;
+let loopPhase=0, animating1=false, raf1=null;
+
+function toggleAnim1(){
+  animating1=!animating1;
+  document.getElementById('btnAnim1').textContent=animating1?'\u23f8':'\u25b6';
+  document.getElementById('btnAnimBerry').textContent=animating1?'\u23f8':'\u25b6';
+  document.getElementById('btnAnim1').classList.toggle('active-btn',animating1);
+  document.getElementById('btnAnimBerry').classList.toggle('active-btn',animating1);
+  if(animating1) loopAnim1();
+  else cancelAnimationFrame(raf1);
+}
+function toggleBCurv(){showBCurv=!showBCurv;document.getElementById('btnBCurv').classList.toggle('active-btn',showBCurv);draw1();}
+function toggleBConn(){showBConn=!showBConn;document.getElementById('btnBConn').classList.toggle('active-btn',showBConn);draw1();}
+
+function loopAnim1(){
+  loopPhase+=0.025*(window.animSpeed||0.1);
+  if(loopPhase>Math.PI*2) loopPhase-=Math.PI*2;
+  draw1(); draw1b();
+  if(animating1) raf1=window.requestAnimationFrame(loopAnim1);
+}
+
+// Mouse drag on c1 to set loop radius
+(function(){
+  let dragging=false;
+  window.addEventListener('load',()=>{
+    const cv=document.getElementById('c1');
+    if(!cv) return;
+    cv.addEventListener('mousedown',(e)=>{dragging=true;});
+    cv.addEventListener('mousemove',(e)=>{
+      if(!dragging) return;
+      const rect=cv.getBoundingClientRect();
+      const cx=rect.width/2, cy=rect.height/2;
+      const dx=e.clientX-rect.left-cx, dy=e.clientY-rect.top-cy;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const maxR=(Math.min(rect.width,rect.height)/2-30);
+      const pct=Math.min(90,Math.max(10,Math.round(dist/maxR*100)));
+      const sl=document.getElementById('loopR');
+      if(sl){sl.value=pct; document.getElementById('loopRVal').textContent=pct+'%';}
+      draw1(); draw1b();
+    });
+    window.addEventListener('mouseup',()=>{dragging=false;});
+  });
+})();
+
+function getLoopPoints(cx,cy,R,shape,phase){
+  const pts=[];
+  const N=120;
+  for(let i=0;i<N;i++){
+    const t=(i/N)*Math.PI*2;
+    let x,y;
+    if(shape==='circle'){x=cx+R*Math.cos(t);y=cy+R*Math.sin(t);}
+    else if(shape==='figure8'){x=cx+R*Math.sin(2*t)/2;y=cy+R*Math.sin(t);}
+    else{// square
+      const s=t/(Math.PI/2);
+      const seg=Math.floor(s)%4, frac=s%1;
+      if(seg===0){x=cx-R+2*R*frac;y=cy-R;}
+      else if(seg===1){x=cx+R;y=cy-R+2*R*frac;}
+      else if(seg===2){x=cx+R-2*R*frac;y=cy+R;}
+      else{x=cx-R;y=cy+R-2*R*frac;}
+    }
+    pts.push({x,y,t});
+  }
+  return pts;
+}
+
+function draw1(){
+  const {cv,ctx,W,H}=setupCanvas('c1');
+  ctx.clearRect(0,0,W,H);
+  const R_slider=parseInt(document.getElementById('loopR').value);
+  document.getElementById('loopRVal').textContent=R_slider+'%';
+  const shape=document.getElementById('loopShape').value;
+  const cx=W/2, cy=H/2;
+  const R=(Math.min(W,H)/2-30)*(R_slider/100);
+
+  // Berry curvature heatmap background
+  if(showBCurv){
+    const idata=ctx.createImageData(W,H);
+    for(let px=0;px<W;px++){
+      for(let py=0;py<H;py++){
+        const dx=(px-cx)/W*4, dy=(py-cy)/H*4;
+        const r2=dx*dx+dy*dy+0.04;
+        const curv=0.3/(r2*r2);
+        const v=Math.min(1,curv);
+        const idx=(py*W+px)*4;
+        idata.data[idx]=Math.floor(0*v+30*(1-v));
+        idata.data[idx+1]=Math.floor(180*v);
+        idata.data[idx+2]=Math.floor(80*v);
+        idata.data[idx+3]=Math.floor(200*v+20);
+      }
+    }
+    ctx.putImageData(idata,0,0);
+  }
+
+  // Coordinate axes
+  ctx.strokeStyle='rgba(136,136,170,0.3)'; ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI';
+  ctx.fillText('Bₓ',W-20,cy-6);ctx.fillText('Bᵧ',cx+6,14);
+
+  // Berry connection arrows
+  if(showBConn){
+    ctx.strokeStyle='rgba(100,180,255,0.45)'; ctx.lineWidth=1;
+    const step=40;
+    for(let px=step/2;px<W;px+=step){
+      for(let py=step/2;py<H;py+=step){
+        const dx=(px-cx)/100, dy=(py-cy)/100;
+        const r2=dx*dx+dy*dy+0.01;
+        const ax=-dy/(r2*4), ay=dx/(r2*4);
+        const sc=Math.min(16,8/Math.sqrt(r2));
+        const ex=px+ax*sc, ey=py+ay*sc;
+        ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(ex,ey);
+        const ang=Math.atan2(ey-py,ex-px);
+        ctx.moveTo(ex,ey);ctx.lineTo(ex-5*Math.cos(ang-0.4),ey-5*Math.sin(ang-0.4));
+        ctx.moveTo(ex,ey);ctx.lineTo(ex-5*Math.cos(ang+0.4),ey-5*Math.sin(ang+0.4));
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Monopole at center
+  ctx.fillStyle='#ff4444';
+  ctx.beginPath();ctx.arc(cx,cy,6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ff8888';ctx.font='12px Segoe UI';ctx.fillText('monopole',cx+8,cy-8);
+
+  // Draw loop
+  const pts=getLoopPoints(cx,cy,R,shape,loopPhase);
+  ctx.strokeStyle='#44ff88'; ctx.lineWidth=2;
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.closePath(); ctx.stroke();
+
+  // Animate particle on loop
+  const pi=Math.floor((loopPhase/(Math.PI*2))*pts.length)%pts.length;
+  const pp=pts[pi];
+  ctx.fillStyle='#ffee44';
+  ctx.beginPath();ctx.arc(pp.x,pp.y,6,0,Math.PI*2);ctx.fill();
+
+  // Arrow on loop showing direction
+  const ai=Math.floor(pts.length*0.25);
+  const ap1=pts[ai], ap2=pts[(ai+4)%pts.length];
+  const ang=Math.atan2(ap2.y-ap1.y,ap2.x-ap1.x);
+  ctx.strokeStyle='#44ff88'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(ap1.x,ap1.y);
+  ctx.lineTo(ap1.x-10*Math.cos(ang-0.5),ap1.y-10*Math.sin(ang-0.5));
+  ctx.stroke();
+
+  // Label: show whether loop encloses monopole
+  const encloses=(shape==='circle'||shape==='square');
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  const enc=encloses?'encloses monopole → γ=π':'does not enclose monopole';
+  ctx.fillText(enc,8,H-8);
+
+  // k-space BZ boundary (dashed square)
+  const bzHalf=Math.min(W,H)/2-10;
+  ctx.strokeStyle='rgba(255,200,60,0.25)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.strokeRect(cx-bzHalf,cy-bzHalf,bzHalf*2,bzHalf*2);
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,200,60,0.35)';ctx.font='12px Segoe UI';
+  ctx.fillText('BZ',cx+bzHalf-14,cy-bzHalf+11);
+  ctx.fillText('-π',cx-bzHalf,cy+bzHalf+12);ctx.fillText('π',cx+bzHalf-8,cy+bzHalf+12);
+
+  // Compute Berry phase (solid angle / 2 for spin-1/2 in monopole field)
+  // For circle: gamma = pi * (1 - cos(theta)) where theta = opening angle from north pole
+  const thetaOpen=Math.atan2(R, Math.min(W,H)*0.14);
+  const solidAngle=2*Math.PI*(1-Math.cos(thetaOpen));
+  let berryPhase;
+  if(shape==='figure8') berryPhase=0; // figure-8 self-cancels
+  else berryPhase=solidAngle/2;
+  document.getElementById('berryPhaseVal').textContent=berryPhase.toFixed(3);
+  document.getElementById('berryPiVal').textContent=(berryPhase/Math.PI).toFixed(3);
+  document.getElementById('solidAngleVal').textContent=solidAngle.toFixed(3);
+}
+
+function draw1b(){
+  const {cv,ctx,W,H}=setupCanvas('c1b');
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2, cy=H/2;
+  const R=Math.min(W,H)/2-20;
+
+  // Draw Bloch sphere (ellipse for 3D look)
+  ctx.strokeStyle='#2a2a50'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(cx,cy,R,R,0,0,Math.PI*2);ctx.stroke();
+  // Equator
+  ctx.beginPath();ctx.ellipse(cx,cy,R,R*0.3,0,0,Math.PI*2);ctx.strokeStyle='rgba(42,42,80,0.5)';ctx.stroke();
+  // Meridian
+  ctx.beginPath();ctx.ellipse(cx,cy,R*0.3,R,0,0,Math.PI*2);ctx.strokeStyle='rgba(42,42,80,0.5)';ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle='rgba(136,136,170,0.5)'; ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx,cy-R-8);ctx.lineTo(cx,cy+R+8);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx-R-8,cy);ctx.lineTo(cx+R+8,cy);ctx.stroke();
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('|↑⟩',cx+4,cy-R-4);
+  ctx.fillText('|↓⟩',cx+4,cy+R+14);
+
+  // Spin path on sphere surface (loop)
+  const R_slider=parseInt(document.getElementById('loopR').value);
+  const theta0=Math.acos(1-(R_slider/100)*1.8); // polar angle of loop
+  const N=80;
+  ctx.strokeStyle='rgba(68,255,136,0.7)'; ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=N;i++){
+    const phi=(i/N)*Math.PI*2;
+    // Stereographic projection to 2D for Bloch sphere visualization
+    const sinT=Math.sin(theta0), cosT=Math.cos(theta0);
+    const x3=sinT*Math.cos(phi);
+    const y3=sinT*Math.sin(phi);
+    const z3=cosT;
+    // Project to 2D (simple parallel projection)
+    const sx=cx+R*(x3*0.7+y3*0.3);
+    const sy=cy-R*(z3*0.85+y3*0.15);
+    i===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);
+  }
+  ctx.closePath();ctx.stroke();
+
+  // Animated spin vector
+  const phi_cur=loopPhase;
+  const sinT=Math.sin(theta0), cosT=Math.cos(theta0);
+  const sx3=sinT*Math.cos(phi_cur), sy3=sinT*Math.sin(phi_cur), sz3=cosT;
+  const spx=cx+R*(sx3*0.7+sy3*0.3);
+  const spy=cy-R*(sz3*0.85+sy3*0.15);
+  ctx.strokeStyle='#ffee44'; ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(spx,spy);ctx.stroke();
+  ctx.fillStyle='#ffee44';ctx.beginPath();ctx.arc(spx,spy,5,0,Math.PI*2);ctx.fill();
+
+  // North pole dot
+  ctx.fillStyle='#ff4444';ctx.beginPath();ctx.arc(cx,cy-R,5,0,Math.PI*2);ctx.fill();
+
+  // Show accumulated Berry phase arc at equator
+  const R_slider2=parseInt(document.getElementById('loopR').value);
+  const theta02=Math.acos(1-(R_slider2/100)*1.8);
+  const thetaOpen2=theta02;
+  const solidAngle2=2*Math.PI*(1-Math.cos(thetaOpen2));
+  const shape2=document.getElementById('loopShape').value;
+  const berryPhase2=shape2==='figure8'?0:solidAngle2/2;
+
+  // Draw Berry phase angle indicator at bottom of sphere
+  const arcR=R*0.45;
+  ctx.strokeStyle='rgba(255,220,50,0.8)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,cy+R*0.05,arcR,Math.PI*0.5,Math.PI*0.5+berryPhase2*(loopPhase/(Math.PI*2)));ctx.stroke();
+  ctx.fillStyle='#ffee44';ctx.font='12px Segoe UI';
+  ctx.fillText('γ='+(berryPhase2*(loopPhase/(Math.PI*2))).toFixed(2)+'rad',cx-22,cy+R*0.05+arcR+14);
+
+  // Label
+  ctx.fillStyle='#44ff88'; ctx.font='12px Segoe UI';
+  ctx.fillText('Bloch sphere',cx-32,cy+R+40);
+  ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI';
+  ctx.fillText('φ='+((loopPhase*180/Math.PI).toFixed(0))+'°',cx-18,cy+10);
+  // Holonomy label
+  ctx.fillStyle='rgba(255,220,50,0.7)';ctx.font='12px Segoe UI';
+  ctx.fillText('holonomy arc',cx-28,cy+R*0.05+arcR+24);
+}
+
+// ─── TAB 2: TOPOLOGICAL INSULATORS ──────────────────────────────────────────
+let isTopological=true, showBands=true, showEdgeCurr=true;
+let impurities=[];
+let edgePhase=0, raf2=null, animEdge=true;
+let animTopo=false; // master animate flag for pane 2
+let topoAnimPhase=0; // drives Fermi level sweep + band breathing
+
+function toggleTopo(){
+  isTopological=!isTopological;
+  document.getElementById('btnTopo').classList.toggle('active-btn',isTopological);
+  document.getElementById('topoStateVal').textContent=isTopological?'Topological':'Trivial';
+  document.getElementById('z2Val').textContent=isTopological?'1':'0';
+  document.getElementById('edgeModeVal').textContent=isTopological?'2 (helical)':'0 (none)';
+  draw2();
+}
+function addImpurity(){
+  // Add a random impurity on the edge
+  impurities.push({edge:Math.random()>0.5?'top':'bottom', pos:0.2+Math.random()*0.6});
+  if(impurities.length>3) impurities.shift();
+  draw2();
+}
+function toggleBands(){showBands=!showBands;document.getElementById('btnBands').classList.toggle('active-btn',showBands);draw2();}
+function toggleEdgeCurr(){
+  showEdgeCurr=!showEdgeCurr;
+  document.getElementById('btnEdgeCurr').classList.toggle('active-btn',showEdgeCurr);
+  if(showEdgeCurr && !animTopo) animEdgeCurr();
+  else if(!showEdgeCurr && !animTopo) cancelAnimationFrame(raf2);
+}
+
+function toggleAnimTopo(){
+  animTopo=!animTopo;
+  document.getElementById('btnAnimTopo').textContent=animTopo?'\u23f8':'\u25b6';
+  document.getElementById('btnAnimTopo').classList.toggle('active-btn',animTopo);
+  if(animTopo){
+    showBands=true;
+    showEdgeCurr=true;
+    document.getElementById('btnBands').classList.add('active-btn');
+    document.getElementById('btnEdgeCurr').classList.add('active-btn');
+    loopAnimTopo();
+  } else {
+    cancelAnimationFrame(raf2);
+    raf2=null;
+    draw2();
+    // restart edge current if it was on
+    if(showEdgeCurr) animEdgeCurr();
+  }
+}
+
+function loopAnimTopo(){
+  topoAnimPhase+=0.022*(window.animSpeed||0.1);
+  edgePhase+=0.03*(window.animSpeed||0.1);
+  draw2();
+  if(animTopo) raf2=window.requestAnimationFrame(loopAnimTopo);
+}
+
+function animEdgeCurr(){
+  edgePhase+=0.03*(window.animSpeed||0.1);
+  draw2();
+  if(showEdgeCurr && !animTopo) raf2=window.requestAnimationFrame(animEdgeCurr);
+}
+
+function draw2(){
+  const {cv,ctx,W,H}=setupCanvas('c2');
+  ctx.clearRect(0,0,W,H);
+
+  // Layout: left = sample, right = band structure panels
+  const sW=Math.min(W*0.42,260), sH=H*0.65;
+  const sX=14, sY=(H-sH)/2;
+
+  // ─── Sample ───
+  // Bulk (dark insulating interior)
+  const margin=22;
+  ctx.fillStyle='#0a0f1a';
+  ctx.fillRect(sX,sY,sW,sH);
+  ctx.strokeStyle='#44ff88';ctx.lineWidth=isTopological?2:1.5;
+  ctx.strokeStyle=isTopological?'#44ff88':'#5555aa';
+  ctx.strokeRect(sX,sY,sW,sH);
+
+  // Insulating bulk label
+  ctx.fillStyle=isTopological?'rgba(68,255,136,0.08)':'rgba(85,85,170,0.08)';
+  ctx.fillRect(sX+margin,sY+margin,sW-2*margin,sH-2*margin);
+  ctx.fillStyle='#44446688'; ctx.font='12px Segoe UI';
+  ctx.fillText(isTopological?'Topological Insulator':'Trivial Insulator',sX+sW/2-55,sY+sH/2);
+
+  // ─── Edge current animation ───
+  if(showEdgeCurr && isTopological){
+    const nParticles=6;
+    for(let i=0;i<nParticles;i++){
+      const phase=(edgePhase+i*(1/nParticles)*Math.PI*2)%(Math.PI*2);
+      const frac=(phase/(Math.PI*2));
+      // Top edge: right-moving
+      let tx=sX+frac*sW, ty=sY+8;
+      // Check impurity avoidance
+      let skipped=false;
+      impurities.filter(im=>im.edge==='top').forEach(im=>{
+        const ix=sX+im.pos*sW;
+        const dx=Math.abs(tx-ix);
+        if(dx<22){
+          ty=sY+8+12*Math.sin(Math.PI*dx/22);
+          skipped=true;
+        }
+      });
+      ctx.fillStyle='#44aaff';
+      ctx.beginPath();ctx.arc(tx,ty,4,0,Math.PI*2);ctx.fill();
+      // spin arrow up (top edge = spin up)
+      ctx.strokeStyle='#44aaff';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(tx,ty-4);ctx.lineTo(tx,ty-9);
+      ctx.moveTo(tx,ty-9);ctx.lineTo(tx-2,ty-6);
+      ctx.moveTo(tx,ty-9);ctx.lineTo(tx+2,ty-6);
+      ctx.stroke();
+
+      // Bottom edge: left-moving
+      const frac2=1-frac;
+      let bx=sX+frac2*sW, by=sY+sH-8;
+      impurities.filter(im=>im.edge==='bottom').forEach(im=>{
+        const ix=sX+im.pos*sW;
+        const dx=Math.abs(bx-ix);
+        if(dx<22) by=sY+sH-8-12*Math.sin(Math.PI*dx/22);
+      });
+      ctx.fillStyle='#ff44aa';
+      ctx.beginPath();ctx.arc(bx,by,4,0,Math.PI*2);ctx.fill();
+      // spin arrow down
+      ctx.strokeStyle='#ff44aa';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(bx,by+4);ctx.lineTo(bx,by+9);
+      ctx.moveTo(bx,by+9);ctx.lineTo(bx-2,by+6);
+      ctx.moveTo(bx,by+9);ctx.lineTo(bx+2,by+6);
+      ctx.stroke();
+    }
+
+    // Draw impurities
+    impurities.forEach(im=>{
+      const ix=sX+im.pos*sW;
+      const iy=im.edge==='top'?sY+8:sY+sH-8;
+      ctx.fillStyle='#ff6644';
+      ctx.beginPath();ctx.arc(ix,iy,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ffffff';ctx.font='bold 12px Segoe UI';
+      ctx.fillText('✕',ix-4,iy+3);
+    });
+
+  } else if(!isTopological){
+    // No edge states — just static dots
+    ctx.fillStyle='rgba(100,100,200,0.3)';
+    for(let i=0;i<5;i++){
+      ctx.beginPath();ctx.arc(sX+margin+i*(sW-2*margin)/4,sY+8,3,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(sX+margin+i*(sW-2*margin)/4,sY+sH-8,3,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  // Edge labels
+  ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI';
+  if(isTopological){
+    ctx.fillStyle='#44aaff'; ctx.fillText('→ spin↑',sX+sW/2-20,sY-4);
+    ctx.fillStyle='#ff44aa'; ctx.fillText('← spin↓',sX+sW/2-20,sY+sH+12);
+  }
+
+  // ─── Band structure ───
+  if(showBands){
+    const bX=sX+sW+20, bY=sY, bW=(W-bX-8), bH=sH;
+    if(bW>80){
+      // Bulk band structure (left half of band area)
+      const half=bW/2-4;
+      // Bulk
+      const blX=bX, blW=half;
+      ctx.fillStyle='#0a0f18';ctx.fillRect(blX,bY,blW,bH);
+      ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(blX,bY,blW,bH);
+      ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText('Bulk E(k)',blX+blW/2-18,bY+12);
+
+      // Animated gap size: breathes gently when animating
+      const breathe=animTopo?0.04*Math.sin(topoAnimPhase*1.3):0;
+      const gapY=bY+bH/2, gapH=bH*(0.22+breathe);
+
+      // Bulk valence band: parabolic dispersion E = E_v - ℏ²k²/2m (curves down)
+      const grad=ctx.createLinearGradient(0,gapY+gapH,0,bY+bH);
+      grad.addColorStop(0,'rgba(40,100,200,0.65)');grad.addColorStop(1,'rgba(20,50,120,0.25)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.moveTo(blX+2,bY+bH);
+      for(let kx=0;kx<=blW-4;kx++){
+        const kn=(kx/(blW-4))*2-1;
+        const Ey=gapY+gapH+kn*kn*(bH*0.2);
+        ctx.lineTo(blX+2+kx, Math.min(bY+bH,Ey));
+      }
+      ctx.lineTo(blX+blW-2,bY+bH);ctx.closePath();ctx.fill();
+      ctx.strokeStyle='#4488ff';ctx.lineWidth=2;
+      ctx.beginPath();
+      for(let kx=0;kx<=blW-4;kx++){
+        const kn=(kx/(blW-4))*2-1;
+        const Ey=gapY+gapH+kn*kn*(bH*0.2);
+        kx===0?ctx.moveTo(blX+2,Math.min(bY+bH-1,Ey)):ctx.lineTo(blX+2+kx,Math.min(bY+bH-1,Ey));
+      }
+      ctx.stroke();
+      ctx.fillStyle='#4488ff';ctx.font='12px Segoe UI';ctx.fillText('Valence',blX+4,bY+bH-8);
+
+      // Conduction band: parabolic, curves up
+      ctx.strokeStyle='#8844ff';ctx.lineWidth=2;
+      ctx.beginPath();
+      for(let kx=0;kx<=blW-4;kx++){
+        const kn=(kx/(blW-4))*2-1;
+        const Ey=gapY-gapH-kn*kn*(bH*0.2);
+        kx===0?ctx.moveTo(blX+2,Math.max(bY+2,Ey)):ctx.lineTo(blX+2+kx,Math.max(bY+2,Ey));
+      }
+      ctx.stroke();
+      ctx.fillStyle='#8844ff';ctx.font='12px Segoe UI';ctx.fillText('Conduction',blX+2,bY+18);
+
+      // Gap bracket & label
+      ctx.strokeStyle='rgba(255,170,68,0.5)';ctx.lineWidth=1;ctx.setLineDash([2,2]);
+      ctx.beginPath();ctx.moveTo(blX+4,gapY-gapH);ctx.lineTo(blX+4,gapY+gapH);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffaa44';ctx.font='12px Segoe UI';
+      ctx.fillText('gap',blX+blW/2-8,gapY+4);
+
+      // Animated Fermi energy sweeping through gap
+      if(animTopo){
+        const EF_sweep=gapY+(gapH+bH*0.22)*Math.sin(topoAnimPhase*0.8);
+        ctx.strokeStyle='rgba(255,140,40,0.9)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+        ctx.beginPath();ctx.moveTo(blX+2,EF_sweep);ctx.lineTo(blX+blW-2,EF_sweep);ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='#ff8828';ctx.font='bold 12px Segoe UI';
+        ctx.fillText('E_F',blX+blW-18,EF_sweep-2);
+      } else {
+        // Static E_F between bands (in gap)
+        const EF_static=gapY;
+        ctx.strokeStyle='rgba(255,140,40,0.7)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+        ctx.beginPath();ctx.moveTo(blX+2,EF_static);ctx.lineTo(blX+blW-2,EF_static);ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='#ff8828';ctx.font='12px Segoe UI';
+        ctx.fillText('E_F',blX+blW-18,EF_static-2);
+      }
+
+      // Edge band structure (right half)
+      const edX=bX+half+8, edW=bW-half-8;
+      ctx.fillStyle='#0a0f18';ctx.fillRect(edX,bY,edW,bH);
+      ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(edX,bY,edW,bH);
+      ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText('Edge E(k)',edX+edW/2-18,bY+12);
+
+      // Bulk band shadows in edge panel
+      ctx.fillStyle='rgba(40,100,200,0.18)';
+      ctx.beginPath();ctx.moveTo(edX+2,bY+bH);
+      for(let kx=0;kx<=edW-4;kx++){
+        const kn=(kx/(edW-4))*2-1;
+        const Ey=gapY+gapH+kn*kn*(bH*0.2);
+        ctx.lineTo(edX+2+kx,Math.min(bY+bH,Ey));
+      }
+      ctx.lineTo(edX+edW-2,bY+bH);ctx.closePath();ctx.fill();
+      ctx.strokeStyle='rgba(68,136,255,0.35)';ctx.lineWidth=1;
+      ctx.beginPath();
+      for(let kx=0;kx<=edW-4;kx++){
+        const kn=(kx/(edW-4))*2-1;
+        const Ey=gapY+gapH+kn*kn*(bH*0.2);
+        kx===0?ctx.moveTo(edX+2,Math.min(bY+bH-1,Ey)):ctx.lineTo(edX+2+kx,Math.min(bY+bH-1,Ey));
+      }
+      ctx.stroke();
+      ctx.strokeStyle='rgba(136,68,255,0.35)';ctx.lineWidth=1;
+      ctx.beginPath();
+      for(let kx=0;kx<=edW-4;kx++){
+        const kn=(kx/(edW-4))*2-1;
+        const Ey=gapY-gapH-kn*kn*(bH*0.2);
+        kx===0?ctx.moveTo(edX+2,Math.max(bY+2,Ey)):ctx.lineTo(edX+2+kx,Math.max(bY+2,Ey));
+      }
+      ctx.stroke();
+
+      // Edge mode (linear Dirac crossing — gapless through the bulk gap)
+      if(isTopological){
+        // Glow effect
+        ctx.shadowColor='#44ff88';ctx.shadowBlur=animTopo?8:4;
+        ctx.strokeStyle='#44ff88';ctx.lineWidth=2.5;
+        ctx.beginPath();
+        for(let kx=0;kx<edW-4;kx++){
+          const k=(kx/(edW-4))*2-1; // k from -1 to +1
+          const E=gapY-k*gapH*1.6;
+          kx===0?ctx.moveTo(edX+2+kx,E):ctx.lineTo(edX+2+kx,E);
+        }
+        ctx.stroke();
+        ctx.shadowBlur=0;
+        ctx.fillStyle='#44ff88';ctx.font='12px Segoe UI';ctx.fillText('edge mode',edX+2,bY+26);
+        ctx.fillText('(Dirac)',edX+4,bY+37);
+
+        // Animated quasiparticle dot sliding along the edge dispersion
+        if(animTopo){
+          // particle position: k sweeps -1→+1 periodically
+          const kAnim=Math.sin(topoAnimPhase*0.7); // -1..+1
+          const kPixel=((kAnim+1)/2)*(edW-4);
+          const EAnim=gapY-kAnim*gapH*1.6;
+          // glow halo
+          const radgrad=ctx.createRadialGradient(edX+2+kPixel,EAnim,1,edX+2+kPixel,EAnim,9);
+          radgrad.addColorStop(0,'rgba(68,255,136,0.9)');
+          radgrad.addColorStop(1,'rgba(68,255,136,0)');
+          ctx.fillStyle=radgrad;
+          ctx.beginPath();ctx.arc(edX+2+kPixel,EAnim,9,0,Math.PI*2);ctx.fill();
+          ctx.fillStyle='#ffffff';
+          ctx.beginPath();ctx.arc(edX+2+kPixel,EAnim,3.5,0,Math.PI*2);ctx.fill();
+          // Also draw Fermi level matching
+          const EF_sweep=gapY+(gapH+bH*0.22)*Math.sin(topoAnimPhase*0.8);
+          ctx.strokeStyle='rgba(255,140,40,0.7)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+          ctx.beginPath();ctx.moveTo(edX+2,EF_sweep);ctx.lineTo(edX+edW-2,EF_sweep);ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      } else {
+        ctx.fillStyle='#5555aa';ctx.font='12px Segoe UI';ctx.fillText('no edge',edX+4,bY+26);
+        ctx.fillText('states',edX+6,bY+37);
+      }
+
+      // k-axis labels
+      ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+      ctx.fillText('-π',edX+2,bY+bH-4);ctx.fillText('k',edX+edW/2-3,bY+bH-4);ctx.fillText('π',edX+edW-12,bY+bH-4);
+      ctx.fillText('-π',blX+2,bY+bH-4);ctx.fillText('k',blX+blW/2-3,bY+bH-4);ctx.fillText('π',blX+blW-12,bY+bH-4);
+    }
+  }
+}
+
+// ─── TAB 3: GIANT MAGNETORESISTANCE ─────────────────────────────────────────
+let gmrMode='parallel';
+let showHardDrive=false;
+let raf3=null, gmrPhase=0;
+let fieldValue=100;
+
+function setGMRMode(m){
+  gmrMode=m;
+  ['btnParallel','btnAntiparallel','btnRotating'].forEach(id=>document.getElementById(id).classList.remove('active-btn'));
+  const map={parallel:'btnParallel',antiparallel:'btnAntiparallel',rotating:'btnRotating'};
+  document.getElementById(map[m]).classList.add('active-btn');
+  document.getElementById('gmrModeVal').textContent=m.charAt(0).toUpperCase()+m.slice(1);
+  if(gmrMode==='rotating'){if(!raf3)animGMR();}
+  else{cancelAnimationFrame(raf3);raf3=null;draw3();}
+}
+function onFieldChange(){
+  fieldValue=parseInt(document.getElementById('fieldSlider').value);
+  document.getElementById('fieldVal').textContent=fieldValue+'%';
+  draw3();
+}
+function toggleHardDrive(){
+  showHardDrive=!showHardDrive;
+  document.getElementById('btnHardDrive').classList.toggle('active-btn',showHardDrive);
+  if(showHardDrive){if(!raf3)animGMR();}
+  else{cancelAnimationFrame(raf3);raf3=null;draw3();}
+}
+
+function animGMR(){
+  gmrPhase+=0.04*(window.animSpeed||0.1);
+  draw3();
+  raf3=requestAnimationFrame(animGMR);
+}
+
+function draw3(){
+  const {cv,ctx,W,H}=setupCanvas('c3');
+  ctx.clearRect(0,0,W,H);
+
+  if(showHardDrive){
+    drawHardDrive(ctx,W,H);
+    return;
+  }
+
+  // Layout: spin-valve stack in center
+  const layerW=Math.min(W*0.55,320), layerH=H*0.62;
+  const lX=(W-layerW)/2-30, lY=(H-layerH)/2;
+  const fm1H=layerH*0.35, nmH=layerH*0.3, fm2H=layerH*0.35;
+
+  // Compute FM2 angle
+  let fm2angle=0; // 0 = parallel to FM1 (right)
+  if(gmrMode==='antiparallel') fm2angle=Math.PI;
+  else if(gmrMode==='rotating') fm2angle=gmrPhase%(Math.PI*2);
+  else fm2angle=(1-(fieldValue/100))*Math.PI;
+  const isParallel=Math.cos(fm2angle)>0.5;
+  const isAntiParallel=Math.cos(fm2angle)<-0.5;
+
+  // FM1 layer
+  const fm1Y=lY;
+  ctx.fillStyle='#1a0a30'; ctx.fillRect(lX,fm1Y,layerW,fm1H);
+  ctx.strokeStyle='#8844ff'; ctx.lineWidth=2; ctx.strokeRect(lX,fm1Y,layerW,fm1H);
+  ctx.fillStyle='#8844ff'; ctx.font='12px Segoe UI'; ctx.fillText('FM₁ (Ferromagnet)',lX+6,fm1Y+14);
+
+  // FM1 spin arrows (all pointing right)
+  drawSpinArrows(ctx,lX,fm1Y,layerW,fm1H,0,'#cc88ff');
+
+  // NM layer
+  const nmY=lY+fm1H;
+  ctx.fillStyle='#0a1a0a'; ctx.fillRect(lX,nmY,layerW,nmH);
+  ctx.strokeStyle='#44aa44'; ctx.lineWidth=2; ctx.strokeRect(lX,nmY,layerW,nmH);
+  ctx.fillStyle='#44aa44'; ctx.font='12px Segoe UI'; ctx.fillText('NM (Normal Metal)',lX+6,nmY+14);
+
+  // FM2 layer
+  const fm2Y=lY+fm1H+nmH;
+  ctx.fillStyle='#1a0a30'; ctx.fillRect(lX,fm2Y,layerW,fm2H);
+  ctx.strokeStyle='#8844ff'; ctx.lineWidth=2; ctx.strokeRect(lX,fm2Y,layerW,fm2H);
+  ctx.fillStyle='#8844ff'; ctx.font='12px Segoe UI'; ctx.fillText('FM₂ (Ferromagnet)',lX+6,fm2Y+14);
+
+  // FM2 spin arrows (direction = fm2angle)
+  drawSpinArrows(ctx,lX,fm2Y,layerW,fm2H,fm2angle,'#cc88ff');
+
+  // ─── Electron transport arrows ───
+  const eX=lX+layerW+24;
+  const eW=Math.min(100,W-eX-20);
+  if(eW>30){
+    // Spin-up electrons
+    const upColor=isParallel?'#44ff88':'#44aa66';
+    const upWidth=isParallel?5:2;
+    const downColor=isAntiParallel?'#ff4444':'#aa4444';
+    const downWidth=isAntiParallel?2:4;
+
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+    ctx.fillText('e↑',eX,lY+layerH/3);
+    ctx.fillText('e↓',eX,lY+layerH*2/3);
+
+    // Up channel
+    drawChannelArrow(ctx,eX+16,lY+layerH/3,eW,upWidth,upColor,isParallel?'easy':'scattered');
+    // Down channel
+    drawChannelArrow(ctx,eX+16,lY+layerH*2/3,eW,downWidth,downColor,isAntiParallel?'scattered':'easy');
+  }
+
+  // Resistance meter
+  const rmX=lX-90, rmY=lY+layerH/2-50;
+  const resistance=isParallel?0.25:isAntiParallel?1.0:0.25+0.75*Math.abs(Math.sin(fm2angle/2));
+  drawResistanceMeter(ctx,rmX,rmY,resistance);
+
+  // GMR ratio display
+  const P=0.7; // spin polarization
+  const gmrTheory=2*P*P/(1-P*P);
+  document.getElementById('gmrRatio').textContent=(gmrTheory*100).toFixed(0)+'%';
+  const resistLabel=isParallel?'R_P (low)':isAntiParallel?'R_AP (high)':'R_mixed';
+  document.getElementById('resistanceVal').textContent=resistLabel;
+}
+
+function drawSpinArrows(ctx,x,y,w,h,angle,color){
+  const nArr=5;
+  const spacing=w/(nArr+1);
+  ctx.strokeStyle=color; ctx.lineWidth=2;
+  for(let i=1;i<=nArr;i++){
+    const ax=x+i*spacing, ay=y+h/2;
+    const len=16;
+    const ex=ax+len*Math.cos(angle), ey=ay+len*Math.sin(angle);
+    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ex,ey);
+    ctx.moveTo(ex,ey);ctx.lineTo(ex-6*Math.cos(angle-0.4),ey-6*Math.sin(angle-0.4));
+    ctx.moveTo(ex,ey);ctx.lineTo(ex-6*Math.cos(angle+0.4),ey-6*Math.sin(angle+0.4));
+    ctx.stroke();
+  }
+}
+
+function drawChannelArrow(ctx,x,y,w,thickness,color,label){
+  ctx.fillStyle=color;
+  ctx.globalAlpha=0.7;
+  ctx.fillRect(x,y-thickness/2,w,thickness);
+  ctx.globalAlpha=1;
+  // Arrowhead
+  ctx.fillStyle=color;
+  ctx.beginPath();ctx.moveTo(x+w,y);ctx.lineTo(x+w-8,y-6);ctx.lineTo(x+w-8,y+6);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText(label,x+w-50,y-5);
+}
+
+function drawResistanceMeter(ctx,x,y,frac){
+  const mW=70, mH=80;
+  ctx.fillStyle='#0a0f18';ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;
+  ctx.fillRect(x,y,mW,mH);ctx.strokeRect(x,y,mW,mH);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText('Resistance',x+4,y+12);
+
+  // Bar
+  const barH=(mH-30)*frac;
+  const barGrad=ctx.createLinearGradient(0,y+mH-20-barH,0,y+mH-20);
+  barGrad.addColorStop(0,frac>0.7?'#ff4444':'#44ff88');
+  barGrad.addColorStop(1,frac>0.7?'#aa2222':'#228844');
+  ctx.fillStyle=barGrad;
+  ctx.fillRect(x+10,y+mH-20-barH,mW-20,barH);
+  ctx.strokeStyle='#2a2a50';ctx.strokeRect(x+10,y+20,mW-20,mH-40);
+
+  // Label
+  ctx.fillStyle=frac>0.7?'#ff4444':'#44ff88';ctx.font='bold 12px Segoe UI';
+  ctx.fillText(frac>0.7?'HIGH':'LOW',x+mW/2-12,y+mH-4);
+}
+
+function drawHardDrive(ctx,W,H){
+  const trackY=H/2-20, trackH=40;
+  const nDomains=12;
+  const dW=W/nDomains;
+
+  ctx.fillStyle='#0a0f18';ctx.fillRect(0,trackY,W,trackH);
+  ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(0,trackY,W,trackH);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText('Magnetic recording medium',10,trackY-8);
+
+  // Draw alternating domains
+  const bits=[1,0,1,1,0,0,1,0,1,0,1,1];
+  for(let i=0;i<nDomains;i++){
+    const bit=bits[i%bits.length];
+    const dx=i*dW, dY=trackY;
+    ctx.fillStyle=bit?'#1a0030':'#001a30';
+    ctx.fillRect(dx,dY,dW,trackH);
+    ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(dx,dY,dW,trackH);
+    // Domain magnetization arrow
+    const ax=dx+dW/2, ay=dY+trackH/2;
+    const adir=bit?0:Math.PI;
+    ctx.strokeStyle=bit?'#cc88ff':'#44aaff';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(ax-12*Math.cos(adir),ay);ctx.lineTo(ax+12*Math.cos(adir),ay);
+    ctx.moveTo(ax+12*Math.cos(adir),ay);ctx.lineTo(ax+12*Math.cos(adir)-5*Math.cos(adir-0.4),ay-5*Math.sin(adir-0.4));
+    ctx.moveTo(ax+12*Math.cos(adir),ay);ctx.lineTo(ax+12*Math.cos(adir)-5*Math.cos(adir+0.4),ay-5*Math.sin(adir+0.4));
+    ctx.stroke();
+    // Bit label
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText(String(bit),ax-3,dY+trackH+14);
+  }
+
+  // Scanning head
+  const headX=((gmrPhase*0.3)%(W+60))-30;
+  ctx.fillStyle='#44ff88';ctx.fillRect(headX,trackY-24,24,18);
+  ctx.strokeStyle='#44ff88';ctx.lineWidth=2;ctx.strokeRect(headX,trackY-24,24,18);
+  ctx.fillStyle='#44ff88';ctx.font='12px Segoe UI';ctx.fillText('HEAD',headX-2,trackY-28);
+  // Read wire
+  ctx.strokeStyle='rgba(68,255,136,0.4)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(headX+12,trackY-6);ctx.lineTo(headX+12,trackY);ctx.stroke();
+
+  // Resistance signal
+  const sigY=trackY+trackH+30;
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText('GMR signal (resistance)',10,sigY-4);
+  ctx.strokeStyle='#44ff88';ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<nDomains;i++){
+    const bit=bits[i%bits.length];
+    const prevBit=bits[(i-1+bits.length)%bits.length];
+    const rx=i*dW, ry=sigY+(bit===prevBit?0:12);
+    const ry2=sigY+(bit===prevBit?0:12);
+    if(i===0) ctx.moveTo(rx,sigY);
+    else if(bit!==prevBit){ctx.lineTo(rx,sigY);ctx.lineTo(rx,sigY+12);ctx.lineTo(rx+2,sigY+12);}
+    else ctx.lineTo(rx+dW,ry);
+  }
+  ctx.stroke();
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('0=R_P',W-60,sigY+2);ctx.fillText('1=R_AP',W-60,sigY+14);
+}
+
+// ─── TAB 2: CHERN NUMBER / TKNN ─────────────────────────────────────────────
+let chernAnimPhase=0, rafChern=null, chernAnim=false;
+let showCurvVec=true;
+
+function toggleChernAnim(){
+  chernAnim=!chernAnim;
+  document.getElementById('btnChernAnim').textContent=chernAnim?'⏸':'▶';
+  if(chernAnim) loopChernAnim();
+  else { cancelAnimationFrame(rafChern); rafChern=null; }
+}
+function loopChernAnim(){
+  chernAnimPhase+=0.025*(window.animSpeed||0.1);
+  drawChern();
+  if(chernAnim) rafChern=requestAnimationFrame(loopChernAnim);
+}
+function toggleCurvVec(){
+  showCurvVec=!showCurvVec;
+  document.getElementById('btnShowCurvVec').classList.toggle('active-btn',showCurvVec);
+  drawChern();
+}
+
+function drawChern(){
+  const r=setupCanvas('c2b');
+  if(!r) return;
+  const {cv,ctx,W,H}=r;
+  ctx.clearRect(0,0,W,H);
+  const sel=document.getElementById('chernBandSel');
+  const mode=sel?sel.value:'chern1';
+
+  // BZ region: square from (bzX,bzY) of side bzS
+  const bzS=Math.min(W*0.55,H*0.85,320);
+  const bzX=(W-bzS)/2 - W*0.08;
+  const bzY=(H-bzS)/2;
+
+  // Compute Berry curvature on grid and integrate
+  const N=64;
+  const idata=ctx.createImageData(Math.ceil(bzS),Math.ceil(bzS));
+  let totalOmega=0;
+  for(let ix=0;ix<N;ix++){
+    for(let iy=0;iy<N;iy++){
+      const kx=(ix/N)*2*Math.PI-Math.PI;
+      const ky=(iy/N)*2*Math.PI-Math.PI;
+      let omega=0;
+      if(mode==='trivial'){
+        // Trivial: small curvature bumps that integrate to 0
+        omega=0.3*Math.sin(kx)*Math.sin(ky);
+      } else if(mode==='chern1'){
+        // Single monopole near Gamma: Berry curvature of a 2-band model
+        // Haldane-like: d_z = M - 2t(cos kx + cos ky), monopole at Gamma
+        const M=2.5, t=1;
+        const dx=Math.sin(kx);
+        const dy=Math.sin(ky);
+        const dz=M-2*t*(Math.cos(kx)+Math.cos(ky));
+        const dmod=Math.sqrt(dx*dx+dy*dy+dz*dz)+1e-9;
+        // Berry curvature = (d/|d|^3)·(∂d/∂kx × ∂d/∂ky)
+        const ddx_kx=Math.cos(kx), ddy_kx=0, ddz_kx=2*t*Math.sin(kx);
+        const ddx_ky=0, ddy_ky=Math.cos(ky), ddz_ky=2*t*Math.sin(ky);
+        // cross product of ∂d/∂kx and ∂d/∂ky
+        const cx=ddy_kx*ddz_ky-ddz_kx*ddy_ky;
+        const cy=ddz_kx*ddx_ky-ddx_kx*ddz_ky;
+        const cz=ddx_kx*ddy_ky-ddy_kx*ddx_ky;
+        omega=0.5*(dx*cx+dy*cy+dz*cz)/(dmod*dmod*dmod);
+      } else { // chern2: two monopoles
+        const M=1.5, t=1;
+        const dx=Math.sin(2*kx);
+        const dy=Math.sin(2*ky);
+        const dz=M-2*t*(Math.cos(kx)+Math.cos(ky));
+        const dmod=Math.sqrt(dx*dx+dy*dy+dz*dz)+1e-9;
+        const ddx_kx=2*Math.cos(2*kx), ddy_kx=0, ddz_kx=2*t*Math.sin(kx);
+        const ddx_ky=0, ddy_ky=2*Math.cos(2*ky), ddz_ky=2*t*Math.sin(ky);
+        const cx2=ddy_kx*ddz_ky-ddz_kx*ddy_ky;
+        const cy2=ddz_kx*ddx_ky-ddx_kx*ddz_ky;
+        const cz2=ddx_kx*ddy_ky-ddy_kx*ddx_ky;
+        omega=0.5*(dx*cx2+dy*cy2+dz*cz2)/(dmod*dmod*dmod);
+      }
+      totalOmega+=omega;
+      // Map to pixel
+      const px=Math.floor(ix*bzS/N), py=Math.floor((N-1-iy)*bzS/N);
+      const pw=Math.ceil(bzS/N)+1, ph=Math.ceil(bzS/N)+1;
+      const v=Math.max(-1,Math.min(1,omega*2.5));
+      const r_=v>0?Math.floor(v*220):0;
+      const g_=Math.floor((1-Math.abs(v))*60);
+      const b_=v<0?Math.floor(-v*220):0;
+      for(let qx=0;qx<pw;qx++) for(let qy=0;qy<ph;qy++){
+        const pidx=((py+qy)*Math.ceil(bzS)+(px+qx))*4;
+        if(pidx>=0 && pidx+3<idata.data.length){
+          idata.data[pidx]=r_; idata.data[pidx+1]=g_; idata.data[pidx+2]=b_; idata.data[pidx+3]=220;
+        }
+      }
+    }
+  }
+  ctx.putImageData(idata,bzX,bzY);
+
+  // BZ border
+  ctx.strokeStyle='rgba(68,255,136,0.6)';ctx.lineWidth=1.5;
+  ctx.strokeRect(bzX,bzY,bzS,bzS);
+
+  // BZ labels
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('-π',bzX-2,bzY+bzS+12); ctx.fillText('π',bzX+bzS-8,bzY+bzS+12);
+  ctx.fillText('kₓ',bzX+bzS/2-6,bzY+bzS+14);
+  ctx.save();ctx.translate(bzX-14,bzY+bzS/2+10);ctx.rotate(-Math.PI/2);ctx.fillText('k_y',0,0);ctx.restore();
+
+  // TRIM points
+  const trimPts=[
+    {label:'Γ',kx:0,ky:0},
+    {label:'M',kx:Math.PI,ky:Math.PI},
+    {label:'M',kx:-Math.PI,ky:Math.PI},
+    {label:'X',kx:Math.PI,ky:0},
+    {label:'X',kx:0,ky:Math.PI}
+  ];
+  trimPts.forEach(tp=>{
+    const px=bzX+bzS*(tp.kx+Math.PI)/(2*Math.PI);
+    const py=bzY+bzS*(Math.PI-tp.ky)/(2*Math.PI);
+    ctx.fillStyle='rgba(255,255,100,0.8)';
+    ctx.beginPath();ctx.arc(px,py,3.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffee44';ctx.font='12px Segoe UI';ctx.fillText(tp.label,px+4,py-4);
+  });
+
+  // Berry curvature vector field overlay
+  if(showCurvVec){
+    const step=Math.ceil(bzS/12);
+    ctx.strokeStyle='rgba(100,200,255,0.55)';ctx.lineWidth=1;
+    for(let px=0;px<Math.ceil(bzS);px+=step){
+      for(let py=0;py<Math.ceil(bzS);py+=step){
+        const kx=(px/bzS)*2*Math.PI-Math.PI;
+        const ky=((bzS-py)/bzS)*2*Math.PI-Math.PI;
+        // gradient of curvature as proxy for Berry connection direction
+        const ax=-Math.sin(ky)*0.5, ay=Math.sin(kx)*0.5;
+        const sc=step*0.35;
+        const ex=bzX+px+ax*sc, ey=bzY+py+ay*sc;
+        ctx.beginPath();ctx.moveTo(bzX+px,bzY+py);ctx.lineTo(ex,ey);
+        const ang=Math.atan2(ey-(bzY+py),ex-(bzX+px));
+        ctx.moveTo(ex,ey);ctx.lineTo(ex-4*Math.cos(ang-0.5),ey-4*Math.sin(ang-0.5));
+        ctx.moveTo(ex,ey);ctx.lineTo(ex-4*Math.cos(ang+0.5),ey-4*Math.sin(ang+0.5));
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Animated integration sweep line
+  if(chernAnim){
+    const swX=bzX+(((chernAnimPhase*0.4)%(1.2))-0.1)*bzS;
+    if(swX>=bzX && swX<=bzX+bzS){
+      ctx.strokeStyle='rgba(255,200,60,0.8)';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(swX,bzY);ctx.lineTo(swX,bzY+bzS);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Colorbar legend
+  const cbX=bzX+bzS+18, cbY=bzY, cbH=bzS, cbW=14;
+  const cbGrad=ctx.createLinearGradient(0,cbY,0,cbY+cbH);
+  cbGrad.addColorStop(0,'rgb(220,0,0)'); cbGrad.addColorStop(0.5,'rgb(0,60,0)'); cbGrad.addColorStop(1,'rgb(0,0,220)');
+  ctx.fillStyle=cbGrad;ctx.fillRect(cbX,cbY,cbW,cbH);
+  ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(cbX,cbY,cbW,cbH);
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('+Ω',cbX,cbY-3);ctx.fillText('0',cbX,cbY+cbH/2+3);ctx.fillText('-Ω',cbX,cbY+cbH+10);
+
+  // Side plot: integral vs kx strip (shows Chern number accumulation)
+  const spX=bzX+bzS+cbW+30, spY=bzY, spW=Math.min(W-spX-10,120), spH=bzS;
+  if(spW>50){
+    ctx.fillStyle='#0a0f18';ctx.fillRect(spX,spY,spW,spH);
+    ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(spX,spY,spW,spH);
+    ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.fillText('∫Ω dk_x',spX+2,spY+11);
+
+    // Running integral per ky strip
+    const chernApprox=totalOmega/(N*N)*(4*Math.PI*Math.PI)/(2*Math.PI);
+    const chernInt=Math.round(chernApprox);
+    ctx.strokeStyle='#44ff88';ctx.lineWidth=2;
+    ctx.beginPath();
+    let runSum=0;
+    for(let iy=0;iy<N;iy++){
+      let stripSum=0;
+      for(let ix=0;ix<N;ix++){
+        const kx=(ix/N)*2*Math.PI-Math.PI;
+        const ky=(iy/N)*2*Math.PI-Math.PI;
+        if(mode==='trivial') stripSum+=0.3*Math.sin(kx*(window.animSpeed||0.1))*Math.sin(ky);
+        else if(mode==='chern1'){
+          const M=2.5, t=1;
+          const dx=Math.sin(kx), dy=Math.sin(ky), dz=M-2*t*(Math.cos(kx)+Math.cos(ky));
+          const dmod=Math.sqrt(dx*dx+dy*dy+dz*dz)+1e-9;
+          const ddx_kx=Math.cos(kx), ddz_kx=2*t*Math.sin(kx);
+          const ddy_ky=Math.cos(ky), ddz_ky=2*t*Math.sin(ky);
+          const cz=ddx_kx*ddy_ky;
+          stripSum+=0.5*(dx*(-ddz_kx*ddy_ky*(window.animSpeed||0.1))+dy*(ddz_kx*ddx_ky||0)+dz*cz)/(dmod*dmod*dmod);
+        } else {
+          stripSum+=0;
+        }
+      }
+      runSum+=stripSum;
+      const plotX=spX+spW/2+Math.min(spW/2-4,(runSum/(N*N)*4*spW));
+      const plotY=spY+spH*(1-iy/N);
+      iy===0?ctx.moveTo(plotX,plotY):ctx.lineTo(plotX,plotY);
+    }
+    ctx.stroke();
+    // Zero axis
+    ctx.strokeStyle='rgba(136,136,170,0.4)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(spX+spW/2,spY);ctx.lineTo(spX+spW/2,spY+spH);ctx.stroke();
+    ctx.setLineDash([]);
+    // Chern number label
+    document.getElementById('chernNumVal').textContent=mode==='trivial'?'0':mode==='chern1'?'1':'2';
+  }
+}
+
+// ─── TAB 3: EDGE STATES & Z₂ TI ─────────────────────────────────────────────
+let ribbonTopo=true, disorderStrength=0;
+let z2AnimPhase=0, rafZ2=null, z2Anim=false;
+
+function toggleRibbonTopo(){
+  ribbonTopo=true;
+  document.getElementById('btnRibbonTopo').classList.add('active-btn');
+  document.getElementById('btnRibbonTrivial').classList.remove('active-btn');
+  document.getElementById('z2RibbonVal').textContent='1';
+  document.getElementById('z2EdgeVal').textContent='Helical (protected)';
+  drawZ2Ribbon();
+}
+function toggleRibbonTrivial(){
+  ribbonTopo=false;
+  document.getElementById('btnRibbonTrivial').classList.add('active-btn');
+  document.getElementById('btnRibbonTopo').classList.remove('active-btn');
+  document.getElementById('z2RibbonVal').textContent='0';
+  document.getElementById('z2EdgeVal').textContent='None (gapped)';
+  drawZ2Ribbon();
+}
+function onDisorderChange(){
+  disorderStrength=parseInt(document.getElementById('disorderSlider').value);
+  document.getElementById('disorderVal').textContent=disorderStrength+'%';
+  document.getElementById('z2DisorderVal').textContent=disorderStrength+'%';
+  drawZ2Ribbon();
+}
+function toggleZ2Anim(){
+  z2Anim=!z2Anim;
+  document.getElementById('btnZ2Anim').textContent=z2Anim?'⏸':'▶';
+  if(z2Anim) loopZ2Anim();
+  else { cancelAnimationFrame(rafZ2); rafZ2=null; }
+}
+function loopZ2Anim(){
+  z2AnimPhase+=0.03*(window.animSpeed||0.1);
+  drawZ2Ribbon();
+  if(z2Anim) rafZ2=requestAnimationFrame(loopZ2Anim);
+}
+
+function drawZ2Ribbon(){
+  const r=setupCanvas('c3b');
+  if(!r) return;
+  const {cv,ctx,W,H}=r;
+  ctx.clearRect(0,0,W,H);
+
+  // Layout: main band structure panel
+  const padL=44, padR=12, padT=20, padB=30;
+  const pW=W-padL-padR, pH=H-padT-padB;
+  const pX=padL, pY=padT;
+
+  ctx.fillStyle='#080d16';ctx.fillRect(pX,pY,pW,pH);
+  ctx.strokeStyle='#2a2a50';ctx.lineWidth=1;ctx.strokeRect(pX,pY,pW,pH);
+
+  // Axes
+  ctx.strokeStyle='rgba(136,136,170,0.3)';ctx.lineWidth=1;
+  // kx axis at bottom
+  ctx.beginPath();ctx.moveTo(pX,pY+pH);ctx.lineTo(pX+pW,pY+pH);ctx.stroke();
+  // E axis at left
+  ctx.beginPath();ctx.moveTo(pX,pY);ctx.lineTo(pX,pY+pH);ctx.stroke();
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText('E',pX-14,pY+10);
+  ctx.fillText('kₓ',pX+pW/2-6,pY+pH+14);
+  ctx.fillText('-π/a',pX-2,pY+pH+12);ctx.fillText('π/a',pX+pW-16,pY+pH+12);
+  ctx.fillText('0',pX+pW/2-4,pY+pH+12);
+
+  const midY=pY+pH/2;
+  const gapH=pH*0.19;
+  const conY=midY-gapH;
+  const valY=midY+gapH;
+
+  // Noise function for disordered bands
+  const noise=(k,band,seed)=>{
+    if(disorderStrength===0) return 0;
+    const d=disorderStrength/100;
+    // Deterministic pseudo-random from k and band
+    const x=Math.sin(k*17.3+band*5.1+seed)*43758.5453;
+    return (x-Math.floor(x)-0.5)*d*gapH*0.55;
+  };
+
+  // Bulk valence band (multiple sub-bands from ribbon quantization)
+  const nBulkBands=4;
+  for(let b=0;b<nBulkBands;b++){
+    const shift=b*pH*0.055;
+    ctx.strokeStyle=`rgba(60,100,220,${0.25+b*0.1})`;ctx.lineWidth=1.2;
+    ctx.beginPath();
+    for(let px=0;px<pW;px++){
+      const k=(px/pW)*2*Math.PI-Math.PI;
+      const E=valY+shift+k*k*pH*0.07+noise(k,b,1.1);
+      px===0?ctx.moveTo(pX+px,E):ctx.lineTo(pX+px,E);
+    }
+    ctx.stroke();
+  }
+  // Bulk conduction bands
+  for(let b=0;b<nBulkBands;b++){
+    const shift=-b*pH*0.055;
+    ctx.strokeStyle=`rgba(140,60,220,${0.25+b*0.1})`;ctx.lineWidth=1.2;
+    ctx.beginPath();
+    for(let px=0;px<pW;px++){
+      const k=(px/pW)*2*Math.PI-Math.PI;
+      const E=conY+shift-k*k*pH*0.07+noise(k,b+nBulkBands,2.2);
+      px===0?ctx.moveTo(pX+px,E):ctx.lineTo(pX+px,E);
+    }
+    ctx.stroke();
+  }
+
+  // Gap shading
+  ctx.fillStyle='rgba(20,20,60,0.4)';
+  ctx.fillRect(pX,conY,pW,valY-conY);
+  ctx.fillStyle='#555577';ctx.font='12px Segoe UI';
+  ctx.fillText('bulk gap',pX+pW/2-18,midY+4);
+
+  // Edge modes
+  if(ribbonTopo){
+    // Two helical edge modes crossing the gap: E = +/- v_F * k
+    // Edge mode 1 (spin-up, right-moving): linear positive slope
+    const edgeNoise1=(k)=>{
+      if(disorderStrength===0) return 0;
+      // Edge modes are topologically protected — much smaller disorder effect
+      return noise(k,99,3.3)*0.06; // 94% suppression!
+    };
+    const edgeNoise2=(k)=>{
+      if(disorderStrength===0) return 0;
+      return noise(k,100,4.4)*0.06;
+    };
+
+    ctx.shadowColor='#44ff88';ctx.shadowBlur=z2Anim?10:5;
+    ctx.strokeStyle='#44ff88';ctx.lineWidth=2.5;
+    ctx.beginPath();
+    for(let px=0;px<pW;px++){
+      const k=(px/pW)*2*Math.PI-Math.PI;
+      const E=midY - k*(gapH*1.4/(Math.PI))+edgeNoise1(k);
+      px===0?ctx.moveTo(pX+px,E):ctx.lineTo(pX+px,E);
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // Edge mode 2 (spin-down, left-moving): linear negative slope
+    ctx.shadowColor='#ff44aa';ctx.shadowBlur=z2Anim?10:5;
+    ctx.strokeStyle='#ff44aa';ctx.lineWidth=2.5;
+    ctx.beginPath();
+    for(let px=0;px<pW;px++){
+      const k=(px/pW)*2*Math.PI-Math.PI;
+      const E=midY + k*(gapH*1.4/(Math.PI))+edgeNoise2(k);
+      px===0?ctx.moveTo(pX+px,E):ctx.lineTo(pX+px,E);
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // Labels
+    ctx.fillStyle='#44ff88';ctx.font='12px Segoe UI';ctx.fillText('↑ edge (spin-up)',pX+4,pY+12);
+    ctx.fillStyle='#ff44aa';ctx.font='12px Segoe UI';ctx.fillText('↓ edge (spin-dn)',pX+4,pY+22);
+
+    // Kramers pairs at TRIM: k=0 (Gamma) and k=±π (M)
+    const trimK=[0, Math.PI, -Math.PI];
+    trimK.forEach(k=>{
+      const px=pX+pW*(k+Math.PI)/(2*Math.PI);
+      const E1=midY - k*(gapH*1.4/(Math.PI));
+      const E2=midY + k*(gapH*1.4/(Math.PI));
+      const Eacc=(E1+E2)/2;
+      // Kramers degeneracy marker
+      ctx.fillStyle='rgba(255,255,100,0.85)';
+      ctx.beginPath();ctx.arc(px,Eacc,5,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#ffee44';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(px,Eacc,9,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='#ffee44';ctx.font='12px Segoe UI';
+      ctx.fillText(Math.abs(k)<0.01?'Γ':'M',px+6,Eacc-6);
+      ctx.fillText('KP',px+6,Eacc+3);
+    });
+
+    // Animated Fermi energy line
+    if(z2Anim){
+      const EF=midY+Math.sin(z2AnimPhase*0.7)*gapH*0.8;
+      ctx.strokeStyle='rgba(255,140,40,0.85)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(pX,EF);ctx.lineTo(pX+pW,EF);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ff8828';ctx.font='12px Segoe UI';ctx.fillText('E_F',pX+pW-22,EF-3);
+      // Show Fermi points on edge modes
+      [-1,1].forEach(sign=>{
+        const kF=(EF-midY)/(sign*-gapH*1.4/(Math.PI));
+        if(Math.abs(kF)<=Math.PI){
+          const fpx=pX+pW*(kF+Math.PI)/(2*Math.PI);
+          ctx.fillStyle=sign>0?'#44ff88':'#ff44aa';
+          ctx.beginPath();ctx.arc(fpx,EF,4.5,0,Math.PI*2);ctx.fill();
+        }
+      });
+    }
+
+    // Disorder effect on bulk bands annotation
+    if(disorderStrength>0){
+      ctx.fillStyle='rgba(255,100,50,0.75)';ctx.font='12px Segoe UI';
+      ctx.fillText('Bulk: disordered',pX+4,pY+pH-8);
+      ctx.fillStyle='rgba(68,255,136,0.75)';
+      ctx.fillText('Edge: protected!',pX+4,pY+pH-18);
+    }
+  } else {
+    // Trivial: no crossing, bulk bands also disordered
+    if(disorderStrength>30){
+      ctx.fillStyle='rgba(100,100,180,0.5)';ctx.font='12px Segoe UI';
+      ctx.fillText('Bulk gap destroyed by disorder',pX+pW/2-55,midY+4);
+    }
+    ctx.fillStyle='#5555aa';ctx.font='12px Segoe UI';
+    ctx.fillText('No edge modes (trivial)',pX+4,pY+12);
+  }
+
+  // Title
+  ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';
+  ctx.fillText(ribbonTopo?'Topological ribbon (ν=1)':'Trivial ribbon (ν=0)',pX+pW/2-48,pY-6);
+
+  // Legend: Kramers pair
+  if(ribbonTopo){
+    ctx.fillStyle='#ffee44';ctx.font='12px Segoe UI';
+    ctx.fillText('● = Kramers pair (TRIM degeneracy)',pX+pW/2-65,pY+pH-5);
+  }
+}
+
+// ─── Init & resize ───────────────────────────────────────────────────────────
+function initAll(){
+  draw0();
+  draw1(); draw1b();
+  drawChern();
+  drawZ2Ribbon();
+  draw2();
+  draw3();
+  // Start edge current animation for tab 3
+  animEdgeCurr();
+}
+
+window.addEventListener('load',()=>{
+  window.animSpeed=0.1;
+  for(var i=0;i<5;i++){syncSpeedControl48(i);}
+  setTimeout(initAll,80);
+});
+
+// Re-render KaTeX in about panels after all scripts load
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    ['about0','about1','about2b','about3b'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el && window.renderMathInElement){
+        renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+      }
+    });
+  },300);
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

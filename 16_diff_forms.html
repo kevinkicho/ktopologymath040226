@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>16 · Differential Forms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#05050f;color:#e0ffe0;font-family:'Share Tech Mono',monospace;min-height:100vh;overflow-x:hidden;padding-bottom:38px}
+header{padding:18px 32px;display:flex;align-items:center;gap:20px;border-bottom:1px solid rgba(153,255,102,0.25);background:rgba(5,5,20,0.9)}
+.back{color:#99ff66;text-decoration:none;font-size:1.1rem;opacity:.7;transition:opacity .2s}.back:hover{opacity:1}
+h1{font-family:'Orbitron',sans-serif;font-size:1.55rem;color:#99ff66;text-shadow:0 0 20px #99ff6688}
+.subtitle{font-size:.8rem;opacity:.55;margin-left:auto}
+.tabs{display:flex;gap:0;border-bottom:1px solid rgba(153,255,102,0.2);background:rgba(10,10,30,0.8);padding:0 24px;flex-shrink:0;overflow-x:auto}
+.tab{padding:12px 22px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.85rem;color:#99ff6699;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab.active{color:#99ff66;border-bottom-color:#99ff66;text-shadow:0 0 10px #99ff6688}
+.tab:hover:not(.active){color:#99ff66cc}
+.workspace{display:flex;height:calc(100vh - 145px);overflow:hidden}
+.sidebar{width:240px;min-width:200px;background:rgba(10,10,28,0.95);border-right:1px solid rgba(153,255,102,0.15);padding:18px 14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.sidebar.right{border-right:none;border-left:1px solid rgba(153,255,102,0.15)}
+.main-area{flex:1;position:relative;background:#06060f;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+label{font-size:.75rem;color:#99ff6699;display:block;margin-bottom:3px}
+input[type=range]{width:100%;accent-color:#99ff66;cursor:pointer}
+.val{color:#99ff66;font-size:.8rem;text-align:right}
+button{background:rgba(153,255,102,0.1);border:1px solid rgba(153,255,102,0.35);color:#99ff66;padding:7px 12px;border-radius:4px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.78rem;width:100%;transition:all .2s}
+button:hover{background:rgba(153,255,102,0.22);box-shadow:0 0 10px #99ff6644}
+button.active{background:rgba(153,255,102,0.3);box-shadow:0 0 14px #99ff6666}
+.info-box{background:rgba(153,255,102,0.06);border:1px solid rgba(153,255,102,0.2);border-radius:6px;padding:10px;font-size:.72rem;line-height:1.55;color:#b8ffaa}
+.sep{height:1px;background:rgba(153,255,102,0.15);margin:4px 0}
+.proof-panel{position:fixed;bottom:0;left:0;right:0;height:54px;background:rgba(8,8,20,0.97);border-top:1px solid rgba(153,255,102,0.3);transition:height .35s ease;z-index:100;overflow:hidden}
+.proof-panel.open{height:340px}
+.proof-header{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer}
+.proof-header h3{color:#99ff66;font-family:'Orbitron',sans-serif;font-size:.8rem;flex:1}
+.proof-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px}
+.ptab{background:rgba(153,255,102,0.08);border:1px solid rgba(153,255,102,0.28);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:.72rem;color:#99ff6699;white-space:nowrap;transition:all .2s}
+.ptab.active,.ptab:hover{background:rgba(153,255,102,0.22);color:#99ff66}
+.proof-content{padding:4px 24px 20px;overflow-y:auto;max-height:260px;font-size:.83rem;line-height:1.75;color:#ccffcc}
+.pan-mode canvas{cursor:grab}
+.pan-mode canvas:active{cursor:grabbing}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← back</a>
+  <h1>16 · Differential Forms</h1>
+  <span class="subtitle">Road to Reality Ch. 14 — Forms, Wedge Products & Stokes</span>
+</header>
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">1-Forms & 2-Forms</div>
+  <div class="tab" onclick="switchTab(1)">Stokes' Theorem</div>
+  <div class="tab" onclick="switchTab(2)">Maxwell as Forms</div>
+  <div class="tab" onclick="switchTab(3)">Wedge Product</div>
+  <div class="tab" onclick="switchTab(4)">Stokes Unified</div>
+  <div class="tab" onclick="switchTab(5)">Hodge Star</div>
+  <div class="tab" onclick="switchTab(6)">Integration</div>
+</div>
+
+<!-- TAB 0 -->
+<div id="panel0" class="workspace" data-role="panel">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">1-form: $\omega = P\,dx + Q\,dy$<br>2-form: $d\omega = \left(\frac{\partial Q}{\partial x}-\frac{\partial P}{\partial y}\right)dx\wedge dy$</div>
+    <div class="sep"></div>
+    <label>Form type</label>
+    <button onclick="setForm(0)" id="fBtn0">ω = x dy - y dx</button>
+    <button onclick="setForm(1)" id="fBtn1">ω = x dx + y dy</button>
+    <button onclick="setForm(2)" id="fBtn2">ω = sin(x) dy</button>
+    <button onclick="setForm(3)" id="fBtn3">ω = y dx - x dy</button>
+    <div class="sep"></div>
+    <label>Grid density <span class="val" id="v_grid">8</span></label>
+    <input type="range" id="gridN" min="4" max="16" step="1" value="8" oninput="updateForms()">
+    <label>Arrow scale <span class="val" id="v_scale">1.0</span></label>
+    <input type="range" id="arrowSc" min="0.2" max="3" step="0.1" value="1" oninput="updateForms()">
+    <div class="sep"></div>
+    <button onclick="toggleFlux()">Toggle: show dω</button>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="formC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Wedge product:</b><br>
+      $dx \wedge dy = -dy \wedge dx$<br>
+      $dx \wedge dx = 0$<br><br>
+      <b>Exterior derivative:</b><br>
+      $d(f\,dx) = \frac{\partial f}{\partial y}dy\wedge dx$<br><br>
+      <b>Poincaré lemma:</b><br>
+      $d(d\omega) = 0$<br>closed: $d\omega=0$<br>exact: $\omega=d\alpha$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1 -->
+<div id="panel1" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Stokes' Theorem:<br>$\oint_{\partial M}\omega = \int_M d\omega$</div>
+    <div class="sep"></div>
+    <label>Region shape</label>
+    <button onclick="setRegion(0)" id="rBtn0">Rectangle</button>
+    <button onclick="setRegion(1)" id="rBtn1">Disk</button>
+    <button onclick="setRegion(2)" id="rBtn2">Triangle</button>
+    <div class="sep"></div>
+    <label>Field F</label>
+    <button onclick="setField(0)" id="fieldBtn0">F = (-y, x)</button>
+    <button onclick="setField(1)" id="fieldBtn1">F = (x², y²)</button>
+    <button onclick="setField(2)" id="fieldBtn2">F = (sin y, cos x)</button>
+    <div class="sep"></div>
+    <button id="stokesAnimBtn" class="btn" onclick="animateStokes()">▶ Animate Path</button>
+    <div class="sep"></div>
+    <div class="info-box" id="stokesResult" style="font-size:.72rem;line-height:1.65">
+      Line integral:<br>∮ F·dr = ?<br><br>
+      Area integral:<br>∬ (∂Q/∂x-∂P/∂y) dA = ?
+    </div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="stokesC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Green's Theorem</b> (2D):<br>
+      $\oint_C P\,dx+Q\,dy$<br>
+      $=\iint_D\left(\tfrac{\partial Q}{\partial x}-\tfrac{\partial P}{\partial y}\right)dA$<br><br>
+      <b>Divergence Theorem</b>:<br>
+      $\oiint_S \mathbf{F}\cdot d\mathbf{A} = \iiint_V \nabla\cdot\mathbf{F}\,dV$<br><br>
+      All are special cases of<br>$\int_M d\omega = \int_{\partial M}\omega$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2 -->
+<div id="panel2" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Maxwell in forms:<br>$dF = 0$<br>$d{\star}F = J$<br>$F = dA$</div>
+    <div class="sep"></div>
+    <label>View mode</label>
+    <button onclick="setMView(0)" id="mvBtn0">Field Lines E</button>
+    <button onclick="setMView(1)" id="mvBtn1">Field Lines B</button>
+    <button onclick="setMView(2)" id="mvBtn2">2-Form F visualization</button>
+    <div class="sep"></div>
+    <label>Charge Q <span class="val" id="v_chargeQ">1.0</span></label>
+    <input type="range" id="chargeQ" min="-2" max="2" step="0.1" value="1" oninput="updateMaxwell()">
+    <label>Current I <span class="val" id="v_curI">1.0</span></label>
+    <input type="range" id="curI" min="-2" max="2" step="0.1" value="1" oninput="updateMaxwell()">
+    <div class="sep"></div>
+    <button id="emAnimBtn" class="btn" onclick="animateEM()">▶ Animate EM Wave</button>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas id="maxC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.68rem;line-height:1.75">
+      <b>Faraday 2-form:</b><br>
+      $F = E_i\,cdt\wedge dx^i$<br>
+      $+\tfrac{1}{2}B_k\epsilon_{ijk}dx^i\wedge dx^j$<br><br>
+      <b>dF=0 encodes:</b><br>
+      $\nabla\cdot\mathbf{B}=0$<br>
+      $\nabla\times\mathbf{E}=-\partial_t\mathbf{B}$<br><br>
+      <b>d★F=J encodes:</b><br>
+      $\nabla\cdot\mathbf{E}=\rho/\epsilon_0$<br>
+      $\nabla\times\mathbf{B}=\mu_0\mathbf{J}+\mu_0\epsilon_0\partial_t\mathbf{E}$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: WEDGE PRODUCT -->
+<div id="panel3" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Wedge product:<br>$u \wedge v = \det[u,v]$<br>signed area element<br><br>$dx\wedge dy = -dy\wedge dx$<br>$dx\wedge dx = 0$</div>
+    <div class="sep"></div>
+    <label>Mode</label>
+    <button onclick="setWedgeMode(0)" id="wBtn0">2D: u∧v parallelogram</button>
+    <button onclick="setWedgeMode(1)" id="wBtn1">Anticommutativity</button>
+    <button onclick="setWedgeMode(2)" id="wBtn2">3D volume element</button>
+    <button onclick="setWedgeMode(3)" id="wBtn3">Associativity anim</button>
+    <div class="sep"></div>
+    <div class="info-box" id="wedgeDetBox" style="font-size:.72rem;line-height:1.65">
+      det[u,v] = ?<br>Orientation: ?
+    </div>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.7rem;line-height:1.7">
+      <b>Exterior algebra</b> $\Lambda^*(\mathbb{R}^n)$:<br>
+      $k$-forms span $\binom{n}{k}$ dims.<br>
+      In $\mathbb{R}^3$: 1,3,3,1 dims.<br><br>
+      <b>Graded ring:</b><br>
+      $\alpha\wedge\beta = (-1)^{kl}\beta\wedge\alpha$<br>
+      for $\alpha\in\Lambda^k$, $\beta\in\Lambda^l$
+    </div>
+  </div>
+  <div class="main-area"><canvas id="wedgeC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Drag the vector tips</b><br>
+      to explore $u\wedge v$.<br><br>
+      <b>Signed area:</b><br>
+      $u\wedge v = u_x v_y - u_y v_x$<br><br>
+      <b>3D basis 2-forms:</b><br>
+      $dx\wedge dy$ (z-face)<br>
+      $dy\wedge dz$ (x-face)<br>
+      $dz\wedge dx$ (y-face)<br><br>
+      <b>Volume 3-form:</b><br>
+      $dx\wedge dy\wedge dz$<br>
+      $= \det(u,v,w)\,\text{vol}$<br><br>
+      <b>Poincaré duality:</b><br>
+      $\Lambda^k \cong \Lambda^{n-k}$ via $\star$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: STOKES UNIFIED -->
+<div id="panel4" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Generalized Stokes:<br>$\int_M d\omega = \int_{\partial M}\omega$<br><br>Unifies ALL classical<br>integration theorems</div>
+    <div class="sep"></div>
+    <label>Theorem case</label>
+    <button onclick="setSUnified(0)" id="suBtn0">FTC (0-form, n=1)</button>
+    <button onclick="setSUnified(1)" id="suBtn1">Green's (1-form, n=2)</button>
+    <button onclick="setSUnified(2)" id="suBtn2">Stokes (2-form, n=3)</button>
+    <button onclick="setSUnified(3)" id="suBtn3">Divergence (3-form)</button>
+    <div class="sep"></div>
+    <button id="suAnimBtn" class="btn" onclick="animateSUnified()">▶ Animate ∂ operator</button>
+    <div class="sep"></div>
+    <div class="info-box" id="sunifiedInfo" style="font-size:.7rem;line-height:1.7">
+      Select a case above.
+    </div>
+  </div>
+  <div class="main-area"><canvas id="sunifiedC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.68rem;line-height:1.75">
+      <b>d and ∂ are adjoints:</b><br>
+      $\langle d\alpha,\beta\rangle_M = \langle\alpha,\partial\beta\rangle_{\partial M}$<br><br>
+      <b>FTC:</b> $\int_a^b f'\,dx = f(b)-f(a)$<br><br>
+      <b>Green:</b> $\iint(\partial_x Q{-}\partial_y P)dA$<br>$= \oint P\,dx+Q\,dy$<br><br>
+      <b>Stokes:</b> $\iint(\nabla{\times}\mathbf{F}){\cdot}d\mathbf{A}$<br>$= \oint \mathbf{F}{\cdot}d\mathbf{r}$<br><br>
+      <b>Divergence:</b><br>$\iiint \nabla{\cdot}\mathbf{F}\,dV = \oiint \mathbf{F}{\cdot}d\mathbf{A}$<br><br>
+      All are $\int_M d\omega = \int_{\partial M}\omega$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: HODGE STAR -->
+<div id="panel5" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Hodge star:<br>$\star:\Omega^k\to\Omega^{n-k}$<br><br>In $\mathbb{R}^3$:<br>$\star dx = dy\wedge dz$<br>$\star dy = dz\wedge dx$<br>$\star dz = dx\wedge dy$</div>
+    <div class="sep"></div>
+    <label>View mode</label>
+    <button onclick="setHodgeMode(0)" id="hBtn0">★ basis forms (3D)</button>
+    <button onclick="setHodgeMode(1)" id="hBtn1">Hodge decomposition</button>
+    <button onclick="setHodgeMode(2)" id="hBtn2">Harmonic form Δω=0</button>
+    <div class="sep"></div>
+    <button id="hodgeAnimBtn" class="btn" onclick="animateHodge()">▶ Animate decomp</button>
+    <div class="sep"></div>
+    <div class="info-box" style="font-size:.7rem;line-height:1.7">
+      <b>Laplace-Beltrami:</b><br>
+      $\Delta = d\delta + \delta d$<br>
+      $\delta = (-1)^k\star d\star$<br><br>
+      <b>Hodge decomp:</b><br>
+      $\omega = d\alpha + \delta\beta + \gamma$<br>
+      $\gamma$ = harmonic ($\Delta\gamma=0$)<br><br>
+      $\dim\ker\Delta^k = b_k$<br>
+      (Betti numbers!)
+    </div>
+  </div>
+  <div class="main-area"><canvas id="hodgeC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.68rem;line-height:1.75">
+      <b>Inner product on forms:</b><br>
+      $\langle\alpha,\beta\rangle = \int_M \alpha\wedge\star\beta$<br><br>
+      <b>Codifferential:</b><br>
+      $\delta:\Omega^k\to\Omega^{k-1}$<br>
+      adjoint of $d$ under $\langle\cdot,\cdot\rangle$<br><br>
+      <b>On $\mathbb{R}^3$, $\delta$ gives:</b><br>
+      divergence of vector field<br><br>
+      <b>On $S^1$ (circle):</b><br>
+      $d\theta$ is harmonic<br>
+      $\Leftrightarrow H^1(S^1)\cong\mathbb{R}$<br><br>
+      <b>Hodge isomorphism:</b><br>
+      $H^k_{dR}(M)\cong\mathcal{H}^k(M)$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: INTEGRATION ON MANIFOLDS -->
+<div id="panel6" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Integrate a form:<br>$\int_\Sigma \omega = \int\!\!\int f\,dx\wedge dy$<br><br>Orientation matters:<br>flip $\Sigma$ $\Rightarrow$ flip sign</div>
+    <div class="sep"></div>
+    <label>Scenario</label>
+    <button onclick="setIntMode(0)" id="iBtn0">Pullback φ*ω</button>
+    <button onclick="setIntMode(1)" id="iBtn1">Orientation flip</button>
+    <button onclick="setIntMode(2)" id="iBtn2">Change of variables</button>
+    <button onclick="setIntMode(3)" id="iBtn3">Aharonov-Bohm (H¹≠0)</button>
+    <div class="sep"></div>
+    <button id="intAnimBtn" class="btn" onclick="animateInt()">▶ Animate pullback</button>
+    <div class="sep"></div>
+    <div class="info-box" id="intResultBox" style="font-size:.72rem;line-height:1.65">
+      Select a scenario.
+    </div>
+  </div>
+  <div class="main-area"><canvas id="intC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.68rem;line-height:1.75">
+      <b>Pullback:</b><br>
+      $(\varphi^*\omega)_p(v_1,\ldots,v_k)$<br>
+      $= \omega_{\varphi(p)}(d\varphi\cdot v_1,\ldots)$<br><br>
+      <b>Change of vars:</b><br>
+      $\int_{\varphi(D)}\omega = \int_D \varphi^*\omega$<br>
+      $= \int_D f\,|\det J_\varphi|\,du\,dv$<br><br>
+      <b>Gauge invariance:</b><br>
+      $A\to A+d\chi$, $F=dA$ fixed<br><br>
+      <b>Aharonov-Bohm:</b><br>
+      $\oint A\neq 0$ even if $B=0$<br>
+      outside solenoid —<br>
+      $[A]\in H^1(\mathbb{R}^2\setminus\{0\})$<br><br>
+      <b>Gauge theory $\to$ topology!</b>
+    </div>
+  </div>
+</div>
+
+<div class="proof-panel" id="proofPanel">
+  <div class="proof-header" onclick="toggleProof()">
+    <span style="color:#99ff66;font-size:1.1rem">▲</span>
+    <h3>Proofs & Theory</h3>
+    <span style="font-size:.75rem;color:#99ff6688">click to expand</span>
+  </div>
+  <div class="proof-tabs">
+    <div class="ptab active" onclick="showProof(0)">Exterior Derivative</div>
+    <div class="ptab" onclick="showProof(1)">Stokes' Theorem</div>
+    <div class="ptab" onclick="showProof(2)">Poincaré Lemma</div>
+    <div class="ptab" onclick="showProof(3)">Maxwell as Forms</div>
+    <div class="ptab" onclick="showProof(4)">de Rham Cohomology</div>
+  </div>
+  <div class="proof-content" id="proofContent"></div>
+</div>
+
+<script>
+  window.animSpeed=0.1;
+const PROOFS=[
+  {title:"Exterior Derivative",body:`
+The exterior derivative $d$ sends $k$-forms to $(k+1)$-forms. For a 0-form (function) $f$:
+$$df = \\frac{\\partial f}{\\partial x}dx + \\frac{\\partial f}{\\partial y}dy + \\frac{\\partial f}{\\partial z}dz$$
+For a 1-form $\\omega = P\\,dx + Q\\,dy + R\\,dz$:
+$$d\\omega = \\left(\\frac{\\partial R}{\\partial y}-\\frac{\\partial Q}{\\partial z}\\right)dy\\wedge dz + \\left(\\frac{\\partial P}{\\partial z}-\\frac{\\partial R}{\\partial x}\\right)dz\\wedge dx + \\left(\\frac{\\partial Q}{\\partial x}-\\frac{\\partial P}{\\partial y}\\right)dx\\wedge dy$$
+This unifies gradient, curl, and divergence. The nilpotency $d^2=0$ follows from equality of mixed partials $\\partial^2 f/\\partial x\\partial y = \\partial^2 f/\\partial y\\partial x$.`},
+  {title:"Generalized Stokes' Theorem",body:`
+For an oriented $n$-manifold $M$ with boundary $\\partial M$ and an $(n-1)$-form $\\omega$:
+$$\\int_M d\\omega = \\int_{\\partial M} \\omega$$
+Special cases:
+- **Fundamental Theorem of Calculus** ($n=1$): $\\int_a^b f'(x)\\,dx = f(b)-f(a)$
+- **Green's Theorem** ($n=2$): $\\iint_D (Q_x - P_y)\\,dA = \\oint_{\\partial D} P\\,dx + Q\\,dy$
+- **Classical Stokes** ($n=3$): $\\iint_S (\\nabla\\times\\mathbf{F})\\cdot d\\mathbf{A} = \\oint_{\\partial S}\\mathbf{F}\\cdot d\\mathbf{r}$
+- **Divergence Theorem**: $\\iiint_V \\nabla\\cdot\\mathbf{F}\\,dV = \\oiint_{\\partial V}\\mathbf{F}\\cdot d\\mathbf{A}$`},
+  {title:"Poincaré Lemma",body:`
+**Poincaré Lemma:** On a contractible open set $U \\subset \\mathbb{R}^n$, every closed form is exact.
+$$d\\omega = 0 \\implies \\omega = d\\alpha \\text{ for some } \\alpha$$
+Proof uses the homotopy operator $K$: define $K\\omega = \\int_0^1 t^{k-1}(i_{\\mathbf{r}}\\omega)_t\\,dt$ where $\\mathbf{r}$ is the radial vector field. Then $Kd + dK = \\text{id}$, so if $d\\omega=0$, then $\\omega = d(K\\omega)$.
+The failure of closed forms to be exact on non-contractible spaces captures topology — this is **de Rham cohomology**: $H^k_{dR}(M) = \\ker(d_k)/\\text{im}(d_{k-1})$.`},
+  {title:"Maxwell's Equations as Differential Forms",body:`
+Define the **Faraday 2-form** on spacetime $\\mathbb{R}^{3,1}$:
+$$F = -E_x\\,dx\\wedge dt - E_y\\,dy\\wedge dt - E_z\\,dz\\wedge dt + B_x\\,dy\\wedge dz + B_y\\,dz\\wedge dx + B_z\\,dx\\wedge dy$$
+Maxwell's equations compress to just two:
+$$dF = 0 \\quad\\Leftrightarrow\\quad \\nabla\\cdot\\mathbf{B}=0,\\; \\nabla\\times\\mathbf{E}=-\\partial_t\\mathbf{B}$$
+$$d{\\star}F = J \\quad\\Leftrightarrow\\quad \\nabla\\cdot\\mathbf{E}=\\rho/\\epsilon_0,\\; \\nabla\\times\\mathbf{B}=\\mu_0\\mathbf{J}+\\mu_0\\epsilon_0\\partial_t\\mathbf{E}$$
+The **4-potential** $A = A_\\mu dx^\\mu$ satisfies $F = dA$, automatically giving $dF = d^2A = 0$.
+Gauge freedom: $A \\to A + d\\chi$ leaves $F=dA$ unchanged.`},
+  {title:"de Rham Cohomology",body:`
+The **de Rham cohomology** groups measure the "holes" in a manifold via forms:
+$$H^k_{dR}(M) = \\frac{\\{\\omega : d\\omega = 0\\}}{\\{d\\alpha : \\alpha \\text{ is a } (k-1)\\text{-form}\\}}$$
+By de Rham's theorem, $H^k_{dR}(M) \\cong H^k(M;\\mathbb{R})$ (singular cohomology tensored with $\\mathbb{R}$).
+Examples:
+- $H^0(M)$: connected components (dimension = # components)
+- $H^1(S^1) \\cong \\mathbb{R}$: the angle form $d\\theta$ is closed but not exact (no global angle function)
+- $H^2(S^2) \\cong \\mathbb{R}$: the area form is closed but not exact
+The **Euler characteristic**: $\\chi(M) = \\sum_k (-1)^k \\dim H^k_{dR}(M)$ is a topological invariant.`}
+];
+
+let activeTab=0;
+const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+
+function togglePan(){
+  panMode=!panMode;
+  document.querySelectorAll('.panBtn').forEach(b=>{b.classList.toggle('active',panMode);b.textContent=panMode?'✋ On':'✋ Pan';});
+  document.body.classList.toggle('pan-mode',panMode);
+}
+function resetPan(){pans[activeTab].x=0;pans[activeTab].y=0;redrawTab();}
+function _addPan(canvas,idx,fn){
+  canvas.addEventListener('mousedown',e=>{if(!panMode)return;_panDrag=true;_panTab=idx;_panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;e.preventDefault();},{passive:false});
+  canvas.addEventListener('mousemove',e=>{if(!_panDrag||_panTab!==idx)return;pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;fn();});
+  canvas.addEventListener('mouseup',()=>_panDrag=false);
+  canvas.addEventListener('mouseleave',()=>_panDrag=false);
+}
+function _cancelAllAnims16(){
+  if(stokesAnimId){cancelAnimationFrame(stokesAnimId);stokesAnimId=null;}
+  const stokesBtn=document.getElementById('stokesAnimBtn');
+  if(stokesBtn){stokesBtn.textContent='▶ Animate Path';stokesBtn.classList.remove('active');}
+  if(emAnimId){cancelAnimationFrame(emAnimId);emAnimId=null;}
+  const emBtn=document.getElementById('emAnimBtn');
+  if(emBtn){emBtn.textContent='▶ Animate EM Wave';emBtn.classList.remove('active');}
+  if(wedgeAnimId){cancelAnimationFrame(wedgeAnimId);wedgeAnimId=null;}
+  const wedgeBtn=document.getElementById('wBtn3');
+  if(wedgeBtn)wedgeBtn.textContent='Associativity anim';
+  if(suAnimId){cancelAnimationFrame(suAnimId);suAnimId=null;}
+  const suBtn=document.getElementById('suAnimBtn');
+  if(suBtn){suBtn.textContent='▶ Animate ∂ operator';suBtn.classList.remove('active');}
+  if(hodgeAnimId){cancelAnimationFrame(hodgeAnimId);hodgeAnimId=null;}
+  const hodgeBtn=document.getElementById('hodgeAnimBtn');
+  if(hodgeBtn){hodgeBtn.textContent='▶ Animate decomp';hodgeBtn.classList.remove('active');}
+  if(intAnimId){cancelAnimationFrame(intAnimId);intAnimId=null;}
+  const intBtn=document.getElementById('intAnimBtn');
+  if(intBtn){intBtn.textContent='▶ Animate pullback';intBtn.classList.remove('active');}
+}
+function switchTab(t){
+  _cancelAllAnims16();
+  activeTab=t;
+  ['panel0','panel1','panel2','panel3','panel4','panel5','panel6'].forEach((id,i)=>document.getElementById(id).style.display=i===t?'flex':'none');
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===t));
+  redrawTab();
+  // Auto-start animations for tabs 1-6 (tab 0 is static)
+  if(t===1)animateStokes();
+  if(t===2)animateEM();
+  if(t===3)animateWedge();
+  if(t===4)animateSUnified();
+  if(t===5)animateHodge();
+  if(t===6)animateInt();
+}
+function redrawTab(){
+  try{
+    if(activeTab===0)drawForms();
+    else if(activeTab===1)drawStokes();
+    else if(activeTab===2)drawMaxwell();
+    else if(activeTab===3)drawWedge();
+    else if(activeTab===4)drawSUnified();
+    else if(activeTab===5)drawHodge();
+    else if(activeTab===6)drawInt();
+  }catch(e){/* tab canvas/state not yet initialized — safe to skip */}
+}
+
+const formC=document.getElementById('formC');
+const stokesC=document.getElementById('stokesC');
+const maxC=document.getElementById('maxC');
+const fCtx=formC.getContext('2d');
+const sCtx=stokesC.getContext('2d');
+const mCtx=maxC.getContext('2d');
+
+function resizeCanvas(c){
+  const r=c.getBoundingClientRect();
+  if(c.width!==Math.floor(r.width)||c.height!==Math.floor(r.height)){
+    c.width=Math.floor(r.width);c.height=Math.floor(r.height);
+  }
+}
+
+// ── TAB 0: 1-Forms ──
+let formIdx=0, showDW=false;
+const FORMS=[
+  {P:(x,y)=>-y, Q:(x,y)=>x, dw:(x,y)=>2, name:'ω = -y dx + x dy (dω = 2 dx∧dy)'},
+  {P:(x,y)=>x, Q:(x,y)=>y, dw:(x,y)=>0, name:'ω = x dx + y dy (exact, dω = 0)'},
+  {P:(x,y)=>0, Q:(x,y)=>Math.sin(x), dw:(x,y)=>Math.cos(x), name:'ω = sin(x) dy (dω = cos(x) dx∧dy)'},
+  {P:(x,y)=>y, Q:(x,y)=>-x, dw:(x,y)=>-2, name:'ω = y dx - x dy (dω = -2 dx∧dy)'}
+];
+function setForm(i){
+  formIdx=i;
+  ['fBtn0','fBtn1','fBtn2','fBtn3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  drawForms();
+}
+function toggleFlux(){showDW=!showDW;drawForms();}
+function updateForms(){
+  document.getElementById('v_grid').textContent=document.getElementById('gridN').value;
+  document.getElementById('v_scale').textContent=parseFloat(document.getElementById('arrowSc').value).toFixed(1);
+  drawForms();
+}
+function drawForms(){
+  resizeCanvas(formC);
+  const W=formC.width,H=formC.height;
+  fCtx.setTransform(1,0,0,1,0,0);
+  fCtx.fillStyle='#06060f';fCtx.fillRect(0,0,W,H);
+  fCtx.setTransform(1,0,0,1,pans[0].x,pans[0].y);
+
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.35;
+  const N=parseInt(document.getElementById('gridN').value);
+  const arrowSc=parseFloat(document.getElementById('arrowSc').value);
+  const f=FORMS[formIdx];
+
+  // Background: if showDW, color by dω magnitude
+  if(showDW){
+    const step=4;
+    for(let py2=0;py2<H;py2+=step){
+      for(let px2=0;px2<W;px2+=step){
+        const x=(px2-cx)/scale, y=-(py2-cy)/scale;
+        const dw=f.dw(x,y);
+        const t=Math.tanh(Math.abs(dw)*0.5);
+        const r=dw>0?Math.floor(t*80):0;
+        const g=dw>0?Math.floor(t*180):Math.floor(t*80);
+        const b=dw<0?Math.floor(t*180):0;
+        fCtx.fillStyle=`rgb(${r},${g},${b})`;
+        fCtx.fillRect(px2,py2,step,step);
+      }
+    }
+  }
+
+  // Grid lines
+  fCtx.strokeStyle='rgba(153,255,102,0.1)';fCtx.lineWidth=1;
+  for(let g=-3;g<=3;g++){
+    fCtx.beginPath();fCtx.moveTo(cx+g*scale/2,cy-H/2);fCtx.lineTo(cx+g*scale/2,cy+H/2);fCtx.stroke();
+    fCtx.beginPath();fCtx.moveTo(cx-W/2,cy+g*scale/2);fCtx.lineTo(cx+W/2,cy+g*scale/2);fCtx.stroke();
+  }
+  // Axes
+  fCtx.strokeStyle='rgba(153,255,102,0.5)';fCtx.lineWidth=1.5;
+  fCtx.beginPath();fCtx.moveTo(cx-W*0.45,cy);fCtx.lineTo(cx+W*0.45,cy);fCtx.stroke();
+  fCtx.beginPath();fCtx.moveTo(cx,cy-H*0.45);fCtx.lineTo(cx,cy+H*0.45);fCtx.stroke();
+  fCtx.fillStyle='rgba(153,255,102,0.6)';fCtx.font='12px Share Tech Mono';
+  fCtx.fillText('x',cx+W*0.4,cy-8);fCtx.fillText('y',cx+6,cy-H*0.4);
+
+  // Draw 1-form arrows (covector field)
+  const span=2.2;
+  for(let i=0;i<=N;i++){
+    for(let j=0;j<=N;j++){
+      const x=-span+i*(2*span/N), y=-span+j*(2*span/N);
+      const px=cx+x*scale, py=cy-y*scale;
+      const P=f.P(x,y), Q=f.Q(x,y);
+      const len=Math.sqrt(P*P+Q*Q)||1e-10;
+      const maxLen=scale*0.4/N*arrowSc;
+      const drawLen=Math.min(len*scale*0.12*arrowSc, maxLen);
+      const ux=P/len,uy=Q/len;
+      const ex=px+ux*drawLen, ey=py-uy*drawLen;
+      const col=`hsl(${120+50*Math.tanh(len)},80%,${40+30*Math.tanh(len)}%)`;
+      fCtx.strokeStyle=col;fCtx.lineWidth=1.5;
+      fCtx.beginPath();fCtx.moveTo(px,py);fCtx.lineTo(ex,ey);fCtx.stroke();
+      // arrowhead
+      const hw=4;
+      fCtx.beginPath();
+      fCtx.moveTo(ex,ey);
+      fCtx.lineTo(ex-ux*hw-uy*hw*0.5,ey+uy*hw-ux*hw*0.5);
+      fCtx.lineTo(ex-ux*hw+uy*hw*0.5,ey+uy*hw+ux*hw*0.5);
+      fCtx.closePath();fCtx.fillStyle=col;fCtx.fill();
+    }
+  }
+
+  // Label
+  fCtx.fillStyle='rgba(153,255,102,0.75)';fCtx.font='13px Share Tech Mono';
+  fCtx.fillText(f.name,cx-W*0.45,cy-H*0.43);
+  if(showDW){
+    fCtx.fillStyle='rgba(100,220,100,0.6)';fCtx.font='12px Share Tech Mono';
+    fCtx.fillText('background: dω (green=+, blue=-)',cx-W*0.45,cy-H*0.38);
+  }
+  fCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 1: STOKES ──
+let regionIdx=0, fieldIdx=0; var stokesAnimId=null; let stokesT=0;
+const REGIONS=[
+  {name:'Rectangle',pts:()=>{const N=80;const pts=[];for(let i=0;i<N;i++){const t=i/N*4;if(t<1)pts.push([-1+2*t,-1]);else if(t<2)pts.push([1,-1+2*(t-1)]);else if(t<3)pts.push([1-2*(t-2),1]);else pts.push([-1,1-2*(t-3)]);}return pts;}},
+  {name:'Disk',pts:()=>{const N=80;return Array.from({length:N},(_,i)=>[Math.cos(i/N*2*Math.PI),Math.sin(i/N*2*Math.PI)]);} },
+  {name:'Triangle',pts:()=>{const N=80;const verts=[[-1,-0.8],[1,-0.8],[0,1]];const pts=[];for(let i=0;i<N;i++){const t=i/N*3;const s=Math.floor(t);const f2=t-s;const v1=verts[s%3],v2=verts[(s+1)%3];pts.push([v1[0]+(v2[0]-v1[0])*f2,v1[1]+(v2[1]-v1[1])*f2]);}return pts;}}
+];
+const FIELDS=[
+  {P:(x,y)=>-y, Q:(x,y)=>x, curl:(x,y)=>2, name:'F=(-y,x), curl=2'},
+  {P:(x,y)=>x*x, Q:(x,y)=>y*y, curl:(x,y)=>0, name:'F=(x²,y²), curl=0'},
+  {P:(x,y)=>Math.sin(y), Q:(x,y)=>Math.cos(x), curl:(x,y)=>-Math.sin(x)-Math.cos(y), name:'F=(sin y,cos x)'}
+];
+
+function setRegion(i){regionIdx=i;['rBtn0','rBtn1','rBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawStokes();}
+function setField(i){fieldIdx=i;['fieldBtn0','fieldBtn1','fieldBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawStokes();}
+
+function computeStokes(){
+  const f=FIELDS[fieldIdx];
+  const pts=REGIONS[regionIdx].pts();
+  const N=pts.length;
+  // Line integral ∮ F·dr
+  let line=0;
+  for(let i=0;i<N;i++){
+    const [x1,y1]=pts[i],[x2,y2]=pts[(i+1)%N];
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    const dx=x2-x1,dy=y2-y1;
+    line+=f.P(mx,my)*dx+f.Q(mx,my)*dy;
+  }
+  // Area integral (Monte Carlo / grid)
+  let area=0;
+  const M=50;
+  for(let i=0;i<M;i++){for(let j=0;j<M;j++){
+    const x=-1.2+i*2.4/M, y=-1.2+j*2.4/M;
+    // Check if point is inside via ray casting
+    const inside=pts.reduce((acc,[px,py],idx)=>{
+      const[nx,ny]=pts[(idx+1)%pts.length];
+      if((py>y)!==(ny>y)&&x<(nx-px)*(y-py)/(ny-py)+px)return !acc;
+      return acc;
+    },false);
+    if(inside)area+=f.curl(x,y)*(2.4/M)*(2.4/M);
+  }}
+  return{line,area};
+}
+
+function animateStokes(){
+  const btn=document.getElementById('stokesAnimBtn');
+  if(stokesAnimId){cancelAnimationFrame(stokesAnimId);stokesAnimId=null;stokesT=0;btn.textContent='▶ Animate Path';btn.classList.remove('active');drawStokes();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  stokesT=0;
+  function frame(){
+    stokesT=(stokesT+0.005 * window.animSpeed)%1;
+    drawStokes();
+    stokesAnimId=requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+function drawStokes(){
+  resizeCanvas(stokesC);
+  const W=stokesC.width,H=stokesC.height;
+  sCtx.setTransform(1,0,0,1,0,0);
+  sCtx.fillStyle='#06060f';sCtx.fillRect(0,0,W,H);
+  sCtx.setTransform(1,0,0,1,pans[1].x,pans[1].y);
+
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.35;
+  const f=FIELDS[fieldIdx];
+  const pts=REGIONS[regionIdx].pts();
+
+  // Background: curl heatmap
+  const step=6;
+  for(let py2=0;py2<H;py2+=step){
+    for(let px2=0;px2<W;px2+=step){
+      const x=(px2-cx)/scale, y=-(py2-cy)/scale;
+      const c=f.curl(x,y);
+      const t=Math.tanh(Math.abs(c)*0.5);
+      sCtx.fillStyle=c>0?`rgba(80,200,80,${t*0.35})`:`rgba(200,80,80,${t*0.35})`;
+      sCtx.fillRect(px2,py2,step,step);
+    }
+  }
+
+  // Axes
+  sCtx.strokeStyle='rgba(153,255,102,0.3)';sCtx.lineWidth=1;
+  sCtx.beginPath();sCtx.moveTo(cx-W*0.45,cy);sCtx.lineTo(cx+W*0.45,cy);sCtx.stroke();
+  sCtx.beginPath();sCtx.moveTo(cx,cy-H*0.45);sCtx.lineTo(cx,cy+H*0.45);sCtx.stroke();
+
+  // Vector field arrows
+  const N2=12;
+  for(let i=0;i<=N2;i++){for(let j=0;j<=N2;j++){
+    const x=-1.8+i*3.6/N2, y=-1.8+j*3.6/N2;
+    const px2=cx+x*scale, py2=cy-y*scale;
+    const P=f.P(x,y),Q=f.Q(x,y);
+    const len=Math.sqrt(P*P+Q*Q)||1e-10;
+    const dl=Math.min(len,1.5)*scale*0.08;
+    const ux=P/len,uy=Q/len;
+    sCtx.strokeStyle='rgba(153,255,102,0.3)';sCtx.lineWidth=1;
+    sCtx.beginPath();sCtx.moveTo(px2,py2);sCtx.lineTo(px2+ux*dl,py2-uy*dl);sCtx.stroke();
+  }}
+
+  // Region fill
+  sCtx.beginPath();
+  pts.forEach(([x,y],i)=>{
+    const px2=cx+x*scale,py2=cy-y*scale;
+    if(i===0)sCtx.moveTo(px2,py2);else sCtx.lineTo(px2,py2);
+  });
+  sCtx.closePath();
+  sCtx.fillStyle='rgba(153,255,102,0.08)';sCtx.fill();
+  sCtx.strokeStyle='#99ff66';sCtx.lineWidth=2;sCtx.stroke();
+
+  // Animated point on boundary
+  if(stokesAnimId||stokesT>0){
+    const idx=Math.floor(stokesT*pts.length);
+    const[bx,by]=pts[idx%pts.length];
+    const ppx=cx+bx*scale,ppy=cy-by*scale;
+    sCtx.beginPath();sCtx.arc(ppx,ppy,7,0,Math.PI*2);
+    sCtx.fillStyle='#ffff00';sCtx.fill();
+    // Arrow showing F at this point
+    const P=f.P(bx,by),Q=f.Q(by,bx);
+    const len=Math.sqrt(P*P+Q*Q)||1;
+    const dl=40;
+    sCtx.strokeStyle='#ffff00';sCtx.lineWidth=2;
+    sCtx.beginPath();sCtx.moveTo(ppx,ppy);sCtx.lineTo(ppx+P/len*dl,ppy-Q/len*dl);sCtx.stroke();
+  }
+
+  // Compute and show values
+  const{line,area}=computeStokes();
+  document.getElementById('stokesResult').innerHTML=
+    `Line integral:<br>∮ F·dr ≈ <b style="color:#99ff66">${line.toFixed(4)}</b><br><br>`+
+    `Area integral:<br>∬ curl dA ≈ <b style="color:#99ff66">${area.toFixed(4)}</b><br><br>`+
+    `Difference: ${Math.abs(line-area).toFixed(4)}<br><small>(≈0 confirms Stokes)</small>`;
+
+  sCtx.fillStyle='rgba(153,255,102,0.7)';sCtx.font='12px Share Tech Mono';
+  sCtx.fillText(f.name,cx-W*0.45,cy-H*0.43);
+  sCtx.fillStyle='rgba(80,200,80,0.6)';sCtx.font='12px Share Tech Mono';
+  sCtx.fillText('curl > 0 = green, < 0 = red',cx-W*0.45,cy-H*0.38);
+  sCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── TAB 2: MAXWELL ──
+let mView=0; var emAnimId=null; let emT=0;
+function setMView(i){
+  mView=i;['mvBtn0','mvBtn1','mvBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  drawMaxwell();
+}
+function updateMaxwell(){
+  document.getElementById('v_chargeQ').textContent=parseFloat(document.getElementById('chargeQ').value).toFixed(1);
+  document.getElementById('v_curI').textContent=parseFloat(document.getElementById('curI').value).toFixed(1);
+  drawMaxwell();
+}
+function animateEM(){
+  const btn=document.getElementById('emAnimBtn');
+  if(emAnimId){cancelAnimationFrame(emAnimId);emAnimId=null;emT=0;btn.textContent='▶ Animate EM Wave';btn.classList.remove('active');drawMaxwell();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  emT=0;
+  function frame(){emT+=0.03 * window.animSpeed;drawMaxwell();emAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+
+function drawMaxwell(){
+  resizeCanvas(maxC);
+  const W=maxC.width,H=maxC.height;
+  mCtx.setTransform(1,0,0,1,0,0);
+  mCtx.fillStyle='#06060f';mCtx.fillRect(0,0,W,H);
+  mCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
+
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.32;
+  const Q=parseFloat(document.getElementById('chargeQ').value);
+  const I=parseFloat(document.getElementById('curI').value);
+
+  if(mView===0){
+    // Electric field lines from point charge
+    mCtx.fillStyle='#ffcc44';
+    mCtx.beginPath();mCtx.arc(cx,cy,8,0,Math.PI*2);mCtx.fill();
+    mCtx.fillStyle='rgba(255,200,50,0.8)';mCtx.font='14px Share Tech Mono';
+    mCtx.fillText(`q=${Q>0?'+':''}${Q.toFixed(1)}`,cx+12,cy-8);
+
+    const nLines=16;
+    for(let i=0;i<nLines;i++){
+      const angle=i/nLines*2*Math.PI;
+      mCtx.beginPath();
+      let x=Math.cos(angle)*0.05,y=Math.sin(angle)*0.05;
+      mCtx.moveTo(cx+x*scale,cy-y*scale);
+      for(let s=0;s<200;s++){
+        const r2=x*x+y*y||1e-8;
+        const r=Math.sqrt(r2);
+        const Ex=Q*x/r2/r,Ey=Q*y/r2/r;
+        const eLen=Math.sqrt(Ex*Ex+Ey*Ey)||1;
+        x+=Ex/eLen*0.04;y+=Ey/eLen*0.04;
+        if(r>2.5)break;
+        mCtx.lineTo(cx+x*scale,cy-y*scale);
+      }
+      mCtx.strokeStyle=Q>=0?'#ff8844':'#44aaff';mCtx.lineWidth=1.5;mCtx.stroke();
+    }
+
+    // Equipotential circles
+    for(let r=0.3;r<=2.0;r+=0.3){
+      mCtx.beginPath();mCtx.arc(cx,cy,r*scale,0,Math.PI*2);
+      mCtx.strokeStyle='rgba(255,200,100,0.15)';mCtx.lineWidth=1;mCtx.setLineDash([4,6]);mCtx.stroke();mCtx.setLineDash([]);
+    }
+
+    mCtx.fillStyle='rgba(153,255,102,0.7)';mCtx.font='13px Share Tech Mono';
+    mCtx.fillText('E field: dF = 0 gives ∇·E = ρ/ε₀',cx-W*0.45,cy-H*0.43);
+
+  }else if(mView===1){
+    // Magnetic field (infinite wire)
+    mCtx.strokeStyle='#44aaff';mCtx.lineWidth=3;
+    mCtx.beginPath();mCtx.moveTo(cx,cy-H*0.45);mCtx.lineTo(cx,cy+H*0.45);mCtx.stroke();
+    mCtx.fillStyle='rgba(68,170,255,0.8)';mCtx.font='13px Share Tech Mono';
+    mCtx.fillText(`I = ${I.toFixed(1)}`,cx+10,cy-H*0.35);
+
+    for(let r=0.3;r<=2.5;r+=0.3){
+      mCtx.beginPath();mCtx.arc(cx,cy,r*scale,0,Math.PI*2);
+      mCtx.strokeStyle=`rgba(80,180,255,${0.7-r*0.2})`;mCtx.lineWidth=Math.max(0.5,2-r*0.5);mCtx.stroke();
+    }
+
+    // Arrows showing B direction (azimuthal)
+    const nA=24;
+    for(let i=0;i<nA;i++){
+      const angle=i/nA*2*Math.PI;
+      const r=0.8;
+      const bx=cx+r*scale*Math.cos(angle), by=cy+r*scale*Math.sin(angle);
+      const tangX=I*(-Math.sin(angle)), tangY=I*Math.cos(angle);
+      const tLen=Math.sqrt(tangX*tangX+tangY*tangY)||1;
+      const dl=18;
+      mCtx.strokeStyle='rgba(80,180,255,0.7)';mCtx.lineWidth=1.5;
+      mCtx.beginPath();mCtx.moveTo(bx,by);mCtx.lineTo(bx+tangX/tLen*dl*Math.sign(I),by-tangY/tLen*dl*Math.sign(I));mCtx.stroke();
+    }
+
+    mCtx.fillStyle='rgba(153,255,102,0.7)';mCtx.font='13px Share Tech Mono';
+    mCtx.fillText('B field (circles): d★F = J gives ∇×B = μ₀J',cx-W*0.45,cy-H*0.43);
+
+  }else{
+    // 2-Form F visualization as antisymmetric grid parallelograms
+    const N3=10;
+    for(let i=0;i<=N3;i++){for(let j=0;j<=N3;j++){
+      const x=-2+i*4/N3, y=-2+j*4/N3;
+      const px2=cx+x*scale*0.5, py2=cy-y*scale*0.5;
+      // Draw infinitesimal parallelogram representing dx∧dy
+      const sz=scale*0.4/N3;
+      const col=`hsl(${120+emT*20},70%,${40+20*Math.sin(x+y+emT)}%)`;
+      mCtx.strokeStyle=col;mCtx.lineWidth=1;
+      mCtx.beginPath();
+      mCtx.moveTo(px2,py2);mCtx.lineTo(px2+sz,py2);
+      mCtx.lineTo(px2+sz,py2-sz);mCtx.lineTo(px2,py2-sz);
+      mCtx.closePath();
+      mCtx.fillStyle=col+'33';mCtx.fill();mCtx.stroke();
+    }}
+
+    mCtx.fillStyle='rgba(153,255,102,0.7)';mCtx.font='13px Share Tech Mono';
+    mCtx.fillText('Faraday 2-form F = dA (gauge potential)',cx-W*0.45,cy-H*0.43);
+    mCtx.fillStyle='rgba(100,200,100,0.55)';mCtx.font='12px Share Tech Mono';
+    mCtx.fillText('Parallelograms = oriented area elements (dx∧dy)',cx-W*0.45,cy-H*0.38);
+  }
+
+  mCtx.setTransform(1,0,0,1,0,0);
+}
+
+// ── PROOF PANEL ──
+let proofOpen=false;
+function toggleProof(){proofOpen=!proofOpen;document.getElementById('proofPanel').classList.toggle('open',proofOpen);document.querySelector('.proof-header span').textContent=proofOpen?'▼':'▲';}
+function showProof(i){
+  document.querySelectorAll('.ptab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  const p=PROOFS[i];
+  document.getElementById('proofContent').innerHTML=`<h4 style="color:#99ff66;margin-bottom:8px">${p.title}</h4>${p.body}`;
+  if(typeof renderMathInElement === 'function'){
+    renderMathInElement(document.getElementById('proofContent'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }
+  if(!proofOpen)toggleProof();
+}
+showProof(0);
+
+_addPan(formC,0,drawForms);
+_addPan(stokesC,1,drawStokes);
+_addPan(maxC,2,drawMaxwell);
+
+setForm(0);setRegion(0);setField(0);setMView(0);
+setWedgeMode(0);setSUnified(0);setHodgeMode(0);setIntMode(0);
+
+// ── TAB 3: WEDGE PRODUCT ──
+var wedgeC=document.getElementById('wedgeC');
+var wCtx=wedgeC.getContext('2d');
+var wedgeMode=0;
+// Two draggable vectors, stored in "math" coords (–2..2)
+var wedgeVecs=[{x:1,y:0.3},{x:0.4,y:1.1}];
+var wedgeDrag=-1;
+
+function setWedgeMode(i){
+  wedgeMode=i;
+  ['wBtn0','wBtn1','wBtn2','wBtn3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  if(wedgeAnimId){cancelAnimationFrame(wedgeAnimId);wedgeAnimId=null;}
+  const btn=document.getElementById('wBtn3');
+  if(btn && i!==3)btn.textContent='Associativity anim';
+  if(i===3){animateWedge();}else{drawWedge();}
+}
+
+var wedgeAnimId=null; let wedgeAnimT=0;
+function animateWedge(){
+  const btn=document.getElementById('wBtn3');
+  if(wedgeAnimId){cancelAnimationFrame(wedgeAnimId);wedgeAnimId=null;if(btn)btn.textContent='Associativity anim';drawWedge();return;}
+  if(btn)btn.textContent='⏸ Associativity';
+  wedgeAnimT=0;
+  function frame(){wedgeAnimT+=0.012 * window.animSpeed;drawWedge();wedgeAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+
+function _mathToScreen(x,y,cx,cy,sc){return{px:cx+x*sc,py:cy-y*sc};}
+
+function drawWedge(){
+  resizeCanvas(wedgeC);
+  const W=wedgeC.width,H=wedgeC.height;
+  wCtx.setTransform(1,0,0,1,0,0);
+  wCtx.fillStyle='#06060f';wCtx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,sc=Math.min(W,H)*0.3;
+
+  // Grid
+  wCtx.strokeStyle='rgba(153,255,102,0.08)';wCtx.lineWidth=1;
+  for(let g=-4;g<=4;g++){
+    wCtx.beginPath();wCtx.moveTo(cx+g*sc,0);wCtx.lineTo(cx+g*sc,H);wCtx.stroke();
+    wCtx.beginPath();wCtx.moveTo(0,cy-g*sc);wCtx.lineTo(W,cy-g*sc);wCtx.stroke();
+  }
+  wCtx.strokeStyle='rgba(153,255,102,0.35)';wCtx.lineWidth=1.5;
+  wCtx.beginPath();wCtx.moveTo(0,cy);wCtx.lineTo(W,cy);wCtx.stroke();
+  wCtx.beginPath();wCtx.moveTo(cx,0);wCtx.lineTo(cx,H);wCtx.stroke();
+  wCtx.fillStyle='rgba(153,255,102,0.5)';wCtx.font='12px Share Tech Mono';
+  wCtx.fillText('x',cx+W*0.42,cy-8);wCtx.fillText('y',cx+6,cy-H*0.42);
+
+  if(wedgeMode===0 || wedgeMode===1){
+    // 2D parallelogram
+    let u={...wedgeVecs[0]};
+    let v={...wedgeVecs[1]};
+    if(wedgeMode===1){
+      // Swap u and v with animated interpolation to show anticommutativity
+      const swapped={x:v.x,y:v.y};
+      v={x:u.x,y:u.y};
+      u=swapped;
+    }
+    const det=u.x*v.y-u.y*v.x;
+    const pos=det>=0;
+    // Parallelogram
+    wCtx.beginPath();
+    wCtx.moveTo(cx,cy);
+    wCtx.lineTo(cx+u.x*sc,cy-u.y*sc);
+    wCtx.lineTo(cx+(u.x+v.x)*sc,cy-(u.y+v.y)*sc);
+    wCtx.lineTo(cx+v.x*sc,cy-v.y*sc);
+    wCtx.closePath();
+    wCtx.fillStyle=pos?'rgba(80,220,80,0.28)':'rgba(220,80,80,0.28)';
+    wCtx.fill();
+    wCtx.strokeStyle=pos?'rgba(80,220,80,0.9)':'rgba(220,80,80,0.9)';
+    wCtx.lineWidth=2;wCtx.stroke();
+
+    // Vectors u, v
+    _drawArrow(wCtx,cx,cy,cx+u.x*sc,cy-u.y*sc,'#ffcc44',2,'u');
+    _drawArrow(wCtx,cx,cy,cx+v.x*sc,cy-v.y*sc,'#44ccff',2,'v');
+
+    // Area label
+    const mx=cx+(u.x+v.x)*sc/2,my=cy-(u.y+v.y)*sc/2;
+    wCtx.fillStyle=pos?'rgba(100,255,100,0.9)':'rgba(255,100,100,0.9)';
+    wCtx.font='bold 13px Share Tech Mono';
+    wCtx.fillText((pos?'+':'-')+'|u∧v|='+Math.abs(det).toFixed(3),mx-40,my);
+
+    // Orientation arc
+    const angU=Math.atan2(u.y,u.x),angV=Math.atan2(v.y,v.x);
+    wCtx.strokeStyle=pos?'rgba(80,220,80,0.7)':'rgba(220,80,80,0.7)';
+    wCtx.lineWidth=2;
+    wCtx.beginPath();wCtx.arc(cx,cy,sc*0.18,-angU,-angV,!pos);wCtx.stroke();
+
+    // Drag handles
+    const col0='#ffcc44',col1='#44ccff';
+    const tips=[{mx:wedgeVecs[0].x,my:wedgeVecs[0].y,c:col0},{mx:wedgeVecs[1].x,my:wedgeVecs[1].y,c:col1}];
+    tips.forEach((t,i)=>{
+      wCtx.beginPath();wCtx.arc(cx+t.mx*sc,cy-t.my*sc,9,0,Math.PI*2);
+      wCtx.fillStyle=t.c;wCtx.fill();
+      wCtx.strokeStyle='#fff';wCtx.lineWidth=1.5;wCtx.stroke();
+    });
+
+    document.getElementById('wedgeDetBox').textContent='u∧v = det = '+(det).toFixed(4)+'\nOrientation: '+(pos?'CCW (+)':'CW (-)');
+    if(wedgeMode===1){
+      wCtx.fillStyle='rgba(255,200,80,0.85)';wCtx.font='12px Share Tech Mono';
+      wCtx.fillText('Swapped: v∧u = -(u∧v)',cx-W*0.42,cy-H*0.4);
+      wCtx.fillText('det[v,u] = '+(-(det)).toFixed(4),cx-W*0.42,cy-H*0.35);
+    }
+
+  }else if(wedgeMode===2){
+    // 3D volume element — project axes
+    const ax=0.7,ay=0.4;// oblique 3D projection
+    const p3=(x,y,z)=>({px:cx+sc*(x-z*ax),py:cy-sc*(y+z*ay)});
+    // Draw 3D cube faces representing dx∧dy∧dz
+    const t=wedgeAnimT||0;
+    const sz=1.0;
+    // Back faces
+    const faces=[
+      {verts:[[0,0,0],[sz,0,0],[sz,sz,0],[0,sz,0]],col:'rgba(80,220,80,0.18)',label:'dx∧dy (z-face)'},
+      {verts:[[0,0,0],[sz,0,0],[sz,0,sz],[0,0,sz]],col:'rgba(80,150,255,0.18)',label:'dx∧dz (y-face)'},
+      {verts:[[0,0,0],[0,sz,0],[0,sz,sz],[0,0,sz]],col:'rgba(255,150,80,0.18)',label:'dy∧dz (x-face)'},
+    ];
+    faces.forEach(face=>{
+      wCtx.beginPath();
+      face.verts.forEach(([x,y,z],i)=>{
+        const {px,py}=p3(x,y,z);
+        if(i===0)wCtx.moveTo(px,py);else wCtx.lineTo(px,py);
+      });
+      wCtx.closePath();
+      wCtx.fillStyle=face.col;wCtx.fill();
+      wCtx.strokeStyle='rgba(153,255,102,0.5)';wCtx.lineWidth=1.5;wCtx.stroke();
+      const c=p3(face.verts.reduce((s,v)=>s+v[0]/4,0),face.verts.reduce((s,v)=>s+v[1]/4,0),face.verts.reduce((s,v)=>s+v[2]/4,0));
+      wCtx.fillStyle='rgba(220,255,220,0.8)';wCtx.font='12px Share Tech Mono';
+      wCtx.fillText(face.label,c.px-30,c.py);
+    });
+    // Axes
+    [[[0,0,0],[sz*1.2,0,0],'#ffcc44','x'],[[0,0,0],[0,sz*1.2,0],'#44ccff','y'],[[0,0,0],[0,0,sz*1.2],'#ff88cc','z']].forEach(([a,b,col,lbl])=>{
+      const pa=p3(...a),pb=p3(...b);
+      _drawArrow(wCtx,pa.px,pa.py,pb.px,pb.py,col,2,lbl);
+    });
+    // Volume fill pulse
+    const alpha=0.12+0.08*Math.sin(t*2);
+    wCtx.beginPath();
+    [[0,0,0],[sz,0,0],[sz,sz,0],[0,sz,0],[0,0,0],[0,0,sz],[sz,0,sz],[sz,0,0]].concat([[sz,sz,0],[sz,sz,sz],[sz,0,sz]]).concat([[sz,sz,sz],[0,sz,sz],[0,sz,0]]).concat([[0,sz,sz],[0,0,sz]]);
+    const cubeEdges=[[0,0,0],[sz,0,0],[sz,sz,0],[0,sz,0],[0,0,sz],[sz,0,sz],[sz,sz,sz],[0,sz,sz]];
+    // Fill volume
+    wCtx.beginPath();
+    const topF=[[0,sz,0],[sz,sz,0],[sz,sz,sz],[0,sz,sz]];
+    topF.forEach(([x,y,z],i)=>{const {px,py}=p3(x,y,z);if(i===0)wCtx.moveTo(px,py);else wCtx.lineTo(px,py);});
+    wCtx.closePath();wCtx.fillStyle=`rgba(153,255,102,${alpha})`;wCtx.fill();
+    wCtx.strokeStyle='rgba(153,255,102,0.5)';wCtx.lineWidth=1.5;wCtx.stroke();
+    const rightF=[[sz,0,0],[sz,sz,0],[sz,sz,sz],[sz,0,sz]];
+    wCtx.beginPath();
+    rightF.forEach(([x,y,z],i)=>{const {px,py}=p3(x,y,z);if(i===0)wCtx.moveTo(px,py);else wCtx.lineTo(px,py);});
+    wCtx.closePath();wCtx.fillStyle=`rgba(153,255,102,${alpha})`;wCtx.fill();wCtx.stroke();
+    wCtx.fillStyle='rgba(153,255,102,0.8)';wCtx.font='13px Share Tech Mono';
+    wCtx.fillText('dx∧dy∧dz = volume element',cx-W*0.42,cy-H*0.43);
+    wCtx.fillStyle='rgba(200,255,200,0.6)';wCtx.font='12px Share Tech Mono';
+    wCtx.fillText('★(dx∧dy∧dz) = 1 (scalar)',cx-W*0.42,cy-H*0.37);
+
+  }else if(wedgeMode===3){
+    // Animate associativity: (dx∧dy)∧dz = dx∧(dy∧dz)
+    const t=wedgeAnimT;
+    const phase=((t*0.25)%1);
+    const lerpVal=0.5-0.5*Math.cos(phase*2*Math.PI);
+    // Show two groupings with animated color interpolation
+    const r1=Math.floor(80+lerpVal*140),g1=Math.floor(220-lerpVal*80),b1=Math.floor(80+lerpVal*140);
+    const r2=Math.floor(80+lerpVal*140),g2=Math.floor(80+lerpVal*140),b2=Math.floor(220-lerpVal*80);
+    const ax3=0.65,ay3=0.38;
+    const p3b=(x,y,z)=>({px:cx+sc*(x-z*ax3),py:cy-sc*(y+z*ay3)});
+    const sz2=0.9;
+    // Bracket 1: (dx∧dy)∧dz - highlight bottom face then extend
+    const bot=[[0,0,0],[sz2,0,0],[sz2,sz2,0],[0,sz2,0]];
+    wCtx.beginPath();bot.forEach(([x,y,z],i)=>{const{px,py}=p3b(x,y,z);if(i===0)wCtx.moveTo(px,py);else wCtx.lineTo(px,py);});
+    wCtx.closePath();wCtx.fillStyle=`rgba(${r1},${g1},80,${0.15+lerpVal*0.25})`;wCtx.fill();
+    wCtx.strokeStyle=`rgba(${r1},${g1},80,0.8)`;wCtx.lineWidth=2;wCtx.stroke();
+    // z-extension pillar
+    wCtx.beginPath();
+    [[0,0,0],[0,0,sz2],[sz2,0,sz2],[sz2,0,0]].forEach(([x,y,z],i)=>{const{px,py}=p3b(x,y,z);if(i===0)wCtx.moveTo(px,py);else wCtx.lineTo(px,py);});
+    wCtx.closePath();wCtx.fillStyle=`rgba(80,${g2},${b2},${0.15+lerpVal*0.25})`;wCtx.fill();
+    wCtx.strokeStyle=`rgba(80,${g2},${b2},0.8)`;wCtx.lineWidth=2;wCtx.stroke();
+    [[[0,0,0],[sz2*1.3,0,0],'#ffcc44','x'],[[0,0,0],[0,sz2*1.3,0],'#44ccff','y'],[[0,0,0],[0,0,sz2*1.3],'#ff88cc','z']].forEach(([a,b,col,lbl])=>{
+      const pa=p3b(...a),pb=p3b(...b);_drawArrow(wCtx,pa.px,pa.py,pb.px,pb.py,col,2,lbl);
+    });
+    wCtx.fillStyle='rgba(153,255,102,0.85)';wCtx.font='13px Share Tech Mono';
+    wCtx.fillText('Associativity: (dx∧dy)∧dz = dx∧(dy∧dz)',cx-W*0.44,cy-H*0.43);
+    wCtx.fillStyle='rgba(200,255,200,0.6)';wCtx.font='12px Share Tech Mono';
+    wCtx.fillText('Both equal the volume 3-form',cx-W*0.44,cy-H*0.37);
+    const step=Math.floor(phase*3);
+    const labels=['Step 1: form dx∧dy (2-form)','Step 2: wedge with dz','Step 3: = dx∧dy∧dz (3-form)'];
+    wCtx.fillStyle='rgba(255,220,80,0.85)';wCtx.font='12px Share Tech Mono';
+    wCtx.fillText(labels[step],cx-W*0.44,cy+H*0.38);
+  }
+  wCtx.setTransform(1,0,0,1,0,0);
+}
+
+function _drawArrow(ctx,x1,y1,x2,y2,col,lw,lbl){
+  ctx.strokeStyle=col;ctx.lineWidth=lw;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  const dx=x2-x1,dy=y2-y1,l=Math.sqrt(dx*dx+dy*dy)||1;
+  const ux=dx/l,uy=dy/l;
+  const hw=7;
+  ctx.fillStyle=col;
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-ux*hw-uy*hw*0.45,y2-uy*hw+ux*hw*0.45);
+  ctx.lineTo(x2-ux*hw+uy*hw*0.45,y2-uy*hw-ux*hw*0.45);
+  ctx.closePath();ctx.fill();
+  if(lbl){ctx.fillStyle=col;ctx.font='bold 12px Share Tech Mono';ctx.fillText(lbl,x2+6,y2+5);}
+}
+
+// Wedge drag interaction
+wedgeC.addEventListener('mousedown',e=>{
+  resizeCanvas(wedgeC);
+  const W=wedgeC.width,H=wedgeC.height;
+  const cx=W/2,cy=H/2,sc=Math.min(W,H)*0.3;
+  const rect=wedgeC.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(wedgeC.width/rect.width);
+  const my=(e.clientY-rect.top)*(wedgeC.height/rect.height);
+  wedgeVecs.forEach((v,i)=>{
+    const px=cx+v.x*sc,py=cy-v.y*sc;
+    if(Math.hypot(mx-px,my-py)<14){wedgeDrag=i;}
+  });
+});
+wedgeC.addEventListener('mousemove',e=>{
+  if(wedgeDrag<0)return;
+  resizeCanvas(wedgeC);
+  const W=wedgeC.width,H=wedgeC.height;
+  const cx=W/2,cy=H/2,sc=Math.min(W,H)*0.3;
+  const rect=wedgeC.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(wedgeC.width/rect.width);
+  const my=(e.clientY-rect.top)*(wedgeC.height/rect.height);
+  wedgeVecs[wedgeDrag]={x:(mx-cx)/sc,y:-(my-cy)/sc};
+  drawWedge();
+});
+wedgeC.addEventListener('mouseup',()=>{wedgeDrag=-1;});
+wedgeC.addEventListener('mouseleave',()=>{wedgeDrag=-1;});
+_addPan(wedgeC,3,drawWedge);
+
+
+// ── TAB 4: STOKES UNIFIED ──
+var sunifiedC=document.getElementById('sunifiedC');
+var suCtx=sunifiedC.getContext('2d');
+var suMode=0; var suAnimId=null; var suAnimT=0;
+
+const SU_CASES=[
+  {label:'FTC: Fundamental Theorem of Calculus',form:'0-form f on [a,b]',stokes:'∫ₐᵇ f\'(x)dx = f(b) - f(a)',boundary:'∂[a,b] = {b} - {a} (two points)'},
+  {label:"Green's Theorem (2D)",form:'1-form P dx + Q dy on region D',stokes:'∬_D (∂Q/∂x - ∂P/∂y) dA = ∮_∂D P dx + Q dy',boundary:'∂D = oriented boundary curve'},
+  {label:'Classical Stokes (3D)',form:'1-form ω on surface S ⊂ ℝ³',stokes:'∬_S (∇×F)·dA = ∮_∂S F·dr',boundary:'∂S = boundary loop of surface'},
+  {label:'Divergence Theorem',form:'2-form ω on volume V',stokes:'∭_V ∇·F dV = ∯_∂V F·dA',boundary:'∂V = closed bounding surface'},
+];
+
+function setSUnified(i){
+  suMode=i;
+  ['suBtn0','suBtn1','suBtn2','suBtn3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  document.getElementById('sunifiedInfo').textContent=SU_CASES[i].form+'\n\n'+SU_CASES[i].stokes+'\n\n'+SU_CASES[i].boundary;
+  drawSUnified();
+}
+
+function animateSUnified(){
+  const btn=document.getElementById('suAnimBtn');
+  if(suAnimId){cancelAnimationFrame(suAnimId);suAnimId=null;suAnimT=0;btn.textContent='▶ Animate ∂ operator';btn.classList.remove('active');drawSUnified();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  suAnimT=0;
+  function frame(){suAnimT+=0.008 * window.animSpeed;drawSUnified();suAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+}
+
+function drawSUnified(){
+  resizeCanvas(sunifiedC);
+  const W=sunifiedC.width,H=sunifiedC.height;
+  suCtx.setTransform(1,0,0,1,0,0);
+  suCtx.fillStyle='#06060f';suCtx.fillRect(0,0,W,H);
+
+  const t=suAnimT;
+  const cx=W/2,cy=H/2,sc=Math.min(W,H)*0.28;
+
+  // Axis helpers
+  function axes(ox,oy,s,labels){
+    suCtx.strokeStyle='rgba(153,255,102,0.3)';suCtx.lineWidth=1;
+    suCtx.beginPath();suCtx.moveTo(ox-s*1.2,oy);suCtx.lineTo(ox+s*1.2,oy);suCtx.stroke();
+    suCtx.beginPath();suCtx.moveTo(ox,oy+s*1.2);suCtx.lineTo(ox,oy-s*1.2);suCtx.stroke();
+    suCtx.fillStyle='rgba(153,255,102,0.5)';suCtx.font='12px Share Tech Mono';
+    if(labels){suCtx.fillText(labels[0]||'x',ox+s*1.1,oy-4);suCtx.fillText(labels[1]||'y',ox+5,oy-s*1.1);}
+  }
+
+  if(suMode===0){
+    // FTC: show interval [a,b], function f, highlight endpoints as boundary
+    const a=-1.0,b=1.0;
+    const f=x=>0.5*Math.sin(2*x)+0.7;
+    const fa=f(a),fb=f(b);
+    axes(cx,cy+sc*0.5,sc);
+    // Fill area under curve
+    suCtx.beginPath();
+    suCtx.moveTo(cx+a*sc,cy+sc*0.5);
+    for(let i=0;i<=100;i++){const x=a+i*(b-a)/100;suCtx.lineTo(cx+x*sc,cy+sc*0.5-f(x)*sc*0.6);}
+    suCtx.lineTo(cx+b*sc,cy+sc*0.5);suCtx.closePath();
+    suCtx.fillStyle='rgba(80,180,80,0.22)';suCtx.fill();
+    // Curve
+    suCtx.beginPath();
+    for(let i=0;i<=100;i++){const x=a+i*(b-a)/100;const px=cx+x*sc,py=cy+sc*0.5-f(x)*sc*0.6;if(i===0)suCtx.moveTo(px,py);else suCtx.lineTo(px,py);}
+    suCtx.strokeStyle='#99ff66';suCtx.lineWidth=2.5;suCtx.stroke();
+    // Endpoints (boundary ∂[a,b])
+    const pulse=0.6+0.4*Math.abs(Math.sin(t*2));
+    suCtx.beginPath();suCtx.arc(cx+a*sc,cy+sc*0.5,8*pulse,0,Math.PI*2);suCtx.fillStyle='rgba(255,80,80,0.9)';suCtx.fill();
+    suCtx.beginPath();suCtx.arc(cx+b*sc,cy+sc*0.5,8*pulse,0,Math.PI*2);suCtx.fillStyle='rgba(80,200,255,0.9)';suCtx.fill();
+    suCtx.fillStyle='rgba(255,80,80,0.9)';suCtx.font='12px Share Tech Mono';suCtx.fillText('-f(a)',cx+a*sc-28,cy+sc*0.5+22);
+    suCtx.fillStyle='rgba(80,200,255,0.9)';suCtx.fillText('+f(b)',cx+b*sc-20,cy+sc*0.5+22);
+    suCtx.fillStyle='rgba(153,255,102,0.85)';suCtx.font='13px Share Tech Mono';
+    suCtx.fillText('FTC: ∫ f′ dx = f(b)-f(a)',cx-W*0.42,cy-H*0.42);
+    suCtx.fillStyle='rgba(200,255,200,0.6)';suCtx.font='12px Share Tech Mono';
+    suCtx.fillText('∂([a,b]) = {b} - {a} (0-dim boundary)',cx-W*0.42,cy-H*0.36);
+    suCtx.fillText('integral = '+((fb-fa)).toFixed(3)+' (area under f′)',cx-W*0.42,cy-H*0.30);
+
+  }else if(suMode===1){
+    // Green's theorem: show region + boundary + curl heatmap
+    axes(cx,cy,sc);
+    // Circular region
+    const R=0.9;
+    const N=100;
+    // Curl heatmap of F = (-y, x) (curl = 2)
+    const step2=5;
+    for(let py2=cy-sc*1.3;py2<cy+sc*1.3;py2+=step2){
+      for(let px2=cx-sc*1.3;px2<cx+sc*1.3;px2+=step2){
+        const x2=(px2-cx)/sc,y2=-(py2-cy)/sc;
+        if(x2*x2+y2*y2>R*R)continue;
+        suCtx.fillStyle='rgba(80,200,80,0.3)';suCtx.fillRect(px2,py2,step2,step2);
+      }
+    }
+    // Boundary
+    const progress=suAnimId?((t*0.2)%1):1;
+    suCtx.beginPath();
+    for(let i=0;i<=Math.floor(N*progress);i++){
+      const ang=i/N*2*Math.PI;
+      const px2=cx+R*Math.cos(ang)*sc,py2=cy-R*Math.sin(ang)*sc;
+      if(i===0)suCtx.moveTo(px2,py2);else suCtx.lineTo(px2,py2);
+    }
+    suCtx.strokeStyle='#ffcc44';suCtx.lineWidth=3;suCtx.stroke();
+    // Moving dot
+    if(suAnimId){
+      const ang=progress*2*Math.PI;
+      const dp=cx+R*Math.cos(ang)*sc,dq=cy-R*Math.sin(ang)*sc;
+      suCtx.beginPath();suCtx.arc(dp,dq,7,0,Math.PI*2);
+      suCtx.fillStyle='#ffcc44';suCtx.fill();
+    }
+    // Field arrows
+    for(let i=0;i<8;i++){
+      const ang=i/8*2*Math.PI;
+      const ax2=cx+R*0.5*Math.cos(ang)*sc,ay2=cy-R*0.5*Math.sin(ang)*sc;
+      const x2=R*0.5*Math.cos(ang),y2=R*0.5*Math.sin(ang);
+      const Fx=-y2,Fy=x2;const fl=Math.sqrt(Fx*Fx+Fy*Fy)||1;
+      _drawArrow(suCtx,ax2,ay2,ax2+Fx/fl*25,ay2-Fy/fl*25,'rgba(80,200,80,0.7)',1.5,'');
+    }
+    suCtx.fillStyle='rgba(153,255,102,0.85)';suCtx.font='13px Share Tech Mono';
+    suCtx.fillText("Green's Theorem: ∮_∂D ω = ∬_D dω",cx-W*0.42,cy-H*0.42);
+    suCtx.fillStyle='rgba(200,255,200,0.6)';suCtx.font='12px Share Tech Mono';
+    suCtx.fillText('F=(-y,x), curl=2 (green fill), ∮=2π×R²',cx-W*0.42,cy-H*0.36);
+    suCtx.fillText('Line integral ≈ '+(2*Math.PI*R*R).toFixed(3),cx-W*0.42,cy-H*0.30);
+
+  }else if(suMode===2){
+    // Classical Stokes: show surface patch and boundary loop
+    const ax4=0.55,ay4=0.32;
+    const p3s=(x,y,z)=>({px:cx+sc*(x-z*ax4),py:cy-sc*(y+z*ay4*0.8)});
+    // Surface patch (z = 0.3*sin(πx)cos(πy))
+    const NP=18;
+    for(let i=0;i<NP;i++){for(let j=0;j<NP;j++){
+      const x1=-0.8+i*1.6/NP,x2=-0.8+(i+1)*1.6/NP;
+      const y1=-0.8+j*1.6/NP,y2=-0.8+(j+1)*1.6/NP;
+      const mxv=(x1+x2)/2,myv=(y1+y2)/2;
+      const z=0.35*Math.sin(Math.PI*mxv)*Math.cos(Math.PI*myv);
+      const curlZ=0.3+0.2*Math.sin(t+mxv+myv);
+      const p1=p3s(x1,y1,0.35*Math.sin(Math.PI*x1)*Math.cos(Math.PI*y1));
+      const p2=p3s(x2,y1,0.35*Math.sin(Math.PI*x2)*Math.cos(Math.PI*y1));
+      const p3=p3s(x2,y2,0.35*Math.sin(Math.PI*x2)*Math.cos(Math.PI*y2));
+      const p4=p3s(x1,y2,0.35*Math.sin(Math.PI*x1)*Math.cos(Math.PI*y2));
+      suCtx.beginPath();suCtx.moveTo(p1.px,p1.py);suCtx.lineTo(p2.px,p2.py);suCtx.lineTo(p3.px,p3.py);suCtx.lineTo(p4.px,p4.py);suCtx.closePath();
+      suCtx.fillStyle=`rgba(80,${150+Math.floor(70*curlZ)},${100+Math.floor(80*Math.sin(mxv))},0.3)`;suCtx.fill();
+      suCtx.strokeStyle='rgba(153,255,102,0.15)';suCtx.lineWidth=0.5;suCtx.stroke();
+    }}
+    // Boundary loop (rectangle in xy-plane at z≈0)
+    const progress2=suAnimId?((t*0.15)%1):1;
+    const N2b=60;
+    suCtx.beginPath();
+    for(let i=0;i<=Math.floor(N2b*progress2);i++){
+      const ang=i/N2b*2*Math.PI;
+      const bx=-0.8*Math.cos(ang),by=-0.8*Math.sin(ang);
+      const bz=0.35*Math.sin(Math.PI*bx)*Math.cos(Math.PI*by);
+      const{px,py}=p3s(bx,by,bz);
+      if(i===0)suCtx.moveTo(px,py);else suCtx.lineTo(px,py);
+    }
+    suCtx.strokeStyle='#ffaa44';suCtx.lineWidth=3;suCtx.stroke();
+    [[[0,0,0],[1.1,0,0],'#ffcc44','x'],[[0,0,0],[0,1.1,0],'#44ccff','y'],[[0,0,0],[0,0,0.7],'#ff88cc','z']].forEach(([a,b,col,lbl])=>{
+      const pa=p3s(...a),pb=p3s(...b);_drawArrow(suCtx,pa.px,pa.py,pb.px,pb.py,col,1.5,lbl);
+    });
+    suCtx.fillStyle='rgba(153,255,102,0.85)';suCtx.font='13px Share Tech Mono';
+    suCtx.fillText('Stokes: ∬_S (∇×F)·dA = ∮_∂S F·dr',cx-W*0.42,cy-H*0.42);
+    suCtx.fillStyle='rgba(200,255,200,0.6)';suCtx.font='12px Share Tech Mono';
+    suCtx.fillText('Surface (color=curl), boundary loop in orange',cx-W*0.42,cy-H*0.36);
+
+  }else{
+    // Divergence theorem: 3D sphere / box with flux arrows
+    const ax5=0.5,ay5=0.3;
+    const p3d=(x,y,z)=>({px:cx+sc*(x-z*ax5),py:cy-sc*(y+z*ay5)});
+    // Draw wireframe cube
+    const cv=[[-0.7,-0.7,-0.7],[0.7,-0.7,-0.7],[0.7,0.7,-0.7],[-0.7,0.7,-0.7],[-0.7,-0.7,0.7],[0.7,-0.7,0.7],[0.7,0.7,0.7],[-0.7,0.7,0.7]];
+    const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+    suCtx.strokeStyle='rgba(153,255,102,0.4)';suCtx.lineWidth=1.5;
+    edges.forEach(([a,b])=>{
+      const pa=p3d(...cv[a]),pb=p3d(...cv[b]);
+      suCtx.beginPath();suCtx.moveTo(pa.px,pa.py);suCtx.lineTo(pb.px,pb.py);suCtx.stroke();
+    });
+    // Outward flux arrows
+    const faceNormals=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+    const faceCenters=[[0.7,0,0],[-0.7,0,0],[0,0.7,0],[0,-0.7,0],[0,0,0.7],[0,0,-0.7]];
+    faceNormals.forEach((n,i)=>{
+      const fc=faceCenters[i];
+      const p0=p3d(...fc);
+      const flux=0.4+0.2*Math.sin(t*2+i);
+      const p1=p3d(fc[0]+n[0]*flux*0.5,fc[1]+n[1]*flux*0.5,fc[2]+n[2]*flux*0.5);
+      const col=flux>0.4?'rgba(80,200,255,0.8)':'rgba(255,100,80,0.8)';
+      _drawArrow(suCtx,p0.px,p0.py,p1.px,p1.py,col,2,'');
+    });
+    // div=const fill inside
+    suCtx.fillStyle='rgba(80,150,200,0.1)';
+    const topFace=[[-0.7,0.7,-0.7],[0.7,0.7,-0.7],[0.7,0.7,0.7],[-0.7,0.7,0.7]];
+    suCtx.beginPath();topFace.forEach(([x,y,z],i)=>{const{px,py}=p3d(x,y,z);if(i===0)suCtx.moveTo(px,py);else suCtx.lineTo(px,py);});
+    suCtx.closePath();suCtx.fill();
+    suCtx.fillStyle='rgba(153,255,102,0.85)';suCtx.font='13px Share Tech Mono';
+    suCtx.fillText('Divergence Theorem: ∭_V ∇·F dV = ∯_∂V F·dA',cx-W*0.44,cy-H*0.42);
+    suCtx.fillStyle='rgba(200,255,200,0.6)';suCtx.font='12px Share Tech Mono';
+    suCtx.fillText('Outward flux arrows from volume faces',cx-W*0.44,cy-H*0.36);
+    suCtx.fillText('All are: ∫_M dω = ∫_{∂M} ω',cx-W*0.44,cy-H*0.30);
+  }
+  suCtx.setTransform(1,0,0,1,0,0);
+}
+_addPan(sunifiedC,4,drawSUnified);
+
+
+// ── TAB 5: HODGE STAR ──
+var hodgeC=document.getElementById('hodgeC');
+var hCtx=hodgeC.getContext('2d');
+var hodgeMode=0; var hodgeAnimId=null; var hodgeAnimT=0;
+
+function setHodgeMode(i){
+  hodgeMode=i;
+  ['hBtn0','hBtn1','hBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  if(hodgeAnimId){cancelAnimationFrame(hodgeAnimId);hodgeAnimId=null;}
+  drawHodge();
+}
+
+function animateHodge(){
+  const btn=document.getElementById('hodgeAnimBtn');
+  if(hodgeAnimId){cancelAnimationFrame(hodgeAnimId);hodgeAnimId=null;btn.textContent='▶ Animate decomp';btn.classList.remove('active');drawHodge();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  hodgeAnimT=0;
+  function frame(){hodgeAnimT+=0.01 * window.animSpeed;drawHodge();hodgeAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+
+function drawHodge(){
+  resizeCanvas(hodgeC);
+  const W=hodgeC.width,H=hodgeC.height;
+  hCtx.setTransform(1,0,0,1,0,0);
+  hCtx.fillStyle='#06060f';hCtx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,sc=Math.min(W,H)*0.3;
+  const t=hodgeAnimT;
+
+  if(hodgeMode===0){
+    // Hodge star basis forms: ★dx = dy∧dz etc.
+    const ax6=0.58,ay6=0.36;
+    const p3h=(x,y,z)=>({px:cx+sc*(x-z*ax6)*0.85,py:cy-sc*(y+z*ay6)*0.85});
+    const sz3=0.85;
+    // Draw three faces of unit cube, colored per Hodge pair
+    const hodgePairs=[
+      {face:[[sz3,0,0],[sz3,sz3,0],[sz3,sz3,sz3],[sz3,0,sz3]],col:'rgba(80,220,80,0.25)',label:'dy∧dz = ★dx'},
+      {face:[[0,sz3,0],[sz3,sz3,0],[sz3,sz3,sz3],[0,sz3,sz3]],col:'rgba(80,150,255,0.25)',label:'dz∧dx = ★dy'},
+      {face:[[0,0,sz3],[sz3,0,sz3],[sz3,sz3,sz3],[0,sz3,sz3]],col:'rgba(255,150,80,0.25)',label:'dx∧dy = ★dz'},
+    ];
+    hodgePairs.forEach(({face,col,label})=>{
+      hCtx.beginPath();
+      face.forEach(([x,y,z],i)=>{const{px,py}=p3h(x,y,z);if(i===0)hCtx.moveTo(px,py);else hCtx.lineTo(px,py);});
+      hCtx.closePath();hCtx.fillStyle=col;hCtx.fill();
+      hCtx.strokeStyle=col.replace('0.25','0.9');hCtx.lineWidth=2;hCtx.stroke();
+      const mc=face.reduce(([ax7,ay7,az7],[x,y,z])=>[ax7+x/4,ay7+y/4,az7+z/4],[0,0,0]);
+      const{px,py}=p3h(...mc);
+      hCtx.fillStyle='rgba(220,255,220,0.85)';hCtx.font='12px Share Tech Mono';hCtx.fillText(label,px-30,py);
+    });
+    // Arrows for dx, dy, dz
+    [[[0,0,0],[sz3*1.2,0,0],'#ffcc44','dx'],[[0,0,0],[0,sz3*1.2,0],'#44ccff','dy'],[[0,0,0],[0,0,sz3*1.2],'#ff88cc','dz']].forEach(([a,b,col,lbl])=>{
+      const pa=p3h(...a),pb=p3h(...b);_drawArrow(hCtx,pa.px,pa.py,pb.px,pb.py,col,2,lbl);
+    });
+    hCtx.fillStyle='rgba(153,255,102,0.85)';hCtx.font='13px Share Tech Mono';
+    hCtx.fillText('Hodge ★ in ℝ³: ★(k-form) = (3-k)-form',cx-W*0.43,cy-H*0.43);
+    hCtx.fillStyle='rgba(200,255,200,0.6)';hCtx.font='12px Share Tech Mono';
+    hCtx.fillText('★★ = id, ⟨α,β⟩ = ∫ α∧★β',cx-W*0.43,cy-H*0.37);
+
+  }else if(hodgeMode===1){
+    // Hodge decomposition: show ω = dα + δβ + γ as animated sum
+    const N4=22;
+    const phase=t*0.5;
+    hCtx.strokeStyle='rgba(153,255,102,0.08)';hCtx.lineWidth=1;
+    for(let g=-3;g<=3;g++){
+      hCtx.beginPath();hCtx.moveTo(cx+g*sc,0);hCtx.lineTo(cx+g*sc,H);hCtx.stroke();
+      hCtx.beginPath();hCtx.moveTo(0,cy-g*sc);hCtx.lineTo(W,cy-g*sc);hCtx.stroke();
+    }
+    hCtx.strokeStyle='rgba(153,255,102,0.3)';hCtx.lineWidth=1.5;
+    hCtx.beginPath();hCtx.moveTo(0,cy);hCtx.lineTo(W,cy);hCtx.stroke();
+    hCtx.beginPath();hCtx.moveTo(cx,0);hCtx.lineTo(cx,H);hCtx.stroke();
+
+    const span2=1.8;
+    for(let i=0;i<=N4;i++){for(let j=0;j<=N4;j++){
+      const x2=-span2+i*(2*span2/N4),y2=-span2+j*(2*span2/N4);
+      const px2=cx+x2*sc,py2=cy-y2*sc;
+      // ω = dα part (exact): gradient-like, curl-free
+      const daPx=-y2*0.3,daPy=x2*0.3;
+      // δβ part (coexact): divergence-carrying
+      const dbPx=x2*0.5*Math.cos(phase),dbPy=y2*0.5*Math.cos(phase);
+      // γ harmonic part: constant-ish rotation (on torus this would be [dθ])
+      const gPx=Math.cos(phase)*0.4,gPy=Math.sin(phase)*0.4;
+      // Total
+      const Px=daPx+dbPx+gPx,Py=daPy+dbPy+gPy;
+      const len=Math.sqrt(Px*Px+Py*Py)||1e-10;
+      const dl=Math.min(len,1.5)*sc*0.06;
+      const hue=120+60*Math.atan2(Py,Px)/Math.PI;
+      hCtx.strokeStyle=`hsl(${hue},70%,55%)`;hCtx.lineWidth=1.3;
+      hCtx.beginPath();hCtx.moveTo(px2,py2);hCtx.lineTo(px2+Px/len*dl,py2-Py/len*dl);hCtx.stroke();
+    }}
+    hCtx.fillStyle='rgba(153,255,102,0.85)';hCtx.font='13px Share Tech Mono';
+    hCtx.fillText('Hodge decomp: ω = dα + δβ + γ',cx-W*0.43,cy-H*0.43);
+    hCtx.fillStyle='rgba(255,200,80,0.7)';hCtx.font='12px Share Tech Mono';
+    hCtx.fillText('exact(dα) + coexact(δβ) + harmonic(γ)',cx-W*0.43,cy-H*0.37);
+    hCtx.fillText('γ rotates with phase: harmonic part',cx-W*0.43,cy-H*0.31);
+
+  }else{
+    // Harmonic form on a surface: Δω = 0
+    // Visualize harmonic 1-form on a torus via circles + phase
+    const R4=sc*0.55,r4=sc*0.22;
+    hCtx.strokeStyle='rgba(153,255,102,0.08)';
+    const Nc=40;
+    // Torus outline
+    for(let i=0;i<Nc;i++){
+      const ang=i/Nc*2*Math.PI;
+      hCtx.beginPath();
+      for(let j=0;j<=60;j++){
+        const phi=j/60*2*Math.PI;
+        const x2=(R4+r4*Math.cos(phi))*Math.cos(ang);
+        const y2=(R4+r4*Math.cos(phi))*Math.sin(ang);
+        const px2=cx+x2*0.7,py2=cy-y2*0.7+r4*Math.sin(phi)*0.35;
+        if(j===0)hCtx.moveTo(px2,py2);else hCtx.lineTo(px2,py2);
+      }
+      hCtx.strokeStyle=`rgba(80,180,80,0.1)`;hCtx.lineWidth=0.8;hCtx.stroke();
+    }
+    // Harmonic 1-form = dθ on torus: show tangent direction
+    const NA=16;
+    for(let i=0;i<NA;i++){
+      const phi=i/NA*2*Math.PI;
+      for(let j=0;j<8;j++){
+        const psi=j/8*2*Math.PI+t*0.3;
+        const r5=R4+r4*Math.cos(psi);
+        const x2=r5*Math.cos(phi);
+        const y2=r5*Math.sin(phi);
+        const px2=cx+x2*0.7,py2=cy-y2*0.7+r4*Math.sin(psi)*0.35;
+        // dθ direction: tangent in φ direction
+        const tx=-Math.sin(phi),ty=Math.cos(phi);
+        const col=`hsl(${130+40*Math.cos(phi+t)},70%,55%)`;
+        hCtx.strokeStyle=col;hCtx.lineWidth=1.5;
+        hCtx.beginPath();hCtx.moveTo(px2-tx*8,py2+ty*8*0.5);hCtx.lineTo(px2+tx*8,py2-ty*8*0.5);hCtx.stroke();
+      }
+    }
+    hCtx.fillStyle='rgba(153,255,102,0.85)';hCtx.font='13px Share Tech Mono';
+    hCtx.fillText('Harmonic form dθ on torus: Δ(dθ) = 0',cx-W*0.43,cy-H*0.43);
+    hCtx.fillStyle='rgba(200,255,200,0.6)';hCtx.font='12px Share Tech Mono';
+    hCtx.fillText('dθ is closed (d(dθ)=0) but NOT exact',cx-W*0.43,cy-H*0.37);
+    hCtx.fillText('→ H¹(torus)≅ℝ² (two independent cycles)',cx-W*0.43,cy-H*0.31);
+    hCtx.fillText('Laplace-Beltrami: Δ = dδ + δd',cx-W*0.43,cy-H*0.25);
+  }
+  hCtx.setTransform(1,0,0,1,0,0);
+}
+_addPan(hodgeC,5,drawHodge);
+
+
+// ── TAB 6: INTEGRATION ON MANIFOLDS ──
+var intC=document.getElementById('intC');
+var iCtx=intC.getContext('2d');
+var intMode=0; var intAnimId=null; var intAnimT=0;
+
+function setIntMode(i){
+  intMode=i;
+  ['iBtn0','iBtn1','iBtn2','iBtn3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));
+  if(intAnimId){cancelAnimationFrame(intAnimId);intAnimId=null;}
+  document.getElementById('intResultBox').textContent='';
+  drawInt();
+}
+
+function animateInt(){
+  const btn=document.getElementById('intAnimBtn');
+  if(intAnimId){cancelAnimationFrame(intAnimId);intAnimId=null;intAnimT=0;btn.textContent='▶ Animate pullback';btn.classList.remove('active');drawInt();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  intAnimT=0;
+  function frame(){intAnimT+=0.01 * window.animSpeed;drawInt();intAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+
+function drawInt(){
+  resizeCanvas(intC);
+  const W=intC.width,H=intC.height;
+  iCtx.setTransform(1,0,0,1,0,0);
+  iCtx.fillStyle='#06060f';iCtx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2,sc=Math.min(W,H)*0.28;
+  const t=intAnimT;
+
+  if(intMode===0){
+    // Pullback φ*ω: show parametrized surface in target and grid in source
+    // Left: source (u,v) domain; Right: target surface φ(D)
+    const lc=cx*0.5,rc=cx*1.5;
+    // Grid lines
+    iCtx.strokeStyle='rgba(153,255,102,0.1)';iCtx.lineWidth=1;
+    for(let g=-3;g<=3;g++){
+      iCtx.beginPath();iCtx.moveTo(lc+g*sc*0.7,cy-H*0.4);iCtx.lineTo(lc+g*sc*0.7,cy+H*0.4);iCtx.stroke();
+      iCtx.beginPath();iCtx.moveTo(lc-sc*0.8,cy-g*sc*0.7);iCtx.lineTo(lc+sc*0.8,cy-g*sc*0.7);iCtx.stroke();
+    }
+    iCtx.strokeStyle='rgba(153,255,102,0.3)';iCtx.lineWidth=1.5;
+    iCtx.beginPath();iCtx.moveTo(lc-sc*0.9,cy);iCtx.lineTo(lc+sc*0.9,cy);iCtx.stroke();
+    iCtx.beginPath();iCtx.moveTo(lc,cy-H*0.42);iCtx.lineTo(lc,cy+H*0.42);iCtx.stroke();
+
+    // Source: flat square [-1,1]²
+    const Ng=8;
+    const progress2=intAnimId?Math.min(1,(t*0.15)%1.2):1;
+    for(let i=0;i<Ng;i++){for(let j=0;j<Ng;j++){
+      const u1=-1+i*2/Ng,u2=-1+(i+1)*2/Ng,v1=-1+j*2/Ng,v2=-1+(j+1)*2/Ng;
+      if(i/Ng>progress2)continue;
+      iCtx.fillStyle='rgba(80,180,80,0.25)';
+      iCtx.fillRect(lc+u1*sc*0.7,cy-v2*sc*0.7,(u2-u1)*sc*0.7,(v2-v1)*sc*0.7);
+      iCtx.strokeStyle='rgba(153,255,102,0.4)';iCtx.lineWidth=0.8;
+      iCtx.strokeRect(lc+u1*sc*0.7,cy-v2*sc*0.7,(u2-u1)*sc*0.7,(v2-v1)*sc*0.7);
+    }}
+    iCtx.fillStyle='rgba(153,255,102,0.7)';iCtx.font='12px Share Tech Mono';
+    iCtx.fillText('Source (u,v)',lc-sc*0.7,cy-H*0.38);
+    iCtx.fillText('D ⊂ ℝ²',lc-sc*0.5,cy-H*0.32);
+
+    // Arrow between domains
+    _drawArrow(iCtx,lc+sc*0.85,cy,rc-sc*0.85,cy,'rgba(255,200,80,0.8)',2,'φ');
+
+    // Target: mapped/distorted surface
+    const ax8=0.45,ay8=0.3;
+    const p3i=(u,v)=>{
+      const x=u,y=v*Math.cos(u*0.7+t*0.3)*0.8,z=v*Math.sin(u*0.7+t*0.3)*0.5;
+      return{px:rc+sc*(x-z*ax8)*0.7,py:cy-sc*(y+z*ay8)*0.7};
+    }
+    for(let i=0;i<Ng;i++){for(let j=0;j<Ng;j++){
+      const u1=-1+i*2/Ng,u2=-1+(i+1)*2/Ng,v1=-1+j*2/Ng,v2=-1+(j+1)*2/Ng;
+      if(i/Ng>progress2)continue;
+      const p1=p3i(u1,v1),p2=p3i(u2,v1),p3=p3i(u2,v2),p4=p3i(u1,v2);
+      iCtx.beginPath();iCtx.moveTo(p1.px,p1.py);iCtx.lineTo(p2.px,p2.py);iCtx.lineTo(p3.px,p3.py);iCtx.lineTo(p4.px,p4.py);iCtx.closePath();
+      const hue2=200+40*Math.sin(u1+v1+t*0.5);
+      iCtx.fillStyle=`hsla(${hue2},65%,40%,0.35)`;iCtx.fill();
+      iCtx.strokeStyle='rgba(80,180,255,0.5)';iCtx.lineWidth=0.8;iCtx.stroke();
+    }}
+    iCtx.fillStyle='rgba(80,180,255,0.8)';iCtx.font='12px Share Tech Mono';
+    iCtx.fillText('Target φ(D)',rc-sc*0.7,cy-H*0.38);
+    iCtx.fillText('Surface ⊂ ℝ³',rc-sc*0.65,cy-H*0.32);
+    iCtx.fillStyle='rgba(255,200,80,0.85)';iCtx.font='13px Share Tech Mono';
+    iCtx.fillText('Pullback: ∫_φ(D) ω = ∫_D φ*ω',cx-W*0.44,cy-H*0.43);
+    iCtx.fillStyle='rgba(200,255,200,0.6)';iCtx.font='12px Share Tech Mono';
+    iCtx.fillText('φ*ω = ω(dφ·v₁, dφ·v₂) — Jacobian appears naturally',cx-W*0.44,cy-H*0.37);
+
+  }else if(intMode===1){
+    // Orientation flip: same surface, opposite orientation → opposite sign
+    const R5=sc*0.7;
+    // Draw disk
+    iCtx.beginPath();iCtx.arc(cx,cy,R5,0,Math.PI*2);
+    iCtx.fillStyle='rgba(80,180,80,0.18)';iCtx.fill();
+    iCtx.strokeStyle='#99ff66';iCtx.lineWidth=2.5;iCtx.stroke();
+    // Show orientation arrows (CCW or CW)
+    const flipped=intAnimId&&Math.floor(t*0.5)%2===1;
+    const sign=flipped?-1:1;
+    const Narr=10;
+    for(let i=0;i<Narr;i++){
+      const ang=i/Narr*2*Math.PI+(t*0.3*sign);
+      const tx=-Math.sin(ang)*sign,ty=Math.cos(ang)*sign;
+      const px2=cx+R5*Math.cos(ang),py2=cy+R5*Math.sin(ang);
+      _drawArrow(iCtx,px2,py2,px2+tx*22,py2+ty*22,flipped?'rgba(255,80,80,0.85)':'rgba(80,220,80,0.85)',2,'');
+    }
+    // 2-form value display
+    const omega=0.6,area=Math.PI*R5*R5/(sc*sc);
+    const integral=omega*area*sign;
+    const boxColor=flipped?'rgba(255,100,100,0.85)':'rgba(100,255,100,0.85)';
+    iCtx.fillStyle=boxColor;iCtx.font='14px Share Tech Mono';
+    iCtx.fillText(flipped?'Orientation: CW (-)':'Orientation: CCW (+)',cx-W*0.32,cy+sc*0.15);
+    iCtx.fillText('∫_Σ ω = '+(integral).toFixed(3)+(flipped?' (sign flipped)':''),cx-W*0.32,cy+sc*0.3);
+    iCtx.fillStyle='rgba(153,255,102,0.85)';iCtx.font='13px Share Tech Mono';
+    iCtx.fillText('Orientation flip → sign flip in integral',cx-W*0.43,cy-H*0.43);
+    iCtx.fillStyle='rgba(200,255,200,0.6)';iCtx.font='12px Share Tech Mono';
+    iCtx.fillText('∫_{-Σ} ω = -∫_Σ ω',cx-W*0.43,cy-H*0.37);
+    iCtx.fillText('Press animate to toggle orientation',cx-W*0.43,cy-H*0.31);
+    document.getElementById('intResultBox').textContent='∫_Σ ω ≈ '+(integral).toFixed(4)+'\nOrientation: '+(flipped?'CW (negative)':'CCW (positive)');
+
+  }else if(intMode===2){
+    // Change of variables: polar → Cartesian, show Jacobian as area scaling
+    iCtx.strokeStyle='rgba(153,255,102,0.08)';iCtx.lineWidth=1;
+    for(let g=-3;g<=3;g++){
+      iCtx.beginPath();iCtx.moveTo(cx+g*sc,0);iCtx.lineTo(cx+g*sc,H);iCtx.stroke();
+      iCtx.beginPath();iCtx.moveTo(0,cy-g*sc);iCtx.lineTo(W,cy-g*sc);iCtx.stroke();
+    }
+    iCtx.strokeStyle='rgba(153,255,102,0.3)';iCtx.lineWidth=1.5;
+    iCtx.beginPath();iCtx.moveTo(0,cy);iCtx.lineTo(W,cy);iCtx.stroke();
+    iCtx.beginPath();iCtx.moveTo(cx,0);iCtx.lineTo(cx,H);iCtx.stroke();
+    // Draw polar grid cells
+    const NR=6,NTh=16;
+    for(let ri=1;ri<=NR;ri++){for(let ti=0;ti<NTh;ti++){
+      const r1b=(ri-1)*sc*0.9/NR,r2b=ri*sc*0.9/NR;
+      const a1=ti/NTh*2*Math.PI,a2=(ti+1)/NTh*2*Math.PI;
+      const pulsePct=0.12+0.08*Math.sin(t+ri+ti);
+      // Cell area = r*dr*dθ (Jacobian = r)
+      const midR=(r1b+r2b)/2/sc;
+      const detJ=midR;// Jacobian of polar coords
+      const col=`hsl(${120+80*detJ},65%,${30+25*detJ}%)`;
+      iCtx.beginPath();
+      iCtx.arc(cx,cy,r2b,a1,a2);
+      iCtx.arc(cx,cy,r1b,a2,a1,true);
+      iCtx.closePath();
+      iCtx.fillStyle=col.replace(')',`,${pulsePct*2.5})`).replace('hsl','hsla');iCtx.fill();
+      iCtx.strokeStyle='rgba(153,255,102,0.2)';iCtx.lineWidth=0.5;iCtx.stroke();
+    }}
+    iCtx.fillStyle='rgba(153,255,102,0.85)';iCtx.font='13px Share Tech Mono';
+    iCtx.fillText('Change of vars: φ = (r,θ)→(x,y)',cx-W*0.43,cy-H*0.43);
+    iCtx.fillStyle='rgba(200,255,200,0.6)';iCtx.font='12px Share Tech Mono';
+    iCtx.fillText('φ*(dx∧dy) = r dr∧dθ (|det Jφ|=r)',cx-W*0.43,cy-H*0.37);
+    iCtx.fillText('Brighter = larger Jacobian (outer rings)',cx-W*0.43,cy-H*0.31);
+    iCtx.fillText('∫∫ f dA = ∫∫ (f∘φ)·r dr dθ',cx-W*0.43,cy-H*0.25);
+
+  }else{
+    // Aharonov-Bohm: solenoid, A field, phase holonomy
+    // Circle with solenoid excluded region in center
+    const R6a=sc*0.6,R6b=sc*0.18;
+    // Background potential A = dθ/2π (outside solenoid)
+    const step3=6;
+    for(let py2=cy-sc;py2<cy+sc;py2+=step3){for(let px2=cx-sc;px2<cx+sc;px2+=step3){
+      const dx5=px2-cx,dy5=py2-cy;
+      const r5=Math.sqrt(dx5*dx5+dy5*dy5);
+      if(r5<R6b+step3||r5>R6a+step3)continue;
+      // A = B_0 R² / (2r) in azimuthal direction
+      const Ax5=-dy5/(r5*r5+0.001),Ay5=dx5/(r5*r5+0.001);
+      const alen=Math.sqrt(Ax5*Ax5+Ay5*Ay5)||1;
+      const dl2=Math.min(alen*sc*0.15,10);
+      const phase2=Math.atan2(dy5,dx5)+t*0.3;
+      iCtx.strokeStyle=`hsl(${200+40*Math.cos(phase2)},70%,55%)`;iCtx.lineWidth=1;
+      iCtx.beginPath();iCtx.moveTo(px2,py2);iCtx.lineTo(px2+Ax5/alen*dl2,py2+Ay5/alen*dl2);iCtx.stroke();
+    }}
+    // Solenoid (excluded region, B≠0 inside)
+    iCtx.beginPath();iCtx.arc(cx,cy,R6b,0,Math.PI*2);
+    iCtx.fillStyle='rgba(255,100,50,0.35)';iCtx.fill();
+    iCtx.strokeStyle='rgba(255,100,50,0.9)';iCtx.lineWidth=2.5;iCtx.stroke();
+    iCtx.fillStyle='rgba(255,120,60,0.85)';iCtx.font='12px Share Tech Mono';
+    iCtx.fillText('B≠0',cx-12,cy+4);
+
+    // Outer circle (electron path)
+    const progAB=intAnimId?((t*0.12)%1):1;
+    iCtx.beginPath();
+    for(let i=0;i<=Math.floor(100*progAB);i++){
+      const ang=i/100*2*Math.PI;
+      if(i===0)iCtx.moveTo(cx+R6a*Math.cos(ang),cy+R6a*Math.sin(ang));
+      else iCtx.lineTo(cx+R6a*Math.cos(ang),cy+R6a*Math.sin(ang));
+    }
+    iCtx.strokeStyle='rgba(80,200,255,0.85)';iCtx.lineWidth=2.5;iCtx.stroke();
+    if(intAnimId){
+      const ang=progAB*2*Math.PI;
+      iCtx.beginPath();iCtx.arc(cx+R6a*Math.cos(ang),cy+R6a*Math.sin(ang),7,0,Math.PI*2);
+      iCtx.fillStyle='#44aaff';iCtx.fill();
+    }
+    // Phase text
+    const phase3=2*Math.PI*0.42;// Φ/Φ_0 fraction
+    iCtx.fillStyle='rgba(153,255,102,0.85)';iCtx.font='13px Share Tech Mono';
+    iCtx.fillText('Aharonov-Bohm: A∈H¹(ℝ²∖{0})',cx-W*0.43,cy-H*0.43);
+    iCtx.fillStyle='rgba(200,255,200,0.6)';iCtx.font='12px Share Tech Mono';
+    iCtx.fillText('Outside solenoid: B=0 but A≠0',cx-W*0.43,cy-H*0.37);
+    iCtx.fillText('∮_C A = Φ ≠ 0  →  quantum phase shift',cx-W*0.43,cy-H*0.31);
+    iCtx.fillText('A is closed but NOT exact (H¹≠0)!',cx-W*0.43,cy-H*0.25);
+    iCtx.fillText('Gauge invariance: A→A+dχ, F=dA unchanged',cx-W*0.43,cy-H*0.19);
+    document.getElementById('intResultBox').textContent='∮ A = Φ = magnetic flux\nPhase: Δφ = e/ℏ × Φ\n\n[A] ∈ H¹(ℝ²∖{0}) ≅ ℝ\ntopological quantum effect!';
+  }
+  iCtx.setTransform(1,0,0,1,0,0);
+}
+_addPan(intC,6,drawInt);
+
+
+window.addEventListener('resize',()=>redrawTab());
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>
+

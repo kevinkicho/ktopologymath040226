@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>30 · Spinor Calculus &amp; Newman–Penrose Formalism</title>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#aa55ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+.canvas-area{flex:1;display:flex;flex-direction:column;background:var(--bg);padding:12px;gap:8px;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:var(--bg2)}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--dim);line-height:1.7}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:340px;min-width:240px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;padding:14px 16px;gap:10px;overflow-y:auto}
+.side-panel h3{font-size:.9rem;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:4px}
+.side-panel p{font-size:.76rem;color:var(--dim);line-height:1.65}
+.side-panel .eq{font-size:.82rem;color:var(--text);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:4px 10px;margin:2px 0;font-family:'Courier New',monospace}
+.side-panel .bullet{font-size:.76rem;color:var(--dim);line-height:1.8;padding-left:4px}
+.side-panel .kv{display:flex;justify-content:space-between;font-size:.76rem;padding:2px 0;border-bottom:1px solid var(--border)}
+.side-panel .kv span:first-child{color:var(--dim)}
+.side-panel .kv span:last-child{color:var(--accent);font-weight:600}
+.petrov-table{width:100%;border-collapse:collapse;font-size:.72rem;margin-top:4px}
+.petrov-table td,.petrov-table th{border:1px solid var(--border);padding:4px 6px;text-align:left}
+.petrov-table th{background:var(--bg3);color:var(--dim)}
+.petrov-table td:first-child{color:var(--text)}
+.hier{font-size:.76rem;color:var(--dim);line-height:2;text-align:center;padding:6px 0}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.panes{display:flex;flex-direction:column;flex:1;overflow:hidden}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 22</span>
+  <div class="title-block">
+    <h1>Spinor Calculus &amp; Newman–Penrose Formalism</h1>
+    <p>2-spinors, abstract index notation, Newman–Penrose formalism, Petrov classification, twistors &amp; peeling theorem</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">2-Spinors &amp; Flagpole</div>
+  <div class="tab" onclick="switchTab(1)">Spin-Weighted Harmonics</div>
+  <div class="tab" onclick="switchTab(2)">Petrov Classification</div>
+  <div class="tab" onclick="switchTab(3)">Abstract Index &amp; &epsilon;-Spinor</div>
+  <div class="tab" onclick="switchTab(4)">Dyads &amp; NP Formalism</div>
+  <div class="tab" onclick="switchTab(5)">Twistor Correspondence</div>
+  <div class="tab" onclick="switchTab(6)">Peeling &amp; GW Radiation</div>
+</div>
+
+<div id="main">
+
+<!-- TAB 0 -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn0" class="animBtn" onclick="toggleAnim0()">▶ Animate</button>
+      <button onclick="resetSpinor()">Reset</button>
+      <span style="font-size:.76rem;color:var(--dim)">Drag the sphere to move the flagpole.</span>
+      <span style="font-size:.76rem;color:var(--dim)" id="rotCounterLabel">Rotations: <span id="rotCounter" style="color:var(--accent)">0</span></span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Spinor: &kappa;⁰ = <span class="val" id="k0val">1.000</span>&nbsp;
+      &kappa;¹ = <span class="val" id="k1val">0.000</span>&nbsp;&nbsp;
+      &theta; = <span class="val" id="thetaVal">0.00</span>rad&nbsp;
+      &phi; = <span class="val" id="phiVal">0.00</span>rad&nbsp;&nbsp;
+      Sign: <span class="val" id="signVal">+&kappa;</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Penrose's Flagpole Picture</h3>
+    <p>A 2-spinor &kappa;<sup>A</sup> &isin; &Copf;² encodes:</p>
+    <div class="bullet">&#9654; A null direction (flagpole) on S²<br>
+    &#9654; A flag plane (spin phase)<br>
+    &#9654; &kappa;<sup>A</sup> and &minus;&kappa;<sup>A</sup> give the SAME flagpole — spinors have &plusmn;1 ambiguity</div>
+    <div class="eq">&kappa;<sup>A</sup> = (&kappa;⁰, &kappa;¹)</div>
+    <div class="eq">l<sup>a</sup> = &kappa;<sup>A</sup>&kappa;<sup>&Adot;</sup> — null vector</div>
+    <div class="eq">R(2&pi;): &kappa;<sup>A</sup> &rarr; &minus;&kappa;<sup>A</sup></div>
+    <div class="eq">R(4&pi;): &kappa;<sup>A</sup> &rarr; +&kappa;<sup>A</sup></div>
+    <br>
+    <p>Current spinor (stereographic):</p>
+    <div class="eq">&kappa;⁰ = cos(&theta;/2)</div>
+    <div class="eq">&kappa;¹ = sin(&theta;/2)e<sup>i&phi;</sup></div>
+    <br>
+    <p style="font-size:.76rem;color:var(--dim)">The flag plane rotates by half the angle of the flagpole's rotation. After a 2&pi; rotation of the physical direction, the spinor acquires a sign &minus;1. Only after 4&pi; does it return to its original value — the hallmark of spin-1/2 objects.</p>
+    <br>
+    <div class="kv"><span>Flag phase</span><span id="flagPhaseDisp">0.00 rad</span></div>
+    <div class="kv"><span>Spinor sign</span><span id="signDisp">+1</span></div>
+    <div class="kv"><span>Full cycles for return</span><span>2</span></div>
+  </div>
+</div>
+
+<!-- TAB 1 -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>s:</label>
+      <button onclick="setSpin(-2)" id="sb-2">s=&minus;2</button>
+      <button onclick="setSpin(-1)" id="sb-1">s=&minus;1</button>
+      <button onclick="setSpin(0)" id="sb0" class="active-btn">s=0</button>
+      <button onclick="setSpin(1)" id="sb1">s=+1</button>
+      <button onclick="setSpin(2)" id="sb2">s=+2</button>
+      &nbsp;
+      <label>l:</label>
+      <input type="range" id="lSlider" min="0" max="4" value="1" oninput="clampM();draw1()">
+      <span id="lVal">1</span>
+      <label>m:</label>
+      <input type="range" id="mSlider" min="-4" max="4" value="0" oninput="draw1()">
+      <span id="mVal">0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Displaying: <span class="val" id="slmLabel">₀Y₁₀</span> &nbsp;|&nbsp;
+      Hue = phase arg(Y), Brightness = |Y| &nbsp;|&nbsp;
+      Spin weight s: under &phi;&rarr;&phi;+&alpha;, &nbsp;Y &rarr; e<sup>is&alpha;</sup>Y
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Spin-Weighted Harmonics</h3>
+    <p>Spin weight s means: under &phi;&rarr;&phi;+&alpha;,<br>
+    <span style="color:var(--accent)">&#x209B;Y&#x2097;&#x2098; &rarr; e<sup>is&alpha;</sup> &#x209B;Y&#x2097;&#x2098;</span></p>
+    <br>
+    <div class="bullet">s=0: scalar fields (temperature, density)<br>
+    s=&pm;1: EM fields (E+iB)<br>
+    s=&pm;2: gravitational waves (h&#x208A;+ih&#x2A2F;)<br>
+    s=&pm;1/2: fermion wavefunctions</div>
+    <br>
+    <p>The eth operator ð raises spin weight:</p>
+    <div class="eq">ð: &#x209B;&eta; &rarr; &#x209B;&#x208A;&#xB9;&eta;</div>
+    <div class="eq">ð&#773;: &#x209B;&eta; &rarr; &#x209B;&#x208B;&#xB9;&eta;</div>
+    <br>
+    <p>For s=0, Y&#x2097;&#x2098; are standard spherical harmonics. For |s|&gt;0, apply eth |s| times:</p>
+    <div class="eq">&#x209B;Y&#x2097;&#x2098; = &radic;((l&minus;s)!/(l+s)!) · ð<sup>s</sup>Y&#x2097;&#x2098;</div>
+    <br>
+    <div class="kv"><span>Current (s,l,m)</span><span id="slmDisp">(0,1,0)</span></div>
+    <div class="kv"><span>|m| &le; l condition</span><span style="color:#44ffaa">satisfied</span></div>
+    <div class="kv"><span>|s| &le; l condition</span><span id="slCondDisp" style="color:#44ffaa">satisfied</span></div>
+    <br>
+    <p style="font-size:.72rem;color:var(--dim)">Domain coloring: hue encodes phase (0–2&pi;), brightness encodes magnitude. Black = zero, full saturation = maximum.</p>
+  </div>
+</div>
+
+<!-- TAB 2 -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-area">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="setPetrov('I')" id="pt-I" class="active-btn">Type I</button>
+      <button onclick="setPetrov('II')" id="pt-II">Type II</button>
+      <button onclick="setPetrov('III')" id="pt-III">Type III</button>
+      <button onclick="setPetrov('D')" id="pt-D">Type D</button>
+      <button onclick="setPetrov('N')" id="pt-N">Type N</button>
+      <button onclick="setPetrov('O')" id="pt-O">Type O</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Current: <span class="val" id="petrovLabel">Type I</span> &nbsp;|&nbsp;
+      P(&zeta;) = &Psi;&#x2080; + 4&Psi;&#x2081;&zeta; + 6&Psi;&#x2082;&zeta;² + 4&Psi;&#x2083;&zeta;³ + &Psi;&#x2084;&zeta;⁴ &nbsp;|&nbsp;
+      Roots = principal null directions &nbsp;|&nbsp;
+      <span style="color:var(--dim);font-size:.72rem">🖱 drag to rotate</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Petrov Classification</h3>
+    <p>The Weyl tensor C<sub>abcd</sub> encodes gravitational field geometry. Over &Copf; it factors as a degree-4 polynomial in &zeta; = tan(&theta;/2)e<sup>i&phi;</sup>. Root multiplicities classify the field:</p>
+    <table class="petrov-table">
+      <tr><th>Type</th><th>Roots</th><th>Example</th></tr>
+      <tr><td style="color:#ffffff">I</td><td>4 distinct</td><td>General vacuum</td></tr>
+      <tr><td style="color:#ffdd44">II</td><td>2+1+1</td><td>Near black hole</td></tr>
+      <tr><td style="color:#ff8844">III</td><td>3+1</td><td>Radiative field</td></tr>
+      <tr><td style="color:#44ffee">D</td><td>2+2</td><td>Schwarzschild, Kerr</td></tr>
+      <tr><td style="color:#aa55ff">N</td><td>4-fold</td><td>Gravitational waves</td></tr>
+      <tr><td style="color:#666699">O</td><td>—</td><td>Flat spacetime</td></tr>
+    </table>
+    <br>
+    <div class="hier">I<br>&darr; &darr;<br>II &nbsp; D<br>&darr; &darr;<br>III &nbsp; N<br>&darr; &darr;<br>O</div>
+    <br>
+    <p>NP Weyl scalars:</p>
+    <div class="bullet">
+      &Psi;&#x2080;: ingoing transverse wave<br>
+      &Psi;&#x2081;: ingoing longitudinal<br>
+      &Psi;&#x2082;: Coulomb component<br>
+      &Psi;&#x2083;: outgoing longitudinal<br>
+      &Psi;&#x2084;: outgoing transverse wave
+    </div>
+    <br>
+    <p style="font-size:.72rem;color:var(--dim)">Schwarzschild: only &Psi;&#x2082;&ne;0 — pure Coulomb.<br>
+    Gravitational wave far field: only &Psi;&#x2084;&ne;0 — pure radiation.</p>
+    <br>
+    <div class="kv"><span>&Psi;&#x2080;</span><span id="psi0disp">—</span></div>
+    <div class="kv"><span>&Psi;&#x2081;</span><span id="psi1disp">—</span></div>
+    <div class="kv"><span>&Psi;&#x2082;</span><span id="psi2disp">—</span></div>
+    <div class="kv"><span>&Psi;&#x2083;</span><span id="psi3disp">—</span></div>
+    <div class="kv"><span>&Psi;&#x2084;</span><span id="psi4disp">—</span></div>
+  </div>
+</div>
+
+
+<!-- TAB 3: Abstract Index Notation & ε-Spinor -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn3" class="animBtn" onclick="toggleAnim3()">▶ Animate</button>
+      <label>Re(κ⁰):</label>
+      <input type="range" id="k0re" min="-100" max="100" value="70" oninput="draw3()">
+      <label>Im(κ⁰):</label>
+      <input type="range" id="k0im" min="-100" max="100" value="0" oninput="draw3()">
+      <label>Re(κ¹):</label>
+      <input type="range" id="k1re" min="-100" max="100" value="30" oninput="draw3()">
+      <label>Im(κ¹):</label>
+      <input type="range" id="k1im" min="-100" max="100" value="40" oninput="draw3()">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box" id="infoBox3">κ⁰ = 0.70+0.00i &nbsp;|&nbsp; κ¹ = 0.30+0.40i &nbsp;|&nbsp; null norm = κ^A κ_A = 0</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Abstract Index Notation</h3>
+    <p>Penrose's abstract indices label tensor slots, not components. Upper = contravariant, lower = covariant. Dotted (primed) = conjugate spinor space.</p>
+    <div class="eq">κ<sup>A</sup> ∈ S &nbsp;(unprimed spinor space)</div>
+    <div class="eq">κ̄<sup>A'</sup> ∈ S̄ &nbsp;(primed = complex conjugate)</div>
+    <br>
+    <h3>ε-Spinor (Symplectic Metric)</h3>
+    <p>The metric spinor ε<sub>AB</sub> is the invariant antisymmetric form used to raise/lower indices:</p>
+    <div class="eq">ε<sub>AB</sub> = [[0, 1], [−1, 0]]</div>
+    <div class="eq">κ<sub>A</sub> = ε<sub>AB</sub> κ<sup>B</sup></div>
+    <div class="eq">→ κ<sub>0</sub> = κ¹, κ<sub>1</sub> = −κ⁰</div>
+    <br>
+    <h3>Null Vector from Spinor Pair</h3>
+    <div class="eq">k<sup>aa'</sup> = κ<sup>a</sup> κ̄<sup>a'</sup></div>
+    <p>This is automatically null: k<sup>a</sup>k<sub>a</sub> = 0. The 2-spinor κ<sup>A</sup> encodes a null direction in Minkowski space.</p>
+    <br>
+    <div class="kv"><span>κ⁰</span><span id="kv3k0">—</span></div>
+    <div class="kv"><span>κ¹</span><span id="kv3k1">—</span></div>
+    <div class="kv"><span>κ<sub>0</sub> = κ¹</span><span id="kv3kd0">—</span></div>
+    <div class="kv"><span>κ<sub>1</sub> = −κ⁰</span><span id="kv3kd1">—</span></div>
+    <div class="kv"><span>|κ|²</span><span id="kv3norm">—</span></div>
+    <div class="kv"><span>null k⁰ (t+z)</span><span id="kv3kn0">—</span></div>
+    <div class="kv"><span>null k¹ (x+iy)</span><span id="kv3kn1">—</span></div>
+    <br>
+    <p style="font-size:.72rem;color:var(--dim)">The animation shows κ<sup>A</sup> (purple) and its conjugate κ̄<sup>A'</sup> (cyan) rotating as a Weyl spinor pair. The null vector they define traces the Riemann sphere — each complex ratio κ¹/κ⁰ maps to a point on the celestial sphere via stereographic projection.</p>
+  </div>
+</div>
+
+<!-- TAB 4: Spinor Dyads & Newman-Penrose Formalism -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn4" class="animBtn" onclick="toggleAnim4()">▶ Animate</button>
+      <button onclick="resetDyad()">Reset Dyad</button>
+      <label>Boost λ:</label>
+      <input type="range" id="dyad_lambda" min="10" max="300" value="100" oninput="draw4()">
+      <span id="dyad_lambda_val">1.00</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">Null tetrad: l<sup>a</sup>=o<sup>A</sup>ō<sup>A'</sup>, n<sup>a</sup>=ι<sup>A</sup>ῑ<sup>A'</sup>, m<sup>a</sup>=o<sup>A</sup>ῑ<sup>A'</sup> &nbsp;|&nbsp; Normalization: l·n=1, m·m̄=−1 &nbsp;|&nbsp; Click to reorient dyad</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Spinor Dyad (o<sup>A</sup>, ι<sup>A</sup>)</h3>
+    <p>A dyad is a basis for spinor space. The normalization condition is:</p>
+    <div class="eq">o<sub>A</sub> ι<sup>A</sup> = ε<sub>AB</sub> o<sup>B</sup> ι<sup>A</sup> = 1</div>
+    <br>
+    <h3>Null Tetrad</h3>
+    <p>From the dyad, build 4 null/complex vectors:</p>
+    <div class="eq">l<sup>a</sup> = o<sup>A</sup>ō<sup>A'</sup> &nbsp;(real null)</div>
+    <div class="eq">n<sup>a</sup> = ι<sup>A</sup>ῑ<sup>A'</sup> &nbsp;(real null)</div>
+    <div class="eq">m<sup>a</sup> = o<sup>A</sup>ῑ<sup>A'</sup> &nbsp;(complex null)</div>
+    <div class="eq">m̄<sup>a</sup> = ι<sup>A</sup>ō<sup>A'</sup> &nbsp;(complex null)</div>
+    <br>
+    <h3>NP Spin Coefficients</h3>
+    <p>The 12 complex spin coefficients encode the connection in the dyad frame. Key ones:</p>
+    <div class="bullet">
+      κ = o<sup>A</sup>o<sup>B</sup>∇<sub>AA'</sub>o<sub>B</sub> &nbsp;(geodesic defect)<br>
+      σ = o<sup>A</sup>o<sup>B</sup>∇<sub>BA'</sub>o<sub>A</sub> &nbsp;(shear)<br>
+      ρ = o<sup>A</sup>ῑ<sup>A'</sup>∇<sub>AA'</sub>o<sup>A</sup> &nbsp;(convergence)<br>
+      τ = o<sup>A</sup>ῑ<sup>A'</sup>∇<sub>AA'</sub>ι<sup>A</sup> &nbsp;(twist analog)<br>
+      ε = o<sup>A</sup>ι<sup>B</sup>∇<sub>00'</sub>ε<sub>AB</sub>/2 &nbsp;(spin of l)<br>
+      γ, α, β, π, ν, μ, λ &nbsp;(remaining 7)
+    </div>
+    <br>
+    <div class="kv"><span>Spin transform λ</span><span id="np_lambda">1.00</span></div>
+    <div class="kv"><span>o<sup>A</sup> → λo<sup>A</sup></span><span id="np_o">scaled</span></div>
+    <div class="kv"><span>ι<sup>A</sup> → λ⁻¹ι<sup>A</sup></span><span id="np_iota">scaled</span></div>
+    <div class="kv"><span>l<sup>a</sup> → λ²l<sup>a</sup></span><span id="np_la">rescaled</span></div>
+    <div class="kv"><span>n<sup>a</sup> → λ⁻²n<sup>a</sup></span><span id="np_na">rescaled</span></div>
+    <br>
+    <p style="font-size:.72rem;color:var(--dim)">Under a spin boost o→λo, ι→λ⁻¹ι, the tetrad vectors l and n rescale inversely. This is a Lorentz boost in the null tetrad frame. The spin coefficients transform under the full NP spin-coefficient formalism (Bianchi-like equations).</p>
+  </div>
+</div>
+
+<!-- TAB 5: Twistor Correspondence -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn5" class="animBtn" onclick="toggleAnim5()">▶ Animate</button>
+      <label>π₀ (real):</label>
+      <input type="range" id="twistor_pi0" min="-100" max="100" value="60" oninput="draw5()">
+      <label>π₁ (real):</label>
+      <input type="range" id="twistor_pi1" min="-100" max="100" value="40" oninput="draw5()">
+      <label>x (spacetime):</label>
+      <input type="range" id="twistor_x" min="-100" max="100" value="30" oninput="draw5()">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">Twistor: Z<sup>α</sup>=(ω<sup>A</sup>, π<sub>A'</sub>) &nbsp;|&nbsp; Incidence: ω<sup>A</sup>=ix<sup>AA'</sup>π<sub>A'</sub> &nbsp;|&nbsp; Null ray in spacetime = real point in PT</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Twistors from Spinors</h3>
+    <p>A twistor Z<sup>α</sup> is a pair of spinors:</p>
+    <div class="eq">Z<sup>α</sup> = (ω<sup>A</sup>, π<sub>A'</sub>)</div>
+    <p>where ω<sup>A</sup> ∈ S and π<sub>A'</sub> ∈ S̄ are related by the <em>incidence relation</em>:</p>
+    <div class="eq">ω<sup>A</sup> = i x<sup>AA'</sup> π<sub>A'</sub></div>
+    <p>Here x<sup>AA'</sup> is the spacetime position encoded as a 2×2 Hermitian matrix.</p>
+    <br>
+    <h3>Geometry of the Correspondence</h3>
+    <div class="bullet">
+      Fix π<sub>A'</sub>, vary x<sup>aa'</sup>: ω<sup>A</sup> traces a <em>line</em> in twistor space T<br>
+      Fix x<sup>aa'</sup> (a spacetime point): all twistors through x form a <em>line</em> in PT (projective twistor space)<br>
+      A <em>null ray</em> in spacetime (a light ray) corresponds to a <em>point</em> in real projective twistor space PN ⊂ PT
+    </div>
+    <br>
+    <h3>Helicity &amp; Massless Fields</h3>
+    <div class="eq">Helicity h = ½(ω<sup>A</sup>π<sub>A</sub> + ω̄<sup>A'</sup>π̄<sub>A'</sub>)</div>
+    <div class="bullet">
+      h=0: scalar field<br>
+      h=±1: Maxwell (EM) field<br>
+      h=±2: graviton (gravitational wave)
+    </div>
+    <br>
+    <div class="kv"><span>π<sub>A'</sub></span><span id="tw_pi">—</span></div>
+    <div class="kv"><span>ω<sup>A</sup></span><span id="tw_omega">—</span></div>
+    <div class="kv"><span>x position</span><span id="tw_x">—</span></div>
+    <div class="kv"><span>helicity h</span><span id="tw_h">—</span></div>
+    <div class="kv"><span>|Z|² (∝ helicity)</span><span id="tw_z2">—</span></div>
+    <br>
+    <p style="font-size:.72rem;color:var(--dim)">The animation varies x<sup>aa'</sup> while keeping π<sub>A'</sub> fixed — the ω<sup>A</sup> vector traces a straight line in twistor space (the Penrose transform). This is the geometric origin of why massless fields in spacetime become holomorphic data on twistor space.</p>
+  </div>
+</div>
+
+<!-- TAB 6: Spin Coefficients & Gravitational Radiation / Peeling -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-area">
+    <canvas id="c6"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="animBtn6" class="animBtn" onclick="toggleAnim6()">▶ Animate</button>
+      <button onclick="resetPeeling()">Reset</button>
+      <label>Amplitude:</label>
+      <input type="range" id="peel_amp" min="10" max="200" value="100" oninput="draw6()">
+      <label>Frequency:</label>
+      <input type="range" id="peel_freq" min="5" max="50" value="20" oninput="draw6()">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">Peeling: Ψ<sub>n</sub> ~ r<sup>n-5</sup> &nbsp;|&nbsp; Ψ₄ ~ 1/r (radiation) dominates at ℐ⁺ &nbsp;|&nbsp; Goldberg-Sachs: shear-free ↔ algebraically special</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Peeling Theorem</h3>
+    <p>Along an outgoing null geodesic at large distance r, the Weyl scalars fall off as:</p>
+    <div class="eq">Ψ₀ ~ r⁻⁵ &nbsp;(ingoing transverse)</div>
+    <div class="eq">Ψ₁ ~ r⁻⁴ &nbsp;(ingoing longit.)</div>
+    <div class="eq">Ψ₂ ~ r⁻³ &nbsp;(Coulomb)</div>
+    <div class="eq">Ψ₃ ~ r⁻² &nbsp;(outgoing longit.)</div>
+    <div class="eq">Ψ₄ ~ r⁻¹ &nbsp;(outgoing transverse — RADIATION)</div>
+    <br>
+    <p>At null infinity ℐ⁺, only Ψ₄ survives — it is the <em>gravitational wave strain</em>:</p>
+    <div class="eq">h₊ + ih× ∝ ∫∫Ψ₄ dt dt</div>
+    <br>
+    <h3>Goldberg-Sachs Theorem</h3>
+    <p>A vacuum spacetime admits a <em>shear-free</em> null geodesic congruence if and only if it is algebraically special (Petrov type II, III, D, N, or O).</p>
+    <div class="bullet">
+      Type D (Schwarzschild, Kerr): κ=σ=0 along both PNDs<br>
+      Type N (grav. wave): κ=σ=ρ=0 along the 4-fold PND<br>
+      Generic (Type I): no shear-free geodesic congruence
+    </div>
+    <br>
+    <h3>Asymptotic Symmetries</h3>
+    <p>The BMS group (Bondi-Metzner-Sachs) at ℐ⁺ is the symmetry of asymptotically flat spacetimes. It includes supertranslations — an infinite-dimensional extension of Poincaré translations.</p>
+    <div class="eq">BMS = Lorentz ⋉ Supertranslations</div>
+    <br>
+    <div class="kv"><span>GW pulse position r</span><span id="peel_r">—</span></div>
+    <div class="kv"><span>Ψ₄ (1/r)</span><span id="peel_psi4">—</span></div>
+    <div class="kv"><span>Ψ₂ (1/r³)</span><span id="peel_psi2">—</span></div>
+    <div class="kv"><span>Ψ₀ (1/r⁵)</span><span id="peel_psi0">—</span></div>
+    <div class="kv"><span>Power radiated ∝</span><span id="peel_power">|Ψ₄|²</span></div>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(i){
+  _cancelAllAnims30();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  if(i===0){draw0();toggleAnim0();}
+  else if(i===1){draw1();}
+  else if(i===2){draw2();}
+  else if(i===3){draw3();toggleAnim3();}
+  else if(i===4){draw4();toggleAnim4();}
+  else if(i===5){draw5();toggleAnim5();}
+  else if(i===6){draw6();toggleAnim6();}
+}
+
+function syncSpeedControl30(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+
+function _cancelAllAnims30(){
+  if(animId0){cancelAnimationFrame(animId0);animId0=null;}
+  if(animId3){cancelAnimationFrame(animId3);animId3=null;}
+  if(animId4){cancelAnimationFrame(animId4);animId4=null;}
+  if(animId5){cancelAnimationFrame(animId5);animId5=null;}
+  if(animId6){cancelAnimationFrame(animId6);animId6=null;}
+  const b0=document.getElementById('animBtn0');if(b0){b0.textContent='▶ Animate';b0.classList.remove('active-btn');}
+  const b3=document.getElementById('animBtn3');if(b3){b3.textContent='▶ Animate';b3.classList.remove('active-btn');}
+  const b4=document.getElementById('animBtn4');if(b4){b4.textContent='▶ Animate';b4.classList.remove('active-btn');}
+  const b5=document.getElementById('animBtn5');if(b5){b5.textContent='▶ Animate';b5.classList.remove('active-btn');}
+  const b6=document.getElementById('animBtn6');if(b6){b6.textContent='▶ Animate';b6.classList.remove('active-btn');}
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function lerp(a,b,t){return a+(b-a)*t;}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function hslToRgb(h,s,l){
+  h=((h%1)+1)%1;
+  const c=(1-Math.abs(2*l-1))*s;
+  const x=c*(1-Math.abs((h*6)%2-1));
+  const m=l-c/2;
+  let r,g,b;
+  if(h<1/6){r=c;g=x;b=0;}
+  else if(h<2/6){r=x;g=c;b=0;}
+  else if(h<3/6){r=0;g=c;b=x;}
+  else if(h<4/6){r=0;g=x;b=c;}
+  else if(h<5/6){r=x;g=0;b=c;}
+  else{r=c;g=0;b=x;}
+  return [Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];
+}
+
+// ============================================================
+// TAB 0 — 2-SPINORS & FLAGPOLE
+// ============================================================
+let theta0=0.8, phi0=0.5;        // flagpole direction
+let flagPhase=0;                  // extra flag rotation phase
+let spinorSign=1;                 // +1 or -1
+let rotCount=0;                   // full rotations done
+let animId0=null;
+let animPhi=0;
+let dragging0=false;
+let dragStartX=0, dragStartY=0;
+let dragStartTheta=0, dragStartPhi=0;
+let lastPhi0=0;
+
+const cv0=()=>document.getElementById('c0');
+
+function resetSpinor(){
+  theta0=0.8; phi0=0.5; flagPhase=0; spinorSign=1; rotCount=0; animPhi=0; lastPhi0=0;
+  if(animId0){cancelAnimationFrame(animId0);animId0=null;document.getElementById('animBtn0').textContent='▶ Animate';document.getElementById('animBtn0').classList.remove('active-btn');}
+  updateSpinorUI(); draw0();
+}
+
+function toggleAnim0(){
+  const btn=document.getElementById('animBtn0');
+  if(animId0){
+    cancelAnimationFrame(animId0);animId0=null;
+    btn.textContent='▶ Animate';
+    btn.classList.remove('active-btn');
+    return;
+  }
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active-btn');
+  let prevPhi=phi0;
+  function frame(){
+    phi0+=0.012*(window.animSpeed||0.1);
+    // Track sign change every pi increment
+    let delta=phi0-prevPhi;
+    flagPhase+=delta*0.5; // flag rotates at HALF rate
+    // Every full 2pi rotation of phi, sign flips
+    if(Math.floor(phi0/(2*Math.PI))>Math.floor(prevPhi/(2*Math.PI))){
+      spinorSign*=-1;
+      rotCount++;
+    }
+    prevPhi=phi0;
+    updateSpinorUI();
+    draw0();
+    animId0=requestAnimationFrame(frame);
+  }
+  animId0=requestAnimationFrame(frame);
+}
+
+function updateSpinorUI(){
+  const t=theta0, p=phi0%(2*Math.PI);
+  const k0=Math.cos(t/2);
+  const k1r=Math.sin(t/2)*Math.cos(p);
+  const k1i=Math.sin(t/2)*Math.sin(p);
+  document.getElementById('k0val').textContent=k0.toFixed(3);
+  document.getElementById('k1val').textContent=`${k1r.toFixed(3)}+${k1i.toFixed(3)}i`;
+  document.getElementById('thetaVal').textContent=t.toFixed(2);
+  document.getElementById('phiVal').textContent=(phi0%(2*Math.PI)).toFixed(2);
+  document.getElementById('signVal').textContent=spinorSign>0?'+κ':'−κ';
+  document.getElementById('flagPhaseDisp').textContent=(flagPhase%(2*Math.PI)).toFixed(2)+' rad';
+  document.getElementById('signDisp').textContent=spinorSign>0?'+1':'−1';
+  document.getElementById('rotCounter').textContent=rotCount;
+}
+
+function draw0(){
+  const cv=document.getElementById('c0');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const cx=W*0.38, cy=H*0.5;
+  const R=Math.min(W*0.30,H*0.38);
+
+  // ---- draw Riemann sphere wireframe ----
+  ctx.save();
+  // equator
+  ctx.strokeStyle='rgba(170,85,255,0.25)';
+  ctx.lineWidth=1;
+  for(let lat=-80;lat<=80;lat+=20){
+    const r2=R*Math.cos(lat*Math.PI/180);
+    const y2=cy-R*Math.sin(lat*Math.PI/180);
+    ctx.beginPath();
+    ctx.ellipse(cx,y2,r2,r2*0.3,0,0,Math.PI*2);
+    ctx.stroke();
+  }
+  for(let lon=0;lon<180;lon+=30){
+    const a=lon*Math.PI/180;
+    ctx.beginPath();
+    for(let t=0;t<=Math.PI*2;t+=0.04){
+      const x3=cx+R*(Math.cos(a)*Math.cos(t)-Math.sin(a)*Math.sin(t)*Math.cos(Math.PI/4))*0.85;
+      const y3=cy-R*Math.sin(t)*0.9;
+      if(t===0)ctx.moveTo(x3,y3);else ctx.lineTo(x3,y3);
+    }
+    ctx.stroke();
+  }
+
+  // sphere outline glow
+  const grd=ctx.createRadialGradient(cx-R*0.2,cy-R*0.2,R*0.1,cx,cy,R*1.1);
+  grd.addColorStop(0,'rgba(170,85,255,0.0)');
+  grd.addColorStop(0.85,'rgba(170,85,255,0.05)');
+  grd.addColorStop(1,'rgba(170,85,255,0.18)');
+  ctx.fillStyle=grd;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(170,85,255,0.55)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+
+  // ---- compute flagpole 3D direction ----
+  // spherical to cartesian (theta=polar from north, phi=azimuthal)
+  const t=theta0, p=phi0;
+  const sx=Math.sin(t)*Math.cos(p);
+  const sy=Math.sin(t)*Math.sin(p);
+  const sz=Math.cos(t);
+  // project to 2D (simple axonometric: x+z*0.5, -y*0.6+z*0.4 style)
+  const isoX=cx+R*(sx - sy*0.45);
+  const isoY=cy-R*(sz + sy*0.20);
+
+  // ---- flag plane ----
+  // flag plane: perpendicular to flagpole, at half the phi angle
+  const fp=flagPhase+phi0*0.5;
+  const flagLen=R*0.55;
+  const flagW=R*0.30;
+  // tangent vector in equatorial plane, rotated by fp
+  const tx0=Math.cos(fp);
+  const ty0=Math.sin(fp);
+  // project tangent
+  const ftx=tx0-ty0*0.45;
+  const fty=-ty0*0.20;
+
+  // flag base at center, tip at flagpole end, width perpendicular
+  const fx0=cx, fy0=cy;
+  const fx1=isoX, fy1=isoY;
+  const fw0x=cx+flagLen*ftx, fw0y=cy+flagLen*fty;
+  const fw1x=isoX+flagW*ftx, fw1y=isoY+flagW*fty;
+
+  // color flag based on sign
+  const flagColor=spinorSign>0?'rgba(170,85,255,0.25)':'rgba(255,60,60,0.30)';
+  const flagEdge=spinorSign>0?'rgba(170,85,255,0.7)':'rgba(255,80,80,0.8)';
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(fx0,fy0);
+  ctx.lineTo(fw0x,fw0y);
+  ctx.lineTo(fw1x+fx1-fx0,fw1y+fy1-fy0);
+  ctx.lineTo(fx1,fy1);
+  ctx.closePath();
+  ctx.fillStyle=flagColor;
+  ctx.fill();
+  ctx.strokeStyle=flagEdge;
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // ---- flagpole ----
+  const grad=ctx.createLinearGradient(cx,cy,isoX,isoY);
+  grad.addColorStop(0,'rgba(170,85,255,0.2)');
+  grad.addColorStop(1,spinorSign>0?'#aa55ff':'#ff5050');
+  ctx.save();
+  ctx.strokeStyle=grad;
+  ctx.lineWidth=3;
+  ctx.shadowColor=spinorSign>0?'#aa55ff':'#ff5050';
+  ctx.shadowBlur=12;
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(isoX,isoY);ctx.stroke();
+  ctx.restore();
+
+  // ---- tip dot ----
+  ctx.save();
+  ctx.fillStyle=spinorSign>0?'#aa55ff':'#ff5050';
+  ctx.shadowColor=ctx.fillStyle;
+  ctx.shadowBlur=16;
+  ctx.beginPath();ctx.arc(isoX,isoY,6,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+
+  // ---- north/south pole markers ----
+  ctx.save();
+  ctx.fillStyle='rgba(170,85,255,0.5)';
+  ctx.beginPath();ctx.arc(cx,cy-R,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(170,85,255,0.3)';
+  ctx.beginPath();ctx.arc(cx,cy+R,4,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+
+  // ---- center dot ----
+  ctx.save();
+  ctx.fillStyle='rgba(170,85,255,0.4)';
+  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+
+  // ---- rotation phase mini arc tracker (bottom-left of sphere) ----
+  const arcCx=cx-R*0.62, arcCy=cy+R*0.65;
+  const arcR=22;
+  ctx.save();
+  ctx.strokeStyle='rgba(170,85,255,0.25)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(arcCx,arcCy,arcR,0,Math.PI*2);ctx.stroke();
+  // flag direction arc
+  const arcEnd=(flagPhase%(2*Math.PI));
+  ctx.strokeStyle=spinorSign>0?'#aa55ff':'#ff5050';
+  ctx.lineWidth=3;
+  ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=8;
+  ctx.beginPath();ctx.moveTo(arcCx,arcCy);
+  ctx.arc(arcCx,arcCy,arcR,-Math.PI/2,-Math.PI/2+arcEnd);
+  ctx.stroke();
+  ctx.fillStyle='rgba(170,85,255,0.6)';
+  ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('flag',arcCx,arcCy+arcR+12);
+  ctx.restore();
+
+  // ---- labels ----
+  ctx.save();
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle=spinorSign>0?'rgba(170,85,255,0.9)':'rgba(255,80,80,0.9)';
+  ctx.textAlign='left';
+  ctx.fillText(spinorSign>0?'+κ':'−κ',isoX+10,isoY-6);
+  ctx.fillStyle='rgba(170,85,255,0.5)';
+  ctx.font='12px Segoe UI';
+  ctx.fillText('N',cx-5,cy-R-8);
+  ctx.fillText('S',cx-4,cy+R+14);
+  ctx.restore();
+
+  updateSpinorUI();
+}
+
+// Drag interaction for Tab 0
+(function(){
+  const canvas=document.getElementById('c0');
+  canvas.addEventListener('mousedown',e=>{
+    dragging0=true;
+    dragStartX=e.clientX; dragStartY=e.clientY;
+    dragStartTheta=theta0; dragStartPhi=phi0;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!dragging0)return;
+    const dx=(e.clientX-dragStartX);
+    const dy=(e.clientY-dragStartY);
+    const cv=document.getElementById('c0');
+    const R=Math.min(cv.offsetWidth*0.30,cv.offsetHeight*0.38);
+    phi0=dragStartPhi+dx/R*1.2;
+    theta0=clamp(dragStartTheta+dy/R*1.2,0.05,Math.PI-0.05);
+    draw0();
+  });
+  window.addEventListener('mouseup',()=>{dragging0=false;});
+})();
+
+// ============================================================
+// TAB 1 — SPIN-WEIGHTED SPHERICAL HARMONICS
+// ============================================================
+let spinS=0;
+
+function setSpin(s){
+  spinS=s;
+  ['sb-2','sb-1','sb0','sb1','sb2'].forEach(id=>{
+    document.getElementById(id).classList.remove('active-btn');
+  });
+  const map={'-2':'sb-2','-1':'sb-1','0':'sb0','1':'sb1','2':'sb2'};
+  document.getElementById(map[String(s)]).classList.add('active-btn');
+  clampM();
+  draw1();
+}
+
+function clampM(){
+  const l=parseInt(document.getElementById('lSlider').value);
+  const ms=document.getElementById('mSlider');
+  // clamp m to [-l,l] and also |s|<=l
+  const effL=Math.max(l,Math.abs(spinS));
+  // actually enforce l >= |s|
+  if(l<Math.abs(spinS)){
+    document.getElementById('lSlider').value=Math.abs(spinS);
+  }
+  const lv=parseInt(document.getElementById('lSlider').value);
+  ms.min=-lv; ms.max=lv;
+  let mv=parseInt(ms.value);
+  if(mv>lv)ms.value=lv;
+  if(mv<-lv)ms.value=-lv;
+  document.getElementById('lVal').textContent=document.getElementById('lSlider').value;
+  document.getElementById('mVal').textContent=ms.value;
+  const s=spinS,ll=parseInt(document.getElementById('lSlider').value),mm=parseInt(ms.value);
+  document.getElementById('slmDisp').textContent=`(${s},${ll},${mm})`;
+  const ok=Math.abs(s)<=ll?'satisfied':'violated!';
+  document.getElementById('slCondDisp').textContent=ok;
+  document.getElementById('slCondDisp').style.color=ok==='satisfied'?'#44ffaa':'#ff5555';
+  // label
+  const subS=['₋₂','₋₁','₀','₁','₂'][s+2];
+  const supL=['⁰','¹','²','³','⁴'][ll];
+  const supM=mm<0?['₋₄','₋₃','₋₂','₋₁','₀','₁','₂','₃','₄'][mm+4]:['₋₄','₋₃','₋₂','₋₁','₀','₁','₂','₃','₄'][mm+4];
+  document.getElementById('slmLabel').textContent=`${subS}Y${supL}${supM}`;
+}
+
+// Associated Legendre (unnormalized)
+function legP(l,m,x){
+  if(m<0)return Math.pow(-1,-m)*factorial(-m)/factorial(m<0?l+m:l-m)*legP(l,-m,x);// handled below
+  // Compute P_l^m(x) for m>=0
+  let pmm=1.0;
+  if(m>0){
+    const somx2=Math.sqrt((1-x)*(1+x));
+    let fact=1;
+    for(let i=1;i<=m;i++){pmm*=(-fact)*somx2; fact+=2;}
+  }
+  if(l===m)return pmm;
+  let pmmp1=x*(2*m+1)*pmm;
+  if(l===m+1)return pmmp1;
+  let pll=0;
+  for(let ll2=m+2;ll2<=l;ll2++){
+    pll=((2*ll2-1)*x*pmmp1-(ll2+m-1)*pmm)/(ll2-m);
+    pmm=pmmp1; pmmp1=pll;
+  }
+  return pll;
+}
+
+function factorial(n){if(n<=1)return 1;let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+
+// Normalized Ylm(theta,phi) — returns [re,im]
+function Ylm(l,m,theta,phi){
+  const absm=Math.abs(m);
+  // normalization
+  const norm=Math.sqrt((2*l+1)/(4*Math.PI)*factorial(l-absm)/factorial(l+absm));
+  const pval=legP(l,absm,Math.cos(theta));
+  const phase=m>=0?1:Math.pow(-1,absm);
+  const re=phase*norm*pval*Math.cos(m*phi);
+  const im=phase*norm*pval*Math.sin(m*phi);
+  return [re,im];
+}
+
+// Spin-weighted Ylm using eth operator approximation
+// For s>0: sYlm ~ sqrt((l-s)!/(l+s)!) * d^s/dtheta^s [sin^s(theta)] * Ylm / sin^s(theta) (heuristic)
+// We use the closed-form Goldberg formula:
+// sYlm(theta,phi) = (-1)^m * sqrt((l+m)!(l-m)!(2l+1) / (4pi*(l+s)!(l-s)!))
+//                  * e^{imφ} * sin^{2l}(θ/2) * sum_r C(l-s,r)C(l+s,r+s-m)(-1)^{l-s-r}cot^{2r+s-m}(θ/2)
+// Simplified implementation using recursive eth:
+function sYlm(s,l,m,theta,phi){
+  if(Math.abs(s)>l){return [0,0];}
+  if(Math.abs(m)>l){return [0,0];}
+  // Use Goldberg et al formula
+  const ls=l+s, lms=l-s, lm=l+m, lnm=l-m;
+  const norm=Math.sqrt(factorial(lm)*factorial(lnm)*(2*l+1)/(4*Math.PI*factorial(ls)*factorial(lms)));
+  const halfTheta=theta/2;
+  const cosH=Math.cos(halfTheta), sinH=Math.sin(halfTheta);
+  let sum=0;
+  const rMin=Math.max(0,m-s);
+  const rMax=Math.min(lnm,lm); // min(l-s, l+m) actually min of combinations
+  for(let r=0;r<=l;r++){
+    const a=lms-r, b=r+s-m;
+    if(a<0||b<0||r>lm||r>lms)continue;
+    const sign=Math.pow(-1,lms-r);
+    const comb=C(lms,r)*C(ls,r+s-m);
+    if(isNaN(comb)||!isFinite(comb))continue;
+    const pw1=2*r+s-m, pw2=2*l-2*r-s+m;
+    if(pw1<0||pw2<0)continue;
+    sum+=sign*comb*Math.pow(cosH,pw2)*Math.pow(sinH,pw1);
+  }
+  const mag=norm*sum;
+  return [mag*Math.cos(m*phi), mag*Math.sin(m*phi)];
+}
+
+function C(n,k){
+  if(k<0||k>n)return 0;
+  return factorial(n)/(factorial(k)*factorial(n-k));
+}
+
+function draw1(){
+  const cv=document.getElementById('c1');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  clampM();
+  const l=parseInt(document.getElementById('lSlider').value);
+  const m=parseInt(document.getElementById('mSlider').value);
+  const s=spinS;
+
+  if(Math.abs(s)>l){
+    ctx.fillStyle='var(--dim)';
+    ctx.font='16px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(`|s|=${Math.abs(s)} > l=${l}: spin-weighted harmonic requires l ≥ |s|`,W/2,H/2);
+    return;
+  }
+
+  // Equirectangular projection: x=phi (0..2pi), y=theta (0..pi)
+  const imgW=Math.floor(W), imgH=Math.floor(H);
+  const imgData=ctx.createImageData(imgW,imgH);
+  const data=imgData.data;
+
+  // First pass: find max magnitude for normalization
+  let maxMag=0;
+  const stride=Math.max(1,Math.floor(imgW/200));
+  for(let py=0;py<imgH;py+=stride){
+    const theta=py/imgH*Math.PI;
+    for(let px=0;px<imgW;px+=stride){
+      const phi=px/imgW*2*Math.PI;
+      const [re,im]=sYlm(s,l,m,theta,phi);
+      const mag=Math.sqrt(re*re+im*im);
+      if(mag>maxMag)maxMag=mag;
+    }
+  }
+  if(maxMag<1e-12)maxMag=1;
+
+  for(let py=0;py<imgH;py++){
+    const theta=py/imgH*Math.PI;
+    for(let px=0;px<imgW;px++){
+      const phi=px/imgW*2*Math.PI;
+      const [re,im]=sYlm(s,l,m,theta,phi);
+      const mag=Math.sqrt(re*re+im*im);
+      const phase=(Math.atan2(im,re)+Math.PI*2)%(Math.PI*2);
+      const hue=phase/(Math.PI*2);
+      const brightness=0.15+0.65*(mag/maxMag);
+      const sat=0.9;
+      const [r,g,b]=hslToRgb(hue,sat,brightness);
+      const idx=(py*imgW+px)*4;
+      data[idx]=r; data[idx+1]=g; data[idx+2]=b; data[idx+3]=255;
+    }
+  }
+  ctx.putImageData(imgData,0,0);
+
+  // Lat/lon grid overlay
+  ctx.save();
+  ctx.strokeStyle='rgba(255,255,255,0.18)';
+  ctx.lineWidth=0.8;
+  for(let lon=0;lon<360;lon+=30){
+    const x=lon/360*W;
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  for(let lat=0;lat<=180;lat+=30){
+    const y=lat/180*H;
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  // Equator highlight
+  ctx.strokeStyle='rgba(255,255,255,0.35)';
+  ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.restore();
+
+  // Labels
+  ctx.save();
+  ctx.fillStyle='rgba(255,255,255,0.45)';
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='center';
+  for(let lon=0;lon<=360;lon+=60){
+    ctx.fillText(`${lon}°`,lon/360*W,H-4);
+  }
+  ctx.textAlign='right';
+  for(let lat=0;lat<=180;lat+=30){
+    ctx.fillText(`${lat}°`,28,lat/180*H+4);
+  }
+  // Title
+  ctx.fillStyle='rgba(170,85,255,0.85)';
+  ctx.font='bold 14px Segoe UI';
+  ctx.textAlign='left';
+  const sub=['₋₂','₋₁','₀','₁','₂'][s+2];
+  const subL=['₀','₁','₂','₃','₄'][l];
+  const subMArr=['₋₄','₋₃','₋₂','₋₁','₀','₁','₂','₃','₄'];
+  const subM=subMArr[m+4];
+  ctx.fillText(`${sub}Y${subL}${subM}  (s=${s}, l=${l}, m=${m})`,10,20);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 2 — PETROV CLASSIFICATION
+// ============================================================
+let petrovType='I';
+let petrovAnim=null;
+let petrovT=1.0; // transition parameter 0→1
+
+// 3D view rotation for Petrov sphere
+let petrovViewAz=0.35, petrovViewEl=0.20;
+let petrov3DDrag=false, petrov3DStartX=0, petrov3DStartY=0;
+let petrov3DStartAz=0.35, petrov3DStartEl=0.20;
+
+function rotPetrov(sx,sy,sz){
+  // rotate around Y by azimuth, then around X by elevation
+  const az=petrovViewAz, el=petrovViewEl;
+  const x1= sx*Math.cos(az)+sz*Math.sin(az);
+  const y1= sy;
+  const z1=-sx*Math.sin(az)+sz*Math.cos(az);
+  const x2= x1;
+  const y2= y1*Math.cos(el)-z1*Math.sin(el);
+  const z2= y1*Math.sin(el)+z1*Math.cos(el);
+  return{x:x2,y:y2,z:z2};
+}
+
+const PETROV_DATA={
+  'I':{
+    psi:[{re:1,im:0},{re:0.3,im:0.5},{re:0,im:0},{re:-0.3,im:0.5},{re:-1,im:0}],
+    // PNDs as [theta,phi] on sphere
+    pnds:[
+      {theta:0.8,phi:0.4,mul:1,label:'p₁'},
+      {theta:1.2,phi:2.0,mul:1,label:'p₂'},
+      {theta:2.0,phi:1.0,mul:1,label:'p₃'},
+      {theta:0.5,phi:3.5,mul:1,label:'p₄'},
+    ],
+    color:'#ffffff',
+    desc:'4 distinct PNDs — general vacuum'
+  },
+  'II':{
+    psi:[{re:0,im:0},{re:0.5,im:0.3},{re:0,im:0},{re:-0.5,im:0.3},{re:0.8,im:0}],
+    pnds:[
+      {theta:0.6,phi:0.5,mul:2,label:'p₁₂'},
+      {theta:1.8,phi:2.1,mul:1,label:'p₃'},
+      {theta:0.9,phi:3.8,mul:1,label:'p₄'},
+    ],
+    color:'#ffdd44',
+    desc:'2+1+1 — double PND (near black hole)'
+  },
+  'III':{
+    psi:[{re:0,im:0},{re:0,im:0},{re:0.5,im:0.2},{re:-0.5,im:0.4},{re:0.6,im:0}],
+    pnds:[
+      {theta:0.5,phi:1.0,mul:3,label:'p₁₂₃'},
+      {theta:2.2,phi:3.2,mul:1,label:'p₄'},
+    ],
+    color:'#ff8844',
+    desc:'3+1 — triple PND (radiative field)'
+  },
+  'D':{
+    psi:[{re:0,im:0},{re:0,im:0},{re:1,im:0},{re:0,im:0},{re:0,im:0}],
+    pnds:[
+      {theta:0.3,phi:0,mul:2,label:'p₁₂'},
+      {theta:Math.PI-0.3,phi:0,mul:2,label:'p₃₄'},
+    ],
+    color:'#44ffee',
+    desc:'2+2 — Schwarzschild/Kerr (Coulomb)'
+  },
+  'N':{
+    psi:[{re:0,im:0},{re:0,im:0},{re:0,im:0},{re:0,im:0},{re:1,im:0.5}],
+    pnds:[
+      {theta:0.4,phi:0.8,mul:4,label:'p₁₂₃₄'},
+    ],
+    color:'#aa55ff',
+    desc:'4-fold degenerate PND — gravitational wave'
+  },
+  'O':{
+    psi:[{re:0,im:0},{re:0,im:0},{re:0,im:0},{re:0,im:0},{re:0,im:0}],
+    pnds:[],
+    color:'#666699',
+    desc:'No PNDs — flat spacetime'
+  }
+};
+
+// Interpolating PND sets for animation
+let petrovFrom=null, petrovTo=null, petrovTransT=1;
+
+function setPetrov(type){
+  if(petrovAnim)cancelAnimationFrame(petrovAnim);
+  petrovFrom=interpolatePNDs();
+  petrovType=type;
+  petrovTo=PETROV_DATA[type].pnds;
+  petrovTransT=0;
+
+  ['I','II','III','D','N','O'].forEach(t=>{
+    document.getElementById('pt-'+t).classList.toggle('active-btn',t===type);
+  });
+  document.getElementById('petrovLabel').textContent='Type '+type;
+
+  const psi=PETROV_DATA[type].psi;
+  const fmt=v=>v.re===0&&v.im===0?'0':`${v.re.toFixed(2)}${v.im>=0?'+':''}${v.im.toFixed(2)}i`;
+  for(let i=0;i<5;i++){
+    document.getElementById('psi'+i+'disp').textContent=fmt(psi[i]);
+  }
+
+  function animate(){
+    petrovTransT=Math.min(1,petrovTransT+0.04);
+    draw2();
+    if(petrovTransT<1)petrovAnim=requestAnimationFrame(animate);
+    else petrovAnim=null;
+  }
+  petrovAnim=requestAnimationFrame(animate);
+}
+
+function interpolatePNDs(){
+  if(!petrovFrom||petrovTransT>=1)return JSON.parse(JSON.stringify(PETROV_DATA[petrovType].pnds));
+  const src=petrovFrom;
+  const dst=PETROV_DATA[petrovType].pnds;
+  const n=Math.max(src.length,dst.length);
+  const result=[];
+  for(let i=0;i<n;i++){
+    const a=src[i]||src[src.length-1]||{theta:Math.PI/2,phi:0,mul:1};
+    const b=dst[i]||dst[dst.length-1]||{theta:Math.PI/2,phi:0,mul:1};
+    result.push({
+      theta:lerp(a.theta,b.theta,petrovTransT),
+      phi:lerp(a.phi,b.phi,petrovTransT),
+      mul:lerp(a.mul,b.mul,petrovTransT),
+      label:b.label||''
+    });
+  }
+  return result;
+}
+
+function draw2(){
+  const cv=document.getElementById('c2');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const cx=W*0.42, cy=H*0.50;
+  const R=Math.min(W*0.34,H*0.40);
+  const typeColor=PETROV_DATA[petrovType].color;
+
+  // Helper: project a rotated unit-sphere point to canvas
+  function proj2D(sx,sy,sz){
+    const r=rotPetrov(sx,sy,sz);
+    return{x:cx+R*r.x, y:cy-R*r.z, depth:r.y};
+  }
+
+  // Sphere wireframe (drawn using 3D rotated grid lines)
+  ctx.save();
+  ctx.strokeStyle='rgba(100,80,160,0.20)';
+  ctx.lineWidth=0.8;
+  const STEPS=64;
+  // latitude circles
+  for(let lat=-75;lat<=75;lat+=20){
+    const slat=Math.sin(lat*Math.PI/180), clat=Math.cos(lat*Math.PI/180);
+    ctx.beginPath();
+    for(let i=0;i<=STEPS;i++){
+      const lon=i/STEPS*Math.PI*2;
+      const p=proj2D(clat*Math.cos(lon),clat*Math.sin(lon),slat);
+      i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke();
+  }
+  // longitude arcs
+  for(let lon=0;lon<180;lon+=30){
+    const a=lon*Math.PI/180;
+    ctx.beginPath();
+    for(let i=0;i<=STEPS;i++){
+      const lat=(i/STEPS-0.5)*Math.PI;
+      const p=proj2D(Math.cos(lat)*Math.cos(a),Math.cos(lat)*Math.sin(a),Math.sin(lat));
+      i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke();
+  }
+  // Sphere outline
+  const grd=ctx.createRadialGradient(cx-R*0.2,cy-R*0.25,R*0.1,cx,cy,R*1.05);
+  grd.addColorStop(0,'rgba(100,80,160,0)');
+  grd.addColorStop(0.8,'rgba(100,80,160,0.04)');
+  grd.addColorStop(1,'rgba(100,80,160,0.14)');
+  ctx.fillStyle=grd;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(100,80,160,0.5)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+
+  // PND dots and lines (use rotated projection)
+  const pnds=interpolatePNDs();
+  pnds.forEach(pnd=>{
+    const t=pnd.theta, p=pnd.phi;
+    const sx=Math.sin(t)*Math.cos(p);
+    const sy=Math.sin(t)*Math.sin(p);
+    const sz=Math.cos(t);
+    const pr=proj2D(sx,sy,sz);
+    const ix=pr.x, iy=pr.y;
+    const dotR=4+pnd.mul*3.5;
+
+    // line from center
+    ctx.save();
+    const lgrd=ctx.createLinearGradient(cx,cy,ix,iy);
+    lgrd.addColorStop(0,'rgba(0,0,0,0)');
+    lgrd.addColorStop(1,typeColor+'99');
+    ctx.strokeStyle=lgrd;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ix,iy);ctx.stroke();
+    ctx.restore();
+
+    // dot
+    ctx.save();
+    ctx.shadowColor=typeColor;
+    ctx.shadowBlur=18+pnd.mul*4;
+    ctx.fillStyle=typeColor;
+    ctx.globalAlpha=0.9;
+    ctx.beginPath();ctx.arc(ix,iy,dotR,0,Math.PI*2);ctx.fill();
+    // multiplicity ring
+    if(pnd.mul>1.2){
+      ctx.globalAlpha=0.35;
+      ctx.strokeStyle=typeColor;
+      ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(ix,iy,dotR+5,0,Math.PI*2);ctx.stroke();
+    }
+    if(pnd.mul>2.2){
+      ctx.globalAlpha=0.2;
+      ctx.beginPath();ctx.arc(ix,iy,dotR+10,0,Math.PI*2);ctx.stroke();
+    }
+    ctx.restore();
+
+    // label
+    ctx.save();
+    ctx.fillStyle=typeColor;
+    ctx.font='bold 12px Segoe UI';
+    ctx.textAlign='left';
+    ctx.fillText(pnd.label||'',ix+dotR+3,iy-3);
+    ctx.restore();
+  });
+
+  // Title overlay
+  ctx.save();
+  ctx.font='bold 18px Segoe UI';
+  ctx.fillStyle=typeColor;
+  ctx.shadowColor=typeColor;
+  ctx.shadowBlur=12;
+  ctx.textAlign='center';
+  ctx.fillText('Type '+petrovType,cx,cy+R+40);
+  ctx.font='12px Segoe UI';
+  ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(200,200,220,0.5)';
+  ctx.fillText(PETROV_DATA[petrovType].desc,cx,cy+R+58);
+  ctx.restore();
+
+  // NP scalars display (left strip)
+  const psi=PETROV_DATA[petrovType].psi;
+  const psiNames=['Ψ₀','Ψ₁','Ψ₂','Ψ₃','Ψ₄'];
+  ctx.save();
+  ctx.font='12px Courier New';
+  const lx=18, ly=H*0.18;
+  ctx.fillStyle='rgba(100,80,160,0.6)';
+  ctx.fillText('NP scalars:',lx,ly-14);
+  psi.forEach((p,i)=>{
+    const isNonzero=Math.abs(p.re)>0.001||Math.abs(p.im)>0.001;
+    ctx.fillStyle=isNonzero?typeColor:'rgba(80,80,120,0.5)';
+    const str=isNonzero?`${p.re>=0?' ':'-'}${Math.abs(p.re).toFixed(2)}${p.im>=0?'+':'-'}${Math.abs(p.im).toFixed(2)}i`:'0';
+    ctx.fillText(`${psiNames[i]} = ${str}`,lx,ly+i*20);
+  });
+  ctx.restore();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load',()=>{
+  draw0();
+  // init petrov UI
+  setPetrov('I');
+
+  // Petrov 3D drag rotation
+  const c2=document.getElementById('c2');
+  c2.style.cursor='grab';
+  c2.addEventListener('mousedown',e=>{
+    petrov3DDrag=true;
+    petrov3DStartX=e.clientX; petrov3DStartY=e.clientY;
+    petrov3DStartAz=petrovViewAz; petrov3DStartEl=petrovViewEl;
+    c2.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!petrov3DDrag)return;
+    const dx=e.clientX-petrov3DStartX;
+    const dy=e.clientY-petrov3DStartY;
+    const sens=0.008;
+    petrovViewAz=petrov3DStartAz+dx*sens;
+    petrovViewEl=Math.max(-1.4,Math.min(1.4,petrov3DStartEl+dy*sens));
+    if(!petrovAnim)draw2();
+  });
+  window.addEventListener('mouseup',()=>{
+    petrov3DDrag=false;
+    c2.style.cursor='grab';
+  });
+});
+
+window.addEventListener('resize',()=>{
+  const tabs=document.querySelectorAll('.pane.active');
+  tabs.forEach(p=>{
+    const id=p.id;
+    if(id==='pane0')draw0();
+    else if(id==='pane1')draw1();
+    else if(id==='pane2')draw2();
+    else if(id==='pane3')draw3();
+    else if(id==='pane4')draw4();
+    else if(id==='pane5')draw5();
+    else if(id==='pane6')draw6();
+  });
+});
+
+// ============================================================
+// TAB 3 — ABSTRACT INDEX NOTATION & ε-SPINOR
+// ============================================================
+let animId3=null;
+let anim3T=0;
+
+function toggleAnim3(){
+  const btn=document.getElementById('animBtn3');
+  if(animId3){
+    cancelAnimationFrame(animId3);animId3=null;
+    btn.textContent='▶ Animate';
+    btn.classList.remove('active-btn');
+    return;
+  }
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active-btn');
+  function frame(){
+    anim3T+=0.018*(window.animSpeed||0.1);
+    // Animate κ^A by rotating its components
+    const mag=Math.sqrt(0.7*0.7+0.3*0.3+0.4*0.4); // keep rough scale
+    document.getElementById('k0re').value=Math.round(70*Math.cos(anim3T));
+    document.getElementById('k0im').value=Math.round(70*Math.sin(anim3T*0.7));
+    document.getElementById('k1re').value=Math.round(50*Math.cos(anim3T*1.3+1.0));
+    document.getElementById('k1im').value=Math.round(50*Math.sin(anim3T*0.9+0.5));
+    draw3();
+    animId3=requestAnimationFrame(frame);
+  }
+  animId3=requestAnimationFrame(frame);
+}
+
+function draw3(){
+  const cv=document.getElementById('c3');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  // Read sliders (values in [-100,100])
+  const k0re=parseInt(document.getElementById('k0re').value)/100;
+  const k0im=parseInt(document.getElementById('k0im').value)/100;
+  const k1re=parseInt(document.getElementById('k1re').value)/100;
+  const k1im=parseInt(document.getElementById('k1im').value)/100;
+
+  // ε_{AB} raises/lowers: κ_0 = κ^1, κ_1 = -κ^0
+  const kd0re=k1re, kd0im=k1im;   // κ_0 = κ^1
+  const kd1re=-k0re, kd1im=-k0im; // κ_1 = -κ^0
+
+  // Conjugate: κ̄^{A'} = conj of κ^A
+  const kb0re=k0re, kb0im=-k0im;
+  const kb1re=k1re, kb1im=-k1im;
+
+  // Null vector k^{aa'} = κ^a ⊗ κ̄^{a'} (2x2 Hermitian matrix components)
+  // k^{00'} = κ^0 κ̄^{0'} = |κ^0|^2 (real)  → t+z component
+  // k^{01'} = κ^0 κ̄^{1'}              → x-iy
+  // k^{10'} = κ^1 κ̄^{0'}              → x+iy
+  // k^{11'} = κ^1 κ̄^{1'} = |κ^1|^2 (real) → t-z component
+  const kn00re=k0re*kb0re-k0im*kb0im, kn00im=k0re*kb0im+k0im*kb0re;
+  const kn01re=k0re*kb1re-k0im*kb1im, kn01im=k0re*kb1im+k0im*kb1re;
+  const kn10re=k1re*kb0re-k1im*kb0im, kn10im=k1re*kb0im+k1im*kb0re;
+  const kn11re=k1re*kb1re-k1im*kb1im, kn11im=k1re*kb1im+k1im*kb1re;
+  // 4-vector: t=(k00+k11)/2, z=(k00-k11)/2, x=Re(k10), y=Im(k10)
+  const kt=(kn00re+kn11re)/2, kx=kn10re, ky=kn10im, kz=(kn00re-kn11re)/2;
+  // Verify null: t²-x²-y²-z² ≈ 0
+  const nullCheck=kt*kt-kx*kx-ky*ky-kz*kz;
+  const normSq=k0re*k0re+k0im*k0im+k1re*k1re+k1im*k1im;
+
+  // Update side-panel displays
+  const fmt=(r,i)=>`${r.toFixed(3)}${i>=0?'+':''}${i.toFixed(3)}i`;
+  document.getElementById('kv3k0').textContent=fmt(k0re,k0im);
+  document.getElementById('kv3k1').textContent=fmt(k1re,k1im);
+  document.getElementById('kv3kd0').textContent=fmt(kd0re,kd0im);
+  document.getElementById('kv3kd1').textContent=fmt(kd1re,kd1im);
+  document.getElementById('kv3norm').textContent=normSq.toFixed(4);
+  document.getElementById('kv3kn0').textContent=(kt+kz).toFixed(4);
+  document.getElementById('kv3kn1').textContent=fmt(kx,ky);
+  document.getElementById('infoBox3').textContent=
+    `\u03ba\u2070 = ${fmt(k0re,k0im)}  |  \u03ba\u00B9 = ${fmt(k1re,k1im)}  |  null norm = \u03ba^A \u03ba_A = 0  |  |null check| = ${Math.abs(nullCheck).toFixed(6)}`;
+
+  // ---- VISUALISATION ----
+  // Left half: ε-spinor matrix + index lowering diagram
+  // Right half: Argand plane showing κ^A (purple) and κ̄^{A'} (cyan) vectors
+
+  const midX=W*0.48;
+
+  // --- LEFT: ε-matrix and index operations ---
+  ctx.save();
+  const lx=60, topY=40;
+  ctx.font='bold 13px Segoe UI';
+  ctx.fillStyle='rgba(170,85,255,0.85)';
+  ctx.fillText('Abstract Index Notation', lx, topY);
+
+  // Draw ε_{AB} matrix
+  ctx.font='12px Courier New';
+  ctx.fillStyle='rgba(192,192,234,0.8)';
+  ctx.fillText('\u03b5\u209A\u2090  =  [ 0   1 ]', lx, topY+28);
+  ctx.fillText('      [ \u22121  0 ]', lx, topY+44);
+
+  // κ^A vector (column)
+  ctx.fillStyle='rgba(170,85,255,0.9)';
+  ctx.font='12px Courier New';
+  ctx.fillText('\u03ba\u1D2C  = ( \u03ba\u2070, \u03ba\u00B9 )', lx, topY+76);
+  ctx.fillStyle='rgba(170,85,255,0.7)';
+  ctx.fillText(`   = ( ${k0re.toFixed(3)}${k0im>=0?'+':''}${k0im.toFixed(3)}i,`, lx, topY+92);
+  ctx.fillText(`     ${k1re.toFixed(3)}${k1im>=0?'+':''}${k1im.toFixed(3)}i )`, lx, topY+108);
+
+  // κ_A lowered
+  ctx.fillStyle='rgba(100,200,255,0.9)';
+  ctx.font='12px Courier New';
+  ctx.fillText('\u03ba\u2090  = \u03b5\u209A\u2090 \u03ba\u1D2C', lx, topY+132);
+  ctx.fillText('\u03ba\u2080  = \u03ba\u00B9  (index lowering)', lx, topY+148);
+  ctx.fillText('\u03ba\u2081  = \u2212\u03ba\u2070', lx, topY+164);
+  ctx.fillStyle='rgba(100,200,255,0.7)';
+  ctx.fillText(`\u03ba\u2080 = ${kd0re.toFixed(3)}${kd0im>=0?'+':''}${kd0im.toFixed(3)}i`, lx, topY+180);
+  ctx.fillText(`\u03ba\u2081 = ${kd1re.toFixed(3)}${kd1im>=0?'+':''}${kd1im.toFixed(3)}i`, lx, topY+196);
+
+  // Null vector block
+  ctx.fillStyle='rgba(255,200,80,0.85)';
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillText('Null vector k\u1D43\u1D43\u02BC = \u03ba\u1D43 \u03ba\u0305\u1D43\u02BC', lx, topY+226);
+  ctx.font='12px Courier New';
+  ctx.fillStyle='rgba(255,200,80,0.7)';
+  ctx.fillText(`t = ${kt.toFixed(4)},  x = ${kx.toFixed(4)}`, lx, topY+244);
+  ctx.fillText(`y = ${ky.toFixed(4)},  z = ${kz.toFixed(4)}`, lx, topY+260);
+  ctx.fillText(`t\u00B2\u2212x\u00B2\u2212y\u00B2\u2212z\u00B2 = ${nullCheck.toFixed(6)}`, lx, topY+276);
+  ctx.restore();
+
+  // --- RIGHT: Argand plane for κ^A components ---
+  const rCx=W*0.72, rCy=H*0.50;
+  const rR=Math.min((W-midX)*0.40, H*0.38);
+
+  // Axes
+  ctx.save();
+  ctx.strokeStyle='rgba(170,85,255,0.20)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(rCx-rR*1.1,rCy);ctx.lineTo(rCx+rR*1.1,rCy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(rCx,rCy-rR*1.1);ctx.lineTo(rCx,rCy+rR*1.1);ctx.stroke();
+  ctx.fillStyle='rgba(170,85,255,0.4)';
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillText('Re', rCx+rR*1.1+8, rCy+4);
+  ctx.fillText('Im', rCx, rCy-rR*1.1-6);
+  // Unit circle
+  ctx.strokeStyle='rgba(170,85,255,0.15)';
+  ctx.beginPath();ctx.arc(rCx,rCy,rR,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+
+  // κ^0 arrow (purple)
+  const k0px=rCx+k0re*rR, k0py=rCy-k0im*rR;
+  ctx.save();
+  ctx.strokeStyle='#aa55ff';
+  ctx.lineWidth=2.5;
+  ctx.shadowColor='#aa55ff';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.moveTo(rCx,rCy);ctx.lineTo(k0px,k0py);ctx.stroke();
+  ctx.fillStyle='#aa55ff';
+  ctx.beginPath();ctx.arc(k0px,k0py,5,0,Math.PI*2);ctx.fill();
+  ctx.font='bold 12px Segoe UI';
+  ctx.textAlign='left';
+  ctx.fillText('\u03ba\u2070',k0px+8,k0py-4);
+  ctx.restore();
+
+  // κ^1 arrow (violet)
+  const k1px=rCx+k1re*rR, k1py=rCy-k1im*rR;
+  ctx.save();
+  ctx.strokeStyle='#dd88ff';
+  ctx.lineWidth=2.5;
+  ctx.shadowColor='#dd88ff';ctx.shadowBlur=10;
+  ctx.beginPath();ctx.moveTo(rCx,rCy);ctx.lineTo(k1px,k1py);ctx.stroke();
+  ctx.fillStyle='#dd88ff';
+  ctx.beginPath();ctx.arc(k1px,k1py,5,0,Math.PI*2);ctx.fill();
+  ctx.font='bold 12px Segoe UI';
+  ctx.textAlign='left';
+  ctx.fillText('\u03ba\u00B9',k1px+8,k1py-4);
+  ctx.restore();
+
+  // κ̄^{0'} arrow (cyan conjugate)
+  const kb0px=rCx+kb0re*rR, kb0py=rCy-kb0im*rR;
+  ctx.save();
+  ctx.strokeStyle='#44ddff';
+  ctx.lineWidth=2;
+  ctx.setLineDash([5,3]);
+  ctx.shadowColor='#44ddff';ctx.shadowBlur=8;
+  ctx.beginPath();ctx.moveTo(rCx,rCy);ctx.lineTo(kb0px,kb0py);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#44ddff';
+  ctx.beginPath();ctx.arc(kb0px,kb0py,4,0,Math.PI*2);ctx.fill();
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='right';
+  ctx.fillText('\u03ba\u0305\u2070\u02BC',kb0px-6,kb0py-4);
+  ctx.restore();
+
+  // κ̄^{1'} arrow (light cyan)
+  const kb1px=rCx+kb1re*rR, kb1py=rCy-kb1im*rR;
+  ctx.save();
+  ctx.strokeStyle='#88eeff';
+  ctx.lineWidth=2;
+  ctx.setLineDash([5,3]);
+  ctx.shadowColor='#88eeff';ctx.shadowBlur=8;
+  ctx.beginPath();ctx.moveTo(rCx,rCy);ctx.lineTo(kb1px,kb1py);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#88eeff';
+  ctx.beginPath();ctx.arc(kb1px,kb1py,4,0,Math.PI*2);ctx.fill();
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='right';
+  ctx.fillText('\u03ba\u0305\u00B9\u02BC',kb1px-6,kb1py-4);
+  ctx.restore();
+
+  // Label the Argand diagram
+  ctx.save();
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='rgba(170,85,255,0.7)';
+  ctx.textAlign='center';
+  ctx.fillText('Argand plane: \u03ba\u1D2C (purple) vs \u03ba\u0305\u1D42\u02BC (cyan)', rCx, rCy+rR*1.15+14);
+  ctx.restore();
+
+  // Divider
+  ctx.save();
+  ctx.strokeStyle='rgba(170,85,255,0.15)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(midX,20);ctx.lineTo(midX,H-20);ctx.stroke();
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 4 — SPINOR DYADS & NEWMAN-PENROSE FORMALISM
+// ============================================================
+let animId4=null;
+let anim4T=0;
+let dyadAngle=0; // orientation angle of o^A
+
+function resetDyad(){
+  dyadAngle=0; anim4T=0;
+  if(animId4){cancelAnimationFrame(animId4);animId4=null;document.getElementById('animBtn4').textContent='▶ Animate';document.getElementById('animBtn4').classList.remove('active-btn');}
+  document.getElementById('dyad_lambda').value=100;
+  document.getElementById('dyad_lambda_val').textContent='1.00';
+  draw4();
+}
+
+function toggleAnim4(){
+  const btn=document.getElementById('animBtn4');
+  if(animId4){
+    cancelAnimationFrame(animId4);animId4=null;
+    btn.textContent='▶ Animate';
+    btn.classList.remove('active-btn');
+    return;
+  }
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active-btn');
+  function frame(){
+    anim4T+=0.022*(window.animSpeed||0.1);
+    dyadAngle=anim4T;
+    // oscillate lambda between 0.5 and 2.0
+    const lam=1.0+0.7*Math.sin(anim4T*0.6);
+    document.getElementById('dyad_lambda').value=Math.round(lam*100);
+    document.getElementById('dyad_lambda_val').textContent=lam.toFixed(2);
+    draw4();
+    animId4=requestAnimationFrame(frame);
+  }
+  animId4=requestAnimationFrame(frame);
+}
+
+function draw4(){
+  const cv=document.getElementById('c4');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const lam=parseInt(document.getElementById('dyad_lambda').value)/100;
+  document.getElementById('dyad_lambda_val').textContent=lam.toFixed(2);
+  document.getElementById('np_lambda').textContent=lam.toFixed(3);
+
+  // Dyad basis vectors in 2D spinor space (as complex angles)
+  // o^A = (cos(dyadAngle), sin(dyadAngle)) spinor basis vector 1
+  // ι^A = (-sin(dyadAngle), cos(dyadAngle)) — normalized so o_A ι^A = 1
+  // After boost: o→λo, ι→λ^{-1}ι
+  const oRe=Math.cos(dyadAngle), oIm=Math.sin(dyadAngle);
+  const iRe=-Math.sin(dyadAngle), iIm=Math.cos(dyadAngle);
+
+  const oScaled_re=lam*oRe, oScaled_im=lam*oIm;
+  const iScaled_re=(1/lam)*iRe, iScaled_im=(1/lam)*iIm;
+
+  // Tetrad vectors (displayed as 2D arrows encoding null directions)
+  // l^a ~ |o|^2, n^a ~ |ι|^2, m^a ~ o*conj(ι), m̄^a ~ conj(o)*ι
+  const lo2=lam*lam;     // l^a rescales by λ²
+  const n_o2=1/(lam*lam); // n^a rescales by λ^{-2}
+
+  document.getElementById('np_o').textContent=`${oScaled_re.toFixed(3)}+${oScaled_im.toFixed(3)}i`;
+  document.getElementById('np_iota').textContent=`${iScaled_re.toFixed(3)}+${iScaled_im.toFixed(3)}i`;
+  document.getElementById('np_la').textContent=`\u03bb\u00B2\u00B7l = ${lo2.toFixed(3)}\u00B7l`;
+  document.getElementById('np_na').textContent=`\u03bb\u207B\u00B2\u00B7n = ${n_o2.toFixed(3)}\u00B7n`;
+
+  const cx=W*0.50, cy=H*0.50;
+  const sc=Math.min(W,H)*0.28;
+
+  // Background grid
+  ctx.save();
+  ctx.strokeStyle='rgba(170,85,255,0.08)';
+  ctx.lineWidth=0.8;
+  for(let g=-4;g<=4;g++){
+    ctx.beginPath();ctx.moveTo(cx+g*sc/4,cy-sc*1.3);ctx.lineTo(cx+g*sc/4,cy+sc*1.3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-sc*1.3,cy+g*sc/4);ctx.lineTo(cx+sc*1.3,cy+g*sc/4);ctx.stroke();
+  }
+  ctx.restore();
+
+  // Helper: draw a labelled arrow
+  function arrow(x0,y0,x1,y1,color,label,dashed){
+    ctx.save();
+    if(dashed)ctx.setLineDash([6,3]);
+    ctx.strokeStyle=color;
+    ctx.lineWidth=2.5;
+    ctx.shadowColor=color;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+    ctx.setLineDash([]);
+    // arrowhead
+    const ang=Math.atan2(y1-y0,x1-x0);
+    const aLen=10;
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x1-aLen*Math.cos(ang-0.4),y1-aLen*Math.sin(ang-0.4));
+    ctx.lineTo(x1-aLen*Math.cos(ang+0.4),y1-aLen*Math.sin(ang+0.4));
+    ctx.closePath();
+    ctx.fillStyle=color;ctx.fill();
+    // label
+    ctx.font='bold 12px Segoe UI';
+    ctx.fillStyle=color;
+    ctx.shadowBlur=8;
+    ctx.textAlign='center';
+    ctx.fillText(label,x1+(x1-x0)*0.12+10,y1+(y1-y0)*0.12-6);
+    ctx.restore();
+  }
+
+  // Draw o^A (unscaled thin), o^A scaled (thick)
+  // o direction = angle dyadAngle in spinor space, projected to 2D
+  arrow(cx,cy, cx+oRe*sc*0.6, cy-oIm*sc*0.6, 'rgba(170,85,255,0.35)', 'o (unscaled)', false);
+  arrow(cx,cy, cx+oScaled_re*sc*0.6, cy-oScaled_im*sc*0.6, '#aa55ff', '\u03bbo\u1D2C', false);
+
+  // Draw ι^A (unscaled thin), ι^A scaled (thick)
+  arrow(cx,cy, cx+iRe*sc*0.6, cy-iIm*sc*0.6, 'rgba(100,200,255,0.35)', '\u03b9 (unscaled)', true);
+  arrow(cx,cy, cx+iScaled_re*sc*0.6, cy-iScaled_im*sc*0.6, '#44ddff', '\u03bb\u207B\u00B9\u03b9\u1D2C', true);
+
+  // NP spin coefficients info panel (drawn on canvas, right side)
+  const npCoeffs=[
+    ['\u03ba','o\u1D2Co\u1D2C\u2207\u2090\u2090\u02BC o\u2090','geodesic defect of l'],
+    ['\u03c3','o\u1D2Co\u1D2C\u2207\u2090\u02BC\u2090 o\u2090','shear of l congruence'],
+    ['\u03c1','o\u1D2C\u03b9\u0305\u1D42\u02BC\u2207\u2090\u2090\u02BC o\u1D2C','expansion/twist of l'],
+    ['\u03b5','½o\u1D2C\u03b9\u1D2C\u2207\u2080\u2080\u02BC \u03b5\u2090\u2090','spin of l tetrad leg'],
+    ['\u03b3','½\u03b9\u1D2C o\u1D2C\u2207\u2081\u2081\u02BC \u03b5\u2090\u2090','spin of n tetrad leg'],
+    ['\u03b1','½(o\u1D2C\u03b9\u1D2C\u2207\u2080\u2081\u02BC \u03b5\u2090\u2090)','mix \u03ba,\u03c3 equations'],
+    ['\u03b2','½(o\u1D2C o\u1D2C\u2207\u2081\u2080\u02BC \u03b5\u2090\u2090)','mix \u03c1,\u03c4 equations'],
+    ['\u03c4','o\u1D2C\u03b9\u0305\u1D42\u02BC\u2207\u2090\u2090\u02BC \u03b9\u1D2C','twist analog of l'],
+    ['\u03bd','\u03b9\u1D2C\u03b9\u1D2C\u2207\u2090\u2090\u02BC \u03b9\u2090','geodesic defect of n'],
+    ['\u03bc','\u03b9\u1D2C o\u0305\u1D42\u02BC\u2207\u2090\u2090\u02BC \u03b9\u1D2C','expansion n congruence'],
+    ['\u03bb','\u03b9\u1D2C\u03b9\u1D2C\u2207\u2090\u02BC\u2090 o\u0305\u1D42\u02BC','shear n congruence'],
+    ['\u03c0','o\u0305\u1D42\u02BC\u03b9\u0305\u1D42\u02BC\u2207\u2090\u2090\u02BC o\u1D2C','n-leg twist'],
+  ];
+
+  const npX=14, npY=30;
+  ctx.save();
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='rgba(170,85,255,0.8)';
+  ctx.fillText('12 Newman-Penrose Spin Coefficients', npX, npY);
+  ctx.font='12px Courier New';
+  npCoeffs.forEach((row,i)=>{
+    const col=i<6?0:1;
+    const row2=i<6?i:i-6;
+    const bx=npX+col*195;
+    const by=npY+18+row2*18;
+    ctx.fillStyle='rgba(170,85,255,0.85)';
+    ctx.fillText(row[0]+' :',bx,by);
+    ctx.fillStyle='rgba(192,192,234,0.6)';
+    ctx.fillText(row[2],bx+22,by);
+  });
+  ctx.restore();
+
+  // Lambda boost factor indicator
+  ctx.save();
+  ctx.font='bold 14px Segoe UI';
+  ctx.fillStyle='rgba(255,200,80,0.85)';
+  ctx.textAlign='center';
+  ctx.fillText(`Spin boost \u03bb = ${lam.toFixed(2)}`, cx, cy+sc*0.82);
+  ctx.font='12px Segoe UI';
+  ctx.fillStyle='rgba(192,192,234,0.55)';
+  ctx.fillText('o\u1D2C \u2192 \u03bbo\u1D2C  |  \u03b9\u1D2C \u2192 \u03bb\u207B\u00B9\u03b9\u1D2C  |  l\u1D43 \u2192 \u03bb\u00B2l\u1D43  |  n\u1D43 \u2192 \u03bb\u207B\u00B2n\u1D43', cx, cy+sc*0.82+18);
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 5 — TWISTOR CORRESPONDENCE
+// ============================================================
+let animId5=null;
+let anim5T=0;
+
+function toggleAnim5(){
+  const btn=document.getElementById('animBtn5');
+  if(animId5){
+    cancelAnimationFrame(animId5);animId5=null;
+    btn.textContent='▶ Animate';
+    btn.classList.remove('active-btn');
+    return;
+  }
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active-btn');
+  function frame(){
+    anim5T+=0.020*(window.animSpeed||0.1);
+    // vary x while keeping pi fixed
+    document.getElementById('twistor_x').value=Math.round(60*Math.sin(anim5T));
+    draw5();
+    animId5=requestAnimationFrame(frame);
+  }
+  animId5=requestAnimationFrame(frame);
+}
+
+function draw5(){
+  const cv=document.getElementById('c5');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const pi0=parseInt(document.getElementById('twistor_pi0').value)/100;
+  const pi1=parseInt(document.getElementById('twistor_pi1').value)/100;
+  const xv=parseInt(document.getElementById('twistor_x').value)/100;
+
+  // Incidence relation: ω^A = i x^{AA'} π_{A'}
+  // Simplify x^{AA'} as real symmetric 2x2: [[t+z, x], [x, t-z]]
+  // with t=xv, x=0.3*xv, z=0.2*xv for visual variety
+  const xt=xv, xx=0.3*xv, xz=0.2*xv;
+  // x^{00'} = t+z, x^{01'} = x-iy (use 0), x^{10'} = x+iy, x^{11'} = t-z
+  const x00=xt+xz, x01=xx, x10=xx, x11=xt-xz;
+  // ω^A = i x^{AA'} π_{A'} (i=√-1, purely imaginary factor)
+  // ω^0 = i(x^{00'}π_{0'} + x^{01'}π_{1'})
+  // ω^1 = i(x^{10'}π_{0'} + x^{11'}π_{1'})
+  // With i factor: real part = -(imaginary part of x*pi), im part = real part of x*pi
+  const om0re=-(x00*pi0+x01*pi1);  // real part of ω^0 (i * real = i -> im part is real of product)
+  const om0im= (x00*pi0+x01*pi1);  // actually: i*(a+bi)= ai + bi² = -b + ai
+  // More carefully: x^{AA'} is real here, π_{A'} is real
+  // ω^A = i * (x^{A0'}π_{0'} + x^{A1'}π_{1'})
+  // ω^0 = i*(x00*pi0 + x01*pi1) = purely imaginary
+  const om0_r=0, om0_i=(x00*pi0+x01*pi1);
+  const om1_r=0, om1_i=(x10*pi0+x11*pi1);
+
+  // Helicity h = ½(ω^A π_A + cc)  — for real twistors h=0
+  // h = ½ * 2 * Re(ω^A π_A) = Re(ω^0*π_0 + ω^1*π_1)
+  // Since ω^A is purely imaginary and π is real, Re(ω^A π_A) = 0
+  const hel=0; // massless null twistor for real x
+
+  // |Z|^2 = ω^A ω̄_A + π_{A'} π̄^{A'} = |ω^0|^2+|ω^1|^2+|π_0|^2+|π_1|^2
+  const z2=om0_r*om0_r+om0_i*om0_i+om1_r*om1_r+om1_i*om1_i+pi0*pi0+pi1*pi1;
+
+  // Update displays
+  const fmtc=(r,i)=>`${r.toFixed(3)}${i>=0?'+':''}${i.toFixed(3)}i`;
+  document.getElementById('tw_pi').textContent=`(${pi0.toFixed(3)}, ${pi1.toFixed(3)})`;
+  document.getElementById('tw_omega').textContent=`(${om0_i.toFixed(3)}i, ${om1_i.toFixed(3)}i)`;
+  document.getElementById('tw_x').textContent=`t=${xt.toFixed(3)}, z=${xz.toFixed(3)}`;
+  document.getElementById('tw_h').textContent=hel.toFixed(3);
+  document.getElementById('tw_z2').textContent=z2.toFixed(4);
+
+  // ---- VISUALISATION ----
+  // Left: spacetime side — x varies, null ray
+  // Right: twistor space side — ω^A traces a line as x varies
+
+  const midX=W*0.50;
+
+  // Generate trajectory: vary x from -1 to 1, compute ω^A
+  const pts=[];
+  for(let s=-1;s<=1;s+=0.02){
+    const xt2=s, xz2=0.2*s;
+    const x00_2=xt2+xz2, x11_2=xt2-xz2;
+    const om0_i2=(x00_2*pi0+x01*pi1);
+    const om1_i2=(x10*pi0+x11_2*pi1);
+    pts.push({xv:s,om0:om0_i2,om1:om1_i2});
+  }
+
+  // --- LEFT: Spacetime diagram ---
+  const lCx=W*0.24, lCy=H*0.50;
+  const lSc=Math.min(midX*0.35, H*0.32);
+
+  ctx.save();
+  ctx.strokeStyle='rgba(170,85,255,0.18)';
+  ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.moveTo(lCx-lSc*1.2,lCy);ctx.lineTo(lCx+lSc*1.2,lCy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(lCx,lCy-lSc*1.3);ctx.lineTo(lCx,lCy+lSc*1.3);ctx.stroke();
+  ctx.fillStyle='rgba(170,85,255,0.45)';
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillText('z', lCx+lSc*1.2+8, lCy+4);
+  ctx.fillText('t', lCx, lCy-lSc*1.3-6);
+
+  // Draw null light cone lines
+  ctx.strokeStyle='rgba(255,200,80,0.25)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(lCx-lSc,lCy+lSc);ctx.lineTo(lCx,lCy);ctx.lineTo(lCx+lSc,lCy+lSc);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(lCx-lSc,lCy-lSc);ctx.lineTo(lCx,lCy);ctx.lineTo(lCx+lSc,lCy-lSc);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Current spacetime event
+  const evX=lCx+xv*lSc, evY=lCy-xz*lSc;
+  ctx.fillStyle='#aa55ff';
+  ctx.shadowColor='#aa55ff';ctx.shadowBlur=12;
+  ctx.beginPath();ctx.arc(evX,evY,7,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='#aa55ff';
+  ctx.textAlign='left';
+  ctx.fillText('x\u1D43\u1D43\u02BC',evX+10,evY-4);
+
+  // Trail of past positions as x varies
+  ctx.strokeStyle='rgba(170,85,255,0.4)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  pts.forEach((pt,i)=>{
+    const px=lCx+pt.xv*lSc, py=lCy-0.2*pt.xv*lSc;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='rgba(255,200,80,0.7)';
+  ctx.textAlign='center';
+  ctx.fillText('Spacetime', lCx, lCy+lSc*1.3+18);
+  ctx.restore();
+
+  // --- RIGHT: Twistor space diagram ---
+  const rCx=W*0.74, rCy=H*0.50;
+  const rSc=Math.min((W-midX)*0.38, H*0.32);
+
+  ctx.save();
+  ctx.strokeStyle='rgba(100,220,255,0.18)';
+  ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.moveTo(rCx-rSc*1.2,rCy);ctx.lineTo(rCx+rSc*1.2,rCy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(rCx,rCy-rSc*1.3);ctx.lineTo(rCx,rCy+rSc*1.3);ctx.stroke();
+  ctx.fillStyle='rgba(100,220,255,0.45)';
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillText('\u03c9\u2070 (im)', rCx+rSc*1.2+12, rCy+4);
+  ctx.fillText('\u03c9\u00B9 (im)', rCx, rCy-rSc*1.3-6);
+
+  // Draw the line traced by ω^A as x varies
+  ctx.strokeStyle='rgba(100,220,255,0.7)';
+  ctx.lineWidth=2.5;
+  ctx.shadowColor='#44ddff';ctx.shadowBlur=8;
+  ctx.beginPath();
+  pts.forEach((pt,i)=>{
+    const px=rCx+pt.om0*rSc, py=rCy-pt.om1*rSc;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+  ctx.shadowBlur=0;
+
+  // Current ω point
+  const omX=rCx+om0_i*rSc, omY=rCy-om1_i*rSc;
+  ctx.fillStyle='#44ddff';
+  ctx.shadowColor='#44ddff';ctx.shadowBlur=14;
+  ctx.beginPath();ctx.arc(omX,omY,7,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='#44ddff';
+  ctx.textAlign='left';
+  ctx.fillText('\u03c9\u1D2C',omX+10,omY-4);
+
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='rgba(100,220,255,0.7)';
+  ctx.textAlign='center';
+  ctx.fillText('Twistor Space (line)', rCx, rCy+rSc*1.3+18);
+  ctx.restore();
+
+  // Incidence relation label
+  ctx.save();
+  ctx.font='bold 13px Segoe UI';
+  ctx.fillStyle='rgba(255,200,80,0.8)';
+  ctx.textAlign='center';
+  ctx.fillText('\u03c9\u1D2C = i\u00B7x\u1D43\u1D43\u02BC \u03c0\u2090\u02BC   (incidence relation)', W/2, 24);
+  ctx.fillStyle='rgba(192,192,234,0.5)';
+  ctx.font='12px Segoe UI';
+  ctx.fillText('\u03c0\u2090\u02BC fixed \u2192 varying x\u1D43\u1D43\u02BC \u21D2 \u03c9\u1D2C traces a line in twistor space', W/2, 42);
+
+  // Divider
+  ctx.strokeStyle='rgba(100,220,255,0.12)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(midX,20);ctx.lineTo(midX,H-20);ctx.stroke();
+  ctx.restore();
+}
+
+// ============================================================
+// TAB 6 — PEELING THEOREM & GRAVITATIONAL WAVE RADIATION
+// ============================================================
+let animId6=null;
+let anim6T=0;
+let peelingPulsePos=1.0; // r-position of GW pulse
+
+function resetPeeling(){
+  peelingPulsePos=1.0; anim6T=0;
+  if(animId6){cancelAnimationFrame(animId6);animId6=null;document.getElementById('animBtn6').textContent='▶ Animate';document.getElementById('animBtn6').classList.remove('active-btn');}
+  draw6();
+}
+
+function toggleAnim6(){
+  const btn=document.getElementById('animBtn6');
+  if(animId6){
+    cancelAnimationFrame(animId6);animId6=null;
+    btn.textContent='▶ Animate';
+    btn.classList.remove('active-btn');
+    return;
+  }
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active-btn');
+  function frame(){
+    anim6T+=0.014*(window.animSpeed||0.1);
+    peelingPulsePos=1+6*((anim6T/(2*Math.PI))%1.0);
+    draw6();
+    animId6=requestAnimationFrame(frame);
+  }
+  animId6=requestAnimationFrame(frame);
+}
+
+function draw6(){
+  const cv=document.getElementById('c6');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth, H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const amp=parseInt(document.getElementById('peel_amp').value)/100;
+  const freq=parseInt(document.getElementById('peel_freq').value)/10;
+
+  // r range: 1 to 7 (in units where peak is near r=1)
+  const rMin=1.0, rMax=7.0;
+  const plotX0=60, plotY0=30;
+  const plotW=W-80, plotH=H-80;
+
+  // Update side panel
+  const rDisplay=peelingPulsePos;
+  const psi4_val=amp/rDisplay;
+  const psi2_val=amp/Math.pow(rDisplay,3);
+  const psi0_val=amp/Math.pow(rDisplay,5);
+
+  document.getElementById('peel_r').textContent=rDisplay.toFixed(3);
+  document.getElementById('peel_psi4').textContent=psi4_val.toFixed(4);
+  document.getElementById('peel_psi2').textContent=psi2_val.toFixed(4);
+  document.getElementById('peel_psi0').textContent=psi0_val.toFixed(6);
+  document.getElementById('peel_power').textContent=`${(psi4_val*psi4_val).toFixed(5)}`;
+
+  // Draw axes
+  ctx.save();
+  ctx.strokeStyle='rgba(170,85,255,0.35)';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(plotX0,plotY0);ctx.lineTo(plotX0,plotY0+plotH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(plotX0,plotY0+plotH);ctx.lineTo(plotX0+plotW,plotY0+plotH);ctx.stroke();
+  ctx.fillStyle='rgba(170,85,255,0.6)';
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillText('r (distance)', plotX0+plotW/2, plotY0+plotH+22);
+  ctx.save();
+  ctx.translate(16, plotY0+plotH/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';
+  ctx.fillText('|Ψₙ|', 0, 0);
+  ctx.restore();
+  ctx.restore();
+
+  // r-axis ticks
+  ctx.save();
+  ctx.fillStyle='rgba(170,85,255,0.4)';
+  ctx.font='12px Segoe UI';
+  for(let r=1;r<=7;r++){
+    const px=plotX0+(r-rMin)/(rMax-rMin)*plotW;
+    ctx.beginPath();
+    ctx.strokeStyle='rgba(170,85,255,0.2)';
+    ctx.lineWidth=0.7;
+    ctx.moveTo(px,plotY0);ctx.lineTo(px,plotY0+plotH);ctx.stroke();
+    ctx.textAlign='center';
+    ctx.fillText(r,px,plotY0+plotH+12);
+  }
+  ctx.restore();
+
+  // Draw Ψ_n ~ r^{n-5} falloff curves
+  const curves=[
+    {n:4, label:'\u03a8\u2084 ~ 1/r',    color:'#aa55ff', lw:2.5},
+    {n:3, label:'\u03a8\u2083 ~ 1/r\u00B2', color:'#44ddff', lw:1.8},
+    {n:2, label:'\u03a8\u2082 ~ 1/r\u00B3', color:'#ffdd44', lw:1.5},
+    {n:1, label:'\u03a8\u2081 ~ 1/r\u2074', color:'#ff8844', lw:1.2},
+    {n:0, label:'\u03a8\u2080 ~ 1/r\u2075', color:'#ff5555', lw:1.0},
+  ];
+
+  // Find max amplitude for scaling (at r=1)
+  const yScale=plotH*0.75/(amp);
+
+  curves.forEach(c=>{
+    const power=5-c.n; // Ψ_n ~ r^{n-5} = r^{-(5-n)}
+    ctx.save();
+    ctx.strokeStyle=c.color;
+    ctx.lineWidth=c.lw;
+    ctx.shadowColor=c.color;ctx.shadowBlur=6;
+    ctx.beginPath();
+    let first=true;
+    for(let px=0;px<=plotW;px++){
+      const r=rMin+(px/plotW)*(rMax-rMin);
+      const psi=amp/Math.pow(r,power);
+      const py=plotY0+plotH-psi*yScale;
+      if(py<plotY0){if(!first)ctx.stroke();ctx.beginPath();first=true;continue;}
+      if(first){ctx.moveTo(plotX0+px,py);first=false;}else{ctx.lineTo(plotX0+px,py);}
+    }
+    ctx.stroke();
+    // Label at r=1.2
+    const rLabel=1.2;
+    const pxLabel=plotX0+(rLabel-rMin)/(rMax-rMin)*plotW;
+    const pyLabel=plotY0+plotH-amp/Math.pow(rLabel,power)*yScale;
+    if(pyLabel>plotY0&&pyLabel<plotY0+plotH){
+      ctx.font='bold 12px Segoe UI';
+      ctx.fillStyle=c.color;ctx.shadowBlur=4;
+      ctx.textAlign='left';
+      ctx.fillText(c.label, pxLabel+4, Math.max(plotY0+10,pyLabel-4));
+    }
+    ctx.restore();
+  });
+
+  // Animated GW pulse position marker
+  const pulseX=plotX0+(peelingPulsePos-rMin)/(rMax-rMin)*plotW;
+  // Pulse: draw a vertical wave superimposed at that r
+  const psi4_at=amp/peelingPulsePos;
+  const pulseY=plotY0+plotH-psi4_at*yScale;
+
+  ctx.save();
+  ctx.strokeStyle='rgba(170,85,255,0.5)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(pulseX,plotY0);ctx.lineTo(pulseX,plotY0+plotH);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Glow dot at Ψ₄ curve
+  ctx.fillStyle='#aa55ff';
+  ctx.shadowColor='#aa55ff';ctx.shadowBlur=16;
+  ctx.beginPath();ctx.arc(pulseX, Math.max(plotY0+5,pulseY),7,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+
+  // GW wave ripple (mini sine wave near the pulse marker)
+  const wAmp=Math.min(20, psi4_at*yScale*0.25);
+  const wFreq=freq;
+  ctx.strokeStyle='rgba(170,85,255,0.7)';
+  ctx.lineWidth=2;
+  ctx.shadowColor='#aa55ff';ctx.shadowBlur=8;
+  ctx.beginPath();
+  for(let dy=-40;dy<=40;dy++){
+    const wy=Math.max(plotY0,Math.min(plotY0+plotH, (plotY0+plotH*0.5)+dy));
+    const wx=pulseX+wAmp*Math.sin(dy*wFreq*0.15+anim6T*4);
+    if(dy===-40)ctx.moveTo(wx,wy);else ctx.lineTo(wx,wy);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // ℐ⁺ label at right
+  ctx.save();
+  ctx.font='bold 14px Segoe UI';
+  ctx.fillStyle='rgba(255,200,80,0.8)';
+  ctx.textAlign='right';
+  ctx.fillText('\u2110\u207A (null infinity)', plotX0+plotW-4, plotY0+16);
+  ctx.fillStyle='rgba(192,192,234,0.5)';
+  ctx.font='12px Segoe UI';
+  ctx.fillText('Only \u03a8\u2084 survives at r\u2192\u221e', plotX0+plotW-4, plotY0+32);
+  ctx.restore();
+
+  // Goldberg-Sachs annotation
+  ctx.save();
+  ctx.font='12px Segoe UI';
+  ctx.fillStyle='rgba(100,220,255,0.65)';
+  ctx.textAlign='left';
+  ctx.fillText('Goldberg-Sachs: vacuum algebraically special \u21D4 shear-free null geodesic congruence', plotX0, plotY0+plotH+44);
+  ctx.restore();
+}
+
+// Initialize speed controls
+window.animSpeed=0.1;
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

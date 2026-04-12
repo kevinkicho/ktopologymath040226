@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Concept Graph — Road to Reality</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --cyan:#00e5ff;--gold:#ffd700;--green:#00ff99;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden}
+
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;gap:14px;
+  padding:10px 20px;
+  background:rgba(5,5,15,.88);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.back-link{font-size:.7rem;color:var(--dim);text-decoration:none;
+  letter-spacing:.06em;text-transform:uppercase;transition:.15s}
+.back-link:hover{color:var(--cyan)}
+.top-title{font-size:.78rem;font-weight:700;letter-spacing:.06em;flex:1}
+.mode-link{font-size:.68rem;color:var(--dim);text-decoration:none;transition:.15s}
+.mode-link:hover{color:var(--cyan)}
+.top-hint{font-size:.65rem;color:var(--dim)}
+
+#infoPanel{
+  position:fixed;top:54px;right:20px;z-index:100;width:260px;
+  background:rgba(11,11,30,.95);border:1px solid var(--border);
+  border-radius:11px;padding:16px;opacity:0;pointer-events:none;
+  transition:.22s;transform:translateX(10px);
+}
+#infoPanel.show{opacity:1;pointer-events:auto;transform:translateX(0)}
+.info-title{font-size:.88rem;font-weight:700;margin-bottom:8px}
+.info-tags{font-size:.62rem;color:var(--dim);margin-bottom:10px}
+.info-btn{display:block;text-align:center;padding:7px;border-radius:6px;
+  font-size:.75rem;font-weight:600;border:1px solid rgba(0,229,255,.35);
+  background:rgba(0,229,255,.07);color:var(--cyan);text-decoration:none;transition:.14s}
+.info-btn:hover{background:rgba(0,229,255,.18)}
+
+canvas#c3d{position:fixed;top:46px;left:0;right:0;bottom:0;
+  width:100%;height:calc(100% - 46px)}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="/" class="back-link">← Playground</a>
+  <span class="top-title">3D Concept Graph</span>
+  <a href="/graph.html" class="mode-link">Switch to 2D</a>
+  <span class="top-hint">Drag to rotate · scroll to zoom · click nodes</span>
+</div>
+
+<canvas id="c3d"></canvas>
+
+<div id="infoPanel">
+  <div class="info-title" id="infoTitle"></div>
+  <div class="info-tags" id="infoTags"></div>
+  <a class="info-btn" id="infoBtn" href="#">Open Module →</a>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── NODE & EDGE DATA (same as graph.html) ──
+  var GROUPS = {
+    complex:{color:'#00e5ff'}, geometry:{color:'#ffd700'}, algebra:{color:'#ff8844'},
+    physics:{color:'#00ff99'}, quantum:{color:'#ff44ff'}, topology:{color:'#aa77ff'},
+    analysis:{color:'#ff8844'}
+  };
+
+  var RAW_NODES = [
+    {id:'01',label:'Complex Explorer',file:'01_complex_explorer.html',group:'complex',tags:'Argand, Euler, Conformal'},
+    {id:'02',label:'Penrose Tiling',file:'02_penrose_tiling.html',group:'geometry',tags:'Aperiodic, Golden Ratio'},
+    {id:'03',label:'Mandelbrot',file:'03_mandelbrot.html',group:'complex',tags:'Fractals, Julia Sets'},
+    {id:'04',label:'Hyperbolic',file:'04_hyperbolic.html',group:'geometry',tags:'Poincaré Disk'},
+    {id:'05',label:'Fourier',file:'05_fourier.html',group:'analysis',tags:'Harmonics, Gibbs'},
+    {id:'06',label:'Complex Calculus',file:'06_complex_calculus.html',group:'complex',tags:'Contour, Residues'},
+    {id:'07',label:'Spinors & Lie',file:'07_spinors_lie.html',group:'algebra',tags:'SU(2), SO(3)'},
+    {id:'08',label:'Spacetime',file:'08_spacetime.html',group:'physics',tags:'Lorentz, Light Cone'},
+    {id:'09',label:'Quantum',file:'09_quantum.html',group:'quantum',tags:'Wavefunctions, Spin'},
+    {id:'10',label:'Lagrangian',file:'10_lagrangian.html',group:'physics',tags:'Action, Noether'},
+    {id:'11',label:'Dirac',file:'11_dirac.html',group:'quantum',tags:'Antiparticles, Gamma'},
+    {id:'12',label:'Gauge Theory',file:'12_gauge_theory.html',group:'algebra',tags:'Yang-Mills, U(1)'},
+    {id:'13',label:'Cosmology',file:'13_cosmology.html',group:'physics',tags:'Friedmann, CMB'},
+    {id:'14',label:'Diff Geometry',file:'14_diff_geometry.html',group:'geometry',tags:'Manifolds, Curvature'},
+    {id:'15',label:'Quaternions',file:'15_quaternions.html',group:'algebra',tags:'Hamilton, Rotations'},
+    {id:'16',label:'Diff Forms',file:'16_diff_forms.html',group:'topology',tags:'Stokes, k-forms'},
+    {id:'17',label:'Fiber Bundles',file:'17_fiber_bundles.html',group:'topology',tags:'Connections, Holonomy'},
+    {id:'18',label:'Infinity',file:'18_infinity.html',group:'analysis',tags:'Cantor, Riemann Sphere'},
+    {id:'19',label:'Gen. Relativity',file:'19_general_relativity.html',group:'physics',tags:'Einstein, Geodesics'},
+    {id:'20',label:'Thermodynamics',file:'20_thermodynamics.html',group:'physics',tags:'Entropy, Boltzmann'},
+    {id:'21',label:'Quantum Meas.',file:'21_quantum_measurement.html',group:'quantum',tags:'Decoherence, Collapse'},
+    {id:'22',label:'Path Integrals',file:'22_path_integrals.html',group:'quantum',tags:'Feynman, Action'},
+    {id:'23',label:'Twistor Theory',file:'23_twistor_theory.html',group:'complex',tags:'Null Rays, CP3'},
+    {id:'24',label:'Loop QG',file:'24_loop_quantum_gravity.html',group:'quantum',tags:'Spin Networks'},
+    {id:'25a',label:'String Theory',file:'25_string_theory.html',group:'topology',tags:'Strings, T-Duality'},
+    {id:'25b',label:'Higgs Field',file:'25_higgs_field.html',group:'algebra',tags:'Symmetry Breaking'},
+    {id:'26',label:'Number Systems',file:'26_number_systems.html',group:'analysis',tags:'p-adic, Surreal'},
+    {id:'27',label:'Visual Calculus',file:'27_visual_calculus.html',group:'analysis',tags:'Derivatives, Taylor'},
+    {id:'28',label:'CCC & OR',file:'28_ccc_or.html',group:'quantum',tags:'Penrose, Cycles'},
+    {id:'29',label:'Symplectic',file:'29_symplectic.html',group:'topology',tags:'Phase Space, KAM'},
+    {id:'30',label:'Spinor Calc',file:'30_spinor_calculus.html',group:'algebra',tags:'2-Spinors, SL(2,C)'},
+    {id:'31',label:'Instantons',file:'31_instantons.html',group:'algebra',tags:'Self-Dual, Tunneling'},
+    {id:'32',label:'Repr. Theory',file:'32_representation_theory.html',group:'algebra',tags:'Irreps, Characters'},
+    {id:'33',label:'Cohomology',file:'33_cohomology.html',group:'topology',tags:'Betti, de Rham'},
+    {id:'34',label:'Riemann Zeta',file:'34_riemann_zeta.html',group:'complex',tags:'Hypothesis, Primes'},
+    {id:'35',label:'Black Holes',file:'35_black_holes.html',group:'physics',tags:'Hawking, Horizon'},
+    {id:'36',label:'Riemann Surf.',file:'36_riemann_surfaces.html',group:'complex',tags:'Genus, Branch Cuts'},
+    {id:'37',label:'Maxwell',file:'37_maxwell.html',group:'physics',tags:'EM Tensor, Duality'},
+    {id:'38',label:'Standard Model',file:'38_standard_model.html',group:'algebra',tags:'Quarks, QCD'},
+    {id:'39',label:'QFT',file:'39_quantum_field_theory.html',group:'quantum',tags:'Feynman Diagrams'},
+    {id:'40',label:'Chaos',file:'40_chaos.html',group:'analysis',tags:'Lyapunov, Attractor'},
+    {id:'41',label:'Homotopy',file:'41_homotopy.html',group:'topology',tags:'Fundamental Group, Hopf'},
+    {id:'42',label:'Clifford Alg.',file:'42_clifford_algebras.html',group:'algebra',tags:'Geometric Algebra'},
+    {id:'43',label:'CFT',file:'43_conformal_field_theory.html',group:'complex',tags:'Central Charge, AdS/CFT'},
+    {id:'44',label:'Twistors (Amp)',file:'44_twistors.html',group:'complex',tags:'MHV, Amplituhedron'},
+    {id:'45',label:"Bell's Theorem",file:'45_bell_theorem.html',group:'quantum',tags:'CHSH, Entanglement'},
+    {id:'46',label:'Grav. Waves',file:'46_gravitational_waves.html',group:'physics',tags:'LIGO, Chirp'},
+    {id:'47',label:'Quantum Optics',file:'47_quantum_optics.html',group:'quantum',tags:'Coherent, Squeezed'},
+    {id:'48',label:'Topo. Matter',file:'48_topological_matter.html',group:'topology',tags:'Anyons, Quantum Hall'},
+    {id:'49',label:'Quantum Net',file:'49_quantum_networks.html',group:'quantum',tags:'QKD, Teleportation'},
+    {id:'50',label:'Semicond. Q',file:'50_semiconductor_quantum.html',group:'quantum',tags:'Quantum Dots'},
+    {id:'51',label:'Photonics',file:'51_photonics_fiber.html',group:'physics',tags:'Fiber, Solitons'},
+    {id:'52',label:'Category Theory',file:'52_category_theory.html',group:'topology',tags:'Functors, Adjunctions'},
+    {id:'53',label:'Attosecond',file:'53_attosecond.html',group:'physics',tags:'HHG, Ultrafast'},
+    {id:'54',label:'Trapped Ions',file:'54_trapped_ions.html',group:'quantum',tags:'Paul Trap, Wigner'},
+    {id:'55',label:'Neutrinos',file:'55_neutrino_oscillations.html',group:'physics',tags:'PMNS, Oscillation'},
+    {id:'56',label:'Muon g-2',file:'56_muon_g2.html',group:'physics',tags:'Anomalous Moment'},
+    {id:'57',label:'Fusion',file:'57_nuclear_fusion.html',group:'physics',tags:'Lawson, Tokamak'},
+    {id:'58',label:'Dark Energy',file:'58_dark_energy.html',group:'physics',tags:'Lambda CDM, Hubble'},
+    {id:'59',label:'Spin Glasses',file:'59_spin_glasses.html',group:'quantum',tags:'Parisi, Frustration'},
+    {id:'60',label:'Penrose Sing.',file:'60_penrose_singularity.html',group:'topology',tags:'Trapped Surface'}
+  ];
+
+  // Same edges as graph.html
+  var EDGES = [
+    ['01','03'],['01','04'],['01','06'],['01','36'],['01','18'],
+    ['03','04'],['03','36'],['06','36'],['06','18'],['06','34'],['06','43'],
+    ['36','34'],['36','44'],['36','43'],['23','44'],['23','30'],['23','01'],['34','18'],
+    ['02','04'],['02','40'],['14','16'],['14','17'],['14','19'],['14','29'],
+    ['16','17'],['16','33'],['16','37'],['17','12'],['17','31'],['17','33'],
+    ['33','41'],['33','48'],['41','48'],['41','17'],['41','25a'],
+    ['29','10'],['29','40'],['29','22'],
+    ['07','09'],['07','11'],['07','32'],['07','15'],['07','42'],['07','30'],
+    ['15','42'],['32','38'],['32','12'],['32','31'],
+    ['42','30'],['42','11'],['12','37'],['12','38'],['12','31'],['12','17'],
+    ['31','22'],['31','17'],['25b','38'],['25b','12'],['38','39'],['38','11'],
+    ['08','09'],['08','11'],['08','19'],['08','37'],
+    ['10','09'],['10','22'],['10','19'],
+    ['13','19'],['13','28'],['13','35'],
+    ['19','35'],['19','46'],['19','20'],
+    ['35','20'],['35','28'],['35','46'],
+    ['20','09'],['20','28'],['37','46'],
+    ['05','27'],['05','47'],['05','09'],['27','10'],
+    ['09','11'],['09','22'],['09','21'],['09','45'],['09','47'],
+    ['11','39'],['21','28'],['21','45'],
+    ['22','39'],['22','10'],['24','19'],['24','28'],['24','41'],
+    ['39','38'],['45','47'],['45','49'],
+    ['47','49'],['47','51'],['49','50'],['50','48'],
+    ['25a','24'],['25a','43'],['25a','17'],['25a','39'],
+    ['28','13'],['23','43'],['43','36'],['43','25a'],
+    ['48','33'],['48','41'],['48','16'],['52','17'],['52','32'],['52','41'],
+    ['30','23'],['30','11'],['26','34'],['26','18'],
+    ['18','36'],['05','51'],['40','29'],['40','02'],
+    ['53','09'],['53','47'],['53','05'],['54','09'],['54','45'],['54','47'],['54','49'],
+    ['55','09'],['55','38'],['55','11'],['56','39'],['56','38'],['56','22'],
+    ['57','20'],['57','13'],['57','09'],['58','13'],['58','19'],['58','35'],['58','20'],
+    ['59','09'],['59','20'],['59','22'],['60','19'],['60','35'],['60','14'],['60','24']
+  ];
+
+  // Build adjacency
+  var adj = {};
+  RAW_NODES.forEach(function(n) { adj[n.id] = []; });
+  EDGES.forEach(function(e) { adj[e[0]].push(e[1]); adj[e[1]].push(e[0]); });
+
+  // ── 3D positions — force-directed layout ──
+  var N = RAW_NODES.length;
+  var nodes = RAW_NODES.map(function(n, i) {
+    // Initialize in a sphere by group
+    var gi = Object.keys(GROUPS).indexOf(n.group);
+    var ga = (gi / 7) * Math.PI * 2;
+    var spread = 2.5;
+    return {
+      id: n.id, label: n.label, file: n.file, group: n.group, tags: n.tags,
+      color: GROUPS[n.group].color,
+      x: Math.cos(ga) * spread + (Math.random() - 0.5) * 2,
+      y: (Math.random() - 0.5) * 4,
+      z: Math.sin(ga) * spread + (Math.random() - 0.5) * 2,
+      vx: 0, vy: 0, vz: 0
+    };
+  });
+  var nodeMap = {};
+  nodes.forEach(function(n) { nodeMap[n.id] = n; });
+
+  // Force-directed simulation (run offline)
+  for (var iter = 0; iter < 200; iter++) {
+    // Repulsion
+    for (var i = 0; i < N; i++) {
+      for (var j = i + 1; j < N; j++) {
+        var dx = nodes[i].x - nodes[j].x;
+        var dy = nodes[i].y - nodes[j].y;
+        var dz = nodes[i].z - nodes[j].z;
+        var d2 = dx*dx + dy*dy + dz*dz + 0.01;
+        var f = 2.0 / d2;
+        nodes[i].vx += dx * f; nodes[i].vy += dy * f; nodes[i].vz += dz * f;
+        nodes[j].vx -= dx * f; nodes[j].vy -= dy * f; nodes[j].vz -= dz * f;
+      }
+    }
+    // Attraction (edges)
+    EDGES.forEach(function(e) {
+      var a = nodeMap[e[0]], b = nodeMap[e[1]];
+      if (!a || !b) return;
+      var dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
+      var d = Math.sqrt(dx*dx + dy*dy + dz*dz) + 0.01;
+      var f = (d - 1.5) * 0.04;
+      a.vx += dx/d*f; a.vy += dy/d*f; a.vz += dz/d*f;
+      b.vx -= dx/d*f; b.vy -= dy/d*f; b.vz -= dz/d*f;
+    });
+    // Apply velocity with damping
+    var damp = 0.85;
+    nodes.forEach(function(n) {
+      n.x += n.vx; n.y += n.vy; n.z += n.vz;
+      n.vx *= damp; n.vy *= damp; n.vz *= damp;
+    });
+  }
+
+  // ── Canvas 3D rendering ──
+  var canvas = document.getElementById('c3d');
+  var ctx = canvas.getContext('2d');
+  var W, H;
+  function resize() { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Camera
+  var rotX = 0.3, rotY = 0, zoom = 1;
+  var autoRotate = true;
+
+  function project(x, y, z) {
+    // Rotate around Y axis
+    var cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+    var x1 = x * cosY - z * sinY, z1 = x * sinY + z * cosY;
+    // Rotate around X axis
+    var cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+    var y1 = y * cosX - z1 * sinX, z2 = y * sinX + z1 * cosX;
+    // Perspective
+    var scale = 120 * zoom / (z2 + 10);
+    return { px: W/2 + x1 * scale, py: H/2 + y1 * scale, z: z2, s: scale };
+  }
+
+  var hovNode = null, selNode = null;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    if (autoRotate) rotY += 0.003;
+
+    // Sort nodes by depth for proper occlusion
+    var projected = nodes.map(function(n) {
+      var p = project(n.x, n.y, n.z);
+      return { node: n, px: p.px, py: p.py, z: p.z, s: p.s };
+    }).sort(function(a, b) { return b.z - a.z; });
+
+    // Draw edges
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = '#334';
+    ctx.lineWidth = 0.5;
+    EDGES.forEach(function(e) {
+      var a = nodeMap[e[0]], b = nodeMap[e[1]];
+      if (!a || !b) return;
+      var pa = project(a.x, a.y, a.z);
+      var pb = project(b.x, b.y, b.z);
+      ctx.beginPath(); ctx.moveTo(pa.px, pa.py); ctx.lineTo(pb.px, pb.py); ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+
+    // Draw nodes
+    projected.forEach(function(p) {
+      var r = Math.max(3, p.s * 0.08);
+      var isHov = hovNode === p.node;
+      var isSel = selNode === p.node;
+
+      ctx.beginPath(); ctx.arc(p.px, p.py, r, 0, Math.PI * 2);
+      ctx.fillStyle = p.node.color;
+      ctx.globalAlpha = Math.max(0.3, 1 - (p.z + 5) * 0.08);
+      ctx.fill();
+
+      if (isHov || isSel) {
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#fff';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(p.node.label, p.px, p.py - r - 6);
+      }
+      ctx.globalAlpha = 1;
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  // ── Interaction ──
+  var lastMouse = { x: 0, y: 0 };
+  var isDragging = false;
+
+  canvas.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    autoRotate = false;
+    lastMouse = { x: e.clientX, y: e.clientY };
+  });
+  canvas.addEventListener('mousemove', function(e) {
+    if (isDragging) {
+      rotY += (e.clientX - lastMouse.x) * 0.005;
+      rotX += (e.clientY - lastMouse.y) * 0.005;
+      rotX = Math.max(-Math.PI/2, Math.min(Math.PI/2, rotX));
+      lastMouse = { x: e.clientX, y: e.clientY };
+    }
+    // Hit test
+    var best = null, bestD = 20;
+    nodes.forEach(function(n) {
+      var p = project(n.x, n.y, n.z);
+      var dx = e.clientX - p.px, dy = (e.clientY - 46) - p.py + 46;
+      var d = Math.sqrt(dx*dx + dy*dy);
+      if (d < bestD) { bestD = d; best = n; }
+    });
+    hovNode = best;
+    canvas.style.cursor = best ? 'pointer' : 'grab';
+  });
+  canvas.addEventListener('mouseup', function() { isDragging = false; });
+  canvas.addEventListener('wheel', function(e) {
+    zoom *= e.deltaY > 0 ? 0.92 : 1.08;
+    zoom = Math.max(0.3, Math.min(5, zoom));
+    e.preventDefault();
+  }, { passive: false });
+
+  canvas.addEventListener('click', function() {
+    if (hovNode) {
+      selNode = hovNode;
+      var panel = document.getElementById('infoPanel');
+      document.getElementById('infoTitle').textContent = selNode.label;
+      document.getElementById('infoTags').textContent = selNode.tags;
+      document.getElementById('infoBtn').href = '/' + selNode.file;
+      panel.classList.add('show');
+    } else {
+      selNode = null;
+      document.getElementById('infoPanel').classList.remove('show');
+    }
+  });
+
+  // Touch support
+  var lastTouch = null;
+  canvas.addEventListener('touchstart', function(e) {
+    autoRotate = false;
+    if (e.touches.length === 1) lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 1 && lastTouch) {
+      rotY += (e.touches[0].clientX - lastTouch.x) * 0.005;
+      rotX += (e.touches[0].clientY - lastTouch.y) * 0.005;
+      rotX = Math.max(-Math.PI/2, Math.min(Math.PI/2, rotX));
+      lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    e.preventDefault();
+  }, { passive: false });
+
+  draw();
+})();
+</script>
+</body>
+</html>

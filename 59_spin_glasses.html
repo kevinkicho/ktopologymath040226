@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>59 — Spin Glasses & Replica Theory</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0f;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
+header{padding:18px 28px;border-bottom:1px solid #222240}
+header h1{font-size:1.25rem;font-weight:600;color:#ff88cc}
+header p{font-size:.82rem;color:#8888aa;margin-top:3px}
+.tabs{display:flex;gap:0;border-bottom:1px solid #222240;background:#0d0d18}
+.tab-btn{padding:10px 22px;background:none;border:none;color:#8888aa;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;transition:.2s}
+.tab-btn.active{color:#ff88cc;border-bottom-color:#ff88cc}
+.tab-btn:hover:not(.active){color:#bbbbdd}
+.tab-pane{display:none;padding:22px 28px}
+.tab-pane.active{display:flex;flex-direction:column;gap:16px}
+canvas{display:block;border-radius:6px;background:#0d0d1a;border:1px solid #1a1a38}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.82rem;color:#aaaacc}
+.controls label{display:flex;align-items:center;gap:6px}
+.controls input[type=range]{accent-color:#ff88cc;width:110px}
+.readout{font-family:monospace;background:#111128;border:1px solid #1e1e42;border-radius:4px;padding:8px 12px;font-size:.8rem;line-height:1.6;color:#ccccee;white-space:pre}
+.info{font-size:.82rem;color:#9999bb;line-height:1.55;max-width:720px}
+body{padding-bottom:38px}
+</style>
+</head>
+<body>
+<header style="display:flex;align-items:baseline;gap:18px;flex-wrap:wrap">
+  <a href="/" style="font-size:.78rem;color:#8888aa;text-decoration:none;white-space:nowrap" onmouseover="this.style.color='#ff88cc'" onmouseout="this.style.color='#8888aa'">← Dashboard</a>
+  <div>
+    <h1>Module 59 — Spin Glasses &amp; Replica Theory</h1>
+    <p>2021 Nobel (Giorgio Parisi) · Edwards-Anderson model · replica symmetry breaking</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar" style="flex-wrap:wrap">
+  <button class="tab-btn active" onclick="switchTab(1)">1 · Monte Carlo Dynamics</button>
+  <button class="tab-btn" onclick="switchTab(2)">2 · Energy Landscape</button>
+  <button class="tab-btn" onclick="switchTab(3)">3 · Overlap P(q)</button>
+  <button class="tab-btn" onclick="switchTab(4)">4 · EA Model &amp; Frustration</button>
+  <button class="tab-btn" onclick="switchTab(5)">5 · Replica Theory &amp; Parisi</button>
+  <button class="tab-btn" onclick="switchTab(6)">6 · Hopfield Networks</button>
+  <button class="tab-btn" onclick="switchTab(7)">7 · Simulated Annealing</button>
+  <button class="tab-btn" onclick="switchTab(8)">8 · SK Model &amp; Applications</button>
+</div>
+
+<div id="pane1" class="tab-pane active" data-role="panel">
+  <div class="info">Spin glass: random ferromagnetic (+) and antiferromagnetic (−) couplings J_ij create "frustration". The system evolves via Metropolis Monte Carlo — spins flip when ΔE&lt;0, or with probability e^(−ΔE/kT). Watch the system slowly freeze into a metastable configuration.</div>
+  <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+    <label title="T measured in units of J/k_B. Above T_c≈2.27J/k_B: paramagnetic (spins disordered). Below T_c: spin glass freeze.">Temperature <input type="range" id="tempSlider" min="0.1" max="4" step="0.05" value="1.5"> <span id="tempVal">1.50</span> J/k_B</label>
+    <label title="J disorder = fraction of bonds that are random ±J. At 0: ferromagnet. At 1: fully random spin glass. At 0.5: mix of FM and frustrated bonds.">J disorder <input type="range" id="disSlider" min="0" max="1" step="0.05" value="0.5"> <span id="disVal">0.50</span></label>
+    <label title="Animation speed. Slow down to watch individual spin flips (Metropolis dynamics).">Speed <input type="range" id="mcSpeedSl" min="0.1" max="1" step="0.05" value="1"> <span id="mcSpeedV">1.0</span>×</label>
+    <button id="resetBtn" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset</button>
+    <button id="pauseBtn" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused1=!window.paused1;this.textContent=window.paused1?'▶ Play':'⏸ Pause'">▶ Play</button>
+  </div>
+  <canvas id="cv1" width="820" height="440"></canvas>
+  <div class="readout" id="ro1">E/N: —   q_EA: —   MCS: 0</div>
+</div>
+
+<div id="pane2" class="tab-pane" data-role="panel">
+  <div class="info">The Parisi solution reveals an ultrametric energy landscape with infinitely many pure states organized in a hierarchical tree. Each valley is separated by barriers that grow with system size — explaining why spin glasses age and never truly equilibrate. The landscape shown is a 2D projection.</div>
+  <div class="controls" data-role="sidebar">
+    <label>Roughness <input type="range" id="roughSlider" min="0.1" max="1" step="0.05" value="0.5"> <span id="roughVal">0.50</span></label>
+    <label>Temperature <input type="range" id="tempSlider2" min="0.1" max="3" step="0.05" value="1.0"> <span id="tempVal2">1.00</span></label>
+    <button id="runGD" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Drop particle</button>
+    <button id="pauseBtn2" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused2=!window.paused2;this.textContent=window.paused2?'▶ Play':'⏸ Pause'">▶ Play</button>
+  </div>
+  <canvas id="cv2" width="820" height="440"></canvas>
+  <div class="readout" id="ro2">Local minimum: —   Basin depth: —</div>
+</div>
+
+<div id="pane3" class="tab-pane" data-role="panel">
+  <div class="info">The Parisi overlap P(q) is a fingerprint of replica symmetry breaking (RSB). In a ferromagnet P(q) is a single delta function. In a spin glass there is a continuous band of overlaps between −q_EA and q_EA — infinitely many metastable states. The shape changes dramatically with temperature.</div>
+  <div class="controls" data-role="sidebar">
+    <label title="Ratio of temperature T to the spin glass critical temperature Tc. Above 1: paramagnetic phase. Below 1: replica symmetry broken, P(q) spreads out.">Temperature T/Tc <input type="range" id="Tratio" min="0.1" max="1.4" step="0.02" value="0.7"> <span id="TratioV">0.70</span></label>
+    <label title="Parisi order parameter m ∈ (0,1): fraction of phase space weight at ±q_EA delta peaks. As m→0, the continuous band dominates.">Parisi m <input type="range" id="parisiM" min="0.1" max="0.99" step="0.01" value="0.5"> <span id="parisiMV">0.50</span></label>
+    <label title="Compare with a ferromagnet: single sharp delta function at q_FM = √(1-T/Tc). No replica symmetry breaking."><input type="checkbox" id="showFM"> Compare ferromagnet</label>
+    <button id="pqDemoBtn" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate T cooling</button>
+  </div>
+  <canvas id="cv3" width="820" height="440"></canvas>
+  <div class="readout" id="ro3">q_EA: —   Free energy contribution: —</div>
+</div>
+
+<!-- ═══════════════════ TAB 4: EA MODEL & FRUSTRATION ═══════════════════ -->
+<div id="pane4" class="tab-pane" data-role="panel" style="flex-direction:row;gap:20px;flex-wrap:wrap">
+  <div style="flex:1 1 480px;display:flex;flex-direction:column;gap:10px">
+    <div class="controls" data-role="sidebar" style="flex-wrap:wrap">
+      <label>Temperature T <input type="range" id="ea_T" min="0.1" max="5" step="0.1" value="2.0"> <span id="ea_Tv">2.00</span> J/k</label>
+      <label>AFM fraction p <input type="range" id="ea_p" min="0" max="1" step="0.05" value="0.5"> <span id="ea_pv">0.50</span></label>
+      <label>Grid N <input type="range" id="ea_N" min="10" max="30" step="5" value="20"> <span id="ea_Nv">20</span></label>
+      <button id="ea_reset" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset bonds</button>
+      <button id="ea_pause" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused4=!window.paused4;this.textContent=window.paused4?'▶ Play':'⏸ Pause'">▶ Play</button>
+    </div>
+    <canvas id="cv4" width="560" height="420"></canvas>
+    <div class="readout" id="ro4">q_EA: —   Frustrated plaquettes: —   MCS: 0</div>
+  </div>
+  <div style="flex:1 1 220px;max-width:320px;display:flex;flex-direction:column;gap:12px;font-size:.8rem;color:#9999bb;line-height:1.6">
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ff88cc;font-weight:600;margin-bottom:6px">Edwards-Anderson Model (1975)</div>
+      <div>Hamiltonian with quenched random bonds:</div>
+      <div style="font-family:monospace;color:#ccccee;margin:6px 0">H = −Σ J_ij S_i S_j</div>
+      <div>J_ij drawn i.i.d. from ±J with probability p (AFM) or (1−p) (FM). Quenched disorder: bonds fixed, spins thermalize.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ffcc44;font-weight:600;margin-bottom:6px">Frustration</div>
+      <div>A plaquette (elementary square loop) is <b style="color:#ff8844">frustrated</b> when the product of its four bond signs is negative: Π J_ij &lt; 0. No spin configuration can satisfy all bonds simultaneously — the system is "frustrated".</div>
+      <div style="margin-top:6px;color:#aaaacc">Blue bonds: FM (J&gt;0) · Red bonds: AFM (J&lt;0) · Yellow squares: frustrated plaquettes</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#88ccff;font-weight:600;margin-bottom:6px">EA Order Parameter</div>
+      <div>q_EA = [⟨S_i⟩²]_av — time average then disorder average. Nonzero below T_g signals spin glass order without net magnetization. Specific heat shows broad cusp (no latent heat — not first-order).</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#cc88ff;font-weight:600;margin-bottom:6px">Experimental Realizations</div>
+      <div>CuMn, AuFe dilute alloys: magnetic Mn/Fe impurities in nonmagnetic host → RKKY interactions with random sign. T_g depends on impurity concentration. de Almeida-Thouless (AT) line: critical field H_AT ∝ (T_g−T)^(3/2) above which spin glass order is destroyed by field.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 5: REPLICA THEORY & PARISI ═══════════════════ -->
+<div id="pane5" class="tab-pane" data-role="panel" style="flex-direction:row;gap:20px;flex-wrap:wrap">
+  <div style="flex:1 1 480px;display:flex;flex-direction:column;gap:10px">
+    <div class="controls" data-role="sidebar">
+      <label>RSB level k <input type="range" id="rsb_k" min="1" max="4" step="1" value="2"> <span id="rsb_kv">2</span></label>
+      <label>Temperature T/T_g <input type="range" id="rsb_T" min="0.1" max="1.2" step="0.05" value="0.6"> <span id="rsb_Tv">0.60</span></label>
+      <label><input type="checkbox" id="rsb_showQ" checked> Show q(x) function</label>
+      <button id="rsb_anim" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate RSB levels</button>
+    </div>
+    <canvas id="cv5" width="560" height="420"></canvas>
+    <div class="readout" id="ro5">RSB level: —   q_max: —   Free states: —</div>
+  </div>
+  <div style="flex:1 1 220px;max-width:320px;display:flex;flex-direction:column;gap:12px;font-size:.8rem;color:#9999bb;line-height:1.6">
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ff88cc;font-weight:600;margin-bottom:6px">The Replica Trick</div>
+      <div style="font-family:monospace;color:#ccccee;font-size:.75rem">log Z = lim_{n→0} (Z^n − 1)/n</div>
+      <div style="margin-top:6px">Compute [Z^n]_disorder for integer n, then analytically continue n→0. Replicas a=1..n are n identical copies of the system in the same disorder. Their mutual overlap Q_ab = (1/N)Σ_i S_i^a S_i^b encodes correlations.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ffcc44;font-weight:600;margin-bottom:6px">Replica Symmetry Breaking</div>
+      <div>Replica-symmetric (RS) ansatz: Q_ab = q for all a≠b. Works above T_g; fails below — negative entropy catastrophe (Sherrington-Kirkpatrick 1975). Parisi 1979-83: hierarchical RSB — Q_ab takes values at k levels, with q(x) becoming continuous (full RSB) as k→∞.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#88ccff;font-weight:600;margin-bottom:6px">Parisi q(x) Function</div>
+      <div>q(x) for x∈[0,1] is the order parameter function. Physical meaning: the probability that two randomly chosen equilibrium states have overlap ≤ q is x = P(q). The ultrametric tree structure means state distances satisfy d(A,C) ≤ max(d(A,B),d(B,C)).</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#cc88ff;font-weight:600;margin-bottom:6px">Nobel Prize 2021</div>
+      <div>Giorgio Parisi received the Nobel Prize in Physics 2021 "for the discovery of the interplay of disorder and fluctuations in physical systems from atomic to planetary scales." The Parisi formula for the SK free energy was proven rigorously by Guerra-Toninelli (2003) and Talagrand (2006).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 6: HOPFIELD NETWORKS ═══════════════════ -->
+<div id="pane6" class="tab-pane" data-role="panel" style="flex-direction:row;gap:20px;flex-wrap:wrap">
+  <div style="flex:1 1 480px;display:flex;flex-direction:column;gap:10px">
+    <div class="controls" data-role="sidebar" style="flex-wrap:wrap">
+      <label>Neurons N <input type="range" id="hf_N" min="25" max="100" step="25" value="50"> <span id="hf_Nv">50</span></label>
+      <label>Patterns p <input type="range" id="hf_p" min="1" max="15" step="1" value="5"> <span id="hf_pv">5</span></label>
+      <label>Corruption % <input type="range" id="hf_corrupt" min="5" max="60" step="5" value="30"> <span id="hf_cv">30</span>%</label>
+      <label>Temperature <input type="range" id="hf_T" min="0.01" max="2" step="0.05" value="0.1"> <span id="hf_Tv">0.10</span></label>
+      <button id="hf_store" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Store &amp; Retrieve</button>
+      <button id="hf_pause" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused6=!window.paused6;this.textContent=window.paused6?'▶ Play':'⏸ Pause'">▶ Play</button>
+    </div>
+    <canvas id="cv6" width="560" height="420"></canvas>
+    <div class="readout" id="ro6">α = p/N: —   Overlap m: —   Energy: —   Phase: —</div>
+  </div>
+  <div style="flex:1 1 220px;max-width:320px;display:flex;flex-direction:column;gap:12px;font-size:.8rem;color:#9999bb;line-height:1.6">
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ff88cc;font-weight:600;margin-bottom:6px">Hopfield Network (1982)</div>
+      <div>N Ising neurons S_i ∈ {±1}. Store p patterns ξ^μ via Hebbian weights:</div>
+      <div style="font-family:monospace;color:#ccccee;font-size:.75rem;margin:6px 0">W_ij = (1/N) Σ_μ ξ_i^μ ξ_j^μ</div>
+      <div>Energy: E = −½ Σ_{ij} W_ij S_i S_j. Stored patterns are energy minima (attractors). Retrieval = energy minimization.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ffcc44;font-weight:600;margin-bottom:6px">Storage Capacity</div>
+      <div>α_c = p/N ≈ 0.138 (Amit-Gutfreund-Sompolinsky 1985). Below α_c: clean retrieval. Above α_c: spurious states (mixtures of patterns), retrieval errors. The Hopfield network IS an SK spin glass with structured couplings.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#88ccff;font-weight:600;margin-bottom:6px">Modern Hopfield Networks</div>
+      <div>Ramsauer et al. (2020): modern Hopfield networks with continuous states and exponential capacity ~ exp(N/2). Key insight: <b style="color:#ccccee">transformer self-attention = Hopfield retrieval step</b>. Softmax attention = soft version of winner-take-all retrieval dynamics.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#cc88ff;font-weight:600;margin-bottom:6px">Connection to SK Model</div>
+      <div>SK model: J_ij fully random (Gaussian). Hopfield: J_ij = low-rank structured random (rank-p outer products). Below capacity: effective paramagnetic behavior in pattern space. Above: spin glass-like frozen disorder with spurious attractors.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 7: SIMULATED ANNEALING ═══════════════════ -->
+<div id="pane7" class="tab-pane" data-role="panel" style="flex-direction:row;gap:20px;flex-wrap:wrap">
+  <div style="flex:1 1 480px;display:flex;flex-direction:column;gap:10px">
+    <div class="controls" data-role="sidebar" style="flex-wrap:wrap">
+      <label>Cities N <input type="range" id="tsp_N" min="8" max="30" step="2" value="16"> <span id="tsp_Nv">16</span></label>
+      <label>Start T <input type="range" id="tsp_T0" min="1" max="20" step="1" value="10"> <span id="tsp_T0v">10</span></label>
+      <label>Schedule
+        <select id="tsp_sched" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:2px 6px;font-size:.8rem">
+          <option value="exp">Exponential</option>
+          <option value="lin">Linear</option>
+          <option value="log">Logarithmic</option>
+        </select>
+      </label>
+      <button id="tsp_run" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Anneal</button>
+      <button id="tsp_reset" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset</button>
+    </div>
+    <canvas id="cv7" width="560" height="420"></canvas>
+    <div class="readout" id="ro7">Tour length: —   Temperature: —   Step: —   Best: —</div>
+  </div>
+  <div style="flex:1 1 220px;max-width:320px;display:flex;flex-direction:column;gap:12px;font-size:.8rem;color:#9999bb;line-height:1.6">
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ff88cc;font-weight:600;margin-bottom:6px">Simulated Annealing (1983)</div>
+      <div>Kirkpatrick, Gelatt &amp; Vecchi (Science 1983, ~35,000 citations): use Metropolis MC at decreasing T to solve combinatorial optimization. The spin glass energy landscape is isomorphic to the TSP cost landscape — exponentially many local minima separated by barriers.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ffcc44;font-weight:600;margin-bottom:6px">TSP as a Spin Glass</div>
+      <div>Traveling Salesman Problem: find shortest tour through N cities. NP-hard in general (Cook 1971). The partition function Z(β) = Σ_tours exp(−βL) matches a random disordered system's partition function. Slow annealing finds near-optimal solutions — the physics insight that earned this method its power.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#88ccff;font-weight:600;margin-bottom:6px">Quantum Annealing</div>
+      <div>Replace thermal fluctuations with quantum tunneling: H = −Γ Σ σ_i^x − Σ J_ij σ_i^z σ_j^z. Transverse field Γ→0 slowly (adiabatic). D-Wave systems implement ~5000-qubit quantum annealing. QAOA (Quantum Approximate Optimization Algorithm) encodes combinatorial problems in quantum circuits.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#cc88ff;font-weight:600;margin-bottom:6px">Annealing Schedules</div>
+      <div><b style="color:#ccccee">Exponential:</b> T(t) = T_0 · α^t (fast, can miss global minimum). <b style="color:#ccccee">Linear:</b> T(t) = T_0(1 − t/t_max) (simple, often too fast). <b style="color:#ccccee">Logarithmic:</b> T(t) = c/log(1+t) (guaranteed convergence to global min, impractically slow). Adaptive schedules track acceptance rate.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 8: SK MODEL & APPLICATIONS ═══════════════════ -->
+<div id="pane8" class="tab-pane" data-role="panel" style="flex-direction:row;gap:20px;flex-wrap:wrap">
+  <div style="flex:1 1 480px;display:flex;flex-direction:column;gap:10px">
+    <div class="controls" data-role="sidebar" style="flex-wrap:wrap">
+      <label>Temperature T/J <input type="range" id="sk_T" min="0.1" max="2.5" step="0.05" value="0.8"> <span id="sk_Tv">0.80</span></label>
+      <label>Field h/J <input type="range" id="sk_h" min="0" max="2" step="0.05" value="0"> <span id="sk_hv">0.00</span></label>
+      <label>View
+        <select id="sk_view" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:2px 6px;font-size:.8rem">
+          <option value="fe">Free energy F(q)</option>
+          <option value="sc">Self-consistency q(T)</option>
+          <option value="pd">Phase diagram</option>
+        </select>
+      </label>
+      <button id="pauseBtn8" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused8=!window.paused8;this.textContent=window.paused8?'▶ Play':'⏸ Pause'">▶ Play</button>
+    </div>
+    <canvas id="cv8" width="560" height="420"></canvas>
+    <div class="readout" id="ro8">q_SK: —   Phase: —   F(q*): —</div>
+  </div>
+  <div style="flex:1 1 220px;max-width:320px;display:flex;flex-direction:column;gap:12px;font-size:.8rem;color:#9999bb;line-height:1.6">
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ff88cc;font-weight:600;margin-bottom:6px">SK Model (1975)</div>
+      <div>Sherrington-Kirkpatrick: N spins, all-to-all couplings J_ij ~ N(0, J/√N). Exactly solvable in the thermodynamic limit via replica method. TAP equations (Thouless-Anderson-Palmer 1977): m_i = tanh(β Σ_j J_ij m_j − β²(1−q)m_i) — the last term is the Onsager reaction field correcting naive MF.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#ffcc44;font-weight:600;margin-bottom:6px">Cavity Method</div>
+      <div>Mézard-Parisi cavity (1987): compute partition function by adding one spin at a time. Belief propagation = cavity equations on tree-like graphs. Message passing algorithms (LDPC decoding, compressed sensing, random K-SAT) all follow from cavity method — spin glass physics → information theory.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#88ccff;font-weight:600;margin-bottom:6px">Protein Folding & Biology</div>
+      <div>Bryngelson-Wolynes (1987): protein folding energy landscape as a random heteropolymer spin glass. Funnel landscape: native state is the global minimum below the glass transition temperature T_f. Frustration between hydrophobic collapse and secondary structure — explains Levinthal's paradox of fast folding.</div>
+    </div>
+    <div style="background:#0d0d1a;border:1px solid #1e1e42;border-radius:6px;padding:12px">
+      <div style="color:#cc88ff;font-weight:600;margin-bottom:6px">Finance & Random Matrices</div>
+      <div>Markowitz portfolio optimization → correlated returns matrix → spin glass in external field. Random matrix theory (Marchenko-Pastur law) distinguishes signal from noise in asset correlations. Spin glass transition in portfolio optimization: below critical temperature, optimal portfolio concentrates — "freezing" of capital allocation.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims59();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims59(){
+  if(typeof raf1!="undefined" && raf1){cancelAnimationFrame(raf1);raf1=null;}
+  if(typeof raf2!="undefined" && raf2){cancelAnimationFrame(raf2);raf2=null;}
+  if(typeof raf3!="undefined" && raf3){cancelAnimationFrame(raf3);raf3=null;}
+  if(typeof raf4!="undefined" && raf4){cancelAnimationFrame(raf4);raf4=null;}
+}
+
+
+// ─── Tab 1: Monte Carlo Metropolis on 2D EA spin glass ───────────────────────
+let raf1 = null;
+window.paused1 = false;
+
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
+  cv.style.width = '820px'; cv.style.height = '440px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 440;
+
+  const N = 30; // grid size N×N
+  let spins = new Float32Array(N * N);
+  let Jij = new Float32Array(N * N * 4); // 4 neighbors per site: R, D, L, U
+  let mcs = 0;
+
+  function seedRng(s) {
+    let state = s;
+    return () => {
+      state = (state * 1664525 + 1013904223) >>> 0;
+      return state / 0xffffffff;
+    };
+  }
+  const rng = seedRng(12345);
+
+  function init() {
+    for (let i = 0; i < N*N; i++) spins[i] = rng() < 0.5 ? 1 : -1;
+    const dis = +document.getElementById('disSlider').value;
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const idx = i * N + j;
+      // bonds to right and down (symmetric)
+      // dis=0: all FM (+1); dis=1: random ±1; dis=0.5: mix
+      for (let d = 0; d < 4; d++) {
+        if (rng() < dis) Jij[idx*4+d] = rng() < 0.5 ? 1 : -1; // random
+        else Jij[idx*4+d] = 1; // FM
+      }
+    }
+    mcs = 0;
+  }
+  init();
+
+  function localEnergy(i, j) {
+    const idx = i * N + j;
+    const s = spins[idx];
+    let E = 0;
+    // Right
+    const ir = i, jr = (j+1)%N; E -= Jij[idx*4+0] * s * spins[ir*N+jr];
+    // Down
+    const id = (i+1)%N, jd = j; E -= Jij[idx*4+1] * s * spins[id*N+jd];
+    // Left
+    const il = i, jl = (j-1+N)%N; E -= Jij[idx*4+2] * s * spins[il*N+jl];
+    // Up
+    const iu = (i-1+N)%N, ju = j; E -= Jij[idx*4+3] * s * spins[iu*N+ju];
+    return E;
+  }
+
+  function mcStep() {
+    const T = +document.getElementById('tempSlider').value;
+    for (let k = 0; k < N*N; k++) {
+      const i = Math.floor(rng() * N), j = Math.floor(rng() * N);
+      const dE = -2 * localEnergy(i, j);
+      if (dE <= 0 || rng() < Math.exp(-dE / T)) {
+        spins[i*N+j] *= -1;
+      }
+    }
+    mcs++;
+  }
+
+  function totalE() {
+    let E = 0;
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const idx = i*N+j;
+      const s = spins[idx];
+      E -= Jij[idx*4+0] * s * spins[i*N+(j+1)%N];
+      E -= Jij[idx*4+1] * s * spins[((i+1)%N)*N+j];
+    }
+    return E;
+  }
+
+  function qEA() {
+    // Time-averaged: approximate as squared mean absolute magnetization per cluster
+    let sum = 0;
+    for (let i = 0; i < N*N; i++) sum += spins[i];
+    const m = sum / (N*N);
+    // Simple estimator: |m| (works for FM, approximate for SG)
+    return Math.abs(m);
+  }
+
+  const cellW = 10, cellH = 10;
+  const offX = Math.round((W - N*cellW) / 2);
+  const offY = Math.round((H - N*cellH) / 2);
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const s = spins[i*N+j];
+      ctx.fillStyle = s > 0 ? '#ff88cc' : '#334466';
+      ctx.fillRect(offX + j*cellW, offY + i*cellH, cellW-1, cellH-1);
+    }
+
+    // Draw J bonds (show frustrated bonds)
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const idx = i*N+j;
+      const J_r = Jij[idx*4+0];
+      const satisfied = J_r * spins[idx] * spins[i*N+(j+1)%N] > 0;
+      if (!satisfied) {
+        ctx.strokeStyle = 'rgba(255,200,0,0.4)';
+        const x1 = offX + (j+0.5)*cellW, y1 = offY + (i+0.5)*cellH;
+        const x2 = offX + ((j+1)%N+0.5)*cellW, y2 = offY + (i+0.5)*cellH;
+        ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      }
+    }
+
+    // Legend with inline tooltips on canvas
+    ctx.fillStyle='#ff88cc'; ctx.fillRect(20,20,14,14);
+    ctx.fillStyle='#aaaacc'; ctx.font='12px sans-serif';
+    ctx.fillText('S = +1 (spin up)', 38, 31);
+    ctx.fillStyle='#334466'; ctx.fillRect(20,40,14,14);
+    ctx.fillText('S = −1 (spin down)', 38, 51);
+    ctx.strokeStyle='rgba(255,200,0,0.6)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(20,68); ctx.lineTo(34,68); ctx.stroke();
+    ctx.fillStyle='#ffcc44'; ctx.fillText('frustrated bond (J·Si·Sj < 0)', 38, 71);
+    ctx.fillStyle='#888899'; ctx.font='12px sans-serif';
+    ctx.fillText('Frustration: competing FM/AFM bonds prevent simultaneous satisfaction', 20, 88);
+
+    const E = (totalE()/(N*N)).toFixed(3);
+    const q = qEA().toFixed(3);
+    document.getElementById('ro1').textContent = `E/N: ${E}   |m| (≈q_EA): ${q}   MCS: ${mcs}`;
+    document.getElementById('tempVal').textContent = (+document.getElementById('tempSlider').value).toFixed(2);
+    document.getElementById('disVal').textContent  = (+document.getElementById('disSlider').value).toFixed(2);
+  }
+
+  let mcSkip = 0;
+  function loop() {
+    const baseSpeed = +document.getElementById('mcSpeedSl').value;
+    const speed = (window.animSpeed||0.1);
+    document.getElementById('mcSpeedV').textContent = speed.toFixed(1);
+    if (!window.paused1) {
+      mcSkip += speed;
+      while (mcSkip >= 1) { mcStep(); mcSkip -= 1; }
+    }
+    draw();
+    raf1 = requestAnimationFrame(loop);
+  }
+
+  document.getElementById('resetBtn').onclick = () => { init(); };
+  document.getElementById('disSlider').addEventListener('change', init);
+  window.paused1 = false;
+
+  if (raf1) cancelAnimationFrame(raf1);
+  loop();
+  return { stop() { cancelAnimationFrame(raf1); raf1 = null; window.paused1 = false; } };
+}
+
+// ─── Tab 2: Energy Landscape ──────────────────────────────────────────────────
+let raf2 = null;
+
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
+  cv.style.width = '820px'; cv.style.height = '440px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 440;
+
+  // Generate rough landscape using sum of Gaussians
+  function makeRng(seed) {
+    let s = seed;
+    return () => { s=(s*1664525+1013904223)>>>0; return s/0xffffffff; };
+  }
+
+  let landscape = null;
+  let particles = [];
+  let animPhase = 0;
+
+  function buildLandscape() {
+    const rough = +document.getElementById('roughSlider').value;
+    const r = makeRng(999);
+    const Nx = 400, Ny = 200;
+    landscape = {Nx, Ny, data: new Float32Array(Nx*Ny)};
+    // Base: sum of Gaussians (valleys)
+    const nGauss = Math.round(20 + rough * 60);
+    for (let g = 0; g < nGauss; g++) {
+      const cx = r() * Nx, cy = r() * Ny;
+      const amp = -(0.5 + r() * 1.5) * rough;
+      const sx = 10 + r() * 30, sy = 10 + r() * 20;
+      for (let i = 0; i < Ny; i++) for (let j = 0; j < Nx; j++) {
+        landscape.data[i*Nx+j] += amp * Math.exp(-((j-cx)**2/(2*sx**2)+(i-cy)**2/(2*sy**2)));
+      }
+    }
+    // Normalize to [−1, 0.2]
+    let mn = Infinity, mx = -Infinity;
+    for (let k = 0; k < Nx*Ny; k++) { mn=Math.min(mn,landscape.data[k]); mx=Math.max(mx,landscape.data[k]); }
+    for (let k = 0; k < Nx*Ny; k++) landscape.data[k] = (landscape.data[k]-mn)/(mx-mn)*1.2 - 1;
+    landscape.min = -1; landscape.max = 0.2;
+  }
+  buildLandscape();
+
+  // Render landscape as heatmap
+  function renderHeatmap() {
+    const {Nx, Ny, data, min, max} = landscape;
+    const pad = {l:50,r:30,t:20,b:40};
+    const pW = W - pad.l - pad.r, pH = H - pad.t - pad.b;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    const img = ctx.createImageData(pW, pH);
+    for (let py = 0; py < pH; py++) for (let px = 0; px < pW; px++) {
+      const lx = Math.floor(px / pW * Nx);
+      const ly = Math.floor(py / pH * Ny);
+      const v = (data[ly*Nx+lx] - min) / (max - min); // 0→1
+      // Color: deep blue (valley) → red (barrier)
+      const r = Math.round(v * 255);
+      const g = Math.round(Math.min(1, 2*(1-v)) * 80);
+      const b = Math.round((1-v) * 255);
+      const i4 = (py * pW + px) * 4;
+      img.data[i4]=r; img.data[i4+1]=g; img.data[i4+2]=b; img.data[i4+3]=255;
+    }
+    ctx.putImageData(img, pad.l, pad.t);
+
+    // Axes
+    ctx.fillStyle='#666688'; ctx.font='12px monospace';
+    ctx.textAlign='center'; ctx.fillText('Configuration space (φ₁)', pad.l+pW/2, H-6);
+    ctx.save(); ctx.translate(12, pad.t+pH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Configuration space (φ₂)', 0, 0); ctx.restore();
+    ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Energy landscape (blue=valley, red=barrier)', pad.l, pad.t-5);
+
+    return {pad, pW, pH};
+  }
+
+  let dims = renderHeatmap();
+
+  // Particle (steepest descent + thermal noise)
+  function addParticle() {
+    const T = +document.getElementById('tempSlider2').value;
+    const r = makeRng(Date.now() & 0xffff);
+    particles.push({
+      x: r() * landscape.Nx,
+      y: r() * landscape.Ny,
+      T,
+      history: [],
+      done: false,
+      settled: 0
+    });
+  }
+
+  function stepParticles() {
+    const T = +document.getElementById('tempSlider2').value;
+    particles.forEach(p => {
+      if (p.done) return;
+      const {Nx, Ny, data} = landscape;
+      const ix = Math.round(p.x), iy = Math.round(p.y);
+      if (ix<=0||ix>=Nx-1||iy<=0||iy>=Ny-1){p.done=true;return;}
+      const E  = data[iy*Nx+ix];
+      const Ex = (data[iy*Nx+(ix+1)] - data[iy*Nx+(ix-1)]) / 2;
+      const Ey = (data[(iy+1)*Nx+ix] - data[(iy-1)*Nx+ix]) / 2;
+      const noise = () => (Math.random()-0.5)*T*0.5;
+      p.x -= Ex * 2 + noise();
+      p.y -= Ey * 2 + noise();
+      p.x = Math.max(1, Math.min(Nx-2, p.x));
+      p.y = Math.max(1, Math.min(Ny-2, p.y));
+      p.history.push({x:p.x, y:p.y});
+      if (p.history.length > 200) p.history.shift();
+      // Detect settlement
+      const grad2 = Ex**2 + Ey**2;
+      if (grad2 < 0.001 && T < 0.5) { p.settled++; if (p.settled > 30) p.done = true; }
+    });
+    particles = particles.slice(-5); // keep last 5
+  }
+
+  function drawParticles() {
+    const {pad, pW, pH} = dims;
+    particles.forEach((p, pi) => {
+      const cols = ['#ff88cc','#ffcc44','#88ff88','#66aaff','#ff8844'];
+      const col = cols[pi % cols.length];
+      // Trail
+      if (p.history.length > 1) {
+        ctx.strokeStyle = col + '60';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        p.history.forEach((h, i) => {
+          const px = pad.l + h.x / landscape.Nx * pW;
+          const py = pad.t + h.y / landscape.Ny * pH;
+          i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+        });
+        ctx.stroke();
+      }
+      // Current pos
+      const cx2 = pad.l + p.x / landscape.Nx * pW;
+      const cy2 = pad.t + p.y / landscape.Ny * pH;
+      ctx.beginPath(); ctx.arc(cx2, cy2, 5, 0, 2*Math.PI);
+      ctx.fillStyle = p.done ? '#ffffff' : col;
+      ctx.fill();
+
+      if (p.done) {
+        const E = landscape.data[Math.round(p.y)*landscape.Nx+Math.round(p.x)];
+        document.getElementById('ro2').textContent = `Local minimum E: ${E.toFixed(3)}   (T=${p.T.toFixed(2)})`;
+      }
+    });
+  }
+
+  let landscapeDirty = false;
+  document.getElementById('runGD').onclick = addParticle;
+  document.getElementById('roughSlider').addEventListener('input', () => {
+    document.getElementById('roughVal').textContent = (+document.getElementById('roughSlider').value).toFixed(2);
+    landscapeDirty = true;
+  });
+  document.getElementById('tempSlider2').addEventListener('input', () => {
+    document.getElementById('tempVal2').textContent = (+document.getElementById('tempSlider2').value).toFixed(2);
+  });
+
+  // Pre-render heatmap to offscreen canvas to avoid rebuilding every frame
+  let heatmapCache = null;
+  function getCachedHeatmap(pw, pH) {
+    if (!heatmapCache || landscapeDirty) {
+      landscapeDirty = false;
+      if (landscapeDirty === false && heatmapCache &&
+          heatmapCache.width === pw && heatmapCache.height === pH) return heatmapCache;
+      // Rebuild
+      const oc = document.createElement('canvas');
+      oc.width = pw; oc.height = pH;
+      const octx = oc.getContext('2d');
+      const {Nx, Ny, data, min, max} = landscape;
+      const img = octx.createImageData(pw, pH);
+      for (let py = 0; py < pH; py++) for (let px = 0; px < pw; px++) {
+        const lx = Math.floor(px / pw * Nx);
+        const ly = Math.floor(py / pH * Ny);
+        const v = (data[ly*Nx+lx] - min) / (max - min);
+        const r = Math.round(v * 255);
+        const g = Math.round(Math.min(1, 2*(1-v)) * 80);
+        const b = Math.round((1-v) * 255);
+        const i4 = (py * pw + px) * 4;
+        img.data[i4]=r; img.data[i4+1]=g; img.data[i4+2]=b; img.data[i4+3]=255;
+      }
+      octx.putImageData(img, 0, 0);
+      heatmapCache = oc;
+    }
+    return heatmapCache;
+  }
+
+  function loop2() {
+    const {pad, pW, pH} = dims;
+    // Only rebuild landscape if needed
+    if (landscapeDirty) {
+      buildLandscape(); particles = []; dims = renderHeatmap();
+    }
+    if (!window.paused2) stepParticles();
+    // Draw cached heatmap
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const cached = getCachedHeatmap(dims.pW, dims.pH);
+    ctx.drawImage(cached, dims.pad.l, dims.pad.t);
+    // Axes
+    ctx.fillStyle='#666688'; ctx.font='12px monospace';
+    ctx.textAlign='center'; ctx.fillText('Configuration space (φ₁)', dims.pad.l+dims.pW/2, H-6);
+    ctx.save(); ctx.translate(12, dims.pad.t+dims.pH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Configuration space (φ₂)', 0, 0); ctx.restore();
+    ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Energy landscape (blue=valley, red=barrier)', dims.pad.l, dims.pad.t-5);
+    drawParticles();
+    raf2 = requestAnimationFrame(loop2);
+  }
+  if (raf2) cancelAnimationFrame(raf2);
+  // Initialize cache
+  landscapeDirty = true;
+  window.paused2 = false;
+  loop2();
+  return { stop() { cancelAnimationFrame(raf2); raf2 = null; window.paused2 = false; } };
+}
+
+// ─── Tab 3: Parisi P(q) overlap distribution ─────────────────────────────────
+let raf3 = null;
+
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
+  cv.style.width = '820px'; cv.style.height = '440px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 440;
+
+  // Cooling animation
+  let pqAnimRunning = false, pqAnimT = 0;
+  const pqBtn = document.getElementById('pqDemoBtn');
+  if (pqBtn) pqBtn.onclick = () => {
+    pqAnimRunning = !pqAnimRunning;
+    pqBtn.textContent = pqAnimRunning ? '⏸ Stop' : '▶ Animate T cooling';
+    if (pqAnimRunning) pqAnimT = 0;
+  };
+
+  // Annotation steps for the cooling animation
+  const pqAnnotations = [
+    { minT:1.2, maxT:1.4, text:'Paramagnetic phase (T > Tc): P(q) = δ(q=0), single peak. Spins disordered — no memory between replicas.', col:'#88ff88' },
+    { minT:0.9, maxT:1.19, text:'Near Tc: P(q) is just developing. q_EA → 0. Spin glass order emerging — correlation between system copies.', col:'#ffcc44' },
+    { minT:0.5, maxT:0.89, text:'Spin glass phase: P(q) has delta peaks at ±q_EA AND a continuous band. Infinitely many metastable states!', col:'#ff88cc' },
+    { minT:0.1, maxT:0.49, text:'Deep spin glass: q_EA large, peaks sharp. System frozen in one of exponentially many valleys — exponential aging.', col:'#cc88ff' },
+  ];
+
+  function draw() {
+    let tSliderVal;
+    if (pqAnimRunning) {
+      tSliderVal = Math.max(0.1, 1.4 - pqAnimT * 0.003);
+      document.getElementById('Tratio').value = tSliderVal;
+      pqAnimT++;
+      if (tSliderVal <= 0.1) { pqAnimRunning = false; if(pqBtn)pqBtn.textContent='▶ Animate T cooling'; }
+    }
+    const t = +document.getElementById('Tratio').value;
+    const m = +document.getElementById('parisiM').value;
+    document.getElementById('TratioV').textContent = t.toFixed(2);
+    document.getElementById('parisiMV').textContent = m.toFixed(2);
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    const pad={l:70,r:30,t:30,b:50};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+    const qMin=-1.1, qMax=1.1;
+    const pMax=3.0;
+
+    function qToX(q){return pad.l+(q-qMin)/(qMax-qMin)*pW;}
+    function pToY(p){return pad.t+(1-p/pMax)*pH;}
+
+    // Grid
+    ctx.strokeStyle='#1a1a38'; ctx.lineWidth=1;
+    [-1,-0.5,0,0.5,1].forEach(q=>{
+      const x=qToX(q);
+      ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+      ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='center';
+      ctx.fillText(q.toFixed(1),x,pad.t+pH+16);
+    });
+    [0,0.5,1,1.5,2,2.5].forEach(p=>{
+      const y=pToY(p);
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pW,y);ctx.stroke();
+      ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='right';
+      ctx.fillText(p.toFixed(1),pad.l-8,y+4);
+    });
+    ctx.fillStyle='#9999bb';ctx.font='13px sans-serif';ctx.textAlign='center';
+    ctx.fillText('Overlap q',pad.l+pW/2,H-6);
+    ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);
+    ctx.fillText('P(q)',0,0);ctx.restore();
+
+    // Spin glass P(q) model
+    // Above Tc: P(q) = δ(q)
+    // Below Tc (RSB): P(q) has delta peaks at ±q_EA and continuous part
+    // Parisi 1-RSB approximation: P(q) = m*δ(q-q_EA) + m*δ(q+q_EA) + (1-2m)*flat between -q_EA and q_EA
+    // Full RSB: continuous distribution
+    const q_EA = t < 1 ? (1 - t) * 0.85 : 0;
+
+    if (t >= 1) {
+      // Above Tc: delta at q=0
+      const x0=qToX(0), y0=pToY(0), y1=pToY(2.8);
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x0,y1); ctx.stroke();
+      ctx.fillStyle='#ff88cc'; ctx.beginPath(); ctx.arc(x0,y1,4,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle='#ff88cc'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('P(q) = δ(q)  [T > Tc]', x0+8, y1-4);
+    } else {
+      // Below Tc: RSB distribution
+      // Delta peaks at ±q_EA with weight m
+      const xP=qToX(q_EA), xN=qToX(-q_EA);
+      const peakH = m * 2.5;
+      // Continuous part (Parisi): flat between -q_EA and q_EA with height (1-2m)/(2*q_EA)
+      const flatH = q_EA > 0 ? (1-2*m)/(2*q_EA) * 0.5 : 0;
+
+      // Draw continuous part
+      if (flatH > 0.02 && q_EA > 0.1) {
+        ctx.fillStyle='rgba(255,136,204,0.25)';
+        ctx.fillRect(qToX(-q_EA), pToY(flatH), qToX(q_EA)-qToX(-q_EA), pH - (pToY(0)-pToY(flatH)));
+        ctx.strokeStyle='#ff88cc88'; ctx.lineWidth=1;
+        ctx.strokeRect(qToX(-q_EA), pToY(flatH), qToX(q_EA)-qToX(-q_EA), pH - (pToY(0)-pToY(flatH)));
+      }
+
+      // Delta peaks at ±q_EA
+      [xP, xN].forEach(x=>{
+        ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2.5;
+        ctx.beginPath(); ctx.moveTo(x,pToY(0)); ctx.lineTo(x,pToY(peakH)); ctx.stroke();
+        ctx.fillStyle='#ff88cc'; ctx.beginPath(); ctx.arc(x,pToY(peakH),5,0,2*Math.PI); ctx.fill();
+      });
+
+      // Label
+      ctx.fillStyle='#ff88cc'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(`q_EA = ${q_EA.toFixed(2)}`, xP, pToY(peakH)-12);
+      ctx.fillText(`−q_EA`, xN, pToY(peakH)-12);
+      ctx.fillStyle='#aaaacc'; ctx.font='12px sans-serif';
+      ctx.fillText('continuous RSB band', qToX(0), pToY(flatH)+16);
+    }
+
+    // Ferromagnet comparison
+    if (document.getElementById('showFM').checked) {
+      const q_FM = t < 1 ? Math.sqrt(1-t) : 0;
+      if (q_FM > 0) {
+        const xF=qToX(q_FM);
+        ctx.strokeStyle='#66aaff'; ctx.lineWidth=1.5; ctx.setLineDash([3,4]);
+        ctx.beginPath(); ctx.moveTo(xF,pToY(0)); ctx.lineTo(xF,pToY(2.6)); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='#66aaff'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+        ctx.fillText(`FM q=${q_FM.toFixed(2)}`, xF, pToY(2.6)-8);
+      }
+    }
+
+    // Phase label
+    ctx.fillStyle = t < 1 ? '#ff88cc' : '#88ff88';
+    ctx.font='bold 13px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(t < 1 ? `Spin glass phase (T/Tc=${t.toFixed(2)})` : `Paramagnetic phase (T/Tc=${t.toFixed(2)})`,
+                 pad.l, pad.t-8);
+
+    const F_contrib = q_EA > 0 ? (-0.5*q_EA**2/(2*t)).toFixed(4) : '0';
+    document.getElementById('ro3').textContent = `q_EA: ${q_EA.toFixed(3)}   RSB free energy ~q_EA²/(2T): ${F_contrib}`;
+
+    // Annotation tooltip for current temperature regime
+    const annot = pqAnnotations.find(a => t >= a.minT && t <= a.maxT);
+    if (annot) {
+      ctx.fillStyle='rgba(10,10,20,0.85)';
+      const tipX = pad.l, tipY = H-78, tipW = W - pad.l - pad.r;
+      ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(tipX,tipY,tipW,62,6);else ctx.rect(tipX,tipY,tipW,62);
+      ctx.fill();
+      ctx.strokeStyle=annot.col+'44'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle=annot.col; ctx.font='12px sans-serif';
+      // word wrap
+      const words3=annot.text.split(' '); let ln3='', ly3=tipY+16;
+      words3.forEach(w=>{
+        const tt=ln3+w+' ';
+        if(ctx.measureText(tt).width>tipW-16&&ln3){ctx.fillText(ln3,tipX+8,ly3);ly3+=16;ln3=w+' ';}else ln3=tt;
+      });
+      if(ln3)ctx.fillText(ln3,tipX+8,ly3);
+    }
+
+    raf3 = requestAnimationFrame(draw);
+  }
+
+  [document.getElementById('Tratio'),
+   document.getElementById('parisiM'),
+   document.getElementById('showFM')
+  ].forEach(el => el.addEventListener('input', draw));
+  document.getElementById('showFM').addEventListener('change', draw);
+  if (raf3) cancelAnimationFrame(raf3);
+  draw();
+  return { stop() { cancelAnimationFrame(raf3); raf3 = null; } };
+}
+
+// ─── Tab 4: Edwards-Anderson Model & Frustration ─────────────────────────────
+let raf4 = null;
+function initTab4() {
+  const cv = document.getElementById('cv4');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = 560, H = 420;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  let N, spins, Jh, Jv, mcs, paused4 = false;
+  function rng2(s){ let st=s; return ()=>{st=(st*1664525+1013904223)>>>0;return st/0xffffffff;}; }
+  let rr = rng2(42);
+
+  function setup() {
+    N = +document.getElementById('ea_N').value;
+    document.getElementById('ea_Nv').textContent = N;
+    const p = +document.getElementById('ea_p').value;
+    spins = new Int8Array(N*N);
+    Jh = new Float32Array(N*N); // horizontal bonds (right)
+    Jv = new Float32Array(N*N); // vertical bonds (down)
+    rr = rng2(Date.now()&0xffff);
+    for(let i=0;i<N*N;i++) spins[i] = rr()<0.5?1:-1;
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      const idx=i*N+j;
+      Jh[idx] = rr()<p ? (rr()<0.5?1:-1) : 1;
+      Jv[idx] = rr()<p ? (rr()<0.5?1:-1) : 1;
+    }
+    mcs=0;
+  }
+  setup();
+
+  function mcStep4(){
+    const T = +document.getElementById('ea_T').value;
+    for(let k=0;k<N*N;k++){
+      const i=Math.floor(rr()*N), j=Math.floor(rr()*N), idx=i*N+j;
+      const s=spins[idx];
+      const jr=(j+1)%N, jl=(j-1+N)%N, id=(i+1)%N, iu=(i-1+N)%N;
+      const dE = 2*s*(
+        Jh[idx]*spins[i*N+jr] +
+        Jv[idx]*spins[id*N+j] +
+        Jh[i*N+jl]*spins[i*N+jl] +
+        Jv[iu*N+j]*spins[iu*N+j]
+      );
+      if(dE<=0||rr()<Math.exp(-dE/T)) spins[idx]*=-1;
+    }
+    mcs++;
+  }
+
+  function countFrustrated(){
+    let f=0;
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      const ir=i,jr=(j+1)%N,id=(i+1)%N,jd=j;
+      // plaquette: (i,j)→(i,jr)→(id,jr)→(id,j)→(i,j)
+      const prod = Jh[i*N+j] * Jv[i*N+jr] * Jh[id*N+j] * Jv[i*N+j];
+      if(prod<0) f++;
+    }
+    return f;
+  }
+
+  function computeqEA(){
+    // Use time-lag estimator: compare current config to initial — approximate with |m|
+    let sum2=0;
+    for(let i=0;i<N*N;i++) sum2+=spins[i]*spins[i];
+    // proper q_EA: need thermal average squared — approximate with running mean spin squared
+    let s2=0; for(let i=0;i<N*N;i++) s2+=spins[i]; // sum of spins
+    return (s2/(N*N))**2; // rough estimator
+  }
+
+  const cellSz = Math.min(Math.floor((H-40)/N), Math.floor((W-80)/N));
+  function draw4(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const cN = Math.min(Math.floor((H-40)/N), Math.floor((W-80)/N));
+    const ox = Math.round((W - N*cN)/2), oy = 20;
+
+    // Draw bonds first
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      const x1=ox+j*cN+cN/2, y1=oy+i*cN+cN/2;
+      // Horizontal
+      const jr=(j+1)%N;
+      const x2=ox+jr*cN+cN/2+( jr===0?N*cN:0 ), y2=y1;
+      if(jr!==0){
+        ctx.strokeStyle = Jh[i*N+j]>0 ? 'rgba(80,120,255,0.5)' : 'rgba(255,80,80,0.5)';
+        ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      }
+      // Vertical
+      const id=(i+1)%N;
+      if(id!==0){
+        const x3=x1, y3=oy+id*cN+cN/2;
+        ctx.strokeStyle = Jv[i*N+j]>0 ? 'rgba(80,120,255,0.5)' : 'rgba(255,80,80,0.5)';
+        ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x3,y3); ctx.stroke();
+      }
+    }
+
+    // Highlight frustrated plaquettes
+    for(let i=0;i<N-1;i++) for(let j=0;j<N-1;j++){
+      const prod = Jh[i*N+j] * Jv[i*N+(j+1)] * Jh[(i+1)*N+j] * Jv[i*N+j];
+      if(prod<0){
+        ctx.fillStyle='rgba(255,180,0,0.12)';
+        ctx.fillRect(ox+j*cN, oy+i*cN, cN*2, cN*2);
+        ctx.strokeStyle='rgba(255,200,0,0.4)'; ctx.lineWidth=0.8;
+        ctx.strokeRect(ox+j*cN, oy+i*cN, cN*2, cN*2);
+      }
+    }
+
+    // Draw spins
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      const s=spins[i*N+j];
+      ctx.fillStyle = s>0 ? '#ff88cc' : '#1a2255';
+      const r=Math.max(2,cN/2-1);
+      ctx.beginPath(); ctx.arc(ox+j*cN+cN/2, oy+i*cN+cN/2, r, 0, 2*Math.PI); ctx.fill();
+    }
+
+    // Legend
+    ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillStyle='#5588ff'; ctx.fillRect(4,H-60,12,3);
+    ctx.fillStyle='#9999bb'; ctx.fillText('FM bond (J>0)',20,H-54);
+    ctx.fillStyle='#ff5555'; ctx.fillRect(4,H-44,12,3);
+    ctx.fillText('AFM bond (J<0)',20,H-38);
+    ctx.fillStyle='rgba(255,200,0,0.6)'; ctx.fillRect(4,H-30,12,12);
+    ctx.fillStyle='#9999bb'; ctx.fillText('Frustrated plaquette',20,H-20);
+    ctx.fillStyle='#ff88cc'; ctx.beginPath(); ctx.arc(97,H-60,5,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle='#9999bb'; ctx.fillText('S=+1',106,H-56);
+    ctx.fillStyle='#1a2255'; ctx.beginPath(); ctx.arc(97,H-44,5,0,2*Math.PI); ctx.fill(); ctx.strokeStyle='#334466'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='#9999bb'; ctx.fillText('S=−1',106,H-40);
+
+    document.getElementById('ea_Tv').textContent=(+document.getElementById('ea_T').value).toFixed(2);
+    document.getElementById('ea_pv').textContent=(+document.getElementById('ea_p').value).toFixed(2);
+    const fr=countFrustrated(), qea=computeqEA();
+    document.getElementById('ro4').textContent=`q_EA≈${qea.toFixed(3)}   Frustrated plaquettes: ${fr}/${(N-1)*(N-1)}   MCS: ${mcs}`;
+  }
+
+  function loop4(){
+    if(!paused4){ mcStep4(); mcStep4(); }
+    draw4();
+    raf4=requestAnimationFrame(loop4);
+  }
+
+  document.getElementById('ea_reset').onclick=()=>{setup();};
+  document.getElementById('ea_N').addEventListener('change',setup);
+  document.getElementById('ea_p').addEventListener('change',setup);
+  window.paused4 = false;
+
+  if(raf4) cancelAnimationFrame(raf4);
+  loop4();
+  return { stop(){ cancelAnimationFrame(raf4); raf4=null; window.paused4=false; } };
+}
+
+// ─── Tab 5: Replica Theory & Parisi RSB ──────────────────────────────────────
+let raf5 = null;
+function initTab5() {
+  const cv = document.getElementById('cv5');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W=560, H=420;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  let rsbAnimRunning=false, rsbAnimK=1;
+  document.getElementById('rsb_anim').onclick=()=>{
+    rsbAnimRunning=!rsbAnimRunning;
+    document.getElementById('rsb_anim').textContent=rsbAnimRunning?'⏸ Stop':'▶ Animate RSB levels';
+    if(rsbAnimRunning){rsbAnimK=1; document.getElementById('rsb_k').value=1;}
+  };
+
+  function gaussCDF(x){ // approx
+    const t=1/(1+0.3275911*Math.abs(x));
+    const poly=t*(0.254829592+t*(-0.284496736+t*(1.421413741+t*(-1.453152027+t*1.061405429))));
+    const erf=1-poly*Math.exp(-x*x);
+    return 0.5*(1+(x>=0?erf:-erf));
+  }
+
+  function draw5(){
+    if(rsbAnimRunning){
+      rsbAnimK+=0.02*(window.animSpeed||0.1);
+      if(rsbAnimK>=4.5){ rsbAnimRunning=false; document.getElementById('rsb_anim').textContent='▶ Animate RSB levels'; }
+      document.getElementById('rsb_k').value=Math.min(4,Math.round(rsbAnimK));
+      document.getElementById('rsb_kv').textContent=Math.min(4,Math.round(rsbAnimK));
+    }
+    const k=+document.getElementById('rsb_k').value;
+    const T=+document.getElementById('rsb_T').value;
+    const showQ=document.getElementById('rsb_showQ').checked;
+    document.getElementById('rsb_kv').textContent=k;
+    document.getElementById('rsb_Tv').textContent=T.toFixed(2);
+
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    const leftW = showQ ? Math.floor(W*0.55) : W-20;
+    const pad={l:50,r:20,t:30,b:40};
+
+    // Left panel: Ultrametric tree
+    const treeW=leftW-pad.l-pad.r, treeH=H-pad.t-pad.b;
+    // Draw tree background
+    ctx.fillStyle='rgba(20,20,50,0.6)'; ctx.fillRect(pad.l,pad.t,treeW,treeH);
+
+    // Draw Parisi ultrametric tree
+    const levels=Math.round(k)+1;
+    const nLeaves=Math.pow(2,levels-1);
+    const leafSpacing=treeW/nLeaves;
+
+    function drawTree(x,y,level,width){
+      if(level===0) return;
+      const q_level = (level/levels)*(1-T*0.5);
+      const col_r=Math.round(80+q_level*175), col_b=Math.round(255-q_level*200);
+      ctx.strokeStyle=`rgb(${col_r},80,${col_b})`; ctx.lineWidth=Math.max(0.8,level*0.6);
+      const childW=width/2;
+      const lx=x-childW/2, rx=x+childW/2;
+      const ny=y+treeH/(levels);
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(lx,ny); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(rx,ny); ctx.stroke();
+      // q label on branch
+      if(level===Math.round(k)){
+        ctx.fillStyle='rgba(200,200,255,0.7)'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(`q=${q_level.toFixed(2)}`,x,y+treeH/(levels)/2);
+      }
+      drawTree(lx,ny,level-1,childW);
+      drawTree(rx,ny,level-1,childW);
+    }
+    const rootX=pad.l+treeW/2, rootY=pad.t+8;
+    ctx.fillStyle='#ff88cc'; ctx.beginPath(); ctx.arc(rootX,rootY,5,0,2*Math.PI); ctx.fill();
+    drawTree(rootX, rootY, levels-1, treeW*0.9);
+
+    // Leaf nodes (pure states)
+    const leafY=pad.t+treeH-8;
+    for(let l=0;l<nLeaves;l++){
+      const lx=pad.l+leafSpacing/2+l*leafSpacing;
+      ctx.fillStyle='#88ccff'; ctx.beginPath(); ctx.arc(lx,leafY,3,0,2*Math.PI); ctx.fill();
+    }
+
+    // Title
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(`Parisi RSB tree (k=${Math.round(k)}-RSB, T/Tg=${T.toFixed(2)})`,pad.l,pad.t-8);
+    ctx.fillStyle='#6688aa'; ctx.font='12px sans-serif';
+    ctx.fillText('Pure states (leaves) →',pad.l,leafY-12);
+
+    // Right panel: q(x) function
+    if(showQ){
+      const qx0=leftW+10, qxW=W-qx0-10, qpad={l:35,r:10,t:20,b:30};
+      const qW=qxW-qpad.l-qpad.r, qH=H-qpad.t-qpad.b;
+
+      ctx.fillStyle='rgba(15,15,40,0.7)'; ctx.fillRect(qx0,0,qxW,H);
+      ctx.strokeStyle='#222244'; ctx.lineWidth=1;
+      ctx.strokeRect(qx0+qpad.l, qpad.t, qW, qH);
+
+      // Axes
+      ctx.fillStyle='#666688'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText('x',qx0+qpad.l+qW/2, H-4);
+      ctx.save(); ctx.translate(qx0+10, qpad.t+qH/2); ctx.rotate(-Math.PI/2);
+      ctx.fillText('q(x)',0,0); ctx.restore();
+
+      [0,0.25,0.5,0.75,1].forEach(v=>{
+        const px=qx0+qpad.l+v*qW;
+        ctx.fillStyle='#444466'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(v.toFixed(2),px,qpad.t+qH+14);
+        ctx.strokeStyle='#1a1a38'; ctx.lineWidth=0.5;
+        ctx.beginPath(); ctx.moveTo(px,qpad.t); ctx.lineTo(px,qpad.t+qH); ctx.stroke();
+      });
+      [0,0.25,0.5,0.75,1].forEach(v=>{
+        const py=qpad.t+qH-v*qH;
+        ctx.fillStyle='#444466'; ctx.font='12px monospace'; ctx.textAlign='right';
+        ctx.fillText(v.toFixed(1),qx0+qpad.l-4,py+4);
+        ctx.strokeStyle='#1a1a38'; ctx.lineWidth=0.5;
+        ctx.beginPath(); ctx.moveTo(qx0+qpad.l,py); ctx.lineTo(qx0+qpad.l+qW,py); ctx.stroke();
+      });
+
+      // q(x): step function for k-RSB → continuous for full RSB
+      const q_max = Math.max(0.05, 1 - T*0.8);
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2; ctx.beginPath();
+      const nPts=200;
+      for(let pi=0;pi<=nPts;pi++){
+        const x=pi/nPts;
+        let q;
+        if(T>=1){ q=0; }
+        else if(k>=4){
+          // Continuous RSB: q(x) = q_max * x^(1/(T+0.2))
+          q = q_max * Math.pow(x, Math.max(0.3, T));
+        } else {
+          // k-RSB: step function with k steps
+          const steps=Math.round(k);
+          const step=Math.floor(x*steps);
+          q = q_max * (step+1)/steps;
+        }
+        const px2=qx0+qpad.l+x*qW;
+        const py2=qpad.t+qH-Math.min(1,q)*qH;
+        pi===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+      }
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle='#ff88cc'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(k>=4?'Full RSB (continuous)': `${Math.round(k)}-RSB (${Math.round(k)} steps)`,
+        qx0+qpad.l+2, qpad.t+15);
+    }
+
+    document.getElementById('ro5').textContent=`RSB level: ${Math.round(k)}   T/Tg: ${T.toFixed(2)}   q_max: ${Math.max(0,1-T*0.8).toFixed(3)}   Pure states (tree leaves): ${Math.pow(2,Math.round(k))}`;
+    raf5=requestAnimationFrame(draw5);
+  }
+
+  ['rsb_k','rsb_T','rsb_showQ'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{}));
+  if(raf5) cancelAnimationFrame(raf5);
+  draw5();
+  return { stop(){ cancelAnimationFrame(raf5); raf5=null; } };
+}
+
+// ─── Tab 6: Hopfield Network ──────────────────────────────────────────────────
+let raf6 = null;
+function initTab6() {
+  const cv = document.getElementById('cv6');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W=560, H=420;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  let N, p, patterns, W_mat, state, target, mcs6=0, paused6=false, overlapHistory=[];
+  function rng6(s){let st=s;return()=>{st=(st*1664525+1013904223)>>>0;return st/0xffffffff;};}
+  let rr6=rng6(999);
+
+  function setup6(){
+    N=+document.getElementById('hf_N').value;
+    p=+document.getElementById('hf_p').value;
+    document.getElementById('hf_Nv').textContent=N;
+    document.getElementById('hf_pv').textContent=p;
+    rr6=rng6(Math.floor(Math.random()*100000));
+    // Generate p random patterns
+    patterns=[];
+    for(let mu=0;mu<p;mu++){
+      const xi=new Int8Array(N);
+      for(let i=0;i<N;i++) xi[i]=rr6()<0.5?1:-1;
+      patterns.push(xi);
+    }
+    // Hebbian weights W_ij = (1/N) sum_mu xi_i^mu xi_j^mu
+    W_mat=new Float32Array(N*N);
+    for(let mu=0;mu<p;mu++) for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      if(i!==j) W_mat[i*N+j]+=patterns[mu][i]*patterns[mu][j]/N;
+    }
+    // Start from corrupted version of pattern 0
+    target=0;
+    const corrupt=+document.getElementById('hf_corrupt').value/100;
+    state=new Int8Array(patterns[0]);
+    for(let i=0;i<N;i++) if(rr6()<corrupt) state[i]*=-1;
+    mcs6=0; overlapHistory=[];
+  }
+  setup6();
+
+  function mcStep6(){
+    const T=+document.getElementById('hf_T').value;
+    for(let k=0;k<N;k++){
+      const i=Math.floor(rr6()*N);
+      let h=0; for(let j=0;j<N;j++) h+=W_mat[i*N+j]*state[j];
+      const dE=2*state[i]*h;
+      if(dE<0||rr6()<Math.exp(-dE/Math.max(0.001,T))) state[i]*=-1;
+    }
+    mcs6++;
+  }
+
+  function overlap(mu){
+    let s=0; for(let i=0;i<N;i++) s+=patterns[mu][i]*state[i];
+    return s/N;
+  }
+
+  function totalE6(){
+    let E=0;
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) E-=0.5*W_mat[i*N+j]*state[i]*state[j];
+    return E/N;
+  }
+
+  document.getElementById('hf_store').onclick=()=>{ setup6(); };
+  window.paused6 = false;
+
+  if(raf6) cancelAnimationFrame(raf6);
+  function animLoop6(){
+    if(!window.paused6){mcStep6();mcStep6();}
+    // do drawing inline
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const sqN=Math.ceil(Math.sqrt(N));
+    const cellSz=Math.min(Math.floor(180/sqN),12);
+    const pad=10;
+    ctx.fillStyle='#888899'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Target pattern ξ¹',pad,16);
+    for(let i=0;i<N;i++){
+      const r=Math.floor(i/sqN), c=i%sqN;
+      ctx.fillStyle=patterns[target][i]>0?'#ff88cc':'#1a2255';
+      ctx.fillRect(pad+c*cellSz, 22+r*cellSz, cellSz-1, cellSz-1);
+    }
+    const gridW=sqN*cellSz, gridH=Math.ceil(N/sqN)*cellSz;
+    ctx.fillStyle='#888899'; ctx.fillText('Current state S',pad+gridW+30,16);
+    for(let i=0;i<N;i++){
+      const r=Math.floor(i/sqN), c=i%sqN;
+      ctx.fillStyle=state[i]>0?'#88ff88':'#1a3322';
+      ctx.fillRect(pad+gridW+30+c*cellSz, 22+r*cellSz, cellSz-1, cellSz-1);
+    }
+    const m0=overlap(0);
+    overlapHistory.push(m0);
+    if(overlapHistory.length>200) overlapHistory.shift();
+    const plotX=pad, plotY=gridH+40, plotW=W-2*pad, plotH=H-gridH-70;
+    ctx.fillStyle='rgba(15,15,40,0.8)'; ctx.fillRect(plotX,plotY,plotW,plotH);
+    ctx.strokeStyle='#222244'; ctx.lineWidth=1; ctx.strokeRect(plotX,plotY,plotW,plotH);
+    ctx.fillStyle='#555577'; ctx.font='12px monospace'; ctx.textAlign='right';
+    [-1,-0.5,0,0.5,1].forEach(v=>{
+      const y=plotY+plotH/2-v*plotH/2.2;
+      ctx.fillText(v.toFixed(1),plotX+28,y+4);
+      ctx.strokeStyle='#1a1a38'; ctx.lineWidth=0.5;
+      ctx.beginPath(); ctx.moveTo(plotX+32,y); ctx.lineTo(plotX+plotW,y); ctx.stroke();
+    });
+    ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(`Overlap m₁(t) with pattern 1 — Hopfield retrieval dynamics`,plotX+34,plotY+12);
+    const alpha=p/N, alphac=0.138;
+    ctx.strokeStyle=alpha>alphac?'rgba(255,80,80,0.5)':'rgba(80,255,80,0.3)';
+    ctx.lineWidth=1; ctx.setLineDash([3,4]);
+    const yref=plotY+plotH/2-0.5*plotH/2.2;
+    ctx.beginPath(); ctx.moveTo(plotX+32,yref); ctx.lineTo(plotX+plotW,yref); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=alpha>alphac?'#ff6666':'#66ff66'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+    ctx.fillText(alpha>alphac?`α=${alpha.toFixed(3)}>α_c (spurious!)`:`α=${alpha.toFixed(3)}<α_c`,plotX+plotW-4,yref-3);
+    ctx.strokeStyle='#ff88cc'; ctx.lineWidth=1.5; ctx.beginPath();
+    overlapHistory.forEach((v,i)=>{
+      const x=plotX+32+(i/(overlapHistory.length-1||1))*(plotW-32);
+      const y=plotY+plotH/2-v*plotH/2.2;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    const E=totalE6();
+    document.getElementById('hf_Tv').textContent=(+document.getElementById('hf_T').value).toFixed(2);
+    document.getElementById('ro6').textContent=`α=p/N=${alpha.toFixed(3)}  (α_c=0.138)   m₁=${m0.toFixed(3)}   E/N=${E.toFixed(3)}   ${alpha>alphac?'ABOVE CAPACITY (spurious states!)':'Below capacity (retrieval ok)'}`;
+    raf6=requestAnimationFrame(animLoop6);
+  }
+  animLoop6();
+  return { stop(){ cancelAnimationFrame(raf6); raf6=null; } };
+}
+
+// ─── Tab 7: Simulated Annealing / TSP ────────────────────────────────────────
+let raf7 = null;
+function initTab7() {
+  const cv = document.getElementById('cv7');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W=560, H=420;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  let cities=[], tour=[], T_ann=10, step=0, running=false, best=Infinity, bestTour=[];
+  let energyHistory=[], THistory=[];
+  function rng7(s){let st=s;return()=>{st=(st*1664525+1013904223)>>>0;return st/0xffffffff;};}
+  let rr7=rng7(77);
+
+  function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+  function tourLen(t){ let l=0; for(let i=0;i<t.length;i++) l+=dist(cities[t[i]],cities[t[(i+1)%t.length]]); return l; }
+
+  function setupTSP(){
+    const n=+document.getElementById('tsp_N').value;
+    document.getElementById('tsp_Nv').textContent=n;
+    rr7=rng7(Date.now()&0xffff);
+    cities=[]; tour=[];
+    const margin=30;
+    for(let i=0;i<n;i++) cities.push({x:margin+rr7()*(280-2*margin), y:margin+rr7()*(H*0.6-2*margin)});
+    for(let i=0;i<n;i++) tour.push(i);
+    // Shuffle tour
+    for(let i=n-1;i>0;i--){ const j=Math.floor(rr7()*(i+1)); [tour[i],tour[j]]=[tour[j],tour[i]]; }
+    T_ann=+document.getElementById('tsp_T0').value;
+    step=0; running=false; best=tourLen(tour); bestTour=[...tour];
+    energyHistory=[]; THistory=[];
+    document.getElementById('tsp_run').textContent='▶ Anneal';
+  }
+  setupTSP();
+
+  function annealStep(){
+    const sched=document.getElementById('tsp_sched').value;
+    const T0=+document.getElementById('tsp_T0').value;
+    const maxSteps=5000;
+    if(T_ann<0.001){ running=false; document.getElementById('tsp_run').textContent='▶ Anneal'; return; }
+    // 2-opt move: reverse a segment
+    const n=tour.length;
+    const i=Math.floor(rr7()*n);
+    let j=Math.floor(rr7()*n);
+    while(j===i) j=Math.floor(rr7()*n);
+    const a=Math.min(i,j), b=Math.max(i,j);
+    const c1=cities[tour[a]], c2=cities[tour[(a+1)%n]];
+    const c3=cities[tour[b]], c4=cities[tour[(b+1)%n]];
+    const dE=(dist(c1,c3)+dist(c2,c4))-(dist(c1,c2)+dist(c3,c4));
+    if(dE<0||rr7()<Math.exp(-dE/T_ann)){
+      // Reverse segment a+1..b
+      let lo=a+1, hi=b;
+      while(lo<hi){ [tour[lo],tour[hi]]=[tour[hi],tour[lo]]; lo++; hi--; }
+    }
+    const L=tourLen(tour);
+    if(L<best){ best=L; bestTour=[...tour]; }
+    // Cool
+    step++;
+    if(sched==='exp') T_ann=T0*Math.pow(0.9995,step);
+    else if(sched==='lin') T_ann=Math.max(0.001,T0*(1-step/maxSteps));
+    else T_ann=T0/(1+Math.log(1+step)*0.3);
+    energyHistory.push(L);
+    THistory.push(T_ann);
+    if(energyHistory.length>300){ energyHistory.shift(); THistory.shift(); }
+  }
+
+  function drawTSP(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    if(running) for(let k=0;k<8;k++) annealStep();
+
+    const mapH=H*0.55, mapW=W*0.55;
+    // City map
+    ctx.fillStyle='rgba(15,15,45,0.9)'; ctx.fillRect(0,0,mapW,mapH);
+
+    // Draw best tour (faint)
+    if(bestTour.length>1){
+      ctx.strokeStyle='rgba(80,200,80,0.25)'; ctx.lineWidth=1.5; ctx.setLineDash([3,5]);
+      ctx.beginPath();
+      bestTour.forEach((ci,i)=>{ const c=cities[ci]; i===0?ctx.moveTo(c.x,c.y):ctx.lineTo(c.x,c.y); });
+      ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // Draw current tour
+    ctx.strokeStyle='rgba(255,136,204,0.8)'; ctx.lineWidth=1.5; ctx.beginPath();
+    tour.forEach((ci,i)=>{ const c=cities[ci]; i===0?ctx.moveTo(c.x,c.y):ctx.lineTo(c.x,c.y); });
+    ctx.closePath(); ctx.stroke();
+    // Cities
+    cities.forEach((c,i)=>{
+      ctx.fillStyle='#ffcc44'; ctx.beginPath(); ctx.arc(c.x,c.y,3,0,2*Math.PI); ctx.fill();
+      if(i<5){ ctx.fillStyle='#888899'; ctx.font='12px sans-serif'; ctx.textAlign='left'; ctx.fillText(i,c.x+4,c.y-2); }
+    });
+
+    ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(`T=${T_ann.toFixed(3)}`,4,mapH-26);
+    ctx.fillStyle='#88ff88'; ctx.fillText(`Best tour: ${best.toFixed(1)}`,4,mapH-12);
+    ctx.fillStyle='#ff88cc'; ctx.fillText(`Current: ${tourLen(tour).toFixed(1)}`,100,mapH-12);
+
+    // Energy/T history plot (bottom-left)
+    const ph={x:0,y:mapH+4,w:W*0.55,h:H-mapH-8};
+    if(ph.h>30){
+      ctx.fillStyle='rgba(15,15,40,0.8)'; ctx.fillRect(ph.x,ph.y,ph.w,ph.h);
+      ctx.strokeStyle='#222244'; ctx.lineWidth=0.8; ctx.strokeRect(ph.x,ph.y,ph.w,ph.h);
+      ctx.fillStyle='#666688'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('Tour length vs step',ph.x+4,ph.y+11);
+      if(energyHistory.length>2){
+        const mn=Math.min(...energyHistory), mx=Math.max(...energyHistory);
+        ctx.strokeStyle='#ff88cc'; ctx.lineWidth=1; ctx.beginPath();
+        energyHistory.forEach((v,i)=>{
+          const x=ph.x+(i/(energyHistory.length-1))*(ph.w-4);
+          const y=ph.y+ph.h-4-((v-mn)/(mx-mn+0.001))*(ph.h-18);
+          i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+        // T curve (normalized)
+        const Tmx=Math.max(...THistory,0.001);
+        ctx.strokeStyle='rgba(255,200,100,0.5)'; ctx.lineWidth=1; ctx.setLineDash([2,3]);
+        ctx.beginPath();
+        THistory.forEach((v,i)=>{
+          const x=ph.x+(i/(THistory.length-1))*(ph.w-4);
+          const y=ph.y+ph.h-4-(v/Tmx)*(ph.h-18);
+          i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+        });
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+
+    // Right panel: phase comparison annotations
+    const rx=mapW+8, ry=0, rw=W-mapW-8, rh=H;
+    ctx.fillStyle='rgba(12,12,35,0.9)'; ctx.fillRect(rx,ry,rw,rh);
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Annealing Phases',rx+6,18);
+    const phases=[
+      {col:'#ff8844',t:'High T: random walk',d:'T >> barriers → accept\nbad moves freely.\nExplores broadly,\nno freezing.'},
+      {col:'#ffcc44',t:'Medium T: guided',d:'Balance explore/exploit.\nEscape local minima\nvia thermal hops.'},
+      {col:'#88ff88',t:'Low T: local min',d:'T << barriers → rarely\naccept bad moves.\nFreezes quickly —\nmay miss optimum.'},
+      {col:'#88ccff',t:'SA: gradual cool',d:'Slow cooling → tracks\nglobal minimum.\nIsomorphic to physical\nannealing of metals.'},
+    ];
+    phases.forEach((ph2,i)=>{
+      const py=30+i*(rh/4-2);
+      ctx.fillStyle=ph2.col+'22'; ctx.fillRect(rx+4,py,rw-8,rh/4-6);
+      ctx.fillStyle=ph2.col; ctx.font='bold 12px sans-serif';
+      ctx.fillText(ph2.t,rx+8,py+14);
+      ctx.fillStyle='#8888aa'; ctx.font='12px sans-serif';
+      ph2.d.split('\n').forEach((line,li)=>ctx.fillText(line,rx+8,py+26+li*12));
+    });
+
+    const L=tourLen(tour);
+    document.getElementById('tsp_T0v').textContent=(+document.getElementById('tsp_T0').value).toFixed(0);
+    document.getElementById('ro7').textContent=`Tour: ${L.toFixed(2)}   T: ${T_ann.toFixed(4)}   Step: ${step}   Best: ${best.toFixed(2)}`;
+    raf7=requestAnimationFrame(drawTSP);
+  }
+
+  document.getElementById('tsp_run').onclick=()=>{
+    running=!running;
+    document.getElementById('tsp_run').textContent=running?'⏸ Pause':'▶ Anneal';
+    if(running){ T_ann=+document.getElementById('tsp_T0').value; step=0; energyHistory=[]; THistory=[]; }
+  };
+  document.getElementById('tsp_reset').onclick=()=>{ setupTSP(); };
+  document.getElementById('tsp_N').addEventListener('change',setupTSP);
+
+  if(raf7) cancelAnimationFrame(raf7);
+  drawTSP();
+  return { stop(){ cancelAnimationFrame(raf7); raf7=null; } };
+}
+
+// ─── Tab 8: SK Model & Mean-Field Theory ─────────────────────────────────────
+let raf8 = null;
+function initTab8() {
+  const cv = document.getElementById('cv8');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W=560, H=420;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  // Gauss-Hermite quadrature points/weights (n=20)
+  const ghX=[
+    -5.3874809,-4.6036824,-3.9447641,-3.3478546,-2.7888061,
+    -2.2549740,-1.7385377,-1.2340762,-0.7374737,-0.2453407,
+     0.2453407, 0.7374737, 1.2340762, 1.7385377, 2.2549740,
+     2.7888061, 3.3478546, 3.9447641, 4.6036824, 5.3874809
+  ];
+  const ghW=[
+    2.23e-13,2.23e-10,6.20e-8,4.50e-6,1.52e-4,
+    2.09e-3,1.43e-2,5.56e-2,1.25e-1,1.75e-1,
+    1.75e-1,1.25e-1,5.56e-2,1.43e-2,2.09e-3,
+    1.52e-4,4.50e-6,6.20e-8,2.23e-10,2.23e-13
+  ];
+
+  function intDz(f){ // ∫ Dz f(z) = ∫ dz/√(2π) exp(-z²/2) f(z)
+    let s=0;
+    for(let i=0;i<20;i++) s+=ghW[i]*f(ghX[i]*Math.SQRT2)/Math.sqrt(Math.PI);
+    return s;
+  }
+
+  function selfConsistencyQ(T,h){
+    // q = ∫Dz tanh²((z*√q + h)/T)  — solve iteratively
+    let q=0.5; if(T>=1&&h<0.01) return 0;
+    for(let iter=0;iter<200;iter++){
+      const qOld=q;
+      q=intDz(z=>Math.tanh((z*Math.sqrt(Math.max(0,q))+h)/T)**2);
+      if(Math.abs(q-qOld)<1e-7) break;
+    }
+    return Math.max(0,q);
+  }
+
+  function skFreeEnergy(q,T,h){
+    // RS free energy f(q) ∝ -T/4*(1-q)^2/(T^2)*... approximate
+    // Use: f = -β²J²(1-q)²/4 - β*h*m - T*∫Dz log(2cosh(βz√q+βh))
+    const beta=1/T;
+    const lnZ=intDz(z=>Math.log(2*Math.cosh(beta*(z*Math.sqrt(Math.max(0,q))+h))));
+    return -beta*(1-q)**2*0.25 - lnZ;
+  }
+
+  function draw8(){
+    const T=+document.getElementById('sk_T').value;
+    const h=+document.getElementById('sk_h').value;
+    const view=document.getElementById('sk_view').value;
+    document.getElementById('sk_Tv').textContent=T.toFixed(2);
+    document.getElementById('sk_hv').textContent=h.toFixed(2);
+
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const pad={l:55,r:20,t:35,b:45};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+
+    if(view==='fe'){
+      // Free energy F(q) vs q
+      ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(`SK Free energy F(q) at T=${T.toFixed(2)}, h=${h.toFixed(2)}`,pad.l+pW/2,20);
+      const qs=[], fs=[];
+      const nQ=200;
+      for(let k=0;k<=nQ;k++){
+        const q=k/nQ;
+        qs.push(q);
+        fs.push(skFreeEnergy(q,T,h));
+      }
+      const fmin=Math.min(...fs), fmax=Math.max(...fs);
+      const fRange=fmax-fmin||0.001;
+      function qToX(q){return pad.l+q*pW;}
+      function fToY(f){return pad.t+(1-(f-fmin)/fRange)*pH;}
+      // Grid
+      ctx.strokeStyle='#1a1a38'; ctx.lineWidth=0.8;
+      [0,0.25,0.5,0.75,1].forEach(q=>{
+        const x=qToX(q);
+        ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+        ctx.fillStyle='#555577';ctx.font='12px monospace';ctx.textAlign='center';
+        ctx.fillText(q.toFixed(2),x,pad.t+pH+16);
+      });
+      ctx.fillStyle='#666688';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('Order parameter q',pad.l+pW/2,H-6);
+      ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);
+      ctx.fillText('F(q) [arb. units]',0,0);ctx.restore();
+      // Curve
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2; ctx.beginPath();
+      qs.forEach((q,i)=>{ const x=qToX(q),y=fToY(fs[i]); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+      ctx.stroke();
+      // Mark minimum
+      const qStar=selfConsistencyQ(T,h);
+      const fStar=skFreeEnergy(qStar,T,h);
+      const xStar=qToX(qStar), yStar=fToY(fStar);
+      ctx.fillStyle='#ffcc44'; ctx.beginPath(); ctx.arc(xStar,yStar,6,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(`q* = ${qStar.toFixed(3)}`,xStar+8,yStar-4);
+      // Phase label
+      const phase=T<1&&h<0.01?'Spin glass':T<1&&h>0.01?'Field-aligned SG':'Paramagnet';
+      ctx.fillStyle='#88ccff'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(`Phase: ${phase}`,pad.l+4,pad.t+16);
+      document.getElementById('ro8').textContent=`q*=${qStar.toFixed(4)}   Phase: ${phase}   F(q*)=${fStar.toFixed(5)}`;
+
+    } else if(view==='sc'){
+      // Self-consistency: plot y=q vs y=RHS(q)
+      ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(`Self-consistency q = ∫Dz tanh²((z√q+h)/T)`,pad.l+pW/2,20);
+      function xToq(x){return(x-pad.l)/pW;}
+      function qToX2(q){return pad.l+q*pW;}
+      function vToY(v){return pad.t+(1-v)*pH;}
+      // Grid
+      ctx.strokeStyle='#1a1a38'; ctx.lineWidth=0.8;
+      [0,0.25,0.5,0.75,1].forEach(v=>{
+        const x=qToX2(v), y=vToY(v);
+        ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pW,y);ctx.stroke();
+        ctx.fillStyle='#555577';ctx.font='12px monospace';ctx.textAlign='center';
+        ctx.fillText(v.toFixed(2),x,pad.t+pH+16);
+        ctx.textAlign='right';ctx.fillText(v.toFixed(2),pad.l-6,y+4);
+      });
+      ctx.fillStyle='#666688';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('q (current)',pad.l+pW/2,H-6);
+      ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);
+      ctx.fillText('RHS(q)',0,0);ctx.restore();
+      // y=q diagonal
+      ctx.strokeStyle='#334466'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(qToX2(0),vToY(0)); ctx.lineTo(qToX2(1),vToY(1)); ctx.stroke();
+      ctx.setLineDash([]);
+      // RHS curve
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2; ctx.beginPath();
+      for(let k=0;k<=200;k++){
+        const q=k/200;
+        const rhs=intDz(z=>Math.tanh((z*Math.sqrt(q)+h)/T)**2);
+        const x=qToX2(q), y=vToY(Math.min(1,rhs));
+        k===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      // Mark fixed point
+      const qStar=selfConsistencyQ(T,h);
+      const xStar=qToX2(qStar), yStar=vToY(qStar);
+      ctx.fillStyle='#ffcc44'; ctx.beginPath(); ctx.arc(xStar,yStar,6,0,2*Math.PI); ctx.fill();
+      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(`q* = ${qStar.toFixed(3)}`,xStar+8,yStar);
+      // Legend
+      ctx.strokeStyle='#334466'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(pad.l+4,pad.t+14); ctx.lineTo(pad.l+22,pad.t+14); ctx.stroke();
+      ctx.setLineDash([]); ctx.fillStyle='#8888aa'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('q = q (trivial)',pad.l+26,pad.t+18);
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(pad.l+4,pad.t+30); ctx.lineTo(pad.l+22,pad.t+30); ctx.stroke();
+      ctx.fillText('∫Dz tanh²((z√q+h)/T)',pad.l+26,pad.t+34);
+      document.getElementById('ro8').textContent=`q*=${qStar.toFixed(4)}   T=${T.toFixed(2)}   h=${h.toFixed(2)}   Fixed point of self-consistency`;
+
+    } else { // phase diagram
+      ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('SK Phase Diagram (T vs h)',pad.l+pW/2,20);
+      const Tmin=0.05, Tmax=1.8, hmin=0, hmax=1.5;
+      function tToX(t){return pad.l+(t-Tmin)/(Tmax-Tmin)*pW;}
+      function hToY(h2){return pad.t+(1-(h2-hmin)/(hmax-hmin))*pH;}
+      // Fill phases
+      const imgW=Math.round(pW), imgH=Math.round(pH);
+      const img=ctx.createImageData(imgW,imgH);
+      for(let py=0;py<imgH;py++) for(let px=0;px<imgW;px++){
+        const Tp=Tmin+(px/imgW)*(Tmax-Tmin);
+        const hp=hmin+(1-py/imgH)*(hmax-hmin);
+        const q=selfConsistencyQ(Tp,hp);
+        let r,g,b;
+        if(q>0.02&&Tp<1){
+          // Spin glass or ferromagnet
+          if(hp>0.1){ r=100;g=60;b=180; } // field-SG
+          else { r=180;g=60;b=120; } // SG
+        } else {
+          r=20;g=40;b=80; // paramagnet
+        }
+        const i4=(py*imgW+px)*4;
+        img.data[i4]=r;img.data[i4+1]=g;img.data[i4+2]=b;img.data[i4+3]=200;
+      }
+      ctx.putImageData(img,pad.l,pad.t);
+      // Phase boundary lines
+      // SG → PM: T_g = J = 1 at h=0; AT line: h_AT ~ (T_g-T)^{3/2}
+      ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2;
+      ctx.beginPath();
+      for(let k=0;k<=100;k++){
+        const Tp=Tmin+(k/100)*(1-Tmin); // T from Tmin to Tg=1
+        const hAT=Math.pow(Math.max(0,1-Tp),1.5)*1.5;
+        const x=tToX(Tp), y=hToY(hAT);
+        k===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      // Vertical line at T=1, h=0
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(tToX(1),hToY(0)); ctx.lineTo(tToX(1),hToY(hmax)); ctx.stroke();
+      ctx.setLineDash([]);
+      // Labels
+      ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('SG',tToX(0.5),hToY(0.1));
+      ctx.fillStyle='#8888cc'; ctx.fillText('SG+field',tToX(0.5),hToY(0.8));
+      ctx.fillStyle='#4488bb'; ctx.fillText('Paramagnet',tToX(1.4),hToY(0.3));
+      // AT line label
+      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('AT line',tToX(0.3),hToY(0.75));
+      // Axes
+      ctx.fillStyle='#666688'; ctx.font='12px monospace'; ctx.textAlign='center';
+      [0.5,1.0,1.5].forEach(t=>{
+        const x=tToX(t);
+        ctx.fillText(t.toFixed(1),x,pad.t+pH+16);
+        ctx.strokeStyle='#2a2a50'; ctx.lineWidth=0.5;
+        ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+      });
+      [0,0.5,1.0,1.5].forEach(hv=>{
+        const y=hToY(hv);
+        ctx.textAlign='right';ctx.fillText(hv.toFixed(1),pad.l-6,y+4);
+        ctx.strokeStyle='#2a2a50'; ctx.lineWidth=0.5;
+        ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pW,y);ctx.stroke();
+      });
+      ctx.fillStyle='#666688'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('Temperature T/J',pad.l+pW/2,H-6);
+      ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);
+      ctx.fillText('Field h/J',0,0);ctx.restore();
+      // Current T,h marker
+      ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(tToX(T),hToY(h),6,0,2*Math.PI); ctx.fill();
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=1.5; ctx.stroke();
+      const qStar=selfConsistencyQ(T,h);
+      const phase=qStar>0.02&&T<1?(h>0.1?'SG + field':'Spin glass'):'Paramagnet';
+      document.getElementById('ro8').textContent=`T=${T.toFixed(2)}   h=${h.toFixed(2)}   q*=${qStar.toFixed(4)}   Phase: ${phase}`;
+    }
+
+    if (!window.paused8) raf8=requestAnimationFrame(draw8);
+  }
+
+  ['sk_T','sk_h','sk_view'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{}));
+  window.paused8 = false;
+  if(raf8) cancelAnimationFrame(raf8);
+  draw8();
+  return { stop(){ cancelAnimationFrame(raf8); raf8=null; window.paused8=false; } };
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+let currentTab = 1;
+const tabHandlers = {1:null, 2:null, 3:null, 4:null, 5:null, 6:null, 7:null, 8:null};
+
+window.switchTab = function(n) {
+  if (tabHandlers[currentTab]) tabHandlers[currentTab].stop();
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
+  document.querySelectorAll('.tab-pane').forEach((p,i)=>p.classList.toggle('active',i===n-1));
+  currentTab = n;
+  if (n===1) tabHandlers[1] = initTab1();
+  else if (n===2) tabHandlers[2] = initTab2();
+  else if (n===3) tabHandlers[3] = initTab3();
+  else if (n===4) tabHandlers[4] = initTab4();
+  else if (n===5) tabHandlers[5] = initTab5();
+  else if (n===6) tabHandlers[6] = initTab6();
+  else if (n===7) tabHandlers[7] = initTab7();
+  else if (n===8) tabHandlers[8] = initTab8();
+};
+
+tabHandlers[1] = initTab1();
+
+window.animSpeed=0.1;
+
+window.addEventListener('resize', () => {
+  clearTimeout(window._resizeTimer59);
+  window._resizeTimer59 = setTimeout(() => { switchTab(currentTab); }, 60);
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

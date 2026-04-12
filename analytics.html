@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Analytics — Road to Reality</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --cyan:#00e5ff;--gold:#ffd700;--green:#00ff99;
+  --pink:#ff44ff;--orange:#ff8844;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  min-height:100vh;padding-bottom:40px}
+
+.top-bar{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;gap:14px;padding:12px 20px;
+  background:rgba(5,5,15,.92);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.back-link{font-size:.7rem;color:var(--dim);text-decoration:none;
+  letter-spacing:.06em;text-transform:uppercase;transition:.15s}
+.back-link:hover{color:var(--cyan)}
+.top-title{font-size:.85rem;font-weight:700;letter-spacing:.04em;flex:1}
+
+.container{max-width:900px;margin:0 auto;padding:30px 20px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}
+.stat-value{font-size:2rem;font-weight:700;line-height:1.1}
+.stat-label{font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
+
+.section{margin-bottom:32px}
+.section-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);
+  margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.bar-chart{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-label{font-size:.68rem;color:var(--dim);width:100px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:18px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.bar-count{font-size:.62rem;color:var(--dim);width:40px;text-align:right;flex-shrink:0}
+
+.streak-display{text-align:center;padding:24px;background:var(--bg2);border:1px solid var(--border);border-radius:10px}
+.streak-num{font-size:3rem;font-weight:700;color:var(--gold)}
+.streak-label{font-size:.72rem;color:var(--dim);margin-top:4px}
+
+.suggest-list{display:flex;flex-direction:column;gap:8px}
+.suggest-item{display:flex;align-items:center;gap:12px;padding:10px 14px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  text-decoration:none;color:var(--text);transition:.15s}
+.suggest-item:hover{border-color:var(--cyan);background:rgba(0,229,255,.04)}
+.suggest-icon{font-size:1.2rem}
+.suggest-text{font-size:.78rem;flex:1}
+.suggest-reason{font-size:.62rem;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="/" class="back-link">← Playground</a>
+  <span class="top-title">Learning Analytics</span>
+</div>
+
+<div class="container">
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="section">
+    <div class="section-title">Progress by Domain</div>
+    <div class="bar-chart" id="domainChart"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Learning Streak</div>
+    <div class="streak-display">
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-label">day streak</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Suggested Next</div>
+    <div class="suggest-list" id="suggestList"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Challenge Progress</div>
+    <div class="bar-chart" id="challengeChart"></div>
+  </div>
+</div>
+
+<script src="paths-data.js"></script>
+<script src="challenges-data.js"></script>
+<script src="connections-data.js"></script>
+<script src="firebase-progress.js"></script>
+<script>
+(function() {
+  'use strict';
+  window.localProgress.init();
+
+  var DOMAINS = {
+    complex: { label: 'Complex Analysis', color: '#00e5ff', modules: ['01','03','06','23','34','36','43','44'] },
+    geometry: { label: 'Geometry', color: '#ff8844', modules: ['02','04','14'] },
+    topology: { label: 'Topology', color: '#aa77ff', modules: ['16','17','25_string','29','33','41','48','52','60'] },
+    algebra: { label: 'Algebra', color: '#ffd700', modules: ['07','12','15','25_higgs','30','31','32','38','42'] },
+    analysis: { label: 'Analysis', color: '#ff8844', modules: ['05','18','26','27','40'] },
+    physics: { label: 'Physics', color: '#00ff99', modules: ['08','10','13','19','20','35','37','46','51','53','55','56','57','58'] },
+    quantum: { label: 'Quantum', color: '#ff44ff', modules: ['09','11','21','22','24','28','39','45','47','49','50','54','59','62','63'] }
+  };
+
+  // Map short IDs to full module IDs
+  var ALL_MODULES = [];
+  if (window.LEARNING_PATHS) {
+    window.LEARNING_PATHS.forEach(function(p) {
+      p.modules.forEach(function(m) { if (ALL_MODULES.indexOf(m) === -1) ALL_MODULES.push(m); });
+    });
+  }
+
+  window.localProgress.onReady(function() {
+    var progress = window.localProgress.getProgress();
+    var challenges = window.localProgress.getAllChallengeProgress();
+
+    // Stats
+    var visited = 0, completed = 0, totalChallenges = 0, completedChallenges = 0;
+    var totalModules = ALL_MODULES.length || 63;
+
+    Object.keys(progress).forEach(function(k) {
+      if (progress[k].visited) visited++;
+      if (progress[k].completed) completed++;
+    });
+
+    if (window.MODULE_CHALLENGES) {
+      Object.keys(window.MODULE_CHALLENGES).forEach(function(mid) {
+        var chs = window.MODULE_CHALLENGES[mid];
+        totalChallenges += chs.length;
+        var done = challenges[mid] || {};
+        chs.forEach(function(ch) { if (done[ch.id]) completedChallenges++; });
+      });
+    }
+
+    var statsGrid = document.getElementById('statsGrid');
+    var statsData = [
+      { value: visited, label: 'Modules Visited', color: 'var(--cyan)' },
+      { value: completed, label: 'Modules Completed', color: 'var(--green)' },
+      { value: totalModules - visited, label: 'Not Yet Explored', color: 'var(--dim)' },
+      { value: completedChallenges + '/' + totalChallenges, label: 'Challenges Done', color: 'var(--gold)' }
+    ];
+    statsData.forEach(function(s) {
+      var card = document.createElement('div');
+      card.className = 'stat-card';
+      var val = document.createElement('div');
+      val.className = 'stat-value';
+      val.style.color = s.color;
+      val.textContent = s.value;
+      var lbl = document.createElement('div');
+      lbl.className = 'stat-label';
+      lbl.textContent = s.label;
+      card.appendChild(val);
+      card.appendChild(lbl);
+      statsGrid.appendChild(card);
+    });
+
+    // Domain chart
+    var domainChart = document.getElementById('domainChart');
+    Object.keys(DOMAINS).forEach(function(key) {
+      var d = DOMAINS[key];
+      var total = d.modules.length;
+      var done = 0;
+      d.modules.forEach(function(shortId) {
+        // Find full module ID
+        var fullId = ALL_MODULES.find(function(m) { return m.indexOf(shortId + '_') === 0 || m === shortId; });
+        if (fullId && progress[fullId] && progress[fullId].completed) done++;
+      });
+      var pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+      var row = document.createElement('div');
+      row.className = 'bar-row';
+      var label = document.createElement('div');
+      label.className = 'bar-label';
+      label.textContent = d.label;
+      var track = document.createElement('div');
+      track.className = 'bar-track';
+      var fill = document.createElement('div');
+      fill.className = 'bar-fill';
+      fill.style.width = pct + '%';
+      fill.style.background = d.color;
+      track.appendChild(fill);
+      var count = document.createElement('div');
+      count.className = 'bar-count';
+      count.textContent = done + '/' + total;
+
+      row.appendChild(label);
+      row.appendChild(track);
+      row.appendChild(count);
+      domainChart.appendChild(row);
+    });
+
+    // Streak calculation
+    var dates = [];
+    Object.keys(progress).forEach(function(k) {
+      var p = progress[k];
+      if (p.visitedAt) dates.push(new Date(p.visitedAt).toDateString());
+      if (p.completedAt) dates.push(new Date(p.completedAt).toDateString());
+    });
+    var uniqueDates = dates.filter(function(d, i) { return dates.indexOf(d) === i; }).sort().reverse();
+    var streak = 0;
+    var today = new Date();
+    for (var i = 0; i < uniqueDates.length; i++) {
+      var expected = new Date(today);
+      expected.setDate(expected.getDate() - i);
+      if (uniqueDates[i] === expected.toDateString()) streak++;
+      else break;
+    }
+    document.getElementById('streakNum').textContent = streak;
+
+    // Suggestions
+    var suggestList = document.getElementById('suggestList');
+    var suggestions = [];
+
+    // Suggest unvisited modules connected to completed ones
+    if (window.MODULE_CONNECTIONS) {
+      Object.keys(progress).forEach(function(mid) {
+        if (!progress[mid].completed) return;
+        var conns = window.MODULE_CONNECTIONS[mid];
+        if (!conns) return;
+        conns.forEach(function(c) {
+          if (!progress[c.target] || !progress[c.target].visited) {
+            if (!suggestions.find(function(s) { return s.id === c.target; })) {
+              suggestions.push({
+                id: c.target,
+                reason: 'Connected to ' + mid.replace(/^\d+_/, '').replace(/_/g, ' '),
+                label: c.label
+              });
+            }
+          }
+        });
+      });
+    }
+
+    suggestions.slice(0, 5).forEach(function(s) {
+      var a = document.createElement('a');
+      a.className = 'suggest-item';
+      a.href = '/' + s.id + '.html';
+      var icon = document.createElement('span');
+      icon.className = 'suggest-icon';
+      icon.textContent = '\ud83d\udca1';
+      var text = document.createElement('div');
+      text.style.cssText = 'flex:1';
+      var name = document.createElement('div');
+      name.className = 'suggest-text';
+      name.textContent = s.id.replace(/^\d+_/, '').replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      var reason = document.createElement('div');
+      reason.className = 'suggest-reason';
+      reason.textContent = s.reason + ' — ' + s.label;
+      text.appendChild(name);
+      text.appendChild(reason);
+      a.appendChild(icon);
+      a.appendChild(text);
+      suggestList.appendChild(a);
+    });
+
+    if (suggestions.length === 0) {
+      var empty = document.createElement('div');
+      empty.style.cssText = 'text-align:center;color:var(--dim);font-size:.78rem;padding:20px;';
+      empty.textContent = 'Complete some modules to get personalized suggestions!';
+      suggestList.appendChild(empty);
+    }
+
+    // Challenge progress by module
+    var challengeChart = document.getElementById('challengeChart');
+    if (window.MODULE_CHALLENGES) {
+      var chKeys = Object.keys(window.MODULE_CHALLENGES).sort();
+      chKeys.forEach(function(mid) {
+        var chs = window.MODULE_CHALLENGES[mid];
+        var done = challenges[mid] || {};
+        var doneCount = 0;
+        chs.forEach(function(ch) { if (done[ch.id]) doneCount++; });
+        var pct = Math.round(doneCount / chs.length * 100);
+
+        var row = document.createElement('div');
+        row.className = 'bar-row';
+        var label = document.createElement('div');
+        label.className = 'bar-label';
+        label.style.fontSize = '.6rem';
+        label.textContent = mid.replace(/^\d+_/, '').replace(/_/g, ' ').slice(0, 15);
+        var track = document.createElement('div');
+        track.className = 'bar-track';
+        track.style.height = '12px';
+        var fill = document.createElement('div');
+        fill.className = 'bar-fill';
+        fill.style.width = pct + '%';
+        fill.style.background = doneCount === chs.length ? 'var(--green)' : 'var(--gold)';
+        track.appendChild(fill);
+        var count = document.createElement('div');
+        count.className = 'bar-count';
+        count.textContent = doneCount + '/' + chs.length;
+        row.appendChild(label);
+        row.appendChild(track);
+        row.appendChild(count);
+        challengeChart.appendChild(row);
+      });
+    }
+  });
+})();
+</script>
+</body>
+</html>

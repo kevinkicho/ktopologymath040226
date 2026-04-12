@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourier Series | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --orange:#ff8844;--cyan:#00e5ff;--gold:#ffd700;--green:#00ff99;--pink:#ff44ff;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+
+header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:12px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+h1{font-size:1.35rem;color:var(--orange);text-shadow:0 0 24px rgba(255,136,68,.4);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tabs{display:flex;gap:2px}
+.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--orange);background:var(--bg2);border-color:var(--border)}
+
+.content{flex:1;display:flex;overflow:hidden}
+.panel{display:none;flex:1}
+.panel.active{display:flex}
+
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:210px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;flex-shrink:0}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:252px}
+.canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--bg)}
+canvas{display:block}
+
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,136,68,.06);border:1px solid rgba(255,136,68,.25);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--orange)}
+input[type=range]{width:100%;accent-color:var(--orange);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.77rem;margin-top:3px;font-family:monospace;color:var(--orange)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:5px 8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s}
+.btn:hover,.btn.active{border-color:var(--orange);color:var(--orange)}
+.btn.warn:hover{border-color:var(--pink);color:var(--pink)}
+.wave-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.wbtn{padding:5px 4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.72rem;text-align:center;transition:.15s}
+.wbtn:hover,.wbtn.active{border-color:var(--orange);color:var(--orange);background:rgba(255,136,68,.08)}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.pbtn{padding:5px 4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.72rem;text-align:center;transition:.15s}
+.pbtn:hover{border-color:var(--orange);color:var(--orange);background:rgba(255,136,68,.08)}
+.hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  background:rgba(5,5,15,.85);border:1px solid var(--border);border-radius:5px;
+  padding:4px 14px;font-size:.7rem;color:var(--dim);pointer-events:none;white-space:nowrap}
+.strip{background:var(--bg2);border-top:1px solid var(--border);padding:6px 18px;
+  font-size:.7rem;color:var(--dim);display:flex;align-items:center;gap:18px;flex-shrink:0}
+.bookref{color:var(--orange);opacity:.7}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── PROOF PANEL ── */
+.proof-btn{display:inline-flex;align-items:center;margin-left:7px;padding:1px 7px;background:rgba(255,136,68,.09);border:1px solid rgba(255,136,68,.3);border-radius:3px;font-size:.6rem;color:#ff8844;cursor:pointer;letter-spacing:.03em;transition:.15s;vertical-align:middle;font-family:inherit}
+.proof-btn:hover{background:rgba(255,136,68,.2);border-color:#ff8844}
+#proof-panel{position:fixed;bottom:0;left:0;right:0;background:#090916;border-top:2px solid #ff8844;padding:18px 40px 26px;max-height:56vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.22,1,.36,1);z-index:200;box-shadow:0 -12px 48px rgba(0,0,0,.85)}
+#proof-panel.open{transform:translateY(0)}
+.pp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.pp-meta{flex:1}
+.pp-title{font-size:1rem;font-weight:600;color:#c0c0ea}
+.pp-sub{font-size:.74rem;color:#55558a;margin-top:2px}
+.pp-ref{font-size:.66rem;color:#ff8844;opacity:.7;margin-top:4px;font-style:italic}
+.pp-close{padding:4px 12px;border:1px solid #1c1c44;background:transparent;color:#55558a;border-radius:4px;cursor:pointer;font-size:.74rem;flex-shrink:0;transition:.15s;font-family:inherit}
+.pp-close:hover{border-color:#ff8844;color:#ff8844}
+.pp-steps{display:flex;flex-direction:column;gap:11px}
+.pp-step{display:flex;gap:11px;align-items:flex-start}
+.pp-num{min-width:20px;text-align:center;padding:1px 4px;border-radius:3px;font-size:.66rem;font-weight:700;color:#ff8844;background:rgba(255,136,68,.1);margin-top:3px;flex-shrink:0}
+.pp-text{font-size:.78rem;color:#c0c0ea;line-height:1.75;flex:1}
+.pp-text strong{color:#ff8844}
+.pp-qed{text-align:right;color:#ff8844;opacity:.4;font-size:.9rem;margin-top:10px}
+</style>
+</head>
+<body data-nogloss>
+
+<header>
+  <div class="hrow">
+    <a href="/" style="padding:4px 10px;border:1px solid #1c1c44;border-radius:4px;color:#55558a;font-size:.75rem;text-decoration:none;transition:.15s;flex-shrink:0" onmouseover="this.style.color='#ff8844';this.style.borderColor='#ff8844'" onmouseout="this.style.color='#55558a';this.style.borderColor='#1c1c44'">← Home</a>
+    <h1>Fourier Series</h1>
+    <span class="sub">Road to Reality — Chapter 9 · Decomposing Waves into Frequencies</span>
+  </div>
+  <div class="tabs" data-role="tab-bar">
+    <button class="tab active" onclick="switchTab('waves',this)">Waveforms</button>
+    <button class="tab" onclick="switchTab('epicycles',this)">Epicycles</button>
+    <button class="tab" onclick="switchTab('spectrum',this)">Spectrum</button>
+    <button class="tab" onclick="switchTab('uncertainty',this)">Uncertainty</button>
+    <button class="tab" onclick="switchTab('fft',this)">FFT Butterfly</button>
+    <button class="tab" onclick="switchTab('physics',this)">Fourier Physics</button>
+    <button class="tab" onclick="switchTab('laplace',this)">Laplace &amp; Z</button>
+    <button class="tab" onclick="switchTab('wavelets',this)">Wavelets</button>
+  </div>
+</header>
+
+<div class="content">
+
+<!-- ════════════ TAB: WAVEFORMS ════════════ -->
+<div class="panel active" id="panel-waves">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Wave Shape</div>
+      <div class="wave-grid">
+        <button class="wbtn active" id="wb-square"  onclick="setWave('square',this)">Square</button>
+        <button class="wbtn"        id="wb-saw"     onclick="setWave('saw',this)">Sawtooth</button>
+        <button class="wbtn"        id="wb-triangle"onclick="setWave('triangle',this)">Triangle</button>
+        <button class="wbtn"        id="wb-pulse"   onclick="setWave('pulse',this)">Pulse</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Harmonics: <span id="harm-disp" style="color:var(--orange)">7</span></div>
+      <input type="range" id="harm-sl" min="1" max="40" value="7" oninput="setHarmonics(+this.value)">
+    </div>
+    <div>
+      <div class="section-lbl">Controls</div>
+      <div class="btn-row">
+        <button class="btn" id="w-play-btn" onclick="toggleWaveAnim(this)">▶ Play</button>
+        <button class="btn active" id="w-comp-btn" onclick="toggleComponents(this)">Components</button>
+      </div>
+    </div>
+     <div>
+       <div class="section-lbl">Speed</div>
+       <input type="range" id="w-speed" min="0.1" max="3" step="0.1" value="0.1" data-anim-speed oninput="setAnimSpeed(this.value)">
+     </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Gibbs phenomenon:</strong> near any jump discontinuity, the partial sum always overshoots by ≈ 9% — no matter how many terms you add.
+      <button class="proof-btn" onclick="showProof('gibbs')">proof ▸</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="wave-wrap">
+    <canvas id="cw"></canvas>
+    <div class="hint" id="w-hint">Drag the harmonics slider to add or remove frequency components</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Fourier Series</div>
+    <div class="eq-block">
+      <div class="eq-title">General Form <button class="proof-btn" onclick="showProof('fourier-series')">proof ▸</button></div>
+      <div style="font-size:.76rem;line-height:1.9">
+        $f(t)=\dfrac{a_0}{2}+\displaystyle\sum_{n=1}^{\infty}\bigl[a_n\cos nt+b_n\sin nt\bigr]$
+      </div>
+    </div>
+    <div class="eq-block" id="wave-formula-block">
+      <div class="eq-title" id="wave-formula-title">Square Wave</div>
+      <div id="wave-formula-body" style="font-size:.76rem;line-height:1.9">
+        $\dfrac{4}{\pi}\displaystyle\sum_{k=0}^{\infty}\dfrac{\sin(2k{+}1)t}{2k{+}1}$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Coefficients</div>
+      <div id="coeff-display" style="font-family:monospace;font-size:.73rem;line-height:1.7;color:var(--dim)">
+        Hover a harmonic to inspect it.
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Energy (Parseval) <button class="proof-btn" onclick="showProof('parseval')">proof ▸</button></div>
+      <div style="font-size:.76rem;line-height:1.8">
+        $\|f\|^2 = \dfrac{|a_0|^2}{2}+\displaystyle\sum_{n=1}^{N}\dfrac{a_n^2+b_n^2}{2}$
+      </div>
+      <div class="vrow" style="margin-top:6px"><span class="vlbl">Captured %</span><span id="energy-pct" style="color:var(--orange)">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB: EPICYCLES ════════════ -->
+<div class="panel" data-role="panel" id="panel-epicycles">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Mode</div>
+      <div class="btn-row">
+        <button class="btn active" id="epi-draw-btn" onclick="setEpiMode('draw',this)">✏ Draw</button>
+        <button class="btn" id="epi-play-btn" onclick="setEpiMode('play',this)">▶ Play</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Presets</div>
+      <div class="preset-grid">
+        <button class="pbtn" onclick="loadPreset('circle')">Circle</button>
+        <button class="pbtn" onclick="loadPreset('square')">Square</button>
+        <button class="pbtn" onclick="loadPreset('star')">Star</button>
+        <button class="pbtn" onclick="loadPreset('heart')">Heart</button>
+        <button class="pbtn" onclick="loadPreset('lemniscate')">∞ Loop</button>
+        <button class="pbtn" onclick="loadPreset('trefoil')">Trefoil</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Circles shown: <span id="epi-n-disp" style="color:var(--orange)">50</span></div>
+      <input type="range" id="epi-n-sl" min="1" max="150" value="50" oninput="setEpiN(+this.value)">
+    </div>
+     <div>
+       <div class="section-lbl">Speed</div>
+       <input type="range" id="epi-speed" min="0.1" max="3" step="0.1" value="0.1" data-anim-speed oninput="setAnimSpeed(this.value)">
+     </div>
+    <div class="btn-row">
+      <button class="btn" onclick="epiZoomFit()">Zoom Fit</button>
+      <button class="btn" id="epi-pan-btn" onclick="toggleEpiPan(this)">Pan</button>
+    </div>
+    <div>
+      <button class="btn warn" style="width:100%" onclick="clearDrawing()">✕ Clear drawing</button>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Ptolemy's epicycles!</strong> Astronomers used circles-on-circles to model planetary motion. Fourier proved <em>any</em> periodic path can be reconstructed this way — the connection is exact.
+      <button class="proof-btn" onclick="showProof('epicycles')">proof ▸</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="epi-wrap">
+    <canvas id="ce"></canvas>
+    <div class="hint" id="epi-hint">Draw a closed shape, then press ▶ Play to see the epicycles reconstruct it</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">DFT Info</div>
+    <div class="eq-block">
+      <div class="eq-title">DFT Formula <button class="proof-btn" onclick="showProof('dft')">proof ▸</button></div>
+      <div style="font-size:.76rem;line-height:1.9">
+        $C_k=\dfrac{1}{N}\displaystyle\sum_{n=0}^{N-1}z_n\,e^{-2\pi ikn/N}$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Reconstruction</div>
+      <div style="font-size:.76rem;line-height:1.8">
+        $z(t)=\displaystyle\sum_{k}|C_k|\,e^{i(2\pi kt/N\,+\,\phi_k)}$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">Each term = circle of radius $|C_k|$ spinning at frequency $k$.</span>
+      </div>
+    </div>
+    <div class="eq-block" id="epi-stats">
+      <div class="vrow"><span class="vlbl">Path points</span><span id="epi-pts" style="color:var(--orange)">—</span></div>
+      <div class="vrow"><span class="vlbl">Circles used</span><span id="epi-circles" style="color:var(--orange)">—</span></div>
+      <div class="vrow"><span class="vlbl">Dominant freq</span><span id="epi-domfreq" style="color:var(--gold)">—</span></div>
+      <div class="vrow"><span class="vlbl">Largest |C_k|</span><span id="epi-domamp" style="color:var(--gold)">—</span></div>
+    </div>
+    <div class="callout">
+      <strong>Tip:</strong> Draw slowly for a clean path. Close the loop near your start point. Asymmetric shapes produce more interesting spectra.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB: SPECTRUM ════════════ -->
+<div class="panel" data-role="panel" id="panel-spectrum">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Display</div>
+      <div class="btn-row">
+        <button class="btn active" id="sp-amp-btn" onclick="setSpecView('amp',this)">Amplitude</button>
+        <button class="btn" id="sp-phs-btn" onclick="setSpecView('phase',this)">Phase</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Scale</div>
+      <div class="btn-row">
+        <button class="btn active" id="sp-lin-btn" onclick="setSpecScale('linear',this)">Linear</button>
+        <button class="btn" id="sp-log-btn" onclick="setSpecScale('log',this)">Log</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Source</div>
+      <div class="btn-row">
+        <button class="btn active" id="sp-src-wave" onclick="setSpecSource('wave',this)">Waveform</button>
+        <button class="btn" id="sp-src-epi" onclick="setSpecSource('epi',this)">Drawing</button>
+      </div>
+    </div>
+    <div>
+      <div class="btn-row">
+        <button class="btn" id="spec-anim-btn" onclick="toggleSpectrumAnim()">▶ Play</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Speed</div>
+      <input type="range" id="spec-speed" min="0.1" max="3" step="0.1" value="0.1" data-anim-speed oninput="setAnimSpeed(this.value);this.nextElementSibling.textContent=(+this.value).toFixed(1)+'x'">
+      <div class="val-disp">1.0x</div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Parseval's Theorem:</strong> Total energy is preserved between time and frequency domains. The power in the spectrum equals the power in the wave.
+      <button class="proof-btn" onclick="showProof('parseval')">proof ▸</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="spec-wrap">
+    <canvas id="cs"></canvas>
+    <div class="hint" id="spec-hint">Hover over a bar to inspect that frequency component</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Frequency Analysis</div>
+    <div class="eq-block">
+      <div class="eq-title">Parseval's Theorem <button class="proof-btn" onclick="showProof('parseval')">proof ▸</button></div>
+      <div style="font-size:.76rem;line-height:1.9">
+        $\dfrac{1}{T}\!\int_0^T\!|f|^2\,dt = \displaystyle\sum_{n=-\infty}^{\infty}|c_n|^2$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Inspected Component</div>
+      <div id="spec-inspect" style="font-family:monospace;font-size:.74rem;line-height:1.8;color:var(--dim)">
+        Hover a bar to inspect.
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Spectrum Stats</div>
+      <div class="vrow"><span class="vlbl">Components</span><span id="sp-count" style="color:var(--orange)">—</span></div>
+      <div class="vrow"><span class="vlbl">DC offset</span><span id="sp-dc" style="color:var(--dim)">—</span></div>
+      <div class="vrow"><span class="vlbl">Peak freq</span><span id="sp-peak" style="color:var(--gold)">—</span></div>
+      <div class="vrow"><span class="vlbl">Energy capture</span><span id="sp-energy" style="color:var(--green)">—</span></div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Rate of Decay</div>
+      <div style="font-size:.73rem;color:var(--dim);line-height:1.6">
+        Square/Sawtooth: $|c_n|\sim 1/n$<br>
+        Triangle: $|c_n|\sim 1/n^2$<br>
+        Smooth functions: decay faster than any power of $n$.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ TAB: UNCERTAINTY PRINCIPLE ════════════ -->
+<div class="panel" data-role="panel" id="panel-uncertainty">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Gaussian Width σ: <span id="unc-sigma-disp" style="color:var(--orange)">1.00</span></div>
+      <input type="range" id="unc-sigma-sl" min="10" max="300" value="100"
+             oninput="setUncSigma(+this.value/100)">
+    </div>
+    <div>
+      <div class="section-lbl">Mode</div>
+      <div class="btn-row">
+        <button class="btn active" id="unc-mode-gaussian" onclick="setUncMode('gaussian',this)">Gaussian</button>
+        <button class="btn" id="unc-mode-chirp" onclick="setUncMode('chirp',this)">Chirp</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Controls</div>
+      <div class="btn-row">
+        <button class="btn active" id="unc-play-btn" onclick="toggleUncAnim(this)">⏸ Pause</button>
+        <button class="btn" onclick="resetUncAnim()">⟳ Reset</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Speed</div>
+      <input type="range" id="unc-speed" min="0.1" max="3" step="0.1" value="0.1"
+             data-anim-speed oninput="setAnimSpeed(this.value)">
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Fourier Transform</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $\hat{f}(\xi)=\!\int_{-\infty}^{\infty}\!f(x)\,e^{-2\pi i\xi x}\,dx$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Gaussian Self-Duality</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $f(x)=e^{-\pi x^2}\;\xrightarrow{\mathcal{F}}\;\hat f(\xi)=e^{-\pi\xi^2}$
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Uncertainty principle:</strong> $\Delta x\cdot\Delta\xi \geq \tfrac{1}{4\pi}$.<br>
+      Quantum version: $\Delta x\cdot\Delta p \geq \tfrac{\hbar}{2}$.<br>
+      Equality holds for the Gaussian — it is the <em>minimum uncertainty state</em>.
+      <button class="proof-btn" onclick="showProof('uncertainty')">proof ▸</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="unc-wrap">
+    <canvas id="cunc"></canvas>
+    <div class="hint" id="unc-hint">Adjust σ — watch f̂ get narrower as the Gaussian widens</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Measured Widths</div>
+    <div class="eq-block">
+      <div class="vrow"><span class="vlbl">σ (position Δx)</span><span id="unc-dx" style="color:var(--cyan)">—</span></div>
+      <div class="vrow"><span class="vlbl">1/(4πσ) = Δξ</span><span id="unc-dxi" style="color:var(--gold)">—</span></div>
+      <div class="vrow"><span class="vlbl">Δx · Δξ product</span><span id="unc-prod" style="color:var(--orange)">—</span></div>
+      <div class="vrow"><span class="vlbl">Bound 1/(4π)</span><span style="color:var(--dim)">0.0796</span></div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Quantum mechanics</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $\psi(x)=e^{-x^2/4\sigma^2}$<br>
+        $\tilde\psi(p)\propto e^{-\sigma^2 p^2/\hbar^2}$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">Momentum space is the FT of position space. Narrow wavepacket = broad momentum distribution.</span>
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Chirp Signal</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $f(t)=e^{-t^2/2}\cdot e^{2\pi i\beta t^2}$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">Frequency sweeps linearly with time. Radar &amp; gravitational wave data use chirp analysis.</span>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Heisenberg 1927:</strong> No quantum state can be simultaneously sharp in both position and momentum. This is not a measurement limitation — it is a fundamental property of waves.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB: FFT BUTTERFLY ════════════ -->
+<div class="panel" data-role="panel" id="panel-fft">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Input Signal</div>
+      <div class="btn-row">
+        <button class="btn active" id="fft-sig-impulse" onclick="setFFTSignal('impulse',this)">Impulse</button>
+        <button class="btn" id="fft-sig-sine" onclick="setFFTSignal('sine',this)">Sine</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="fft-sig-square" onclick="setFFTSignal('square',this)">Square</button>
+        <button class="btn" id="fft-sig-noise" onclick="setFFTSignal('noise',this)">Noise</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation Stage</div>
+      <div class="btn-row">
+        <button class="btn" id="fft-play-btn" onclick="toggleFFTAnim(this)">▶ Play</button>
+        <button class="btn" onclick="resetFFTAnim()">⟳ Reset</button>
+      </div>
+    </div>
+     <div>
+       <div class="section-lbl">Speed</div>
+       <input type="range" id="fft-speed" min="0.1" max="3" step="0.1" value="0.1"
+              data-anim-speed oninput="setAnimSpeed(this.value)">
+     </div>
+    <div class="eq-block">
+      <div class="eq-title">Cooley-Tukey (1965)</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $\text{DFT}_N = \begin{pmatrix}\text{DFT}_{N/2}\\&\text{DFT}_{N/2}\end{pmatrix}\!\cdot W$
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>FFT complexity:</strong><br>
+      Naïve DFT: $O(N^2)$<br>
+      Cooley-Tukey: $O(N\log_2 N)$<br>
+      For $N=10^6$: ×50,000 speedup.
+      <button class="proof-btn" onclick="showProof('fft')">proof ▸</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="fft-wrap">
+    <canvas id="cfft"></canvas>
+    <div class="hint" id="fft-hint">Watch the Cooley-Tukey butterfly decomposition animate stage by stage</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">N=8 Butterfly Diagram</div>
+    <div class="eq-block">
+      <div class="eq-title">Twiddle Factors</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $W_N^k = e^{-2\pi ik/N}$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">Stage 1: combine pairs.<br>Stage 2: combine quads.<br>Stage 3: combine octets.</span>
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Complexity</div>
+      <div class="vrow"><span class="vlbl">N (points)</span><span style="color:var(--orange)">8</span></div>
+      <div class="vrow"><span class="vlbl">log₂N (stages)</span><span style="color:var(--orange)">3</span></div>
+      <div class="vrow"><span class="vlbl">FFT ops</span><span style="color:var(--green)">24</span></div>
+      <div class="vrow"><span class="vlbl">DFT ops</span><span style="color:var(--pink)">64</span></div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Current stage</div>
+      <div class="vrow"><span class="vlbl">Stage</span><span id="fft-stage-disp" style="color:var(--cyan)">—</span></div>
+      <div class="vrow"><span class="vlbl">Active butterfly</span><span id="fft-but-disp" style="color:var(--gold)">—</span></div>
+    </div>
+    <div class="callout">
+      <strong>Applications:</strong> MP3/JPEG compression, WiFi/5G OFDM, MRI reconstruction, gravitational wave detection (LIGO), seismology, quantum computing FFT algorithms.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB: FOURIER IN PHYSICS ════════════ -->
+<div class="panel" data-role="panel" id="panel-physics">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Equation</div>
+      <div class="btn-row">
+        <button class="btn active" id="phys-heat-btn" onclick="setPhysMode('heat',this)">Heat Eq.</button>
+        <button class="btn" id="phys-wave-btn" onclick="setPhysMode('wave',this)">Wave Eq.</button>
+        <button class="btn" id="phys-qm-btn" onclick="setPhysMode('qm',this)">Quantum</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Controls</div>
+      <div class="btn-row">
+        <button class="btn" id="phys-play-btn" onclick="togglePhysAnim(this)">▶ Play</button>
+        <button class="btn" onclick="resetPhysAnim()">⟳ Reset</button>
+      </div>
+    </div>
+     <div>
+       <div class="section-lbl">Speed</div>
+       <input type="range" id="phys-speed" min="0.1" max="3" step="0.1" value="0.1"
+              data-anim-speed oninput="setAnimSpeed(this.value)">
+     </div>
+    <div class="eq-block" id="phys-eq-block">
+      <div class="eq-title" id="phys-eq-title">Heat Equation</div>
+      <div id="phys-eq-heat" style="font-size:.75rem;line-height:1.9">
+        $\dfrac{\partial u}{\partial t}=\alpha\dfrac{\partial^2 u}{\partial x^2}$<br>
+        Mode decay: $e^{-\alpha k^2 t}$
+      </div>
+      <div id="phys-eq-wave" style="font-size:.75rem;line-height:1.9;display:none">
+        $\dfrac{\partial^2 u}{\partial t^2}=c^2\dfrac{\partial^2 u}{\partial x^2}$<br>
+        Dispersion: $\omega(k)=ck$<br>
+        Phase $v_\phi=c$, Group $v_g=c$
+      </div>
+      <div id="phys-eq-qm" style="font-size:.75rem;line-height:1.9;display:none">
+        $i\hbar\dfrac{\partial\psi}{\partial t}=-\dfrac{\hbar^2}{2m}\dfrac{\partial^2\psi}{\partial x^2}$<br>
+        $\omega(k)=\hbar k^2/2m$
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Fourier's insight (1822):</strong> heat diffusion is most naturally described in frequency space, where each mode evolves independently.
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="phys-wrap">
+    <canvas id="cphys"></canvas>
+    <div class="hint" id="phys-hint">Watch Fourier modes evolve independently under the heat equation</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Mode Decomposition</div>
+    <div class="eq-block" id="phys-modes-block">
+      <div class="eq-title">Active Modes</div>
+      <div id="phys-modes-info" style="font-family:monospace;font-size:.73rem;line-height:1.7;color:var(--dim)">
+        Modes loading…
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Wave Packet Physics</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        Phase velocity: $v_\phi = \omega/k$<br>
+        Group velocity: $v_g = d\omega/dk$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">The packet envelope travels at $v_g$; the carrier at $v_\phi$. For light in vacuum $v_\phi=v_g=c$.</span>
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Quantum Wavepacket</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $\psi(x,t)=\int\tilde\psi(k)\,e^{i(kx-\omega t)}\,dk$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">Free particle: $\omega=\hbar k^2/2m$ (quadratic dispersion) — the packet spreads.</span>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Dispersion:</strong> if $\omega(k)$ is nonlinear, different frequency components travel at different speeds — the packet spreads. This is why optical pulses spread in fiber and why matter waves spread in free space.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB: LAPLACE & Z TRANSFORMS ════════════ -->
+<div class="panel" data-role="panel" id="panel-laplace">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Pole/Zero Example</div>
+      <div class="btn-row">
+        <button class="btn active" id="lap-ex1" onclick="setLapExample('lowpass',this)">Low-pass</button>
+        <button class="btn" id="lap-ex2" onclick="setLapExample('bandpass',this)">Band-pass</button>
+        <button class="btn" id="lap-ex3" onclick="setLapExample('notch',this)">Notch</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Controls</div>
+      <div class="btn-row">
+        <button class="btn" id="lap-anim-btn" onclick="toggleLapAnim(this)">▶ Animate</button>
+        <button class="btn" onclick="resetLapAnim()">⟳ Reset</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Speed</div>
+      <input type="range" id="lap-speed" min="0.1" max="3" step="0.1" value="0.1" data-anim-speed oninput="setAnimSpeed(this.value)">
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Laplace Transform</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $F(s)=\!\int_0^\infty\! f(t)\,e^{-st}\,dt$<br>
+        <span style="color:var(--dim);font-size:.72rem">$s=\sigma+i\omega\in\mathbb{C}$</span>
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Z-Transform</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $X(z)=\!\sum_{n=0}^\infty\! x[n]\,z^{-n}$<br>
+        <span style="color:var(--dim);font-size:.72rem">$|z|=1$ gives the DTFT</span>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Key insight:</strong> drag poles on the s-plane — watch all four views update simultaneously. Animate sweeps poles across the stability boundary.
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="lap-wrap">
+    <canvas id="clap"></canvas>
+    <div class="hint" id="lap-hint">Drag poles/zeros on the s-plane — all views update simultaneously</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Transfer Function</div>
+    <div class="eq-block" id="lap-tf-block">
+      <div class="eq-title" id="lap-tf-title">Low-pass Filter</div>
+      <div id="lap-tf-lowpass" style="font-size:.75rem;line-height:1.9">
+        $H(s)=\dfrac{1}{s+1}$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">One pole at $s=-1$. Stable. Cutoff at $\omega=1$ rad/s.</span>
+      </div>
+      <div id="lap-tf-bandpass" style="font-size:.75rem;line-height:1.9;display:none">
+        $H(s)=\dfrac{s}{s^2+0.2s+4}$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">Two complex poles at $s=-0.1\pm 2i$. Peak at $\omega=2$.</span>
+      </div>
+      <div id="lap-tf-notch" style="font-size:.75rem;line-height:1.9;display:none">
+        $H(s)=\dfrac{s^2+4}{s^2+0.2s+4}$<br><br>
+        <span style="color:var(--dim);font-size:.72rem">Zeros on $j\omega$ axis at $s=\pm 2i$. Notch at $\omega=2$.</span>
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Stability</div>
+      <div id="lap-stability-info" style="font-family:monospace;font-size:.73rem;line-height:1.7;color:var(--dim)">
+        All poles in LHP — Stable
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Z vs Laplace</div>
+      <div style="font-size:.73rem;color:var(--dim);line-height:1.6">
+        Laplace is for continuous time.<br>
+        Z-transform is its discrete analogue.<br>
+        $z=e^{sT}$ where $T$ = sample period.<br>
+        Stability: poles inside unit circle.
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Control systems:</strong> transfer function $H(s)=Y(s)/U(s)$ connects input $U$ to output $Y$. The Bode plot (magnitude &amp; phase vs. frequency) is the engineer's everyday tool.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB: WAVELETS ════════════ -->
+<div class="panel" data-role="panel" id="panel-wavelets">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Wavelet Type</div>
+      <div class="btn-row">
+        <button class="btn active" id="wt-mexican-btn" onclick="setWaveletType('mexican',this)">Mexican Hat</button>
+        <button class="btn" id="wt-morlet-btn" onclick="setWaveletType('morlet',this)">Morlet</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Signal</div>
+      <div class="btn-row">
+        <button class="btn active" id="wt-sig-step" onclick="setWaveletSignal('step',this)">Step</button>
+        <button class="btn" id="wt-sig-chirp" onclick="setWaveletSignal('chirp',this)">Chirp</button>
+        <button class="btn" id="wt-sig-spike" onclick="setWaveletSignal('spike',this)">Spike</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Scale a: <span id="wt-scale-disp" style="color:var(--orange)">1.0</span></div>
+      <input type="range" id="wt-scale-sl" min="5" max="50" value="10"
+             oninput="setWaveletScale(+this.value/10)">
+    </div>
+    <div>
+      <div class="section-lbl">Translation b: <span id="wt-trans-disp" style="color:var(--orange)">0.0</span></div>
+      <input type="range" id="wt-trans-sl" min="0" max="100" value="50"
+             oninput="setWaveletTrans(+this.value/100)">
+    </div>
+    <div>
+      <div class="section-lbl">Controls</div>
+      <div class="btn-row">
+        <button class="btn active" id="wt-anim-btn" onclick="toggleWaveletAnim(this)">⏸ Pause</button>
+        <button class="btn" onclick="resetWaveletAnim()">⟳ Reset</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Speed</div>
+      <input type="range" id="wt-speed" min="0.1" max="3" step="0.1" value="0.1" data-anim-speed oninput="setAnimSpeed(this.value)">
+    </div>
+    <div class="callout" style="margin-top:auto">
+      <strong>Time-frequency localization:</strong> unlike Fourier (global), wavelets can say <em>when</em> and <em>what frequency</em> simultaneously — subject to the uncertainty principle.
+      <button class="proof-btn" onclick="showProof('wavelets')">proof ▸</button>
+    </div>
+  </div>
+
+  <div class="canvas-wrap" id="wt-wrap">
+    <canvas id="cwt"></canvas>
+    <div class="hint" id="wt-hint">Adjust scale and translation — watch the wavelet probe different time-frequency regions</div>
+  </div>
+
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Wavelet Transform</div>
+    <div class="eq-block">
+      <div class="eq-title">Continuous WT</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $W_f(a,b)=\dfrac{1}{\sqrt{a}}\!\int\! f(t)\,\psi\!\left(\dfrac{t-b}{a}\right)\!dt$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Mexican Hat $\psi$</div>
+      <div style="font-size:.75rem;line-height:1.9">
+        $\psi(t)=(1-t^2)\,e^{-t^2/2}$<br>
+        <span style="color:var(--dim);font-size:.72rem">2nd derivative of Gaussian. Zero mean, compact support.</span>
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Transform Coefficient</div>
+      <div class="vrow"><span class="vlbl">Scale a</span><span id="wt-a-val" style="color:var(--cyan)">—</span></div>
+      <div class="vrow"><span class="vlbl">Translation b</span><span id="wt-b-val" style="color:var(--gold)">—</span></div>
+      <div class="vrow"><span class="vlbl">W_f(a,b)</span><span id="wt-coeff" style="color:var(--orange)">—</span></div>
+    </div>
+    <div class="callout">
+      <strong>Applications:</strong> JPEG2000 image compression, LIGO gravitational wave detection (matched filter wavelets), fingerprint analysis (FBI standard), ECG denoising, renormalization group in QFT.
+    </div>
+  </div>
+</div>
+
+</div><!-- .content -->
+
+<div class="strip">
+  <span class="bookref">📖 Road to Reality §9.1 – 9.5</span>
+  <span>Fourier analysis reveals that any periodic signal is a superposition of pure sine waves — the mathematical basis of sound synthesis, signal processing, and quantum mechanics.</span>
+</div>
+
+<!-- ── PROOF PANEL ── -->
+<div id="proof-panel">
+  <div class="pp-head">
+    <div class="pp-meta">
+      <div class="pp-title" id="pp-title"></div>
+      <div class="pp-sub" id="pp-sub"></div>
+      <div class="pp-ref" id="pp-ref"></div>
+    </div>
+    <button class="pp-close" onclick="closeProof()">✕ Close</button>
+  </div>
+  <div class="pp-steps" id="pp-steps"></div>
+  <div class="pp-qed">∎</div>
+</div>
+
+<script>
+function _cancelAllAnims05(){
+  // Cancel all animation frames
+  for(let i=0;i<10;i++){
+    let id=requestAnimationFrame(()=>{});
+    cancelAnimationFrame(id);
+  }
+}
+
+
+  window.animSpeed=0.1;
+
+  function setAnimSpeed(v) {
+    window.animSpeed = +v;
+    document.querySelectorAll('[data-anim-speed]').forEach(function(sl) { sl.value = v; });
+  }
+
+  function autoStartAnimations() {
+    WSTATE.animating = true;
+    EPI.animating = true;
+    SPEC.animating = true;
+    UNCSTATE.animating = true;
+    FFTSTATE.animating = true;
+    PHYSSTATE.animating = true;
+    LAPSTATE.animating = true;
+    var lapBtn = document.getElementById('lap-anim-btn');
+    if (lapBtn) { lapBtn.textContent = '\u23f8 Pause'; lapBtn.classList.add('active'); }
+    WTSTATE.animating = true;
+    var wtAnimBtn = document.getElementById('wt-anim-btn');
+    if (wtAnimBtn) { wtAnimBtn.textContent = '\u23f8 Pause'; wtAnimBtn.classList.add('active'); }
+  }
+// ══════════════════════════════════════════════════════
+//  SHARED HELPERS
+// ══════════════════════════════════════════════════════
+// Use standardized resizeCanvas from auto-start.js
+function resizeCanvas(c) {
+  window.resizeCanvas(c);
+}
+
+function switchTab(name, btn) {
+  // Cancel animations for tabs we are leaving (preserve animating flag so they resume on return)
+  if (name !== 'waves'       && WSTATE.rafId)   { cancelAnimationFrame(WSTATE.rafId);   WSTATE.rafId = null; }
+  if (name !== 'epicycles'   && EPI.rafId)      { cancelAnimationFrame(EPI.rafId);      EPI.rafId = null; }
+  if (name !== 'spectrum'    && SPEC.rafId)     { cancelAnimationFrame(SPEC.rafId);    SPEC.rafId = null; }
+  if (name !== 'uncertainty' && UNCSTATE.rafId) { cancelAnimationFrame(UNCSTATE.rafId); UNCSTATE.rafId = null; }
+  if (name !== 'fft'         && FFTSTATE.rafId) { cancelAnimationFrame(FFTSTATE.rafId); FFTSTATE.rafId = null; }
+  if (name !== 'physics'     && PHYSSTATE.rafId){ cancelAnimationFrame(PHYSSTATE.rafId);PHYSSTATE.rafId = null; }
+  if (name !== 'laplace'    && LAPSTATE.rafId)  { cancelAnimationFrame(LAPSTATE.rafId);  LAPSTATE.rafId = null; }
+  if (name !== 'wavelets'   && WTSTATE.rafId)   { cancelAnimationFrame(WTSTATE.rafId);   WTSTATE.rafId = null; }
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
+  btn.classList.add('active');
+  const panel = document.getElementById('panel-' + name);
+  panel.classList.add('active');
+  panel.style.display = 'flex';
+  if (name === 'waves')       { window.resizeCanvas(document.getElementById('cw')); renderWave(); if (WSTATE.animating && !WSTATE.rafId) animateWave(); }
+  if (name === 'epicycles')   { window.resizeCanvas(document.getElementById('ce')); if (!EPI._inited) { EPI._inited = true; loadPreset('star'); } else { renderEpi(); if (EPI.animating) { if (EPI.rafId) cancelAnimationFrame(EPI.rafId); EPI.rafId = null; animateEpi(); } } }
+  if (name === 'spectrum')    { window.resizeCanvas(document.getElementById('cs')); renderSpectrum(); if (SPEC.animating && !SPEC.rafId) { SPEC.rafId = requestAnimationFrame(spectrumAnimLoop); } }
+  if (name === 'uncertainty') { window.resizeCanvas(document.getElementById('cunc')); renderUnc(); if (UNCSTATE.animating && !UNCSTATE.rafId) animateUnc(); }
+  if (name === 'fft')         { window.resizeCanvas(document.getElementById('cfft')); renderFFT(); if (FFTSTATE.animating && !FFTSTATE.rafId) animateFFT(); }
+  if (name === 'physics')     { window.resizeCanvas(document.getElementById('cphys')); renderPhys(); if (PHYSSTATE.animating && !PHYSSTATE.rafId) animatePhys(); }
+  if (name === 'laplace')     { window.resizeCanvas(document.getElementById('clap')); LAPSTATE.animating = true; var lapBtn = document.getElementById('lap-anim-btn'); if (lapBtn) { lapBtn.textContent = '\u23f8 Pause'; lapBtn.classList.add('active'); } renderLap(); if (!LAPSTATE.rafId) animateLap(); }
+  if (name === 'wavelets')    { window.resizeCanvas(document.getElementById('cwt')); WTSTATE.animating = true; var wtBtn = document.getElementById('wt-anim-btn'); if (wtBtn) { wtBtn.textContent = '\u23f8 Pause'; wtBtn.classList.add('active'); } renderWavelet(); if (!WTSTATE.rafId) animateWavelet(); }
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB: WAVEFORMS
+// ══════════════════════════════════════════════════════
+const WSTATE = {
+  type: 'square',
+  N: 7,
+  phase: 0,
+  animating: true,
+  showComponents: true,
+  speed: 0.20,
+  rafId: null,
+};
+
+const WAVE_DATA = {
+  square: {
+    name: 'Square Wave',
+    formula: '$\\dfrac{4}{\\pi}\\displaystyle\\sum_{k=0}^{\\infty}\\dfrac{\\sin(2k{+}1)t}{2k{+}1}$',
+    // Returns {amp, phase} for harmonic index i (1-based)
+    coeff: i => {
+      const n = i; // harmonic number
+      if (n % 2 === 0) return null;
+      return { amp: 4 / (Math.PI * n), phase: 0 };
+    },
+    allOdd: true,
+  },
+  saw: {
+    name: 'Sawtooth Wave',
+    formula: '$\\dfrac{2}{\\pi}\\displaystyle\\sum_{n=1}^{\\infty}\\dfrac{(-1)^{n+1}}{n}\\sin(nt)$',
+    coeff: i => ({ amp: 2 / (Math.PI * i), phase: i % 2 === 0 ? Math.PI : 0 }),
+    allOdd: false,
+  },
+  triangle: {
+    name: 'Triangle Wave',
+    formula: '$\\dfrac{8}{\\pi^2}\\displaystyle\\sum_{k=0}^{\\infty}\\dfrac{(-1)^k}{(2k{+}1)^2}\\sin(2k{+}1)t$',
+    coeff: i => {
+      if (i % 2 === 0) return null;
+      const k = (i - 1) / 2;
+      return { amp: 8 / (Math.PI * Math.PI * i * i), phase: k % 2 === 0 ? 0 : Math.PI };
+    },
+    allOdd: true,
+  },
+  pulse: {
+    name: 'Pulse Wave (duty 25%)',
+    formula: '$\\displaystyle\\sum_{n=1}^{\\infty}\\dfrac{2\\sin(n\\pi/4)}{n\\pi}\\cos(nt)$',
+    coeff: i => {
+      const duty = 0.25;
+      const s = Math.sin(i * Math.PI * duty);
+      if (Math.abs(s) < 1e-10) return null;
+      return { amp: Math.abs(2 * s / (i * Math.PI)), phase: s < 0 ? Math.PI : 0 };
+    },
+    allOdd: false,
+  },
+};
+
+function getPartialSum(type, N, t) {
+  let s = 0;
+  let count = 0;
+  for (let i = 1; count < N; i++) {
+    const c = WAVE_DATA[type].coeff(i);
+    if (c !== null) {
+      s += c.amp * Math.sin(i * t + c.phase);
+      count++;
+    }
+  }
+  return s;
+}
+
+function getComponentsForWave(type, N) {
+  const comps = [];
+  let count = 0;
+  for (let i = 1; count < N && i <= 200; i++) {
+    const c = WAVE_DATA[type].coeff(i);
+    if (c !== null) { comps.push({ n: i, amp: c.amp, phase: c.phase }); count++; }
+  }
+  return comps;
+}
+
+function waveEnergy(type, N) {
+  // Parseval: sum of (amp^2)/2 for each harmonic
+  const comps = getComponentsForWave(type, N);
+  let captured = 0;
+  for (const c of comps) captured += c.amp * c.amp / 2;
+  // Total energy for standard waves
+  const total = { square: Math.PI*Math.PI/8, saw: Math.PI*Math.PI/6, triangle: Math.PI*Math.PI/12, pulse: 0.25 };
+  const T = total[type] || 1;
+  return Math.min(100, (captured / T * 100));
+}
+
+function renderWave() {
+  const c = document.getElementById('cw');
+  if (!c.width) return;
+  resizeCanvas(c);
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const { type, N, phase, showComponents } = WSTATE;
+  const numSamples = Math.min(W * 2, 1200);
+  const period = 2 * Math.PI;
+
+  // Layout: if showComponents, top 65% = main wave, bottom 35% = components
+  const padTopY = 20;
+  const mainH = showComponents ? H * 0.62 : H;
+  const compH = showComponents ? H * 0.38 : 0;
+  const compY = mainH;
+
+  const drawH = mainH - padTopY;
+  const amp = (drawH / 2) * 0.82;
+  const cy = padTopY + drawH / 2;
+  const padX = 40;
+  const waveW = W - padX * 2;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(80,80,150,.12)'; ctx.lineWidth = 0.5;
+  for (let y = cy - amp; y <= cy + amp + 1; y += amp / 2) {
+    ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(W - padX, y); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.moveTo(padX, cy); ctx.lineTo(W - padX, cy);
+  ctx.strokeStyle = 'rgba(120,120,200,.25)'; ctx.lineWidth = 1; ctx.stroke();
+
+  // X axis labels
+  ctx.fillStyle = 'rgba(85,85,138,.7)'; ctx.font = '12px monospace';
+  ctx.textAlign = 'center';
+  ['0', 'π', '2π'].forEach((lbl, i) => {
+    const x = padX + waveW * i / 2;
+    ctx.fillText(lbl, x, cy + amp + 14);
+  });
+
+  // Target waveform (dimmed)
+  ctx.beginPath();
+  for (let px = 0; px <= waveW; px++) {
+    const t = (px / waveW) * period + phase;
+    let y;
+    if (type === 'square')   y = t % period < Math.PI ? 1 : -1;
+    else if (type === 'saw') y = 1 - (t % period) / Math.PI;
+    else if (type === 'triangle') {
+      const x = (t % period) / period;
+      y = x < 0.5 ? 4*x-1 : 3-4*x;
+    } else { // pulse
+      y = (t % period) < Math.PI * 0.5 ? 1 : -1;
+    }
+    const px2 = padX + px;
+    const py = cy - y * amp;
+    px === 0 ? ctx.moveTo(px2, py) : ctx.lineTo(px2, py);
+  }
+  ctx.strokeStyle = 'rgba(200,200,255,.15)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+
+  // Component waves (behind partial sum)
+  if (showComponents) {
+    const comps = getComponentsForWave(type, N);
+    comps.forEach((comp, ci) => {
+      const hue = (ci * 35 + 30) % 360;
+      ctx.beginPath();
+      for (let px = 0; px <= waveW; px++) {
+        const t = (px / waveW) * period + phase;
+        const y = comp.amp * Math.sin(comp.n * t + comp.phase);
+        const px2 = padX + px;
+        const py = cy - y * amp;
+        px === 0 ? ctx.moveTo(px2, py) : ctx.lineTo(px2, py);
+      }
+      ctx.strokeStyle = `hsla(${hue},70%,60%,.3)`; ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+  }
+
+  // Partial sum (bright)
+  ctx.beginPath();
+  for (let px = 0; px <= waveW; px++) {
+    const t = (px / waveW) * period + phase;
+    const y = getPartialSum(type, N, t);
+    const px2 = padX + px;
+    const py = cy - y * amp;
+    px === 0 ? ctx.moveTo(px2, py) : ctx.lineTo(px2, py);
+  }
+  ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.2; ctx.stroke();
+
+  // Gibbs overshoot highlight
+  if (type !== 'triangle' && N >= 5) {
+    const overshoot = getPartialSum(type, N, 0.001 + phase);
+    if (Math.abs(overshoot) > 1.05) {
+      const ox = padX + 2;
+      const oy = cy - overshoot * amp;
+      ctx.beginPath(); ctx.arc(ox, oy, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(255,68,68,.9)'; ctx.fill();
+    }
+  }
+
+  // Component breakdown panel
+  if (showComponents && compH > 20) {
+    // Divider
+    ctx.strokeStyle = 'rgba(80,80,150,.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padX, compY); ctx.lineTo(W - padX, compY); ctx.stroke();
+
+    ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('HARMONICS', padX + 2, compY + 10);
+
+    const comps = getComponentsForWave(type, N);
+    const rowH = Math.min(compH / (comps.length + 1), 28);
+    const miniAmp = rowH * 0.38;
+
+    comps.forEach((comp, ci) => {
+      const rowY = compY + 16 + ci * rowH + rowH / 2;
+      if (rowY + miniAmp > H - 4) return;
+      const hue = (ci * 35 + 30) % 360;
+      const label = `n=${comp.n}`;
+      ctx.fillStyle = `hsla(${hue},70%,60%,.8)`; ctx.font = '12px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, padX + 2, rowY + 3);
+      const lx = padX + 36;
+      const lw = waveW - 36;
+      ctx.beginPath();
+      for (let px = 0; px <= lw; px++) {
+        const t = (px / lw) * period + phase;
+        const y = Math.sin(comp.n * t + comp.phase);
+        const py = rowY - y * miniAmp;
+        px === 0 ? ctx.moveTo(lx + px, py) : ctx.lineTo(lx + px, py);
+      }
+      ctx.strokeStyle = `hsla(${hue},70%,60%,.65)`; ctx.lineWidth = 1; ctx.stroke();
+    });
+  }
+
+  // Update energy display
+  const ePct = waveEnergy(type, N);
+  document.getElementById('energy-pct').textContent = ePct.toFixed(1) + '%';
+
+  // Update coefficients display
+  const comps = getComponentsForWave(type, N);
+  let coeffHtml = '';
+  comps.slice(0, 6).forEach(c => {
+    coeffHtml += `<div class="vrow"><span class="vlbl">n=${c.n}</span><span style="color:var(--orange)">${c.amp.toFixed(4)}</span></div>`;
+  });
+  if (comps.length > 6) coeffHtml += `<div style="font-size:.69rem;color:var(--dim);margin-top:3px">+${comps.length-6} more…</div>`;
+  document.getElementById('coeff-display').innerHTML = coeffHtml;
+}
+
+function setWave(type, btn) {
+  WSTATE.type = type;
+  document.querySelectorAll('.wbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const wd = WAVE_DATA[type];
+  document.getElementById('wave-formula-title').textContent = wd.name;
+  document.getElementById('wave-formula-body').innerHTML = wd.formula;
+  if (window.renderMathInElement)
+    renderMathInElement(document.getElementById('wave-formula-body'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  renderWave();
+}
+
+function setHarmonics(v) {
+  WSTATE.N = v;
+  document.getElementById('harm-disp').textContent = v;
+  renderWave();
+}
+
+function toggleWaveAnim(btn) {
+  WSTATE.animating = !WSTATE.animating;
+  btn.textContent = WSTATE.animating ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('active', WSTATE.animating);
+  if (WSTATE.animating && !WSTATE.rafId) animateWave();
+}
+
+function toggleComponents(btn) {
+  WSTATE.showComponents = !WSTATE.showComponents;
+  btn.classList.toggle('active', WSTATE.showComponents);
+  renderWave();
+}
+
+function animateWave() {
+  if (!WSTATE.animating) { WSTATE.rafId = null; return; }
+  WSTATE.phase -= 0.012 * (window.animSpeed || 0.1);
+  renderWave();
+  WSTATE.rafId = requestAnimationFrame(animateWave);
+}
+
+function initWaves() {
+  window.resizeCanvas(document.getElementById('cw'));
+  if (WSTATE.animating && !WSTATE.rafId) animateWave();
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB: EPICYCLES
+// ══════════════════════════════════════════════════════
+const EPI = {
+  mode: 'draw',
+  rawPath: [],
+  components: [],
+  tracePoints: [],
+  t: 0,
+  speed: 0.30,
+  numCircles: 50,
+  drawing: false,
+  rafId: null,
+  animating: false,
+  _dftReady: false, // true when components matches the current rawPath
+  _centroid: { x: 0, y: 0 },
+  panX: 0, panY: 0, zoom: 1,
+  _panning: false, _panStart: null,
+};
+
+function setEpiMode(mode, btn) {
+  EPI.mode = mode;
+  document.querySelectorAll('#panel-epicycles .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (mode === 'play') {
+    if (EPI.rawPath.length < 10) {
+      document.getElementById('epi-hint').textContent = 'Draw a shape first, then press Play';
+      EPI.mode = 'draw';
+      document.getElementById('epi-draw-btn').classList.add('active');
+      btn.classList.remove('active');
+      return;
+    }
+    computeEpiDFT();
+    EPI.t = 0;
+    EPI.tracePoints = [];
+    EPI.animating = true;
+    document.getElementById('epi-hint').textContent = 'Epicycles reconstructing your path…';
+    if (EPI.rafId) { cancelAnimationFrame(EPI.rafId); EPI.rafId = null; }
+    animateEpi();
+  } else {
+    EPI.animating = false;
+    document.getElementById('epi-hint').textContent = 'Draw a closed shape, then press ▶ Play';
+  }
+}
+
+function clearDrawing() {
+  EPI.animating = false;
+  EPI.rawPath = [];
+  EPI.components = [];
+  EPI._dftReady = false;
+  EPI.tracePoints = [];
+  EPI.mode = 'draw';
+  document.getElementById('epi-draw-btn').classList.add('active');
+  document.getElementById('epi-play-btn').classList.remove('active');
+  document.getElementById('epi-hint').textContent = 'Draw a closed shape, then press ▶ Play';
+  EPI.panX = 0; EPI.panY = 0; EPI.zoom = 1;
+  updateEpiStats();
+  renderEpi();
+}
+
+function epiZoomFit() {
+  if (!EPI.tracePoints.length && !EPI.rawPath.length) return;
+  const pts = EPI.mode === 'play' && EPI.tracePoints.length ? EPI.tracePoints : EPI.rawPath;
+  if (pts.length < 2) return;
+  const c = document.getElementById('ce');
+  const W = c.width, H = c.height;
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  pts.forEach(p => { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); });
+  const bw = maxX - minX || 1, bh = maxY - minY || 1;
+  const pad = 0.15;
+  EPI.zoom = Math.min(W * (1 - 2*pad) / bw, H * (1 - 2*pad) / bh);
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  EPI.panX = (W/2 - cx) * EPI.zoom;
+  EPI.panY = (H/2 - cy) * EPI.zoom;
+  // Recalculate: translate is  W/2+panX then scale then -W/2
+  // We want center of bbox to map to center of canvas
+  EPI.panX = -(cx - W/2) * EPI.zoom;
+  EPI.panY = -(cy - H/2) * EPI.zoom;
+  if (!EPI.animating) renderEpi();
+}
+
+function toggleEpiPan(btn) {
+  EPI._panMode = !EPI._panMode;
+  btn.classList.toggle('active', EPI._panMode);
+}
+
+function computeEpiDFT() {
+  if (EPI._dftReady) return; // path unchanged — components still valid, skip O(N²) work
+  const path = resamplePath(EPI.rawPath, 256);
+  const N = path.length;
+  if (N === 0) return;
+  // Subtract centroid so epicycles orbit around canvas center
+  let mx = 0, my = 0;
+  for (let n = 0; n < N; n++) { mx += path[n].x; my += path[n].y; }
+  mx /= N; my /= N;
+  EPI._centroid = { x: mx, y: my };
+  const comps = [];
+  for (let k = 0; k < N; k++) {
+    let re = 0, im = 0;
+    for (let n = 0; n < N; n++) {
+      const angle = -2 * Math.PI * k * n / N;
+      re += (path[n].x - mx) * Math.cos(angle) - (path[n].y - my) * Math.sin(angle);
+      im += (path[n].x - mx) * Math.sin(angle) + (path[n].y - my) * Math.cos(angle);
+    }
+    re /= N; im /= N;
+    comps.push({ freq: k, amp: Math.sqrt(re*re+im*im), phase: Math.atan2(im, re), re, im });
+  }
+  comps.sort((a, b) => b.amp - a.amp);
+  EPI.components = comps;
+  EPI.N = N;
+  EPI._dftReady = true;
+  updateEpiStats();
+}
+
+function resamplePath(raw, N) {
+  if (raw.length < 2) return [];
+  let total = 0;
+  const lens = [0];
+  for (let i = 1; i < raw.length; i++) {
+    const dx = raw[i].x - raw[i-1].x, dy = raw[i].y - raw[i-1].y;
+    total += Math.sqrt(dx*dx + dy*dy);
+    lens.push(total);
+  }
+  const sampled = [];
+  for (let k = 0; k < N; k++) {
+    const target = (k / N) * total;
+    let i = 0;
+    while (i < lens.length - 1 && lens[i+1] < target) i++;
+    if (i >= raw.length - 1) { sampled.push({ ...raw[raw.length-1] }); continue; }
+    const t = (target - lens[i]) / Math.max(1e-9, lens[i+1] - lens[i]);
+    sampled.push({
+      x: raw[i].x + t*(raw[i+1].x - raw[i].x),
+      y: raw[i].y + t*(raw[i+1].y - raw[i].y),
+    });
+  }
+  return sampled;
+}
+
+function updateEpiStats() {
+  document.getElementById('epi-pts').textContent = EPI.rawPath.length || '—';
+  document.getElementById('epi-circles').textContent = EPI.components.length ? Math.min(EPI.numCircles, EPI.components.length) : '—';
+  if (EPI.components.length) {
+    document.getElementById('epi-domfreq').textContent = EPI.components[0].freq;
+    document.getElementById('epi-domamp').textContent = EPI.components[0].amp.toFixed(2);
+  } else {
+    document.getElementById('epi-domfreq').textContent = '—';
+    document.getElementById('epi-domamp').textContent = '—';
+  }
+}
+
+function setEpiN(v) {
+  EPI.numCircles = v;
+  document.getElementById('epi-n-disp').textContent = v;
+  updateEpiStats();
+}
+
+function renderEpi() {
+  const c = document.getElementById('ce');
+  if (!c.width) return;
+  resizeCanvas(c);
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  if (EPI.mode === 'draw') {
+    // Draw hint circles
+    ctx.strokeStyle = 'rgba(255,136,68,.06)'; ctx.lineWidth = 1;
+    for (let r = 40; r < Math.min(W,H)/2; r += 40) {
+      ctx.beginPath(); ctx.arc(W/2, H/2, r, 0, 2*Math.PI); ctx.stroke();
+    }
+    // Draw current path
+    if (EPI.rawPath.length > 1) {
+      ctx.beginPath();
+      EPI.rawPath.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.5; ctx.stroke();
+      // Dots
+      ctx.fillStyle = 'rgba(255,136,68,.5)';
+      ctx.beginPath(); ctx.arc(EPI.rawPath[0].x, EPI.rawPath[0].y, 5, 0, 2*Math.PI); ctx.fill();
+      ctx.fillStyle = 'rgba(255,136,68,.9)';
+      const last = EPI.rawPath[EPI.rawPath.length-1];
+      ctx.beginPath(); ctx.arc(last.x, last.y, 4, 0, 2*Math.PI); ctx.fill();
+    }
+  } else if (EPI.mode === 'play' && EPI.components.length) {
+    ctx.save();
+    ctx.translate(W/2 + EPI.panX, H/2 + EPI.panY);
+    ctx.scale(EPI.zoom, EPI.zoom);
+    ctx.translate(-W/2, -H/2);
+    // Draw trace
+    if (EPI.tracePoints.length > 1) {
+      ctx.beginPath();
+      EPI.tracePoints.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2 / EPI.zoom; ctx.stroke();
+    }
+    // Draw epicycles
+    drawEpicycles(ctx, W/2, H/2, EPI.t, EPI.N);
+    ctx.restore();
+  }
+}
+
+function drawEpicycles(ctx, cx, cy, t, N) {
+  const comps = EPI.components.slice(0, EPI.numCircles);
+  const lw = 1 / EPI.zoom; // scale-invariant line width
+  let x = cx, y = cy;
+  comps.forEach((comp, i) => {
+    const prevX = x, prevY = y;
+    const angle = 2 * Math.PI * comp.freq * t / N + comp.phase;
+    x += comp.amp * Math.cos(angle);
+    y += comp.amp * Math.sin(angle);
+    if (comp.amp > 0.5) {
+      ctx.beginPath();
+      ctx.arc(prevX, prevY, comp.amp, 0, 2 * Math.PI);
+      ctx.strokeStyle = `rgba(255,136,68,${Math.max(0.06, 0.25 - i*0.003)})`;
+      ctx.lineWidth = 0.8 * lw;
+      ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(prevX, prevY); ctx.lineTo(x, y);
+    ctx.strokeStyle = `rgba(255,136,68,${Math.max(0.2, 0.7 - i*0.01)})`;
+    ctx.lineWidth = 1.2 * lw;
+    ctx.stroke();
+  });
+  // Tip dot
+  ctx.beginPath(); ctx.arc(x, y, 3 / EPI.zoom, 0, 2*Math.PI);
+  ctx.fillStyle = '#ff8844'; ctx.fill();
+  return { x, y };
+}
+
+function animateEpi() {
+  if (!EPI.animating) { EPI.rafId = null; return; }
+
+  const c = document.getElementById('ce');
+  resizeCanvas(c);
+  // Panel may be hidden (display:none) during tab transitions — skip frame without dropping state
+  if (!c.width || !c.height) { EPI.rafId = requestAnimationFrame(animateEpi); return; }
+
+  EPI.t += (window.animSpeed||0.1);
+  if (EPI.t >= EPI.N) { EPI.t = 0; EPI.tracePoints = []; }
+
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.translate(W/2 + EPI.panX, H/2 + EPI.panY);
+  ctx.scale(EPI.zoom, EPI.zoom);
+  ctx.translate(-W/2, -H/2);
+
+  // Draw trace
+  if (EPI.tracePoints.length > 1) {
+    ctx.beginPath();
+    EPI.tracePoints.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2 / EPI.zoom; ctx.stroke();
+  }
+
+  const tip = drawEpicycles(ctx, W/2, H/2, EPI.t, EPI.N);
+  EPI.tracePoints.push({ x: tip.x, y: tip.y });
+
+  ctx.restore();
+  EPI.rafId = requestAnimationFrame(animateEpi);
+}
+
+// Preset shapes
+function loadPreset(name) {
+  const c = document.getElementById('ce');
+  resizeCanvas(c);
+  const W = c.width, H = c.height;
+  const cx = W / 2, cy = H / 2;
+  const R = Math.min(W, H) * 0.3;
+  const N = 512;
+  EPI.rawPath = [];
+  EPI._dftReady = false; // new path — must recompute DFT
+
+  if (name === 'circle') {
+    for (let k = 0; k < N; k++) {
+      const t = 2*Math.PI*k/N;
+      EPI.rawPath.push({ x: cx + R*Math.cos(t), y: cy + R*Math.sin(t) });
+    }
+  } else if (name === 'square') {
+    const sides = 4;
+    for (let k = 0; k < N; k++) {
+      const t = k / N * sides;
+      const side = Math.floor(t), s = t - side;
+      let x, y;
+      if (side === 0)      { x = -1+2*s; y = -1; }
+      else if (side === 1) { x = 1;      y = -1+2*s; }
+      else if (side === 2) { x = 1-2*s;  y = 1; }
+      else                 { x = -1;     y = 1-2*s; }
+      EPI.rawPath.push({ x: cx + x*R, y: cy + y*R });
+    }
+  } else if (name === 'star') {
+    for (let k = 0; k < N; k++) {
+      const t = 2*Math.PI*k/N;
+      const spikes = 5;
+      const inner = 0.42;
+      const idx = t / (2*Math.PI) * spikes * 2;
+      const frac = idx - Math.floor(idx);
+      const r = frac < 0.5 ? 1 - (1-inner)*frac*2 : inner + (1-inner)*(frac-0.5)*2;
+      EPI.rawPath.push({ x: cx + r*R*Math.cos(t - Math.PI/2), y: cy + r*R*Math.sin(t - Math.PI/2) });
+    }
+  } else if (name === 'heart') {
+    for (let k = 0; k < N; k++) {
+      const t = 2*Math.PI*k/N;
+      const x = 16*Math.pow(Math.sin(t),3);
+      const y = -(13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t));
+      EPI.rawPath.push({ x: cx + x*(R/18), y: cy + y*(R/18) });
+    }
+  } else if (name === 'lemniscate') {
+    for (let k = 0; k < N; k++) {
+      const t = 2*Math.PI*k/N;
+      const d = 1 + Math.sin(t)*Math.sin(t);
+      EPI.rawPath.push({ x: cx + R*Math.sqrt(2)*Math.cos(t)/d, y: cy + R*Math.sqrt(2)*Math.sin(t)*Math.cos(t)/d });
+    }
+  } else if (name === 'trefoil') {
+    for (let k = 0; k < N; k++) {
+      const t = 2*Math.PI*k/N;
+      const r = R * (0.5 + 0.5*Math.cos(3*t));
+      EPI.rawPath.push({ x: cx + r*Math.cos(t), y: cy + r*Math.sin(t) });
+    }
+  }
+
+  // Auto-play
+  computeEpiDFT();
+  EPI.t = 0;
+  EPI.tracePoints = [];
+  EPI.panX = 0; EPI.panY = 0; EPI.zoom = 1;
+  EPI.mode = 'play';
+  EPI.animating = true;
+  document.getElementById('epi-draw-btn').classList.remove('active');
+  document.getElementById('epi-play-btn').classList.add('active');
+  document.getElementById('epi-hint').textContent = 'Epicycles reconstructing preset shape…';
+  if (EPI.rafId) { cancelAnimationFrame(EPI.rafId); EPI.rafId = null; }
+  animateEpi();
+}
+
+function initEpicycles() {
+  const c = document.getElementById('ce');
+  resizeCanvas(c);
+
+  c.addEventListener('mousedown', e => {
+    if (EPI.mode !== 'draw') return;
+    EPI.drawing = true;
+    EPI.rawPath = [];
+    EPI._dftReady = false;
+    EPI.animating = false;
+    const r = c.getBoundingClientRect();
+    EPI.rawPath.push({ x: e.clientX - r.left, y: e.clientY - r.top });
+  });
+  c.addEventListener('mousemove', e => {
+    if (!EPI.drawing || EPI.mode !== 'draw') return;
+    const r = c.getBoundingClientRect();
+    const pt = { x: e.clientX - r.left, y: e.clientY - r.top };
+    const last = EPI.rawPath[EPI.rawPath.length-1];
+    if (!last || Math.hypot(pt.x-last.x, pt.y-last.y) > 4) EPI.rawPath.push(pt);
+    renderEpi();
+  });
+  c.addEventListener('mouseup', () => {
+    if (!EPI.drawing) return;
+    EPI.drawing = false;
+    if (EPI.rawPath.length > 20)
+      document.getElementById('epi-hint').textContent = `${EPI.rawPath.length} points captured — press ▶ Play to reconstruct`;
+    renderEpi();
+  });
+
+  // Touch support
+  c.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (EPI.mode !== 'draw') return;
+    EPI.drawing = true; EPI.rawPath = []; EPI._dftReady = false; EPI.animating = false;
+    const r = c.getBoundingClientRect(), t = e.touches[0];
+    EPI.rawPath.push({ x: t.clientX - r.left, y: t.clientY - r.top });
+  }, { passive: false });
+  c.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!EPI.drawing) return;
+    const r = c.getBoundingClientRect(), touch = e.touches[0];
+    const pt = { x: touch.clientX - r.left, y: touch.clientY - r.top };
+    const last = EPI.rawPath[EPI.rawPath.length-1];
+    if (!last || Math.hypot(pt.x-last.x, pt.y-last.y) > 4) EPI.rawPath.push(pt);
+    renderEpi();
+  }, { passive: false });
+  c.addEventListener('touchend', e => {
+    e.preventDefault();
+    EPI.drawing = false;
+    if (EPI.rawPath.length > 20)
+      document.getElementById('epi-hint').textContent = `${EPI.rawPath.length} points — press ▶ Play`;
+    renderEpi();
+  }, { passive: false });
+
+  // Wheel zoom in play mode
+  c.addEventListener('wheel', e => {
+    if (EPI.mode !== 'play') return;
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    EPI.zoom = Math.max(0.1, Math.min(10, EPI.zoom * factor));
+    if (!EPI.animating) renderEpi();
+  }, { passive: false });
+
+  // Pan support (middle-click drag or when Pan mode is active)
+  c.addEventListener('mousedown', e => {
+    if (EPI.mode !== 'play') return;
+    if (e.button === 1 || EPI._panMode) {
+      e.preventDefault();
+      EPI._panning = true;
+      EPI._panStart = { x: e.clientX - EPI.panX, y: e.clientY - EPI.panY };
+    }
+  });
+  c.addEventListener('mousemove', e => {
+    if (!EPI._panning) return;
+    EPI.panX = e.clientX - EPI._panStart.x;
+    EPI.panY = e.clientY - EPI._panStart.y;
+    if (!EPI.animating) renderEpi();
+  });
+  c.addEventListener('mouseup', e => { if (EPI._panning) { EPI._panning = false; } });
+  c.addEventListener('mouseleave', () => { EPI._panning = false; });
+
+  renderEpi();
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB: SPECTRUM
+// ══════════════════════════════════════════════════════
+const SPEC = {
+  view: 'amp',
+  scale: 'linear',
+  source: 'wave',
+  hoverIdx: -1,
+  animating: true,
+  rafId: null,
+  buildT: 0,
+  buildTarget: 0,
+  lastT: 0
+};
+
+function toggleSpectrumAnim() {
+  SPEC.animating = !SPEC.animating;
+  var btn = document.getElementById('spec-anim-btn');
+  btn.textContent = SPEC.animating ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('active', SPEC.animating);
+  if (SPEC.animating) {
+    SPEC.buildT = 0;
+    SPEC.buildTarget = 0;
+    SPEC.lastT = 0;
+    if (!SPEC.rafId) SPEC.rafId = requestAnimationFrame(spectrumAnimLoop);
+  } else if (SPEC.rafId) {
+    cancelAnimationFrame(SPEC.rafId);
+    SPEC.rafId = null;
+  }
+}
+
+function spectrumAnimLoop(t) {
+  if (!SPEC.animating) { SPEC.rafId = null; return; }
+  if (SPEC.lastT === 0) SPEC.lastT = t;
+  var dt = (t - SPEC.lastT) * 0.001;
+  SPEC.lastT = t;
+  SPEC.buildT += dt;
+  SPEC.buildTarget = SPEC.buildT * 3;
+  renderSpectrum();
+  SPEC.rafId = requestAnimationFrame(spectrumAnimLoop);
+}
+
+function setSpecView(v, btn) {
+  SPEC.view = v;
+  document.querySelectorAll('#panel-spectrum .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sp-' + (SPEC.scale === 'linear' ? 'lin' : 'log') + '-btn').classList.add('active');
+  document.getElementById('sp-src-' + SPEC.source).classList.add('active');
+  if (!SPEC.animating) { SPEC.animating = true; document.getElementById('spec-anim-btn').textContent = '⏸ Pause'; }
+  if (!SPEC.rafId) SPEC.rafId = requestAnimationFrame(spectrumAnimLoop);
+  renderSpectrum();
+}
+function setSpecScale(v, btn) {
+  SPEC.scale = v;
+  document.getElementById('sp-lin-btn').classList.toggle('active', v === 'linear');
+  document.getElementById('sp-log-btn').classList.toggle('active', v === 'log');
+  if (!SPEC.animating) { SPEC.animating = true; document.getElementById('spec-anim-btn').textContent = '⏸ Pause'; }
+  if (!SPEC.rafId) SPEC.rafId = requestAnimationFrame(spectrumAnimLoop);
+  renderSpectrum();
+}
+function setSpecSource(v, btn) {
+  SPEC.source = v;
+  SPEC.buildT = 999; SPEC.buildTarget = 999;  // reset reveal to show all bars
+  document.getElementById('sp-src-wave').classList.toggle('active', v === 'wave');
+  document.getElementById('sp-src-epi').classList.toggle('active', v === 'epi');
+  if (!SPEC.animating) { SPEC.animating = true; document.getElementById('spec-anim-btn').textContent = '⏸ Pause'; }
+  if (!SPEC.rafId) SPEC.rafId = requestAnimationFrame(spectrumAnimLoop);
+  renderSpectrum();
+}
+
+function getSpectrumData() {
+  if (SPEC.source === 'epi' && EPI.components.length > 0) {
+    return EPI.components.slice(0, 64).map(c => ({
+      k: c.freq, amp: c.amp, phase: c.phase
+    }));
+  }
+  // Build from current waveform
+  const comps = getComponentsForWave(WSTATE.type, Math.min(WSTATE.N, 32));
+  return comps.map(c => ({ k: c.n, amp: c.amp, phase: c.phase }));
+}
+
+function renderSpectrum() {
+  const c = document.getElementById('cs');
+  if (!c.width) return;
+  resizeCanvas(c);
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  const data = getSpectrumData();
+  if (!data.length) {
+    ctx.fillStyle = 'rgba(85,85,138,.5)'; ctx.font = '14px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data — select a waveform or draw a shape in the Epicycles tab', W/2, H/2);
+    return;
+  }
+
+  const padL = 55, padR = 20, padT = 30, padB = 50;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  // Determine y range — always use amplitude for bar heights
+  const maxAmp = Math.max(...data.map(d => d.amp), 0.001);
+  const yScale = v => {
+    if (SPEC.scale === 'log' && SPEC.view === 'amp') {
+      return padT + plotH * (1 - Math.log10(Math.max(v, maxAmp*0.001)+1) / Math.log10(maxAmp+1));
+    }
+    return padT + plotH * (1 - v / maxAmp);
+  };
+  // Phase scale: maps phase angle to vertical position within the plot
+  const phaseToY = ph => padT + plotH * (1 - (ph + Math.PI) / (2 * Math.PI));
+  const y0 = padT + plotH; // baseline at bottom for both modes
+
+  // Grid
+  ctx.strokeStyle = 'rgba(80,80,150,.12)'; ctx.lineWidth = 0.5;
+  for (let g = 0; g <= 4; g++) {
+    const y = padT + plotH * g / 4;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+  }
+  const isPhase = SPEC.view === 'phase';
+  // Axes
+  ctx.strokeStyle = 'rgba(120,120,200,.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
+  // Zero line for phase mode
+  if (isPhase) {
+    ctx.beginPath(); ctx.moveTo(padL, phaseToY(0)); ctx.lineTo(W-padR, phaseToY(0)); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(padL, y0); ctx.lineTo(W-padR, y0); ctx.stroke();
+  }
+
+  // Bars — progressive reveal animation
+  const barW = Math.max(2, Math.min(30, plotW / data.length - 2));
+  const revealCount = SPEC.animating ? Math.min(data.length, Math.floor(SPEC.buildTarget) + 1) : data.length;
+  data.forEach((d, i) => {
+    const xc = padL + (i + 0.5) * (plotW / data.length);
+    const ampVal = d.amp;
+    const phaseVal = d.phase;
+    let reveal = 1;
+    if (SPEC.animating) {
+      const progress = SPEC.buildTarget - i;
+      reveal = Math.max(0, Math.min(1, progress));
+    }
+    const revealedAmp = ampVal * reveal;
+    const hue = isPhase ? ((phaseVal + Math.PI) / (2*Math.PI) * 360) : ((i * 20 + 30) % 360);
+    const highlight = i === SPEC.hoverIdx;
+    let yTop, barH;
+    if (isPhase) {
+      // Phase mode: amplitude on Y axis (bar height = how strong),
+      // direction tells phase sign (up = positive, down = negative),
+      // color tells exact phase angle.
+      const barPeak = yScale(revealedAmp);  // top of bar at max amplitude
+      const barBase = yScale(0);             // bottom (baseline)
+      const midY = (barPeak + barBase) / 2;  // center line = zero phase
+      if (phaseVal >= 0) {
+        // Positive phase: bar above center line
+        yTop = barPeak;
+        barH = Math.max(0, midY - barPeak);
+      } else {
+        // Negative phase: bar below center line
+        yTop = midY;
+        barH = Math.max(0, barBase - midY);
+      }
+    } else {
+      yTop = yScale(revealedAmp);
+      barH = Math.max(0, Math.abs(y0 - yTop));
+    }
+    ctx.fillStyle = highlight ? `hsla(${hue},90%,70%,1)` : `hsla(${hue},70%,55%,${0.4 + 0.6 * reveal})`;
+    ctx.fillRect(xc - barW/2, Math.min(y0, yTop), barW, barH);
+    // Glow on the latest bar
+    if (SPEC.animating && i === revealCount - 1 && reveal > 0) {
+      ctx.shadowBlur = 12 * reveal;
+      ctx.shadowColor = `hsla(${hue},80%,60%,${0.6 * reveal})`;
+      ctx.fillRect(xc - barW/2, Math.min(y0, yTop), barW, barH);
+      ctx.shadowBlur = 0;
+    }
+    // Frequency label (every few bars or highlighted)
+    if (i % Math.max(1, Math.floor(data.length / 12)) === 0 || highlight) {
+      ctx.fillStyle = highlight ? '#ff8844' : 'rgba(85,85,138,.7)';
+      ctx.font = '12px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('k=' + data[i].k, xc, padT + plotH + 14);
+    }
+  });
+
+  // Envelope line connecting bar tops
+  ctx.beginPath();
+  ctx.strokeStyle = isPhase ? 'rgba(255,180,50,0.4)' : 'rgba(0,229,255,0.5)';
+  ctx.lineWidth = 1.5;
+  data.forEach((d, i) => {
+    const reveal = SPEC.animating ? Math.max(0, Math.min(1, SPEC.buildTarget - i)) : 1;
+    if (reveal <= 0) return;
+    const xc = padL + (i + 0.5) * (plotW / data.length);
+    // In Phase view, envelope follows amplitude tops above center line
+    const envY = isPhase ? (d.phase >= 0 ? yScale(d.amp * reveal) : yScale(0)) : yScale(d.amp * reveal);
+    if (i === 0) ctx.moveTo(xc, envY);
+    else ctx.lineTo(xc, envY);
+  });
+  ctx.stroke();
+
+  // Decay guide line (1/k reference for amplitude view only)
+  if (SPEC.view === 'amp' && data.length > 2) {
+    ctx.beginPath();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(255,200,50,0.3)';
+    ctx.lineWidth = 1;
+    const amp0 = data[0].amp;
+    for (let i = 0; i < Math.min(data.length, revealCount); i++) {
+      const xc = padL + (i + 0.5) * (plotW / data.length);
+      const refVal = amp0 / (i + 1);
+      const yRef = yScale(refVal);
+      if (i === 0) ctx.moveTo(xc, yRef);
+      else ctx.lineTo(xc, yRef);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Y axis labels
+  ctx.fillStyle = 'rgba(85,85,138,.8)'; ctx.font = '12px monospace'; ctx.textAlign = 'right';
+  if (isPhase) {
+    // Phase mode: show amplitude scale on right, phase sign on left
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const yy = padT + plotH * (1-f);
+      ctx.fillText((maxAmp * f).toFixed(3), padL - 4, yy + 3);
+    });
+    // Mark +phase above center, -phase below
+    const midY = (yScale(0) + yScale(maxAmp)) / 2;
+    ctx.fillStyle = 'rgba(0,229,255,0.4)'; ctx.font = '10px monospace';
+    ctx.fillText('+φ', padL - 18, midY - plotH*0.15);
+    ctx.fillText('−φ', padL - 18, midY + plotH*0.15);
+  } else {
+    [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+      const yy = padT + plotH * (1-f);
+      ctx.fillText((maxAmp * f).toFixed(3), padL - 4, yy + 3);
+    });
+  }
+
+  // Axis labels
+  ctx.fillStyle = 'rgba(200,200,255,.5)'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('Frequency k', padL + plotW/2, H - 8);
+  ctx.save(); ctx.translate(14, padT + plotH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(SPEC.view === 'amp' ? 'Amplitude |Cₖ|' : 'Phase φₖ + Amplitude |Cₖ|', 0, 0);
+  ctx.restore();
+
+  // Stats
+  const totalE = data.reduce((s, d) => s + d.amp*d.amp, 0);
+  const topE = data.slice(0, Math.min(5, data.length)).reduce((s, d) => s + d.amp*d.amp, 0);
+  document.getElementById('sp-count').textContent = data.length;
+  document.getElementById('sp-dc').textContent = data[0] ? data[0].amp.toFixed(4) : '0';
+  document.getElementById('sp-peak').textContent = data[0] ? 'k=' + data[0].k : '—';
+  document.getElementById('sp-energy').textContent = totalE > 0 ? (topE/totalE*100).toFixed(1) + '% in top 5' : '—';
+
+  // Hover interaction
+  const spec = document.getElementById('cs');
+  spec.onmousemove = e => {
+    const r = spec.getBoundingClientRect();
+    const mx = e.clientX - r.left;
+    const idx = Math.floor((mx - padL) / (plotW / data.length));
+    SPEC.hoverIdx = (idx >= 0 && idx < data.length) ? idx : -1;
+    if (SPEC.hoverIdx >= 0) {
+      const d = data[SPEC.hoverIdx];
+      document.getElementById('spec-inspect').innerHTML =
+        `k = ${d.k}<br>|C| = ${d.amp.toFixed(5)}<br>φ = ${(d.phase*180/Math.PI).toFixed(1)}°<br>power = ${(d.amp*d.amp).toFixed(6)}`;
+    } else {
+      document.getElementById('spec-inspect').textContent = 'Hover a bar to inspect.';
+    }
+    renderSpectrum();
+  };
+  spec.onmouseleave = () => { SPEC.hoverIdx = -1; renderSpectrum(); };
+}
+
+// ══════════════════════════════════════════════════════
+//  PROOF PANEL
+// ══════════════════════════════════════════════════════
+const PROOFS = {
+  'fourier-series': {
+    title: 'The Fourier Series Theorem',
+    sub: 'Any periodic function decomposes into a sum of sines and cosines',
+    ref: 'Road to Reality §9.1–9.3 · Fourier 1822',
+    steps: [
+      {n:1, text:`Let $f(t)$ be a periodic function with period $2\\pi$, square-integrable on $[-\\pi,\\pi]$. We seek a representation: $$f(t)=\\frac{a_0}{2}+\\sum_{n=1}^\\infty[a_n\\cos(nt)+b_n\\sin(nt)]$$`},
+      {n:2, text:`The <strong>orthogonality relations</strong> are the key: for integers $m\\neq n$: $$\\int_{-\\pi}^\\pi\\cos(mt)\\cos(nt)\\,dt=0,\\quad\\int_{-\\pi}^\\pi\\sin(mt)\\sin(nt)\\,dt=0$$ and $\\int_{-\\pi}^\\pi\\cos(mt)\\sin(nt)\\,dt=0$ for all $m,n$. When $m=n$: each integral equals $\\pi$.`},
+      {n:3, text:`To find $a_m$: multiply both sides by $\\cos(mt)$ and integrate over $[-\\pi,\\pi]$. By orthogonality, every term vanishes except $n=m$: $$\\int_{-\\pi}^\\pi f(t)\\cos(mt)\\,dt = a_m\\cdot\\pi \\implies \\boxed{a_n=\\frac{1}{\\pi}\\int_{-\\pi}^\\pi f(t)\\cos(nt)\\,dt}$$ Similarly for $b_n$ using $\\sin(nt)$.`},
+      {n:4, text:`<strong>Convergence:</strong> if $f$ is piecewise smooth, the series converges to $f(t)$ at every point of continuity. At a jump discontinuity $t_0$, it converges to the average: $\\frac12[f(t_0^+)+f(t_0^-)]$.`},
+      {n:5, text:`<strong>Complex form:</strong> using $e^{int}=\\cos(nt)+i\\sin(nt)$ the series becomes $f(t)=\\sum_{n=-\\infty}^\\infty c_n e^{int}$ with $c_n=\\frac{1}{2\\pi}\\int_{-\\pi}^\\pi f(t)e^{-int}dt$. This is the form that generalises to the Fourier <em>transform</em> for non-periodic functions.`}
+    ]
+  },
+  'parseval': {
+    title: "Parseval's Theorem",
+    sub: 'Energy is preserved between time and frequency domains',
+    ref: 'Road to Reality §9.5 · Parseval 1799',
+    steps: [
+      {n:1, text:`<strong>Statement:</strong> For a function $f$ with Fourier coefficients $c_n$: $$\\frac{1}{2\\pi}\\int_{-\\pi}^\\pi|f(t)|^2\\,dt = \\sum_{n=-\\infty}^\\infty|c_n|^2$$`},
+      {n:2, text:`<strong>Proof:</strong> Expand $|f|^2=f\\cdot\\bar f$ using the Fourier series: $$\\frac{1}{2\\pi}\\int|f|^2\\,dt=\\frac{1}{2\\pi}\\int\\!\\left(\\sum_m c_m e^{imt}\\right)\\!\\overline{\\left(\\sum_n c_n e^{int}\\right)}dt=\\sum_m\\sum_n c_m\\bar c_n\\cdot\\frac{1}{2\\pi}\\int e^{i(m-n)t}dt$$`},
+      {n:3, text:`By orthogonality, $\\frac{1}{2\\pi}\\int e^{i(m-n)t}dt=\\delta_{mn}$ (1 if $m=n$, else 0). All cross terms vanish: $$\\frac{1}{2\\pi}\\int|f|^2\\,dt=\\sum_n c_n\\bar c_n=\\sum_n|c_n|^2$$`},
+      {n:4, text:`<strong>Physical meaning:</strong> $|c_n|^2$ is the <em>power</em> (energy per period) at frequency $n$. The total power is conserved — passing a signal through a Fourier decomposition loses nothing. Signal processing uses this to measure signal quality and filter noise.`},
+      {n:5, text:`<strong>Generalisation:</strong> Parseval's theorem generalises to the Fourier transform as <em>Plancherel's theorem</em>: $\\int|f(t)|^2dt=\\int|\\hat f(\\omega)|^2d\\omega$. In quantum mechanics this is the statement that probability is conserved.`}
+    ]
+  },
+  'gibbs': {
+    title: 'The Gibbs Phenomenon',
+    sub: 'Why partial sums always overshoot by ~9% near jump discontinuities',
+    ref: 'Road to Reality §9.2 · Wilbraham 1848, Gibbs 1899',
+    steps: [
+      {n:1, text:`The <strong>partial sum</strong> $S_N(t)=\\sum_{n=-N}^N c_n e^{int}$ of a function with a jump discontinuity at $t=0$ can be written as the convolution $S_N(t)=\\frac{1}{2\\pi}\\int f(s)D_N(t-s)ds$ where $D_N(t)=\\frac{\\sin((N+\\frac12)t)}{\\sin(t/2)}$ is the <em>Dirichlet kernel</em>.`},
+      {n:2, text:`For the square wave (jump from $-1$ to $+1$ at $t=0$), the partial sum near $t=0$ is: $$S_N(\\varepsilon)\\approx\\frac{2}{\\pi}\\int_0^{(2N+1)\\varepsilon}\\frac{\\sin u}{u}du$$`},
+      {n:3, text:`As $N\\to\\infty$, the maximum of $S_N$ approaches: $$\\frac{2}{\\pi}\\int_0^\\pi\\frac{\\sin u}{u}du=\\frac{2}{\\pi}\\cdot\\mathrm{Si}(\\pi)\\approx\\frac{2}{\\pi}\\cdot1.8519\\approx1.1790$$ The overshoot is $\\approx 17.9\\%$ of the jump magnitude $= 9\\%$ of the full amplitude.`},
+      {n:4, text:`<strong>The key insight:</strong> the overshoot does <em>not</em> decrease as $N\\to\\infty$ — it stays fixed at $\\approx9\\%$ while the spike gets narrower. No finite Fourier series can represent a discontinuity perfectly.`},
+      {n:5, text:`<strong>Implications:</strong> In signal processing, the Gibbs phenomenon causes ringing artefacts near sharp edges (visible in JPEG compression). To suppress it, engineers use <em>windowing functions</em> (Hanning, Blackman, etc.) which taper the coefficients and trade off sharpness for smoothness.`}
+    ]
+  },
+  'epicycles': {
+    title: 'Epicycles and the Fourier Connection',
+    sub: 'Ptolemy\'s astronomy = complex Fourier series',
+    ref: 'Road to Reality §9.2 · Ptolemy 150 AD ↔ Fourier 1822',
+    steps: [
+      {n:1, text:`Ptolemy (~150 AD) modelled planetary motion using <strong>epicycles</strong>: a planet moves in a circle whose centre itself moves in a circle, which moves in another circle... Each circle has a radius $r_k$, angular speed $\\omega_k$, and initial phase $\\phi_k$.`},
+      {n:2, text:`The planet's position as a complex number is: $$z(t)=\\sum_k r_k\\,e^{i(\\omega_k t+\\phi_k)}$$ This is exactly a <strong>trigonometric polynomial</strong> — a finite complex Fourier series! Ptolemy was computing Fourier series without knowing it.`},
+      {n:3, text:`Conversely, <em>any</em> closed periodic curve $z(t)$ can be decomposed (via DFT) into such a sum: $$z(t)=\\sum_{k=0}^{N-1}C_k\\,e^{2\\pi ikt/N},\\quad C_k=\\frac{1}{N}\\sum_{n=0}^{N-1}z(t_n)\\,e^{-2\\pi ikn/N}$$ Each term is a circle of radius $|C_k|$ spinning at frequency $k$.`},
+      {n:4, text:`<strong>Visual interpretation:</strong> the epicycles are stacked from largest radius to smallest. The tip of the chain traces the path. Adding more epicycles (higher frequencies) adds finer detail, exactly as Fourier terms add higher harmonics.`},
+      {n:5, text:`<strong>Deep connection:</strong> Penrose uses this to motivate the Fourier transform as a change of basis in function space — from the "time basis" $\\delta(t-t_0)$ (sharp events) to the "frequency basis" $e^{i\\omega t}$ (pure tones). The DFT epicycles make this geometry tangible.`}
+    ]
+  },
+  'dft': {
+    title: 'The Discrete Fourier Transform (DFT)',
+    sub: 'Turning N sample points into N frequency components',
+    ref: 'Road to Reality §9.3',
+    steps: [
+      {n:1, text:`Given $N$ samples $z_0,z_1,\\ldots,z_{N-1}$ (complex numbers representing a path), the DFT computes: $$C_k=\\frac{1}{N}\\sum_{n=0}^{N-1}z_n\\,e^{-2\\pi ikn/N},\\quad k=0,1,\\ldots,N-1$$`},
+      {n:2, text:`Think of the $N$-th roots of unity $\\omega_N=e^{2\\pi i/N}$. The matrix $[\\omega_N^{-kn}]_{k,n}$ is unitary (up to $\\sqrt{N}$), so the DFT is an <em>orthogonal change of basis</em> in $\\mathbb C^N$ from the "sample basis" to the "frequency basis".`},
+      {n:3, text:`The inverse DFT reconstructs the original samples: $$z_n=\\sum_{k=0}^{N-1}C_k\\,e^{2\\pi ikn/N}$$ Each term $C_k e^{2\\pi ikn/N}$ is a circle of radius $|C_k|$ and frequency $k$ — one epicycle.`},
+      {n:4, text:`<strong>Complexity:</strong> the naïve DFT costs $O(N^2)$ multiplications. The <strong>Fast Fourier Transform</strong> (Cooley–Tukey, 1965) reduces this to $O(N\\log N)$ by exploiting the recursive structure of the roots of unity. For $N=10^6$: FFT needs $\\sim20\\times10^6$ operations vs. $\\sim10^{12}$ for the naïve DFT.`},
+      {n:5, text:`<strong>Parseval for the DFT:</strong> $\\sum_n|z_n|^2=N\\sum_k|C_k|^2$. Energy is conserved: the total squared amplitude of the path equals (scaled) total squared amplitude of the spectral components.`}
+    ]
+  },
+  'uncertainty': {
+    title: 'The Heisenberg Uncertainty Principle',
+    sub: 'A fundamental consequence of Fourier analysis, not quantum weirdness alone',
+    ref: 'Road to Reality §21.11 · Heisenberg 1927 · Born 1926',
+    steps: [
+      {n:1, text:`Define the <strong>standard deviation</strong> of a function: $\\Delta x = \\sqrt{\\langle x^2\\rangle - \\langle x\\rangle^2}$ where $\\langle x^n\\rangle = \\int x^n|f(x)|^2\\,dx/\\int|f|^2\\,dx$. Similarly $\\Delta\\xi$ is the standard deviation of $|\\hat f(\\xi)|^2$.`},
+      {n:2, text:`<strong>The inequality:</strong> For any square-integrable function $f$: $$\\Delta x \\cdot \\Delta\\xi \\geq \\frac{1}{4\\pi}$$ This is a theorem about Fourier transforms — not yet quantum mechanics.`},
+      {n:3, text:`<strong>Proof sketch:</strong> Apply the Cauchy-Schwarz inequality to $\\int x|f|^2\\,dx$ and $\\int |f'|^2\\,dx$, combined with Parseval: $\\int|\\hat f'|^2 = (2\\pi\\xi)^2|\\hat f|^2$. The product $\\Delta x\\cdot\\Delta\\xi$ is minimised by the Gaussian: $e^{-\\pi x^2}$.`},
+      {n:4, text:`<strong>Quantum mechanics:</strong> In QM, the wavefunction $\\psi(x)$ lives in $L^2(\\mathbb{R})$, and $\\tilde\\psi(p) = \\hat\\psi(p/\\hbar)/\\sqrt{2\\pi\\hbar}$ is the momentum-space wavefunction. The uncertainty becomes: $$\\Delta x\\cdot\\Delta p\\geq\\frac\\hbar2$$ since $p=\\hbar\\xi\\cdot2\\pi$.`},
+      {n:5, text:`<strong>Minimum uncertainty states:</strong> The Gaussian wavepacket $\\psi(x)=e^{-x^2/4\\sigma^2}e^{ip_0x/\\hbar}$ achieves equality $\\Delta x\\cdot\\Delta p=\\hbar/2$. Laser coherent states and squeezed states are minimum uncertainty states — used in LIGO to beat the standard quantum limit.`}
+    ]
+  },
+  'fft': {
+    title: 'The Cooley-Tukey Fast Fourier Transform',
+    sub: 'Reducing O(N²) to O(N log N) via divide-and-conquer',
+    ref: 'Cooley & Tukey 1965 · Road to Reality §9.3',
+    steps: [
+      {n:1, text:`The DFT matrix $F_N$ has entries $[F_N]_{kn}=\\omega_N^{kn}$ where $\\omega_N=e^{-2\\pi i/N}$. Computing $F_N\\mathbf{x}$ naïvely requires $N^2$ multiplications and additions: $O(N^2)$.`},
+      {n:2, text:`<strong>Key observation:</strong> split the DFT into even/odd indices: $$X[k]=\\underbrace{\\sum_{n\\text{ even}}x[n]\\omega_N^{kn}}_{\\text{DFT}_{N/2}\\text{ of even samples}}+\\omega_N^k\\underbrace{\\sum_{n\\text{ odd}}x[n]\\omega_N^{kn}}_{\\text{DFT}_{N/2}\\text{ of odd samples}}$$`},
+      {n:3, text:`This gives the <strong>butterfly relation</strong>: $$X[k]=E[k]+\\omega_N^k O[k]$$ $$X[k+N/2]=E[k]-\\omega_N^k O[k]$$ where $E[k]$, $O[k]$ are DFTs of the even/odd halves. The factor $\\omega_N^k$ is the <em>twiddle factor</em>.`},
+      {n:4, text:`Recursing $\\log_2 N$ times: $T(N)=2T(N/2)+O(N)$, so $T(N)=O(N\\log_2 N)$. For $N=1024$: 1,024,000 operations vs. 1,048,576 — a 1000× speedup!`},
+      {n:5, text:`<strong>Impact:</strong> Cooley &amp; Tukey's 1965 algorithm enabled digital signal processing, MRI scanners, digital audio/video, radar, seismology, and OFDM communications (WiFi, 4G/5G). It is often called the most important numerical algorithm ever discovered.`}
+    ]
+  },
+  'wavelets': {
+    title: 'Wavelet Transforms and Time-Frequency Localization',
+    sub: 'Beyond Fourier: knowing when and what frequency simultaneously',
+    ref: 'Grossmann & Morlet 1984 · Daubechies 1988 · LIGO Scientific Collaboration',
+    steps: [
+      {n:1, text:`The <strong>short-time Fourier transform</strong> (STFT) windowed Fourier analysis gives some time-frequency resolution, but the Heisenberg-Gabor limit means you cannot simultaneously resolve sharp time and sharp frequency features.`},
+      {n:2, text:`<strong>Wavelets</strong> solve this by using a mother wavelet $\\psi$ and its dilations/translations: $$W_f(a,b)=\\frac{1}{\\sqrt{a}}\\int f(t)\\overline{\\psi\\!\\left(\\frac{t-b}{a}\\right)}dt$$ where $a>0$ is scale (inversely related to frequency) and $b$ is translation in time.`},
+      {n:3, text:`The <strong>Mexican hat wavelet</strong> $\\psi(t)=(1-t^2)e^{-t^2/2}$ is the second derivative of a Gaussian. Its Fourier transform is $\\hat\\psi(\\xi)\\propto\\xi^2 e^{-\\xi^2/2}$, peaking at $\\xi=\\sqrt{2}$. Small $a$: high frequency, short time window; large $a$: low frequency, long time window.`},
+      {n:4, text:`<strong>Gibbs vs. wavelets:</strong> For a signal with a sharp discontinuity, the Fourier transform shows ringing (Gibbs phenomenon) throughout the signal. The wavelet transform localises the discontinuity to a single point in the $(a,b)$ plane — large coefficients only near the jump.`},
+      {n:5, text:`<strong>Physical applications:</strong> LIGO uses wavelet-domain matched filtering to detect chirp signals from merging black holes. JPEG2000 uses the biorthogonal 9/7 wavelet instead of DCT. The renormalization group in QFT can be interpreted as a wavelet transform in theory space (Wilson 1971, Kondo 1997).`}
+    ]
+  }
+};
+
+function showProof(key) {
+  const p = PROOFS[key]; if (!p) return;
+  document.getElementById('pp-title').textContent = p.title;
+  document.getElementById('pp-sub').textContent = p.sub;
+  document.getElementById('pp-ref').textContent = '📖 ' + p.ref;
+  const el = document.getElementById('pp-steps');
+  el.innerHTML = p.steps.map(s =>
+    `<div class="pp-step"><div class="pp-num">${s.n}</div><div class="pp-text">${s.text}</div></div>`
+  ).join('');
+  document.getElementById('proof-panel').classList.add('open');
+  if (window.renderMathInElement)
+    renderMathInElement(el, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+function closeProof() { document.getElementById('proof-panel').classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════
+//  TAB: UNCERTAINTY PRINCIPLE
+// ══════════════════════════════════════════════════════
+const UNCSTATE = {
+  sigma: 1.0,
+  mode: 'gaussian',
+  animating: true,
+  t: 0,
+  chirpPhase: 0,
+  rafId: null,
+};
+
+function setUncSigma(v) {
+  UNCSTATE.sigma = v;
+  document.getElementById('unc-sigma-disp').textContent = v.toFixed(2);
+  renderUnc();
+}
+
+function setUncMode(mode, btn) {
+  UNCSTATE.mode = mode;
+  document.querySelectorAll('#panel-uncertainty .btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if (UNCSTATE.animating) document.getElementById('unc-play-btn').classList.add('active');
+  renderUnc();
+}
+
+function toggleUncAnim(btn) {
+  UNCSTATE.animating = !UNCSTATE.animating;
+  btn.textContent = UNCSTATE.animating ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('active', UNCSTATE.animating);
+  if (UNCSTATE.animating) animateUnc();
+}
+
+function resetUncAnim() {
+  UNCSTATE.t = 0;
+  UNCSTATE.chirpPhase = 0;
+  renderUnc();
+}
+
+function animateUnc() {
+  if (!UNCSTATE.animating) { UNCSTATE.rafId = null; return; }
+  var spd = window.animSpeed || 1;
+  UNCSTATE.t += 0.016 * spd;
+  UNCSTATE.chirpPhase += 0.03 * spd;
+  renderUnc();
+  UNCSTATE.rafId = requestAnimationFrame(animateUnc);
+}
+
+function renderUnc() {
+  var c = document.getElementById('cunc');
+  if (!c.width) return;
+  resizeCanvas(c);
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  var sig = UNCSTATE.sigma;
+  var halfH = Math.floor(H / 2);
+  var padX = 50, padY = 20;
+  var plotW = W - padX * 2;
+  var plotH = halfH - padY * 2 - 10;
+
+  var topCY = padY + Math.floor(plotH / 2);
+  var topAmp = plotH * 0.45;
+
+  ctx.strokeStyle = 'rgba(120,120,200,.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, topCY); ctx.lineTo(padX + plotW, topCY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padX, padY); ctx.lineTo(padX, padY + plotH); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(0,229,255,.8)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('f(x) — position space', padX + 6, padY + 14);
+
+  if (UNCSTATE.mode === 'gaussian') {
+    var phase = UNCSTATE.chirpPhase;
+
+    ctx.beginPath();
+    for (var px = 0; px <= plotW; px++) {
+      var x = (px / plotW - 0.5) * 8;
+      var env = Math.exp(-x * x / (2 * sig * sig));
+      var carrier = Math.cos(3 * x - phase * 2);
+      var y = env * (0.65 + 0.35 * carrier);
+      var py = topCY - y * topAmp;
+      if (px === 0) ctx.moveTo(padX + px, py); else ctx.lineTo(padX + px, py);
+    }
+    ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5; ctx.stroke();
+
+    ctx.beginPath();
+    for (var pxE = 0; pxE <= plotW; pxE++) {
+      var xE = (pxE / plotW - 0.5) * 8;
+      var yE = Math.exp(-xE * xE / (2 * sig * sig));
+      var pyE = topCY - yE * topAmp;
+      if (pxE === 0) ctx.moveTo(padX + pxE, pyE); else ctx.lineTo(padX + pxE, pyE);
+    }
+    ctx.strokeStyle = 'rgba(0,229,255,.35)'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+
+    var sigPx = sig / 8 * plotW;
+    var cx0 = padX + Math.floor(plotW / 2);
+    ctx.strokeStyle = 'rgba(0,229,255,.35)'; ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(cx0 + sigPx, padY); ctx.lineTo(cx0 + sigPx, padY + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx0 - sigPx, padY); ctx.lineTo(cx0 - sigPx, padY + plotH); ctx.stroke();
+    ctx.setLineDash([]);
+
+    var alphaGrad = ctx.createLinearGradient(cx0 - sigPx, topCY, cx0 + sigPx, topCY);
+    alphaGrad.addColorStop(0, 'rgba(0,229,255,0)');
+    alphaGrad.addColorStop(0.5, 'rgba(0,229,255,0.08)');
+    alphaGrad.addColorStop(1, 'rgba(0,229,255,0)');
+    ctx.fillStyle = alphaGrad;
+    ctx.fillRect(cx0 - sigPx, topCY - topAmp, sigPx * 2, topAmp);
+
+    ctx.fillStyle = 'rgba(0,229,255,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('\u03c3', cx0 + sigPx / 2, topCY - topAmp * 0.55);
+  } else {
+    var beta = 0.3;
+    var phase2 = UNCSTATE.chirpPhase;
+    ctx.beginPath();
+    for (var px2 = 0; px2 <= plotW; px2++) {
+      var xc = (px2 / plotW - 0.5) * 8;
+      var env = Math.exp(-xc * xc / (2 * sig * sig));
+      var yc = env * Math.cos(2 * Math.PI * beta * xc * xc + phase2);
+      var pyc = topCY - yc * topAmp;
+      if (px2 === 0) ctx.moveTo(padX + px2, pyc); else ctx.lineTo(padX + px2, pyc);
+    }
+    ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath();
+    for (var px3 = 0; px3 <= plotW; px3++) {
+      var xe = (px3 / plotW - 0.5) * 8;
+      var ye = Math.exp(-xe * xe / (2 * sig * sig));
+      var pye = topCY - ye * topAmp;
+      if (px3 === 0) ctx.moveTo(padX + px3, pye); else ctx.lineTo(padX + px3, pye);
+    }
+    ctx.strokeStyle = 'rgba(0,229,255,.3)'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  var botCY = halfH + padY + Math.floor(plotH / 2);
+  var botAmp = plotH * 0.45;
+
+  ctx.strokeStyle = 'rgba(120,120,200,.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, botCY); ctx.lineTo(padX + plotW, botCY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(padX, halfH + padY); ctx.lineTo(padX, halfH + padY + plotH); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,215,0,.8)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('f\u0302(\u03be) — frequency space', padX + 6, halfH + padY + 14);
+
+  if (UNCSTATE.mode === 'gaussian') {
+    var ftSig = 1 / (2 * Math.PI * sig);
+    var phase3 = UNCSTATE.chirpPhase;
+
+    ctx.beginPath();
+    for (var pf = 0; pf <= plotW; pf++) {
+      var xi = (pf / plotW - 0.5) * 8;
+      var envFt = Math.exp(-2 * Math.PI * Math.PI * sig * sig * xi * xi);
+      var carrierFt = Math.cos(3 * xi + phase3 * 2);
+      var yf = envFt * (0.65 + 0.35 * carrierFt);
+      var pyf = botCY - yf * botAmp;
+      if (pf === 0) ctx.moveTo(padX + pf, pyf); else ctx.lineTo(padX + pf, pyf);
+    }
+    ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2.5; ctx.stroke();
+
+    ctx.beginPath();
+    for (var pfE = 0; pfE <= plotW; pfE++) {
+      var xiE = (pfE / plotW - 0.5) * 8;
+      var yfE = Math.exp(-2 * Math.PI * Math.PI * sig * sig * xiE * xiE);
+      var pyfE = botCY - yfE * botAmp;
+      if (pfE === 0) ctx.moveTo(padX + pfE, pyfE); else ctx.lineTo(padX + pfE, pyfE);
+    }
+    ctx.strokeStyle = 'rgba(255,215,0,.35)'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+
+    var sigF = 1 / (2 * Math.PI * sig);
+    var sigFpx = sigF / 8 * plotW;
+    var bx0 = padX + Math.floor(plotW / 2);
+    ctx.strokeStyle = 'rgba(255,215,0,.35)'; ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(bx0 + sigFpx, halfH + padY); ctx.lineTo(bx0 + sigFpx, halfH + padY + plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx0 - sigFpx, halfH + padY); ctx.lineTo(bx0 - sigFpx, halfH + padY + plotH); ctx.stroke();
+    ctx.setLineDash([]);
+
+    var alphaGrad2 = ctx.createLinearGradient(bx0 - sigFpx, botCY, bx0 + sigFpx, botCY);
+    alphaGrad2.addColorStop(0, 'rgba(255,215,0,0)');
+    alphaGrad2.addColorStop(0.5, 'rgba(255,215,0,0.08)');
+    alphaGrad2.addColorStop(1, 'rgba(255,215,0,0)');
+    ctx.fillStyle = alphaGrad2;
+    ctx.fillRect(bx0 - sigFpx, botCY - botAmp, sigFpx * 2, botAmp);
+
+    ctx.fillStyle = 'rgba(255,215,0,.7)'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('1/2\u03c0\u03c3', bx0 + sigFpx / 2, botCY - botAmp * 0.55);
+  } else {
+    var beta2 = 0.3;
+    ctx.beginPath();
+    for (var pg = 0; pg <= plotW; pg++) {
+      var xig = (pg / plotW - 0.5) * 8;
+      var envg = Math.exp(-xig * xig / (8 * beta2 * beta2 + 1 / (sig * sig)));
+      var yg = envg * Math.cos(Math.PI * xig * xig / (4 * beta2) - UNCSTATE.chirpPhase * 0.5);
+      var pyg = botCY - yg * botAmp;
+      if (pg === 0) ctx.moveTo(padX + pg, pyg); else ctx.lineTo(padX + pg, pyg);
+    }
+    ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(80,80,150,.25)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, halfH); ctx.lineTo(padX + plotW, halfH); ctx.stroke();
+
+  var dx = sig;
+  var dxi = 1 / (2 * Math.PI * sig);
+  var prod = dx * dxi;
+  document.getElementById('unc-dx').textContent = dx.toFixed(3);
+  document.getElementById('unc-dxi').textContent = dxi.toFixed(3);
+  document.getElementById('unc-prod').textContent = prod.toFixed(4);
+
+  var uncBarX = padX;
+  var uncBarY = H - 42;
+  var uncBarW = plotW;
+  var uncBarH = 6;
+  var fillFrac = Math.min(1, prod / (1 / (4 * Math.PI)));
+  ctx.fillStyle = 'rgba(80,80,150,.3)';
+  ctx.fillRect(uncBarX, uncBarY, uncBarW, uncBarH);
+  var hueBar = fillFrac < 0.8 ? 120 : fillFrac < 1.0 ? 60 : 0;
+  ctx.fillStyle = 'hsla(' + hueBar + ',80%,55%,.7)';
+  ctx.fillRect(uncBarX, uncBarY, uncBarW * fillFrac, uncBarH);
+  ctx.strokeStyle = 'rgba(120,120,200,.3)'; ctx.lineWidth = 1;
+  ctx.strokeRect(uncBarX, uncBarY, uncBarW, uncBarH);
+  var boundX = uncBarX + uncBarW * (1 / (4 * Math.PI)) / (1 / (4 * Math.PI));
+  ctx.strokeStyle = 'rgba(255,68,255,.6)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(boundX, uncBarY - 3); ctx.lineTo(boundX, uncBarY + uncBarH + 3); ctx.stroke();
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('\u0394x\u00b7\u0394\u03be = ' + prod.toFixed(4) + '  (bound: 1/4\u03c0 \u2248 0.0796)', padX + plotW / 2, uncBarY - 6);
+}
+
+function initUnc() {
+  resizeCanvas(document.getElementById('cunc'));
+  if (UNCSTATE.animating) animateUnc();
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB: FFT BUTTERFLY
+// ══════════════════════════════════════════════════════
+var FFTSTATE = {
+  signal: 'impulse',
+  animating: true,
+  speed: 3,
+  tick: 0,
+  inputs: [0,0,0,0,0,0,0,0],
+  stages: [],
+  rafId: null,
+};
+
+var TAU = 2 * Math.PI;
+
+function fftComplexMul(ar, ai, br, bi) { return [ar*br - ai*bi, ar*bi + ai*br]; }
+
+function computeFFT8(x) {
+  var N = 8;
+  var perm = [0,4,2,6,1,5,3,7];
+  var re = perm.map(function(i){ return x[i]; });
+  var im = [0,0,0,0,0,0,0,0];
+  var allStages = [re.map(function(v,i){ return {r:v, i:im[i]}; })];
+  for (var s = 1; s <= 3; s++) {
+    var m = 1 << s;
+    var half = m >> 1;
+    var re2 = re.slice(), im2 = im.slice();
+    for (var k = 0; k < N; k += m) {
+      for (var j = 0; j < half; j++) {
+        var angle = -TAU * j / m;
+        var wr = Math.cos(angle), wi = Math.sin(angle);
+        var t2 = fftComplexMul(wr, wi, re2[k+j+half], im2[k+j+half]);
+        re[k+j]      = re2[k+j] + t2[0];
+        im[k+j]      = im2[k+j] + t2[1];
+        re[k+j+half] = re2[k+j] - t2[0];
+        im[k+j+half] = im2[k+j] - t2[1];
+      }
+    }
+    allStages.push(re.map(function(v,i){ return {r:v, i:im[i]}; }));
+  }
+  return allStages;
+}
+
+function setFFTSignal(sig, btn) {
+  FFTSTATE.signal = sig;
+  document.querySelectorAll('#panel-fft .btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if (FFTSTATE.animating) document.getElementById('fft-play-btn').classList.add('active');
+  buildFFT();
+  FFTSTATE.tick = 0;
+  renderFFT();
+}
+
+function buildFFT() {
+  var sig = FFTSTATE.signal;
+  var x = [0,0,0,0,0,0,0,0];
+  if (sig === 'impulse') { x[0] = 1; }
+  else if (sig === 'sine') { for (var i=0;i<8;i++) x[i] = Math.sin(TAU*i/8); }
+  else if (sig === 'square') { for (var i=0;i<8;i++) x[i] = i<4?1:-1; }
+  else { for (var i=0;i<8;i++) x[i] = (Math.random()-0.5)*2; }
+  FFTSTATE.inputs = x;
+  FFTSTATE.stages = computeFFT8(x);
+}
+
+function toggleFFTAnim(btn) {
+  FFTSTATE.animating = !FFTSTATE.animating;
+  btn.textContent = FFTSTATE.animating ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('active', FFTSTATE.animating);
+  if (FFTSTATE.animating) animateFFT();
+}
+
+function resetFFTAnim() {
+  FFTSTATE.tick = 0;
+  buildFFT();
+  renderFFT();
+}
+
+function animateFFT() {
+  if (!FFTSTATE.animating) { FFTSTATE.rafId = null; return; }
+  FFTSTATE.tick += 0.5 * (window.animSpeed||0.1);
+  renderFFT();
+  FFTSTATE.rafId = requestAnimationFrame(animateFFT);
+}
+
+function renderFFT() {
+  var c = document.getElementById('cfft');
+  if (!c.width) return;
+  resizeCanvas(c);
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  if (!FFTSTATE.stages.length) buildFFT();
+
+  var N = 8, nStages = 4;
+  var padX = 55, padY = 30;
+  var plotW = W - padX * 2;
+  var plotH = H - padY * 2 - 80;
+  var colW = plotW / (nStages - 1);
+  var rowH = plotH / (N - 1);
+
+  function nodeX(s) { return padX + s * colW; }
+  function nodeY(i) { return padY + i * rowH; }
+
+  var animStage = (FFTSTATE.tick / 40) % nStages;
+  var stageNames = ['Input\n(bit-rev)', 'Stage 1\n(2-pt)', 'Stage 2\n(4-pt)', 'Output\n(FFT)'];
+
+  ctx.font = '12px monospace'; ctx.textAlign = 'center';
+  for (var s = 0; s < nStages; s++) {
+    ctx.fillStyle = s === Math.floor(animStage) ? '#ff8844' : 'rgba(85,85,138,.7)';
+    var lines = stageNames[s].split('\n');
+    ctx.fillText(lines[0], nodeX(s), padY - 16);
+    ctx.fillText(lines[1], nodeX(s), padY - 4);
+  }
+
+  for (var s2 = 1; s2 < nStages; s2++) {
+    var m2 = 1 << s2;
+    var half2 = m2 >> 1;
+    for (var k2 = 0; k2 < N; k2 += m2) {
+      for (var j2 = 0; j2 < half2; j2++) {
+        var topIn = k2 + j2, botIn = k2 + j2 + half2;
+        var topOut = k2 + j2, botOut = k2 + j2 + half2;
+        var stageFrac = Math.min(1, Math.max(0, animStage - (s2-1)));
+        var isActive = Math.floor(animStage) === s2;
+        var lineAlpha = isActive ? 0.7 : 0.12 + 0.5 * stageFrac;
+
+        ctx.beginPath();
+        ctx.moveTo(nodeX(s2-1), nodeY(topIn));
+        ctx.lineTo(nodeX(s2), nodeY(topOut));
+        ctx.strokeStyle = 'rgba(0,229,255,' + (lineAlpha * 0.6) + ')';
+        ctx.lineWidth = isActive ? 1.5 : 0.8; ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(nodeX(s2-1), nodeY(botIn));
+        ctx.lineTo(nodeX(s2), nodeY(topOut));
+        ctx.strokeStyle = 'rgba(255,136,68,' + lineAlpha + ')';
+        ctx.lineWidth = isActive ? 1.5 : 0.8; ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(nodeX(s2-1), nodeY(topIn));
+        ctx.lineTo(nodeX(s2), nodeY(botOut));
+        ctx.strokeStyle = 'rgba(255,136,68,' + (lineAlpha * 0.6) + ')';
+        ctx.lineWidth = isActive ? 1.5 : 0.8; ctx.stroke();
+      }
+    }
+  }
+
+  for (var sn = 0; sn < nStages; sn++) {
+    var stageData = FFTSTATE.stages[sn];
+    for (var ni = 0; ni < N; ni++) {
+      var nx = nodeX(sn), ny = nodeY(ni);
+      var val = stageData ? stageData[ni] : {r: FFTSTATE.inputs[ni], i: 0};
+      var mag = Math.sqrt(val.r*val.r + val.i*val.i);
+      var phase = Math.atan2(val.i, val.r);
+      var hue = ((phase + Math.PI) / (2*Math.PI)) * 360;
+      var nr = 4 + Math.min(10, mag / N * 12);
+      var isCS = Math.floor(animStage) === sn;
+      ctx.beginPath(); ctx.arc(nx, ny, nr, 0, TAU);
+      ctx.fillStyle = 'hsla(' + hue + ',' + (isCS?90:70) + '%,' + (isCS?65:50) + '%,' + (isCS?1:0.7) + ')';
+      ctx.fill();
+      ctx.strokeStyle = isCS ? '#ff8844' : 'rgba(120,120,200,.4)';
+      ctx.lineWidth = isCS ? 2 : 1; ctx.stroke();
+      ctx.fillStyle = isCS ? 'rgba(255,255,255,.9)' : 'rgba(120,120,160,.6)';
+      ctx.font = '12px monospace'; ctx.textAlign = 'right';
+      ctx.fillText(mag.toFixed(2), nx - nr - 3, ny + 3);
+    }
+  }
+
+  var barY = padY + plotH + 45;
+  var barH = 30;
+  var barW2 = Math.min(30, plotW / N * 0.6);
+  var outputData = FFTSTATE.stages[3] || [];
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('Input signal x[n]', padX + plotW * 0.25, barY - 5);
+  ctx.fillText('|FFT output X[k]|', padX + plotW * 0.75, barY - 5);
+  for (var bi2 = 0; bi2 < N; bi2++) {
+    var bx = padX + bi2 * (plotW * 0.5 / N) + plotW * 0.02;
+    var hv = Math.abs(FFTSTATE.inputs[bi2]);
+    var hh = hv * barH;
+    ctx.fillStyle = 'hsla(' + (bi2*40+30) + ',70%,55%,.85)';
+    ctx.fillRect(bx - barW2/2, barY - hh, barW2, hh);
+    ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace';
+    ctx.fillText('x['+bi2+']', bx, barY + 10);
+
+    var bx2b = padX + plotW * 0.5 + bi2 * (plotW * 0.5 / N) + plotW * 0.02;
+    var mag2 = outputData[bi2] ? Math.sqrt(outputData[bi2].r*outputData[bi2].r + outputData[bi2].i*outputData[bi2].i) : 0;
+    var hh2 = mag2 / N * barH * 2;
+    ctx.fillStyle = 'hsla(' + (bi2*40+30) + ',80%,60%,.9)';
+    ctx.fillRect(bx2b - barW2/2, barY - hh2, barW2, hh2);
+    ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace';
+    ctx.fillText('X['+bi2+']', bx2b, barY + 10);
+  }
+
+  document.getElementById('fft-stage-disp').textContent = Math.floor(animStage) >= 3 ? 'Output' : 'Stage ' + Math.floor(animStage);
+  document.getElementById('fft-but-disp').textContent = Math.floor(FFTSTATE.tick * 0.5 % 8);
+}
+
+function initFFT() {
+  buildFFT();
+  resizeCanvas(document.getElementById('cfft'));
+  animateFFT();
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB: FOURIER IN PHYSICS
+// ══════════════════════════════════════════════════════
+var PHYSSTATE = {
+  mode: 'heat',
+  t: 0,
+  speed: 0.5,
+  animating: true,
+  rafId: null,
+  pauseFrames: 0,
+};
+
+function setPhysMode(mode, btn) {
+  PHYSSTATE.mode = mode;
+  PHYSSTATE.t = 0;
+  PHYSSTATE.pauseFrames = 0;
+  document.querySelectorAll('#panel-physics .btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  if (PHYSSTATE.animating) document.getElementById('phys-play-btn').classList.add('active');
+  // Show/hide pre-defined equation divs
+  ['heat','wave','qm'].forEach(function(m) {
+    var el = document.getElementById('phys-eq-' + m);
+    if (el) el.style.display = m === mode ? '' : 'none';
+  });
+  var titles = {heat:'Heat Equation', wave:'Wave Equation', qm:'Schr\u00f6dinger Equation'};
+  document.getElementById('phys-eq-title').textContent = titles[mode] || mode;
+  renderPhys();
+}
+
+function togglePhysAnim(btn) {
+  PHYSSTATE.animating = !PHYSSTATE.animating;
+  btn.textContent = PHYSSTATE.animating ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('active', PHYSSTATE.animating);
+  if (PHYSSTATE.animating) animatePhys();
+}
+
+function resetPhysAnim() { PHYSSTATE.t = 0; PHYSSTATE.pauseFrames = 0; renderPhys(); }
+
+function animatePhys() {
+  if (!PHYSSTATE.animating) { PHYSSTATE.rafId = null; return; }
+  if (PHYSSTATE.pauseFrames > 0) {
+    PHYSSTATE.pauseFrames--;
+    PHYSSTATE.rafId = requestAnimationFrame(animatePhys);
+    return;
+  }
+  PHYSSTATE.t += 0.016 * (window.animSpeed||0.1);
+  var needsReset = false;
+  if (PHYSSTATE.mode === 'heat' && PHYSSTATE.t > 20) needsReset = true;
+  if (PHYSSTATE.mode === 'wave' && PHYSSTATE.t > 20) needsReset = true;
+  if (PHYSSTATE.mode === 'qm' && PHYSSTATE.t > 20) needsReset = true;
+  if (needsReset) {
+    PHYSSTATE.t = 0;
+    PHYSSTATE.pauseFrames = 60;
+  }
+  renderPhys();
+  PHYSSTATE.rafId = requestAnimationFrame(animatePhys);
+}
+
+function renderPhys() {
+  var c = document.getElementById('cphys');
+  if (!c.width) return;
+  resizeCanvas(c);
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+  var padX = 50, padY = 30;
+  var plotW = W - padX * 2;
+  if (PHYSSTATE.mode === 'heat') renderHeat(ctx, W, H, padX, padY, plotW);
+  else if (PHYSSTATE.mode === 'wave') renderWaveEq(ctx, W, H, padX, padY, plotW);
+  else renderQM(ctx, W, H, padX, padY, plotW);
+}
+
+function getSquareWaveCoeffs(M) {
+  var coeffs = [];
+  for (var k = 1; k <= M; k += 2) coeffs.push({k: k, b: 4 / (k * Math.PI)});
+  return coeffs;
+}
+
+function renderHeat(ctx, W, H, padX, padY, plotW) {
+  var halfH = Math.floor(H / 2);
+  var plotH = halfH - padY - 20;
+  var alpha = 0.3;
+  var t = PHYSSTATE.t;
+  var nModes = 9;
+  var topCY = padY + Math.floor(plotH / 2);
+  var topAmp = plotH * 0.42;
+
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, topCY); ctx.lineTo(padX+plotW, topCY); ctx.stroke();
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('u(x, t) — Heat equation solution', padX+4, padY+12);
+
+  var coeffs = getSquareWaveCoeffs(nModes);
+  ctx.beginPath();
+  for (var px = 0; px <= plotW; px++) {
+    var x = px / plotW * 2 * Math.PI;
+    var u = 0;
+    for (var ci = 0; ci < coeffs.length; ci++) {
+      u += coeffs[ci].b * Math.sin(coeffs[ci].k * x) * Math.exp(-alpha * coeffs[ci].k * coeffs[ci].k * t);
+    }
+    var py = topCY - u * topAmp;
+    if (px === 0) ctx.moveTo(padX+px, py); else ctx.lineTo(padX+px, py);
+  }
+  ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  var botY = halfH + padY;
+  var botH = H - botY - padY;
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Mode amplitudes B_k exp(-\u03b1k\u00b2t)', padX+4, botY+12);
+  var barW = Math.min(20, plotW / (coeffs.length + 1));
+  for (var mi = 0; mi < coeffs.length; mi++) {
+    var kv = coeffs[mi].k, bv = coeffs[mi].b;
+    var decayed = bv * Math.exp(-alpha * kv * kv * t);
+    var barH2 = Math.abs(decayed) * botH * 0.7;
+    var bxm = padX + (mi + 0.5) * (plotW / coeffs.length);
+    var hue2 = mi * 25 + 30;
+    ctx.fillStyle = 'hsla(' + hue2 + ',70%,55%,.85)';
+    ctx.fillRect(bxm - barW/2, botY + botH - barH2 - 10, barW, barH2);
+    ctx.fillStyle = 'rgba(85,85,138,.7)'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('k='+kv, bxm, botY + botH - 2);
+  }
+
+  var modesLines = coeffs.map(function(c) {
+    return 'k=' + c.k + ': ' + (c.b * Math.exp(-alpha*c.k*c.k*t)).toFixed(3);
+  }).join('\n');
+  document.getElementById('phys-modes-info').textContent = modesLines;
+}
+
+function renderWaveEq(ctx, W, H, padX, padY, plotW) {
+  var plotH = H - padY*2 - 40;
+  var CY = padY + Math.floor(plotH/2) + 20;
+  var amp = plotH * 0.35;
+  var t = PHYSSTATE.t;
+  var c_speed = 1.5;
+  var nModes = 5;
+  var envCenter = 2 * Math.PI + c_speed * t;
+  var viewSpan = 4 * Math.PI;
+  var viewLeft = envCenter - viewSpan * 0.5;
+
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, CY); ctx.lineTo(padX+plotW, CY); ctx.stroke();
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Wave packet — group vs. phase velocity (view follows packet)', padX+4, padY+12);
+
+  for (var k3 = 1; k3 <= nModes; k3++) {
+    var om3 = c_speed * k3 + 0.05 * k3 * k3;
+    ctx.beginPath();
+    for (var px4 = 0; px4 <= plotW; px4++) {
+      var x4 = viewLeft + (px4 / plotW) * viewSpan;
+      var env4 = Math.exp(-Math.pow(x4 - envCenter, 2)/2);
+      var y4 = env4 * Math.sin(k3*x4 - om3*t) / nModes;
+      var py4 = CY - y4 * amp;
+      if (px4 === 0) ctx.moveTo(padX+px4, py4); else ctx.lineTo(padX+px4, py4);
+    }
+    ctx.strokeStyle = 'hsla(' + (k3 * 35 + 200) + ',70%,55%,.45)';
+    ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  ctx.beginPath();
+  for (var px5 = 0; px5 <= plotW; px5++) {
+    var x5 = viewLeft + (px5 / plotW) * viewSpan;
+    var uSum = 0;
+    for (var k4 = 1; k4 <= nModes; k4++) {
+      var om4 = c_speed * k4 + 0.05 * k4 * k4;
+      var env5 = Math.exp(-Math.pow(x5 - envCenter, 2)/2);
+      uSum += env5 * Math.sin(k4*x5 - om4*t) / nModes;
+    }
+    var py5 = CY - uSum * amp;
+    if (px5 === 0) ctx.moveTo(padX+px5, py5); else ctx.lineTo(padX+px5, py5);
+  }
+  ctx.strokeStyle = '#00ff99'; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.fillStyle = 'rgba(0,255,153,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Envelope (group velocity v_g)', padX+4, padY+28);
+  document.getElementById('phys-modes-info').textContent = 'Dispersive wave packet\nv_phase = c + 0.05k\nv_group != v_phase\n\nPacket centre: ' + (c_speed * t).toFixed(2);
+}
+
+function renderQM(ctx, W, H, padX, padY, plotW) {
+  var halfH = Math.floor(H / 2);
+  var plotH = halfH - padY - 20;
+  var t = PHYSSTATE.t;
+  var hbar = 1, m = 1;
+  var k0 = 3, sig0 = 0.8;
+  var x0 = k0 * hbar * t / m;
+  var sigT = Math.sqrt(sig0*sig0 + Math.pow(hbar*t/(2*m*sig0), 2));
+  var topCY = padY + Math.floor(plotH/2);
+  var topAmp = plotH * 0.42;
+
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('|\u03c8(x,t)|\u00b2 — position probability (view follows packet)', padX+4, padY+12);
+  ctx.fillText('|\u03c8\u0303(p)|\u00b2 — momentum probability (conserved)', padX+4, halfH+padY+12);
+
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, topCY); ctx.lineTo(padX+plotW, topCY); ctx.stroke();
+
+  var viewCenter = x0;
+  var viewSpan = 12;
+
+  ctx.beginPath();
+  for (var px6 = 0; px6 <= plotW; px6++) {
+    var x6 = (px6/plotW - 0.5) * viewSpan + viewCenter;
+    var psi2 = Math.exp(-Math.pow(x6 - x0, 2) / (2*sigT*sigT)) / (sigT * Math.sqrt(2*Math.PI));
+    var py6 = topCY - psi2 * topAmp * 3;
+    if (px6 === 0) ctx.moveTo(padX+px6, py6); else ctx.lineTo(padX+px6, py6);
+  }
+  ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  ctx.beginPath();
+  for (var px7 = 0; px7 <= plotW; px7++) {
+    var x7 = (px7/plotW - 0.5) * viewSpan + viewCenter;
+    var env7 = Math.exp(-Math.pow(x7 - x0, 2) / (4*sigT*sigT));
+    var phase7 = k0*x7 - (hbar*k0*k0/(2*m))*t;
+    var re7 = env7 * Math.cos(phase7);
+    var py7 = topCY - re7 * topAmp * 0.7;
+    if (px7 === 0) ctx.moveTo(padX+px7, py7); else ctx.lineTo(padX+px7, py7);
+  }
+  ctx.strokeStyle = 'rgba(0,229,255,.3)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+
+  var botCY2 = halfH + padY + Math.floor(plotH/2);
+  var botAmp2 = plotH * 0.42;
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, botCY2); ctx.lineTo(padX+plotW, botCY2); ctx.stroke();
+
+  ctx.beginPath();
+  for (var px8 = 0; px8 <= plotW; px8++) {
+    var p8 = (px8/plotW - 0.5) * 12;
+    var psip = Math.exp(-sig0*sig0*(p8-k0)*(p8-k0)/hbar/hbar) * sig0 * Math.sqrt(2/Math.PI) / hbar;
+    var py8 = botCY2 - psip * botAmp2 * 2;
+    if (px8 === 0) ctx.moveTo(padX+px8, py8); else ctx.lineTo(padX+px8, py8);
+  }
+  ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(80,80,150,.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, halfH); ctx.lineTo(padX+plotW, halfH); ctx.stroke();
+
+  document.getElementById('phys-modes-info').textContent = 'Free particle wavepacket (view follows packet)\n\u03c3(t)=' + sigT.toFixed(3) + '\ncentre x_0=' + (k0*hbar*t/m).toFixed(2) + '\nMomentum \u03c3_p=' + (hbar/sig0).toFixed(3);
+}
+
+function initPhys() {
+  resizeCanvas(document.getElementById('cphys'));
+  animatePhys();
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB: LAPLACE & Z TRANSFORMS
+// ══════════════════════════════════════════════════════
+var LAPSTATE = {
+  example: 'lowpass',
+  animating: false,
+  rafId: null,
+  animT: 0,
+  pauseFrames: 0,
+  drag: null,
+};
+
+var LAP_EXAMPLES = {
+  lowpass: {
+    poles_s: [{r:-1, i:0}],
+    zeros_s: [],
+    gain: 1,
+  },
+  bandpass: {
+    poles_s: [{r:-0.1, i:2}, {r:-0.1, i:-2}],
+    zeros_s: [{r:0, i:0}],
+    gain: 1,
+  },
+  notch: {
+    poles_s: [{r:-0.1, i:2}, {r:-0.1, i:-2}],
+    zeros_s: [{r:0, i:2}, {r:0, i:-2}],
+    gain: 1,
+  },
+};
+
+var LAP_LIVE = {
+  poles_s: [],
+  zeros_s: [],
+  gain: 1,
+};
+
+function lapSyncLive() {
+  var src = LAP_EXAMPLES[LAPSTATE.example];
+  LAP_LIVE.poles_s = src.poles_s.map(function(p){ return {r:p.r, i:p.i}; });
+  LAP_LIVE.zeros_s = src.zeros_s.map(function(z){ return {r:z.r, i:z.i}; });
+  LAP_LIVE.gain = src.gain;
+}
+
+function lapComputeZ() {
+  var T = 1.0;
+  var ex = LAP_EXAMPLES[LAPSTATE.example];
+  ex.poles_z = LAP_LIVE.poles_s.map(function(p) {
+    var zr = Math.exp(p.r * T) * Math.cos(p.i * T);
+    var zi2 = Math.exp(p.r * T) * Math.sin(p.i * T);
+    return {r:zr, i:zi2};
+  });
+  ex.zeros_z = LAP_LIVE.zeros_s.map(function(z) {
+    var zr = Math.exp(z.r * T) * Math.cos(z.i * T);
+    var zi2 = Math.exp(z.r * T) * Math.sin(z.i * T);
+    return {r:zr, i:zi2};
+  });
+}
+
+function lapCheckStability() {
+  var stable = true;
+  for (var i = 0; i < LAP_LIVE.poles_s.length; i++) {
+    if (LAP_LIVE.poles_s[i].r >= 0) stable = false;
+  }
+  var info = stable ? 'All poles in LHP \u2014 Stable' : 'Pole(s) in RHP \u2014 Unstable!';
+  var ex = LAP_EXAMPLES[LAPSTATE.example];
+  var zStable = true;
+  for (var j = 0; j < (ex.poles_z||[]).length; j++) {
+    var pz = ex.poles_z[j];
+    if (pz.r * pz.r + pz.i * pz.i >= 1) zStable = false;
+  }
+  var zInfo = zStable ? 'All poles inside unit circle' : 'Pole(s) outside unit circle!';
+  var el = document.getElementById('lap-stability-info');
+  if (el) {
+    el.innerHTML = 's-plane: <span style="color:' + (stable?'var(--green)':'var(--pink)') + '">' + info + '</span><br>z-plane: <span style="color:' + (zStable?'var(--green)':'var(--pink)') + '">' + zInfo + '</span>';
+  }
+}
+
+function setLapExample(ex, btn) {
+  LAPSTATE.example = ex;
+  LAPSTATE.animT = 0;
+  LAPSTATE.pauseFrames = 0;
+  if (LAPSTATE.rafId) { cancelAnimationFrame(LAPSTATE.rafId); LAPSTATE.rafId = null; }
+  LAPSTATE.animating = true;
+  var animBtn = document.getElementById('lap-anim-btn');
+  if (animBtn) { animBtn.textContent = '\u23f8 Pause'; animBtn.classList.add('active'); }
+  document.querySelectorAll('#panel-laplace .btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  ['lowpass','bandpass','notch'].forEach(function(nm) {
+    var el = document.getElementById('lap-tf-' + nm);
+    if (el) el.style.display = nm === ex ? '' : 'none';
+  });
+  var titles = {lowpass:'Low-pass Filter', bandpass:'Band-pass Filter', notch:'Notch Filter'};
+  document.getElementById('lap-tf-title').textContent = titles[ex] || ex;
+  lapSyncLive();
+  lapComputeZ();
+  renderLap();
+  animateLap();
+}
+
+function toggleLapAnim(btn) {
+  LAPSTATE.animating = !LAPSTATE.animating;
+  btn.textContent = LAPSTATE.animating ? '\u23f8 Pause' : '\u25b6 Animate';
+  btn.classList.toggle('active', LAPSTATE.animating);
+  if (LAPSTATE.animating && !LAPSTATE.rafId) animateLap();
+}
+
+function resetLapAnim() {
+  LAPSTATE.animT = 0;
+  LAPSTATE.pauseFrames = 0;
+  if (LAPSTATE.rafId) { cancelAnimationFrame(LAPSTATE.rafId); LAPSTATE.rafId = null; }
+  lapSyncLive();
+  lapComputeZ();
+  renderLap();
+  if (LAPSTATE.animating) animateLap();
+}
+
+function animateLap() {
+  if (!LAPSTATE.animating) { LAPSTATE.rafId = null; return; }
+  if (LAPSTATE.pauseFrames > 0) {
+    LAPSTATE.pauseFrames--;
+    LAPSTATE.rafId = requestAnimationFrame(animateLap);
+    return;
+  }
+  LAPSTATE.animT += 0.012 * (window.animSpeed || 0.1);
+  var t = LAPSTATE.animT;
+  lapSyncLive();
+  LAP_LIVE.poles_s.forEach(function(p, idx) {
+    if (idx === 0) {
+      p.r = -0.6 + 1.2 * Math.sin(t * 0.8);
+      if (LAP_LIVE.poles_s.length > 1) LAP_LIVE.poles_s[1].r = p.r;
+    }
+  });
+  lapComputeZ();
+  renderLap();
+  if (t > 20) {
+    LAPSTATE.animT = 0;
+    LAPSTATE.pauseFrames = 60;
+  }
+  LAPSTATE.rafId = requestAnimationFrame(animateLap);
+}
+
+function renderLap() {
+  var c = document.getElementById('clap');
+  if (!c.width) return;
+  resizeCanvas(c);
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  var padBot = 28;
+  var gap = 4;
+  var halfW = Math.floor((W - gap) / 2);
+  var topH = Math.floor((H - padBot - gap) / 2);
+  var botH = H - padBot - topH - gap;
+
+  ctx.strokeStyle = 'rgba(80,80,150,.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(halfW + gap/2, 0); ctx.lineTo(halfW + gap/2, H - padBot); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, topH + gap/2); ctx.lineTo(W, topH + gap/2); ctx.stroke();
+
+  var live = LAP_LIVE;
+  var ex = LAP_EXAMPLES[LAPSTATE.example];
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, halfW, topH); ctx.clip();
+  ctx.translate(0, 0);
+  drawSPlane(ctx, halfW, topH, live);
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(halfW + gap, 0, W - halfW - gap, topH); ctx.clip();
+  ctx.translate(halfW + gap, 0);
+  drawZPlane(ctx, W - halfW - gap, topH, ex);
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, topH + gap, halfW, botH); ctx.clip();
+  ctx.translate(0, topH + gap);
+  drawBode(ctx, halfW, botH, live);
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath(); ctx.rect(halfW + gap, topH + gap, W - halfW - gap, botH); ctx.clip();
+  ctx.translate(halfW + gap, topH + gap);
+  drawStepResponse(ctx, W - halfW - gap, botH, live);
+  ctx.restore();
+
+  lapCheckStability();
+}
+
+function drawSPlane(ctx, W, H, ex) {
+  var padBot = 16;
+  var cx = Math.floor(W / 2), cy = Math.floor((H - padBot) / 2) + 14;
+  var scale = Math.min(W - 60, H - 28 - padBot) * 0.08;
+  var pad = 20;
+  LAPSTATE._cx = cx; LAPSTATE._cy = cy; LAPSTATE._scale = scale;
+
+  ctx.strokeStyle = 'rgba(80,80,150,.12)'; ctx.lineWidth = 0.5;
+  for (var gi = -4; gi <= 4; gi++) {
+    ctx.beginPath(); ctx.moveTo(cx + gi*scale, 20); ctx.lineTo(cx + gi*scale, H - padBot); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad, cy + gi*scale); ctx.lineTo(W - pad, cy + gi*scale); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(120,120,200,.4)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad, cy); ctx.lineTo(W - pad, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, 20); ctx.lineTo(cx, H - padBot); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(0,255,153,.04)';
+  ctx.fillRect(pad, 20, cx - pad, H - 20 - padBot);
+  ctx.fillStyle = 'rgba(0,255,153,.2)'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('s-plane (\u03c3<0 = stable)', pad+2, 14);
+
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+  for (var gi2 = -3; gi2 <= 3; gi2++) {
+    if (gi2 !== 0) {
+      ctx.fillText(String(gi2), cx + gi2*scale, cy + 10);
+      ctx.fillText(gi2+'j', cx - 14, cy - gi2*scale + 3);
+    }
+  }
+  ctx.fillText('\u03c3', W - pad - 8, cy - 4);
+  ctx.fillText('j\u03c9', cx + 8, 16);
+
+  for (var zi = 0; zi < ex.zeros_s.length; zi++) {
+    var z = ex.zeros_s[zi];
+    var zpx = cx + z.r * scale, zpy = cy - z.i * scale;
+    ctx.beginPath(); ctx.arc(zpx, zpy, 7, 0, TAU);
+    ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  for (var pi2 = 0; pi2 < ex.poles_s.length; pi2++) {
+    var p = ex.poles_s[pi2];
+    var ppx = cx + p.r * scale, ppy = cy - p.i * scale;
+    ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(ppx-7, ppy-7); ctx.lineTo(ppx+7, ppy+7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ppx+7, ppy-7); ctx.lineTo(ppx-7, ppy+7); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,136,68,.7)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+    ctx.fillText('s=' + p.r.toFixed(1) + '+' + p.i.toFixed(1) + 'j', ppx+10, ppy-5);
+  }
+
+  ctx.strokeStyle = 'rgba(255,215,0,.5)'; ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(cx, 20); ctx.lineTo(cx, H - padBot); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,215,0,.6)'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('s=j\u03c9', cx + 40, 14);
+}
+
+function drawZPlane(ctx, W, H, ex) {
+  var padBot = 16;
+  var cx2 = Math.floor(W / 2), cy2 = Math.floor((H - padBot) / 2) + 14;
+  var scale2 = Math.min(W - 60, H - 28 - padBot) * 0.11;
+  var pad2 = 20;
+  LAPSTATE._cx2 = cx2; LAPSTATE._cy2 = cy2; LAPSTATE._scale2 = scale2;
+
+  ctx.strokeStyle = 'rgba(80,80,150,.12)'; ctx.lineWidth = 0.5;
+  for (var gi3 = -2; gi3 <= 2; gi3++) {
+    ctx.beginPath(); ctx.moveTo(cx2 + gi3*scale2, 20); ctx.lineTo(cx2 + gi3*scale2, H - padBot); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad2, cy2 + gi3*scale2); ctx.lineTo(W-pad2, cy2 + gi3*scale2); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(120,120,200,.4)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad2, cy2); ctx.lineTo(W-pad2, cy2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx2, 20); ctx.lineTo(cx2, H - padBot); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(0,255,153,.04)';
+  ctx.beginPath(); ctx.arc(cx2, cy2, scale2, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx2, cy2, scale2, 0, TAU);
+  ctx.strokeStyle = 'rgba(255,215,0,.6)'; ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,215,0,.6)'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('|z|=1', cx2 + scale2 + 3, cy2 - 3);
+  ctx.fillStyle = 'rgba(0,255,153,.2)'; ctx.font = '9px monospace';
+  ctx.fillText('|z|<1 = stable', pad2+2, 14);
+
+  for (var zi2 = 0; zi2 < ex.zeros_z.length; zi2++) {
+    var zz = ex.zeros_z[zi2];
+    var zzpx = cx2 + zz.r * scale2, zzpy = cy2 - zz.i * scale2;
+    ctx.beginPath(); ctx.arc(zzpx, zzpy, 7, 0, TAU);
+    ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  for (var pi3 = 0; pi3 < ex.poles_z.length; pi3++) {
+    var pz = ex.poles_z[pi3];
+    var pzpx = cx2 + pz.r * scale2, pzpy = cy2 - pz.i * scale2;
+    ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(pzpx-7, pzpy-7); ctx.lineTo(pzpx+7, pzpy+7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pzpx+7, pzpy-7); ctx.lineTo(pzpx-7, pzpy+7); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('Re z', W-pad2-8, cy2-8);
+  ctx.fillText('Im z', cx2+8, 16);
+}
+
+function drawBode(ctx, W, H, ex) {
+  var padL = Math.min(45, W * 0.12), padR = 10, padT = 20, padB = 20;
+  var plotW2 = W - padL - padR;
+  var halfH2 = Math.floor(H / 2) - 5;
+  var magH = halfH2 - padT - 5;
+  var phasH = H - halfH2 - padB;
+
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Bode Plot', padL+4, 12);
+
+  function evalH(omega) {
+    var mag = ex.gain || 1, phase = 0;
+    for (var zi3 = 0; zi3 < ex.zeros_s.length; zi3++) {
+      var zs = ex.zeros_s[zi3];
+      var dr = -zs.r, di = omega - zs.i;
+      mag *= Math.sqrt(dr*dr + di*di);
+      phase += Math.atan2(di, dr);
+    }
+    for (var pi4 = 0; pi4 < ex.poles_s.length; pi4++) {
+      var ps = ex.poles_s[pi4];
+      var dr2 = -ps.r, di2 = omega - ps.i;
+      var d2 = Math.sqrt(dr2*dr2 + di2*di2);
+      if (d2 < 1e-10) return {mag: 1e6, phase: 0};
+      mag /= d2;
+      phase -= Math.atan2(di2, dr2);
+    }
+    return {mag: mag, phase: phase};
+  }
+
+  var omVals = [];
+  var nPts = 200;
+  for (var pi5 = 0; pi5 < nPts; pi5++) {
+    var om = Math.pow(10, -1 + pi5 * 3 / (nPts-1));
+    var hv2 = evalH(om);
+    omVals.push({om: om, mag: hv2.mag, phase: hv2.phase});
+  }
+
+  var maxMag = 0;
+  for (var vi = 0; vi < omVals.length; vi++) { if (omVals[vi].mag > maxMag) maxMag = omVals[vi].mag; }
+  var minMag2 = maxMag * 0.001;
+
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  for (var gi4 = 0; gi4 <= 4; gi4++) {
+    var gy = padT + magH * gi4 / 4;
+    ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL+plotW2, gy); ctx.stroke();
+  }
+
+  ctx.beginPath();
+  var first2 = true;
+  for (var oi = 0; oi < omVals.length; oi++) {
+    var d = omVals[oi];
+    var xp = padL + Math.log10(d.om / 0.1) / 3 * plotW2;
+    var dB = 20 * Math.log10(Math.max(d.mag, minMag2));
+    var maxDB = 20 * Math.log10(maxMag);
+    var minDB2 = 20 * Math.log10(minMag2);
+    var yp = padT + magH * (1 - (dB - minDB2) / (maxDB - minDB2 + 0.001));
+    if (first2) { ctx.moveTo(xp, yp); first2 = false; } else ctx.lineTo(xp, yp);
+  }
+  ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.2; ctx.stroke();
+
+  var phaseY0 = halfH2 + 5;
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  for (var gi5 = 0; gi5 <= 4; gi5++) {
+    var gy2 = phaseY0 + phasH * gi5 / 4;
+    ctx.beginPath(); ctx.moveTo(padL, gy2); ctx.lineTo(padL+plotW2, gy2); ctx.stroke();
+  }
+
+  ctx.beginPath();
+  var first3 = true;
+  for (var oi2 = 0; oi2 < omVals.length; oi2++) {
+    var d2b = omVals[oi2];
+    var xp2 = padL + Math.log10(d2b.om / 0.1) / 3 * plotW2;
+    var deg = d2b.phase * 180 / Math.PI;
+    var yp2 = phaseY0 + phasH * (1 - (deg + 180) / 360);
+    if (first3) { ctx.moveTo(xp2, yp2); first3 = false; } else ctx.lineTo(xp2, yp2);
+  }
+  ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2.2; ctx.stroke();
+
+  ctx.fillStyle = 'rgba(85,85,138,.5)'; ctx.font = '8px monospace'; ctx.textAlign = 'center';
+  [0.1, 1, 10, 100].forEach(function(om2) {
+    var xp3 = padL + Math.log10(om2 / 0.1) / 3 * plotW2;
+    ctx.fillText(String(om2), xp3, H - padB + 10);
+  });
+  ctx.fillText('\u03c9', padL + plotW2/2, H - 2);
+
+  ctx.strokeStyle = 'rgba(80,80,150,.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, halfH2+5); ctx.lineTo(padL+plotW2, halfH2+5); ctx.stroke();
+}
+
+function drawStepResponse(ctx, W, H, ex) {
+  var padL = 50, padR = 15, padT = 22, padB = 28;
+  var pW = W - padL - padR;
+  var pH = H - padT - padB;
+
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('h(t) \u2014 Impulse Response', padL+4, padT-4);
+
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 0.5;
+  for (var gi = 0; gi <= 4; gi++) {
+    var gy = padT + pH * gi / 4;
+    ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(padL + pW, gy); ctx.stroke();
+  }
+
+  var stepCY = padT + pH * 0.65;
+  ctx.strokeStyle = 'rgba(120,120,200,.25)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, stepCY); ctx.lineTo(padL + pW, stepCY); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(85,85,138,.5)'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+  ctx.fillText('0', padL - 4, stepCY + 3);
+
+  var tMax = 12;
+  var nPts = Math.min(pW, 300);
+  var vals = [];
+  var maxVal = 0.001;
+
+  for (var si = 0; si <= nPts; si++) {
+    var t = si / nPts * tMax;
+    var val = computeImpulseResponse(ex, t);
+    vals.push(val);
+    if (Math.abs(val) > maxVal) maxVal = Math.abs(val);
+  }
+
+  var amp = (pH * 0.4) / maxVal;
+
+  ctx.beginPath();
+  for (var si2 = 0; si2 <= nPts; si2++) {
+    var px2 = padL + (si2 / nPts) * pW;
+    var py2 = stepCY - vals[si2] * amp;
+    if (py2 < padT) py2 = padT;
+    if (py2 > padT + pH) py2 = padT + pH;
+    if (si2 === 0) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
+  }
+  ctx.strokeStyle = '#00ff99'; ctx.lineWidth = 2; ctx.stroke();
+
+  ctx.fillStyle = 'rgba(85,85,138,.5)'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('t', padL + pW/2, H - padB + 12);
+}
+
+function computeImpulseResponse(ex, t) {
+  var result = 0;
+  var done = {};
+  for (var pi = 0; pi < ex.poles_s.length; pi++) {
+    var p = ex.poles_s[pi];
+    if (done[pi]) continue;
+    var sigma = p.r, omega = p.i;
+    if (Math.abs(omega) < 0.02) {
+      result += Math.exp(sigma * t);
+      done[pi] = true;
+    } else {
+      var conjIdx = -1;
+      for (var pi7 = pi + 1; pi7 < ex.poles_s.length; pi7++) {
+        if (Math.abs(ex.poles_s[pi7].r - sigma) < 0.05 && Math.abs(ex.poles_s[pi7].i + omega) < 0.05) {
+          conjIdx = pi7; break;
+        }
+      }
+      var mag = Math.exp(sigma * t);
+      var amp = mag * 2;
+      result += amp * Math.cos(omega * t);
+      done[pi] = true;
+      if (conjIdx >= 0) done[conjIdx] = true;
+    }
+  }
+  for (var zi = 0; zi < ex.zeros_s.length; zi++) {
+    var z = ex.zeros_s[zi];
+    if (Math.abs(z.i) < 0.02) {
+      result *= (1 + z.r);
+    }
+  }
+  return result;
+}
+
+function initLap() {
+  lapSyncLive();
+  lapComputeZ();
+  var c = document.getElementById('clap');
+  resizeCanvas(c);
+  renderLap();
+
+  c.addEventListener('mousedown', function(e) {
+    var rect = c.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    var mx = (e.clientX - rect.left) * dpr;
+    var my = (e.clientY - rect.top) * dpr;
+    var halfW = Math.floor((c.width - 4) / 2);
+    var topH = Math.floor((c.height - 28 - 4) / 2);
+    if (mx > halfW || my > topH) return;
+    var cx = LAPSTATE._cx, sc = LAPSTATE._scale, cy = LAPSTATE._cy;
+    if (!cx) return;
+    for (var pi = 0; pi < LAP_LIVE.poles_s.length; pi++) {
+      var p = LAP_LIVE.poles_s[pi];
+      var ppx = cx + p.r * sc, ppy = cy - p.i * sc;
+      if (Math.abs(mx - ppx) < 14 && Math.abs(my - ppy) < 14) {
+        LAPSTATE.drag = {type: 'pole', idx: pi, conj: false};
+        if (Math.abs(p.i) > 0.01 && pi + 1 < LAP_LIVE.poles_s.length) {
+          var p2 = LAP_LIVE.poles_s[pi + 1];
+          if (Math.abs(p2.r - p.r) < 0.05 && Math.abs(p2.i + p.i) < 0.05) {
+            LAPSTATE.drag.conj = true;
+          }
+        }
+        return;
+      }
+    }
+    for (var zi = 0; zi < LAP_LIVE.zeros_s.length; zi++) {
+      var z = LAP_LIVE.zeros_s[zi];
+      var zpx = cx + z.r * sc, zpy = cy - z.i * sc;
+      if (Math.abs(mx - zpx) < 14 && Math.abs(my - zpy) < 14) {
+        LAPSTATE.drag = {type: 'zero', idx: zi, conj: false};
+        if (Math.abs(z.i) > 0.01 && zi + 1 < LAP_LIVE.zeros_s.length) {
+          var z2 = LAP_LIVE.zeros_s[zi + 1];
+          if (Math.abs(z2.r - z.r) < 0.05 && Math.abs(z2.i + z.i) < 0.05) {
+            LAPSTATE.drag.conj = true;
+          }
+        }
+        return;
+      }
+    }
+  });
+
+  c.addEventListener('mousemove', function(e) {
+    if (!LAPSTATE.drag) return;
+    var rect = c.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    var mx = (e.clientX - rect.left) * dpr;
+    var my = (e.clientY - rect.top) * dpr;
+    var d = LAPSTATE.drag;
+    var cx = LAPSTATE._cx, sc = LAPSTATE._scale, cy = LAPSTATE._cy;
+    if (!cx) return;
+
+    if (d.type === 'pole') {
+      LAP_LIVE.poles_s[d.idx].r = (mx - cx) / sc;
+      LAP_LIVE.poles_s[d.idx].i = -(my - cy) / sc;
+      if (d.conj && d.idx + 1 < LAP_LIVE.poles_s.length) {
+        LAP_LIVE.poles_s[d.idx + 1].r = LAP_LIVE.poles_s[d.idx].r;
+        LAP_LIVE.poles_s[d.idx + 1].i = -LAP_LIVE.poles_s[d.idx].i;
+      }
+    } else if (d.type === 'zero') {
+      LAP_LIVE.zeros_s[d.idx].r = (mx - cx) / sc;
+      LAP_LIVE.zeros_s[d.idx].i = -(my - cy) / sc;
+      if (d.conj && d.idx + 1 < LAP_LIVE.zeros_s.length) {
+        LAP_LIVE.zeros_s[d.idx + 1].r = LAP_LIVE.zeros_s[d.idx].r;
+        LAP_LIVE.zeros_s[d.idx + 1].i = -LAP_LIVE.zeros_s[d.idx].i;
+      }
+    }
+    lapComputeZ();
+    renderLap();
+  });
+
+  window.addEventListener('mouseup', function() {
+    LAPSTATE.drag = null;
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  TAB: WAVELETS
+// ══════════════════════════════════════════════════════
+var WTSTATE = {
+  type: 'mexican',
+  signal: 'step',
+  scale: 1.0,
+  trans: 0.5,
+  animating: true,
+  rafId: null,
+  t: 0,
+  pauseFrames: 0,
+};
+
+function setWaveletType(type, btn) {
+  WTSTATE.type = type;
+  document.querySelectorAll('#panel-wavelets .btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('wt-sig-' + WTSTATE.signal).classList.add('active');
+  renderWavelet();
+}
+
+function setWaveletSignal(sig, btn) {
+  WTSTATE.signal = sig;
+  document.querySelectorAll('#panel-wavelets .btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('wt-' + WTSTATE.type + '-btn').classList.add('active');
+  renderWavelet();
+}
+
+function setWaveletScale(v) {
+  WTSTATE.scale = v;
+  document.getElementById('wt-scale-disp').textContent = v.toFixed(1);
+  renderWavelet();
+}
+
+function setWaveletTrans(v) {
+  WTSTATE.trans = v;
+  document.getElementById('wt-trans-disp').textContent = (v * 2 - 1).toFixed(2);
+  renderWavelet();
+}
+
+function getWaveletSignal(sig, t) {
+  if (sig === 'step') return t < 0.5 ? -0.5 : 0.5;
+  if (sig === 'chirp') return Math.sin(2 * Math.PI * (2 + 8*t) * t) * 0.7;
+  if (sig === 'spike') return Math.abs(t - 0.5) < 0.03 ? 2.0 : 0.0;
+  return 0;
+}
+
+function mexicanHat(t) { return (1 - t*t) * Math.exp(-t*t/2); }
+function morletWav(t) { return Math.cos(5*t) * Math.exp(-t*t/2); }
+
+function computeWT(sig, a, b, type, N) {
+  var sum = 0;
+  var norm = 1 / Math.sqrt(Math.abs(a));
+  for (var k = 0; k < N; k++) {
+    var t = k / N;
+    var psiArg = (t - b) / a;
+    var psiVal = type === 'mexican' ? mexicanHat(psiArg) : morletWav(psiArg);
+    sum += getWaveletSignal(sig, t) * psiVal;
+  }
+  return norm * sum / N;
+}
+
+function renderWavelet() {
+  var c = document.getElementById('cwt');
+  if (!c.width) return;
+  resizeCanvas(c);
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  var padX = 50, padY = 10, gapY = 6;
+  var plotW = W - padX * 2;
+  var labelH = 16;
+  var totalAvailH = H - padY * 2 - gapY * 2;
+  var p1H = Math.floor(totalAvailH * 0.28);
+  var p2H = Math.floor(totalAvailH * 0.28);
+  var p3H = totalAvailH - p1H - p2H;
+  var sig = WTSTATE.signal;
+  var a = WTSTATE.scale;
+  var b = WTSTATE.trans;
+  var wavFn = WTSTATE.type === 'mexican' ? mexicanHat : morletWav;
+  var N = 300;
+
+  // Panel 1: signal
+  var y1 = padY;
+  var cy1 = y1 + labelH + Math.floor((p1H - labelH) / 2);
+  var drawH1 = (p1H - labelH) / 2;
+
+  var sigSamples = [];
+  var sigMax = 0.001;
+  for (var px9 = 0; px9 <= plotW; px9++) {
+    var v9 = getWaveletSignal(sig, px9 / plotW);
+    sigSamples.push(v9);
+    var absV = Math.abs(v9);
+    if (absV > sigMax) sigMax = absV;
+  }
+  var amp1 = Math.max(1, drawH1 * 0.8 / sigMax);
+
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, cy1); ctx.lineTo(padX+plotW, cy1); ctx.stroke();
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('f(t) — signal', padX+4, y1+12);
+
+  ctx.beginPath();
+  for (var px9 = 0; px9 <= plotW; px9++) {
+    var py9 = cy1 - sigSamples[px9] * amp1;
+    if (px9 === 0) ctx.moveTo(padX+px9, py9); else ctx.lineTo(padX+px9, py9);
+  }
+  ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.stroke();
+
+  var bx9 = padX + b * plotW;
+  ctx.strokeStyle = 'rgba(255,136,68,.8)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(bx9, y1 + labelH); ctx.lineTo(bx9, y1+p1H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Panel 2: wavelet
+  var y2 = padY + p1H + gapY;
+  var cy2 = y2 + labelH + Math.floor((p2H - labelH) / 2);
+  var drawH2 = (p2H - labelH) / 2;
+
+  var wavSamples = [];
+  var wavMax = 0.001;
+  var wavNorm = 1/Math.sqrt(Math.abs(a));
+  for (var px10 = 0; px10 <= plotW; px10++) {
+    var psiA = (px10 / plotW - b) / a;
+    var v10 = wavNorm * wavFn(psiA);
+    wavSamples.push(v10);
+    var absW = Math.abs(v10);
+    if (absW > wavMax) wavMax = absW;
+  }
+  var amp2 = Math.max(1, drawH2 * 0.8 / wavMax);
+
+  ctx.strokeStyle = 'rgba(120,120,200,.18)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padX, cy2); ctx.lineTo(padX+plotW, cy2); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,136,68,.7)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('\u03c8_{a,b}(t) — a=' + a.toFixed(1) + '  b=' + b.toFixed(2), padX+4, y2+12);
+
+  ctx.beginPath();
+  for (var px10 = 0; px10 <= plotW; px10++) {
+    var py10 = cy2 - wavSamples[px10] * amp2;
+    if (px10 === 0) ctx.moveTo(padX+px10, py10); else ctx.lineTo(padX+px10, py10);
+  }
+  ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Panel 3: scalogram
+  var y3 = padY + p1H + p2H + gapY * 2;
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('Scalogram |W_f(a,b)| — time vs scale', padX+4, y3+12);
+
+  var scaloTop = y3 + labelH;
+  var scaloH = p3H - labelH;
+  var scaloAMin = 0.05;
+  var scaloAMax = 5.0;
+  var scaloARange = scaloAMax - scaloAMin;
+  var nScales = Math.min(25, Math.floor(scaloH * 0.8));
+  var nTrans = Math.min(80, plotW);
+  var scaleArr = [];
+  for (var si3 = 0; si3 < nScales; si3++) {
+    scaleArr.push(scaloAMin + (si3 / (nScales-1)) * scaloARange);
+  }
+
+  var scaloMax = 0;
+  var scaloData = scaleArr.map(function(sc) {
+    var row = [];
+    for (var bi3 = 0; bi3 < nTrans; bi3++) {
+      var bv = bi3 / nTrans;
+      var coeff2 = Math.abs(computeWT(sig, sc, bv, WTSTATE.type, 60));
+      row.push(coeff2);
+      if (coeff2 > scaloMax) scaloMax = coeff2;
+    }
+    return row;
+  });
+
+  var pixH2 = Math.max(1, Math.floor(scaloH / nScales));
+  var pixW2 = Math.max(1, Math.floor(plotW / nTrans));
+  for (var si4 = 0; si4 < nScales; si4++) {
+    for (var bi4 = 0; bi4 < nTrans; bi4++) {
+      var vv = scaloData[si4][bi4] / Math.max(scaloMax, 0.001);
+      var hue3 = 240 - vv * 240;
+      var lum = 30 + vv * 45;
+      ctx.fillStyle = 'hsla(' + hue3 + ',90%,' + lum + '%,' + (0.4 + vv*0.6) + ')';
+      ctx.fillRect(padX + bi4 * pixW2, scaloTop + si4 * pixH2, pixW2+1, pixH2+1);
+    }
+  }
+
+  ctx.fillStyle = 'rgba(85,85,138,.6)'; ctx.font = '10px monospace'; ctx.textAlign = 'right';
+  ctx.fillText('a=0.05', padX - 4, scaloTop + 10);
+  ctx.fillText('a=5.0', padX - 4, scaloTop + nScales * pixH2);
+
+  var curBx = padX + b * plotW;
+  var curAy = scaloTop + (1 - (a - scaloAMin) / scaloARange) * nScales * pixH2;
+  ctx.beginPath(); ctx.arc(curBx, curAy, 5, 0, TAU);
+  ctx.fillStyle = '#ff8844'; ctx.fill();
+
+  var coeff3 = computeWT(sig, a, b, WTSTATE.type, N);
+  document.getElementById('wt-a-val').textContent = a.toFixed(2);
+  document.getElementById('wt-b-val').textContent = b.toFixed(3);
+  document.getElementById('wt-coeff').textContent = coeff3.toFixed(4);
+}
+
+function toggleWaveletAnim(btn) {
+  WTSTATE.animating = !WTSTATE.animating;
+  btn.textContent = WTSTATE.animating ? '\u23f8 Pause' : '\u25b6 Play';
+  btn.classList.toggle('active', WTSTATE.animating);
+  if (WTSTATE.animating && !WTSTATE.rafId) animateWavelet();
+}
+
+function resetWaveletAnim() {
+  WTSTATE.t = 0;
+  WTSTATE.scale = 1.0;
+  WTSTATE.trans = 0.5;
+  WTSTATE.pauseFrames = 0;
+  document.getElementById('wt-scale-sl').value = 10;
+  document.getElementById('wt-trans-sl').value = 50;
+  document.getElementById('wt-scale-disp').textContent = '1.0';
+  document.getElementById('wt-trans-disp').textContent = '0.00';
+  renderWavelet();
+}
+
+function animateWavelet() {
+  if (!WTSTATE.animating) { WTSTATE.rafId = null; return; }
+  if (WTSTATE.pauseFrames > 0) {
+    WTSTATE.pauseFrames--;
+    WTSTATE.rafId = requestAnimationFrame(animateWavelet);
+    return;
+  }
+  WTSTATE.t += 0.016 * (window.animSpeed || 0.1);
+  var newB = 0.05 + 0.9 * (0.5 + 0.5 * Math.sin(WTSTATE.t * 0.4));
+  var newA = 0.5 + 2.5 * (0.5 + 0.5 * Math.sin(WTSTATE.t * 0.25 + 1.2));
+  WTSTATE.trans = newB;
+  WTSTATE.scale = newA;
+  document.getElementById('wt-scale-sl').value = Math.round(newA * 10);
+  document.getElementById('wt-trans-sl').value = Math.round(newB * 100);
+  document.getElementById('wt-scale-disp').textContent = newA.toFixed(1);
+  document.getElementById('wt-trans-disp').textContent = (newB * 2 - 1).toFixed(2);
+  renderWavelet();
+  WTSTATE.rafId = requestAnimationFrame(animateWavelet);
+}
+
+function initWavelet() {
+  resizeCanvas(document.getElementById('cwt'));
+  renderWavelet();
+}
+
+window.addEventListener('resize', () => {
+  const active = document.querySelector('.panel.active');
+  if (!active) return;
+  const id = active.id.replace('panel-', '');
+  if (id === 'waves')       { resizeCanvas(document.getElementById('cw')); renderWave(); }
+  if (id === 'epicycles')   { resizeCanvas(document.getElementById('ce')); renderEpi(); }
+  if (id === 'spectrum')    { resizeCanvas(document.getElementById('cs')); renderSpectrum(); }
+  if (id === 'uncertainty') { resizeCanvas(document.getElementById('cunc')); renderUnc(); }
+  if (id === 'fft')         { resizeCanvas(document.getElementById('cfft')); renderFFT(); }
+  if (id === 'physics')     { resizeCanvas(document.getElementById('cphys')); renderPhys(); }
+  if (id === 'laplace')     { resizeCanvas(document.getElementById('clap')); renderLap(); }
+  if (id === 'wavelets')    { resizeCanvas(document.getElementById('cwt')); renderWavelet(); }
+});
+
+window.addEventListener('load', () => {
+  // Init panels: only active panel has display:flex initially
+  document.querySelectorAll('.panel').forEach(p => {
+    if (!p.classList.contains('active')) p.style.display = 'none';
+  });
+  initWaves();
+  initEpicycles();
+  initUnc();
+  initFFT();
+  initPhys();
+  initLap();
+  initWavelet();
+  autoStartAnimations();
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>
+

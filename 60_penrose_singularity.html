@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>60 — Penrose Singularity Theorem</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0f;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding-bottom:50px}
+header{padding:18px 28px;border-bottom:1px solid #222240}
+header h1{font-size:1.25rem;font-weight:600;color:#cc88ff}
+header p{font-size:.82rem;color:#8888aa;margin-top:3px}
+.tabs{display:flex;gap:0;border-bottom:1px solid #222240;background:#0d0d18}
+.tab-btn{padding:10px 22px;background:none;border:none;color:#8888aa;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;transition:.2s}
+.tab-btn.active{color:#cc88ff;border-bottom-color:#cc88ff}
+.tab-btn:hover:not(.active){color:#bbbbdd}
+.tab-pane{display:none;padding:22px 28px}
+.tab-pane.active{display:flex;flex-direction:column;gap:16px}
+canvas{display:block;border-radius:6px;background:#0d0d1a;border:1px solid #1a1a38}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.82rem;color:#aaaacc}
+.controls label{display:flex;align-items:center;gap:6px}
+.controls input[type=range]{accent-color:#cc88ff;width:110px}
+.readout{font-family:monospace;background:#111128;border:1px solid #1e1e42;border-radius:4px;padding:8px 12px;font-size:.8rem;line-height:1.6;color:#ccccee;white-space:pre}
+.info{font-size:.82rem;color:#9999bb;line-height:1.55;max-width:720px}
+body{padding-bottom:38px}
+</style>
+</head>
+<body>
+<header style="display:flex;align-items:baseline;gap:18px;flex-wrap:wrap">
+  <a href="/" style="font-size:.78rem;color:#8888aa;text-decoration:none;white-space:nowrap" onmouseover="this.style.color='#cc88ff'" onmouseout="this.style.color='#8888aa'">← Dashboard</a>
+  <div>
+    <h1>Module 60 — Penrose Singularity Theorem</h1>
+    <p>2020 Nobel (Roger Penrose) · trapped surfaces · Raychaudhuri equation · causal structure</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(1)">1 · Penrose Diagram</button>
+  <button class="tab-btn" onclick="switchTab(2)">2 · Raychaudhuri Phase</button>
+  <button class="tab-btn" onclick="switchTab(3)">3 · Gravitational Collapse</button>
+  <button class="tab-btn" onclick="switchTab(4)">4 · Trapped Surfaces</button>
+  <button class="tab-btn" onclick="switchTab(5)">5 · Hawking Radiation</button>
+  <button class="tab-btn" onclick="switchTab(6)">6 · CCC</button>
+</div>
+
+<div id="pane1" class="tab-pane active" data-role="panel">
+  <div class="info">A Penrose (conformal) diagram compresses all of spacetime into a finite picture while preserving causal structure. Light rays always travel at 45°. The singularity is the top jagged line — all future-directed null geodesics from inside the horizon terminate there. Mass M scales the Schwarzschild radius r_s = 2GM/c².</div>
+  <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+    <label title="Mass of the black hole in solar masses. Scales r_s = 2GM/c² and the positions of the horizon and trapped surface in the diagram.">Mass M <input type="range" id="massSlider" min="0.2" max="2" step="0.05" value="1"> <span id="massVal">1.00</span> M☉</label>
+    <label><input type="checkbox" id="showGeodesics" checked> Light rays</label>
+    <label><input type="checkbox" id="showTrapped" checked> Trapped surface</label>
+    <label><input type="checkbox" id="showHorizon" checked> Horizon</label>
+    <button id="tourBtn1" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Guided tour</button>
+  </div>
+  <canvas id="cv1" width="820" height="480"></canvas>
+  <div class="readout" id="ro1">r_s: —   Light cone inside: converging</div>
+</div>
+
+<div id="pane2" class="tab-pane" data-role="panel">
+  <div class="info">The Raychaudhuri equation governs focusing of null geodesic congruences: dθ/dλ = −θ²/2 − σ_μν σ^μν + ω_μν ω^μν − R_μν k^μ k^ν. Under the Null Energy Condition (R_μν k^μ k^ν ≥ 0) and for irrotational congruences (ω=0), θ must decrease and reach −∞ in finite affine parameter — a caustic/singularity.</div>
+  <div class="controls" data-role="sidebar">
+    <label>Initial θ₀ <input type="range" id="theta0" min="-2" max="2" step="0.05" value="0.5"> <span id="theta0V">0.50</span></label>
+    <label>Shear σ <input type="range" id="shearSl" min="0" max="1" step="0.05" value="0.3"> <span id="shearV">0.30</span></label>
+    <label>Ric (R_μν k²) <input type="range" id="ricciSl" min="0" max="2" step="0.05" value="0.5"> <span id="ricciV">0.50</span></label>
+    <button id="pauseBtn2" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused2=!window.paused2;this.textContent=window.paused2?'▶ Play':'⏸ Pause'">▶ Play</button>
+  </div>
+  <canvas id="cv2" width="820" height="440"></canvas>
+  <div class="readout" id="ro2">Focusing: —   Caustic at λ: —</div>
+</div>
+
+<div id="pane4" class="tab-pane" data-role="panel">
+  <div class="info"><b>Trapped Surfaces</b> — A closed 2-surface is <em>trapped</em> when <em>both</em> families of null normals (ingoing and outgoing) have negative expansion θ &lt; 0. Outside the horizon, outgoing light expands (θ&gt;0) and ingoing converges (θ&lt;0). Inside, <em>both</em> converge. Drag the surface radially to watch the outgoing normals flip at the horizon. The existence of a trapped surface is the key hypothesis of Penrose's 1965 theorem.</div>
+  <div class="controls" data-role="sidebar">
+    <label>Surface radius <input type="range" id="trappedR" min="20" max="200" step="1" value="120"> <span id="trappedRV">120</span> px</label>
+    <label>Show normals <input type="checkbox" id="showNormals" checked></label>
+    <button id="pauseBtn4" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused4=!window.paused4;this.textContent=window.paused4?'▶ Play':'⏸ Pause'">▶ Play</button>
+  </div>
+  <canvas id="cv4" width="820" height="480"></canvas>
+  <div class="readout" id="ro4">Outgoing θ: +  (expanding)   Ingoing θ: −  (converging)   Surface: OUTSIDE horizon</div>
+</div>
+
+<div id="pane5" class="tab-pane" data-role="panel">
+  <div class="info"><b>Hawking Radiation</b> — Near the event horizon, quantum field theory in curved spacetime predicts that virtual particle–antiparticle pairs are promoted to real particles. One partner falls inward (negative energy, reducing M) while the other escapes as thermal radiation at the Hawking temperature T_H = ℏc³/(8πGMk_B). For a solar-mass black hole T_H ≈ 60 nK — colder than the CMB. As M decreases, T_H increases: smaller black holes are hotter and evaporate faster.</div>
+  <div class="controls" data-role="sidebar">
+    <label>Mass M <input type="range" id="hwkMass" min="0.1" max="10" step="0.1" value="2"> <span id="hwkMassV">2.0</span> M☉</label>
+    <label>Animation speed <input type="range" id="hwkSpeed" min="0.5" max="3" step="0.1" value="1"> <span id="hwkSpeedV">1.0</span>×</label>
+    <label><input type="checkbox" id="hwkEvaporate"> Show evaporation</label>
+    <button id="pauseBtn5" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused5=!window.paused5;this.textContent=window.paused5?'▶ Play':'⏸ Pause'">▶ Play</button>
+  </div>
+  <canvas id="cv5" width="820" height="480"></canvas>
+  <div class="readout" id="ro5">T_H: —   r_s: —   Luminosity ∝ 1/M²: —</div>
+</div>
+
+<div id="pane6" class="tab-pane" data-role="panel">
+  <div class="info"><b>Conformal Cyclic Cosmology (CCC)</b> — Roger Penrose proposes that the universe undergoes infinite cycles (aeons). The remote future of each aeon — dominated by massless radiation — is conformally equivalent to the Big Bang of the next. The conformal rescaling Ω maps the future conformal boundary ℐ⁺ of one aeon to the spacelike initial singularity of the next, allowing a smooth crossover. Hawking radiation from supermassive black holes leaves imprints (Penrose's "Hawking points") in the CMB, potentially detectable as anomalous hot spots.</div>
+  <div class="controls" data-role="sidebar">
+    <label>Aeon speed <input type="range" id="cccSpeed" min="0.2" max="2" step="0.1" value="0.8"> <span id="cccSpeedV">0.8</span>×</label>
+    <label>Show Ω mapping <input type="checkbox" id="cccShowOmega" checked></label>
+    <label>Black holes <input type="checkbox" id="cccShowBH" checked></label>
+    <button id="pauseBtn6" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused6=!window.paused6;this.textContent=window.paused6?'▶ Play':'⏸ Pause'">▶ Play</button>
+  </div>
+  <canvas id="cv6" width="820" height="500"></canvas>
+  <div class="readout" id="ro6">Aeon: 1   Phase: Expansion   Conformal time: —</div>
+</div>
+
+<div id="pane3" class="tab-pane" data-role="panel">
+  <div class="info">Gravitational collapse of a massive star. As the shell contracts past the Schwarzschild radius r_s = 2GM/c², an event horizon forms. Light emitted from inside can no longer escape — the trapped surface is born. Penrose's theorem then guarantees a singularity at r=0.</div>
+  <div class="controls" data-role="sidebar">
+    <label>Mass M <input type="range" id="massSl3" min="0.5" max="3" step="0.1" value="1.5"> <span id="massV3">1.50</span> M☉</label>
+    <label>Collapse speed <input type="range" id="speedSl" min="0.3" max="1" step="0.05" value="0.6"> <span id="speedV">0.60</span></label>
+    <button id="resetBtn3" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset</button>
+    <button id="pauseBtn3" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused3=!window.paused3;this.textContent=window.paused3?'▶ Play':'⏸ Pause'">▶ Play</button>
+  </div>
+  <canvas id="cv3" width="820" height="480"></canvas>
+  <div class="readout" id="ro3">Phase: Collapse   r/r_s: —</div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims60();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims60(){
+  if(typeof raf2t!="undefined" && raf2t){cancelAnimationFrame(raf2t);raf2t=null;}
+  if(typeof raf3!="undefined" && raf3){cancelAnimationFrame(raf3);raf3=null;}
+  if(typeof raf4!="undefined" && raf4){cancelAnimationFrame(raf4);raf4=null;}
+  if(typeof raf5!="undefined" && raf5){cancelAnimationFrame(raf5);raf5=null;}
+}
+
+
+// ─── Tab 1: Penrose Diagram ───────────────────────────────────────────────────
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
+  cv.style.width = '820px'; cv.style.height = '480px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 480;
+
+  // Guided tour state
+  let tourRunning = false, tourT = 0;
+  const tourSteps = [
+    { dur:100, tip:'The full Penrose diagram of a Schwarzschild black hole. Horizontal = space, vertical = time. Each point is a 2-sphere.', focusEl:null },
+    { dur:100, tip:'SINGULARITY (top jagged line): all future-directed null geodesics must end here. Curvature → ∞. Penrose 1965 theorem proves this is inevitable.', focusEl:'sing' },
+    { dur:100, tip:'EVENT HORIZON (yellow diagonal): once crossed, no signal can escape. This is a global structure — defined by the full causal history of spacetime.', focusEl:'horiz' },
+    { dur:100, tip:'TRAPPED SURFACE (purple circle): both ingoing AND outgoing light rays converge toward r=0. Its existence + NEC → singularity theorem.', focusEl:'trapped' },
+    { dur:100, tip:'Region I = exterior. Region II = black hole interior. Light rays inside are ALL future-directed toward singularity — there is no escape.', focusEl:'regions' },
+  ];
+  let tourIdx = 0, tourStepT = 0, tourTip = '';
+  const tourBtn = document.getElementById('tourBtn1');
+  if (tourBtn) tourBtn.onclick = () => {
+    tourRunning = !tourRunning;
+    tourBtn.textContent = tourRunning ? '⏸ Tour' : '▶ Guided tour';
+    if (tourRunning) { tourIdx = 0; tourStepT = 0; }
+  };
+
+  function draw() {
+    const M = +document.getElementById('massSlider').value;
+    document.getElementById('massVal').textContent = M.toFixed(2);
+    // r_s scales the horizon position fraction within the diagram (visual only)
+    // M=1 → normal; M>1 → horizon line at larger fraction of diagram; M<1 → smaller
+    const horizFrac = 0.4 + 0.3*(M-1); // fraction of size where horizon sits
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    const cx = W/2, cy = H*0.52;
+    const size = Math.min(W,H)*0.36;
+
+    // Background quadrants
+    ctx.fillStyle='#0f0f22'; // Region I: right exterior
+    ctx.beginPath();
+    ctx.moveTo(cx+size, cy); ctx.lineTo(cx, cy-size); ctx.lineTo(cx, cy+size); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle='#1a0808'; // Region II: top interior
+    ctx.beginPath();
+    ctx.moveTo(cx-size,cy); ctx.lineTo(cx,cy-size); ctx.lineTo(cx+size,cy); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle='#0a0f22'; // Region III/IV: left/bottom (Kruskal)
+    ctx.beginPath();
+    ctx.moveTo(cx-size,cy); ctx.lineTo(cx,cy+size); ctx.lineTo(cx+size,cy); ctx.lineTo(cx,cy-size); ctx.closePath();
+    ctx.fill();
+    // re-draw Region I on top
+    ctx.fillStyle='#0f0f22';
+    ctx.beginPath();
+    ctx.moveTo(cx+size, cy); ctx.lineTo(cx, cy-size); ctx.lineTo(cx, cy+size); ctx.closePath();
+    ctx.fill();
+
+    // Diamond outline
+    ctx.strokeStyle='#333355'; ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy-size); ctx.lineTo(cx+size,cy); ctx.lineTo(cx,cy+size); ctx.lineTo(cx-size,cy); ctx.closePath();
+    ctx.stroke();
+
+    // Singularity: jagged line at top
+    const jagAmp = 7, jagStep = 12;
+    const topY = cy - size;
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=2.5;
+    ctx.beginPath();
+    let fst = true;
+    for (let x = cx-size; x <= cx+size; x += jagStep) {
+      const y = topY + (Math.floor((x-cx+size)/jagStep) % 2 === 0 ? jagAmp : 0);
+      fst ? ctx.moveTo(x, y) : ctx.lineTo(x, y); fst = false;
+    }
+    ctx.stroke();
+    ctx.fillStyle='#ff4444'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Singularity r=0', cx, topY-10);
+
+    // Event horizon (future): two diagonals meeting at top center
+    // Position scales with M: at M=1, horizon is at cx (center vertical line)
+    // As M increases, horizon position in diagram shifts (conceptually)
+    const hxLeft  = cx - size*(1-horizFrac);
+    const hxRight = cx;
+    if (document.getElementById('showHorizon').checked) {
+      ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2; ctx.setLineDash([]);
+      // Future horizon: right diagonal cx,cy → cx,cy-size
+      ctx.beginPath(); ctx.moveTo(hxRight,cy); ctx.lineTo(hxRight,cy-size); ctx.stroke();
+      // Past horizon: left diagonal cx-size,cy → cx,cy-size
+      ctx.beginPath(); ctx.moveTo(hxLeft,cy); ctx.lineTo(hxRight,cy-size); ctx.stroke();
+      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(`Event horizon (r_s=${(2.95*M).toFixed(2)} km)`, hxRight+4, cy-size*0.55);
+    }
+
+    // Light rays (null geodesics) at 45°
+    if (document.getElementById('showGeodesics').checked) {
+      // Exterior rays
+      ctx.strokeStyle='rgba(200,200,255,0.35)'; ctx.lineWidth=1;
+      [{x:cx+size*0.55,y:cy+size*0.05},{x:cx+size*0.7,y:cy},{x:cx+size*0.55,y:cy-size*0.1}].forEach(o=>{
+        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x-size*0.45, o.y-size*0.45); ctx.stroke();
+        ctx.setLineDash([3,4]); ctx.strokeStyle='rgba(200,200,255,0.18)';
+        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x+size*0.25,o.y-size*0.25); ctx.stroke();
+        ctx.setLineDash([]); ctx.strokeStyle='rgba(200,200,255,0.35)';
+      });
+      // Inside: both rays hit singularity
+      ctx.strokeStyle='rgba(255,120,120,0.6)'; ctx.lineWidth=1.5;
+      [{x:cx-size*0.08,y:cy-size*0.28},{x:cx+size*0.08,y:cy-size*0.25}].forEach(o=>{
+        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x-size*0.15,o.y-size*0.15); ctx.stroke();
+        ctx.setLineDash([2,3]);
+        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x+size*0.15,o.y-size*0.15); ctx.stroke();
+        ctx.setLineDash([]);
+      });
+    }
+
+    // Trapped surface: position scales with M (relative to diagram)
+    if (document.getElementById('showTrapped').checked) {
+      const tsR = 14 + M*4;
+      const tsX = cx, tsY = cy - size*(0.28 + 0.08*(M-1));
+      ctx.strokeStyle='#cc88ff'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(tsX, tsY, tsR, 0, 2*Math.PI); ctx.stroke();
+      ctx.fillStyle='#cc88ff'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('Trapped surface', tsX+tsR+4, tsY+4);
+      // Both arrows converge upward
+      ctx.strokeStyle='#cc88ff88'; ctx.lineWidth=1;
+      [-1,1].forEach(dir=>{
+        ctx.beginPath(); ctx.moveTo(tsX+dir*tsR, tsY); ctx.lineTo(tsX+dir*(tsR+12), tsY-16); ctx.stroke();
+      });
+    }
+
+    // Region labels — positioned to avoid overlap
+    ctx.fillStyle='#7777aa'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('I  Exterior', cx+size*0.45, cy+12);
+    ctx.fillText('II  Interior', cx+size*0.1, cy-size*0.5);
+    ctx.fillStyle='#555577'; ctx.font='12px sans-serif';
+    ctx.fillText('III  Past region', cx-size*0.4, cy-8);
+    ctx.fillText('IV  Antipodal', cx-size*0.4, cy+8);
+
+    // Infinity labels — clear corners
+    ctx.fillStyle='#555577'; ctx.font='12px monospace';
+    ctx.fillText('i⁺', cx-8, cy-size-14);
+    ctx.fillText('i⁻', cx-8, cy+size+18);
+    ctx.textAlign='left'; ctx.fillText('i⁰', cx+size+6, cy+4);
+    ctx.textAlign='right'; ctx.fillText('i⁰', cx-size-6, cy+4);
+    ctx.textAlign='left';
+
+    // Tour tip overlay
+    if (tourRunning && tourIdx < tourSteps.length) {
+      const step = tourSteps[tourIdx];
+      tourTip = step.tip;
+      tourStepT++;
+      if (tourStepT >= step.dur) { tourIdx++; tourStepT = 0; }
+      if (tourIdx >= tourSteps.length) { tourRunning=false; if(tourBtn)tourBtn.textContent='▶ Guided tour'; }
+    }
+    if (tourTip) {
+      const tw = Math.min(500, W-60);
+      const tx = (W-tw)/2, ty = H-90;
+      ctx.fillStyle='rgba(8,8,24,0.9)';
+      ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(tx,ty,tw,72,7);else ctx.rect(tx,ty,tw,72);
+      ctx.fill();
+      ctx.strokeStyle='#cc88ff44'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='#cc88ff'; ctx.font='12px sans-serif';
+      const wrds=tourTip.split(' '); let ln2='', ly2=ty+18;
+      wrds.forEach(w=>{const tt2=ln2+w+' ';if(ctx.measureText(tt2).width>tw-20&&ln2){ctx.fillText(ln2,tx+10,ly2);ly2+=15;ln2=w+' ';}else ln2=tt2;});
+      if(ln2)ctx.fillText(ln2,tx+10,ly2);
+    }
+
+    document.getElementById('ro1').textContent =
+      `r_Schwarzschild = 2GM/c² = ${(2.95*M).toFixed(2)} km   M = ${M.toFixed(2)} M☉   horizon fraction in diagram: ${(horizFrac*100).toFixed(0)}%`;
+  }
+
+  [document.getElementById('massSlider'),
+   document.getElementById('showGeodesics'),
+   document.getElementById('showTrapped'),
+   document.getElementById('showHorizon')
+  ].forEach(el=>{el.addEventListener('input',draw);el.addEventListener('change',draw);});
+  draw();
+  return { stop() {} };
+}
+
+// ─── Tab 2: Raychaudhuri Phase Portrait ──────────────────────────────────────
+window.paused2 = false;
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
+  cv.style.width = '820px'; cv.style.height = '440px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 440;
+
+  function draw() {
+    const theta0 = +document.getElementById('theta0').value;
+    const sigma   = +document.getElementById('shearSl').value;
+    const Ric     = +document.getElementById('ricciSl').value;
+    document.getElementById('theta0V').textContent  = theta0.toFixed(2);
+    document.getElementById('shearV').textContent   = sigma.toFixed(2);
+    document.getElementById('ricciV').textContent   = Ric.toFixed(2);
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    const pad={l:70,r:30,t:30,b:50};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+    const lambdaMax = 5, thetaMin=-4, thetaMax=3;
+
+    function lToX(l){return pad.l+l/lambdaMax*pW;}
+    function thToY(th){return pad.t+(1-(th-thetaMin)/(thetaMax-thetaMin))*pH;}
+
+    // Grid
+    ctx.strokeStyle='#1a1a38'; ctx.lineWidth=1;
+    [0,1,2,3,4,5].forEach(l=>{
+      const x=lToX(l);
+      ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
+      ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='center';
+      ctx.fillText(l,x,pad.t+pH+16);
+    });
+    [-4,-3,-2,-1,0,1,2,3].forEach(th=>{
+      const y=thToY(th);
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pW,y);ctx.stroke();
+      ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='right';
+      ctx.fillText(th,pad.l-8,y+4);
+    });
+    ctx.fillStyle='#9999bb';ctx.font='13px sans-serif';ctx.textAlign='center';
+    ctx.fillText('Affine parameter λ',pad.l+pW/2,H-6);
+    ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);
+    ctx.fillText('Expansion θ',0,0);ctx.restore();
+
+    // θ=0 line
+    ctx.strokeStyle='#333355';ctx.lineWidth=1;ctx.setLineDash([2,4]);
+    ctx.beginPath();ctx.moveTo(pad.l,thToY(0));ctx.lineTo(pad.l+pW,thToY(0));ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Integrate Raychaudhuri: dθ/dλ = −θ²/2 − σ² − Ric
+    // (ignoring rotation ω=0)
+    function integrate(th0, color, label) {
+      const steps = 2000, dl = lambdaMax / steps;
+      let th = th0;
+      let caustic_l = null;
+      const pts = [];
+      for (let i = 0; i <= steps; i++) {
+        const l = i * dl;
+        pts.push({l, th});
+        if (th < thetaMin - 0.5) { caustic_l = l; break; }
+        const dth = -(th**2)/2 - sigma**2 - Ric;
+        th += dth * dl;
+      }
+
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath(); let first=true;
+      pts.forEach(({l,th})=>{
+        const x=lToX(l), y=thToY(th);
+        if (y < pad.t - 5 || y > pad.t+pH+5) {first=true;return;}
+        first?ctx.moveTo(x,y):ctx.lineTo(x,y); first=false;
+      });
+      ctx.stroke();
+
+      if (caustic_l !== null) {
+        const xC = lToX(caustic_l);
+        ctx.strokeStyle=color; ctx.lineWidth=1; ctx.setLineDash([2,3]);
+        ctx.beginPath(); ctx.moveTo(xC,pad.t); ctx.lineTo(xC,pad.t+pH); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle=color; ctx.font='12px sans-serif'; ctx.textAlign='left';
+        ctx.fillText(`${label} caustic λ≈${caustic_l.toFixed(2)}`, xC+3, pad.t+16);
+      }
+      return caustic_l;
+    }
+
+    const cl = integrate(theta0, '#cc88ff', 'θ₀');
+    // Phase portrait: vector field
+    ctx.strokeStyle='rgba(150,100,200,0.2)'; ctx.lineWidth=0.8;
+    for (let l=0; l<lambdaMax; l+=0.4) for (let th=thetaMin+0.5; th<thetaMax; th+=0.5) {
+      const dth = -(th**2)/2 - sigma**2 - Ric;
+      const x=lToX(l), y=thToY(th);
+      const scale=0.08;
+      const ex=lToX(l+scale*lambdaMax/5)-x, ey=thToY(th+dth*scale)-y;
+      const len=Math.sqrt(ex**2+ey**2);
+      if (len>0.5) {
+        ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+ex,y+ey); ctx.stroke();
+      }
+    }
+
+    // Separator: θ = −√(2*(σ²+Ric)) is fixed point
+    const thEq = -Math.sqrt(2*(sigma**2+Ric));
+    const yEq = thToY(thEq);
+    if (yEq > pad.t && yEq < pad.t+pH) {
+      ctx.strokeStyle='#ffcc4466'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(pad.l,yEq); ctx.lineTo(pad.l+pW,yEq); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText(`θ_eq ≈ ${thEq.toFixed(2)} (unstable fixed pt)`, pad.l+5, yEq-4);
+    }
+
+    const focusing = theta0 < 0 || (sigma > 0) || (Ric > 0) ? 'YES' : 'Marginally';
+    document.getElementById('ro2').textContent =
+      `Focusing guaranteed: ${focusing}   Caustic (θ→−∞) at λ ≈ ${cl ? cl.toFixed(3) : 'none in range'}   θ_eq = ${thEq.toFixed(3)}`;
+  }
+
+  let raf2t = null, animDot = 0;
+  function loop2() {
+    animDot = (animDot + 0.004) % 5; // dot sliding along θ₀ trajectory
+    draw();
+    raf2t = requestAnimationFrame(loop2);
+  }
+
+  // Animated indicator dot on the theta curve + tooltip
+  const origDraw = draw;
+  function drawWithDot() {
+    origDraw();
+    // Add an animated dot sliding along the trajectory
+    const theta0 = +document.getElementById('theta0').value;
+    const sigma   = +document.getElementById('shearSl').value;
+    const Ric     = +document.getElementById('ricciSl').value;
+    const pad={l:70,r:30,t:30,b:50};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+    const lambdaMax=5, thetaMin=-4, thetaMax=3;
+    function lToX(l){return pad.l+l/lambdaMax*pW;}
+    function thToY(th){return pad.t+(1-(th-thetaMin)/(thetaMax-thetaMin))*pH;}
+
+    // Trace to animDot position
+    const steps=2000, dl=lambdaMax/steps;
+    let th=theta0;
+    const targetL = animDot;
+    let dotX=lToX(0), dotY=thToY(theta0);
+    for(let i=0;i<=steps;i++){
+      const l=i*dl;
+      if(l>=targetL){dotX=lToX(l);dotY=thToY(th);break;}
+      if(th<thetaMin-0.5)break;
+      const dth=-(th**2)/2-sigma**2-Ric;
+      th+=dth*dl;
+    }
+    ctx.beginPath(); ctx.arc(dotX, Math.max(pad.t,Math.min(pad.t+pH,dotY)), 5, 0, 2*Math.PI);
+    ctx.fillStyle='#ffcc44'; ctx.shadowColor='#ffcc44'; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
+
+    // Tooltip
+    const ttips = [
+      {lRange:[0,1],   col:'#88ff88', text:'θ > 0: rays diverging (expanding congruence). NEC says dθ/dλ < 0 always.'},
+      {lRange:[1,3],   col:'#ffcc44', text:'θ decreasing: gravity focuses rays. Shear (σ) and Ricci (R_μνkk) add extra focusing.'},
+      {lRange:[3,5],   col:'#ff4444', text:'θ → −∞: caustic! Geodesics converge to a point — the singularity is inevitable (Penrose theorem).'},
+    ];
+    const tip2 = ttips.find(t=>animDot>=t.lRange[0]&&animDot<t.lRange[1]);
+    if(tip2){
+      ctx.fillStyle='rgba(8,8,20,0.88)';
+      const bx=pad.l, bW=W-pad.l-pad.r;
+      ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,H-65,bW,52,6);else ctx.rect(bx,H-65,bW,52);
+      ctx.fill();
+      ctx.strokeStyle=tip2.col+'55';ctx.lineWidth=1;ctx.stroke();
+      ctx.fillStyle=tip2.col;ctx.font='12px sans-serif';
+      const ws=tip2.text.split(' ');let ln='',ly2=H-50;
+      ws.forEach(w=>{const tt=ln+w+' ';if(ctx.measureText(tt).width>bW-16&&ln){ctx.fillText(ln,bx+8,ly2);ly2+=14;ln=w+' ';}else ln=tt;});
+      if(ln)ctx.fillText(ln,bx+8,ly2);
+    }
+  }
+
+  // Override draw ref
+  const _draw = draw;
+  function draw2() { _draw(); }
+
+  [document.getElementById('theta0'),
+   document.getElementById('shearSl'),
+   document.getElementById('ricciSl')
+  ].forEach(el=>el.addEventListener('input',draw));
+
+  // Use loop version with animated dot
+  function loop2b() {
+    if (!window.paused2) {
+      animDot = (animDot + 0.006) % 5;
+    }
+    draw();
+    // Re-draw animated dot on top
+    const theta0 = +document.getElementById('theta0').value;
+    const sigma   = +document.getElementById('shearSl').value;
+    const Ric     = +document.getElementById('ricciSl').value;
+    const pad={l:70,r:30,t:30,b:50};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+    const lambdaMax2=5, thetaMin=-4, thetaMax=3;
+    function lToX(l){return pad.l+l/lambdaMax2*pW;}
+    function thToY(th){return pad.t+(1-(th-thetaMin)/(thetaMax-thetaMin))*pH;}
+    const steps=1000, dl2=lambdaMax2/steps;
+    let th=theta0;
+    let dotX=lToX(0), dotY=thToY(theta0), found=false;
+    for(let i=0;i<=steps;i++){
+      const l=i*dl2;
+      if(!found && l>=animDot){dotX=lToX(l);dotY=thToY(th);found=true;}
+      if(th<thetaMin-0.5)break;
+      const dth=-(th**2)/2-sigma**2-Ric;
+      th+=dth*dl2;
+    }
+    ctx.beginPath(); ctx.arc(dotX, Math.max(pad.t,Math.min(pad.t+pH,dotY)), 6, 0, 2*Math.PI);
+    ctx.fillStyle='#ffcc44'; ctx.shadowColor='#ffcc44'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+    raf2t = requestAnimationFrame(loop2b);
+  }
+
+  if(raf2t) cancelAnimationFrame(raf2t);
+  window.paused2 = false;
+  document.getElementById('pauseBtn2').textContent = '⏸ Pause';
+  loop2b();
+  return { stop() { cancelAnimationFrame(raf2t); raf2t=null; } };
+}
+
+// ─── Tab 3: Gravitational Collapse Animation ──────────────────────────────────
+let raf3 = null;
+window.paused3 = false;
+
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
+  cv.style.width = '820px'; cv.style.height = '480px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 480;
+
+  // Looping: each cycle = 10s = ~600 frames at 60fps
+  const CYCLE_FRAMES = 600;
+  let t = 0;
+  let lightRays = [];
+  let lastM = 1.5, lastSpeed = 0.6; // track last param values for restart
+
+  function reset() {
+    t = 0; lightRays = [];
+    window.paused3 = false;
+    document.getElementById('pauseBtn3').textContent = 'Pause';
+  }
+  document.getElementById('resetBtn3').onclick = reset;
+  document.getElementById('pauseBtn3').onclick = () => {
+    window.paused3 = !window.paused3;
+    document.getElementById('pauseBtn3').textContent = window.paused3 ? 'Resume' : 'Pause';
+  };
+  // Restart animation when slider changes
+  ['massSl3','speedSl'].forEach(id => {
+    document.getElementById(id).addEventListener('input', reset);
+  });
+  window.paused3 = false;
+
+  function frame() {
+    const M = +document.getElementById('massSl3').value;
+    const baseSpeed = +document.getElementById('speedSl').value;
+    const speed = baseSpeed;
+    document.getElementById('massV3').textContent = M.toFixed(2);
+    document.getElementById('speedV').textContent  = speed.toFixed(2);
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    const cx = W/2, cy = H*0.55;
+    // r_s in pixels: proportional to M (M=1.5 → 60px baseline)
+    const rs_px = Math.round(40 * M);
+    // Looping cycle: use modular t so animation loops every CYCLE_FRAMES frames
+    const tCycle = t % CYCLE_FRAMES;
+    // totalTime scales with speed: fast speed = shorter collapse (fewer frames)
+    const totalTime = Math.round(CYCLE_FRAMES * 0.65 / speed);
+    const collapseFrac = Math.min(tCycle / totalTime, 1);
+    const starR = rs_px * (1 + 3 * (1 - collapseFrac));
+    // After collapse, star is at rs_px
+    const currentR = Math.max(rs_px * 0.2, starR);
+    const horizonFormed = currentR <= rs_px;
+
+    // Draw gravitational grid lines (curved spacetime)
+    ctx.strokeStyle='#1a1a3a'; ctx.lineWidth=1;
+    const gridN = 14;
+    for (let i = 0; i < gridN; i++) {
+      const r = (i+1) * W / gridN;
+      ctx.beginPath();
+      // Warp lines around center
+      for (let angle = 0; angle < 2*Math.PI; angle += 0.1) {
+        const dist = r;
+        const warp = horizonFormed ? rs_px * rs_px / (dist+1) : 0;
+        const px = cx + (dist - warp) * Math.cos(angle);
+        const py = cy + (dist - warp) * Math.sin(angle);
+        angle < 0.15 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+    }
+
+    // Event horizon
+    if (currentR <= rs_px * 1.5) {
+      ctx.strokeStyle = '#ffcc44';
+      ctx.lineWidth = 2;
+      ctx.setLineDash(horizonFormed ? [] : [4,4]);
+      ctx.beginPath(); ctx.arc(cx, cy, rs_px, 0, 2*Math.PI); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(`r_s = ${(2.95*M).toFixed(2)} km`, cx, cy - rs_px - 8);
+    }
+
+    // Star
+    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, currentR);
+    if (horizonFormed) {
+      gradient.addColorStop(0, '#330000');
+      gradient.addColorStop(0.6, '#220011');
+      gradient.addColorStop(1, '#110005');
+    } else {
+      const f = 1 - collapseFrac;
+      gradient.addColorStop(0, `rgba(255,${Math.round(200*f)},${Math.round(100*f)},1)`);
+      gradient.addColorStop(0.5, `rgba(220,${Math.round(100*f)},0,0.9)`);
+      gradient.addColorStop(1, `rgba(180,60,0,0.5)`);
+    }
+    ctx.beginPath(); ctx.arc(cx, cy, currentR, 0, 2*Math.PI);
+    ctx.fillStyle = gradient; ctx.fill();
+
+    // Light rays: emit every 15 frames (use tCycle for consistent timing)
+    if (tCycle % 15 === 0 && !horizonFormed) {
+      for (let angle = 0; angle < 2*Math.PI; angle += Math.PI/4) {
+        lightRays.push({
+          x: cx + currentR * Math.cos(angle),
+          y: cy + currentR * Math.sin(angle),
+          vx: Math.cos(angle),
+          vy: Math.sin(angle),
+          born: t,
+          inside: currentR < rs_px
+        });
+      }
+    }
+    if (tCycle % 15 === 0 && horizonFormed) {
+      lightRays.push({
+        x: cx + (rs_px*0.7) * Math.cos(tCycle/10),
+        y: cy + (rs_px*0.7) * Math.sin(tCycle/10),
+        vx: Math.cos(tCycle/10), vy: Math.sin(tCycle/10),
+        born: t, inside: true
+      });
+    }
+
+    // Update and draw light rays
+    lightRays = lightRays.filter(ray => {
+      const age = t - ray.born;
+      const dist = Math.sqrt((ray.x + ray.vx*age - cx)**2 + (ray.y + ray.vy*age - cy)**2);
+      // Inside horizon: rays curve back
+      const rx = ray.x + ray.vx * age - cx;
+      const ry = ray.y + ray.vy * age - cy;
+      const r = Math.sqrt(rx**2+ry**2);
+      const insideNow = r < rs_px;
+      // Draw trail
+      ctx.strokeStyle = insideNow ? 'rgba(255,80,80,0.5)' : 'rgba(255,255,180,0.5)';
+      ctx.lineWidth = 1;
+      const pts = 20;
+      ctx.beginPath();
+      for (let s = 0; s < pts; s++) {
+        const frac = s / pts;
+        let px = ray.x + ray.vx * age * frac - cx;
+        let py = ray.y + ray.vy * age * frac - cy;
+        const pr = Math.sqrt(px**2+py**2);
+        // Bend toward center if inside (trapped surface effect)
+        if (pr < rs_px) {
+          const inward = rs_px / (pr+1);
+          px -= px/pr * inward * frac * 0.05;
+          py -= py/pr * inward * frac * 0.05;
+        }
+        const sx = cx+px, sy = cy+py;
+        s===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);
+      }
+      ctx.stroke();
+      return age < 60 && dist < W;
+    });
+
+    // Trapped surface indicator
+    if (horizonFormed) {
+      ctx.strokeStyle='#cc88ff'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.arc(cx, cy, currentR*1.15, 0, 2*Math.PI); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#cc88ff'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('TRAPPED SURFACE — Singularity inevitable (Penrose 1965)', cx, cy + rs_px + 30);
+    }
+
+    // Phase label
+    const phase = collapseFrac < 0.3 ? 'Pre-collapse' :
+                  collapseFrac < 0.7 ? 'Horizon forming' :
+                  horizonFormed ? 'Black hole (Penrose 1965 ✓)' : 'Near-critical';
+    ctx.fillStyle='#cc88ff'; ctx.font='13px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(`Phase: ${phase}`, 20, 24);
+    ctx.fillStyle='#aaaacc';
+    ctx.fillText(`r/r_s = ${(currentR/rs_px).toFixed(2)}`, 20, 42);
+    // Loop counter
+    const loopNum = Math.floor(t / CYCLE_FRAMES) + 1;
+    const cycleT_s = (tCycle / 60).toFixed(1);
+    ctx.fillStyle='#555577'; ctx.font='12px monospace';
+    ctx.fillText(`Loop ${loopNum}  t = ${cycleT_s}s / 10s`, 20, 58);
+
+    document.getElementById('ro3').textContent =
+      `Phase: ${phase}   r/r_s = ${(currentR/rs_px).toFixed(2)}   Horizon: ${horizonFormed?'YES':'no'}   Loop: ${loopNum}`;
+
+    if (!window.paused3) t++;
+    raf3 = requestAnimationFrame(frame);
+  }
+
+  if (raf3) cancelAnimationFrame(raf3);
+  frame();
+  return { stop() { cancelAnimationFrame(raf3); raf3 = null; } };
+}
+
+// ─── Tab 4: Trapped Surfaces ──────────────────────────────────────────────────
+function initTab4() {
+  const cv = document.getElementById('cv4');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
+  cv.style.width = '820px'; cv.style.height = '480px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 480;
+
+  let raf4 = null;
+  let animT4 = 0;
+  let dragActive = false;
+  let userR = null; // null = use slider
+
+  // Dragging
+  cv.addEventListener('mousedown', e => {
+    dragActive = true;
+    const rect = cv.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / (rect.width / W);
+    const cx = W / 2;
+    userR = Math.max(20, Math.min(200, Math.abs(mx - cx)));
+    document.getElementById('trappedR').value = Math.round(userR);
+    document.getElementById('trappedRV').textContent = Math.round(userR);
+  });
+  cv.addEventListener('mousemove', e => {
+    if (!dragActive) return;
+    const rect = cv.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / (rect.width / W);
+    const cx = W / 2;
+    userR = Math.max(20, Math.min(200, Math.abs(mx - cx)));
+    document.getElementById('trappedR').value = Math.round(userR);
+    document.getElementById('trappedRV').textContent = Math.round(userR);
+  });
+  cv.addEventListener('mouseup', () => { dragActive = false; });
+  cv.addEventListener('mouseleave', () => { dragActive = false; });
+
+  document.getElementById('trappedR').addEventListener('input', function() {
+    userR = +this.value;
+    document.getElementById('trappedRV').textContent = Math.round(userR);
+  });
+
+  window.paused4 = false;
+  function drawFrame() {
+    const surfR = userR !== null ? userR : +document.getElementById('trappedR').value;
+    const showNormals = document.getElementById('showNormals').checked;
+    if (!window.paused4) animT4 += 0.018*(window.animSpeed||0.1);
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+
+    const cx = W / 2, cy = H / 2 + 20;
+    // Horizon radius fixed at 100px visual
+    const horizR = 100;
+
+    // Draw embedding diagram: curved grid representing Flamm's paraboloid
+    // Simplified: concentric rings with vertical displacement to suggest funnel
+    for (let r = 20; r <= 320; r += 22) {
+      const depth = horizR * 1.2 / (r + horizR * 0.5); // funnel depth factor
+      const yOff = depth * 18;
+      ctx.strokeStyle = r < horizR ? 'rgba(255,80,80,0.12)' : 'rgba(100,100,180,0.18)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + yOff, r, r * 0.28 + yOff * 0.4, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    // Radial grid lines
+    for (let a = 0; a < 2 * Math.PI; a += Math.PI / 6) {
+      ctx.strokeStyle = 'rgba(80,80,130,0.2)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + 300 * Math.cos(a), cy + 300 * Math.sin(a) * 0.28);
+      ctx.stroke();
+    }
+
+    // Black hole: filled dark circle with glow
+    const bhGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, horizR);
+    bhGrad.addColorStop(0, '#000000');
+    bhGrad.addColorStop(0.7, '#0a0005');
+    bhGrad.addColorStop(1, '#200010');
+    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI);
+    ctx.fillStyle = bhGrad; ctx.fill();
+
+    // Event horizon ring
+    ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI); ctx.stroke();
+    ctx.fillStyle = '#ffcc44'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Event Horizon  r = r_s', cx, cy - horizR - 10);
+
+    // Trapped surface (user-controlled circle)
+    const trapped = surfR < horizR;
+    ctx.strokeStyle = trapped ? '#cc88ff' : '#88aaff';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash(trapped ? [] : [5, 4]);
+    ctx.beginPath(); ctx.arc(cx, cy, surfR, 0, 2 * Math.PI); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = trapped ? '#cc88ff' : '#88aaff';
+    ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(trapped ? 'TRAPPED SURFACE (θ_out<0, θ_in<0)' : 'Normal surface (θ_out>0, θ_in<0)',
+      cx, cy + surfR + 18);
+
+    // Null normals: outgoing and ingoing arrows
+    if (showNormals) {
+      const nAngles = 8;
+      for (let i = 0; i < nAngles; i++) {
+        const angle = (i / nAngles) * 2 * Math.PI + animT4 * 0.3;
+        const px = cx + surfR * Math.cos(angle);
+        const py = cy + surfR * Math.sin(angle);
+
+        // Outgoing null normal
+        const outLen = trapped ? -20 : 24; // negative = converging
+        const oAnim = trapped
+          ? 14 + 8 * Math.sin(animT4 * 2 + i)  // converging pulse
+          : 18 + 6 * Math.sin(animT4 * 1.5 + i); // expanding pulse
+        const outX = px + (trapped ? -1 : 1) * oAnim * Math.cos(angle);
+        const outY = py + (trapped ? -1 : 1) * oAnim * Math.sin(angle);
+        ctx.strokeStyle = trapped ? '#ff6644' : '#44ff88';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(outX, outY); ctx.stroke();
+        // arrowhead
+        const hdx = outX - px, hdy = outY - py;
+        const hlen = Math.sqrt(hdx * hdx + hdy * hdy) || 1;
+        const ax = outX - (hdx / hlen) * 7, ay = outY - (hdy / hlen) * 7;
+        ctx.beginPath();
+        ctx.moveTo(outX, outY);
+        ctx.lineTo(ax + (hdy / hlen) * 4, ay - (hdx / hlen) * 4);
+        ctx.lineTo(ax - (hdy / hlen) * 4, ay + (hdx / hlen) * 4);
+        ctx.fillStyle = trapped ? '#ff6644' : '#44ff88'; ctx.fill();
+
+        // Ingoing null normal — always converging
+        const inAnim = 16 + 5 * Math.sin(animT4 * 2.2 + i + 1);
+        const inX = px - inAnim * Math.cos(angle);
+        const inY = py - inAnim * Math.sin(angle);
+        ctx.strokeStyle = '#ff8888';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(inX, inY); ctx.stroke();
+        const hdxi = inX - px, hdyi = inY - py;
+        const hleni = Math.sqrt(hdxi * hdxi + hdyi * hdyi) || 1;
+        const axi = inX - (hdxi / hleni) * 7, ayi = inY - (hdyi / hleni) * 7;
+        ctx.beginPath();
+        ctx.moveTo(inX, inY);
+        ctx.lineTo(axi + (hdyi / hleni) * 4, ayi - (hdxi / hleni) * 4);
+        ctx.lineTo(axi - (hdyi / hleni) * 4, ayi + (hdxi / hleni) * 4);
+        ctx.fillStyle = '#ff8888'; ctx.fill();
+      }
+    }
+
+    // Legend
+    const legX = 18, legY = 20;
+    ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#44ff88'; ctx.fillText('→ Outgoing null normal (θ_out)', legX, legY);
+    ctx.fillStyle = '#ff8888'; ctx.fillText('← Ingoing null normal (θ_in)', legX, legY + 18);
+    ctx.fillStyle = '#cc88ff'; ctx.fillText('── Trapped surface (drag or use slider)', legX, legY + 36);
+    ctx.fillStyle = '#ffcc44'; ctx.fillText('── Event horizon', legX, legY + 54);
+
+    // Readout
+    const thetaOut = trapped ? '< 0 (converging!)' : '> 0 (expanding)';
+    const thetaIn  = '< 0 (converging)';
+    const status   = trapped ? 'INSIDE HORIZON — TRAPPED' : 'OUTSIDE HORIZON — normal';
+    document.getElementById('ro4').textContent =
+      `Outgoing θ: ${thetaOut}   Ingoing θ: ${thetaIn}   Surface r=${Math.round(surfR)}px, r_s=${horizR}px   ${status}`;
+
+    raf4 = requestAnimationFrame(drawFrame);
+  }
+
+  if (raf4) cancelAnimationFrame(raf4);
+  window.paused4 = false;
+  drawFrame();
+  return {
+    stop() { cancelAnimationFrame(raf4); raf4 = null; window.paused4 = false; }
+  };
+}
+
+// ─── Tab 5: Hawking Radiation ─────────────────────────────────────────────────
+let raf5 = null;
+window.paused5 = false;
+function initTab5() {
+  const cv = document.getElementById('cv5');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
+  cv.style.width = '820px'; cv.style.height = '480px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 480;
+
+  let animT5 = 0;
+  let pairs = [];
+  let evapM = null; // current mass for evaporation mode
+
+  // T_H = hbar c^3 / (8 pi G M k_B)
+  // In SI: T_H [K] = 6.169e-8 / M[solar masses]
+  function hawkingTemp(Msol) { return 6.169e-8 / Msol; }
+  function rs_km(Msol) { return 2.95 * Msol; }
+
+  function addPair(M) {
+    const horizR = 90 + M * 10;
+    const cx = W * 0.38, cy = H / 2;
+    const angle = Math.random() * 2 * Math.PI;
+    const pr = horizR + (Math.random() - 0.5) * 14;
+    pairs.push({
+      x: cx + pr * Math.cos(angle),
+      y: cy + pr * Math.sin(angle),
+      angle: angle,
+      born: animT5,
+      cx, cy, horizR, M
+    });
+  }
+
+  function drawFrame() {
+    const Mbase = +document.getElementById('hwkMass').value;
+    const baseSpd = +document.getElementById('hwkSpeed').value;
+    const spd = baseSpd;
+    const doEvap = document.getElementById('hwkEvaporate').checked;
+    document.getElementById('hwkMassV').textContent = Mbase.toFixed(1);
+    document.getElementById('hwkSpeedV').textContent = spd.toFixed(1);
+
+    if (!window.paused5) animT5 += 0.016 * spd;
+
+    // Evaporation mode: mass slowly decreases
+    if (doEvap) {
+      if (evapM === null) evapM = Mbase;
+      evapM = Math.max(0.1, evapM - 0.0002 * spd * (1 / (evapM * evapM)));
+      if (evapM < 0.12) evapM = Mbase; // reset
+    } else {
+      evapM = null;
+    }
+    const M = evapM !== null ? evapM : Mbase;
+    const T_H = hawkingTemp(M);
+    const horizR = Math.min(160, 60 + M * 18);
+    const cx = W * 0.38, cy = H / 2;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+
+    // Background: faint curved space grid
+    ctx.strokeStyle = 'rgba(30,30,80,0.4)'; ctx.lineWidth = 1;
+    for (let r = 30; r < 350; r += 28) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke();
+    }
+
+    // Black hole body
+    const bhGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, horizR);
+    bhGrad.addColorStop(0, '#000');
+    bhGrad.addColorStop(0.75, '#080010');
+    bhGrad.addColorStop(1, '#1a0025');
+    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI);
+    ctx.fillStyle = bhGrad; ctx.fill();
+
+    // Hawking glow
+    const glowR = horizR * 1.35;
+    const gGrad = ctx.createRadialGradient(cx, cy, horizR * 0.9, cx, cy, glowR);
+    const glowIntensity = Math.min(1, 0.15 / M);
+    gGrad.addColorStop(0, `rgba(255,180,60,${glowIntensity.toFixed(3)})`);
+    gGrad.addColorStop(1, 'rgba(255,100,20,0)');
+    ctx.beginPath(); ctx.arc(cx, cy, glowR, 0, 2 * Math.PI);
+    ctx.fillStyle = gGrad; ctx.fill();
+
+    // Event horizon ring
+    ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI); ctx.stroke();
+    ctx.fillStyle = '#ffcc44'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`r_s = ${rs_km(M).toFixed(2)} km`, cx, cy - horizR - 8);
+
+    // Add pairs periodically
+    if (Math.floor(animT5 * 30) % Math.max(1, Math.round(8 / spd)) === 0) {
+      for (let k = 0; k < 2; k++) addPair(M);
+    }
+
+    // Draw and update pairs
+    pairs = pairs.filter(p => {
+      const age = animT5 - p.born;
+      if (age > 3.5) return false;
+      const frac = age / 3.5;
+
+      // Particle that escapes (outgoing)
+      const escDist = p.horizR + age * 55;
+      const ex = p.cx + escDist * Math.cos(p.angle);
+      const ey = p.cy + escDist * Math.sin(p.angle);
+      // Particle that falls in (ingoing, curves toward center)
+      const fallDist = Math.max(0, p.horizR - age * 45);
+      const fx = p.cx + fallDist * Math.cos(p.angle + Math.PI);
+      const fy = p.cy + fallDist * Math.sin(p.angle + Math.PI);
+
+      const alpha = Math.max(0, 1 - frac * 1.2);
+
+      // Escaping particle
+      ctx.beginPath(); ctx.arc(ex, ey, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = `rgba(255,200,80,${alpha})`; ctx.fill();
+      ctx.strokeStyle = `rgba(255,220,100,${alpha * 0.5})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(ex, ey); ctx.stroke();
+
+      // Infalling particle
+      if (fallDist > 4) {
+        ctx.beginPath(); ctx.arc(fx, fy, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(255,80,80,${alpha})`; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(fx, fy);
+        ctx.strokeStyle = `rgba(255,80,80,${alpha * 0.4})`; ctx.stroke();
+      }
+
+      // Origin dot (virtual pair creation point)
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 2 * Math.PI);
+      ctx.fillStyle = `rgba(200,180,255,${alpha * 0.7})`; ctx.fill();
+
+      return true;
+    });
+
+    // Right panel: thermal spectrum
+    const spX = W * 0.62, spY = 50, spW = W * 0.36, spH = H - 100;
+    ctx.strokeStyle = '#2a2a50'; ctx.lineWidth = 1;
+    ctx.strokeRect(spX, spY, spW, spH);
+    ctx.fillStyle = '#0f0f22'; ctx.fillRect(spX, spY, spW, spH);
+
+    ctx.fillStyle = '#9999bb'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Planck Thermal Spectrum', spX + spW / 2, spY + 18);
+    ctx.fillStyle = '#666688'; ctx.font = '12px monospace';
+    ctx.fillText(`T_H = ${(T_H * 1e9).toFixed(2)} nK`, spX + spW / 2, spY + 34);
+
+    // Planck spectrum: B(ν) ∝ ν³ / (exp(hν/kT)−1)
+    // We plot in normalised units, ν from 0 to ~6 kT/h
+    const specPad = { l: 38, r: 10, t: 50, b: 36 };
+    const specW = spW - specPad.l - specPad.r;
+    const specH_px = spH - specPad.t - specPad.b;
+    let maxB = 0;
+    const Npts = 200;
+    const specPts = [];
+    for (let i = 1; i <= Npts; i++) {
+      const x_nu = i / Npts * 6; // normalised freq x = hν/kT
+      const B = x_nu * x_nu * x_nu / (Math.exp(x_nu) - 1 + 1e-10);
+      specPts.push(B);
+      if (B > maxB) maxB = B;
+    }
+    // Colour mapped by temperature (hotter = bluer)
+    const hue = Math.max(0, 240 - M * 18); // high M (cold) = red, low M (hot) = blue
+    ctx.strokeStyle = `hsl(${hue},80%,65%)`; ctx.lineWidth = 2;
+    ctx.beginPath();
+    specPts.forEach((B, i) => {
+      const sx = spX + specPad.l + (i / Npts) * specW;
+      const sy = spY + specPad.t + specH_px - (B / maxB) * specH_px;
+      i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+    });
+    ctx.stroke();
+
+    // Fill under curve
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(spX + specPad.l, spY + specPad.t + specH_px);
+    specPts.forEach((B, i) => {
+      const sx = spX + specPad.l + (i / Npts) * specW;
+      const sy = spY + specPad.t + specH_px - (B / maxB) * specH_px;
+      ctx.lineTo(sx, sy);
+    });
+    ctx.lineTo(spX + specPad.l + specW, spY + specPad.t + specH_px);
+    ctx.closePath();
+    ctx.fillStyle = `hsla(${hue},70%,50%,0.15)`; ctx.fill();
+    ctx.restore();
+
+    // Axes labels
+    ctx.fillStyle = '#666688'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('ν / (kT/h)', spX + specPad.l + specW / 2, spY + specPad.t + specH_px + 24);
+    ctx.save(); ctx.translate(spX + specPad.l - 24, spY + specPad.t + specH_px / 2);
+    ctx.rotate(-Math.PI / 2); ctx.fillText('B(ν)', 0, 0); ctx.restore();
+
+    // Evaporation bar
+    if (doEvap && evapM !== null) {
+      const frac = (evapM - 0.1) / (Mbase - 0.1 + 0.001);
+      const barX = spX + specPad.l, barY = spY + spH - 20, barW = specW;
+      ctx.fillStyle = '#1a1a38'; ctx.fillRect(barX, barY, barW, 10);
+      ctx.fillStyle = `hsl(${hue},70%,55%)`; ctx.fillRect(barX, barY, barW * frac, 10);
+      ctx.fillStyle = '#8888aa'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(`M remaining: ${evapM.toFixed(2)} M☉`, barX, barY - 3);
+    }
+
+    // Labels on main diagram
+    ctx.fillStyle = '#ffaa44'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Hawking particle (escapes)', cx + horizR + 14, cy - 30);
+    ctx.fillStyle = '#ff6666';
+    ctx.fillText('Infalling partner (reduces M)', cx - horizR - 120, cy + 50);
+    ctx.fillStyle = '#aaaacc';
+    ctx.fillText('Virtual pair creation near horizon', cx + 10, cy + horizR + 30);
+
+    // Formula
+    ctx.fillStyle = '#cc88ff'; ctx.font = 'italic 12px serif'; ctx.textAlign = 'center';
+    ctx.fillText('T_H = ℏc³ / (8πGMk_B)', cx, H - 24);
+    ctx.fillStyle = '#8888aa'; ctx.font = '12px sans-serif';
+    ctx.fillText(`= ${(T_H * 1e9).toFixed(3)} nanokelvin  (M = ${M.toFixed(2)} M☉)`, cx, H - 10);
+
+    document.getElementById('ro5').textContent =
+      `T_H = ${(T_H * 1e9).toFixed(4)} nK   r_s = ${rs_km(M).toFixed(3)} km   Luminosity ∝ 1/M² = ${(1 / (M * M)).toFixed(4)} (norm.)   Active pairs: ${pairs.length}`;
+
+    raf5 = requestAnimationFrame(drawFrame);
+  }
+
+  ['hwkMass', 'hwkSpeed'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => { evapM = null; });
+  });
+  document.getElementById('hwkEvaporate').addEventListener('change', () => { evapM = null; });
+
+  if (raf5) cancelAnimationFrame(raf5);
+  window.paused5 = false;
+  drawFrame();
+  return { stop() { cancelAnimationFrame(raf5); raf5 = null; window.paused5 = false; } };
+}
+
+// ─── Tab 6: Conformal Cyclic Cosmology ───────────────────────────────────────
+let raf6 = null;
+window.paused6 = false;
+function initTab6() {
+  const cv = document.getElementById('cv6');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(820 * dpr); cv.height = Math.round(500 * dpr);
+  cv.style.width = '820px'; cv.style.height = '500px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = 820, H = 500;
+
+  let animT6 = 0;
+  let bhList = [];
+
+  // Generate random black holes per aeon
+  function genBHs() {
+    bhList = [];
+    for (let i = 0; i < 6; i++) {
+      bhList.push({
+        x: 0.1 + Math.random() * 0.8,
+        y: 0.3 + Math.random() * 0.35,
+        r: 6 + Math.random() * 10,
+        evapT: 0.4 + Math.random() * 0.4
+      });
+    }
+  }
+  genBHs();
+
+  function drawFrame() {
+    const baseSpd = +document.getElementById('cccSpeed').value;
+    const spd = baseSpd;
+    const showOmega = document.getElementById('cccShowOmega').checked;
+    const showBH = document.getElementById('cccShowBH').checked;
+    document.getElementById('cccSpeedV').textContent = spd.toFixed(1);
+
+    if (!window.paused6) animT6 += 0.005 * spd;
+    const fullCycle = 2.0; // duration of one aeon in animation units
+    const cycleFrac = (animT6 % fullCycle) / fullCycle; // 0→1
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#08080f'; ctx.fillRect(0, 0, W, H);
+
+    // Layout: show two aeons stacked, with crossover in the middle
+    // Aeon N: upper half (y: 20 → H*0.5 - 20)
+    // Crossover band: y H*0.5 - 20 → H*0.5 + 20
+    // Aeon N+1: lower half (y: H*0.5 + 20 → H - 20)
+
+    const AEON_H = H * 0.5 - 40;
+    const CROSS_Y = H * 0.5;
+
+    // Function to draw one aeon in a strip
+    function drawAeon(yTop, yBot, aeonFrac, aeonLabel, bright) {
+      const aH = yBot - yTop;
+      const aW = W - 60;
+      const ax = 30;
+
+      // Background gradient: dark → cosmic
+      const grad = ctx.createLinearGradient(ax, yTop, ax, yBot);
+      grad.addColorStop(0, `rgba(8,8,30,${bright})`);
+      grad.addColorStop(0.5, `rgba(15,10,40,${bright})`);
+      grad.addColorStop(1, `rgba(4,4,20,${bright})`);
+      ctx.fillStyle = grad; ctx.fillRect(ax, yTop, aW, aH);
+
+      // Cosmic web: faint lines
+      ctx.strokeStyle = `rgba(40,40,100,${bright * 0.5})`; ctx.lineWidth = 0.5;
+      for (let i = 0; i < 12; i++) {
+        const lx = ax + (i / 12) * aW;
+        ctx.beginPath(); ctx.moveTo(lx, yTop); ctx.lineTo(lx + 20, yBot); ctx.stroke();
+      }
+
+      // Big Bang boundary (left side) — spacelike singularity
+      const bbGrad = ctx.createLinearGradient(ax, yTop, ax + 30, yTop);
+      bbGrad.addColorStop(0, `rgba(255,200,80,${bright * 0.9})`);
+      bbGrad.addColorStop(1, 'rgba(255,200,80,0)');
+      ctx.fillStyle = bbGrad; ctx.fillRect(ax, yTop, 28, aH);
+      // Jagged line for singularity
+      ctx.strokeStyle = `rgba(255,200,80,${bright})`; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let y = yTop; y <= yBot; y += 8) {
+        const x = ax + (Math.floor((y - yTop) / 8) % 2 === 0 ? 6 : 0);
+        y === yTop ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Future boundary ℐ⁺ (right) — light-like / spacelike
+      const futGrad = ctx.createLinearGradient(ax + aW - 30, yTop, ax + aW, yTop);
+      futGrad.addColorStop(0, 'rgba(100,200,255,0)');
+      futGrad.addColorStop(1, `rgba(100,200,255,${bright * 0.8})`);
+      ctx.fillStyle = futGrad; ctx.fillRect(ax + aW - 28, yTop, 28, aH);
+      ctx.strokeStyle = `rgba(100,200,255,${bright})`; ctx.lineWidth = 2;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(ax + aW, yTop); ctx.lineTo(ax + aW, yBot); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Expansion: scale factor a(t) shown as width of "universe"
+      // Big Bang is narrow, future boundary is full width
+      ctx.strokeStyle = `rgba(60,60,180,${bright * 0.4})`; ctx.lineWidth = 1;
+      for (let t = 0; t <= 1; t += 0.05) {
+        const x1 = ax + 30 + t * (aW - 60);
+        // Schematic a(t) ~ sinh^(2/3) — just use a smooth curve
+        const ySc = aH * 0.5 * (1 - Math.pow(Math.sin(t * Math.PI * 0.9 + 0.1), 0.5) * 0.7);
+        ctx.beginPath();
+        ctx.moveTo(x1, yTop + aH * 0.5 + ySc);
+        ctx.lineTo(x1, yBot - aH * 0.5 + ySc - aH * 0.5 + aH * 0.5 - ySc);
+        ctx.stroke();
+      }
+
+      // Black holes
+      if (showBH) {
+        bhList.forEach(bh => {
+          const bhX = ax + 30 + bh.x * (aW - 60);
+          const bhY = yTop + bh.y * aH;
+          const formed = aeonFrac > bh.evapT - 0.2;
+          const evapd  = aeonFrac > bh.evapT;
+          if (!formed) return;
+          const sizeNow = evapd
+            ? bh.r * Math.max(0, 1 - (aeonFrac - bh.evapT) * 5)
+            : bh.r;
+          if (sizeNow < 0.5) return;
+          ctx.beginPath(); ctx.arc(bhX, bhY, sizeNow, 0, 2 * Math.PI);
+          ctx.fillStyle = `rgba(0,0,0,${bright})`; ctx.fill();
+          ctx.strokeStyle = `rgba(255,180,40,${bright * 0.7})`; ctx.lineWidth = 1;
+          ctx.stroke();
+          // Hawking glow when evaporating
+          if (evapd) {
+            const gGrad2 = ctx.createRadialGradient(bhX, bhY, 0, bhX, bhY, sizeNow * 3 + 8);
+            gGrad2.addColorStop(0, `rgba(255,200,80,${bright * 0.4})`);
+            gGrad2.addColorStop(1, 'rgba(255,200,80,0)');
+            ctx.beginPath(); ctx.arc(bhX, bhY, sizeNow * 3 + 8, 0, 2 * Math.PI);
+            ctx.fillStyle = gGrad2; ctx.fill();
+          }
+        });
+      }
+
+      // Label
+      ctx.fillStyle = `rgba(200,180,255,${bright})`; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(aeonLabel, ax + 5, yTop + 16);
+      ctx.fillStyle = `rgba(80,80,150,${bright})`; ctx.font = '12px monospace';
+      ctx.fillText('Big Bang →', ax + 2, yBot - 6);
+      ctx.textAlign = 'right'; ctx.fillText('← ℐ⁺ (future boundary)', ax + aW - 2, yBot - 6);
+      ctx.textAlign = 'left';
+    }
+
+    // Draw aeon N (upper)
+    const aeonNFrac = cycleFrac;
+    drawAeon(20, CROSS_Y - 22, aeonNFrac, `Aeon N   (conformal time τ = ${(cycleFrac).toFixed(2)})`, 1.0);
+
+    // Draw aeon N+1 (lower) with offset phase
+    const aeonN1Frac = (cycleFrac + 0.15) % 1;
+    drawAeon(CROSS_Y + 22, H - 20, aeonN1Frac, 'Aeon N+1', 0.75);
+
+    // Crossover band with Ω conformal rescaling arrows
+    const bandY1 = CROSS_Y - 22, bandY2 = CROSS_Y + 22;
+    ctx.fillStyle = 'rgba(140,80,220,0.12)'; ctx.fillRect(30, bandY1, W - 60, bandY2 - bandY1);
+    ctx.strokeStyle = 'rgba(140,80,220,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(30, bandY1); ctx.lineTo(W - 30, bandY1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(30, bandY2); ctx.lineTo(W - 30, bandY2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(180,120,255,0.9)'; ctx.font = 'bold 12px serif'; ctx.textAlign = 'center';
+    ctx.fillText('Conformal crossover: ℐ⁺(N) ≅ Big Bang(N+1)   via  g̃_μν = Ω² g_μν', W / 2, CROSS_Y + 5);
+
+    // Omega arrows: show the conformal rescaling mapping
+    if (showOmega) {
+      const arrowCount = 7;
+      for (let i = 0; i < arrowCount; i++) {
+        const ax2 = 50 + (i / (arrowCount - 1)) * (W - 100);
+        const pulse = 0.5 + 0.5 * Math.sin(animT6 * 3 + i * 0.8);
+        ctx.strokeStyle = `rgba(200,140,255,${0.4 + 0.4 * pulse})`; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(ax2, bandY1 - 10); ctx.lineTo(ax2, bandY2 + 10); ctx.stroke();
+        // Arrow tip at bottom
+        ctx.beginPath();
+        ctx.moveTo(ax2, bandY2 + 10);
+        ctx.lineTo(ax2 - 4, bandY2 + 4);
+        ctx.lineTo(ax2 + 4, bandY2 + 4);
+        ctx.fillStyle = `rgba(200,140,255,${0.4 + 0.4 * pulse})`; ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(180,120,255,0.7)'; ctx.font = '12px serif'; ctx.textAlign = 'center';
+      ctx.fillText('Ω', W / 2 - 60, CROSS_Y - 28);
+    }
+
+    // Readout
+    const aeonNum = Math.floor(animT6 / fullCycle) + 1;
+    document.getElementById('ro6').textContent =
+      `Aeon: ${aeonNum}   Conformal time τ = ${cycleFrac.toFixed(3)}   Phase: ${cycleFrac < 0.15 ? 'Radiation-dominated (Big Bang)' : cycleFrac < 0.65 ? 'Matter/dark energy era' : 'Dark energy dominates → ℐ⁺'}`;
+
+    raf6 = requestAnimationFrame(drawFrame);
+  }
+
+  ['cccSpeed', 'cccShowOmega', 'cccShowBH'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {});
+    el.addEventListener('change', () => {});
+  });
+
+  if (raf6) cancelAnimationFrame(raf6);
+  window.paused6 = false;
+  drawFrame();
+  return { stop() { cancelAnimationFrame(raf6); raf6 = null; window.paused6 = false; } };
+}
+
+// ─── Tab switching ────────────────────────────────────────────────────────────
+let currentTab = 1;
+const tabHandlers = {1:null, 2:null, 3:null, 4:null, 5:null, 6:null};
+
+window.switchTab = function(n) {
+  if (tabHandlers[currentTab]) tabHandlers[currentTab].stop();
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  const pane = document.getElementById('pane'+n);
+  if (pane) pane.classList.add('active');
+  currentTab = n;
+  if (n===1) tabHandlers[1] = initTab1();
+  else if (n===2) tabHandlers[2] = initTab2();
+  else if (n===3) tabHandlers[3] = initTab3();
+  else if (n===4) tabHandlers[4] = initTab4();
+  else if (n===5) tabHandlers[5] = initTab5();
+  else if (n===6) tabHandlers[6] = initTab6();
+};
+
+tabHandlers[1] = initTab1();
+
+window.animSpeed=0.1;
+
+window.addEventListener('resize', () => {
+  clearTimeout(window._resizeTimer60);
+  window._resizeTimer60 = setTimeout(() => { switchTab(currentTab); }, 60);
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

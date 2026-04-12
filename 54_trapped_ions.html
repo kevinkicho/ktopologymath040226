@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trapped Ions & Cavity QED | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --accent:#00ffcc;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:12px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.back{font-size:.75rem;color:var(--dim);text-decoration:none;transition:.15s}
+.back:hover{color:var(--accent)}
+h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
+.content{flex:1;display:flex;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden}
+.panel.active{display:flex}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:260px}
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+canvas{display:block;width:100%;height:100%}
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.77rem;margin-top:3px;font-family:monospace;color:var(--accent)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s;font-family:inherit}
+.btn:hover,.btn.active{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <a href="/" class="back">← Dashboard</a>
+    <h1>Trapped Ions & Cavity QED</h1>
+    <span class="sub">2012 Nobel Physics · Haroche · Wineland</span>
+  </div>
+  <div class="tabs" data-role="tab-bar">
+    <button class="tab active" onclick="switchTab(1)">Paul Trap</button>
+    <button class="tab" onclick="switchTab(2)">Jaynes-Cummings</button>
+    <button class="tab" onclick="switchTab(3)">Schrödinger Cat</button>
+    <button class="tab" onclick="switchTab(4)">Ion Confinement</button>
+    <button class="tab" onclick="switchTab(5)">Laser Cooling</button>
+    <button class="tab" onclick="switchTab(6)">Gate &amp; Entanglement</button>
+    <button class="tab" onclick="switchTab(7)">Quantum Simulation</button>
+    <button class="tab" onclick="switchTab(8)">QC Milestones</button>
+  </div>
+</header>
+
+<div class="content">
+  <!-- Panel 1 -->
+  <div class="panel active" id="p1">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Trap Parameters</div>
+      <label>DC voltage (a) <span class="val-disp" id="dcDisp">0.20</span></label>
+      <input type="range" id="dcSl" min="0" max="0.3" step="0.01" value="0.2"
+        oninput="dcDisp.textContent=(+this.value).toFixed(2);trapDC=+this.value">
+      <label>RF amplitude (q) <span class="val-disp" id="rfDisp">0.70</span></label>
+      <input type="range" id="rfSl" min="0" max="0.95" step="0.01" value="0.7"
+        oninput="rfDisp.textContent=(+this.value).toFixed(2);trapRF=+this.value">
+      <div class="vrow" style="margin-top:8px">
+        <span class="vlbl">Stability</span><span id="stabDisp">—</span>
+      </div>
+      <div class="callout" style="margin-top:8px">Move q above 0.908 or a outside the stability triangle to see the ion escape.</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim1(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv1"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Paul Trap</div>
+      <div class="eq-block">$$a_u = \frac{-4eU}{m\Omega^2 r_0^2}$$</div>
+      <div class="eq-block">$$q_u = \frac{2eV}{m\Omega^2 r_0^2}$$</div>
+      <div class="callout">Stability requires $(a,q)$ inside the first Mathieu stability zone: $q &lt; 0.908$. The ion undergoes fast <strong>micromotion</strong> at Ω plus slow secular oscillation.</div>
+    </div>
+  </div>
+  <!-- Panel 2 -->
+  <div class="panel" data-role="panel" id="p2">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">System</div>
+      <label>Photon number n <span class="val-disp" id="nDisp">1</span></label>
+      <input type="range" id="nSl" min="0" max="5" step="1" value="1"
+        oninput="nDisp.textContent=this.value;jcN=+this.value">
+      <label>Coupling g <span class="val-disp" id="gDisp">1.0</span></label>
+      <input type="range" id="gSl" min="0.1" max="3" step="0.1" value="1"
+        oninput="gDisp.textContent=(+this.value).toFixed(1);jcG=+this.value">
+      <label>Speed <span class="val-disp" id="jcSpeedDisp">1.0</span>×</label>
+      <input type="range" id="jcSpeedSl" min="0.1" max="1" step="0.05" value="1"
+        oninput="jcSpeedDisp.textContent=(+this.value).toFixed(1);jcSpeed=+this.value">
+      <div class="callout" style="margin-top:8px">
+        <strong>Vacuum Rabi splitting:</strong> even with n=0 photons, the atom oscillates due to coupling to the vacuum field — Ω₀ = g√1.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim2(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv2"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Jaynes-Cummings</div>
+      <div class="eq-block">$$H = \hbar g(a\sigma_+ + a^\dagger\sigma_-)$$</div>
+      <div class="eq-block">$$\Omega_n = g\sqrt{n+1}$$</div>
+      <div class="callout">The Bloch sphere shows the atom state. At $n=0$, the <strong>vacuum Rabi frequency</strong> $\Omega_0 = g$ — atom couples to zero-point field fluctuations.</div>
+    </div>
+  </div>
+  <!-- Panel 3 -->
+  <div class="panel" data-role="panel" id="p3">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Cat State</div>
+      <label>Decoherence rate <span class="val-disp" id="decDisp">0.5</span></label>
+      <input type="range" id="decSl" min="0" max="2" step="0.05" value="0.5"
+        oninput="decDisp.textContent=(+this.value).toFixed(2);decayRate=+this.value">
+      <label>Superposition phase θ/π <span class="val-disp" id="catDisp">1.00</span></label>
+      <input type="range" id="catSl" min="0" max="6.28" step="0.05" value="3.14"
+        oninput="catDisp.textContent=(+this.value/Math.PI).toFixed(2);catAngle=+this.value">
+      <div class="btn-row">
+        <button class="btn" onclick="window.decT=0">Reset</button>
+        <button class="btn" onclick="t3Paused=!t3Paused;this.textContent=t3Paused?'▶':'⏸';this.classList.toggle('active',t3Paused)">⏸</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>Red = negative Wigner values</strong> — a purely quantum signature. Decoherence kills the fringes, producing a classical statistical mixture.
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv3"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Wigner Function</div>
+      <div class="eq-block">$$W(\alpha) = \frac{2}{\pi}\text{Tr}[\hat{\rho}\,\hat{D}(\alpha)\hat{P}\hat{D}^\dagger(\alpha)]$$</div>
+      <div class="callout"><strong>Negative W values</strong> are a definitive marker of non-classical states. The cat state $|\alpha\rangle + |-\alpha\rangle$ shows interference fringes that decohere exponentially fast in a real environment.</div>
+    </div>
+  </div>
+
+  <!-- Panel 4 — Ion Confinement & Crystal -->
+  <div class="panel" data-role="panel" id="p4">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Crystal Parameters</div>
+      <label>Number of ions N <span class="val-disp" id="ionNDisp">5</span></label>
+      <input type="range" id="ionNSl" min="1" max="10" step="1" value="5"
+        oninput="ionNDisp.textContent=this.value;p4IonN=+this.value;p4Recompute=true">
+      <label>Aspect ratio λ = ω_z/ω_r <span class="val-disp" id="lambdaDisp">0.30</span></label>
+      <input type="range" id="lambdaSl" min="0.05" max="1.5" step="0.05" value="0.3"
+        oninput="lambdaDisp.textContent=(+this.value).toFixed(2);p4Lambda=+this.value;p4Recompute=true">
+      <div class="vrow"><span class="vlbl">Crystal shape</span><span id="crystalTypeDisp">1D chain</span></div>
+      <div class="vrow"><span class="vlbl">Micromotion amp</span><span id="microAmpDisp">—</span></div>
+      <div class="callout" style="margin-top:6px">
+        Increase λ above ~0.73 (for N≥5) to watch the crystal buckle from 1D to a 2D zigzag — a <strong>linear-to-planar phase transition</strong>.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim4(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv4"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Linear Paul Trap</div>
+      <div class="eq-block">$$\ddot{u}+\frac{\Omega^2}{4}(a-2q\cos\Omega t)u=0$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Mathieu equation — secular + micromotion</div></div>
+      <div class="eq-block">$$\omega_\text{sec}\approx\frac{\Omega}{2}\sqrt{a+\frac{q^2}{2}}$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Pseudopotential secular frequency</div></div>
+      <div class="eq-block">$$\eta=k\sqrt{\frac{\hbar}{2m\omega_z}}\ll 1$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Lamb-Dicke parameter — required for sideband cooling</div></div>
+      <div class="eq-block">$$k_BT_D=\frac{\hbar\gamma}{2}$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Doppler cooling limit</div></div>
+      <div class="callout"><strong>Platforms:</strong> NIST (Be⁺, Mg⁺), Innsbruck (Ca⁺), IonQ (Yb⁺), Quantinuum (H₁/H₂). Penning traps use static B-field instead of RF — ideal for 2D crystal arrays.</div>
+    </div>
+  </div>
+
+  <!-- Panel 5 — Laser Cooling & State Preparation -->
+  <div class="panel" data-role="panel" id="p5">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Cooling Mode</div>
+      <div class="btn-row" id="coolingModeRow">
+        <button class="btn active" onclick="p5Mode=0;document.querySelectorAll('#coolingModeRow .btn').forEach((b,i)=>b.classList.toggle('active',i===0))">Doppler</button>
+        <button class="btn" onclick="p5Mode=1;document.querySelectorAll('#coolingModeRow .btn').forEach((b,i)=>b.classList.toggle('active',i===1))">Sideband</button>
+        <button class="btn" onclick="p5Mode=2;document.querySelectorAll('#coolingModeRow .btn').forEach((b,i)=>b.classList.toggle('active',i===2))">Opt. Pump</button>
+      </div>
+      <label>Laser detuning δ/γ <span class="val-disp" id="detuningDisp">-0.50</span></label>
+      <input type="range" id="detuningSl" min="-3" max="1" step="0.1" value="-0.5"
+        oninput="detuningDisp.textContent=(+this.value).toFixed(2);p5Detuning=+this.value">
+      <label>Laser intensity I/I_sat <span class="val-disp" id="intensDisp">1.0</span></label>
+      <input type="range" id="intensSl" min="0.1" max="5" step="0.1" value="1"
+        oninput="intensDisp.textContent=(+this.value).toFixed(1);p5Intens=+this.value">
+      <div class="vrow"><span class="vlbl">⟨n⟩ phonons</span><span id="nbarDisp">—</span></div>
+      <div class="vrow"><span class="vlbl">Temperature</span><span id="tempDisp">—</span></div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" onclick="toggleAnim5(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv5"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Laser Cooling</div>
+      <div class="eq-block">$$T_D=\frac{\hbar\gamma}{2k_B}$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Doppler limit (Ca⁺: ~0.5 mK)</div></div>
+      <div class="eq-block">$$T_R=\frac{\hbar^2k^2}{2mk_B}$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Recoil limit (~1 μK)</div></div>
+      <div class="eq-block">$$\langle n\rangle_\text{ss}=\frac{(\gamma/2)^2+\delta^2}{4|\delta|\omega_z-(\gamma/2)^2}$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Sideband cooling steady state</div></div>
+      <div class="callout"><strong>⁴⁰Ca⁺:</strong> 397 nm cooling, 729 nm clock qubit, T₁ &gt;1 s, T₂* ~100 ms.<br><br><strong>¹⁷¹Yb⁺:</strong> hyperfine qubit, T₂ &gt;10 min (dynamical decoupling), state detection fidelity &gt;99.9%.<br><br>Sideband cooling achieves P(n=0) &gt;99%.</div>
+    </div>
+  </div>
+
+  <!-- Panel 6 — Gate Operations & Entanglement -->
+  <div class="panel" data-role="panel" id="p6">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">MS Gate Parameters</div>
+      <label>Gate time τ (μs) <span class="val-disp" id="gateTimeDisp">100</span></label>
+      <input type="range" id="gateTimeSl" min="20" max="300" step="10" value="100"
+        oninput="gateTimeDisp.textContent=this.value;p6GateTime=+this.value">
+      <label>Decoherence T₂ (ms) <span class="val-disp" id="t2Disp">50</span></label>
+      <input type="range" id="t2Sl" min="5" max="200" step="5" value="50"
+        oninput="t2Disp.textContent=this.value;p6T2=+this.value">
+      <div class="vrow"><span class="vlbl">Gate fidelity</span><span id="fidDisp">—</span></div>
+      <div class="vrow"><span class="vlbl">Entanglement</span><span id="entDisp">—</span></div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn active" onclick="p6ShowMS=true;this.parentElement.querySelectorAll('.btn').forEach((b,i)=>b.classList.toggle('active',i===0))">MS Gate</button>
+        <button class="btn" onclick="p6ShowMS=false;this.parentElement.querySelectorAll('.btn').forEach((b,i)=>b.classList.toggle('active',i===1))">CZ Gate</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" onclick="toggleAnim6(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv6"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Mølmer-Sørensen Gate</div>
+      <div class="eq-block">$$H_\text{MS}=\Omega(\sigma_1^++\sigma_1^-)(\hat{a}e^{i\delta t}+\hat{a}^\dagger e^{-i\delta t})$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Bichromatic drive — geometric phase gate</div></div>
+      <div class="eq-block">$$|\Psi\rangle = \frac{|\!\uparrow\uparrow\rangle + i|\!\downarrow\downarrow\rangle}{\sqrt{2}}$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Bell state after π/2 MS pulse</div></div>
+      <div class="callout"><strong>2-qubit fidelity record:</strong> 99.9% (Innsbruck 2022, Oxford 2023).<br><br><strong>All-to-all connectivity:</strong> any pair of ions share the motional bus — no routing overhead.<br><br>Mid-circuit measurement allows real-time quantum error correction.</div>
+    </div>
+  </div>
+
+  <!-- Panel 7 — Quantum Simulation -->
+  <div class="panel" data-role="panel" id="p7">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Ising Model</div>
+      <label>System size N <span class="val-disp" id="simNDisp">12</span></label>
+      <input type="range" id="simNSl" min="4" max="20" step="1" value="12"
+        oninput="simNDisp.textContent=this.value;p7N=+this.value;p7Reset=true">
+      <label>Power-law α <span class="val-disp" id="alphaDisp">1.00</span></label>
+      <input type="range" id="alphaSl" min="0" max="3" step="0.1" value="1"
+        oninput="alphaDisp.textContent=(+this.value).toFixed(2);p7Alpha=+this.value">
+      <label>Transverse field h/J <span class="val-disp" id="hJDisp">1.00</span></label>
+      <input type="range" id="hJSl" min="0" max="4" step="0.1" value="1"
+        oninput="hJDisp.textContent=(+this.value).toFixed(2);p7hJ=+this.value">
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" onclick="p7Quench=true">Quench!</button>
+        <button class="btn" onclick="p7Reset=true">Reset</button>
+      </div>
+      <div class="vrow"><span class="vlbl">Phase</span><span id="phaseDisp">—</span></div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" onclick="toggleAnim7(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv7"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Porras-Cirac Ising</div>
+      <div class="eq-block">$$H=-\sum_{i&lt;j}\frac{J_0}{|i-j|^\alpha}\sigma_i^x\sigma_j^x - h\sum_i\sigma_i^z$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">Variable-range Ising model, α ∈ [0,3]</div></div>
+      <div class="eq-block">$$J_{ij}\propto|i-j|^{-\alpha}$$<div style="font-size:.68rem;color:var(--dim);margin-top:3px">α=0: all-to-all · α=1: Coulomb · α=3: dipolar</div></div>
+      <div class="callout"><strong>Monroe group (2021):</strong> observed discrete time crystal in 57 Yb⁺ ions — first experimental time crystal.<br><br><strong>Quantum advantage:</strong> frustrated magnets and gauge theories are classically intractable at N~50+.<br><br>Penning trap: 2D crystal of ~300 ions for analog simulation.</div>
+    </div>
+  </div>
+
+  <!-- Panel 8 — QC Milestones -->
+  <div class="panel" data-role="panel" id="p8">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Platform Filter</div>
+      <div class="btn-row" style="flex-direction:column;gap:5px" id="platformRow">
+        <button class="btn active" onclick="p8Platform='all';updatePlatformBtns(0)">All Platforms</button>
+        <button class="btn" onclick="p8Platform='ionq';updatePlatformBtns(1)">IonQ</button>
+        <button class="btn" onclick="p8Platform='quantinuum';updatePlatformBtns(2)">Quantinuum</button>
+        <button class="btn" onclick="p8Platform='oxford';updatePlatformBtns(3)">Oxford/ETH</button>
+        <button class="btn" onclick="p8Platform='ibm';updatePlatformBtns(4)">IBM SC</button>
+        <button class="btn" onclick="p8Platform='google';updatePlatformBtns(5)">Google SC</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>QCCD:</strong> Quantum Charge-Coupled Device — shuttle ions between trapping zones for scalable multi-module architectures.
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" onclick="toggleAnim8(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv8"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Ion Trap vs SC Qubits</div>
+      <div class="eq-block" style="font-size:.74rem;line-height:1.7">
+        <div style="color:var(--accent)">Ion trap advantages</div>
+        All-to-all connectivity<br>
+        Gate fidelity &gt;99.9%<br>
+        Coherence T₂ &gt; minutes<br>
+        Identical qubits (no fab variability)<br>
+        <div style="color:#ff8844;margin-top:6px">SC qubit advantages</div>
+        Gate speed ~10× faster<br>
+        Easier to scale to 1000+ qubits<br>
+        On-chip integration
+      </div>
+      <div class="callout"><strong>Fault-tolerance roadmap:</strong> surface code needs ~1000 physical qubits per logical qubit at 99.9% fidelity. QCCD + photonic interconnects aim for modular scaling to millions of physical qubits by 2030s.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims54();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims54(){
+  // Cancel any running animations
+}
+
+let _stops = [];
+let currentTab = 1;
+
+window.switchTab = function(n) {
+  _stops.forEach(s => s && s.stop && s.stop());
+  _stops = [];
+  currentTab = n;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
+  if(n===1) _stops.push(initTab1());
+  if(n===2) _stops.push(initTab2());
+  if(n===3) _stops.push(initTab3());
+  if(n===4) _stops.push(initTab4());
+  if(n===5) _stops.push(initTab5());
+  if(n===6) _stops.push(initTab6());
+  if(n===7) _stops.push(initTab7());
+  if(n===8) _stops.push(initTab8());
+};
+
+function fitCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.parentElement.clientWidth;
+  const H = cv.parentElement.clientHeight;
+  if(Math.round(cv.width) !== Math.round(W*dpr)) {
+    cv.width = W*dpr; cv.height = H*dpr;
+    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  }
+  return {W, H, ctx: cv.getContext('2d')};
+}
+
+// ── Tab 1 — Paul Trap ────────────────────────────────────────
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  let raf1, t = 0;
+  let paused1 = false;
+  let escX = 0, escY = 0, escVX = 0, escVY = 0, wasStable = true;
+  window.trapDC = 0.2;
+  window.trapRF = 0.7;
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const cx=W/2, cy=H/2;
+    const r0 = Math.min(W,H)*0.3;
+
+    const electrodePositions = [{x:cx,y:cy-r0},{x:cx,y:cy+r0},{x:cx-r0,y:cy},{x:cx+r0,y:cy}];
+    const rfPhase = Math.cos(t*0.06) * window.trapRF;
+
+    electrodePositions.forEach((ep, i) => {
+      const isRF = i >= 2;
+      const V = isRF ? rfPhase : window.trapDC;
+      const grd = ctx.createRadialGradient(ep.x, ep.y, 0, ep.x, ep.y, 28);
+      grd.addColorStop(0, V>0 ? 'rgba(255,136,68,0.9)' : 'rgba(0,255,204,0.9)');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.arc(ep.x, ep.y, 22, 0, Math.PI*2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+      ctx.strokeStyle = V>0 ? '#ff8844' : '#00ffcc';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(isRF ? 'RF' : (i===0?'+DC':'-DC'), ep.x, ep.y+4);
+    });
+    ctx.textAlign='left';
+
+    ctx.strokeStyle='rgba(0,255,204,0.15)'; ctx.lineWidth=1;
+    for (let phi=0; phi<Math.PI*2; phi+=Math.PI/8) {
+      ctx.beginPath();
+      for (let r=0; r<r0*0.8; r+=2) {
+        const x = cx + r*Math.cos(phi) + (rfPhase>0?1:-1)*r*0.08*Math.cos(2*phi);
+        const y = cy + r*Math.sin(phi) - (rfPhase>0?1:-1)*r*0.08*Math.sin(2*phi);
+        r===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+
+    const a = window.trapDC, q = window.trapRF;
+    const stable = (a >= 0 && a < 0.237 && q < 0.908 && a > -q*q/2);
+
+    if (!stable) {
+      if (wasStable) {
+        const angle = (Math.sin(t*0.7) + Math.cos(t*0.3)) * Math.PI;
+        escX = cx; escY = cy;
+        escVX = 1.5 * Math.cos(angle);
+        escVY = 1.5 * Math.sin(angle);
+        wasStable = false;
+      }
+      const growthRate = 1.03 + (q - 0.908) * 2;
+      escVX *= growthRate; escVY *= growthRate;
+      escX += escVX; escY += escVY;
+      if (escX < -50 || escX > W+50 || escY < -50 || escY > H+50) {
+        wasStable = true;
+      }
+      ctx.strokeStyle='rgba(255,80,80,0.3)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(escX, escY); ctx.stroke();
+      ctx.beginPath(); ctx.arc(escX, escY, 7, 0, Math.PI*2);
+      ctx.fillStyle='#ff5566';
+      ctx.shadowColor='#ff5566'; ctx.shadowBlur=20;
+      ctx.fill(); ctx.shadowBlur=0;
+      ctx.fillStyle='#ff5566'; ctx.font='bold 12px monospace';
+      ctx.fillText('ION ESCAPED!', cx-50, cy+r0+25);
+    } else {
+      wasStable = true;
+      const ionDrift = 8*Math.sin(t*0.035) * (1-Math.abs(window.trapDC));
+      const ionMicro = 3*Math.sin(t*0.1)*window.trapRF;
+      ctx.beginPath();
+      ctx.arc(cx + ionDrift + ionMicro, cy + ionDrift*0.3, 7, 0, Math.PI*2);
+      ctx.fillStyle='#ffd700';
+      ctx.shadowColor='#ffd700'; ctx.shadowBlur=15;
+      ctx.fill();
+      ctx.shadowBlur=0;
+    }
+
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText(stable ? 'secular motion + micromotion' : 'Mathieu instability — ion escapes', cx-90, H-20);
+
+    document.getElementById('stabDisp').textContent = stable ? '✓ Stable' : '✗ Unstable';
+    document.getElementById('stabDisp').style.color = stable ? '#00ffcc' : '#ff5566';
+
+    if (!paused1) t++;
+    raf1 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf1); } };
+}
+window.toggleAnim1 = function(btn) {
+  paused1 = !paused1;
+  btn.textContent = paused1 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused1);
+};
+
+// ── Tab 2 — Jaynes-Cummings ──────────────────────────────────
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  let raf2, t2 = 0;
+  let paused2 = false;
+  window.jcN = 1;
+  window.jcG = 1.0;
+  window.jcSpeed = 1.0;
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const OmegaN = window.jcG * Math.sqrt(window.jcN + 1);
+
+    const bx = W*0.28, by = H*0.42, br = Math.min(W*0.2, H*0.32);
+    ctx.strokeStyle='rgba(0,255,204,0.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(bx, by, br, br*0.3, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx, by-br-10); ctx.lineTo(bx, by+br+10);
+    ctx.strokeStyle='rgba(0,255,204,0.4)'; ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('|e⟩', bx+5, by-br-5);
+    ctx.fillText('|g⟩', bx+5, by+br+12);
+
+    const theta = OmegaN * t2 * 0.04;
+    const bvx = bx + br*Math.sin(theta)*Math.cos(t2*0.1);
+    const bvy = by - br*Math.cos(theta);
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.lineTo(bvx, bvy);
+    ctx.strokeStyle='#00ffcc'; ctx.lineWidth=2;
+    ctx.stroke();
+    ctx.beginPath(); ctx.arc(bvx, bvy, 5, 0, Math.PI*2);
+    ctx.fillStyle='#00ffcc'; ctx.fill();
+
+    const chartX = W*0.55, chartY = H*0.1, chartH = H*0.55, barW = 24;
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Photon number |n⟩', chartX, chartY-8);
+    for (let n=0; n<=5; n++) {
+      const prob = n===window.jcN ? Math.cos(OmegaN*t2*0.04/2)**2 :
+                   n===(window.jcN+1) ? Math.sin(OmegaN*t2*0.04/2)**2 : 0;
+      const bh = prob * chartH * 0.9;
+      ctx.fillStyle = `rgba(0,255,204,${0.2+prob*0.8})`;
+      ctx.fillRect(chartX + n*(barW+8), chartY+chartH-bh, barW, bh);
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('|'+n+'⟩', chartX+n*(barW+8)+2, chartY+chartH+14);
+    }
+
+    const rY = H*0.78, rH = H*0.16, rW = W*0.85;
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(W*0.07, rY); ctx.lineTo(W*0.07+rW, rY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W*0.07, rY-rH); ctx.lineTo(W*0.07, rY+4); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('P(excited)', W*0.02, rY-rH/2);
+    ctx.fillText('time', W*0.07+rW-20, rY+14);
+
+    ctx.beginPath(); ctx.strokeStyle='#00ffcc'; ctx.lineWidth=2;
+    for (let px=0; px<rW; px++) {
+      const tau = px/rW * 100;
+      const pe = Math.sin(OmegaN*tau*0.05)**2;
+      const py = rY - pe*rH*0.9;
+      px===0 ? ctx.moveTo(W*0.07+px, py) : ctx.lineTo(W*0.07+px, py);
+    }
+    ctx.stroke();
+    const dotX = W*0.07 + (t2%600)/600*rW;
+    const dotTau = (t2%600)/600*100;
+    const dotPe = Math.sin(OmegaN*dotTau*0.05)**2;
+    ctx.beginPath(); ctx.arc(dotX, rY-dotPe*rH*0.9, 4, 0, Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill();
+
+    if (!paused2) t2 += (window.animSpeed||0.1);
+    raf2 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf2); } };
+}
+window.toggleAnim2 = function(btn) {
+  paused2 = !paused2;
+  btn.textContent = paused2 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused2);
+};
+
+// ── Tab 3 — Schrödinger Cat / Wigner function ────────────────
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  let raf3;
+  window.decT = 0;
+  window.catAngle = Math.PI;
+  window.decayRate = 0.5;
+  window.t3Paused = false;
+
+  function wignerCat(x, p, alpha, theta, decoherence) {
+    const re1 = Math.cos(theta/2)*alpha, im1 = Math.sin(theta/2)*alpha;
+    const re2 = -Math.cos(theta/2)*alpha, im2 = -Math.sin(theta/2)*alpha;
+    const d = decoherence;
+
+    const w1 = 2/Math.PI * Math.exp(-2*((x-re1)**2+(p-im1)**2));
+    const w2 = 2/Math.PI * Math.exp(-2*((x-re2)**2+(p-im2)**2));
+    const fringe = (1-d) * 2/Math.PI
+      * Math.exp(-2*(x**2+p**2))
+      * Math.cos(4*(re1*p - im1*x));
+    return 0.5*(w1+w2+fringe);
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    const size = Math.min(W*0.6, H*0.7);
+    const ox = (W-size)/2, oy = (H-size)/2;
+    const N = Math.floor(size);
+    const imageData = ctx.createImageData(N, N);
+
+    const alpha = 2.5;
+    const dec = Math.min(window.decT/200, 1) * window.decayRate;
+
+    for (let py=0; py<N; py++) {
+      for (let px=0; px<N; px++) {
+        const x = (px/N)*8-4;
+        const p = (py/N)*8-4;
+        const w = wignerCat(x, p, alpha, window.catAngle, dec);
+        const idx = (py*N+px)*4;
+        if (w > 0) {
+          imageData.data[idx]   = Math.min(255, w*300);
+          imageData.data[idx+1] = Math.min(255, w*400);
+          imageData.data[idx+2] = 255;
+        } else {
+          imageData.data[idx]   = Math.min(255, -w*400);
+          imageData.data[idx+1] = 0;
+          imageData.data[idx+2] = Math.min(255, -w*200);
+        }
+        imageData.data[idx+3] = 255;
+      }
+    }
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    ctx.putImageData(imageData, ox, oy);
+
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    const xLabelY = Math.min(oy+size+18, H-6);
+    ctx.fillText('x (position)', ox+size/2-30, xLabelY);
+    ctx.save(); ctx.translate(Math.max(ox-18, 12), oy+size/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('p (momentum)', -30, 0); ctx.restore();
+
+    ctx.fillStyle='#00ffcc'; ctx.font='12px monospace';
+    ctx.fillText(`Decoherence: ${(dec*100).toFixed(0)}%`, 16, 20);
+    if (dec < 0.1) { ctx.fillStyle='rgba(0,255,204,0.7)'; ctx.fillText('← Quantum fringes (negative W!)', ox+size*0.05, oy+size*0.35); }
+    if (dec > 0.8) { ctx.fillStyle='rgba(200,200,200,0.7)'; ctx.fillText('Classical mixture', ox+size*0.28, oy+size*0.5); }
+
+    const barW = size, barH = 4;
+    ctx.fillStyle='#1a1a38'; ctx.fillRect(ox, oy+size+4, barW, barH);
+    ctx.fillStyle='#00ffcc'; ctx.fillRect(ox, oy+size+4, barW*Math.min(window.decT/200, 1), barH);
+
+    if (!window.t3Paused) window.decT += 0.5*(window.animSpeed||0.1);
+    raf3 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf3); } };
+}
+
+// ── Tab 4 — Ion Confinement & Crystal ───────────────────────
+function initTab4() {
+  const cv = document.getElementById('cv4');
+  let raf4, t4 = 0;
+  let paused4 = false;
+  window.p4IonN = 5;
+  window.p4Lambda = 0.3;
+  window.p4Recompute = true;
+
+  let ionPositions = [];
+
+  // Compute 1D equilibrium positions (normalized) via iterative relaxation
+  function computeEquilibrium(N, lambda) {
+    // Start with evenly spaced, let Coulomb repulsion find equilibrium
+    let pos = [];
+    for (let i = 0; i < N; i++) pos.push((i - (N-1)/2) * 1.5);
+    for (let iter = 0; iter < 800; iter++) {
+      for (let i = 0; i < N; i++) {
+        let force = -pos[i]; // harmonic trap
+        for (let j = 0; j < N; j++) {
+          if (i !== j) {
+            const dx = pos[i] - pos[j];
+            force += Math.sign(dx) / (dx * dx + 1e-6);
+          }
+        }
+        pos[i] += force * 0.003;
+      }
+    }
+    return pos;
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    const spd = window.animSpeed || 0.1;
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const N = window.p4IonN;
+    const lambda = window.p4Lambda;
+
+    if (window.p4Recompute) {
+      ionPositions = computeEquilibrium(N, lambda);
+      window.p4Recompute = false;
+    }
+
+    const cx = W/2, cy = H/2;
+    const trapW = W*0.75, trapH = H*0.55;
+
+    // Draw linear Paul trap body
+    // End-cap electrodes (DC) — left and right
+    const capR = 14;
+    const capColors = ['#00ffcc','#00ffcc'];
+    [[cx-trapW/2-capR, cy],[cx+trapW/2+capR, cy]].forEach(([ex, ey], i) => {
+      const grd = ctx.createRadialGradient(ex, ey, 0, ex, ey, capR*1.8);
+      grd.addColorStop(0,'rgba(0,255,204,0.8)');
+      grd.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(ex, ey, capR, 0, Math.PI*2);
+      ctx.fillStyle = grd; ctx.fill();
+      ctx.strokeStyle='#00ffcc'; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText('DC', ex, ey+4);
+    });
+
+    // 4 RF rod electrodes (top, bottom, left-bar, right-bar as lines)
+    const rodY = [cy - trapH/2, cy + trapH/2];
+    const rfPhase = Math.sin(t4 * 0.08);
+    rodY.forEach((ry, ri) => {
+      const col = rfPhase * (ri===0 ? 1 : -1) > 0 ? '#ff8844' : '#00a8ff';
+      ctx.strokeStyle = col; ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(cx - trapW/2, ry);
+      ctx.lineTo(cx + trapW/2, ry);
+      ctx.stroke();
+      ctx.fillStyle = col; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText('RF rod', cx + trapW/2 + 4, ry + 4);
+    });
+
+    // Trap axis line
+    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(cx-trapW/2, cy); ctx.lineTo(cx+trapW/2, cy); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Scale factor for ion positions
+    const maxPos = Math.max(...ionPositions.map(Math.abs), 1);
+    const scale = (trapW * 0.38) / maxPos;
+
+    // 2D crystal check: for large lambda, add zigzag
+    const buckling = Math.max(0, lambda - 0.73) * 40;
+    const is2D = lambda > 0.73 && N >= 3;
+
+    // Draw ions
+    for (let i = 0; i < N; i++) {
+      const baseX = cx + ionPositions[i] * scale;
+      // Secular motion: slow oscillation of entire crystal
+      const secular = 5 * Math.sin(t4 * 0.022 + i * 0.3) * (window.animSpeed || 0.1);
+      // Micromotion: fast oscillation at RF frequency
+      const micro = rfPhase * 4 * (lambda < 0.5 ? 1 : 0.5);
+      // 2D zigzag displacement
+      const zigzag = is2D ? (i % 2 === 0 ? 1 : -1) * Math.min(buckling, 28) : 0;
+
+      const ix = baseX + micro;
+      const iy = cy + zigzag * 0.6 + secular * 0.25;
+
+      // Coulomb glow lines between ions
+      if (i < N-1) {
+        const nextX = cx + ionPositions[i+1] * scale + micro;
+        const nextY = cy + (is2D ? ((i+1)%2===0?1:-1)*Math.min(buckling,28)*0.6 : 0) + secular*0.25;
+        ctx.strokeStyle = 'rgba(255,215,0,0.18)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(ix, iy); ctx.lineTo(nextX, nextY); ctx.stroke();
+      }
+
+      const grd = ctx.createRadialGradient(ix, iy, 0, ix, iy, 10);
+      grd.addColorStop(0,'rgba(255,215,0,1)');
+      grd.addColorStop(0.5,'rgba(255,160,0,0.6)');
+      grd.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(ix, iy, 8, 0, Math.PI*2);
+      ctx.fillStyle = grd;
+      ctx.shadowColor='#ffd700'; ctx.shadowBlur = 12;
+      ctx.fill(); ctx.shadowBlur = 0;
+      if (N <= 8) {
+        ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(i+1, ix, iy+3);
+      }
+    }
+
+    // Stability diagram in corner
+    const sdX = W - 110, sdY = 14, sdW = 95, sdH = 65;
+    ctx.fillStyle='rgba(11,11,30,0.85)'; ctx.fillRect(sdX-4, sdY-2, sdW+8, sdH+18);
+    ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1; ctx.strokeRect(sdX-4, sdY-2, sdW+8, sdH+18);
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('Mathieu stability (a-q)', sdX, sdY+9);
+    // Draw stability triangle
+    ctx.beginPath();
+    ctx.moveTo(sdX, sdY+sdH);
+    ctx.lineTo(sdX+sdW*0.908/1.1, sdY+sdH);
+    ctx.lineTo(sdX+sdW*0.6/1.1, sdY+sdH*0.3);
+    ctx.closePath();
+    ctx.fillStyle='rgba(0,255,204,0.12)'; ctx.fill();
+    ctx.strokeStyle='#00ffcc'; ctx.lineWidth=1; ctx.stroke();
+    // Operating point
+    const opQ = 0.5, opA = 0.1;
+    ctx.beginPath(); ctx.arc(sdX+sdW*opQ/1.1, sdY+sdH-opA*sdH*3, 3, 0, Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('q', sdX+sdW+2, sdY+sdH+2);
+    ctx.fillText('a', sdX-8, sdY+12);
+
+    const crystalType = is2D ? '2D zigzag' : '1D chain';
+    document.getElementById('crystalTypeDisp').textContent = crystalType;
+    document.getElementById('microAmpDisp').textContent = (Math.abs(rfPhase)*4).toFixed(1) + ' a.u.';
+
+    ctx.textAlign='left';
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText(`N=${N} ions · λ=${lambda.toFixed(2)} · ${crystalType}`, 10, H-14);
+
+    if (!paused4) t4 += spd;
+    raf4 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf4); } };
+}
+window.toggleAnim4 = function(btn) {
+  paused4 = !paused4;
+  btn.textContent = paused4 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused4);
+};
+
+// ── Tab 5 — Laser Cooling ────────────────────────────────────
+function initTab5() {
+  const cv = document.getElementById('cv5');
+  let raf5, t5 = 0;
+  let paused5 = false;
+  window.p5Mode = 0;     // 0=Doppler, 1=Sideband, 2=OptPump
+  window.p5Detuning = -0.5;
+  window.p5Intens = 1.0;
+
+  // Photon particles for Doppler mode
+  let photons = [];
+  // Motional quanta for sideband mode
+  let nBar = 20;
+  // Spin populations for optical pump
+  let spinUp = 0.5, spinDown = 0.5;
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    const spd = window.animSpeed || 0.1;
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const mode = window.p5Mode;
+    const delta = window.p5Detuning;
+    const s = window.p5Intens;
+    // Lorentzian scattering rate
+    const gamma = 1.0;
+    const rate = 0.5 * gamma * s / (1 + s + 4*(delta**2));
+
+    if (mode === 0) {
+      // ── Doppler cooling ──────────────────────────────
+      // Ion oscillating, laser comes from left
+      const ionX = W*0.5 + 60*Math.sin(t5*0.03);
+      const ionY = H*0.45;
+      const vx = 60*0.03*Math.cos(t5*0.03); // velocity
+
+      // Draw laser beam
+      const laserGrd = ctx.createLinearGradient(0, ionY, W*0.38, ionY);
+      laserGrd.addColorStop(0,'rgba(147,0,255,0.6)');
+      laserGrd.addColorStop(1,'rgba(147,0,255,0)');
+      ctx.fillStyle = laserGrd;
+      ctx.fillRect(0, ionY-3, W*0.38, 6);
+      ctx.fillStyle='rgba(147,0,255,0.3)'; ctx.font='12px monospace';
+      ctx.fillText('397 nm laser (Ca⁺)', 8, ionY-8);
+
+      // Doppler shift label
+      const dopplerShift = -(vx * 0.3).toFixed(2);
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText(`Doppler shift: ${dopplerShift}γ`, 8, ionY+22);
+
+      // Spawn photon if ion moving toward laser
+      if (Math.random() < rate * 0.3 * (vx < 0 ? 1.8 : 0.4)) {
+        photons.push({ x: 0, y: ionY + (Math.random()-0.5)*4, vx: 6, vy: 0, life: 1 });
+      }
+
+      // Update photons
+      photons = photons.filter(p => p.x < W && p.life > 0);
+      photons.forEach(p => {
+        p.x += p.vx * spd;
+        p.vy += (Math.random()-0.5)*0.3;
+        p.life -= 0.015;
+        if (p.x > ionX - 10 && p.x < ionX + 10 && p.vy === p.vy) {
+          // Scatter: random direction
+          const angle = Math.random()*Math.PI*2;
+          p.vx = 4*Math.cos(angle); p.vy = 4*Math.sin(angle);
+          p.life = 0.6;
+        }
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(147,0,255,${p.life})`;
+        ctx.fill();
+      });
+
+      // Draw ion
+      const ionGrd = ctx.createRadialGradient(ionX, ionY, 0, ionX, ionY, 14);
+      ionGrd.addColorStop(0,'rgba(255,215,0,1)');
+      ionGrd.addColorStop(1,'rgba(255,215,0,0)');
+      ctx.beginPath(); ctx.arc(ionX, ionY, 10, 0, Math.PI*2);
+      ctx.fillStyle = ionGrd; ctx.shadowColor='#ffd700'; ctx.shadowBlur=18; ctx.fill(); ctx.shadowBlur=0;
+
+      // Velocity arrow
+      const arrowLen = vx * 3;
+      ctx.strokeStyle = arrowLen < 0 ? '#ff5566' : '#00ffcc';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(ionX, ionY+20); ctx.lineTo(ionX+arrowLen, ionY+20); ctx.stroke();
+      if (Math.abs(arrowLen) > 4) {
+        ctx.fillStyle = arrowLen < 0 ? '#ff5566' : '#00ffcc';
+        ctx.beginPath();
+        const ax = ionX + arrowLen, dir = Math.sign(arrowLen);
+        ctx.moveTo(ax, ionY+15); ctx.lineTo(ax+dir*8, ionY+20); ctx.lineTo(ax, ionY+25); ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('v', ionX+arrowLen/2-3, ionY+34);
+
+      // Absorption spectrum
+      const specX = W*0.55, specY = H*0.2, specW = W*0.38, specH = H*0.3;
+      ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1; ctx.strokeRect(specX, specY, specW, specH);
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('Absorption vs detuning δ/γ', specX, specY-6);
+      ctx.beginPath(); ctx.strokeStyle='#00a8ff'; ctx.lineWidth=2;
+      for (let px=0; px<=specW; px++) {
+        const d = (px/specW)*8 - 4;
+        const lor = specH * 0.85 / (1 + 4*d*d);
+        const py = specY + specH - lor;
+        px===0 ? ctx.moveTo(specX+px, py) : ctx.lineTo(specX+px, py);
+      }
+      ctx.stroke();
+      // Mark current detuning
+      const markPx = (delta + 4)/8 * specW;
+      ctx.strokeStyle='#ffd700'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(specX+markPx, specY); ctx.lineTo(specX+markPx, specY+specH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+      ctx.fillText('δ', specX+markPx+2, specY+12);
+
+      // Temperature gauge
+      const cooling = delta < -0.3 ? Math.abs(delta) * rate * 0.5 : 0.05;
+      nBar = Math.max(0.1, nBar - cooling * spd * 0.02 + 0.005 * spd);
+      const temp = nBar * 0.5;
+      const gaugeX = specX, gaugeY = H*0.62, gaugeW = specW, gaugeH = 16;
+      ctx.fillStyle='#1c1c44'; ctx.fillRect(gaugeX, gaugeY, gaugeW, gaugeH);
+      const fracT = Math.min(1, temp/10);
+      const tGrd = ctx.createLinearGradient(gaugeX, 0, gaugeX+gaugeW, 0);
+      tGrd.addColorStop(0,'#00ffcc'); tGrd.addColorStop(0.5,'#ffd700'); tGrd.addColorStop(1,'#ff5566');
+      ctx.fillStyle = tGrd; ctx.fillRect(gaugeX, gaugeY, gaugeW*fracT, gaugeH);
+      ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1; ctx.strokeRect(gaugeX, gaugeY, gaugeW, gaugeH);
+      ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace';
+      ctx.fillText(`Temperature: ~${(temp*0.5).toFixed(2)} mK`, gaugeX, gaugeY+30);
+
+      document.getElementById('nbarDisp').textContent = nBar.toFixed(1);
+      document.getElementById('tempDisp').textContent = (nBar*0.5*0.5).toFixed(2) + ' mK';
+
+    } else if (mode === 1) {
+      // ── Sideband cooling ─────────────────────────────
+      const ionX = W*0.5, ionY = H*0.45;
+
+      // Energy level diagram
+      const levX = W*0.08, levY = H*0.12, levW = W*0.38, levH = H*0.65;
+      const nLevels = 6;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('Motional energy levels', levX, levY-6);
+
+      for (let n = 0; n < nLevels; n++) {
+        const ly = levY + levH * (1 - n/(nLevels-1));
+        ctx.strokeStyle = n === 0 ? '#00ffcc' : '#55558a';
+        ctx.lineWidth = n === 0 ? 2 : 1;
+        ctx.beginPath(); ctx.moveTo(levX+20, ly); ctx.lineTo(levX+levW-20, ly); ctx.stroke();
+        ctx.fillStyle = '#55558a'; ctx.font='12px monospace'; ctx.textAlign='right';
+        ctx.fillText(`|n=${n}⟩`, levX+16, ly+3);
+        ctx.textAlign='left';
+
+        // Population bars
+        const maxNBar = 8;
+        const popN = Math.exp(-n/Math.max(0.3, nBar));
+        const norm = (1 - Math.exp(-1/Math.max(0.3, nBar)));
+        const pop = popN * norm;
+        const barH = pop * 30;
+        const col = n === 0 ? 'rgba(0,255,204,0.7)' : `rgba(0,168,255,${pop*0.8})`;
+        ctx.fillStyle = col;
+        ctx.fillRect(levX+levW-18, ly-barH, 12, barH);
+      }
+
+      // Red sideband arrow
+      const groundLy = levY + levH;
+      const firstLy = levY + levH*(1 - 1/(nLevels-1));
+      const arrowX = levX+levW*0.55;
+      ctx.strokeStyle='#ff5566'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(arrowX, firstLy); ctx.lineTo(arrowX, groundLy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(arrowX-5, groundLy-8); ctx.lineTo(arrowX, groundLy); ctx.lineTo(arrowX+5, groundLy-8); ctx.fill();
+      ctx.fillStyle='#ff5566'; ctx.font='12px monospace';
+      ctx.fillText('red sb', arrowX+4, (firstLy+groundLy)/2);
+      ctx.fillText('ω₀−ωz', arrowX+4, (firstLy+groundLy)/2+10);
+
+      // Cooling rate
+      const sbCooling = Math.max(0, -delta) * rate * 0.08;
+      nBar = Math.max(0.01, nBar - sbCooling * spd * 0.05 + 0.001 * spd);
+
+      // Phase space trajectory
+      const psX = W*0.55, psY = H*0.12, psR = Math.min(W*0.18, H*0.3);
+      ctx.strokeStyle='rgba(0,255,204,0.2)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(psX, psY+psR, psR, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText('Phase space', psX-psR, psY-6);
+
+      const motR = Math.sqrt(nBar) * psR * 0.5;
+      const motAngle = t5 * 0.05;
+      const mx = psX + motR * Math.cos(motAngle);
+      const my = psY + psR + motR * Math.sin(motAngle);
+      ctx.beginPath(); ctx.arc(mx, my, 5, 0, Math.PI*2);
+      ctx.fillStyle='#ffd700'; ctx.shadowColor='#ffd700'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+
+      // ⟨n⟩ display
+      const nBarFrac = Math.min(1, nBar/5);
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText(`⟨n⟩ = ${nBar.toFixed(2)}  →  ${nBar < 0.1 ? 'Ground state!' : 'Cooling...'}`, W*0.55, H*0.72);
+      const bX = W*0.55, bY = H*0.76, bW = W*0.38;
+      ctx.fillStyle='#1c1c44'; ctx.fillRect(bX, bY, bW, 12);
+      ctx.fillStyle = nBar < 0.1 ? '#00ffcc' : '#00a8ff';
+      ctx.fillRect(bX, bY, bW*nBarFrac, 12);
+
+      document.getElementById('nbarDisp').textContent = nBar.toFixed(3);
+      document.getElementById('tempDisp').textContent = nBar < 0.1 ? '< 10 μK' : (nBar * 5).toFixed(0) + ' μK';
+
+    } else {
+      // ── Optical pumping ──────────────────────────────
+      const cx = W*0.5, cy = H*0.42;
+
+      // Spin state visualization (Bloch-like arrow)
+      const spinAngle = spinUp - spinDown;
+      const arrowLen = 80;
+      ctx.strokeStyle='#00ffcc'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + arrowLen*0.5, cy - arrowLen*spinAngle); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx + arrowLen*0.5, cy - arrowLen*spinAngle, 6, 0, Math.PI*2);
+      ctx.fillStyle='#00ffcc'; ctx.fill();
+
+      // Energy levels — two spin states
+      [[H*0.28, '|↑⟩ (excited)', '#ff5566'], [H*0.58, '|↓⟩ (ground)', '#00ffcc']].forEach(([y, lbl, col]) => {
+        ctx.strokeStyle = col; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(cx-90, y); ctx.lineTo(cx+90, y); ctx.stroke();
+        ctx.fillStyle = col; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(lbl, cx, y-6);
+      });
+
+      // Pump arrow
+      ctx.strokeStyle='#9300ff'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(cx-40, H*0.58-5); ctx.lineTo(cx-40, H*0.28+5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-45, H*0.28+12); ctx.lineTo(cx-40, H*0.28+5); ctx.lineTo(cx-35, H*0.28+12); ctx.fill();
+      ctx.fillStyle='#9300ff'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText('pump', cx-35, (H*0.28+H*0.58)/2);
+
+      // Decay back arrow
+      ctx.strokeStyle='rgba(255,85,102,0.5)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(cx+40, H*0.28+5); ctx.lineTo(cx+40, H*0.58-5); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,85,102,0.7)'; ctx.font='12px monospace';
+      ctx.fillText('decay', cx+44, (H*0.28+H*0.58)/2);
+
+      // Evolve populations
+      const pumpRate = rate * 0.04 * spd;
+      const decayRate2 = 0.02 * spd;
+      spinUp += -pumpRate * spinUp * 0 + decayRate2 * spinDown * 0.1;
+      spinDown = Math.min(1, spinDown + pumpRate * 0.02);
+      const norm2 = spinUp + spinDown;
+      spinUp /= norm2; spinDown /= norm2;
+
+      // Continuously pump |↑⟩ → |↓⟩
+      spinDown = Math.min(0.999, spinDown + 0.0005 * spd);
+      spinUp = 1 - spinDown;
+
+      // Population bars
+      const barX = W*0.62;
+      [['|↑⟩', spinUp, '#ff5566'], ['|↓⟩', spinDown, '#00ffcc']].forEach(([lbl, pop, col], i) => {
+        const bx = barX + i*80, by = H*0.3, bH = H*0.4;
+        ctx.fillStyle='#111128'; ctx.fillRect(bx, by, 40, bH);
+        ctx.fillStyle=col; ctx.fillRect(bx, by+bH*(1-pop), 40, bH*pop);
+        ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1; ctx.strokeRect(bx, by, 40, bH);
+        ctx.fillStyle=col; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(lbl, bx+20, by+bH+14);
+        ctx.fillText((pop*100).toFixed(1)+'%', bx+20, by+bH-4);
+      });
+
+      ctx.textAlign='left';
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText(`State fidelity P(|↓⟩) = ${(spinDown*100).toFixed(1)}%  ${spinDown>0.99?'✓ Prepared':'...pumping'}`, 14, H-14);
+
+      document.getElementById('nbarDisp').textContent = 'N/A';
+      document.getElementById('tempDisp').textContent = 'N/A';
+    }
+
+    if (!paused5) t5 += (window.animSpeed || 0.1);
+    raf5 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf5); } };
+}
+window.toggleAnim5 = function(btn) {
+  paused5 = !paused5;
+  btn.textContent = paused5 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused5);
+};
+
+// ── Tab 6 — Gate Operations & Entanglement ───────────────────
+function initTab6() {
+  const cv = document.getElementById('cv6');
+  let raf6, t6 = 0;
+  let paused6 = false;
+  window.p6GateTime = 100;
+  window.p6T2 = 50;
+  window.p6ShowMS = true;
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    const spd = window.animSpeed || 0.1;
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const tau = t6 / 120;   // gate progress 0→1
+    const phase = tau * Math.PI * 2;
+    const fidelity = Math.exp(-(window.p6GateTime / (window.p6T2 * 1000)) * 2);
+
+    if (window.p6ShowMS) {
+      // ── Mølmer-Sørensen gate ──────────────────────────
+      const ion1X = W*0.3, ion2X = W*0.7, ionY = H*0.36;
+
+      // Motional bus — wavy line between ions
+      ctx.beginPath(); ctx.strokeStyle='rgba(0,255,204,0.4)'; ctx.lineWidth=2;
+      for (let px=0; px<W*0.4; px+=2) {
+        const x = ion1X + W*0.08 + px;
+        const amp = 10 * Math.sin(tau * Math.PI);
+        const y = ionY + amp * Math.sin(px * 0.18 - t6 * 0.15);
+        px===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.fillStyle='rgba(0,255,204,0.5)'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText('shared motional mode (bus)', W*0.5, ionY+26);
+
+      // Draw ions
+      [ion1X, ion2X].forEach((ix, i) => {
+        const grd = ctx.createRadialGradient(ix, ionY, 0, ix, ionY, 16);
+        grd.addColorStop(0,'rgba(255,215,0,1)'); grd.addColorStop(1,'rgba(255,215,0,0)');
+        ctx.beginPath(); ctx.arc(ix, ionY, 12, 0, Math.PI*2);
+        ctx.fillStyle=grd; ctx.shadowColor='#ffd700'; ctx.shadowBlur=20; ctx.fill(); ctx.shadowBlur=0;
+        ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(`ion ${i+1}`, ix, ionY+28);
+      });
+
+      // Bichromatic laser beams
+      [['#ff5566', -22, 'ω₀−ωz (red sb)'], ['#00a8ff', 22, 'ω₀+ωz (blue sb)']].forEach(([col, dy, lbl]) => {
+        ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.globalAlpha=0.7;
+        ctx.beginPath(); ctx.moveTo(0, ionY+dy); ctx.lineTo(ion1X-15, ionY+dy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(W, ionY+dy); ctx.lineTo(ion2X+15, ionY+dy); ctx.stroke();
+        ctx.globalAlpha=1;
+        ctx.fillStyle=col; ctx.font='12px monospace'; ctx.textAlign='left';
+        ctx.fillText(lbl, 4, ionY+dy-3);
+      });
+
+      // Phase space trajectory — circle loop
+      const psX = W*0.5, psY = H*0.7, psR = 55;
+      ctx.strokeStyle='rgba(0,255,204,0.2)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(psX, psY, psR, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText('Phase space (motional mode)', psX, psY-psR-8);
+      ctx.fillText('Re[α]', psX+psR+6, psY+4);
+      // Trajectory so far
+      ctx.beginPath(); ctx.strokeStyle='#00ffcc'; ctx.lineWidth=2;
+      for (let step=0; step<=tau*100; step++) {
+        const ang = (step/100)*Math.PI*2;
+        const r = psR * Math.sin(ang * 0.5) * 0.9 + 1;
+        const x = psX + r * Math.cos(ang);
+        const y = psY + r * Math.sin(ang);
+        step===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      // Current point
+      const curAng = tau * Math.PI * 2;
+      const curR = psR * Math.sin(curAng * 0.5) * 0.9 + 1;
+      ctx.beginPath(); ctx.arc(psX+curR*Math.cos(curAng), psY+curR*Math.sin(curAng), 5, 0, Math.PI*2);
+      ctx.fillStyle='#ffd700'; ctx.shadowColor='#ffd700'; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+
+      // Bell state density matrix
+      const dmX = W*0.06, dmY = H*0.54, dmS = 70;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText('Bell state ρ', dmX, dmY-6);
+      const bell = Math.sin(tau * Math.PI / 2)**2;
+      const dm = [[0.5, 0, 0, 0.5*bell*fidelity],[0,0,0,0],[0,0,0,0],[0.5*bell*fidelity,0,0,0.5]];
+      const lbls = ['↑↑','↑↓','↓↑','↓↓'];
+      dm.forEach((row, ri) => {
+        row.forEach((val, ci) => {
+          const bx = dmX + ci*(dmS/4+2), by = dmY + ri*(dmS/4+2);
+          const alpha = Math.abs(val);
+          ctx.fillStyle = val > 0.01 ? `rgba(0,255,204,${0.2+alpha*0.8})` : '#111128';
+          ctx.fillRect(bx, by, dmS/4, dmS/4);
+          ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1; ctx.strokeRect(bx, by, dmS/4, dmS/4);
+        });
+      });
+      lbls.forEach((l,i) => {
+        ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(l, dmX+i*(dmS/4+2)+dmS/8, dmY+dm.length*(dmS/4+2)+10);
+        ctx.fillText(l, dmX-12, dmY+i*(dmS/4+2)+dmS/8+3);
+      });
+
+      const fid = (fidelity * 100 * (0.5 + 0.5*Math.sin(tau*Math.PI/2)**2)).toFixed(1);
+      document.getElementById('fidDisp').textContent = fid + '%';
+      document.getElementById('entDisp').textContent = bell.toFixed(3);
+
+    } else {
+      // ── Cirac-Zoller CNOT ────────────────────────────
+      const cIon1X = W*0.3, cIon2X = W*0.7, cIonY = H*0.38;
+
+      // Draw ions and motional bus
+      [cIon1X, cIon2X].forEach((ix, i) => {
+        const grd = ctx.createRadialGradient(ix, cIonY, 0, ix, cIonY, 14);
+        grd.addColorStop(0,'rgba(0,168,255,1)'); grd.addColorStop(1,'rgba(0,168,255,0)');
+        ctx.beginPath(); ctx.arc(ix, cIonY, 11, 0, Math.PI*2);
+        ctx.fillStyle=grd; ctx.shadowColor='#00a8ff'; ctx.shadowBlur=16; ctx.fill(); ctx.shadowBlur=0;
+        ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace'; ctx.textAlign='center';
+        ctx.fillText(i===0 ? 'control' : 'target', ix, cIonY+26);
+      });
+
+      // Gate sequence display
+      const steps = [
+        {t:0, lbl:'1. π pulse on control → |↓⟩±|↑⟩', col:'#ffd700'},
+        {t:0.25, lbl:'2. π pulse on motional mode', col:'#00a8ff'},
+        {t:0.5, lbl:'3. 2π pulse on target (conditional)', col:'#ff5566'},
+        {t:0.75, lbl:'4. π pulse restores control', col:'#00ffcc'},
+      ];
+      steps.forEach((s, i) => {
+        const active = tau >= s.t && tau < s.t + 0.25;
+        ctx.fillStyle = active ? s.col : '#2a2a50';
+        ctx.fillRect(W*0.12, H*0.55 + i*38, W*0.76, 30);
+        ctx.strokeStyle = active ? s.col : '#1c1c44'; ctx.lineWidth=1; ctx.strokeRect(W*0.12, H*0.55+i*38, W*0.76, 30);
+        ctx.fillStyle = active ? '#05050f' : '#55558a';
+        ctx.font = active ? 'bold 11px monospace' : '11px monospace'; ctx.textAlign='left';
+        ctx.fillText(s.lbl, W*0.14, H*0.55+i*38+19);
+      });
+
+      ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText('Cirac-Zoller CNOT — sequential steps via motional bus', W*0.5, H*0.5);
+
+      const fid = (fidelity * 99.5).toFixed(1);
+      document.getElementById('fidDisp').textContent = fid + '%';
+      document.getElementById('entDisp').textContent = tau > 0.9 ? '1.000' : tau.toFixed(3);
+    }
+
+    ctx.textAlign='left';
+    if (!paused6) t6 = (t6 + spd) % 120;
+    raf6 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf6); } };
+}
+window.toggleAnim6 = function(btn) {
+  paused6 = !paused6;
+  btn.textContent = paused6 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused6);
+};
+
+// ── Tab 7 — Quantum Simulation (Ising) ──────────────────────
+function initTab7() {
+  const cv = document.getElementById('cv7');
+  let raf7, t7 = 0;
+  let paused7 = false;
+  window.p7N = 12;
+  window.p7Alpha = 1.0;
+  window.p7hJ = 1.0;
+  window.p7Quench = false;
+  window.p7Reset = true;
+
+  let spins = [];
+  let magnetization = [];
+  let quenchTime = -1;
+
+  function initSpins(N) {
+    spins = Array.from({length: N}, () => (Math.random() > 0.5 ? 1 : -1));
+    magnetization = [];
+  }
+
+  function getJ(i, j, alpha) {
+    const d = Math.abs(i - j);
+    return d === 0 ? 0 : 1 / Math.pow(d, alpha);
+  }
+
+  function mcStep(N, alpha, hJ) {
+    // Metropolis step
+    for (let k = 0; k < N; k++) {
+      const i = Math.floor(Math.random() * N);
+      let dE = 0;
+      for (let j = 0; j < N; j++) {
+        if (i !== j) dE += 2 * spins[i] * spins[j] * getJ(i, j, alpha);
+      }
+      dE += 2 * hJ * spins[i];  // transverse field contribution (approximate)
+      if (dE < 0 || Math.random() < Math.exp(-dE * 0.8)) spins[i] *= -1;
+    }
+    return spins.reduce((s, x) => s + x, 0) / N;
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    const spd = window.animSpeed || 0.1;
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const N = window.p7N;
+    const alpha = window.p7Alpha;
+    const hJ = window.p7hJ;
+
+    if (window.p7Reset) {
+      initSpins(N);
+      quenchTime = -1;
+      window.p7Reset = false;
+    }
+
+    if (window.p7Quench) {
+      quenchTime = t7;
+      window.p7Quench = false;
+    }
+
+    // MC update
+    const m = mcStep(N, alpha, hJ);
+    magnetization.push(m);
+    if (magnetization.length > 400) magnetization.shift();
+
+    // Draw ion chain with spin colors
+    const chainY = H * 0.38;
+    const chainX0 = W * 0.1;
+    const chainX1 = W * 0.9;
+    const dx = (chainX1 - chainX0) / Math.max(N-1, 1);
+
+    // Draw coupling lines (variable brightness by J strength)
+    for (let i = 0; i < N-1; i++) {
+      for (let j = i+1; j < Math.min(N, i+4); j++) {
+        const Jij = getJ(i, j, alpha);
+        const op = Math.min(0.5, Jij * 0.3);
+        ctx.strokeStyle = `rgba(255,215,0,${op})`;
+        ctx.lineWidth = Math.max(0.5, Jij * 2);
+        ctx.beginPath();
+        ctx.moveTo(chainX0 + i*dx, chainY);
+        ctx.lineTo(chainX0 + j*dx, chainY);
+        ctx.stroke();
+      }
+    }
+
+    // Draw spins as arrows
+    for (let i = 0; i < N; i++) {
+      const sx = chainX0 + i * dx;
+      const sy = chainY;
+      const s = spins[i];
+      const col = s > 0 ? '#00ffcc' : '#ff5566';
+
+      ctx.beginPath(); ctx.arc(sx, sy, 7, 0, Math.PI*2);
+      ctx.fillStyle = col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+
+      // Spin arrow
+      ctx.strokeStyle=col; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(sx, sy+(s>0?6:-6)); ctx.lineTo(sx, sy-(s>0?16:-16)); ctx.stroke();
+      ctx.beginPath();
+      if (s > 0) { ctx.moveTo(sx-4, sy-10); ctx.lineTo(sx, sy-16); ctx.lineTo(sx+4, sy-10); }
+      else { ctx.moveTo(sx-4, sy+10); ctx.lineTo(sx, sy+16); ctx.lineTo(sx+4, sy+10); }
+      ctx.fillStyle=col; ctx.fill();
+    }
+
+    // Magnetization time trace
+    const trY = H*0.6, trH = H*0.32, trX = W*0.06, trW = W*0.88;
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('Magnetization ⟨σz⟩ vs time', trX, trY-6);
+    ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1; ctx.strokeRect(trX, trY, trW, trH);
+    // Zero line
+    ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(trX, trY+trH/2); ctx.lineTo(trX+trW, trY+trH/2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Magnetization trace
+    ctx.beginPath(); ctx.strokeStyle='#00ffcc'; ctx.lineWidth=1.5;
+    magnetization.forEach((mv, i) => {
+      const px = trX + (i/400)*trW;
+      const py = trY + trH/2 - mv * trH*0.45;
+      i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    });
+    ctx.stroke();
+
+    // Quench marker
+    if (quenchTime >= 0) {
+      const qx = trX + (magnetization.length/400)*trW * 0.95;
+      ctx.strokeStyle='#ffd700'; ctx.lineWidth=1; ctx.setLineDash([2,2]);
+      ctx.beginPath(); ctx.moveTo(qx, trY); ctx.lineTo(qx, trY+trH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+      ctx.fillText('quench', qx+2, trY+12);
+    }
+
+    // Phase label
+    const absM = Math.abs(m);
+    const phase = absM > 0.4 ? 'Ferromagnetic' : (hJ > 2 ? 'Paramagnetic' : 'Critical');
+    const phaseCol = absM > 0.4 ? '#00ffcc' : (hJ > 2 ? '#ff5566' : '#ffd700');
+    ctx.fillStyle=phaseCol; ctx.font='bold 12px monospace'; ctx.textAlign='right';
+    ctx.fillText(phase, W-12, trY-6);
+    document.getElementById('phaseDisp').textContent = phase;
+    document.getElementById('phaseDisp').style.color = phaseCol;
+
+    ctx.textAlign='left';
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText(`α=${alpha.toFixed(1)}  h/J=${hJ.toFixed(1)}  ⟨σz⟩=${m.toFixed(3)}`, 12, H-12);
+
+    if (!paused7) t7 += spd;
+    raf7 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf7); } };
+}
+window.toggleAnim7 = function(btn) {
+  paused7 = !paused7;
+  btn.textContent = paused7 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused7);
+};
+
+// ── Tab 8 — QC Milestones ────────────────────────────────────
+function updatePlatformBtns(idx) {
+  document.querySelectorAll('#platformRow .btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+}
+window.p8Platform = 'all';
+
+function initTab8() {
+  const cv = document.getElementById('cv8');
+  let raf8, t8 = 0;
+  let paused8 = false;
+
+  const milestones = [
+    {year:1995, label:'Cirac-Zoller CNOT proposal', platform:'oxford', col:'#00ffcc'},
+    {year:1995, label:'First single-ion trap (Wineland)', platform:'ionq', col:'#ffd700'},
+    {year:2000, label:'Decoherence-free subspace', platform:'oxford', col:'#00a8ff'},
+    {year:2003, label:'MS gate demonstrated (Innsbruck)', platform:'oxford', col:'#00ffcc'},
+    {year:2011, label:'Teleportation across chip (Oxford)', platform:'oxford', col:'#9300ff'},
+    {year:2016, label:'5-qubit IBM QX (SC) goes cloud', platform:'ibm', col:'#ff8844'},
+    {year:2017, label:'53-qubit IBM Q (SC)', platform:'ibm', col:'#ff8844'},
+    {year:2019, label:'IonQ Harmony: 11 qubits #CNOT', platform:'ionq', col:'#ffd700'},
+    {year:2019, label:'Google Sycamore quantum advantage', platform:'google', col:'#ff5566'},
+    {year:2020, label:'Quantinuum H1: 10 qubits 99.5%', platform:'quantinuum', col:'#00a8ff'},
+    {year:2021, label:'Time crystal (Monroe/Google, 57 ions)', platform:'oxford', col:'#00ffcc'},
+    {year:2022, label:'IonQ Aria: 25 qubits AQ20', platform:'ionq', col:'#ffd700'},
+    {year:2022, label:'Quantinuum H1-1: 99.9% 2Q fidelity', platform:'quantinuum', col:'#00a8ff'},
+    {year:2022, label:'IBM Osprey: 433 SC qubits', platform:'ibm', col:'#ff8844'},
+    {year:2023, label:'IonQ Forte: 32 qubits AQ29', platform:'ionq', col:'#ffd700'},
+    {year:2023, label:'Quantinuum H2: 56 qubits', platform:'quantinuum', col:'#00a8ff'},
+    {year:2023, label:'IBM Condor: 1121 SC qubits', platform:'ibm', col:'#ff8844'},
+  ];
+
+  // Platform comparison data
+  const platforms = [
+    {name:'Ion Trap', qubitFid:99.9, t2:600000, connectivity:100, speed:0.01, col:'#00ffcc'},
+    {name:'SC (IBM)', qubitFid:99.5, t2:0.5, connectivity:12, speed:100, col:'#ff8844'},
+    {name:'SC (Google)', qubitFid:99.7, t2:0.3, connectivity:10, speed:100, col:'#ff5566'},
+    {name:'Photonic', qubitFid:99.0, t2:10000, connectivity:100, speed:50, col:'#9300ff'},
+  ];
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    const spd = window.animSpeed || 0.1;
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+
+    const filter = window.p8Platform;
+
+    // ── Timeline (top half) ──────────────────────────────
+    const tlY = H * 0.44;
+    const tlX0 = W * 0.06;
+    const tlX1 = W * 0.94;
+    const tlW = tlX1 - tlX0;
+    const yearMin = 1994, yearMax = 2024;
+
+    // Timeline axis
+    ctx.strokeStyle='#1c1c44'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(tlX0, tlY); ctx.lineTo(tlX1, tlY); ctx.stroke();
+
+    // Year ticks
+    for (let y = 1995; y <= 2023; y += 2) {
+      const tx = tlX0 + (y - yearMin)/(yearMax - yearMin) * tlW;
+      ctx.strokeStyle='#2a2a50'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(tx, tlY-4); ctx.lineTo(tx, tlY+4); ctx.stroke();
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(y, tx, tlY+14);
+    }
+
+    // Milestone dots and labels
+    const visible = milestones.filter(m => filter==='all' || m.platform===filter);
+    visible.forEach((m, mi) => {
+      const tx = tlX0 + (m.year - yearMin)/(yearMax - yearMin) * tlW;
+      const above = mi % 2 === 0;
+      const labelY = above ? tlY - 22 - (mi%6)*14 : tlY + 28 + (mi%4)*13;
+      const lineY = above ? tlY - 6 : tlY + 6;
+
+      // Animated dot
+      const pulse = 0.5 + 0.5*Math.sin(t8*0.05 + mi*0.7);
+      ctx.beginPath(); ctx.arc(tx, tlY, 5 + pulse*2, 0, Math.PI*2);
+      ctx.fillStyle = m.col + '40'; ctx.fill();
+      ctx.beginPath(); ctx.arc(tx, tlY, 4, 0, Math.PI*2);
+      ctx.fillStyle = m.col; ctx.shadowColor=m.col; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+
+      // Connector line
+      ctx.strokeStyle = m.col + '60'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(tx, lineY); ctx.lineTo(tx, labelY + (above?12:-2)); ctx.stroke();
+
+      // Label
+      ctx.fillStyle = m.col; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(m.year + ': ' + m.label, tx, labelY);
+    });
+
+    // ── Platform comparison bar chart (bottom half) ──────
+    const chartY = H * 0.56;
+    const chartH = H * 0.36;
+    const metrics = [
+      {key:'qubitFid', label:'Gate fidelity (%)', scale:100},
+      {key:'t2', label:'T₂ coherence (rel)', scale:1000},
+      {key:'connectivity', label:'Connectivity (%)', scale:100},
+      {key:'speed', label:'Gate speed (rel)', scale:100},
+    ];
+    const barGroupW = (W * 0.88) / metrics.length;
+
+    metrics.forEach((met, mi) => {
+      const gx = W*0.06 + mi * barGroupW;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(met.label, gx + barGroupW/2, chartY - 6);
+
+      platforms.forEach((pl, pi) => {
+        const shown = filter==='all' || filter===pl.name.toLowerCase().replace(' ','').replace('(','').replace(')','');
+        const val = pl[met.key];
+        const normed = Math.min(1, Math.log10(Math.max(1, val)) / Math.log10(met.scale));
+        const bW = barGroupW / (platforms.length + 1);
+        const bx = gx + pi * bW + bW*0.1;
+        const bH = normed * chartH * 0.85;
+        ctx.fillStyle = shown ? pl.col : pl.col + '33';
+        ctx.fillRect(bx, chartY + chartH - bH, bW*0.8, bH);
+        ctx.strokeStyle = shown ? pl.col : pl.col+'33';
+        ctx.lineWidth=1; ctx.strokeRect(bx, chartY+chartH-bH, bW*0.8, bH);
+        // Platform label at bottom
+        if (mi === 0) {
+          ctx.fillStyle = shown ? pl.col : '#2a2a50';
+          ctx.font='12px monospace'; ctx.textAlign='center';
+          const labelX = gx + pi*bW + bW/2;
+          ctx.fillText(pl.name.split(' ')[0], labelX, chartY+chartH+12);
+        }
+      });
+
+      // Bottom axis
+      ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(gx, chartY+chartH); ctx.lineTo(gx+barGroupW*0.95, chartY+chartH); ctx.stroke();
+    });
+
+    ctx.textAlign='left';
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('IonQ: AQ = Algorithmic Qubits (effective, noise-corrected)', W*0.06, H-12);
+
+    if (!paused8) t8 += spd;
+    raf8 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf8); } };
+}
+window.toggleAnim8 = function(btn) {
+  paused8 = !paused8;
+  btn.textContent = paused8 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused8);
+};
+
+window.animSpeed=0.1;
+switchTab(1);
+window.addEventListener('resize', () => { _stops.forEach(s=>s&&s.stop&&s.stop()); _stops=[]; switchTab(currentTab); });
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

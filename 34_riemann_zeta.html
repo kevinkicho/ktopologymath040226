@@ -1,0 +1,2571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>34 · Riemann Zeta Function &amp; the Prime Frontier</title>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#4499ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+     height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;
+       display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;
+       padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);
+      background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;
+     border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+.canvas-area{flex:1;display:flex;flex-direction:column;
+             background:var(--bg);padding:12px;gap:8px;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+       display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:100px;accent-color:var(--accent)}
+.controls span{font-size:.78rem;color:var(--accent);min-width:32px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);
+       padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+          padding:8px 14px;font-size:.77rem;color:var(--dim);line-height:1.6;flex-shrink:0}
+/* Side panels */
+.side-panel{width:196px;min-width:160px;background:var(--bg2);
+            border-left:1px solid var(--border);display:flex;flex-direction:column;
+            overflow:hidden;padding:12px;font-size:.74rem;color:var(--dim);
+            line-height:1.75;gap:4px;flex-shrink:0}
+.side-panel h3{color:var(--accent);font-size:.8rem;
+               border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px}
+.side-panel .hl{color:var(--text)}
+.side-panel .gold{color:#ffcc44;font-weight:600}
+/* Tab 1 right panel */
+.zeros-panel{width:196px;min-width:160px;background:var(--bg2);
+             border-left:1px solid var(--border);display:flex;flex-direction:column;
+             overflow:hidden;flex-shrink:0}
+.zeros-panel h3{color:var(--accent);font-size:.8rem;
+                padding:10px 12px 6px;border-bottom:1px solid var(--border);margin:0}
+.zeros-list{overflow-y:auto;flex:1;padding:6px 12px;line-height:2.1;font-size:.74rem}
+.zeros-note{padding:8px 12px;border-top:1px solid var(--border);
+            font-size:.71rem;color:var(--dim);line-height:1.65}
+/* Tab 2 vertical split */
+.t2-section{display:flex;flex-direction:column;overflow:hidden;padding:10px 12px;gap:6px}
+.t2-top{flex:0 0 46%;border-bottom:1px solid var(--border)}
+.t2-bot{flex:1;min-height:0}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+/* Progress overlay */
+.prog-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+              text-align:center;pointer-events:none;z-index:10}
+.prog-track{width:210px;height:6px;background:var(--bg3);
+            border-radius:3px;margin:8px auto 0}
+.prog-fill{height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .08s}
+/* Tooltip */
+#tip0{position:fixed;background:rgba(5,5,20,.92);border:1px solid var(--accent);
+      border-radius:4px;padding:4px 10px;font-size:.73rem;color:var(--text);
+      pointer-events:none;display:none;z-index:200;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 7</span>
+  <div class="title-block">
+    <h1>Riemann Zeta Function &amp; the Prime Frontier</h1>
+    <p>Domain coloring · critical-line zeros · Euler product and prime distribution</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Domain Coloring</div>
+  <div class="tab"        onclick="switchTab(1)">Zeros on ½+it</div>
+  <div class="tab"        onclick="switchTab(2)">Primes &amp; Euler Product</div>
+  <div class="tab"        onclick="switchTab(3)">Critical Strip</div>
+  <div class="tab"        onclick="switchTab(4)">Explicit Formula</div>
+  <div class="tab"        onclick="switchTab(5)">GUE &amp; Chaos</div>
+  <div class="tab"        onclick="switchTab(6)">Functional Eq.</div>
+  <div class="tab"        onclick="switchTab(7)">Physics</div>
+</div>
+
+<div id="main">
+
+<!-- ── TAB 0 ── -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area" style="position:relative">
+    <canvas id="c0"></canvas>
+    <div class="prog-overlay" id="pwrap">
+      <div style="color:var(--dim);font-size:.8rem" id="pmsg">Computing ζ(s) …</div>
+      <div class="prog-track"><div class="prog-fill" id="pfill"></div></div>
+    </div>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button onclick="recompute()">Recompute</button>
+      <button id="btnZ0" onclick="toggleShowZeros()">Show Zeros</button>
+      <button id="btnPan0" class="animBtn" onclick="toggleAutoPan()">▶ Animate</button>
+      <button onclick="zoom0(1.4)">Zoom +</button>
+      <button onclick="zoom0(1/1.4)">Zoom −</button>
+      <button onclick="resetView0()">Reset View</button>
+      <span id="viewInfo" style="color:var(--dim);font-size:.72rem"></span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>ζ(s) — Riemann Zeta</h3>
+    <div>ζ(s) = Σ<sub>n≥1</sub> n<sup>−s</sup></div>
+    <div style="font-size:.69rem">(Re s &gt; 1, then analytic continuation)</div>
+    <div class="hl">Pole: s = 1 (simple)</div>
+    <div class="hl">Trivial zeros: s = −2, −4, −6, …</div>
+    <div class="hl">Non-trivial zeros: s = ½ + it<sub>n</sub></div>
+    <div style="margin-top:4px">t₁ ≈ 14.135</div>
+    <div>t₂ ≈ 21.022</div>
+    <div>t₃ ≈ 25.011</div>
+    <div>t₄ ≈ 30.425</div>
+    <div>t₅ ≈ 32.935</div>
+    <div style="margin-top:6px" class="gold">Riemann Hypothesis:</div>
+    <div class="gold" style="font-size:.72rem">ALL non-trivial zeros lie on Re(s) = ½</div>
+    <div style="margin-top:4px;color:var(--accent);font-size:.71rem">Millennium Prize — $1 million!</div>
+    <div style="margin-top:6px;font-size:.7rem">Hue = arg ζ(s) · Brightness = log|ζ(s)|</div>
+    <div style="font-size:.7rem">Phase convergence points = zeros</div>
+    <div style="font-size:.7rem">White dashed = critical line Re s=½</div>
+  </div>
+</div>
+
+<!-- ── TAB 1 ── -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="btnA1" class="animBtn" onclick="toggleAnim1()">▶ Animate</button>
+      <label>t min</label>
+      <input type="range" id="tmin" min="0" max="55" value="0" step="1" oninput="onTChange()">
+      <span id="tminV">0</span>
+      <label>t max</label>
+      <input type="range" id="tmax" min="15" max="80" value="50" step="1" oninput="onTChange()">
+      <span id="tmaxV">50</span>
+    </div>
+    <div class="info-box">
+      Hardy's Z-function Z(t) = e<sup>iθ(t)</sup>ζ(½+it) is real-valued. Sign changes indicate
+      zeros of ζ on the critical line (blue = positive, orange = negative).
+      Computed via the Riemann–Siegel formula.
+    </div>
+  </div>
+  <div class="zeros-panel">
+    <h3>ζ(½+it<sub>n</sub>) = 0</h3>
+    <div class="zeros-list" id="zlist"></div>
+    <div class="zeros-note">
+      <div style="color:var(--accent)">Zeros verified: &gt; 10<sup>13</sup></div>
+      <div style="margin-top:3px">All agree with RH</div>
+      <div style="margin-top:5px;color:var(--text)">Z(t) = e<sup>iθ(t)</sup>ζ(½+it)</div>
+      <div style="margin-top:3px">θ ≈ t/2·ln(t/2π) − t/2 − π/8</div>
+      <div style="margin-top:5px">Gram points g<sub>n</sub>: θ(g<sub>n</sub>)=nπ</div>
+      <div style="margin-top:3px;color:#ff8866">Gram blocks (rare violations) keep the zeros mysterious…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 2 ── -->
+<div class="pane" data-role="panel" id="pane2">
+  <!-- Euler product (top) -->
+  <div class="canvas-area" style="padding:0;gap:0">
+    <div class="t2-section t2-top">
+      <canvas id="c2a"></canvas>
+      <div class="controls" data-role="sidebar" style="flex-shrink:0">
+        <span style="font-size:.75rem;color:var(--dim)">ζ(s) = ∏<sub>p</sub> 1/(1−p<sup>−s</sup>)</span>
+        <button onclick="setES(2,0,'π²/6 ≈ 1.6449')">s=2</button>
+        <button onclick="setES(3,0,'ζ(3) ≈ 1.2021')">s=3</button>
+        <button onclick="setES(0.5,14.1347,'first zero → 0!')">s=½+14.13i</button>
+        <button onclick="setES(0.5,21.022,'second zero → 0')">s=½+21.02i</button>
+        <button id="btnEA" class="animBtn" onclick="toggleEulerAnim()">▶ Animate</button>
+        <button onclick="view2a.zoom*=1.3;draw2a(eulerAStep||50)">＋</button>
+        <button onclick="view2a.zoom=Math.max(0.2,view2a.zoom/1.3);draw2a(eulerAStep||50)">－</button>
+        <button onclick="view2a={zoom:1,panX:0,panY:0};draw2a(eulerAStep||50)">Fit</button>
+        <span id="elabel" style="color:var(--accent)">s = 2 &nbsp; (π²/6 ≈ 1.6449)</span>
+      </div>
+    </div>
+    <!-- Prime distribution (bottom) -->
+    <div class="t2-section t2-bot">
+      <canvas id="c2b"></canvas>
+      <div class="controls" data-role="sidebar" style="flex-shrink:0">
+        <label>x max</label>
+        <input type="range" id="xmax" min="50" max="500" value="100" step="10" oninput="draw2b()">
+        <span id="xmaxV">100</span>
+        <label>Zeros</label>
+        <input type="range" id="nzeros" min="0" max="15" value="0" step="1" oninput="draw2b()">
+        <span id="nzerosV">0</span>
+        <button id="bLi"  class="on" onclick="togLi()">Li(x)</button>
+        <button id="bGa"  class="on" onclick="togGa()">x/ln x</button>
+        <button id="bEx"       onclick="togEx()">Explicit</button>
+      </div>
+      <div class="info-box">
+        π(x) ~ Li(x) (Prime Number Theorem) &nbsp;|&nbsp;
+        <span style="color:#ffcc44">RH ⟹ error O(x<sup>½+ε</sup>)</span> &nbsp;|&nbsp;
+        Each zero ρ contributes −x<sup>Re ρ</sup>/|ρ| oscillation to π(x)−Li(x)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB 3 — CRITICAL STRIP ── -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area" style="position:relative">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="btnCS" class="animBtn" onclick="toggleCritAnim()">▶ Animate</button>
+      <label>t probe</label>
+      <input type="range" id="csT" min="0" max="80" value="14" step="0.1" oninput="drawCritStrip()">
+      <span id="csTv">14.0</span>
+      <label>Zoom</label>
+      <input type="range" id="csZoom" min="1" max="8" value="3" step="0.5" oninput="drawCritStrip()">
+      <button onclick="drawCritStrip()">Refresh</button>
+    </div>
+    <div class="info-box">
+      Critical strip 0 &lt; Re(s) &lt; 1. Color = arg ζ(s) (phase), brightness encodes |ζ(s)|.
+      Non-trivial zeros (phase vortices) lie on Re(s)=½ (white dashed line). Drag the slider to probe |ζ(½+it)| and watch it vanish at t&#8320;&#8776;14.13, t&#8321;&#8776;21.02, t&#8322;&#8776;25.01&#8230;
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Critical Strip</h3>
+    <div class="hl">0 &lt; Re(s) &lt; 1</div>
+    <div style="margin-top:6px">All non-trivial zeros lie here.</div>
+    <div style="margin-top:4px" class="gold">RH: all on Re(s)=½</div>
+    <div style="margin-top:8px">Euler product:</div>
+    <div style="font-size:.69rem;margin-top:2px">ζ(s) = ∏<sub>p prime</sub> (1−p<sup>−s</sup>)<sup>−1</sup></div>
+    <div style="margin-top:6px">First 20 zeros t<sub>n</sub>:</div>
+    <div style="font-size:.69rem;line-height:1.9;margin-top:2px" id="csZeroList"></div>
+    <div style="margin-top:6px;font-size:.69rem">|ζ(½+it)| at probe:</div>
+    <div style="color:var(--accent);font-size:.8rem" id="csZetaVal">|ζ| = —</div>
+  </div>
+</div>
+
+<!-- ── TAB 4 — EXPLICIT FORMULA ── -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <canvas id="c4a" style="flex:0 0 55%"></canvas>
+    <canvas id="c4b" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="btnEF" class="animBtn" onclick="toggleExplicitAnim()">▶ Animate</button>
+      <label>Zero pairs</label>
+      <input type="range" id="efN" min="0" max="20" value="0" step="1" oninput="drawExplicit()">
+      <span id="efNv">0</span>
+      <label>x max</label>
+      <input type="range" id="efX" min="50" max="300" value="100" step="10" oninput="drawExplicit()">
+      <span id="efXv">100</span>
+    </div>
+    <div class="info-box">
+      Explicit formula: π(x) = Li(x) &minus; Σ<sub>ρ</sub> Li(x<sup>ρ</sup>) &minus; log2 + &#8747;<sub>x</sub><sup>∞</sup> dt/(t(t²&minus;1)log t).
+      Each zero ρ=½+it<sub>n</sub> contributes a cosine oscillation. Add more zero pairs to watch the sum converge to the exact prime-counting staircase.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Explicit Formula</h3>
+    <div style="font-size:.69rem;line-height:1.8">
+      π(x) = Li(x)<br>
+      &nbsp;&nbsp;− Σ<sub>ρ</sub> Li(x<sup>ρ</sup>)<br>
+      &nbsp;&nbsp;− log 2<br>
+      &nbsp;&nbsp;+ ∫<sub>x</sub><sup>∞</sup> dt/(t(t²−1)ln t)
+    </div>
+    <div style="margin-top:6px" class="gold">Each zero ρ adds:</div>
+    <div style="font-size:.69rem">−2√x cos(t<sub>n</sub> ln x) / |ρ|</div>
+    <div style="margin-top:6px">oscillations to π(x)−Li(x)</div>
+    <div style="margin-top:6px;font-size:.69rem">Zero pairs used: <span id="efUsed" style="color:var(--accent)">0</span></div>
+    <div style="margin-top:4px;font-size:.69rem">Error |π(x)−approx|:</div>
+    <div style="color:var(--accent);font-size:.78rem" id="efError">—</div>
+  </div>
+</div>
+
+<!-- ── TAB 5 — GUE & RANDOM MATRIX ── -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="btnGUE" class="animBtn" onclick="toggleGUEAnim()">▶ Animate</button>
+      <label>Zeros used</label>
+      <input type="range" id="gueN" min="50" max="1000" value="200" step="50" oninput="drawGUE()">
+      <span id="gueNv">200</span>
+      <button onclick="drawGUE()">Refresh</button>
+    </div>
+    <div class="info-box">
+      Montgomery's pair correlation conjecture (1973): the spacing distribution of Riemann zeros matches
+      GUE (Gaussian Unitary Ensemble) eigenvalue statistics &mdash; the same distribution as energy levels
+      of a chaotic quantum system. Histogram = zeros spacing. Red curve = GUE prediction P(s)=(32s²/π²)exp(−4s²/π).
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>GUE &amp; Quantum Chaos</h3>
+    <div style="margin-top:4px;font-size:.69rem">GUE nearest-neighbor:</div>
+    <div style="font-size:.67rem;color:var(--accent);margin-top:2px">P(s) = (32s²/π²)e<sup>−4s²/π</sup></div>
+    <div style="margin-top:6px;font-size:.69rem">Pair correlation:</div>
+    <div style="font-size:.67rem;color:var(--accent)">R₂(x) = 1 − (sin πx/πx)²</div>
+    <div style="margin-top:6px" class="gold">Montgomery conjecture:</div>
+    <div style="font-size:.69rem">zeros behave like GUE eigenvalues</div>
+    <div style="margin-top:6px;font-size:.69rem">Zeros "repel" &mdash; like fermions!</div>
+    <div style="margin-top:6px;font-size:.69rem">Hilbert–Pólya: zeros = eigenvalues of a self-adjoint operator H (unproven)</div>
+    <div style="margin-top:6px;font-size:.69rem">Berry–Keating: H = xp (phase-space)</div>
+    <div style="margin-top:6px;font-size:.69rem;color:#ffcc44">Verified up to 10<sup>22</sup> zeros!</div>
+  </div>
+</div>
+
+<!-- ── TAB 6 — FUNCTIONAL EQUATION ── -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-area">
+    <canvas id="c6a" style="flex:0 0 52%"></canvas>
+    <canvas id="c6b" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="btnFE" class="animBtn" onclick="toggleFuncEqAnim()">▶ Animate</button>
+      <label>t</label>
+      <input type="range" id="feT" min="0" max="40" value="0" step="0.2" oninput="drawFuncEq()">
+      <span id="feTv">0</span>
+      <button onclick="drawFuncEq()">Redraw</button>
+    </div>
+    <div class="info-box">
+      Functional equation: ζ(s) = 2<sup>s</sup>π<sup>s−1</sup>sin(πs/2)Γ(1−s)ζ(1−s).
+      Shows symmetry s ↔ 1−s about Re(s)=½.
+      The completed zeta ξ(s) = ½s(s−1)π<sup>−s/2</sup>Γ(s/2)ζ(s) satisfies ξ(s) = ξ(1−s) exactly and is entire.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Functional Equation</h3>
+    <div style="font-size:.67rem;line-height:1.9;margin-top:4px">
+      ζ(s) = 2<sup>s</sup>π<sup>s−1</sup><br>
+      &nbsp;· sin(πs/2)<br>
+      &nbsp;· Γ(1−s) · ζ(1−s)
+    </div>
+    <div style="margin-top:6px" class="gold">Completed zeta ξ(s):</div>
+    <div style="font-size:.67rem;line-height:1.8">
+      ξ(s) = ½s(s−1)<br>
+      &nbsp;&nbsp;· π<sup>−s/2</sup>Γ(s/2)ζ(s)
+    </div>
+    <div style="font-size:.69rem;margin-top:4px">ξ(s) = ξ(1−s) exactly</div>
+    <div style="font-size:.69rem;margin-top:4px">ξ is entire (no poles)</div>
+    <div style="margin-top:6px;font-size:.69rem">Symmetry axis: Re(s) = ½</div>
+    <div style="margin-top:6px;font-size:.69rem">|ζ(s)| vs |ζ(1−s)|<br>are equal (shown above)</div>
+    <div style="margin-top:6px;color:#ffcc44;font-size:.69rem">Riemann extended ζ to all ℂ via this equation</div>
+  </div>
+</div>
+
+<!-- ── TAB 7 — PHYSICS CONNECTIONS ── -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-area">
+    <canvas id="c7"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="btnPhy" class="animBtn" onclick="togglePhysAnim()">▶ Animate</button>
+      <label>Mode</label>
+      <button onclick="setPhysMode(0)" id="bPhy0" class="on">Casimir</button>
+      <button onclick="setPhysMode(1)" id="bPhy1">String / −1/12</button>
+      <button onclick="setPhysMode(2)" id="bPhy2">Hilbert–Pólya</button>
+    </div>
+    <div class="info-box">
+      The Riemann zeta function appears throughout theoretical physics: Casimir effect (ζ(−3)=1/120),
+      string theory regularization (ζ(−1)=−1/12), and the Hilbert–Pólya conjecture (zeros as quantum energy levels).
+      The Berry–Keating Hamiltonian H=xp suggests a semiclassical origin.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Physics &amp; ζ</h3>
+    <div style="margin-top:4px" class="gold">Casimir energy:</div>
+    <div style="font-size:.69rem">E<sub>C</sub> ∝ ζ(−3) = 1/120</div>
+    <div style="margin-top:6px" class="gold">String theory:</div>
+    <div style="font-size:.69rem">1+2+3+… = ζ(−1) = −1/12</div>
+    <div style="font-size:.69rem">Critical dim D=26</div>
+    <div style="margin-top:6px" class="gold">Hilbert–Pólya:</div>
+    <div style="font-size:.69rem">Zeros = eigenvalues of H</div>
+    <div style="font-size:.69rem">H self-adjoint ⟹ RH!</div>
+    <div style="margin-top:6px" class="gold">Berry–Keating:</div>
+    <div style="font-size:.69rem">H = xp (phase space)</div>
+    <div style="font-size:.69rem">Classical orbits ↔ primes</div>
+    <div style="margin-top:6px;color:#ffcc44;font-size:.69rem">Selberg trace formula connects primes to geodesics on hyperbolic surfaces</div>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<div id="tip0"></div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════
+//  COMPLEX ARITHMETIC
+// ═══════════════════════════════════════════════════════════
+function cadd(a,b){return{r:a.r+b.r,i:a.i+b.i}}
+function csub(a,b){return{r:a.r-b.r,i:a.i-b.i}}
+function cmul(a,b){return{r:a.r*b.r-a.i*b.i,i:a.r*b.i+a.i*b.r}}
+function cdiv(a,b){
+  const d=b.r*b.r+b.i*b.i;
+  return{r:(a.r*b.r+a.i*b.i)/d,i:(a.i*b.r-a.r*b.i)/d}
+}
+function cabs(a){return Math.sqrt(a.r*a.r+a.i*a.i)}
+function carg(a){return Math.atan2(a.i,a.r)}
+function cpow(a,s){
+  // a^s = exp(s * log(a))
+  const lnr=0.5*Math.log(a.r*a.r+a.i*a.i);
+  const arg=Math.atan2(a.i,a.r);
+  const re=s.r*lnr-s.i*arg;
+  const im=s.r*arg+s.i*lnr;
+  const mag=Math.exp(re);
+  return{r:mag*Math.cos(im),i:mag*Math.sin(im)};
+}
+
+// Riemann zeta — partial sum N=50 + Euler-Maclaurin tail correction
+function zeta(s){
+  const N=50;
+  let sum={r:0,i:0};
+  for(let n=1;n<=N;n++){
+    sum=cadd(sum, cpow({r:n,i:0},{r:-s.r,i:-s.i}));
+  }
+  // Tail: Σ_{n>N} n^{-s} ≈ N^{1-s}/(s-1) + N^{-s}/2
+  if(Math.abs(s.r-1)>0.01){
+    const N1s=cpow({r:N,i:0},{r:1-s.r,i:-s.i});
+    const tail=cdiv(N1s,{r:s.r-1,i:s.i});
+    const Ns=cpow({r:N,i:0},{r:-s.r,i:-s.i});
+    sum=cadd(sum,cadd(tail,{r:Ns.r/2,i:Ns.i/2}));
+  }
+  return sum;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HSL → RGB
+// ═══════════════════════════════════════════════════════════
+function hsl2rgb(h,s,l){
+  h=((h%360)+360)%360;
+  const c=(1-Math.abs(2*l-1))*s;
+  const x=c*(1-Math.abs((h/60)%2-1));
+  const m=l-c/2;
+  let r,g,b;
+  if(h<60){r=c;g=x;b=0}
+  else if(h<120){r=x;g=c;b=0}
+  else if(h<180){r=0;g=c;b=x}
+  else if(h<240){r=0;g=x;b=c}
+  else if(h<300){r=x;g=0;b=c}
+  else{r=c;g=0;b=x}
+  return[Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];
+}
+
+// ═══════════════════════════════════════════════════════════
+//  KNOWN ZEROS + PRIMES
+// ═══════════════════════════════════════════════════════════
+const ZEROS_T=[
+  14.134725,21.022040,25.010858,30.424876,32.935062,
+  37.586178,40.918719,43.327073,48.005151,49.773832,
+  52.970321,56.446248,59.347044,60.831779,65.112544,
+  67.079811,69.546402,72.067158,75.704691,77.144840
+];
+
+function sieve(n){
+  const s=new Uint8Array(n+1).fill(1);s[0]=s[1]=0;
+  for(let i=2;i*i<=n;i++)if(s[i])for(let j=i*i;j<=n;j+=i)s[j]=0;
+  const p=[];for(let i=2;i<=n;i++)if(s[i])p.push(i);return p;
+}
+const PRIMES=sieve(600);
+
+// ═══════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+function switchTab(i){
+  // Cancel any in-progress domain-coloring computation and other animations
+  _cancelAllAnims34();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  if(i===0){recompute();toggleAutoPan();}
+  if(i===1){draw1();toggleAnim1();}
+  if(i===2){draw2a();draw2b();toggleCritAnim();}
+  if(i===3){drawCritStrip();toggleExplicitAnim();}
+  if(i===4){drawExplicit();toggleGUEAnim();}
+  if(i===5){drawGUE();toggleFuncEqAnim();}
+  if(i===6){drawFuncEq();togglePhysAnim();}
+  if(i===7){drawPhys();}
+}
+
+function syncSpeedControl34(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+
+function _cancelAllAnims34(){
+  if(dcRunning){cancelAnimationFrame(dcRaf);dcRaf=null;}
+  [autoPanRaf,anim1Id,csAnimId,efAnimId,gueAnimId,feAnimId,physAnimId]
+    .forEach(id=>{if(id)cancelAnimationFrame(id);});
+  autoPanRaf=anim1Id=csAnimId=efAnimId=gueAnimId=feAnimId=physAnimId=null;
+  // Reset button states
+  const btns = ['btnPan0','btnA1','btnEA','btnCS','btnEF','btnGUE','btnFE','btnPhy'];
+  btns.forEach(id => {
+    const b = document.getElementById(id);
+    if(b){ b.textContent='▶ Animate'; b.classList.remove('on'); }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 0 — DOMAIN COLORING
+// ═══════════════════════════════════════════════════════════
+const c0=document.getElementById('c0');
+const ctx0=c0.getContext('2d');
+
+let view0={cx:0,cy:0,scale:20};  // scale = CSS-px per complex unit
+let showZ0=false;
+let dcRaf=null, dcRow=0, dcImg=null, dcImgFinal=null, dcW=0, dcH=0, dcRunning=false;
+const BLOCK=3;  // pixels per sample block
+
+// -- drag/pan --
+let drag0={on:false,sx:0,sy:0,cx0:0,cy0:0};
+c0.addEventListener('mousedown',e=>{
+  drag0.on=true;drag0.sx=e.clientX;drag0.sy=e.clientY;
+  drag0.cx0=view0.cx;drag0.cy0=view0.cy;
+});
+window.addEventListener('mousemove',e=>{
+  // Tooltip (always)
+  const rect=c0.getBoundingClientRect();
+  const px=e.clientX-rect.left, py=e.clientY-rect.top;
+  const tip=document.getElementById('tip0');
+  if(px>=0&&py>=0&&px<=rect.width&&py<=rect.height){
+    const W=c0.offsetWidth,H=c0.offsetHeight;
+    const sigma=view0.cx+(px-W/2)/view0.scale;
+    const tv=view0.cy+(H/2-py)/view0.scale;
+    const z=zeta({r:sigma,i:tv});
+    tip.style.display='block';
+    tip.style.left=(e.clientX+14)+'px';
+    tip.style.top=(e.clientY-22)+'px';
+    tip.textContent=`s = ${sigma.toFixed(3)} + ${tv.toFixed(3)}i   |ζ(s)| = ${cabs(z).toFixed(4)}`;
+  } else {
+    tip.style.display='none';
+  }
+  // Pan
+  if(drag0.on){
+    view0.cx=drag0.cx0-(e.clientX-drag0.sx)/view0.scale;
+    view0.cy=drag0.cy0+(e.clientY-drag0.sy)/view0.scale;
+    drawOverlay0(); // lightweight live feedback
+  }
+});
+window.addEventListener('mouseup',()=>{if(drag0.on){drag0.on=false;recompute();}});
+c0.addEventListener('mouseleave',()=>{document.getElementById('tip0').style.display='none';});
+c0.addEventListener('wheel',e=>{
+  e.preventDefault();
+  zoom0(e.deltaY<0?1.25:0.8);
+},{passive:false});
+
+function zoom0(f){view0.scale*=f;updateVI();recompute();}
+function resetView0(){view0={cx:0,cy:0,scale:20};updateVI();recompute();}
+function updateVI(){
+  const W=c0.offsetWidth||1,H=c0.offsetHeight||1;
+  const sw=W/view0.scale,sh=H/view0.scale;
+  document.getElementById('viewInfo').textContent=
+    `σ ∈ [${(view0.cx-sw/2).toFixed(1)}, ${(view0.cx+sw/2).toFixed(1)}]  ·  `+
+    `t ∈ [${(view0.cy-sh/2).toFixed(1)}, ${(view0.cy+sh/2).toFixed(1)}]`;
+}
+function toggleShowZeros(){
+  showZ0=!showZ0;
+  document.getElementById('btnZ0').classList.toggle('on',showZ0);
+  drawOverlay0();
+}
+
+// ── Auto-pan animation (critical strip tour) ──
+let autoPanRaf=null, autoPanRunning=false;
+let autoPanT=0;
+
+// Keyframes: [cx, cy, scale, dwell_frames]
+// Visits t-regions 0-80, pausing near zero clusters
+const PAN_KEYFRAMES=[
+  {cx:0.5,cy:0,   sc:20},
+  {cx:0.5,cy:14.1,sc:28},
+  {cx:0.5,cy:21.0,sc:28},
+  {cx:0.5,cy:30.4,sc:22},
+  {cx:0.5,cy:43.3,sc:22},
+  {cx:0.5,cy:52.0,sc:18},
+  {cx:0.5,cy:65.0,sc:18},
+  {cx:0.5,cy:0,   sc:20},
+];
+const PAN_DURATIONS=[220,180,200,180,200,180,200,220]; // frames per segment
+let panKF=0, panSegFr=0;
+let panGlowPh=0;
+
+function toggleAutoPan(){
+  const btn=document.getElementById('btnPan0');
+  if(autoPanRunning){
+    autoPanRunning=false;
+    cancelAnimationFrame(autoPanRaf);autoPanRaf=null;
+    btn.textContent='▶ Animate';btn.classList.remove('on');
+    return;
+  }
+  autoPanRunning=true;
+  panKF=0;panSegFr=0;panGlowPh=0;
+  btn.textContent='⏸ Pause';btn.classList.add('on');
+  // Kick off with a fresh render then animate
+  recompute();
+  // Wait for recompute to finish, then start overlay loop
+  function waitAndStart(){
+    if(dcRunning){autoPanRaf=requestAnimationFrame(waitAndStart);return;}
+    autoPanLoopStep();
+  }
+  autoPanRaf=requestAnimationFrame(waitAndStart);
+}
+
+function autoPanLoopStep(){
+  if(!autoPanRunning){return;}
+  panGlowPh+=0.04*(window.animSpeed||0.1);
+  const kf0=PAN_KEYFRAMES[panKF];
+  const kf1=PAN_KEYFRAMES[(panKF+1)%PAN_KEYFRAMES.length];
+  const dur=PAN_DURATIONS[panKF];
+  panSegFr++;
+
+  // Smoothstep interpolation
+  const raw=Math.min(panSegFr/dur,1);
+  const t=raw*raw*(3-2*raw);
+
+  view0.cx=kf0.cx+(kf1.cx-kf0.cx)*t;
+  view0.cy=kf0.cy+(kf1.cy-kf0.cy)*t;
+  view0.scale=kf0.sc+(kf1.sc-kf0.sc)*t;
+
+  if(panSegFr>=dur){
+    panKF=(panKF+1)%PAN_KEYFRAMES.length;
+    panSegFr=0;
+    // Recompute coloring at new view
+    recompute();
+    function waitNext(){
+      if(dcRunning){autoPanRaf=requestAnimationFrame(waitNext);return;}
+      autoPanOverlayLoop();
+    }
+    autoPanRaf=requestAnimationFrame(waitNext);
+    return;
+  }
+
+  drawAutoPanOverlay();
+  autoPanRaf=requestAnimationFrame(autoPanLoopStep);
+}
+
+function autoPanOverlayLoop(){
+  if(!autoPanRunning)return;
+  panGlowPh+=0.04*(window.animSpeed||0.1);
+  drawAutoPanOverlay();
+  autoPanRaf=requestAnimationFrame(autoPanLoopStep);
+}
+
+function drawAutoPanOverlay(){
+  // Draw the normal overlay, then add animated critical-line glow + pulsing zeros
+  drawOverlay0();
+
+  const dpr=window.devicePixelRatio||1;
+  const W=c0.offsetWidth,H=c0.offsetHeight;
+  ctx0.setTransform(dpr,0,0,dpr,0,0);
+
+  // Animated critical-line glow
+  const critX=(0.5-view0.cx)*view0.scale+W/2;
+  if(critX>=0&&critX<=W){
+    const pulse=(Math.sin(panGlowPh)+1)*0.5;
+    const grd=ctx0.createLinearGradient(critX-12,0,critX+12,0);
+    grd.addColorStop(0,'rgba(68,153,255,0)');
+    grd.addColorStop(0.5,`rgba(68,200,255,${0.18+pulse*0.22})`);
+    grd.addColorStop(1,'rgba(68,153,255,0)');
+    ctx0.fillStyle=grd;
+    ctx0.fillRect(critX-12,0,24,H);
+  }
+
+  // Pulsing zero markers
+  ZEROS_T.forEach(tz=>{
+    [[0.5,tz],[0.5,-tz]].forEach(([sr,si])=>{
+      const px=((sr-view0.cx)*view0.scale+W/2);
+      const py=(H/2-(si-view0.cy)*view0.scale);
+      if(px<-20||px>W+20||py<-20||py>H+20)return;
+      const pulse2=(Math.sin(panGlowPh*1.6+tz*0.3)+1)*0.5;
+      const brad=8+pulse2*8;
+      const bg=ctx0.createRadialGradient(px,py,0,px,py,brad);
+      bg.addColorStop(0,`rgba(255,220,50,${0.55+pulse2*0.4})`);
+      bg.addColorStop(1,'rgba(255,220,50,0)');
+      ctx0.beginPath();ctx0.arc(px,py,brad,0,Math.PI*2);
+      ctx0.fillStyle=bg;ctx0.fill();
+      ctx0.beginPath();ctx0.arc(px,py,3+pulse2*2,0,Math.PI*2);
+      ctx0.fillStyle=`rgba(255,240,100,${0.8+pulse2*0.2})`;ctx0.fill();
+    });
+  });
+
+  updateVI();
+}
+
+function recompute(){
+  if(dcRunning){cancelAnimationFrame(dcRaf);dcRaf=null;dcRunning=false;}
+  const dpr=window.devicePixelRatio||1;
+  const W=c0.offsetWidth,H=c0.offsetHeight;
+  if(!W||!H)return;
+  c0.width=W*dpr;c0.height=H*dpr;
+  ctx0.setTransform(dpr,0,0,dpr,0,0);
+  dcW=W;dcH=H;
+  // ImageData at physical pixels
+  dcImg=ctx0.createImageData(W*dpr,H*dpr);
+  dcImgFinal=null;
+  dcRow=0;dcRunning=true;
+  updateVI();
+  document.getElementById('pwrap').style.display='block';
+  document.getElementById('pfill').style.width='0%';
+  document.getElementById('pmsg').textContent='Computing ζ(s) domain coloring…';
+  dcRaf=requestAnimationFrame(stepDC);
+}
+
+function stepDC(){
+  const dpr=window.devicePixelRatio||1;
+  const W=dcW,H=dcH;
+  const iW=dcImg.width;  // physical width
+  const ROWS=16;         // CSS-pixel rows per frame
+  const end=Math.min(dcRow+ROWS,H);
+
+  for(let cy=dcRow;cy<end;cy+=BLOCK){
+    for(let cx=0;cx<W;cx+=BLOCK){
+      const sigma=view0.cx+(cx+BLOCK/2-W/2)/view0.scale;
+      const tv=view0.cy+(H/2-(cy+BLOCK/2))/view0.scale;
+      let rr=0,gg=0,bb=0;
+      if(Math.abs(sigma-1)<0.07&&Math.abs(tv)<0.07){
+        rr=255;gg=255;bb=255; // near the pole — white flash
+      } else {
+        const z=zeta({r:sigma,i:tv});
+        const mag=cabs(z);
+        const arg=carg(z);
+        const hue=((arg/(2*Math.PI))*360+360)%360;
+        const bright=0.5+0.4*Math.sin(Math.PI*Math.log(mag+0.01));
+        const L=Math.max(0.08,Math.min(0.92,bright));
+        const col=hsl2rgb(hue,0.85,L);
+        rr=col[0];gg=col[1];bb=col[2];
+      }
+      // Fill BLOCK×BLOCK CSS pixels → BLOCK*dpr × BLOCK*dpr physical pixels
+      const bsP=Math.round(BLOCK*dpr);
+      const iy0=Math.round(cy*dpr), ix0=Math.round(cx*dpr);
+      for(let dy=0;dy<bsP&&(iy0+dy)<dcImg.height;dy++){
+        const row=(iy0+dy)*iW;
+        for(let dx=0;dx<bsP&&(ix0+dx)<iW;dx++){
+          const i4=(row+(ix0+dx))*4;
+          dcImg.data[i4  ]=rr;
+          dcImg.data[i4+1]=gg;
+          dcImg.data[i4+2]=bb;
+          dcImg.data[i4+3]=255;
+        }
+      }
+    }
+  }
+  dcRow=end;
+  ctx0.putImageData(dcImg,0,0);
+  document.getElementById('pfill').style.width=Math.round(dcRow/H*100)+'%';
+
+  if(dcRow<H){
+    dcRaf=requestAnimationFrame(stepDC);
+  } else {
+    dcRunning=false;
+    dcImgFinal=dcImg;
+    document.getElementById('pwrap').style.display='none';
+    drawOverlay0();
+  }
+}
+
+function drawOverlay0(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c0.offsetWidth,H=c0.offsetHeight;
+  if(!W||!H)return;
+  ctx0.setTransform(dpr,0,0,dpr,0,0);
+  // Restore base domain-coloring image before drawing overlay markers
+  if(dcImgFinal && dcImgFinal.width===Math.round(W*dpr) && dcImgFinal.height===Math.round(H*dpr)){
+    ctx0.putImageData(dcImgFinal,0,0);
+  }
+
+  // Critical line Re(s)=½
+  const critX=(0.5-view0.cx)*view0.scale+W/2;
+  if(critX>=0&&critX<=W){
+    ctx0.save();
+    ctx0.setLineDash([9,5]);
+    ctx0.strokeStyle='rgba(255,255,255,0.75)';
+    ctx0.lineWidth=1.5;
+    ctx0.beginPath();ctx0.moveTo(critX,0);ctx0.lineTo(critX,H);ctx0.stroke();
+    ctx0.restore();
+    ctx0.fillStyle='rgba(255,255,255,0.6)';
+    ctx0.font='bold 12px sans-serif';
+    ctx0.fillText('Re(s)=½',critX+4,14);
+  }
+
+  // Real axis Im(s)=0
+  const axisY=H/2+(view0.cy)*view0.scale;
+  if(axisY>=0&&axisY<=H){
+    ctx0.save();
+    ctx0.setLineDash([8,5]);
+    ctx0.strokeStyle='rgba(255,255,255,0.35)';
+    ctx0.lineWidth=1;
+    ctx0.beginPath();ctx0.moveTo(0,axisY);ctx0.lineTo(W,axisY);ctx0.stroke();
+    ctx0.restore();
+  }
+
+  // Trivial zeros: s=−2,−4,−6,...
+  for(let k=1;k<=8;k++){
+    const tx=-2*k;
+    const px=((tx-view0.cx)*view0.scale+W/2);
+    const py=(H/2+(view0.cy)*view0.scale);
+    if(px>-10&&px<W+10&&py>-10&&py<H+10){
+      ctx0.beginPath();ctx0.arc(px,py,4.5,0,Math.PI*2);
+      ctx0.fillStyle='rgba(255,255,255,0.82)';ctx0.fill();
+      ctx0.fillStyle='rgba(255,255,255,0.55)';
+      ctx0.font='12px sans-serif';
+      ctx0.fillText(String(-2*k),px+6,py-3);
+    }
+  }
+
+  // Non-trivial zero highlights (when toggled)
+  if(showZ0){
+    ZEROS_T.forEach((tz,idx)=>{
+      [[0.5,tz],[0.5,-tz]].forEach(([sr,si])=>{
+        const px=((sr-view0.cx)*view0.scale+W/2);
+        const py=(H/2-(si-view0.cy)*view0.scale);
+        if(px>=0&&px<=W&&py>=0&&py<=H){
+          // Glow ring
+          const grd=ctx0.createRadialGradient(px,py,0,px,py,14);
+          grd.addColorStop(0,'rgba(255,215,50,0.55)');
+          grd.addColorStop(1,'rgba(255,215,50,0)');
+          ctx0.beginPath();ctx0.arc(px,py,14,0,Math.PI*2);
+          ctx0.fillStyle=grd;ctx0.fill();
+          ctx0.beginPath();ctx0.arc(px,py,5,0,Math.PI*2);
+          ctx0.strokeStyle='rgba(255,220,60,0.9)';ctx0.lineWidth=1.5;ctx0.stroke();
+          if(si>0){
+            ctx0.fillStyle='rgba(255,220,60,0.75)';
+            ctx0.font='12px sans-serif';
+            ctx0.fillText('t'+(idx+1),px+7,py-3);
+          }
+        }
+      });
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 1 — ZEROS ON THE CRITICAL LINE
+// ═══════════════════════════════════════════════════════════
+const c1=document.getElementById('c1');
+const ctx1=c1.getContext('2d');
+let anim1Id=null, anim1Ph=0;
+
+// θ(t) via Stirling approximation
+function theta(t){
+  if(t<0.5)return 0;
+  return t/2*Math.log(t/(2*Math.PI))-t/2-Math.PI/8+1/(48*t)+7/(5760*t*t*t);
+}
+// Hardy Z via Riemann-Siegel formula
+function Zfunc(t){
+  if(t<0.5)return 0;
+  const N=Math.floor(Math.sqrt(t/(2*Math.PI)));
+  const th=theta(t);
+  let s=0;
+  for(let n=1;n<=N;n++) s+=Math.pow(n,-0.5)*Math.cos(th-t*Math.log(n));
+  return 2*s;
+}
+
+function buildZList(){
+  const el=document.getElementById('zlist');
+  ZEROS_T.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.innerHTML=`<span style="color:var(--dim)">t<sub>${i+1}</sub> = </span>`+
+                `<span style="color:var(--accent)">${t.toFixed(6)}</span>`;
+    el.appendChild(d);
+  });
+}
+
+function onTChange(){
+  let a=+document.getElementById('tmin').value;
+  let b=+document.getElementById('tmax').value;
+  if(b<a+6){b=a+6;document.getElementById('tmax').value=b;}
+  document.getElementById('tminV').textContent=a;
+  document.getElementById('tmaxV').textContent=b;
+  draw1();
+}
+
+function draw1(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c1.offsetWidth,H=c1.offsetHeight;
+  if(!W||!H)return;
+  c1.width=W*dpr;c1.height=H*dpr;
+  ctx1.setTransform(dpr,0,0,dpr,0,0);
+  ctx1.clearRect(0,0,W,H);
+
+  const tmin=+document.getElementById('tmin').value;
+  const tmax=+document.getElementById('tmax').value;
+
+  const STEPS=Math.min(W*3,2400);
+  const dt=(tmax-tmin)/STEPS;
+  const pts=[];
+  for(let k=0;k<=STEPS;k++){
+    const t=tmin+k*dt;
+    pts.push({t,z:Zfunc(t)});
+  }
+
+  let zmax=0;
+  pts.forEach(p=>{if(Math.abs(p.z)>zmax)zmax=Math.abs(p.z);});
+  zmax=Math.max(zmax,1)*1.2;
+
+  const pad={l:50,r:12,t:22,b:30};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+
+  function tx(t){return pad.l+(t-tmin)/(tmax-tmin)*cw;}
+  function ty(z){return pad.t+ch/2-z/zmax*(ch/2);}
+  const yz=ty(0); // y of zero line
+
+  // Subtle grid
+  ctx1.strokeStyle='rgba(40,40,80,0.65)';ctx1.lineWidth=0.5;
+  for(let v=-4;v<=4;v++){
+    const yy=ty(v);
+    if(yy>=pad.t&&yy<=pad.t+ch){
+      ctx1.beginPath();ctx1.moveTo(pad.l,yy);ctx1.lineTo(pad.l+cw,yy);ctx1.stroke();
+    }
+  }
+  for(let tt=Math.ceil(tmin/5)*5;tt<=tmax;tt+=5){
+    const xx=tx(tt);
+    ctx1.beginPath();ctx1.moveTo(xx,pad.t);ctx1.lineTo(xx,pad.t+ch);ctx1.stroke();
+  }
+
+  // Zero axis
+  ctx1.strokeStyle='rgba(160,160,210,0.4)';ctx1.lineWidth=1;
+  ctx1.beginPath();ctx1.moveTo(pad.l,yz);ctx1.lineTo(pad.l+cw,yz);ctx1.stroke();
+
+  // Filled area above zero (blue)
+  ctx1.save();
+  ctx1.beginPath();
+  ctx1.moveTo(tx(pts[0].t),yz);
+  pts.forEach(p=>ctx1.lineTo(tx(p.t),ty(p.z)));
+  ctx1.lineTo(tx(pts[pts.length-1].t),yz);
+  ctx1.closePath();
+  const gu=ctx1.createLinearGradient(0,pad.t,0,yz);
+  gu.addColorStop(0,'rgba(68,153,255,0.5)');
+  gu.addColorStop(1,'rgba(68,153,255,0.04)');
+  ctx1.fillStyle=gu;ctx1.fill();
+  ctx1.restore();
+
+  // Filled area below zero (orange)
+  ctx1.save();
+  ctx1.beginPath();
+  ctx1.moveTo(tx(pts[0].t),yz);
+  pts.forEach(p=>ctx1.lineTo(tx(p.t),ty(p.z)));
+  ctx1.lineTo(tx(pts[pts.length-1].t),yz);
+  ctx1.closePath();
+  const gd=ctx1.createLinearGradient(0,yz,0,pad.t+ch);
+  gd.addColorStop(0,'rgba(255,110,60,0.04)');
+  gd.addColorStop(1,'rgba(255,110,60,0.5)');
+  ctx1.fillStyle=gd;ctx1.fill();
+  ctx1.restore();
+
+  // Z(t) curve
+  ctx1.beginPath();
+  pts.forEach((p,k)=>{k===0?ctx1.moveTo(tx(p.t),ty(p.z)):ctx1.lineTo(tx(p.t),ty(p.z));});
+  ctx1.strokeStyle='#dde6ff';ctx1.lineWidth=1.6;ctx1.stroke();
+
+  // Known zeros in range
+  ZEROS_T.forEach((tz,idx)=>{
+    if(tz<tmin||tz>tmax)return;
+    const zx=tx(tz);
+    // Vertical glow
+    const gv=ctx1.createLinearGradient(zx,pad.t,zx,pad.t+ch);
+    gv.addColorStop(0,'rgba(255,215,50,0)');
+    gv.addColorStop(0.5,'rgba(255,215,50,0.55)');
+    gv.addColorStop(1,'rgba(255,215,50,0)');
+    ctx1.save();ctx1.setLineDash([3,3]);
+    ctx1.strokeStyle=gv;ctx1.lineWidth=1.2;
+    ctx1.beginPath();ctx1.moveTo(zx,pad.t);ctx1.lineTo(zx,pad.t+ch);ctx1.stroke();
+    ctx1.restore();
+    // Circle at crossing
+    ctx1.beginPath();ctx1.arc(zx,yz,5.5,0,Math.PI*2);
+    ctx1.fillStyle='rgba(255,215,50,0.85)';ctx1.fill();
+    ctx1.strokeStyle='#fff';ctx1.lineWidth=0.8;ctx1.stroke();
+    // Label
+    ctx1.fillStyle='rgba(255,215,50,0.85)';
+    ctx1.font='12px sans-serif';
+    ctx1.fillText('t'+(idx+1)+'='+tz.toFixed(2),zx+5,yz-9);
+  });
+
+  // Animate scan line
+  if(anim1Id!==null){
+    const scanT=tmin+(tmax-tmin)*(anim1Ph%1);
+    const sx=tx(scanT);
+    const zv=Zfunc(scanT);
+    const sy=ty(zv);
+    ctx1.save();
+    // Scanned region shading
+    ctx1.fillStyle='rgba(68,153,255,0.07)';
+    ctx1.fillRect(pad.l,pad.t,sx-pad.l,ch);
+    // Scan line
+    ctx1.strokeStyle='rgba(120,210,255,0.9)';ctx1.lineWidth=2;
+    ctx1.setLineDash([5,3]);
+    ctx1.beginPath();ctx1.moveTo(sx,pad.t);ctx1.lineTo(sx,pad.t+ch);ctx1.stroke();
+    ctx1.setLineDash([]);
+    // Glowing dot on Z(t) curve
+    const grd=ctx1.createRadialGradient(sx,sy,0,sx,sy,14);
+    grd.addColorStop(0,'rgba(255,255,255,0.95)');
+    grd.addColorStop(1,'rgba(255,255,255,0)');
+    ctx1.beginPath();ctx1.arc(sx,sy,14,0,Math.PI*2);ctx1.fillStyle=grd;ctx1.fill();
+    ctx1.beginPath();ctx1.arc(sx,sy,5.5,0,Math.PI*2);ctx1.fillStyle='#fff';ctx1.fill();
+    // Readout
+    ctx1.fillStyle='rgba(180,220,255,0.9)';ctx1.font='bold 12px sans-serif';
+    const lblX=Math.min(sx+8,pad.l+cw-90);
+    ctx1.fillText(`t = ${scanT.toFixed(3)}`,lblX,pad.t+16);
+    ctx1.fillText(`Z(t) = ${zv.toFixed(4)}`,lblX,pad.t+30);
+    // Zero burst when near a known zero
+    const nearZero=ZEROS_T.find(tz=>Math.abs(scanT-tz)<(tmax-tmin)*0.025);
+    if(nearZero!==undefined){
+      const pulse=(Math.sin(Date.now()*0.018)+1)*0.5;
+      const bx=tx(nearZero);
+      const brad=24+pulse*10;
+      const bgrd=ctx1.createRadialGradient(bx,yz,0,bx,yz,brad);
+      bgrd.addColorStop(0,`rgba(255,220,50,${0.75+pulse*0.25})`);
+      bgrd.addColorStop(1,'rgba(255,220,50,0)');
+      ctx1.beginPath();ctx1.arc(bx,yz,brad,0,Math.PI*2);ctx1.fillStyle=bgrd;ctx1.fill();
+      ctx1.fillStyle='rgba(255,240,80,0.97)';ctx1.font='bold 13px sans-serif';
+      ctx1.textAlign='center';
+      ctx1.fillText('ZERO FOUND!',bx,yz-28);
+      ctx1.fillStyle='rgba(255,255,160,0.9)';ctx1.font='12px sans-serif';
+      ctx1.fillText(`t = ${nearZero.toFixed(4)}`,bx,yz-13);
+      ctx1.textAlign='left';
+    }
+    ctx1.restore();
+  }
+
+  // Axis labels
+  ctx1.fillStyle='rgba(140,145,200,0.7)';ctx1.font='12px sans-serif';
+  ctx1.fillText('Z(t)',4,yz-4);
+  ctx1.fillText('0',pad.l-18,yz+4);
+  ctx1.fillText('t →',pad.l+cw-22,pad.t+ch+14);
+  for(let tt=Math.ceil(tmin/5)*5;tt<=tmax;tt+=5){
+    ctx1.fillText(tt,tx(tt)-6,pad.t+ch+14);
+  }
+}
+
+function toggleAnim1(){
+  const btn=document.getElementById('btnA1');
+  if(anim1Id!==null){
+    cancelAnimationFrame(anim1Id);anim1Id=null;
+    btn.textContent='▶ Animate';btn.classList.remove('on');return;
+  }
+  btn.textContent='⏸ Pause';btn.classList.add('on');
+  function frame(){anim1Ph+=0.0008*(window.animSpeed||0.1);draw1();anim1Id=requestAnimationFrame(frame);}
+  anim1Id=requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 2a — EULER PRODUCT IN THE COMPLEX PLANE
+// ═══════════════════════════════════════════════════════════
+const c2a=document.getElementById('c2a');
+const ctx2a=c2a.getContext('2d');
+let eulerS={r:2,i:0};
+let eulerLbl='s = 2   (π²/6 ≈ 1.6449)';
+let eulerAId=null, eulerAStep=0;
+let view2a={zoom:1,panX:0,panY:0};
+let drag2a=false, drag2aLast={x:0,y:0};
+
+function setES(re,im,lbl){
+  eulerS={r:re,i:im};
+  eulerLbl=`s = ${re}${im?'+'+im.toFixed(4)+'i':''} &nbsp; (${lbl})`;
+  document.getElementById('elabel').innerHTML=eulerLbl;
+  eulerAStep=0;
+  view2a={zoom:1,panX:0,panY:0};
+  if(eulerAId===null) draw2a();
+}
+
+function toggleEulerAnim(){
+  const btn=document.getElementById('btnEA');
+  if(eulerAId!==null){cancelAnimationFrame(eulerAId);eulerAId=null;btn.textContent='▶ Animate';btn.classList.remove('on');return;}
+  btn.textContent='⏸ Pause';btn.classList.add('on');eulerAStep=0;
+  function frame(){
+    eulerAStep=Math.min(eulerAStep+1,50);
+    draw2a(eulerAStep);
+    if(eulerAStep<50)eulerAId=requestAnimationFrame(frame);
+    else{eulerAId=null;btn.textContent='▶ Animate';btn.classList.remove('on');}
+  }
+  eulerAId=requestAnimationFrame(frame);
+}
+
+function draw2a(maxP){
+  const dpr=window.devicePixelRatio||1;
+  const W=c2a.offsetWidth,H=c2a.offsetHeight;
+  if(!W||!H)return;
+  c2a.width=W*dpr;c2a.height=H*dpr;
+  ctx2a.setTransform(dpr,0,0,dpr,0,0);
+  ctx2a.clearRect(0,0,W,H);
+  if(maxP===undefined)maxP=50;
+  maxP=Math.min(maxP,50);
+
+  // Build partial products P_0=1, P_k = P_{k-1} * 1/(1-p_k^{-s})
+  const prods=[{r:1,i:0}];
+  for(let k=0;k<maxP;k++){
+    const p=PRIMES[k];
+    const ps=cpow({r:p,i:0},{r:-eulerS.r,i:-eulerS.i});
+    const factor=cdiv({r:1,i:0},{r:1-ps.r,i:-ps.i});
+    prods.push(cmul(prods[prods.length-1],factor));
+  }
+
+  // Bounding box → scale
+  let minR=Infinity,maxR=-Infinity,minI=Infinity,maxI=-Infinity;
+  prods.forEach(p=>{
+    if(p.r<minR)minR=p.r;if(p.r>maxR)maxR=p.r;
+    if(p.i<minI)minI=p.i;if(p.i>maxI)maxI=p.i;
+  });
+  const span=Math.max(maxR-minR,maxI-minI)*0.65+0.4;
+  const ctrR=(minR+maxR)/2, ctrI=(minI+maxI)/2;
+  const pad={l:50,r:10,t:22,b:28};
+  const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  const scale=Math.min(cw,ch)*0.46/span*view2a.zoom;
+  const ocx=pad.l+cw/2+view2a.panX, ocy=pad.t+ch/2+view2a.panY;
+
+  function tc(re,im){return{x:ocx+(re-ctrR)*scale,y:ocy-(im-ctrI)*scale};}
+
+  // Grid lines
+  ctx2a.strokeStyle='rgba(40,40,80,0.7)';ctx2a.lineWidth=0.5;
+  for(let v=-4;v<=4;v++){
+    const gx=tc(ctrR+v*span/3,0);
+    ctx2a.beginPath();ctx2a.moveTo(gx.x,pad.t);ctx2a.lineTo(gx.x,pad.t+ch);ctx2a.stroke();
+    const gy=tc(0,ctrI+v*span/3);
+    ctx2a.beginPath();ctx2a.moveTo(pad.l,gy.y);ctx2a.lineTo(pad.l+cw,gy.y);ctx2a.stroke();
+  }
+  // Axes (if in view)
+  const ox=tc(0,0);
+  ctx2a.strokeStyle='rgba(150,150,200,0.3)';ctx2a.lineWidth=1;
+  if(ox.x>=pad.l&&ox.x<=pad.l+cw){
+    ctx2a.beginPath();ctx2a.moveTo(ox.x,pad.t);ctx2a.lineTo(ox.x,pad.t+ch);ctx2a.stroke();
+  }
+  if(ox.y>=pad.t&&ox.y<=pad.t+ch){
+    ctx2a.beginPath();ctx2a.moveTo(pad.l,ox.y);ctx2a.lineTo(pad.l+cw,ox.y);ctx2a.stroke();
+  }
+
+  // Trajectory line
+  ctx2a.beginPath();
+  prods.forEach((p,k)=>{
+    const c=tc(p.r,p.i);
+    k===0?ctx2a.moveTo(c.x,c.y):ctx2a.lineTo(c.x,c.y);
+  });
+  ctx2a.strokeStyle='rgba(68,153,255,0.55)';ctx2a.lineWidth=1.5;ctx2a.stroke();
+
+  // Dots
+  prods.forEach((p,k)=>{
+    const c=tc(p.r,p.i);
+    const t=k/Math.max(prods.length-1,1);
+    ctx2a.beginPath();ctx2a.arc(c.x,c.y,k===0?6:3.5,0,Math.PI*2);
+    ctx2a.fillStyle=k===0?'rgba(255,255,255,0.9)':`hsl(${200+t*130},80%,62%)`;
+    ctx2a.fill();
+    if(k>=1&&k<=8){
+      ctx2a.fillStyle='rgba(160,185,255,0.65)';
+      ctx2a.font='12px sans-serif';
+      ctx2a.fillText('p'+k+'='+PRIMES[k-1],c.x+4,c.y-3);
+    }
+  });
+
+  // Final product highlight
+  const last=prods[prods.length-1];
+  const lc=tc(last.r,last.i);
+  const glw=ctx2a.createRadialGradient(lc.x,lc.y,0,lc.x,lc.y,16);
+  glw.addColorStop(0,'rgba(255,215,50,0.6)');
+  glw.addColorStop(1,'rgba(255,215,50,0)');
+  ctx2a.beginPath();ctx2a.arc(lc.x,lc.y,16,0,Math.PI*2);
+  ctx2a.fillStyle=glw;ctx2a.fill();
+  ctx2a.beginPath();ctx2a.arc(lc.x,lc.y,7,0,Math.PI*2);
+  ctx2a.fillStyle='rgba(255,215,50,0.88)';ctx2a.fill();
+  ctx2a.fillStyle='rgba(255,240,180,0.9)';ctx2a.font='bold 12px sans-serif';
+  ctx2a.fillText(`P${maxP}: (${last.r.toFixed(3)}, ${last.i.toFixed(3)}i)`,lc.x+10,lc.y+4);
+
+  // Title
+  ctx2a.fillStyle='rgba(180,200,255,0.75)';ctx2a.font='12px sans-serif';
+  ctx2a.fillText('Euler product partial products ∈ ℂ',pad.l+2,14);
+  ctx2a.fillStyle='rgba(68,153,255,0.8)';
+  ctx2a.fillText(maxP+' primes',pad.l+2,26);
+
+  // Axis labels
+  ctx2a.fillStyle='rgba(130,140,190,0.6)';ctx2a.font='12px sans-serif';
+  ctx2a.fillText('Re',pad.l+cw-16,ocy-4);
+  ctx2a.fillText('Im',ox.x+3,pad.t+10);
+}
+
+// c2a zoom/pan events
+c2a.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const factor=e.deltaY<0?1.15:1/1.15;
+  view2a.zoom=Math.max(0.2,Math.min(12,view2a.zoom*factor));
+  draw2a(eulerAStep||50);
+},{passive:false});
+c2a.addEventListener('mousedown',e=>{drag2a=true;drag2aLast={x:e.clientX,y:e.clientY};c2a.style.cursor='grabbing';});
+window.addEventListener('mousemove',e=>{
+  if(!drag2a)return;
+  view2a.panX+=e.clientX-drag2aLast.x;
+  view2a.panY+=e.clientY-drag2aLast.y;
+  drag2aLast={x:e.clientX,y:e.clientY};
+  draw2a(eulerAStep||50);
+});
+window.addEventListener('mouseup',()=>{drag2a=false;c2a.style.cursor='grab';});
+c2a.style.cursor='grab';
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 2b — PRIME COUNTING FUNCTION + APPROXIMATIONS
+// ═══════════════════════════════════════════════════════════
+const c2b=document.getElementById('c2b');
+const ctx2b=c2b.getContext('2d');
+let showLi=true,showGa=true,showEx=false;
+
+function togLi(){showLi=!showLi;document.getElementById('bLi').classList.toggle('on',showLi);draw2b();}
+function togGa(){showGa=!showGa;document.getElementById('bGa').classList.toggle('on',showGa);draw2b();}
+function togEx(){
+  showEx=!showEx;
+  document.getElementById('bEx').classList.toggle('on',showEx);
+  if(showEx && +document.getElementById('nzeros').value===0){
+    document.getElementById('nzeros').value=5;
+    document.getElementById('nzerosV').textContent='5';
+  }
+  draw2b();
+}
+
+// Li(x) = ∫₂ˣ dt/ln t  (numerical)
+function Li(x){
+  if(x<=2.01)return 0;
+  const N=300;
+  const dt=(x-2)/N;
+  let s=0;
+  for(let k=0;k<N;k++){s+=dt/Math.log(2+(k+0.5)*dt);}
+  return s;
+}
+
+function draw2b(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c2b.offsetWidth,H=c2b.offsetHeight;
+  if(!W||!H)return;
+  c2b.width=W*dpr;c2b.height=H*dpr;
+  ctx2b.setTransform(dpr,0,0,dpr,0,0);
+  ctx2b.clearRect(0,0,W,H);
+
+  const xmax=+document.getElementById('xmax').value;
+  const nz=+document.getElementById('nzeros').value;
+  document.getElementById('xmaxV').textContent=xmax;
+  document.getElementById('nzerosV').textContent=nz;
+
+  const primsInRange=PRIMES.filter(p=>p<=xmax);
+  const piMax=primsInRange.length;
+  const ymax=Math.max(piMax,2)*1.10;
+
+  const pad={l:48,r:12,t:18,b:28};
+  const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+
+  function tx(x){return pad.l+(x-2)/(xmax-2)*cw;}
+  function ty(y){return pad.t+ch-y/ymax*ch;}
+
+  // Grid
+  ctx2b.strokeStyle='rgba(38,38,76,0.75)';ctx2b.lineWidth=0.5;
+  const ytk=Math.max(1,Math.round(ymax/6/5)*5);
+  for(let v=0;v<=ymax;v+=ytk){
+    ctx2b.beginPath();ctx2b.moveTo(pad.l,ty(v));ctx2b.lineTo(pad.l+cw,ty(v));ctx2b.stroke();
+    ctx2b.fillStyle='rgba(120,130,175,0.6)';ctx2b.font='12px sans-serif';
+    ctx2b.fillText(v,4,ty(v)+3);
+  }
+  const xtk=Math.max(10,Math.round(xmax/7/10)*10);
+  for(let v=0;v<=xmax;v+=xtk){
+    ctx2b.beginPath();ctx2b.moveTo(tx(v),pad.t);ctx2b.lineTo(tx(v),pad.t+ch);ctx2b.stroke();
+    ctx2b.fillStyle='rgba(120,130,175,0.6)';ctx2b.font='12px sans-serif';
+    ctx2b.fillText(v,tx(v)-9,pad.t+ch+13);
+  }
+
+  // x/ln(x) — dim red
+  if(showGa){
+    ctx2b.beginPath();let first=true;
+    for(let x=3;x<=xmax;x+=xmax/400){
+      const yy=ty(x/Math.log(x));
+      first?ctx2b.moveTo(tx(x),yy):ctx2b.lineTo(tx(x),yy);first=false;
+    }
+    ctx2b.strokeStyle='rgba(210,80,60,0.7)';ctx2b.lineWidth=1.6;ctx2b.stroke();
+  }
+
+  // Li(x) — gold
+  if(showLi){
+    ctx2b.beginPath();let first=true;
+    for(let x=3;x<=xmax;x+=xmax/400){
+      const yy=ty(Li(x));
+      first?ctx2b.moveTo(tx(x),yy):ctx2b.lineTo(tx(x),yy);first=false;
+    }
+    ctx2b.strokeStyle='rgba(255,200,40,0.9)';ctx2b.lineWidth=2;ctx2b.stroke();
+  }
+
+  // Explicit formula correction — mint green
+  if(showEx&&nz>0){
+    const NS=Math.min(400,Math.round(xmax/0.5));
+    const dxE=(xmax-2)/NS;
+    ctx2b.beginPath();let first=true;
+    for(let k=0;k<=NS;k++){
+      const x=2+k*dxE;
+      if(x<2.1){if(first){ctx2b.moveTo(tx(x),ty(0));first=false;}continue;}
+      let val=Li(x);
+      for(let j=0;j<nz&&j<ZEROS_T.length;j++){
+        const tn=ZEROS_T[j];
+        const rho=Math.sqrt(0.25+tn*tn);
+        const corr=x>1?-(2*Math.sqrt(x)/rho)*Math.cos(tn*Math.log(x)-Math.atan2(tn,0.5)):0;
+        val+=corr;
+      }
+      const yy=ty(Math.max(0,val));
+      first?ctx2b.moveTo(tx(x),yy):ctx2b.lineTo(tx(x),yy);first=false;
+    }
+    ctx2b.strokeStyle='rgba(100,255,180,0.82)';ctx2b.lineWidth=1.6;ctx2b.stroke();
+  }
+
+  // π(x) staircase — bright white/blue, drawn last
+  ctx2b.beginPath();
+  ctx2b.moveTo(tx(2),ty(0));
+  let cnt=0,prevY=ty(0);
+  for(let i=0;i<primsInRange.length;i++){
+    const p=primsInRange[i];
+    const xx=tx(p);
+    ctx2b.lineTo(xx,prevY);
+    cnt++;prevY=ty(cnt);
+    ctx2b.lineTo(xx,prevY);
+  }
+  ctx2b.lineTo(tx(xmax),prevY);
+  ctx2b.strokeStyle='rgba(195,210,255,0.92)';ctx2b.lineWidth=2;ctx2b.stroke();
+
+  // Legend
+  const items=[
+    {c:'rgba(195,210,255,0.92)',l:'π(x)',on:true},
+    {c:'rgba(255,200,40,0.9)',  l:'Li(x)',on:showLi},
+    {c:'rgba(210,80,60,0.7)',   l:'x/ln x',on:showGa},
+    {c:'rgba(100,255,180,0.82)',l:`Explicit (${nz} zeros)`,on:showEx&&nz>0},
+  ];
+  const lx=pad.l+cw-130,ly=pad.t+8;
+  items.filter(i=>i.on).forEach((it,k)=>{
+    ctx2b.strokeStyle=it.c;ctx2b.lineWidth=2;
+    ctx2b.beginPath();ctx2b.moveTo(lx,ly+k*15);ctx2b.lineTo(lx+16,ly+k*15);ctx2b.stroke();
+    ctx2b.fillStyle='rgba(175,185,220,0.85)';ctx2b.font='12px sans-serif';
+    ctx2b.fillText(it.l,lx+20,ly+k*15+3);
+  });
+
+  // Labels
+  ctx2b.fillStyle='rgba(120,130,175,0.7)';ctx2b.font='12px sans-serif';
+  ctx2b.fillText('π(x)',pad.l-38,pad.t+12);
+  ctx2b.fillText('x →',pad.l+cw-18,pad.t+ch+14);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 3 — CRITICAL STRIP HEATMAP + ZERO PROBE
+// ═══════════════════════════════════════════════════════════
+const c3=document.getElementById('c3');
+const ctx3=c3.getContext('2d');
+let csAnimId=null, csAnimPh=0, csAnimRunning=false;
+
+// Populate side panel zero list
+function buildCSZeroList(){
+  const el=document.getElementById('csZeroList');
+  ZEROS_T.slice(0,20).forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.textContent=`t${i+1} \u2248 ${t.toFixed(3)}`;
+    el.appendChild(d);
+  });
+}
+
+function drawCritStrip(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c3.offsetWidth, H=c3.offsetHeight;
+  if(!W||!H)return;
+  c3.width=W*dpr; c3.height=H*dpr;
+  ctx3.setTransform(dpr,0,0,dpr,0,0);
+  ctx3.clearRect(0,0,W,H);
+
+  const zoom=+document.getElementById('csZoom').value||3;
+  const tProbe=+document.getElementById('csT').value||14;
+  document.getElementById('csTv').textContent=tProbe.toFixed(1);
+
+  // Viewport: σ from -0.5 to 1.5, t from 0 to tMax
+  const sigMin=-0.2, sigMax=1.2;
+  const tMax=80/zoom;
+  const pad={l:52,r:12,t:20,b:30};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+
+  function px(sigma){return pad.l+(sigma-sigMin)/(sigMax-sigMin)*cw;}
+  function py(t){return pad.t+ch-t/tMax*ch;}
+
+  // Compute domain coloring on a coarse grid
+  const COLS=Math.min(120,cw);
+  const ROWS=Math.min(200,ch);
+  for(let gy=0;gy<ROWS;gy++){
+    for(let gx=0;gx<COLS;gx++){
+      const sigma=sigMin+(gx+0.5)/COLS*(sigMax-sigMin);
+      const tv=(ROWS-1-gy+0.5)/ROWS*tMax;
+      let r,g,b;
+      if(Math.abs(sigma-1)<0.04&&tv<0.5){r=255;g=255;b=255;}
+      else{
+        const z=zeta({r:sigma,i:tv});
+        const mag=cabs(z);
+        const arg=carg(z);
+        const hue=((arg/(2*Math.PI))*360+360)%360;
+        const bright=0.5+0.38*Math.sin(Math.PI*Math.log(mag+0.01));
+        const L=Math.max(0.06,Math.min(0.9,bright));
+        const col=hsl2rgb(hue,0.85,L);
+        r=col[0];g=col[1];b=col[2];
+      }
+      const x0=pad.l+Math.round(gx/COLS*cw);
+      const y0=pad.t+Math.round(gy/ROWS*ch);
+      const x1=pad.l+Math.round((gx+1)/COLS*cw);
+      const y1=pad.t+Math.round((gy+1)/ROWS*ch);
+      ctx3.fillStyle=`rgb(${r},${g},${b})`;
+      ctx3.fillRect(x0,y0,Math.max(1,x1-x0),Math.max(1,y1-y0));
+    }
+  }
+
+  // Critical strip shading (border regions)
+  ctx3.fillStyle='rgba(255,255,255,0.04)';
+  ctx3.fillRect(pad.l,pad.t,px(0)-pad.l,ch);
+  const p1=px(1);
+  ctx3.fillRect(p1,pad.t,pad.l+cw-p1,ch);
+
+  // Critical line Re(s)=½ dashed
+  const critX=px(0.5);
+  ctx3.save();
+  ctx3.setLineDash([9,5]);
+  ctx3.strokeStyle='rgba(255,255,255,0.9)';
+  ctx3.lineWidth=2;
+  ctx3.beginPath();ctx3.moveTo(critX,pad.t);ctx3.lineTo(critX,pad.t+ch);ctx3.stroke();
+  ctx3.restore();
+  ctx3.fillStyle='rgba(255,255,255,0.75)';
+  ctx3.font='bold 12px sans-serif';
+  ctx3.fillText('Re(s)=½',critX+4,pad.t+14);
+
+  // Border lines at Re(s)=0 and Re(s)=1
+  [0,1].forEach(s=>{
+    const lx=px(s);
+    ctx3.strokeStyle='rgba(150,150,220,0.5)';
+    ctx3.lineWidth=1;
+    ctx3.setLineDash([]);
+    ctx3.beginPath();ctx3.moveTo(lx,pad.t);ctx3.lineTo(lx,pad.t+ch);ctx3.stroke();
+  });
+
+  // Plot non-trivial zeros as glowing circles
+  ZEROS_T.forEach((tz,idx)=>{
+    if(tz>tMax)return;
+    const zx=critX;
+    const zy=py(tz);
+    const grd=ctx3.createRadialGradient(zx,zy,0,zx,zy,10);
+    grd.addColorStop(0,'rgba(255,220,40,0.9)');
+    grd.addColorStop(1,'rgba(255,220,40,0)');
+    ctx3.beginPath();ctx3.arc(zx,zy,10,0,Math.PI*2);
+    ctx3.fillStyle=grd;ctx3.fill();
+    ctx3.beginPath();ctx3.arc(zx,zy,3.5,0,Math.PI*2);
+    ctx3.fillStyle='rgba(255,240,100,0.95)';ctx3.fill();
+    ctx3.fillStyle='rgba(255,240,100,0.8)';
+    ctx3.font='12px sans-serif';
+    ctx3.fillText('t'+(idx+1),zx+6,zy-3);
+  });
+
+  // Horizontal probe line at t=tProbe
+  if(tProbe>=0&&tProbe<=tMax){
+    const probY=py(tProbe);
+    ctx3.strokeStyle='rgba(100,220,255,0.9)';
+    ctx3.lineWidth=2;
+    ctx3.setLineDash([6,3]);
+    ctx3.beginPath();ctx3.moveTo(pad.l,probY);ctx3.lineTo(pad.l+cw,probY);ctx3.stroke();
+    ctx3.setLineDash([]);
+    ctx3.fillStyle='rgba(100,220,255,0.9)';
+    ctx3.font='bold 12px sans-serif';
+    ctx3.fillText(`t = ${tProbe.toFixed(2)}`,pad.l+2,probY-4);
+
+    // Show |ζ(½+it)| along the probe line
+    const zv=zeta({r:0.5,i:tProbe});
+    const absZ=cabs(zv);
+    document.getElementById('csZetaVal').textContent=`|ζ(½+${tProbe.toFixed(2)}i)| = ${absZ.toFixed(5)}`;
+
+    // Dot on critical line at probe point
+    const nearZ=ZEROS_T.find(tz=>Math.abs(tProbe-tz)<0.5);
+    const dotR=nearZ!==undefined?8:5;
+    const dotC=nearZ!==undefined?'rgba(255,100,100,0.95)':'rgba(100,220,255,0.95)';
+    ctx3.beginPath();ctx3.arc(critX,probY,dotR,0,Math.PI*2);
+    ctx3.fillStyle=dotC;ctx3.fill();
+  }
+
+  // |ζ(½+it)| profile along right edge
+  ctx3.save();
+  ctx3.beginPath();
+  const profX=pad.l+cw-40;
+  const profW=35;
+  let first3=true;
+  for(let gy2=0;gy2<=ch;gy2+=2){
+    const tv=((ch-gy2)/ch)*tMax;
+    const z3=zeta({r:0.5,i:tv});
+    const mag3=Math.min(cabs(z3),5)/5;
+    const px3=profX+mag3*profW;
+    const py3=pad.t+gy2;
+    first3?ctx3.moveTo(px3,py3):ctx3.lineTo(px3,py3);
+    first3=false;
+  }
+  ctx3.strokeStyle='rgba(100,220,255,0.75)';
+  ctx3.lineWidth=1.5;
+  ctx3.stroke();
+  ctx3.restore();
+  ctx3.fillStyle='rgba(100,220,255,0.6)';
+  ctx3.font='12px sans-serif';
+  ctx3.fillText('|ζ(½+it)|',profX-2,pad.t+10);
+
+  // Axis labels
+  ctx3.fillStyle='rgba(140,155,210,0.7)';ctx3.font='12px sans-serif';
+  ctx3.fillText('σ →',pad.l+cw-20,pad.t+ch+16);
+  ctx3.fillText('t ↑',pad.l-16,pad.t+10);
+  // Sigma tick labels
+  [0,0.5,1].forEach(s=>{
+    const lx=px(s);
+    ctx3.fillStyle='rgba(160,170,220,0.7)';
+    ctx3.font='12px sans-serif';
+    ctx3.fillText(s.toString(),lx-4,pad.t+ch+14);
+  });
+  // t tick labels
+  const tTick=Math.max(5,Math.round(tMax/6/5)*5);
+  for(let tv=0;tv<=tMax;tv+=tTick){
+    const yy=py(tv);
+    ctx3.fillStyle='rgba(160,170,220,0.7)';ctx3.font='12px sans-serif';
+    ctx3.fillText(tv,pad.l-30,yy+3);
+  }
+
+  // Euler product label
+  ctx3.fillStyle='rgba(255,200,100,0.65)';ctx3.font='12px sans-serif';
+  ctx3.fillText('ζ(s) = ∏ₚ(1−p⁻ˢ)⁻¹',pad.l+4,pad.t+ch-6);
+}
+
+function toggleCritAnim(){
+  const btn=document.getElementById('btnCS');
+  if(csAnimRunning){
+    csAnimRunning=false;
+    if(csAnimId)cancelAnimationFrame(csAnimId);csAnimId=null;
+    btn.textContent='▶ Animate';btn.classList.remove('on');return;
+  }
+  csAnimRunning=true;
+  btn.textContent='⏸ Pause';btn.classList.add('on');
+  const slider=document.getElementById('csT');
+  function frame(){
+    if(!csAnimRunning)return;
+    csAnimPh+=0.012*(window.animSpeed||0.1);
+    const tv=14+55*((Math.sin(csAnimPh)+1)*0.5);
+    slider.value=Math.min(80,Math.max(0,tv));
+    drawCritStrip();
+    csAnimId=requestAnimationFrame(frame);
+  }
+  csAnimId=requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 4 — EXPLICIT FORMULA ANIMATION
+// ═══════════════════════════════════════════════════════════
+const c4a=document.getElementById('c4a');
+const ctx4a=c4a.getContext('2d');
+const c4b=document.getElementById('c4b');
+const ctx4b=c4b.getContext('2d');
+let efAnimId=null, efAnimRunning=false;
+
+function drawExplicit(){
+  const nz=+document.getElementById('efN').value;
+  const xmax=+document.getElementById('efX').value;
+  document.getElementById('efNv').textContent=nz;
+  document.getElementById('efXv').textContent=xmax;
+  document.getElementById('efUsed').textContent=nz;
+  drawExplicitTop(nz,xmax);
+  drawExplicitBot(nz,xmax);
+}
+
+function drawExplicitTop(nz,xmax){
+  const dpr=window.devicePixelRatio||1;
+  const W=c4a.offsetWidth, H=c4a.offsetHeight;
+  if(!W||!H)return;
+  c4a.width=W*dpr;c4a.height=H*dpr;
+  ctx4a.setTransform(dpr,0,0,dpr,0,0);
+  ctx4a.clearRect(0,0,W,H);
+
+  const pad={l:48,r:12,t:20,b:28};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const primsInRange=PRIMES.filter(p=>p<=xmax);
+  const piMax=primsInRange.length;
+  const ymax=Math.max(piMax,2)*1.12;
+
+  function txE(x){return pad.l+(x-2)/(xmax-2)*cw;}
+  function tyE(y){return pad.t+ch-Math.max(0,y)/ymax*ch;}
+
+  // Grid
+  ctx4a.strokeStyle='rgba(38,38,76,0.7)';ctx4a.lineWidth=0.5;
+  const ytk=Math.max(1,Math.round(ymax/6/5)*5);
+  for(let v=0;v<=ymax;v+=ytk){
+    ctx4a.beginPath();ctx4a.moveTo(pad.l,tyE(v));ctx4a.lineTo(pad.l+cw,tyE(v));ctx4a.stroke();
+    ctx4a.fillStyle='rgba(120,130,175,0.6)';ctx4a.font='12px sans-serif';
+    ctx4a.fillText(v,4,tyE(v)+3);
+  }
+  const xtk2=Math.max(10,Math.round(xmax/7/10)*10);
+  for(let v=0;v<=xmax;v+=xtk2){
+    ctx4a.beginPath();ctx4a.moveTo(txE(v),pad.t);ctx4a.lineTo(txE(v),pad.t+ch);ctx4a.stroke();
+    ctx4a.fillStyle='rgba(120,130,175,0.6)';ctx4a.font='12px sans-serif';
+    ctx4a.fillText(v,txE(v)-8,pad.t+ch+14);
+  }
+
+  // Li(x) — gold
+  ctx4a.beginPath();let f4a=true;
+  for(let x=3;x<=xmax;x+=xmax/300){
+    const yy=tyE(Li(x));
+    f4a?ctx4a.moveTo(txE(x),yy):ctx4a.lineTo(txE(x),yy);f4a=false;
+  }
+  ctx4a.strokeStyle='rgba(255,200,40,0.85)';ctx4a.lineWidth=2;ctx4a.stroke();
+
+  // Explicit formula with nz zero pairs — green
+  if(nz>0){
+    ctx4a.beginPath();let fex=true;
+    const NS=Math.min(500,Math.round(xmax/0.5));
+    const dxE=(xmax-2)/NS;
+    for(let k=0;k<=NS;k++){
+      const x=2+k*dxE;
+      if(x<2.1){if(fex){ctx4a.moveTo(txE(x),tyE(0));fex=false;}continue;}
+      let val=Li(x)-Math.log(2);
+      for(let j=0;j<nz&&j<ZEROS_T.length;j++){
+        const tn=ZEROS_T[j];
+        const rho=Math.sqrt(0.25+tn*tn);
+        val-=(2*Math.sqrt(x)/rho)*Math.cos(tn*Math.log(x)-Math.atan2(tn,0.5));
+      }
+      const yy=tyE(Math.max(0,val));
+      fex?ctx4a.moveTo(txE(x),yy):ctx4a.lineTo(txE(x),yy);fex=false;
+    }
+    ctx4a.strokeStyle='rgba(100,255,180,0.9)';ctx4a.lineWidth=1.8;ctx4a.stroke();
+  }
+
+  // π(x) staircase — white/blue
+  ctx4a.beginPath();
+  ctx4a.moveTo(txE(2),tyE(0));
+  let cnt4=0,prevY4=tyE(0);
+  for(let i=0;i<primsInRange.length;i++){
+    const p=primsInRange[i];
+    const xx=txE(p);
+    ctx4a.lineTo(xx,prevY4);cnt4++;prevY4=tyE(cnt4);ctx4a.lineTo(xx,prevY4);
+  }
+  ctx4a.lineTo(txE(xmax),prevY4);
+  ctx4a.strokeStyle='rgba(195,210,255,0.92)';ctx4a.lineWidth=2;ctx4a.stroke();
+
+  // Error at xmax
+  const piXmax=primsInRange.length;
+  const liXmax=Li(xmax);
+  let expXmax=liXmax-Math.log(2);
+  for(let j=0;j<nz&&j<ZEROS_T.length;j++){
+    const tn=ZEROS_T[j];
+    const rho=Math.sqrt(0.25+tn*tn);
+    expXmax-=(2*Math.sqrt(xmax)/rho)*Math.cos(tn*Math.log(xmax)-Math.atan2(tn,0.5));
+  }
+  const err=Math.abs(piXmax-Math.round(expXmax));
+  document.getElementById('efError').textContent=`|π(${xmax})−formula| ≈ ${err.toFixed(1)}`;
+
+  // Legend
+  ctx4a.fillStyle='rgba(255,200,40,0.85)';ctx4a.font='12px sans-serif';
+  ctx4a.fillText('Li(x)',pad.l+4,pad.t+14);
+  if(nz>0){ctx4a.fillStyle='rgba(100,255,180,0.9)';ctx4a.fillText(`Explicit (${nz} zeros)`,pad.l+40,pad.t+14);}
+  ctx4a.fillStyle='rgba(195,210,255,0.9)';ctx4a.fillText('π(x)',pad.l+cw-32,pad.t+14);
+  ctx4a.fillStyle='rgba(140,155,210,0.7)';ctx4a.font='12px sans-serif';
+  ctx4a.fillText('x →',pad.l+cw-18,pad.t+ch+14);
+}
+
+function drawExplicitBot(nz,xmax){
+  const dpr=window.devicePixelRatio||1;
+  const W=c4b.offsetWidth, H=c4b.offsetHeight;
+  if(!W||!H)return;
+  c4b.width=W*dpr;c4b.height=H*dpr;
+  ctx4b.setTransform(dpr,0,0,dpr,0,0);
+  ctx4b.clearRect(0,0,W,H);
+
+  // Draw individual zero contributions as oscillating waves
+  const pad={l:48,r:12,t:18,b:28};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const NS=300;
+  const dxE=(xmax-2)/NS;
+
+  function txE(x){return pad.l+(x-2)/(xmax-2)*cw;}
+  function tyW(y,ymax){return pad.t+ch/2-y/ymax*(ch/2)*0.9;}
+
+  ctx4b.fillStyle='rgba(140,155,210,0.6)';ctx4b.font='12px sans-serif';
+  ctx4b.fillText('Individual zero contributions to π(x)−Li(x)',pad.l+4,pad.t+14);
+
+  const nShow=Math.min(nz,5);
+  const colors=['rgba(255,120,100,0.8)','rgba(100,220,255,0.8)','rgba(180,255,100,0.8)',
+                'rgba(255,180,40,0.8)','rgba(220,100,255,0.8)'];
+
+  // Find y range
+  let ymax=0.01;
+  for(let j=0;j<nShow;j++){
+    const tn=ZEROS_T[j];
+    const rho=Math.sqrt(0.25+tn*tn);
+    for(let k=0;k<=NS;k++){
+      const x=2+k*dxE;
+      if(x<2.1)continue;
+      const corr=Math.abs((2*Math.sqrt(x)/rho)*Math.cos(tn*Math.log(x)-Math.atan2(tn,0.5)));
+      if(corr>ymax)ymax=corr;
+    }
+  }
+  ymax*=1.1;
+
+  // Zero line
+  ctx4b.strokeStyle='rgba(150,155,200,0.3)';ctx4b.lineWidth=1;
+  ctx4b.beginPath();ctx4b.moveTo(pad.l,tyW(0,ymax));ctx4b.lineTo(pad.l+cw,tyW(0,ymax));ctx4b.stroke();
+
+  for(let j=0;j<nShow;j++){
+    const tn=ZEROS_T[j];
+    const rho=Math.sqrt(0.25+tn*tn);
+    ctx4b.beginPath();let fj=true;
+    for(let k=0;k<=NS;k++){
+      const x=2+k*dxE;
+      if(x<2.1){if(fj){ctx4b.moveTo(txE(x),tyW(0,ymax));fj=false;}continue;}
+      const corr=-(2*Math.sqrt(x)/rho)*Math.cos(tn*Math.log(x)-Math.atan2(tn,0.5));
+      const yy=tyW(corr,ymax);
+      fj?ctx4b.moveTo(txE(x),yy):ctx4b.lineTo(txE(x),yy);fj=false;
+    }
+    ctx4b.strokeStyle=colors[j];ctx4b.lineWidth=1.5;ctx4b.stroke();
+    ctx4b.fillStyle=colors[j];ctx4b.font='12px sans-serif';
+    ctx4b.fillText(`ρ${j+1}: t=${tn.toFixed(2)}`,pad.l+4,pad.t+26+j*13);
+  }
+
+  if(nz===0){
+    ctx4b.fillStyle='rgba(140,155,210,0.5)';ctx4b.font='12px sans-serif';
+    ctx4b.textAlign='center';
+    ctx4b.fillText('Add zero pairs to see oscillation contributions',W/2,H/2);
+    ctx4b.textAlign='left';
+  }
+
+  ctx4b.fillStyle='rgba(140,155,210,0.7)';ctx4b.font='12px sans-serif';
+  ctx4b.fillText('x →',pad.l+cw-18,pad.t+ch+14);
+}
+
+function toggleExplicitAnim(){
+  const btn=document.getElementById('btnEF');
+  if(efAnimRunning){
+    efAnimRunning=false;
+    if(efAnimId)cancelAnimationFrame(efAnimId);efAnimId=null;
+    btn.textContent='▶ Animate';btn.classList.remove('on');return;
+  }
+  efAnimRunning=true;
+  btn.textContent='⏸ Pause';btn.classList.add('on');
+  const slider=document.getElementById('efN');
+  slider.value=0;document.getElementById('efNv').textContent=0;
+  let step=0;
+  function frame(){
+    if(!efAnimRunning)return;
+    step++;
+    if(step>20){efAnimRunning=false;btn.textContent='▶ Animate';btn.classList.remove('on');return;}
+    slider.value=step;document.getElementById('efNv').textContent=step;
+    drawExplicit();
+    efAnimId=setTimeout(()=>requestAnimationFrame(frame),400);
+  }
+  requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 5 — GUE / RANDOM MATRIX THEORY
+// ═══════════════════════════════════════════════════════════
+const c5=document.getElementById('c5');
+const ctx5=c5.getContext('2d');
+let gueAnimId=null, gueAnimRunning=false;
+
+// Extended list of known zeros (first ~100, using ZEROS_T as base + computed approximations)
+// We'll generate approximate zeros using the Gram point approximation for higher zeros
+// True zeros from known tables (first 50):
+const ZEROS_EXTENDED=(function(){
+  const known=[
+    14.134725,21.022040,25.010858,30.424876,32.935062,
+    37.586178,40.918719,43.327073,48.005151,49.773832,
+    52.970321,56.446248,59.347044,60.831779,65.112544,
+    67.079811,69.546402,72.067158,75.704691,77.144840,
+    79.337375,82.910381,84.735493,87.425274,88.809111,
+    92.491899,94.651344,95.870634,98.831194,101.317851,
+    103.725538,105.446623,107.168611,111.029535,111.874659,
+    114.320220,116.226680,118.790782,121.370125,122.946829,
+    124.256818,127.516683,129.578704,131.087688,133.497737,
+    134.756509,138.116042,139.736208,141.123707,143.111845
+  ];
+  return known;
+})();
+
+function drawGUE(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c5.offsetWidth, H=c5.offsetHeight;
+  if(!W||!H)return;
+  c5.width=W*dpr;c5.height=H*dpr;
+  ctx5.setTransform(dpr,0,0,dpr,0,0);
+  ctx5.clearRect(0,0,W,H);
+
+  const nUse=Math.min(+document.getElementById('gueN').value, ZEROS_EXTENDED.length);
+  document.getElementById('gueNv').textContent=nUse;
+  const zeros=ZEROS_EXTENDED.slice(0,nUse);
+
+  // Compute mean spacing
+  const spacings=[];
+  for(let i=1;i<zeros.length;i++) spacings.push(zeros[i]-zeros[i-1]);
+  if(spacings.length<2){
+    ctx5.fillStyle='rgba(140,155,210,0.6)';ctx5.font='14px sans-serif';
+    ctx5.textAlign='center';ctx5.fillText('Need more zeros',W/2,H/2);ctx5.textAlign='left';return;
+  }
+  const meanSp=spacings.reduce((a,b)=>a+b,0)/spacings.length;
+  // Normalize spacings by mean (unfolding)
+  const normSp=spacings.map(s=>s/meanSp);
+
+  // Build histogram
+  const BINS=20;
+  const maxS=3.5;
+  const hist=new Array(BINS).fill(0);
+  normSp.forEach(s=>{
+    if(s<maxS){const b=Math.floor(s/maxS*BINS);hist[Math.min(b,BINS-1)]++;}
+  });
+  const histMax=Math.max(...hist);
+
+  const pad={l:60,r:20,t:30,b:50};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+
+  function sx(s){return pad.l+s/maxS*cw;}
+  function sy(v){return pad.t+ch-v/histMax*ch*0.88;}
+
+  // Grid
+  ctx5.strokeStyle='rgba(38,38,76,0.7)';ctx5.lineWidth=0.5;
+  for(let v=0;v<=histMax;v+=Math.max(1,Math.floor(histMax/5))){
+    ctx5.beginPath();ctx5.moveTo(pad.l,sy(v));ctx5.lineTo(pad.l+cw,sy(v));ctx5.stroke();
+    ctx5.fillStyle='rgba(120,130,175,0.6)';ctx5.font='12px sans-serif';
+    ctx5.fillText(v,4,sy(v)+3);
+  }
+  [0,0.5,1,1.5,2,2.5,3,3.5].forEach(sv=>{
+    const lx=sx(sv);
+    ctx5.beginPath();ctx5.moveTo(lx,pad.t);ctx5.lineTo(lx,pad.t+ch);ctx5.stroke();
+    ctx5.fillStyle='rgba(120,130,175,0.6)';ctx5.font='12px sans-serif';
+    ctx5.fillText(sv.toFixed(1),lx-8,pad.t+ch+14);
+  });
+
+  // Histogram bars
+  const bw=cw/BINS;
+  hist.forEach((cnt,i)=>{
+    const bx=pad.l+i*bw;
+    const bh=cnt/histMax*ch*0.88;
+    const by=pad.t+ch-bh;
+    const t=i/BINS;
+    ctx5.fillStyle=`rgba(${Math.round(68+t*80)},${Math.round(120+t*80)},255,0.6)`;
+    ctx5.fillRect(bx+1,by,bw-2,bh);
+    ctx5.strokeStyle='rgba(100,160,255,0.4)';ctx5.lineWidth=0.5;
+    ctx5.strokeRect(bx+1,by,bw-2,bh);
+  });
+
+  // GUE prediction curve: P(s) = (32s²/π²) exp(-4s²/π)
+  // Normalized by histMax * (number of spacings * bin width / total)
+  const scale=normSp.length*(maxS/BINS);
+  ctx5.beginPath();
+  let fGUE=true;
+  for(let k=0;k<=200;k++){
+    const s=k/200*maxS;
+    const P=(32*s*s/(Math.PI*Math.PI))*Math.exp(-4*s*s/Math.PI);
+    const yy=sy(P*scale);
+    if(yy<pad.t||yy>pad.t+ch+20){fGUE=true;continue;}
+    fGUE?ctx5.moveTo(sx(s),yy):ctx5.lineTo(sx(s),yy);fGUE=false;
+  }
+  ctx5.strokeStyle='rgba(255,80,80,0.9)';ctx5.lineWidth=2.5;ctx5.stroke();
+
+  // Poisson reference (uncorrelated): P(s)=exp(-s)
+  ctx5.beginPath();
+  let fPo=true;
+  for(let k=0;k<=200;k++){
+    const s=k/200*maxS;
+    const P=Math.exp(-s);
+    const yy=sy(P*scale);
+    if(yy<pad.t-20||yy>pad.t+ch+20){fPo=true;continue;}
+    fPo?ctx5.moveTo(sx(s),yy):ctx5.lineTo(sx(s),yy);fPo=false;
+  }
+  ctx5.strokeStyle='rgba(150,150,150,0.5)';ctx5.lineWidth=1.5;ctx5.setLineDash([6,4]);ctx5.stroke();
+  ctx5.setLineDash([]);
+
+  // Pair correlation inset (bottom right)
+  const inX=pad.l+cw-160, inY=pad.t+20, inW=155, inH=80;
+  ctx5.fillStyle='rgba(10,10,30,0.85)';
+  ctx5.fillRect(inX,inY,inW,inH);
+  ctx5.strokeStyle='rgba(68,100,200,0.5)';ctx5.lineWidth=0.8;
+  ctx5.strokeRect(inX,inY,inW,inH);
+  ctx5.fillStyle='rgba(140,155,210,0.7)';ctx5.font='12px sans-serif';
+  ctx5.fillText('Pair correlation R₂(x)',inX+4,inY+12);
+  // R₂(x) = 1 - (sinπx/πx)²
+  ctx5.beginPath();let fR=true;
+  for(let k=1;k<=100;k++){
+    const x=k/100*3;
+    const sinc=x<0.001?1:Math.sin(Math.PI*x)/(Math.PI*x);
+    const R2=1-sinc*sinc;
+    const rx=inX+4+(x/3)*(inW-8);
+    const ry=inY+inH-4-R2*(inH-16);
+    fR?ctx5.moveTo(rx,ry):ctx5.lineTo(rx,ry);fR=false;
+  }
+  ctx5.strokeStyle='rgba(100,200,255,0.85)';ctx5.lineWidth=1.8;ctx5.stroke();
+  ctx5.fillStyle='rgba(100,200,255,0.7)';ctx5.font='12px sans-serif';
+  ctx5.fillText('1−(sinπx/πx)²',inX+4,inY+inH-4);
+
+  // Labels
+  ctx5.fillStyle='rgba(160,170,220,0.85)';ctx5.font='bold 12px sans-serif';
+  ctx5.textAlign='center';
+  ctx5.fillText('Nearest-neighbor spacing distribution of Riemann zeros',W/2,pad.t-8);
+  ctx5.fillStyle='rgba(140,155,210,0.7)';ctx5.font='12px sans-serif';
+  ctx5.fillText('Normalized spacing s',W/2,pad.t+ch+30);
+  ctx5.textAlign='left';
+  ctx5.save();ctx5.translate(14,pad.t+ch/2);ctx5.rotate(-Math.PI/2);
+  ctx5.fillText('Count',0,0);ctx5.restore();
+
+  // Legend
+  ctx5.fillStyle='rgba(100,160,255,0.8)';ctx5.font='12px sans-serif';
+  ctx5.fillText('Riemann zeros',pad.l+4,pad.t+16);
+  ctx5.fillStyle='rgba(255,80,80,0.9)';
+  ctx5.fillText('GUE: P(s)=(32s²/π²)e^{−4s²/π}',pad.l+4,pad.t+28);
+  ctx5.fillStyle='rgba(150,150,150,0.6)';
+  ctx5.fillText('Poisson: e^{−s} (uncorrelated)',pad.l+4,pad.t+40);
+
+  // Annotation: Montgomery 1973
+  ctx5.fillStyle='rgba(255,200,100,0.65)';ctx5.font='12px sans-serif';
+  ctx5.fillText('Montgomery (1973) + Dyson: GUE = zeros!',pad.l+4,pad.t+ch-6);
+}
+
+function toggleGUEAnim(){
+  const btn=document.getElementById('btnGUE');
+  if(gueAnimRunning){
+    gueAnimRunning=false;
+    if(gueAnimId)cancelAnimationFrame(gueAnimId);gueAnimId=null;
+    btn.textContent='▶ Animate';btn.classList.remove('on');return;
+  }
+  gueAnimRunning=true;
+  btn.textContent='⏸ Pause';btn.classList.add('on');
+  const slider=document.getElementById('gueN');
+  let n=50;
+  function frame(){
+    if(!gueAnimRunning)return;
+    n=Math.min(n+10,ZEROS_EXTENDED.length);
+    slider.value=n;document.getElementById('gueNv').textContent=n;
+    drawGUE();
+    if(n<ZEROS_EXTENDED.length) gueAnimId=setTimeout(()=>requestAnimationFrame(frame),80);
+    else{gueAnimRunning=false;btn.textContent='▶ Animate';btn.classList.remove('on');}
+  }
+  requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 6 — FUNCTIONAL EQUATION & SYMMETRY
+// ═══════════════════════════════════════════════════════════
+const c6a=document.getElementById('c6a');
+const ctx6a=c6a.getContext('2d');
+const c6b=document.getElementById('c6b');
+const ctx6b=c6b.getContext('2d');
+let feAnimId=null, feAnimRunning=false;
+
+// Log-gamma (real part) via Stirling for real s > 0
+function lnGammaReal(x){
+  if(x<0.5) return Math.log(Math.PI/Math.sin(Math.PI*x))-lnGammaReal(1-x);
+  x-=1;
+  let r=0.999999999999997;
+  const c=[676.5203681218851,-1259.1392167224028,771.3234287776531,
+           -176.6150291621406,12.507343278686905,-0.13857109526572012,
+           9.984369578019572e-6,1.5056327351493116e-7];
+  for(let i=0;i<8;i++) r+=c[i]/(x+i+1);
+  const t=x+8-0.5;
+  return 0.5*Math.log(2*Math.PI)+(x+0.5)*Math.log(t)-t+Math.log(r);
+}
+
+function gammaReal(x){
+  if(x>0&&x<170) return Math.exp(lnGammaReal(x));
+  return NaN;
+}
+
+// |ζ(s)| along a line Re(s)=sigma for t varying
+// Functional eq: |ζ(s)| = |2^s π^{s-1} sin(πs/2) Γ(1-s)| |ζ(1-s)|
+// We check numerically
+function zetaAbsFunc(sigma, t){
+  const zs=zeta({r:sigma,i:t});
+  return cabs(zs);
+}
+
+function drawFuncEq(){
+  const tVal=+document.getElementById('feT').value;
+  document.getElementById('feTv').textContent=tVal.toFixed(1);
+  drawFuncEqTop(tVal);
+  drawFuncEqBot(tVal);
+}
+
+function drawFuncEqTop(tVal){
+  const dpr=window.devicePixelRatio||1;
+  const W=c6a.offsetWidth, H=c6a.offsetHeight;
+  if(!W||!H)return;
+  c6a.width=W*dpr;c6a.height=H*dpr;
+  ctx6a.setTransform(dpr,0,0,dpr,0,0);
+  ctx6a.clearRect(0,0,W,H);
+
+  // Show |ζ(σ+it)| vs σ for several t values, with s and 1-s marked
+  const pad={l:52,r:16,t:28,b:35};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const sigMin=-1, sigMax=2;
+  const NS=200;
+
+  function sx2(s){return pad.l+(s-sigMin)/(sigMax-sigMin)*cw;}
+  function sy2(v,vmax){return pad.t+ch-Math.min(v,vmax)/vmax*ch*0.9;}
+
+  // Compute max for scaling
+  const tVals=[tVal, 5, 10, 20];
+  let vmax=0.01;
+  const tLines=[];
+  for(let ti=0;ti<Math.min(tVals.length,2);ti++){
+    const tv=tVals[ti];
+    const pts=[];
+    for(let k=0;k<=NS;k++){
+      const s=sigMin+k/NS*(sigMax-sigMin);
+      if(Math.abs(s-1)<0.05){pts.push({s,v:null});continue;}
+      const v=zetaAbsFunc(s,tv);
+      if(v<10)vmax=Math.max(vmax,v);
+      pts.push({s,v});
+    }
+    tLines.push({tv,pts});
+  }
+  vmax=Math.min(vmax*1.1,8);
+
+  // Grid
+  ctx6a.strokeStyle='rgba(38,38,76,0.7)';ctx6a.lineWidth=0.5;
+  for(let v=0;v<=vmax;v+=Math.max(0.5,Math.round(vmax/5*2)/2)){
+    ctx6a.beginPath();ctx6a.moveTo(pad.l,sy2(v,vmax));ctx6a.lineTo(pad.l+cw,sy2(v,vmax));ctx6a.stroke();
+    ctx6a.fillStyle='rgba(120,130,175,0.6)';ctx6a.font='12px sans-serif';
+    ctx6a.fillText(v.toFixed(1),4,sy2(v,vmax)+3);
+  }
+  [-1,0,0.5,1,2].forEach(sv=>{
+    const lx=sx2(sv);
+    ctx6a.beginPath();ctx6a.moveTo(lx,pad.t);ctx6a.lineTo(lx,pad.t+ch);ctx6a.stroke();
+    ctx6a.fillStyle='rgba(120,130,175,0.6)';ctx6a.font='12px sans-serif';
+    ctx6a.fillText(sv.toString(),lx-8,pad.t+ch+14);
+  });
+
+  // Critical line Re(s)=½
+  const cl=sx2(0.5);
+  ctx6a.save();ctx6a.setLineDash([8,4]);
+  ctx6a.strokeStyle='rgba(255,255,255,0.6)';ctx6a.lineWidth=1.5;
+  ctx6a.beginPath();ctx6a.moveTo(cl,pad.t);ctx6a.lineTo(cl,pad.t+ch);ctx6a.stroke();
+  ctx6a.restore();
+  ctx6a.fillStyle='rgba(255,255,255,0.6)';ctx6a.font='12px sans-serif';
+  ctx6a.fillText('½',cl-4,pad.t+ch+14);
+
+  const lineColors=['rgba(100,200,255,0.9)','rgba(255,160,60,0.7)'];
+  tLines.forEach(({tv,pts},ti)=>{
+    ctx6a.beginPath();let ffl=true;
+    pts.forEach(({s,v})=>{
+      if(v===null){ffl=true;return;}
+      const yy=sy2(v,vmax);
+      ffl?ctx6a.moveTo(sx2(s),yy):ctx6a.lineTo(sx2(s),yy);ffl=false;
+    });
+    ctx6a.strokeStyle=lineColors[ti];ctx6a.lineWidth=ti===0?2:1.5;ctx6a.stroke();
+    ctx6a.fillStyle=lineColors[ti];ctx6a.font='12px sans-serif';
+    ctx6a.fillText(`|ζ(σ+${tv.toFixed(1)}i)|`,pad.l+4,pad.t+14+ti*13);
+  });
+
+  // Symmetry arrows at probe t
+  if(tVal>0){
+    // Mark s = 0.7+it and 1-s = 0.3+it as example
+    const s1=0.75, s2=1-s1;
+    const v1=zetaAbsFunc(s1,tVal), v2=zetaAbsFunc(s2,tVal);
+    const px1=sx2(s1), px2=sx2(s2);
+    const py1=sy2(Math.min(v1,vmax),vmax), py2=sy2(Math.min(v2,vmax),vmax);
+
+    // Arrow showing s ↔ 1-s
+    ctx6a.strokeStyle='rgba(255,200,100,0.8)';ctx6a.lineWidth=1.5;
+    ctx6a.setLineDash([5,3]);
+    ctx6a.beginPath();ctx6a.moveTo(px1,pad.t+ch/2);ctx6a.lineTo(px2,pad.t+ch/2);ctx6a.stroke();
+    ctx6a.setLineDash([]);
+    // Points
+    ctx6a.beginPath();ctx6a.arc(px1,py1,5,0,Math.PI*2);
+    ctx6a.fillStyle='rgba(255,200,100,0.9)';ctx6a.fill();
+    ctx6a.beginPath();ctx6a.arc(px2,py2,5,0,Math.PI*2);
+    ctx6a.fillStyle='rgba(255,200,100,0.9)';ctx6a.fill();
+    ctx6a.fillStyle='rgba(255,200,100,0.8)';ctx6a.font='12px sans-serif';
+    ctx6a.fillText(`|ζ|=${v1.toFixed(3)}`,px1+6,py1-5);
+    ctx6a.fillText(`|ζ|=${v2.toFixed(3)}`,px2+6,py2-5);
+    ctx6a.fillText('s↔1−s symmetry',cl-50,pad.t+ch/2-6);
+  }
+
+  ctx6a.fillStyle='rgba(160,170,220,0.85)';ctx6a.font='bold 12px sans-serif';
+  ctx6a.fillText('|ζ(s)| vs Re(s): functional equation symmetry',pad.l+4,pad.t-6);
+  ctx6a.fillStyle='rgba(140,155,210,0.7)';ctx6a.font='12px sans-serif';
+  ctx6a.fillText('σ = Re(s) →',pad.l+cw-72,pad.t+ch+14);
+}
+
+function drawFuncEqBot(tVal){
+  const dpr=window.devicePixelRatio||1;
+  const W=c6b.offsetWidth, H=c6b.offsetHeight;
+  if(!W||!H)return;
+  c6b.width=W*dpr;c6b.height=H*dpr;
+  ctx6b.setTransform(dpr,0,0,dpr,0,0);
+  ctx6b.clearRect(0,0,W,H);
+
+  // Show ξ(s) = ½s(s-1)π^{-s/2}Γ(s/2)ζ(s) along critical line
+  // For real-valued comparison: plot |ξ(½+it)| vs t
+  const pad={l:52,r:16,t:22,b:30};
+  const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
+  const tMax=50;
+  const NS=400;
+
+  function tx6(t){return pad.l+t/tMax*cw;}
+  function ty6(v,vmax){return pad.t+ch-Math.min(v,vmax)/vmax*ch*0.85;}
+
+  // Compute ξ values
+  const xiPts=[];
+  let xiMax=0.01;
+  for(let k=0;k<=NS;k++){
+    const t=k/NS*tMax;
+    const s={r:0.5,i:t};
+    const zv=zeta(s);
+    // π^{-s/2} = exp(-s/2 * ln π)
+    const lnPi=Math.log(Math.PI);
+    const piNeg=cpow({r:Math.PI,i:0},{r:-s.r/1,i:-s.i/1});
+    // Actually: π^{-s/2} = exp(-(s/2)*lnπ)
+    const expR=-s.r/2*lnPi, expI=-s.i/2*lnPi;
+    const piHalf={r:Math.exp(expR)*Math.cos(expI),i:Math.exp(expR)*Math.sin(expI)};
+    // Γ(s/2): use log-gamma approximation
+    // For s=½+it, s/2=¼+it/2
+    // |Γ(¼+it/2)| ≈ (t/2)^{-1/4} * sqrt(2π) * exp(-π*t/4) * ... use Stirling
+    // Approximate: use |Γ(σ+it)| ≈ sqrt(2π) * t^{σ-0.5} * exp(-π*t/2) for large t
+    const sigH=0.25, tH=t/2;
+    let absGam;
+    if(tH<1) absGam=gammaReal(sigH)||1;
+    else absGam=Math.sqrt(2*Math.PI)*Math.pow(tH,sigH-0.5)*Math.exp(-Math.PI*tH/2);
+    // |ξ(½+it)| = |½s(s-1)| * |π^{-s/2}| * |Γ(s/2)| * |ζ(s)|
+    const sAbs=cabs({r:0.5*(0.5*0.5-(-0.5)-t*t),i:0.5*(2*0.5*(-0.5)+2*0.5*t)});
+    // s(s-1) for s=½+it: (½+it)(−½+it)=−¼+t*i*½ − ½*it + i²t² ... let me compute directly
+    const ss={r:s.r,i:s.i};
+    const sm1={r:s.r-1,i:s.i};
+    const ssm1=cmul(ss,sm1);
+    const half_ssm1={r:0.5*ssm1.r,i:0.5*ssm1.i};
+    const piHalfAbs=Math.exp(expR);
+    const xiAbs=cabs(half_ssm1)*piHalfAbs*absGam*cabs(zv);
+    if(xiAbs<100)xiMax=Math.max(xiMax,xiAbs);
+    xiPts.push({t,xi:xiAbs});
+  }
+  xiMax=Math.min(xiMax*1.1,xiPts.reduce((a,p)=>Math.max(a,p.xi<100?p.xi:0),0)*1.1+0.01);
+
+  // Grid
+  ctx6b.strokeStyle='rgba(38,38,76,0.7)';ctx6b.lineWidth=0.5;
+  const ytk6=Math.max(0.1,Math.round(xiMax/5*10)/10);
+  for(let v=0;v<=xiMax;v+=ytk6){
+    ctx6b.beginPath();ctx6b.moveTo(pad.l,ty6(v,xiMax));ctx6b.lineTo(pad.l+cw,ty6(v,xiMax));ctx6b.stroke();
+    ctx6b.fillStyle='rgba(120,130,175,0.6)';ctx6b.font='12px sans-serif';
+    ctx6b.fillText(v.toFixed(1),4,ty6(v,xiMax)+3);
+  }
+  for(let tv=0;tv<=tMax;tv+=5){
+    ctx6b.beginPath();ctx6b.moveTo(tx6(tv),pad.t);ctx6b.lineTo(tx6(tv),pad.t+ch);ctx6b.stroke();
+    ctx6b.fillStyle='rgba(120,130,175,0.6)';ctx6b.font='12px sans-serif';
+    ctx6b.fillText(tv,tx6(tv)-6,pad.t+ch+14);
+  }
+
+  // |ξ(½+it)| curve
+  ctx6b.beginPath();let f6b=true;
+  xiPts.forEach(({t,xi})=>{
+    if(xi>xiMax*1.5){f6b=true;return;}
+    const yy=ty6(xi,xiMax);
+    f6b?ctx6b.moveTo(tx6(t),yy):ctx6b.lineTo(tx6(t),yy);f6b=false;
+  });
+  ctx6b.strokeStyle='rgba(180,120,255,0.9)';ctx6b.lineWidth=2;ctx6b.stroke();
+
+  // Zero markers (|ξ|=0 at zeros)
+  ZEROS_T.forEach((tz,idx)=>{
+    if(tz>tMax)return;
+    const zx=tx6(tz);
+    const zy=ty6(0,xiMax);
+    ctx6b.beginPath();ctx6b.arc(zx,zy,4,0,Math.PI*2);
+    ctx6b.fillStyle='rgba(255,220,50,0.85)';ctx6b.fill();
+    ctx6b.fillStyle='rgba(255,220,50,0.7)';ctx6b.font='12px sans-serif';
+    ctx6b.fillText(`t${idx+1}`,zx+3,zy-6);
+  });
+
+  // Probe t line
+  if(tVal>=0&&tVal<=tMax){
+    const pxt=tx6(tVal);
+    ctx6b.strokeStyle='rgba(100,220,255,0.8)';ctx6b.lineWidth=1.5;
+    ctx6b.setLineDash([5,3]);
+    ctx6b.beginPath();ctx6b.moveTo(pxt,pad.t);ctx6b.lineTo(pxt,pad.t+ch);ctx6b.stroke();
+    ctx6b.setLineDash([]);
+  }
+
+  ctx6b.fillStyle='rgba(180,120,255,0.8)';ctx6b.font='12px sans-serif';
+  ctx6b.fillText('|ξ(½+it)| — completed zeta (entire, zeros = ζ zeros)',pad.l+4,pad.t+14);
+  ctx6b.fillStyle='rgba(140,155,210,0.7)';ctx6b.font='12px sans-serif';
+  ctx6b.fillText('t →',pad.l+cw-20,pad.t+ch+14);
+  ctx6b.fillStyle='rgba(255,200,100,0.65)';ctx6b.font='12px sans-serif';
+  ctx6b.fillText('ξ(s) = ξ(1−s) exactly — entire function, no poles',pad.l+4,pad.t+ch-6);
+}
+
+function toggleFuncEqAnim(){
+  const btn=document.getElementById('btnFE');
+  if(feAnimRunning){
+    feAnimRunning=false;
+    if(feAnimId)cancelAnimationFrame(feAnimId);feAnimId=null;
+    btn.textContent='▶ Animate';btn.classList.remove('on');return;
+  }
+  feAnimRunning=true;
+  btn.textContent='⏸ Pause';btn.classList.add('on');
+  const slider=document.getElementById('feT');
+  let ph=0;
+  function frame(){
+    if(!feAnimRunning)return;
+    ph+=0.015*(window.animSpeed||0.1);
+    const tv=Math.max(0,20*Math.sin(ph)*Math.sin(ph));
+    slider.value=Math.min(40,tv);
+    document.getElementById('feTv').textContent=tv.toFixed(1);
+    drawFuncEq();
+    feAnimId=requestAnimationFrame(frame);
+  }
+  feAnimId=requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB 7 — PHYSICS CONNECTIONS
+// ═══════════════════════════════════════════════════════════
+const c7=document.getElementById('c7');
+const ctx7=c7.getContext('2d');
+let physAnimId=null, physAnimRunning=false, physAnimPh=0;
+let physMode=0;
+
+function setPhysMode(m){
+  physMode=m;
+  [0,1,2].forEach(i=>{
+    document.getElementById('bPhy'+i).classList.toggle('on',i===m);
+  });
+  drawPhys();
+}
+
+function drawPhys(){
+  if(physMode===0) drawPhysCasimir();
+  else if(physMode===1) drawPhysString();
+  else drawPhysHilbertPolya();
+}
+
+function drawPhysCasimir(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c7.offsetWidth, H=c7.offsetHeight;
+  if(!W||!H)return;
+  c7.width=W*dpr;c7.height=H*dpr;
+  ctx7.setTransform(dpr,0,0,dpr,0,0);
+  ctx7.clearRect(0,0,W,H);
+
+  const cx=W/2, cy=H/2;
+  const t=physAnimPh;
+
+  // Draw two parallel plates (Casimir)
+  const plateW=Math.min(W*0.6,300), plateH=8, plateSep=Math.min(H*0.35,120);
+  const p1y=cy-plateSep/2, p2y=cy+plateSep/2;
+
+  // Background "vacuum fluctuations" between plates
+  ctx7.fillStyle='rgba(5,5,20,1)';
+  ctx7.fillRect(0,0,W,H);
+
+  // Virtual photon modes between plates
+  const nModes=8;
+  for(let m=1;m<=nModes;m++){
+    const waveAlpha=0.15+0.15*Math.sin(t*1.5+m*0.7);
+    ctx7.strokeStyle=`rgba(68,${100+m*15},255,${waveAlpha})`;
+    ctx7.lineWidth=1;
+    ctx7.beginPath();
+    const steps=200;
+    for(let k=0;k<=steps;k++){
+      const xk=cx-plateW/2+k/steps*plateW;
+      const yk=p1y+(plateSep)*(k%2===0?0:1)*0.5;
+      // Standing wave
+      const yw=p1y+plateSep/2+plateSep/2*Math.sin(m*Math.PI*k/steps)*Math.cos(t*0.8+m*0.3);
+      k===0?ctx7.moveTo(xk,yw):ctx7.lineTo(xk,yw);
+    }
+    ctx7.stroke();
+  }
+
+  // Vacuum fluctuations outside plates (more chaotic)
+  ctx7.save();ctx7.globalAlpha=0.12;
+  for(let k=0;k<20;k++){
+    const xk=cx-plateW/2-60+Math.sin(t*0.7+k)*30;
+    const yk=p1y+Math.sin(t*1.1+k*1.3)*plateSep;
+    ctx7.strokeStyle='rgba(200,100,255,1)';ctx7.lineWidth=1;
+    ctx7.beginPath();ctx7.arc(xk,yk,8+Math.sin(t*2+k)*4,0,Math.PI*2);ctx7.stroke();
+    const xk2=cx+plateW/2+60+Math.cos(t*0.9+k)*25;
+    const yk2=p1y+Math.cos(t*1.3+k*1.7)*plateSep;
+    ctx7.beginPath();ctx7.arc(xk2,yk2,8+Math.cos(t*1.8+k)*4,0,Math.PI*2);ctx7.stroke();
+  }
+  ctx7.restore();
+
+  // Plates
+  const grad1=ctx7.createLinearGradient(cx-plateW/2,p1y-plateH,cx+plateW/2,p1y);
+  grad1.addColorStop(0,'rgba(80,100,180,0.9)');grad1.addColorStop(1,'rgba(120,160,255,0.9)');
+  ctx7.fillStyle=grad1;
+  ctx7.fillRect(cx-plateW/2,p1y-plateH,plateW,plateH);
+  const grad2=ctx7.createLinearGradient(cx-plateW/2,p2y,cx+plateW/2,p2y+plateH);
+  grad2.addColorStop(0,'rgba(120,160,255,0.9)');grad2.addColorStop(1,'rgba(80,100,180,0.9)');
+  ctx7.fillStyle=grad2;
+  ctx7.fillRect(cx-plateW/2,p2y,plateW,plateH);
+
+  // Force arrows (attractive — inward)
+  const pulse=0.7+0.3*Math.sin(t*2);
+  ctx7.strokeStyle=`rgba(255,${Math.round(150+80*pulse)},50,0.85)`;
+  ctx7.lineWidth=2.5;
+  // Left arrow on top plate
+  ctx7.beginPath();ctx7.moveTo(cx-plateW/2-30,p1y-plateH/2);ctx7.lineTo(cx-plateW/2-6,p1y-plateH/2);ctx7.stroke();
+  ctx7.beginPath();ctx7.moveTo(cx-plateW/2-6,p1y-plateH/2);
+  ctx7.lineTo(cx-plateW/2-14,p1y-plateH/2-6);ctx7.lineTo(cx-plateW/2-14,p1y-plateH/2+6);ctx7.closePath();
+  ctx7.fillStyle=`rgba(255,${Math.round(150+80*pulse)},50,0.85)`;ctx7.fill();
+  ctx7.beginPath();ctx7.moveTo(cx+plateW/2+30,p1y-plateH/2);ctx7.lineTo(cx+plateW/2+6,p1y-plateH/2);ctx7.stroke();
+  ctx7.beginPath();ctx7.moveTo(cx+plateW/2+6,p1y-plateH/2);
+  ctx7.lineTo(cx+plateW/2+14,p1y-plateH/2-6);ctx7.lineTo(cx+plateW/2+14,p1y-plateH/2+6);ctx7.closePath();ctx7.fill();
+  // Right arrows on bottom plate (pointing up)
+  ctx7.strokeStyle=`rgba(255,${Math.round(150+80*pulse)},50,0.85)`;
+  ctx7.beginPath();ctx7.moveTo(cx-plateW/2-30,p2y+plateH/2);ctx7.lineTo(cx-plateW/2-6,p2y+plateH/2);ctx7.stroke();
+  ctx7.beginPath();ctx7.moveTo(cx-plateW/2-6,p2y+plateH/2);
+  ctx7.lineTo(cx-plateW/2-14,p2y+plateH/2-6);ctx7.lineTo(cx-plateW/2-14,p2y+plateH/2+6);ctx7.closePath();ctx7.fill();
+  ctx7.beginPath();ctx7.moveTo(cx+plateW/2+30,p2y+plateH/2);ctx7.lineTo(cx+plateW/2+6,p2y+plateH/2);ctx7.stroke();
+  ctx7.beginPath();ctx7.moveTo(cx+plateW/2+6,p2y+plateH/2);
+  ctx7.lineTo(cx+plateW/2+14,p2y+plateH/2-6);ctx7.lineTo(cx+plateW/2+14,p2y+plateH/2+6);ctx7.closePath();ctx7.fill();
+
+  // Text labels
+  ctx7.fillStyle='rgba(200,220,255,0.9)';ctx7.font='bold 14px sans-serif';ctx7.textAlign='center';
+  ctx7.fillText('Casimir Effect & ζ(−3)',cx,40);
+  ctx7.fillStyle='rgba(160,175,220,0.8)';ctx7.font='12px sans-serif';
+  ctx7.fillText('Vacuum energy between conducting plates:',cx,60);
+  ctx7.fillStyle='rgba(255,215,50,0.95)';ctx7.font='bold 13px sans-serif';
+  ctx7.fillText('E_Casimir ∝ ζ(−3) = 1/120',cx,80);
+  ctx7.fillStyle='rgba(160,175,220,0.7)';ctx7.font='12px sans-serif';
+  ctx7.fillText('Allowed modes (standing waves) between plates',cx,p1y-plateH-16);
+  ctx7.fillText('More vacuum modes outside → net attractive force!',cx,p2y+plateH+22);
+  ctx7.fillStyle='rgba(255,200,100,0.8)';ctx7.font='12px sans-serif';
+  ctx7.fillText('ζ-function regularization: Σₙ n³ = ζ(−3) = 1/120  (divergent series → finite!)',cx,H-20);
+  ctx7.textAlign='left';
+}
+
+function drawPhysString(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c7.offsetWidth, H=c7.offsetHeight;
+  if(!W||!H)return;
+  c7.width=W*dpr;c7.height=H*dpr;
+  ctx7.setTransform(dpr,0,0,dpr,0,0);
+  ctx7.clearRect(0,0,W,H);
+
+  const cx=W/2, t=physAnimPh;
+
+  ctx7.fillStyle='rgba(5,5,20,1)';ctx7.fillRect(0,0,W,H);
+
+  // Animated string modes
+  const strY=H/2, strLen=Math.min(W*0.7,400);
+  const strX=cx-strLen/2;
+  const nStr=12;
+
+  for(let m=1;m<=nStr;m++){
+    const alpha=m<=4?0.7:m<=8?0.4:0.2;
+    const col=`rgba(${Math.round(68+m*14)},${Math.round(100+m*10)},255,${alpha})`;
+    ctx7.strokeStyle=col;ctx7.lineWidth=m<=3?1.8:1;
+    ctx7.beginPath();
+    for(let k=0;k<=200;k++){
+      const xk=strX+k/200*strLen;
+      const yk=strY+30*Math.sin(m*Math.PI*k/200)*Math.cos(t*0.6*Math.sqrt(m)+m*0.2)/(m*0.5);
+      k===0?ctx7.moveTo(xk,yk):ctx7.lineTo(xk,yk);
+    }
+    ctx7.stroke();
+  }
+
+  // Endpoints (Dirichlet boundary)
+  ctx7.beginPath();ctx7.arc(strX,strY,6,0,Math.PI*2);
+  ctx7.fillStyle='rgba(255,255,255,0.9)';ctx7.fill();
+  ctx7.beginPath();ctx7.arc(strX+strLen,strY,6,0,Math.PI*2);
+  ctx7.fillStyle='rgba(255,255,255,0.9)';ctx7.fill();
+
+  // The key equation animated
+  const pulse=0.6+0.4*Math.sin(t*1.5);
+  ctx7.fillStyle=`rgba(255,${Math.round(200+40*pulse)},${Math.round(50+60*pulse)},0.95)`;
+  ctx7.font='bold 22px serif';ctx7.textAlign='center';
+  ctx7.fillText('1 + 2 + 3 + 4 + ··· = ζ(−1) = −1/12',cx,60);
+
+  ctx7.fillStyle='rgba(160,175,220,0.8)';ctx7.font='13px sans-serif';
+  ctx7.fillText('String theory: bosonic string has 26−2=24 transverse modes',cx,90);
+  ctx7.fillText('Zero-point energy = ½Σₙ n = ½·(−1/12) = −1/24 per mode',cx,108);
+  ctx7.fillText('Cancellation requires D=26 spacetime dimensions!',cx,126);
+
+  // zeta values panel
+  const pX=cx-200, pY=H-180, pW=400, pH=140;
+  ctx7.fillStyle='rgba(10,10,30,0.85)';ctx7.fillRect(pX,pY,pW,pH);
+  ctx7.strokeStyle='rgba(68,100,200,0.5)';ctx7.lineWidth=1;ctx7.strokeRect(pX,pY,pW,pH);
+  ctx7.fillStyle='rgba(255,200,50,0.9)';ctx7.font='bold 12px monospace';ctx7.textAlign='left';
+  const entries=[
+    ['ζ(−1) = −1/12','Σn = sum of all integers'],
+    ['ζ(−3) = 1/120','Σn³ = Casimir vacuum'],
+    ['ζ(0) = −1/2','Σ1 = count of integers'],
+    ['ζ(2) = π²/6','Basel problem (Euler 1735)'],
+    ['ζ(−1) in string','Critical dim D = 26'],
+  ];
+  entries.forEach(([eq,desc],i)=>{
+    ctx7.fillStyle='rgba(255,215,50,0.9)';ctx7.fillText(eq,pX+12,pY+20+i*22);
+    ctx7.fillStyle='rgba(140,160,210,0.7)';ctx7.fillText('// '+desc,pX+160,pY+20+i*22);
+  });
+
+  ctx7.fillStyle='rgba(255,200,100,0.8)';ctx7.font='12px sans-serif';ctx7.textAlign='center';
+  ctx7.fillText('ζ-function regularization: assign finite values to divergent sums via analytic continuation',cx,H-16);
+  ctx7.textAlign='left';
+}
+
+function drawPhysHilbertPolya(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c7.offsetWidth, H=c7.offsetHeight;
+  if(!W||!H)return;
+  c7.width=W*dpr;c7.height=H*dpr;
+  ctx7.setTransform(dpr,0,0,dpr,0,0);
+  ctx7.clearRect(0,0,W,H);
+
+  ctx7.fillStyle='rgba(5,5,20,1)';ctx7.fillRect(0,0,W,H);
+  const t=physAnimPh, cx=W/2;
+
+  // Draw "energy spectrum" of a hypothetical Hilbert-Pólya operator
+  // Energy levels = Im(zeros) of ζ
+  const levelsY=H/2;
+  const nLev=Math.min(ZEROS_T.length,15);
+  const eMin=0, eMax=85;
+  const specX=80, specW=W-160;
+
+  function ex(e){return specX+((e-eMin)/(eMax-eMin))*specW;}
+
+  // Background: quantum phase space portrait
+  ctx7.save();ctx7.globalAlpha=0.06;
+  for(let k=0;k<300;k++){
+    const xp=Math.random()*W, pp=Math.random()*H;
+    const pulse2=Math.sin(t*0.5+k*0.3)*0.5+0.5;
+    ctx7.fillStyle=`hsl(${200+k},70%,${50+pulse2*30}%)`;
+    ctx7.fillRect(xp,pp,2,2);
+  }
+  ctx7.restore();
+
+  // Berry-Keating Hamiltonian xp — phase space curve
+  ctx7.strokeStyle='rgba(100,200,255,0.3)';ctx7.lineWidth=1;
+  for(let e=5;e<=80;e+=5){
+    const ex2=ex(e);
+    // Hyperbola xp=E in phase space (schematic)
+    ctx7.beginPath();
+    for(let k=0;k<=100;k++){
+      const xk=30+k/100*(W-60);
+      const pk=e*50/(xk||1);
+      const yk=H-20-pk*0.8;
+      if(yk<10||yk>H-10){if(k===0)ctx7.moveTo(xk,yk);else ctx7.lineTo(xk,yk);continue;}
+      k===0?ctx7.moveTo(xk,yk):ctx7.lineTo(xk,yk);
+    }
+    ctx7.stroke();
+  }
+
+  // Energy levels as horizontal bars
+  ZEROS_T.slice(0,nLev).forEach((tz,idx)=>{
+    const lx=ex(tz);
+    const pulse3=0.6+0.4*Math.sin(t*2+idx*0.5);
+    const col=`hsl(${200+idx*8},80%,${50+20*pulse3}%)`;
+    // Level line
+    ctx7.strokeStyle=col;ctx7.lineWidth=2;
+    ctx7.beginPath();ctx7.moveTo(lx-12,levelsY);ctx7.lineTo(lx+12,levelsY);ctx7.stroke();
+    // Vertical tick
+    ctx7.strokeStyle=`rgba(100,180,255,${0.4+0.4*pulse3})`;ctx7.lineWidth=1;
+    ctx7.setLineDash([3,3]);
+    ctx7.beginPath();ctx7.moveTo(lx,levelsY+20);ctx7.lineTo(lx,levelsY+80);ctx7.stroke();
+    ctx7.setLineDash([]);
+    // Dot
+    const grd7=ctx7.createRadialGradient(lx,levelsY,0,lx,levelsY,10);
+    grd7.addColorStop(0,`rgba(255,220,50,${0.7+0.3*pulse3})`);
+    grd7.addColorStop(1,'rgba(255,220,50,0)');
+    ctx7.beginPath();ctx7.arc(lx,levelsY,10,0,Math.PI*2);ctx7.fillStyle=grd7;ctx7.fill();
+    ctx7.beginPath();ctx7.arc(lx,levelsY,3.5,0,Math.PI*2);
+    ctx7.fillStyle=`rgba(255,240,100,0.9)`;ctx7.fill();
+    // Label
+    if(idx<8){
+      ctx7.fillStyle='rgba(255,240,100,0.75)';ctx7.font='12px sans-serif';
+      ctx7.textAlign='center';
+      ctx7.fillText(`t${idx+1}`,lx,levelsY+94);
+      ctx7.fillText(tz.toFixed(1),lx,levelsY+105);
+      ctx7.textAlign='left';
+    }
+  });
+
+  // "Operator" box
+  const opX=cx-60, opY=levelsY-80, opW=120, opH=50;
+  ctx7.fillStyle='rgba(20,20,60,0.9)';ctx7.fillRect(opX,opY,opW,opH);
+  ctx7.strokeStyle='rgba(100,160,255,0.7)';ctx7.lineWidth=1.5;ctx7.strokeRect(opX,opY,opW,opH);
+  ctx7.fillStyle='rgba(255,200,100,0.9)';ctx7.font='bold 14px serif';ctx7.textAlign='center';
+  ctx7.fillText('H = xp',cx,opY+22);
+  ctx7.fillStyle='rgba(160,175,220,0.7)';ctx7.font='12px sans-serif';
+  ctx7.fillText('Berry–Keating',cx,opY+38);
+  ctx7.textAlign='left';
+
+  // Arrows from operator to levels
+  ctx7.strokeStyle='rgba(100,200,255,0.4)';ctx7.lineWidth=1;
+  ctx7.setLineDash([4,4]);
+  ctx7.beginPath();ctx7.moveTo(cx,opY+opH);ctx7.lineTo(cx,levelsY-15);ctx7.stroke();
+  ctx7.setLineDash([]);
+
+  ctx7.fillStyle='rgba(200,220,255,0.9)';ctx7.font='bold 14px sans-serif';ctx7.textAlign='center';
+  ctx7.fillText('Hilbert–Pólya Conjecture: Zeros as Quantum Energy Levels',cx,35);
+  ctx7.fillStyle='rgba(160,175,220,0.75)';ctx7.font='12px sans-serif';
+  ctx7.fillText('If H is self-adjoint, its real eigenvalues ⟹ zeros on Re(s)=½ ⟹ RH proved!',cx,56);
+  ctx7.fillText('Im(zeros of ζ) = eigenvalues of H',cx,levelsY+130);
+  ctx7.fillStyle='rgba(255,200,100,0.7)';ctx7.font='12px sans-serif';
+  ctx7.fillText('Selberg trace formula, quantum chaos, and the prime geodesic theorem all point here',cx,H-16);
+  ctx7.textAlign='left';
+}
+
+function togglePhysAnim(){
+  const btn=document.getElementById('btnPhy');
+  if(physAnimRunning){
+    physAnimRunning=false;
+    if(physAnimId)cancelAnimationFrame(physAnimId);physAnimId=null;
+    btn.textContent='▶ Animate';btn.classList.remove('on');return;
+  }
+  physAnimRunning=true;
+  btn.textContent='⏸ Pause';btn.classList.add('on');
+  function frame(){
+    if(!physAnimRunning)return;
+    physAnimPh+=0.025*(window.animSpeed||0.1);
+    drawPhys();
+    physAnimId=requestAnimationFrame(frame);
+  }
+  physAnimId=requestAnimationFrame(frame);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+function init(){
+  buildZList();
+  buildCSZeroList();
+  // Reflect initial slider values
+  document.getElementById('tminV').textContent=document.getElementById('tmin').value;
+  document.getElementById('tmaxV').textContent=document.getElementById('tmax').value;
+  document.getElementById('xmaxV').textContent=document.getElementById('xmax').value;
+  document.getElementById('nzerosV').textContent=document.getElementById('nzeros').value;
+  // Start Tab 0 domain coloring
+  recompute();
+}
+
+window.addEventListener('load',()=>setTimeout(init,80));
+
+window.addEventListener('resize',()=>{
+  if(document.querySelector('#pane0.active')) recompute();
+  if(document.querySelector('#pane1.active')) draw1();
+  if(document.querySelector('#pane2.active')){draw2a();draw2b();}
+  if(document.querySelector('#pane3.active')) drawCritStrip();
+  if(document.querySelector('#pane4.active')) drawExplicit();
+  if(document.querySelector('#pane5.active')) drawGUE();
+  if(document.querySelector('#pane6.active')) drawFuncEq();
+  if(document.querySelector('#pane7.active')) drawPhys();
+});
+
+// Init speed controls
+window.animSpeed=0.1;
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

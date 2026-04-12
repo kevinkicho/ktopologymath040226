@@ -1,0 +1,2463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>31 · Yang–Mills Instantons &amp; Topology</title>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#ff4455;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px;flex-shrink:0}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden;min-height:0}
+.pane.active{display:flex}
+.canvas-area{flex:1;display:flex;flex-direction:column;background:var(--bg);padding:12px;gap:8px;overflow:hidden;min-height:0}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;width:100%;flex:1;min-height:0;display:block;cursor:crosshair}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span.val{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent)}
+.info-panel{width:300px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:12px;flex-shrink:0}
+.info-panel h3{font-size:.85rem;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:.8rem;color:var(--text);line-height:1.8;font-family:'Courier New',monospace}
+.info-panel p{font-size:.76rem;color:var(--dim);line-height:1.65}
+.info-panel .highlight{color:var(--accent);font-weight:600}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.78rem;color:var(--dim);line-height:1.65;flex-shrink:0}
+.info-box .val{color:var(--accent);font-weight:600}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.panes{display:flex;flex-direction:column;flex:1;overflow:hidden}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 25</span>
+  <div class="title-block">
+    <h1>Yang–Mills Instantons &amp; Topology</h1>
+    <p>Self-dual gauge fields, BPST solutions, Chern–Simons theory &amp; the Atiyah–Singer index theorem</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Self-Dual Fields</div>
+  <div class="tab" onclick="switchTab(1)">BPST Instanton</div>
+  <div class="tab" onclick="switchTab(2)">Chern–Simons &amp; Index</div>
+  <div class="tab" onclick="switchTab(3)">θ-Vacuum &amp; Tunneling</div>
+  <div class="tab" onclick="switchTab(4)">Atiyah–Singer</div>
+  <div class="tab" onclick="switchTab(5)">Sphaleron</div>
+  <div class="tab" onclick="switchTab(6)">Moduli Space</div>
+</div>
+
+<div id="main">
+
+<!-- TAB 0 -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <span style="font-size:.76rem;color:var(--dim);margin-left:8px">Drag the point to explore gauge field configurations</span>
+    </div>
+    <div class="info-box" id="infoBox0">
+      S<sub>YM</sub> = <span class="val" id="v0_sym">—</span> &nbsp;|&nbsp;
+      Q = <span class="val" id="v0_Q">—</span> &nbsp;|&nbsp;
+      ‖F⁺‖² = <span class="val" id="v0_fp">—</span> &nbsp;|&nbsp;
+      ‖F⁻‖² = <span class="val" id="v0_fm">—</span>
+    </div>
+  </div>
+  <div class="info-panel">
+    <h3>Self-Dual Decomposition</h3>
+    <div class="eq-block">
+★F = +F  (self-dual)
+★F = -F  (anti-self-dual)
+S ≥ 8π²|Q|
+Q ∈ ℤ
+F⁺ = ½(F + ★F)
+F⁻ = ½(F − ★F)
+    </div>
+    <p>The Yang-Mills functional over Euclidean ℝ⁴ is minimized by <span class="highlight">(anti-)self-dual gauge fields</span> — instantons. Their action saturates the topological lower bound <span class="highlight">8π²|Q|</span>.</p>
+    <p>Instantons cannot be seen in Minkowski space — they are <span class="highlight">tunneling trajectories</span> between different vacuum sectors, connected through the barrier of the gauge potential energy.</p>
+    <p>The phase diagram shows ‖F⁺‖² vs ‖F⁻‖². The <span class="highlight">instanton valley</span> (glowing line) lies on the F⁻=0 axis where Q = S/8π² exactly.</p>
+    <div class="eq-block">
+S_YM = ‖F⁺‖² + ‖F⁻‖²
+Q    = ‖F⁺‖² − ‖F⁻‖²
+Bogomolny: S ≥ 8π²|Q|
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1 -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">Size ρ</label>
+      <input type="range" id="rhoSlider" min="3" max="30" value="10" oninput="draw1()">
+      <span class="val" id="rhoVal">1.0</span>
+      <button id="antiBtn" onclick="toggleAnti()">Q = +1 (Instanton)</button>
+      <button id="multiBtn" onclick="toggleMulti()">Multi-Instanton</button>
+    </div>
+    <div class="info-box">
+      Field strength density: <span class="val">f(r) = 192ρ⁴ / (r²+ρ²)⁴</span> &nbsp;|&nbsp;
+      Total charge: <span class="val">∫f d⁴x = 8π²</span>
+    </div>
+  </div>
+  <div class="info-panel">
+    <h3>BPST Instanton (Q=1)</h3>
+    <div class="eq-block">
+A_μ^a = (2/g)·η_{aμν}·x_ν/(x²+ρ²)
+F_μν^a F^{μν a} = 192ρ⁴/(x²+ρ²)⁴
+    </div>
+    <p><span class="highlight">Scale invariance:</span> ρ is a modulus — instantons come in all sizes with equal action S = 8π²/g².</p>
+    <p>The 5-parameter moduli space for SU(2), Q=1: center position (4 params) + size ρ. For charge k: 8k−3 parameters.</p>
+    <div class="eq-block">
+dim(moduli) = 8k − 3
+  for SU(2), charge k
+    </div>
+    <p><span class="highlight">Physical role:</span> instanton gas → θ-vacuum, chiral symmetry breaking, axion physics. The dilute instanton gas approximation gives the full non-perturbative QCD vacuum structure.</p>
+    <p>The field strength density is <span class="highlight">localized</span> within ~ρ of the center. Integrating over all ℝ⁴ always gives exactly 8π² regardless of ρ.</p>
+  </div>
+</div>
+
+<!-- TAB 2 -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-area">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">Instanton charge Q</label>
+      <input type="range" id="qSlider" min="0" max="3" step="1" value="1" oninput="draw2()">
+      <span class="val" id="qVal">1</span>
+      <button id="idxBtn" class="animBtn" onclick="toggleIndexAnim()">▶ Animate</button>
+    </div>
+    <div class="info-box">
+      ind(D̸) = dim ker D̸⁺ − dim ker D̸⁻ = <span class="val" id="indexVal">Q</span>
+    </div>
+  </div>
+  <div class="info-panel">
+    <h3>Atiyah-Singer Index Theorem</h3>
+    <div class="eq-block">
+ind(D̸_A) = Q
+ind(D̸) = ∫ ch(F) ∧ Â(R)
+ch(F) = Tr e^{iF/2π}
+Â(R): A-hat genus
+    </div>
+    <p><span class="highlight">Zero modes of the Dirac operator = topology!</span> The instanton background forces exact zero eigenvalues.</p>
+    <p>Physical consequence: instantons induce <span class="highlight">'t Hooft vertices</span> — effective interactions that violate axial baryon number (U(1)_A anomaly).</p>
+    <h3>Chern-Simons Theory</h3>
+    <div class="eq-block">
+CS(A) = Tr(A∧dA + ⅔A∧A∧A)
+CS → CS + dα + 8π²·w(g)
+w(g) ∈ ℤ (winding number)
+    </div>
+    <p>The θ-vacuum: <span class="highlight">|θ⟩ = Σ_n e^{inθ}|n⟩</span></p>
+    <p>Tunneling amplitude: <span class="highlight">∝ e^{-8π²/g²}</span> — non-perturbative, invisible to any order in g.</p>
+  </div>
+</div>
+
+<!-- TAB 3: θ-Vacuum & Tunneling -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">Coupling g</label>
+      <input type="range" id="gSlider" min="5" max="40" value="15" step="1" oninput="draw3()">
+      <span class="val" id="gVal">1.5</span>
+      <label style="margin-left:12px">θ-angle</label>
+      <input type="range" id="thetaSlider" min="-314" max="314" value="0" step="1" oninput="draw3()">
+      <span class="val" id="thetaVal">0.00</span>
+      <button id="tunBtn" class="animBtn" onclick="toggleTunnel()">▶ Animate</button>
+    </div>
+    <div class="info-box">
+      Tunneling amplitude: e<sup>−8π²/g²</sup> = <span class="val" id="tunAmp">—</span>
+      &nbsp;|&nbsp; Sectors shown: n = 0,1,2,3
+      &nbsp;|&nbsp; θ-tilt: <span class="val" id="thetaTilt">0.00</span> rad
+    </div>
+  </div>
+  <div class="info-panel">
+    <h3>QCD Vacuum Structure</h3>
+    <div class="eq-block">
+|θ⟩ = Σₙ e^{inθ}|n⟩
+V(n) = -Λ⁴cos(θ)  (θ-vacuum)
+Δn = ±1 via instanton
+    </div>
+    <p>The gauge field configuration space has an infinite family of topological sectors <span class="highlight">|n⟩</span>, labelled by the Chern-Simons winding number. They are separated by potential barriers.</p>
+    <p>The true QCD vacuum <span class="highlight">|θ⟩</span> is a coherent superposition — a Bloch state of the periodic gauge structure. Tunneling between sectors is mediated by instantons.</p>
+    <div class="eq-block">
+Amplitude: ⟨n+1|e^{−HT}|n⟩
+  ∝ e^{−8π²/g²}  (one instanton)
+Non-perturbative! Invisible to
+any finite order in g.
+    </div>
+    <p>The <span class="highlight">θ-angle</span> tilts the periodic potential, breaking CP symmetry. The strong CP problem: why is |θ| &lt; 10⁻¹⁰ observed? Axions (Peccei-Quinn mechanism) provide a dynamical answer.</p>
+    <div class="eq-block">
+L ⊃ (θ/32π²) Tr(F∧F)
+CP violated if θ ≠ 0, π
+Axion: θ → θ + a/f_a
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: Atiyah-Singer Index Theorem -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">Instanton charge k</label>
+      <input type="range" id="kSlider" min="0" max="4" step="1" value="1" oninput="draw4()">
+      <span class="val" id="kVal">1</span>
+      <label style="margin-left:12px">Zero mode ψ₀ size</label>
+      <input type="range" id="zmSizeSlider" min="5" max="30" value="12" oninput="draw4()">
+      <button id="zmBtn" class="animBtn" onclick="toggleZeroMode()">▶ Animate</button>
+    </div>
+    <div class="info-box">
+      index(D̸) = n₊ − n₋ = k = <span class="val" id="indexVal4">1</span>
+      &nbsp;|&nbsp; Left-handed zero modes: <span class="val" id="zmLeft">1</span>
+      &nbsp;|&nbsp; Right-handed: <span class="val" id="zmRight">0</span>
+    </div>
+  </div>
+  <div class="info-panel">
+    <h3>Atiyah-Singer Index Theorem</h3>
+    <div class="eq-block">
+index(D̸_A) = n₊ − n₋
+= (1/8π²)∫Tr(F∧F)
+= k  (instanton number)
+    </div>
+    <p>The <span class="highlight">index of the Dirac operator</span> in an instanton background equals the topological charge. For k=1: exactly one left-handed normalizable zero mode, zero right-handed.</p>
+    <p>The zero mode <span class="highlight">ψ₀(x)</span> is localized on the instanton with the same scale ρ. It satisfies D̸ψ₀ = 0 — an exact eigenvalue at λ=0.</p>
+    <div class="eq-block">
+ψ₀(x) ∝ ρ/(x²+ρ²)^{3/2}
+       × (SU(2) spinor)
+‖ψ₀‖² = 1  (normalizable)
+    </div>
+    <p>Physical consequence: the <span class="highlight">'t Hooft vertex</span> — instantons generate effective interactions between 2N_f fermions (one zero mode per flavor), breaking axial U(1)_A symmetry. This resolves the η' mass puzzle.</p>
+    <div class="eq-block">
+det(D̸ + m) ~ m^k near m=0
+U(1)_A broken: Δ(B-L) = 2N_f·k
+    </div>
+    <p>The full theorem: <span class="highlight">index = ∫ch(F)∧Â(R)</span>, combining Chern character of the gauge bundle with the A-hat genus of the manifold.</p>
+  </div>
+</div>
+
+<!-- TAB 5: Sphaleron & Baryogenesis -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">Temperature T/T<sub>sph</sub></label>
+      <input type="range" id="tempSlider" min="0" max="100" value="30" oninput="draw5()">
+      <span class="val" id="tempVal">0.30</span>
+      <button id="sphBtn" class="animBtn" onclick="toggleSphaleron()">▶ Animate</button>
+    </div>
+    <div class="info-box">
+      Mode: <span class="val" id="modeLabel">Instanton tunneling (T≈0)</span>
+      &nbsp;|&nbsp; ΔB = ΔL = N<sub>f</sub> = 3
+      &nbsp;|&nbsp; Rate ∝ <span class="val" id="rateLabel">e^{−8π²/g²}</span>
+    </div>
+  </div>
+  <div class="info-panel">
+    <h3>Sphaleron Solution</h3>
+    <div class="eq-block">
+E_sph = (4π/g) · B(λ/g²)
+B ≈ 1.52  (Klinkhamer-Manton)
+E_sph ≈ 9 TeV (at T=0)
+    </div>
+    <p>The <span class="highlight">sphaleron</span> (Greek: "ready to fall") is an unstable static solution of the electroweak field equations, sitting at the <em>top</em> of the potential barrier between topological sectors.</p>
+    <p>At <span class="highlight">T ≈ 0</span>: quantum tunneling through the barrier via instantons. Rate exponentially suppressed.</p>
+    <p>At <span class="highlight">T &gt; T<sub>sph</sub> ≈ 10 TeV</span> (electroweak scale): thermal fluctuations drive the system <em>over</em> the sphaleron barrier. Rate becomes unsuppressed.</p>
+    <div class="eq-block">
+Γ_sph ~ T⁴ e^{−E_sph/T}  (low T)
+Γ_sph ~ α_W⁴ T⁴           (high T)
+ΔB = ΔL = N_f per crossing
+    </div>
+    <p><span class="highlight">Baryogenesis:</span> Sakharov conditions — (1) B violation ✓, (2) C and CP violation, (3) departure from thermal equilibrium. Electroweak baryogenesis uses sphaleron transitions at the electroweak phase transition.</p>
+    <div class="eq-block">
+B+L violation: sphaleron
+B−L conservation: exact
+Net baryon asymmetry:
+η = (n_B − n_B̄)/n_γ ~ 10⁻¹⁰
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: Moduli Space -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-area">
+    <canvas id="c6"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label style="margin-left:12px">k (instanton charge)</label>
+      <input type="range" id="modkSlider" min="1" max="4" step="1" value="1" oninput="draw6()">
+      <span class="val" id="modkVal">1</span>
+      <label style="margin-left:12px">Animate valley</label>
+      <button id="modBtn" class="animBtn" onclick="toggleModuli()">▶ Animate</button>
+    </div>
+    <div class="info-box">
+      dim(ℳ_k) = 8k − 3 for SU(2) = <span class="val" id="modDim">5</span>
+      &nbsp;|&nbsp; S[instanton] = 8π²k/g² = const along valley
+    </div>
+  </div>
+  <div class="info-panel">
+    <h3>Instanton Moduli Space</h3>
+    <div class="eq-block">
+k=1, SU(2):
+  8 parameters total:
+  − 4: center x₀ ∈ ℝ⁴
+  − 1: size ρ ∈ ℝ₊
+  − 3: orientation ∈ SU(2)/U(1)
+dim(ℳ_1) = 8·1 − 3 = 5
+    </div>
+    <p>The moduli space <span class="highlight">ℳ_k</span> is the space of all self-dual gauge field configurations with topological charge k, modulo gauge equivalence. It is a smooth manifold of dimension 8k−3 for SU(2).</p>
+    <p>The Yang-Mills <span class="highlight">action is constant</span> along ℳ_k: S = 8π²k/g² for all points. This "flat direction" (valley) is the hallmark of BPS saturation.</p>
+    <div class="eq-block">
+Collective coordinates:
+  z_i ≡ moduli (zero modes)
+  Integrate over ℳ_k:
+  ∫_{ℳ_k} [dz] e^{−S} J(z)
+    </div>
+    <p>Physically, the zero modes of the instanton background are the <span class="highlight">Goldstone modes</span> of the action — fluctuations that cost zero action. They must be integrated exactly (not in saddle-point approximation).</p>
+    <div class="eq-block">
+Multi-instanton:
+dim(ℳ_k) = 8k − 3
+For k=2: 13 params
+  (relative position,
+   relative orientation...)
+    </div>
+    <p>The ADHM construction (Atiyah-Drinfeld-Hitchin-Manin) gives an explicit algebraic parametrization of all instantons via linear algebra data on a vector space, revealing deep connections to algebraic geometry.</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ---- TAB SWITCHING ----
+function switchTab(i){
+  _cancelAllAnims31();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  if(i===0){draw0();}
+  if(i===1){draw1();}
+  if(i===2){draw2();toggleIndexAnim();}
+  if(i===3){draw3();toggleTunnel();}
+  if(i===4){draw4();toggleZeroMode();}
+  if(i===5){draw5();toggleSphaleron();}
+  if(i===6){draw6();toggleModuli();}
+}
+
+function syncSpeedControl31(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+
+function _cancelAllAnims31(){
+  if(zmAnimId){cancelAnimationFrame(zmAnimId);zmAnimId=null;}
+  if(sphAnimId){cancelAnimationFrame(sphAnimId);sphAnimId=null;}
+  if(indexAnimId){cancelAnimationFrame(indexAnimId);indexAnimId=null;}
+  if(tunAnimId){cancelAnimationFrame(tunAnimId);tunAnimId=null;}
+  if(modAnimId){cancelAnimationFrame(modAnimId);modAnimId=null;}
+  const btns = ['idxBtn','tunBtn','zmBtn','sphBtn','modBtn'];
+  btns.forEach(id => {
+    const b = document.getElementById(id);
+    if(b){ b.textContent='▶ Animate'; b.classList.remove('active-btn'); }
+  });
+}
+
+// ==============================
+// TAB 0 — SELF-DUAL FIELDS
+// ==============================
+let pt0 = {x:2, y:7}; // ||F-||^2, ||F+||^2
+let dragging0 = false;
+
+function worldToCanvas0(wx, wy, W, H) {
+  // x-axis: ||F-||^2 from 0 to 10 (left 0 to right 10)
+  // y-axis: ||F+||^2 from 0 to 10 (bottom 0 to top 10)
+  const pad = 52;
+  const plotW = W * 0.62 - pad*1.5;
+  const plotH = H * 0.62 - pad*1.5;
+  const ox = pad + 8;
+  const oy = pad + 8;
+  const cx = ox + (wx / 10) * plotW;
+  const cy = oy + plotH - (wy / 10) * plotH;
+  return {cx, cy};
+}
+
+function canvasToWorld0(cx, cy, W, H) {
+  const pad = 52;
+  const plotW = W * 0.62 - pad*1.5;
+  const plotH = H * 0.62 - pad*1.5;
+  const ox = pad + 8;
+  const oy = pad + 8;
+  const wx = ((cx - ox) / plotW) * 10;
+  const wy = ((oy + plotH - cy) / plotH) * 10;
+  return {wx: Math.max(0, Math.min(10, wx)), wy: Math.max(0, Math.min(10, wy))};
+}
+
+function draw0() {
+  const cv = document.getElementById('c0');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = 52;
+  // Main phase diagram occupies top 65% of canvas, left 65% of width
+  const diagW = W * 0.63;
+  const diagH = H * 0.62;
+  const plotW = diagW - pad*1.5;
+  const plotH = diagH - pad*1.5;
+  const ox = pad + 8;
+  const oy = pad + 8;
+
+  // Grid
+  ctx.strokeStyle = '#1a1a3a';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 10; i++) {
+    const gx = ox + (i/10)*plotW;
+    const gy = oy + plotH - (i/10)*plotH;
+    ctx.beginPath(); ctx.moveTo(gx, oy); ctx.lineTo(gx, oy+plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox, gy); ctx.lineTo(ox+plotW, gy); ctx.stroke();
+  }
+
+  // Q contour lines (||F+||^2 - ||F-||^2 = const): y - x = const => lines at 45deg
+  for (let q = -8; q <= 8; q += 2) {
+    if (q === 0) continue;
+    const alpha = Math.abs(q) < 4 ? 0.15 : 0.07;
+    ctx.strokeStyle = `rgba(100,100,200,${alpha})`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    // y = x + q in world coords
+    const x1 = Math.max(0, -q), y1 = x1 + q;
+    const x2 = Math.min(10, 10-q), y2 = x2 + q;
+    if (y1 >= 0 && y1 <= 10 && y2 >= 0 && y2 <= 10) {
+      const p1 = worldToCanvas0(x1, y1, W, H);
+      const p2 = worldToCanvas0(x2, y2, W, H);
+      ctx.moveTo(p1.cx, p1.cy);
+      ctx.lineTo(p2.cx, p2.cy);
+      ctx.stroke();
+      // label
+      ctx.fillStyle = 'rgba(100,100,200,0.5)';
+      ctx.font = '12px Segoe UI';
+      ctx.fillText('Q='+q, p2.cx+3, p2.cy);
+    }
+    ctx.setLineDash([]);
+  }
+
+  // S_YM contours: ||F+||^2 + ||F-||^2 = S (quarter circles)
+  for (let s = 2; s <= 18; s += 2) {
+    ctx.strokeStyle = `rgba(120,80,180,0.18)`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    let first = true;
+    for (let a = 0; a <= Math.PI/2; a += 0.02) {
+      const wx = Math.sqrt(s) * Math.cos(a);
+      const wy = Math.sqrt(s) * Math.sin(a);
+      if (wx > 10 || wy > 10) continue;
+      const {cx, cy} = worldToCanvas0(wx, wy, W, H);
+      if (first) { ctx.moveTo(cx, cy); first = false; }
+      else ctx.lineTo(cx, cy);
+    }
+    ctx.stroke();
+    // label
+    const la = Math.PI/4;
+    const lwx = Math.sqrt(s)*Math.cos(la), lwy = Math.sqrt(s)*Math.sin(la);
+    if (lwx <= 9.5 && lwy <= 9.5) {
+      const lp = worldToCanvas0(lwx, lwy, W, H);
+      ctx.fillStyle = 'rgba(120,80,180,0.5)';
+      ctx.font = '12px Segoe UI';
+      ctx.fillText('S='+s, lp.cx+2, lp.cy-2);
+    }
+  }
+
+  // Q=0 diagonal
+  ctx.strokeStyle = 'rgba(180,180,100,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  const qd1 = worldToCanvas0(0, 0, W, H);
+  const qd2 = worldToCanvas0(10, 10, W, H);
+  ctx.moveTo(qd1.cx, qd1.cy); ctx.lineTo(qd2.cx, qd2.cy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(180,180,100,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Q=0', qd2.cx - 30, qd2.cy - 8);
+
+  // Anti-instanton valley (||F+||^2 = 0 axis)
+  ctx.strokeStyle = 'rgba(80,120,255,0.4)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5,3]);
+  const av1 = worldToCanvas0(0, 0, W, H);
+  const av2 = worldToCanvas0(10, 0, W, H);
+  ctx.beginPath(); ctx.moveTo(av1.cx, av1.cy); ctx.lineTo(av2.cx, av2.cy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(80,120,255,0.7)';
+  ctx.font = '12px Segoe UI';
+  const avLbl = worldToCanvas0(5, 0, W, H);
+  ctx.fillText('anti-instanton (F⁺=0)', avLbl.cx - 30, avLbl.cy + 14);
+
+  // Instanton valley (||F-||^2 = 0 axis) — glowing
+  const gradV = ctx.createLinearGradient(ox, oy+plotH, ox, oy);
+  gradV.addColorStop(0, 'rgba(255,68,85,0)');
+  gradV.addColorStop(0.3, 'rgba(255,68,85,0.6)');
+  gradV.addColorStop(1, 'rgba(255,68,85,0.9)');
+  ctx.strokeStyle = gradV;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = '#ff4455';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  const iv1 = worldToCanvas0(0, 0, W, H);
+  const iv2 = worldToCanvas0(0, 10, W, H);
+  ctx.moveTo(iv1.cx, iv1.cy); ctx.lineTo(iv2.cx, iv2.cy); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ff4455';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('instanton valley (F⁻=0)', iv2.cx + 4, iv2.cy + 8);
+
+  // Axes
+  ctx.strokeStyle = '#44446a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(ox, oy); ctx.lineTo(ox, oy+plotH);
+  ctx.moveTo(ox, oy+plotH); ctx.lineTo(ox+plotW, oy+plotH);
+  ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('‖F⁻‖²', ox + plotW/2 - 16, oy + plotH + 36);
+  ctx.save(); ctx.translate(ox - 36, oy + plotH/2);
+  ctx.rotate(-Math.PI/2); ctx.fillText('‖F⁺‖²', -16, 0); ctx.restore();
+
+  // Tick labels
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  for (let i = 0; i <= 10; i += 2) {
+    const gx = ox + (i/10)*plotW;
+    ctx.fillText(i, gx - 4, oy + plotH + 14);
+    const gy = oy + plotH - (i/10)*plotH;
+    ctx.fillText(i, ox - 18, gy + 4);
+  }
+
+  // Current point — gradient flow arrows
+  const {cx: px, cy: py} = worldToCanvas0(pt0.x, pt0.y, W, H);
+  // Arrow toward instanton minimum (F- → 0, keep F+)
+  const targetX = 0, targetY = pt0.y;
+  const {cx: tx, cy: ty} = worldToCanvas0(targetX, targetY, W, H);
+  const dx = tx - px, dy = ty - py;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  if (len > 10) {
+    drawArrow(ctx, px, py, px + dx*0.5, py + dy*0.5, '#ff4455', 2);
+  }
+
+  // Draggable point
+  ctx.shadowColor = '#ff4455';
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.arc(px, py, 8, 0, Math.PI*2);
+  ctx.fillStyle = '#ff4455';
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Update info
+  const sym = (pt0.x + pt0.y).toFixed(2);
+  const q = (pt0.y - pt0.x).toFixed(2);
+  document.getElementById('v0_sym').textContent = sym;
+  document.getElementById('v0_Q').textContent = q;
+  document.getElementById('v0_fp').textContent = pt0.y.toFixed(2);
+  document.getElementById('v0_fm').textContent = pt0.x.toFixed(2);
+
+  // BOTTOM: field profile comparison
+  const bTop = oy + plotH + 60;
+  const bH = H - bTop - 15;
+  if (bH < 60) return;
+
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Field strength profiles:', ox, bTop - 6);
+
+  const halfW = (W * 0.63 - ox - 10) / 2;
+
+  // Left: non-self-dual (two bumps)
+  drawProfilePlot(ctx, ox, bTop, halfW - 5, bH, 'Non-self-dual', [
+    {color:'rgba(80,160,255,0.8)', sigma:0.8, amp:0.6, center:0.35, label:'F⁺'},
+    {color:'rgba(255,100,80,0.8)', sigma:0.7, amp:0.5, center:0.7, label:'F⁻'},
+  ]);
+
+  // Right: self-dual instanton (one bump)
+  drawProfilePlot(ctx, ox + halfW + 5, bTop, halfW - 5, bH, 'Self-dual instanton', [
+    {color:'#ff4455', sigma:0.7, amp:0.85, center:0.5, label:'F⁺=★F'},
+  ]);
+}
+
+function drawProfilePlot(ctx, x, y, w, h, title, curves) {
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = 'rgba(0,0,20,0.3)';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText(title, x + 4, y + 13);
+
+  const plotX = x + 8, plotY = y + 18;
+  const pW = w - 16, pH = h - 28;
+
+  for (const c of curves) {
+    ctx.beginPath();
+    ctx.strokeStyle = c.color;
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= pW; i++) {
+      const t = i / pW;
+      const val = c.amp * Math.exp(-Math.pow((t - c.center) / c.sigma * 3, 2));
+      const cx2 = plotX + i;
+      const cy2 = plotY + pH - val * pH * 0.85;
+      if (i === 0) ctx.moveTo(cx2, cy2);
+      else ctx.lineTo(cx2, cy2);
+    }
+    ctx.stroke();
+    // label
+    const labelX = plotX + c.center * pW;
+    const labelY = plotY + pH - c.amp * pH * 0.85 - 8;
+    ctx.fillStyle = c.color;
+    ctx.font = '12px Segoe UI';
+    ctx.fillText(c.label, labelX - 8, Math.max(plotY + 5, labelY));
+  }
+
+  // axis
+  ctx.strokeStyle = '#33334a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(plotX, plotY + pH); ctx.lineTo(plotX + pW, plotY + pH); ctx.stroke();
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, lw) {
+  const dx = x2-x1, dy = y2-y1;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  if (len < 1) return;
+  const ux = dx/len, uy = dy/len;
+  ctx.strokeStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const aLen = 8;
+  const a1x = x2 - aLen*(ux + 0.5*uy);
+  const a1y = y2 - aLen*(uy - 0.5*ux);
+  const a2x = x2 - aLen*(ux - 0.5*uy);
+  const a2y = y2 - aLen*(uy + 0.5*ux);
+  ctx.beginPath(); ctx.moveTo(x2,y2); ctx.lineTo(a1x,a1y); ctx.lineTo(a2x,a2y); ctx.closePath();
+  ctx.fillStyle = color; ctx.fill();
+}
+
+// Mouse events for Tab 0
+const cv0 = document.getElementById('c0');
+cv0.addEventListener('mousedown', e => {
+  const rect = cv0.getBoundingClientRect();
+  const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+  const {cx:px,cy:py} = worldToCanvas0(pt0.x, pt0.y, cv0.offsetWidth, cv0.offsetHeight);
+  if (Math.hypot(cx-px, cy-py) < 18) dragging0 = true;
+});
+cv0.addEventListener('mousemove', e => {
+  if (!dragging0) return;
+  const rect = cv0.getBoundingClientRect();
+  const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+  const {wx,wy} = canvasToWorld0(cx, cy, cv0.offsetWidth, cv0.offsetHeight);
+  pt0.x = wx; pt0.y = wy;
+  draw0();
+});
+cv0.addEventListener('mouseup', () => dragging0 = false);
+cv0.addEventListener('mouseleave', () => dragging0 = false);
+
+// Touch events for Tab 0
+cv0.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const rect = cv0.getBoundingClientRect();
+  const touch = e.touches[0];
+  const cx = touch.clientX - rect.left, cy = touch.clientY - rect.top;
+  const {cx:px,cy:py} = worldToCanvas0(pt0.x, pt0.y, cv0.offsetWidth, cv0.offsetHeight);
+  if (Math.hypot(cx-px, cy-py) < 24) dragging0 = true;
+});
+cv0.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!dragging0) return;
+  const rect = cv0.getBoundingClientRect();
+  const touch = e.touches[0];
+  const cx = touch.clientX - rect.left, cy = touch.clientY - rect.top;
+  const {wx,wy} = canvasToWorld0(cx, cy, cv0.offsetWidth, cv0.offsetHeight);
+  pt0.x = wx; pt0.y = wy;
+  draw0();
+});
+cv0.addEventListener('touchend', () => dragging0 = false);
+
+// ==============================
+// TAB 1 — BPST INSTANTON
+// ==============================
+let isAnti = false;
+let isMulti = false;
+
+function toggleAnti() {
+  isAnti = !isAnti;
+  const btn = document.getElementById('antiBtn');
+  btn.textContent = isAnti ? 'Q = -1 (Anti-instanton)' : 'Q = +1 (Instanton)';
+  btn.classList.toggle('active-btn', isAnti);
+  draw1();
+}
+
+function toggleMulti() {
+  isMulti = !isMulti;
+  const btn = document.getElementById('multiBtn');
+  btn.classList.toggle('active-btn', isMulti);
+  draw1();
+}
+
+function bpstDensity(r2, rho2) {
+  // f(r) = 192 * rho^4 / (r^2 + rho^2)^4
+  const denom = r2 + rho2;
+  return 192 * rho2 * rho2 / (denom * denom * denom * denom);
+}
+
+// Cumulative charge Q(<r): integral of f(r)*r^3 dr from 0 to r, normalized
+// Analytically: Q(<r) = 1 - rho^4/(r^2+rho^2)^2  (in appropriate units)
+function cumCharge(r, rho) {
+  const x = r / rho;
+  return 1 - 1 / Math.pow(1 + x*x, 2);
+}
+
+function draw1() {
+  const cv = document.getElementById('c1');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const rhoSlider = document.getElementById('rhoSlider');
+  const rho = rhoSlider.value / 10;
+  document.getElementById('rhoVal').textContent = rho.toFixed(1);
+  const rho2 = rho * rho;
+
+  const halfW = W / 2;
+
+  // ---- LEFT HALF: profile plots ----
+  const lPad = 48;
+  const lW = halfW - lPad - 8;
+
+  // Plot 1: field strength density (top 45% of left half)
+  const p1Top = 28, p1H = H * 0.40;
+  drawAxes1(ctx, lPad, p1Top, lW, p1H, '0', '6', 'r', 'f(r)');
+
+  const rhoVals = [0.5, 1.0, 2.0];
+  const rhoColors = ['#ff8844','#ff4455','#ff44aa'];
+  const rhoLabels = ['ρ=0.5','ρ=1.0','ρ=2.0'];
+
+  // Find max f for scaling
+  let maxF = 0;
+  for (const rv of rhoVals) {
+    const f0 = bpstDensity(0, rv*rv);
+    if (f0 > maxF) maxF = f0;
+  }
+  maxF = Math.max(maxF, 1);
+
+  for (let ri = 0; ri < 3; ri++) {
+    const rv = rhoVals[ri];
+    const rv2 = rv * rv;
+    // Current rho: solid; others: dashed
+    const isCurrent = Math.abs(rv - rho) < 0.4;
+    ctx.strokeStyle = rhoColors[ri];
+    ctx.lineWidth = isCurrent ? 2.5 : 1.2;
+    ctx.setLineDash(isCurrent ? [] : [4,3]);
+    ctx.globalAlpha = isCurrent ? 1.0 : 0.5;
+
+    // Fill area under current curve
+    if (isCurrent) {
+      ctx.beginPath();
+      for (let i = 0; i <= lW; i++) {
+        const r = (i / lW) * 6;
+        const f = bpstDensity(r*r, rv2);
+        const fx = lPad + i;
+        const fy = p1Top + p1H - (f/maxF)*p1H*0.85;
+        if (i === 0) { ctx.moveTo(fx, p1Top + p1H); ctx.lineTo(fx, fy); }
+        else ctx.lineTo(fx, fy);
+      }
+      ctx.lineTo(lPad + lW, p1Top + p1H);
+      ctx.closePath();
+      const fillGrad = ctx.createLinearGradient(lPad, p1Top, lPad, p1Top+p1H);
+      fillGrad.addColorStop(0, isAnti ? 'rgba(80,120,255,0.3)' : 'rgba(255,68,85,0.3)');
+      fillGrad.addColorStop(1, 'rgba(255,68,85,0)');
+      ctx.fillStyle = fillGrad;
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    for (let i = 0; i <= lW; i++) {
+      const r = (i / lW) * 6;
+      const f = bpstDensity(r*r, rv2);
+      const fx = lPad + i;
+      const fy = p1Top + p1H - (f/maxF)*p1H*0.85;
+      if (i === 0) ctx.moveTo(fx, fy);
+      else ctx.lineTo(fx, fy);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+
+    // Label at peak (r=0)
+    const f0 = bpstDensity(0, rv2);
+    const labelY = p1Top + p1H - (f0/maxF)*p1H*0.85 - 8;
+    ctx.fillStyle = rhoColors[ri];
+    ctx.font = '12px Segoe UI';
+    ctx.fillText(rhoLabels[ri], lPad + ri*38 + 4, Math.max(p1Top + 10, labelY));
+  }
+
+  ctx.fillStyle = '#888';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('∫f d⁴x = 8π²·Q (always!)', lPad + 4, p1Top + p1H - 4);
+
+  // Plot 2: cumulative charge (bottom 45%)
+  const p2Top = H * 0.48, p2H = H * 0.40;
+  drawAxes1(ctx, lPad, p2Top, lW, p2H, '0', '6', 'r', 'Q(<r)');
+
+  for (let ri = 0; ri < 3; ri++) {
+    const rv = rhoVals[ri];
+    const isCurrent = Math.abs(rv - rho) < 0.4;
+    ctx.strokeStyle = rhoColors[ri];
+    ctx.lineWidth = isCurrent ? 2.5 : 1.2;
+    ctx.setLineDash(isCurrent ? [] : [4,3]);
+    ctx.globalAlpha = isCurrent ? 1.0 : 0.5;
+    ctx.beginPath();
+    for (let i = 0; i <= lW; i++) {
+      const r = (i / lW) * 6;
+      const qr = cumCharge(r, rv);
+      const fx = lPad + i;
+      const fy = p2Top + p2H - qr * p2H * 0.85;
+      if (i === 0) ctx.moveTo(fx, fy);
+      else ctx.lineTo(fx, fy);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+
+  // asymptote line
+  ctx.strokeStyle = 'rgba(100,100,100,0.4)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(lPad, p2Top + p2H - p2H*0.85);
+  ctx.lineTo(lPad + lW, p2Top + p2H - p2H*0.85);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#666';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Q=1', lPad + lW - 22, p2Top + p2H - p2H*0.85 - 4);
+
+  // ---- RIGHT HALF: 2D heatmap ----
+  const hmLeft = halfW + 4;
+  const hmTop = 8;
+  const hmW = halfW - 12;
+  const hmH = H - 16;
+  const cx0 = hmLeft + hmW/2;
+  const cy0 = hmTop + hmH/2;
+  const scale = Math.min(hmW, hmH) * 0.42;
+
+  // Compute heatmap
+  const imgData = ctx.createImageData(Math.round(hmW), Math.round(hmH));
+  const data = imgData.data;
+  const rhoDisp = rho; // use slider rho for heatmap
+
+  // For multi-instanton: two centers offset by rho
+  const centers = isMulti
+    ? [{dx:-rhoDisp*0.6, dy:0}, {dx:rhoDisp*0.6, dy:0}]
+    : [{dx:0, dy:0}];
+
+  for (let py2 = 0; py2 < hmH; py2++) {
+    for (let px2 = 0; px2 < hmW; px2++) {
+      const wx = (px2 - hmW/2) / scale * 3;
+      const wy = (py2 - hmH/2) / scale * 3;
+
+      let fTotal = 0;
+      for (const c of centers) {
+        const r2 = (wx-c.dx)*(wx-c.dx) + (wy-c.dy)*(wy-c.dy);
+        fTotal += bpstDensity(r2, rhoDisp*rhoDisp);
+      }
+
+      // Normalize
+      const fMax = bpstDensity(0, rhoDisp*rhoDisp) * (isMulti ? 1.5 : 1);
+      const t = Math.min(1, fTotal / fMax);
+      const idx = (py2 * Math.round(hmW) + px2) * 4;
+
+      if (isAnti) {
+        // Blue color for anti-instanton
+        data[idx]   = Math.round(30 + t*60);
+        data[idx+1] = Math.round(60 + t*100);
+        data[idx+2] = Math.round(80 + t*175);
+        data[idx+3] = 255;
+      } else {
+        // Red-pink for instanton
+        data[idx]   = Math.round(20 + t*235);
+        data[idx+1] = Math.round(10 + t*30);
+        data[idx+2] = Math.round(20 + t*55);
+        data[idx+3] = 255;
+      }
+    }
+  }
+  ctx.putImageData(imgData, hmLeft, hmTop);
+
+  // Border
+  ctx.strokeStyle = '#1c1c44';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(hmLeft, hmTop, hmW, hmH);
+
+  // Contour lines
+  const contourLevels = [0.8, 0.5, 0.3, 0.1, 0.05];
+  const fMax = bpstDensity(0, rhoDisp*rhoDisp);
+  for (const level of contourLevels) {
+    ctx.strokeStyle = `rgba(255,255,255,${level * 0.4 + 0.05})`;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    // For single instanton, contours are circles
+    if (!isMulti) {
+      // f(r) = fMax => level*fMax = 192*rho^4/(r^2+rho^2)^4
+      // (r^2+rho^2)^4 = 192*rho^4/level/fMax = 1/level
+      // (r^2+rho^2) = (1/level)^(1/4)*rho
+      const r2 = Math.max(0, rhoDisp*rhoDisp * (Math.pow(1/level, 0.25) - 1));
+      if (!isFinite(r2)) continue;
+      const rPx = Math.sqrt(r2) / 3 * scale;
+      if (rPx < 2) continue;
+      ctx.arc(cx0, cy0, rPx, 0, Math.PI*2);
+      ctx.stroke();
+    }
+  }
+
+  // Label
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Instanton core, size ρ = '+rhoDisp.toFixed(1), cx0, hmTop + 20);
+  ctx.textAlign = 'left';
+
+  // Axis cross
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  ctx.moveTo(hmLeft, cy0); ctx.lineTo(hmLeft+hmW, cy0);
+  ctx.moveTo(cx0, hmTop); ctx.lineTo(cx0, hmTop+hmH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axis labels
+  ctx.fillStyle = 'rgba(180,180,200,0.6)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('x₁', hmLeft + hmW - 16, cy0 - 5);
+  ctx.fillText('x₂', cx0 + 4, hmTop + 14);
+
+  // Size indicator circle
+  const rhoPx = rhoDisp / 3 * scale;
+  ctx.strokeStyle = isAnti ? 'rgba(80,160,255,0.6)' : 'rgba(255,68,85,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5,3]);
+  ctx.beginPath(); ctx.arc(cx0, cy0, rhoPx, 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = isAnti ? 'rgba(80,160,255,0.8)' : 'rgba(255,68,85,0.8)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('ρ', cx0 + rhoPx + 3, cy0 - 3);
+}
+
+function drawAxes1(ctx, x, y, w, h, xMin, xMax, xLabel, yLabel) {
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, y); ctx.lineTo(x, y+h);
+  ctx.moveTo(x, y+h); ctx.lineTo(x+w, y+h);
+  ctx.stroke();
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText(xMin, x, y+h+12);
+  ctx.fillText(xMax, x+w-8, y+h+12);
+  ctx.fillText(xLabel, x+w/2-4, y+h+12);
+  ctx.save(); ctx.translate(x-14, y+h/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(yLabel, -10, 0); ctx.restore();
+  // Grid
+  ctx.strokeStyle = '#151530';
+  ctx.lineWidth = 0.5;
+  for (let i = 1; i <= 5; i++) {
+    const gx = x + (i/6)*w, gy = y + (i/6)*h;
+    ctx.beginPath(); ctx.moveTo(gx,y); ctx.lineTo(gx,y+h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,gy); ctx.lineTo(x+w,gy); ctx.stroke();
+  }
+}
+
+// ==============================
+// TAB 2 — CHERN-SIMONS & INDEX
+// ==============================
+let indexAnimId = null;
+let indexAnimQ = 0;
+let indexAnimTarget = 1;
+
+function toggleIndexAnim() {
+  const btn = document.getElementById('idxBtn');
+  if (indexAnimId) {
+    cancelAnimationFrame(indexAnimId);
+    indexAnimId = null;
+    if(btn) { btn.textContent = '▶ Animate'; btn.classList.remove('active-btn'); }
+    return;
+  }
+  if(btn) { btn.textContent = '⏸ Pause'; btn.classList.add('active-btn'); }
+  const slider = document.getElementById('qSlider');
+  let q = 0;
+  const target = parseInt(slider.value) || 1;
+  indexAnimTarget = target;
+  indexAnimQ = 0;
+
+  function frame() {
+    indexAnimQ += 0.022*(window.animSpeed||0.1);
+    if (indexAnimQ >= target) { indexAnimQ = target; indexAnimId = null; draw2(); if(btn) { btn.textContent = '▶ Animate'; btn.classList.remove('active-btn'); } return; }
+    draw2Partial(indexAnimQ);
+    indexAnimId = requestAnimationFrame(frame);
+  }
+  indexAnimId = requestAnimationFrame(frame);
+}
+
+function draw2() {
+  const slider = document.getElementById('qSlider');
+  const Q = parseInt(slider.value) || 0;
+  document.getElementById('qVal').textContent = Q;
+  document.getElementById('indexVal').textContent = Q;
+  draw2Partial(Q);
+}
+
+function draw2Partial(animQ) {
+  const cv = document.getElementById('c2');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const topH = H * 0.52;
+  const botH = H - topH - 4;
+  const botY = topH + 4;
+
+  // ---- TOP: Chern-Simons vacuum landscape ----
+  drawCSLandscape(ctx, 0, 0, W, topH);
+
+  // ---- BOTTOM: Atiyah-Singer index ----
+  drawIndexDiagram(ctx, 0, botY, W, botH, animQ);
+}
+
+function drawCSLandscape(ctx, x, y, w, h) {
+  ctx.save();
+  // Background
+  ctx.fillStyle = 'rgba(5,5,20,0.3)';
+  ctx.fillRect(x, y, w, h);
+
+  const padL = 60, padR = 30, padT = 30, padB = 40;
+  const pW = w - padL - padR;
+  const pH = h - padT - padB;
+  const ox = x + padL, oy = y + padT;
+
+  // Grid
+  ctx.strokeStyle = '#111128';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 8; i++) {
+    const gx = ox + (i/8)*pW;
+    ctx.beginPath(); ctx.moveTo(gx,oy); ctx.lineTo(gx,oy+pH); ctx.stroke();
+  }
+  for (let i = 0; i <= 5; i++) {
+    const gy = oy + (i/5)*pH;
+    ctx.beginPath(); ctx.moveTo(ox,gy); ctx.lineTo(ox+pW,gy); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(ox, oy); ctx.lineTo(ox, oy+pH);
+  ctx.moveTo(ox, oy+pH); ctx.lineTo(ox+pW, oy+pH);
+  ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('θ (vacuum parameter)', ox + pW/2 - 40, oy + pH + 30);
+  ctx.save(); ctx.translate(ox - 44, oy + pH/2);
+  ctx.rotate(-Math.PI/2); ctx.fillText('V(θ) / Energy', -30, 0); ctx.restore();
+
+  // x-axis tick labels
+  const ticks = [[-2,'−2π'],[-1,'−π'],[0,'0'],[1,'π'],[2,'2π']];
+  for (const [tv, label] of ticks) {
+    const gx = ox + ((tv + 2) / 4) * pW;
+    ctx.fillStyle = '#55558a';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText(label, gx - 8, oy + pH + 15);
+    ctx.strokeStyle = '#2a2a4a';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(gx, oy+pH); ctx.lineTo(gx, oy+pH+5); ctx.stroke();
+  }
+
+  // Vacuum potential V(θ) = -cos(θ), scaled to theta range -2π to 2π
+  const gradPot = ctx.createLinearGradient(ox, oy, ox, oy+pH);
+  gradPot.addColorStop(0, 'rgba(255,68,85,0.6)');
+  gradPot.addColorStop(0.5, 'rgba(255,68,85,0.2)');
+  gradPot.addColorStop(1, 'rgba(255,68,85,0)');
+
+  // Draw filled area under potential
+  ctx.beginPath();
+  ctx.moveTo(ox, oy + pH);
+  for (let i = 0; i <= pW; i++) {
+    const theta = -2*Math.PI + (i/pW)*4*Math.PI;
+    const v = (1 - Math.cos(theta)) / 2; // 0 to 1
+    const gx = ox + i;
+    const gy = oy + pH - v * pH * 0.75;
+    ctx.lineTo(gx, gy);
+  }
+  ctx.lineTo(ox + pW, oy + pH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,68,85,0.08)';
+  ctx.fill();
+
+  // Potential curve
+  ctx.strokeStyle = '#ff4455';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#ff4455';
+  ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for (let i = 0; i <= pW; i++) {
+    const theta = -2*Math.PI + (i/pW)*4*Math.PI;
+    const v = (1 - Math.cos(theta)) / 2;
+    const gx = ox + i;
+    const gy = oy + pH - v * pH * 0.75;
+    if (i === 0) ctx.moveTo(gx, gy);
+    else ctx.lineTo(gx, gy);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Vacuum minima dots
+  const vacua = [
+    {theta:-2*Math.PI, n:-1},
+    {theta:0, n:0},
+    {theta:2*Math.PI, n:1},
+  ];
+
+  for (const vac of vacua) {
+    const gx = ox + ((vac.theta + 2*Math.PI) / (4*Math.PI)) * pW;
+    const theta = vac.theta;
+    const v = (1 - Math.cos(theta)) / 2;
+    const gy = oy + pH - v * pH * 0.75;
+
+    ctx.shadowColor = '#ff4455';
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(gx, gy, 6, 0, Math.PI*2);
+    ctx.fillStyle = '#ff4455';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#ff8888';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText('|n='+vac.n+'⟩', gx - 14, gy + 20);
+  }
+
+  // Tunneling path between n=0 and n=1
+  const v0x = ox + ((0 + 2*Math.PI) / (4*Math.PI)) * pW;
+  const v1x = ox + ((2*Math.PI + 2*Math.PI) / (4*Math.PI)) * pW;
+  const v0y = oy + pH;
+  const v1y = oy + pH;
+  const midX = (v0x + v1x) / 2;
+  const peakTheta = Math.PI;
+  const peakV = (1 - Math.cos(peakTheta)) / 2;
+  const midY = oy + pH - peakV * pH * 0.75;
+
+  ctx.strokeStyle = 'rgba(255,220,80,0.7)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.shadowColor = 'rgba(255,220,80,0.4)';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.moveTo(v0x, v0y);
+  ctx.quadraticCurveTo(midX, midY - 20, v1x, v1y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = 'rgba(255,220,80,0.85)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Instanton (Q=1)', midX - 30, midY - 28);
+
+  // e^{-8π²/g²} label
+  ctx.fillStyle = 'rgba(255,220,80,0.65)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('amplitude ∝ e^{−8π²/g²}', midX - 40, midY - 12);
+
+  // Theta vacuum label
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('|θ⟩ = Σₙ e^{inθ}|n⟩', x + w - 175, y + 20);
+  ctx.restore();
+}
+
+function drawIndexDiagram(ctx, x, y, w, h, animQ) {
+  // Background
+  ctx.fillStyle = 'rgba(5,5,25,0.3)';
+  ctx.fillRect(x, y, w, h);
+
+  const padL = 50, padR = 30, padT = 30, padB = 35;
+  const pW = w - padL - padR;
+  const pH = h - padT - padB;
+  const ox = x + padL, oy = y + padT;
+  const midY = oy + pH/2;
+
+  // Title
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Dirac Operator Eigenvalue Spectrum', ox, y + 18);
+
+  // Main axis
+  ctx.strokeStyle = '#44446a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(ox, midY); ctx.lineTo(ox + pW, midY); ctx.stroke();
+
+  // λ=0 line (dashed)
+  const zeroX = ox + pW/2;
+  ctx.strokeStyle = 'rgba(255,68,85,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  ctx.moveTo(zeroX, oy); ctx.lineTo(zeroX, oy+pH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ff4455';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('λ=0', zeroX - 12, oy + pH + 18);
+
+  // Axis label
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('eigenvalue λ', ox + pW - 60, midY + 20);
+  ctx.fillText('−', ox + 8, midY - 8);
+  ctx.fillText('+', ox + pW - 20, midY - 8);
+
+  // Non-zero eigenvalues (paired ±λ)
+  const pairPositions = [0.15, 0.28, 0.41, 0.56, 0.68, 0.77, 0.86];
+  for (const pos of pairPositions) {
+    const lx = ox + (0.5 - pos/2)*pW;
+    const rx = ox + (0.5 + pos/2)*pW;
+    const dy2 = pH * 0.22;
+
+    for (const bx of [lx, rx]) {
+      ctx.beginPath();
+      ctx.arc(bx, midY - dy2, 5, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(100,180,255,0.7)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(100,180,255,0.9)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Connect pairs with faint line
+    ctx.strokeStyle = 'rgba(100,180,255,0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(lx, midY-dy2); ctx.lineTo(rx, midY-dy2); ctx.stroke();
+  }
+
+  // Zero modes (exactly at λ=0)
+  const maxZero = Math.floor(animQ);
+  const frac = animQ - maxZero;
+  const totalZero = maxZero + (frac > 0 ? 1 : 0);
+
+  for (let i = 0; i < totalZero; i++) {
+    const alpha = (i < maxZero) ? 1.0 : frac;
+    const zeroY = midY + (i - totalZero/2 + 0.5) * 18;
+
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = '#ff4455';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(zeroX, zeroY, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#ff4455';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // Label zero modes
+  if (Math.floor(animQ) > 0) {
+    ctx.fillStyle = '#ff4455';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText(Math.floor(animQ)+' zero mode'+(Math.floor(animQ)>1?'s':''), zeroX + 12, midY - 2);
+    ctx.fillStyle = '#aaaacc';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText('ind(D̸) = Q = '+Math.floor(animQ), zeroX + 12, midY + 14);
+  } else if (animQ === 0) {
+    ctx.fillStyle = '#55558a';
+    ctx.font = '12px Segoe UI';
+    ctx.fillText('No zero modes (Q=0)', zeroX + 12, midY - 2);
+  }
+
+  // Sections labels
+  ctx.fillStyle = 'rgba(100,180,255,0.6)';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('ker D̸⁺', ox + pW*0.1, oy + 14);
+  ctx.fillText('ker D̸⁻', ox + pW*0.8, oy + 14);
+
+  // Box
+  ctx.strokeStyle = '#1c1c44';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x+2, y+2, w-4, h-4);
+}
+
+// ==============================
+// TAB 3 — θ-VACUUM & TUNNELING
+// ==============================
+let tunAnimId = null;
+let tunPhase = 0;
+let tunActive = false;
+
+function toggleTunnel() {
+  tunActive = !tunActive;
+  const btn = document.getElementById('tunBtn');
+  btn.classList.toggle('active-btn', tunActive);
+  btn.textContent = tunActive ? '⏸ Pause' : '▶ Animate';
+  if (tunActive) {
+    tunPhase = 0;
+    animateTunnel();
+  } else {
+    if (tunAnimId) { cancelAnimationFrame(tunAnimId); tunAnimId = null; }
+    draw3();
+  }
+}
+
+function animateTunnel() {
+  if (!tunActive) return;
+  tunPhase += 0.018*(window.animSpeed||0.1);
+  if (tunPhase > 1) tunPhase = 0;
+  draw3(tunPhase);
+  tunAnimId = requestAnimationFrame(animateTunnel);
+}
+
+function draw3(phase) {
+  const cv = document.getElementById('c3');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const gSlider = document.getElementById('gSlider');
+  const thetaSlider = document.getElementById('thetaSlider');
+  const g = (gSlider ? gSlider.value / 10 : 1.5);
+  const theta = (thetaSlider ? thetaSlider.value / 100 : 0);
+
+  if (document.getElementById('gVal')) document.getElementById('gVal').textContent = g.toFixed(1);
+  if (document.getElementById('thetaVal')) document.getElementById('thetaVal').textContent = theta.toFixed(2);
+
+  const amp = Math.exp(-8 * Math.PI * Math.PI / (g * g));
+  if (document.getElementById('tunAmp')) document.getElementById('tunAmp').textContent = amp < 1e-10 ? '< 10⁻¹⁰' : amp.toExponential(3);
+  if (document.getElementById('thetaTilt')) document.getElementById('thetaTilt').textContent = theta.toFixed(2);
+
+  // Layout: top 60% is the energy landscape, bottom 40% shows tunneling details
+  const padL = 72, padR = 30, padT = 40, padB = 36;
+  const pW = W - padL - padR;
+  const pH = H * 0.56 - padT - padB;
+  const ox = padL, oy = padT;
+
+  // ---- Draw periodic potential with theta tilt ----
+  // V(n) = (1 - cos(theta_inst)) / 2, theta_inst runs from -4π to 4π (4 minima shown)
+  const nMin = -1, nMax = 4;  // winding numbers
+  const tRange = 4 * Math.PI;
+  const tStart = nMin * 2 * Math.PI;
+  const tEnd = nMax * 2 * Math.PI;
+
+  // Background
+  ctx.fillStyle = 'rgba(5,5,20,0.25)';
+  ctx.fillRect(ox, oy, pW, pH);
+
+  // Grid
+  ctx.strokeStyle = '#0d0d28';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 6; i++) {
+    const gy = oy + (i/6)*pH;
+    ctx.beginPath(); ctx.moveTo(ox, gy); ctx.lineTo(ox+pW, gy); ctx.stroke();
+  }
+
+  // --- Compute y from instanton variable and theta ---
+  function vAt(t_inst, th) {
+    // V = (1 - cos(t_inst)) / 2 + (th/2π)*t_inst  (linear tilt from theta term)
+    return (1 - Math.cos(t_inst)) / 2 + (th / (2 * Math.PI)) * t_inst * 0.15;
+  }
+
+  const totalTRange = tEnd - tStart;
+
+  // Find vMin/vMax for scaling
+  let vMin = 1e9, vMax = -1e9;
+  for (let i = 0; i <= 400; i++) {
+    const t = tStart + (i/400)*totalTRange;
+    const v = vAt(t, theta);
+    if (v < vMin) vMin = v;
+    if (v > vMax) vMax = v;
+  }
+  const vRange = Math.max(vMax - vMin, 0.01);
+
+  function tToX(t) { return ox + ((t - tStart) / totalTRange) * pW; }
+  function vToY(v) { return oy + pH - ((v - vMin) / vRange) * pH * 0.82; }
+
+  // Fill under curve
+  ctx.beginPath();
+  ctx.moveTo(tToX(tStart), vToY(vMin));
+  for (let i = 0; i <= 600; i++) {
+    const t = tStart + (i/600)*totalTRange;
+    ctx.lineTo(tToX(t), vToY(vAt(t, theta)));
+  }
+  ctx.lineTo(tToX(tEnd), vToY(vMin));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,68,85,0.07)';
+  ctx.fill();
+
+  // Potential curve
+  ctx.strokeStyle = '#ff4455';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#ff4455';
+  ctx.shadowBlur = 7;
+  ctx.beginPath();
+  for (let i = 0; i <= 600; i++) {
+    const t = tStart + (i/600)*totalTRange;
+    const x = tToX(t);
+    const y = vToY(vAt(t, theta));
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Axes
+  ctx.strokeStyle = '#44446a';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(ox, oy); ctx.lineTo(ox, oy+pH);
+  ctx.moveTo(ox, oy+pH); ctx.lineTo(ox+pW, oy+pH);
+  ctx.stroke();
+
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText('Chern-Simons number n_CS', ox + pW/2 - 60, oy + pH + 28);
+  ctx.save(); ctx.translate(ox-50, oy+pH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Energy V(A)', -28, 0); ctx.restore();
+
+  // Winding number labels at minima
+  for (let n = nMin; n <= nMax-1; n++) {
+    const t = n * 2 * Math.PI;
+    const x = tToX(t);
+    const y = vToY(vAt(t, theta));
+    ctx.shadowColor = '#ff6677';
+    ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#ff4455'; ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#ffaaaa'; ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('|n='+(n)+'⟩', x, y+20);
+    ctx.textAlign = 'left';
+
+    // Sphaleron saddle-point indicator
+    if (n < nMax-1) {
+      const tSph = (n + 0.5) * 2 * Math.PI;
+      const xSph = tToX(tSph);
+      const ySph = vToY(vAt(tSph, theta));
+      ctx.strokeStyle = 'rgba(255,200,60,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(xSph, ySph); ctx.lineTo(xSph, ySph+18); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(255,200,60,0.65)'; ctx.font = '12px Segoe UI';
+      ctx.textAlign = 'center';
+      ctx.fillText('✕ sph', xSph, ySph + 28);
+      ctx.textAlign = 'left';
+    }
+  }
+
+  // Tunneling arrows (instanton paths)
+  for (let n = nMin; n < nMax-1; n++) {
+    const t0 = n * 2 * Math.PI;
+    const t1 = (n+1) * 2 * Math.PI;
+    const x0 = tToX(t0), x1 = tToX(t1);
+    const y0 = vToY(vAt(t0, theta)), y1 = vToY(vAt(t1, theta));
+    const midX = (x0+x1)/2;
+    const tSph = (n+0.5)*2*Math.PI;
+    const ySph = vToY(vAt(tSph, theta));
+
+    // Animated tunneling particle
+    let drawParticle = false;
+    let particleX = 0, particleY = 0;
+    if (phase !== undefined && tunActive) {
+      // Each n sector gets staggered phase
+      const sectorPhase = (phase + (n-nMin)*0.25) % 1;
+      if (sectorPhase < 0.6) {
+        const sp = sectorPhase / 0.6;
+        particleX = x0 + (x1-x0)*sp;
+        // Quantum tunneling: particle goes through the barrier (below it)
+        const barrierDip = ySph + 18;
+        particleY = y0 + (y1-y0)*sp + Math.sin(sp*Math.PI)*(-22);
+        drawParticle = true;
+      }
+    }
+
+    ctx.strokeStyle = 'rgba(255,220,80,0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.bezierCurveTo(midX - 10, ySph + 14, midX + 10, ySph + 14, x1, y1);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (drawParticle) {
+      ctx.shadowColor = '#ffe040';
+      ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.arc(particleX, particleY, 6, 0, Math.PI*2);
+      ctx.fillStyle = '#ffe040'; ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // Amplitude annotation
+  const ampText = amp < 1e-10 ? '≈ 0 (very suppressed)' : amp.toExponential(2);
+  ctx.fillStyle = 'rgba(255,220,80,0.85)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Tunneling amplitude e^{−8π²/g²} = '+ampText, ox + pW/2 - 80, oy + 16);
+
+  // Title
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Periodic gauge potential — winding number sectors', ox, oy - 10);
+
+  // ---- Bottom: tunneling amplitude vs g ----
+  const bPadL = 72, bPadR = 60, bPadT = 20, bPadB = 36;
+  const byStart = oy + pH + 55;
+  const bpW = W - bPadL - bPadR;
+  const bpH = H - byStart - bPadB;
+  if (bpH < 40) return;
+
+  ctx.fillStyle = 'rgba(5,5,20,0.25)';
+  ctx.fillRect(bPadL, byStart, bpW, bpH);
+
+  // Axes
+  ctx.strokeStyle = '#44446a'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(bPadL, byStart); ctx.lineTo(bPadL, byStart+bpH);
+  ctx.moveTo(bPadL, byStart+bpH); ctx.lineTo(bPadL+bpW, byStart+bpH);
+  ctx.stroke();
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('g (coupling)', bPadL + bpW/2 - 20, byStart+bpH+26);
+  ctx.save(); ctx.translate(bPadL-42, byStart+bpH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('e^{−8π²/g²}', -22, 0); ctx.restore();
+  ctx.fillStyle = '#666'; ctx.font = '12px Segoe UI';
+  ctx.fillText('0.5', bPadL-14, byStart+bpH);
+  ctx.fillText('4.0', bPadL+bpW-8, byStart+bpH+12);
+
+  // Amplitude curve
+  ctx.strokeStyle = '#ff4455'; ctx.lineWidth = 2;
+  ctx.shadowColor = '#ff4455'; ctx.shadowBlur = 5;
+  ctx.beginPath();
+  for (let i = 0; i <= bpW; i++) {
+    const gv = 0.5 + (i/bpW)*3.5;
+    const av = Math.exp(-8*Math.PI*Math.PI/(gv*gv));
+    const px2 = bPadL + i;
+    const py2 = byStart + bpH - av*bpH*0.88;
+    if (i===0) ctx.moveTo(px2,py2); else ctx.lineTo(px2,py2);
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // Current g marker
+  const gNorm = (g - 0.5)/3.5;
+  const gPx = bPadL + gNorm * bpW;
+  const gAmp = Math.exp(-8*Math.PI*Math.PI/(g*g));
+  const gPy = byStart + bpH - gAmp*bpH*0.88;
+  ctx.shadowColor = '#ffe040'; ctx.shadowBlur = 14;
+  ctx.beginPath(); ctx.arc(gPx, gPy, 5, 0, Math.PI*2);
+  ctx.fillStyle = '#ffe040'; ctx.fill();
+  ctx.shadowBlur = 0;
+  // vertical guide
+  ctx.strokeStyle = 'rgba(255,224,64,0.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(gPx, byStart+bpH); ctx.lineTo(gPx, gPy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,224,64,0.85)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('g='+g.toFixed(1), gPx+4, gPy-6);
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Tunneling amplitude vs coupling (non-perturbative!)', bPadL+4, byStart+14);
+}
+
+// ==============================
+// TAB 4 — ATIYAH-SINGER INDEX
+// ==============================
+let zmAnimId = null;
+let zmPhase = 0;
+let zmAnimActive = false;
+
+function toggleZeroMode() {
+  const btn = document.getElementById('zmBtn');
+  zmAnimActive = !zmAnimActive;
+  if (zmAnimActive) {
+    if(btn) { btn.textContent = '⏸ Pause'; btn.classList.add('active-btn'); }
+    zmPhase = 0;
+    animateZM();
+  } else {
+    if(btn) { btn.textContent = '▶ Animate'; btn.classList.remove('active-btn'); }
+    if (zmAnimId) { cancelAnimationFrame(zmAnimId); zmAnimId = null; }
+    draw4();
+  }
+}
+
+function animateZM() {
+  if (!zmAnimActive) return;
+  zmPhase += 0.02*(window.animSpeed||0.1);
+  draw4(zmPhase);
+  zmAnimId = requestAnimationFrame(animateZM);
+}
+
+function draw4(phase) {
+  const cv = document.getElementById('c4');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const kSlider = document.getElementById('kSlider');
+  const zmSlider = document.getElementById('zmSizeSlider');
+  const k = kSlider ? parseInt(kSlider.value) : 1;
+  const zmRho = zmSlider ? zmSlider.value / 10 : 1.2;
+
+  if (document.getElementById('kVal')) document.getElementById('kVal').textContent = k;
+  if (document.getElementById('indexVal4')) document.getElementById('indexVal4').textContent = k;
+  if (document.getElementById('zmLeft')) document.getElementById('zmLeft').textContent = k;
+  if (document.getElementById('zmRight')) document.getElementById('zmRight').textContent = 0;
+
+  // Split canvas: left = eigenvalue spectrum, right = zero mode wavefunction heatmap
+  const splitX = W * 0.52;
+
+  // ===== LEFT: Dirac eigenvalue spectrum =====
+  const padL = 50, padR = 20, padT = 44, padB = 38;
+  const pW = splitX - padL - padR;
+  const pH = H - padT - padB;
+  const ox = padL, oy = padT;
+  const midY = oy + pH / 2;
+
+  // Background
+  ctx.fillStyle = 'rgba(5,5,20,0.25)';
+  ctx.fillRect(ox-4, oy-8, pW+padR+8, pH+padT+12);
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Dirac Spectrum in Instanton Background (k='+k+')', ox, oy - 16);
+
+  // Zero-eigenvalue axis
+  const zeroX = ox + pW * 0.5;
+  ctx.strokeStyle = 'rgba(255,68,85,0.35)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([5,3]);
+  ctx.beginPath(); ctx.moveTo(zeroX, oy-4); ctx.lineTo(zeroX, oy+pH+4); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ff4455'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('λ = 0', zeroX, oy + pH + 20); ctx.textAlign = 'left';
+
+  // Main horizontal axis
+  ctx.strokeStyle = '#44446a'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(ox, midY); ctx.lineTo(ox+pW, midY); ctx.stroke();
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  ctx.fillText('−', ox + 6, midY - 8);
+  ctx.fillText('+', ox + pW - 16, midY - 8);
+  ctx.fillText('eigenvalue λ', ox + pW*0.6, midY + 18);
+
+  // Non-zero pairs (appear symmetrically ±λ above axis)
+  const pairs = [0.12, 0.22, 0.33, 0.44, 0.55, 0.65, 0.75, 0.85];
+  const rowY = [midY - pH*0.22, midY - pH*0.4, midY - pH*0.55];
+  pairs.forEach((pos, i) => {
+    const row = i % rowY.length;
+    const lx = ox + (0.5 - pos/2)*pW;
+    const rx = ox + (0.5 + pos/2)*pW;
+    const py2 = rowY[row];
+    const alpha = 0.45 + 0.3*(i%2);
+
+    ctx.beginPath(); ctx.arc(lx, py2, 5, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(100,160,255,${alpha})`; ctx.fill();
+    ctx.strokeStyle = `rgba(140,180,255,${alpha+0.15})`; ctx.lineWidth = 1; ctx.stroke();
+
+    ctx.beginPath(); ctx.arc(rx, py2, 5, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(100,160,255,${alpha})`; ctx.fill();
+    ctx.strokeStyle = `rgba(140,180,255,${alpha+0.15})`; ctx.lineWidth = 1; ctx.stroke();
+
+    // Link pairs
+    ctx.strokeStyle = `rgba(100,160,255,0.15)`; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(lx, py2); ctx.lineTo(rx, py2); ctx.stroke();
+  });
+
+  ctx.fillStyle = 'rgba(100,160,255,0.55)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('ker D̸⁺', ox + pW*0.08, oy + 14);
+  ctx.fillText('ker D̸⁻', ox + pW*0.75, oy + 14);
+  ctx.fillStyle = '#666'; ctx.font = '12px Segoe UI';
+  ctx.fillText('paired ±λ (non-zero)', ox + pW*0.25, oy + 14);
+
+  // Zero modes — glowing, stacked vertically near zeroX
+  for (let zi = 0; zi < k; zi++) {
+    const zmY = midY + (zi - (k-1)/2) * 22;
+    const pulse = phase !== undefined ? 0.5 + 0.5*Math.sin(phase*2.5 + zi*1.1) : 1;
+
+    ctx.shadowColor = '#ff4455'; ctx.shadowBlur = 14 * pulse;
+    ctx.beginPath(); ctx.arc(zeroX, zmY, 7, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,68,85,${0.7 + 0.3*pulse})`; ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  if (k > 0) {
+    ctx.fillStyle = '#ff6677'; ctx.font = '12px Segoe UI';
+    ctx.fillText(k + ' left-handed zero mode'+(k>1?'s':''), zeroX + 12, midY - 8);
+    ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+    ctx.fillText('ind(D̸) = n₊ − n₋ = '+k+' − 0 = '+k, zeroX + 12, midY + 10);
+  } else {
+    ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+    ctx.fillText('No zero modes (k=0)', zeroX - 60, midY - 8);
+  }
+
+  // Formula box
+  const fbox = {x: ox, y: oy + pH + 8, w: pW + padR, h: 26};
+  ctx.fillStyle = 'rgba(15,15,35,0.6)'; ctx.fillRect(fbox.x, fbox.y, fbox.w, fbox.h);
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 1; ctx.strokeRect(fbox.x, fbox.y, fbox.w, fbox.h);
+  ctx.fillStyle = '#ff8888'; ctx.font = '10.5px Courier New';
+  ctx.fillText('index = (1/8π²) ∫ Tr(F∧F) = k', fbox.x + 8, fbox.y + 17);
+
+  // ===== RIGHT: Zero mode wavefunction heatmap =====
+  const hmX = splitX + 8;
+  const hmW = W - hmX - 12;
+  const hmH = H - 24;
+  const hmY = 12;
+  const hmCx = hmX + hmW/2;
+  const hmCy = hmY + hmH/2;
+  const scale4 = Math.min(hmW, hmH) * 0.43;
+
+  // Heatmap of |ψ₀(x)|² = ρ²/(x²+ρ²)³ (profile in 2D cross-section)
+  const rho4 = zmRho;
+  const rho4_2 = rho4 * rho4;
+
+  const imgData = ctx.createImageData(Math.round(hmW), Math.round(hmH));
+  const data = imgData.data;
+
+  let maxPsi = 0;
+  // Pre-compute max at center
+  maxPsi = rho4_2 / Math.pow(rho4_2, 3);  // at r=0: rho^2/rho^6 = 1/rho^4
+  maxPsi = 1 / (rho4_2 * rho4_2);
+
+  for (let py2 = 0; py2 < hmH; py2++) {
+    for (let px2 = 0; px2 < hmW; px2++) {
+      const wx = (px2 - hmW/2) / scale4 * 2.5;
+      const wy = (py2 - hmH/2) / scale4 * 2.5;
+      const r2 = wx*wx + wy*wy;
+      // |ψ₀|² ∝ ρ²/(r²+ρ²)³
+      const psi2 = rho4_2 / Math.pow(r2 + rho4_2, 3);
+      const t = Math.min(1, psi2 / maxPsi);
+
+      // Animate: breathing pulse
+      const pulse = phase !== undefined ? 0.85 + 0.15*Math.sin(phase*2.8) : 1;
+      const t2 = Math.min(1, t * pulse);
+
+      const idx = (py2 * Math.round(hmW) + px2) * 4;
+      // Purple/magenta gradient for zero mode
+      data[idx]   = Math.round(10 + t2*200);
+      data[idx+1] = Math.round(5  + t2*40);
+      data[idx+2] = Math.round(30 + t2*220);
+      data[idx+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, hmX, hmY);
+
+  // Border
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 1;
+  ctx.strokeRect(hmX, hmY, hmW, hmH);
+
+  // Contour circles for ψ₀
+  const contours = [0.5, 0.2, 0.08, 0.02];
+  for (const lv of contours) {
+    // |ψ₀|² = lv * maxPsi => ρ²/(r²+ρ²)³ = lv/ρ⁴ => (r²+ρ²)³ = ρ⁶/lv => r² = ρ²(lv^{-1/3}-1)
+    const r2c = rho4_2 * (Math.pow(1/lv, 1/3) - 1);
+    if (r2c < 0) continue;
+    const rPx = Math.sqrt(r2c) / 2.5 * scale4;
+    if (rPx < 2 || rPx > Math.min(hmW, hmH)*0.5) continue;
+    ctx.strokeStyle = `rgba(255,255,255,${0.12 + lv*0.2})`;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.arc(hmCx, hmCy, rPx, 0, Math.PI*2); ctx.stroke();
+  }
+
+  // ρ circle
+  const rhoPx4 = rho4 / 2.5 * scale4;
+  ctx.strokeStyle = 'rgba(200,100,255,0.7)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([5,3]);
+  ctx.beginPath(); ctx.arc(hmCx, hmCy, rhoPx4, 0, Math.PI*2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(200,100,255,0.9)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('ρ', hmCx + rhoPx4 + 3, hmCy - 3);
+
+  // Crosshairs
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath();
+  ctx.moveTo(hmX, hmCy); ctx.lineTo(hmX+hmW, hmCy);
+  ctx.moveTo(hmCx, hmY); ctx.lineTo(hmCx, hmY+hmH);
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Title & labels
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Zero mode |ψ₀(x)|²  (left-handed, k='+k+')', hmCx, hmY + 18);
+  ctx.fillStyle = 'rgba(180,180,200,0.5)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('ψ₀ ∝ ρ/(x²+ρ²)^{3/2}', hmCx, hmY + hmH - 8);
+  ctx.textAlign = 'left';
+}
+
+// ==============================
+// TAB 5 — SPHALERON & BARYOGENESIS
+// ==============================
+let sphAnimId = null;
+let sphPhase = 0;
+let sphActive = false;
+
+function toggleSphaleron() {
+  sphActive = !sphActive;
+  const btn = document.getElementById('sphBtn');
+  btn.classList.toggle('active-btn', sphActive);
+  btn.textContent = sphActive ? '⏸ Pause' : '▶ Animate';
+  if (sphActive) {
+    sphPhase = 0;
+    animateSph();
+  } else {
+    if (sphAnimId) { cancelAnimationFrame(sphAnimId); sphAnimId = null; }
+    draw5();
+  }
+}
+
+function animateSph() {
+  if (!sphActive) return;
+  sphPhase += 0.012*(window.animSpeed||0.1);
+  if (sphPhase > 1) sphPhase = 0;
+  draw5(sphPhase);
+  sphAnimId = requestAnimationFrame(animateSph);
+}
+
+function draw5(phase) {
+  const cv = document.getElementById('c5');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const tSlider = document.getElementById('tempSlider');
+  const T = tSlider ? tSlider.value / 100 : 0.3;
+  if (document.getElementById('tempVal')) document.getElementById('tempVal').textContent = T.toFixed(2);
+
+  const isHighT = T > 0.5;
+  if (document.getElementById('modeLabel'))
+    document.getElementById('modeLabel').textContent = isHighT ? 'Sphaleron transitions (high T)' : 'Instanton tunneling (T≈0)';
+  if (document.getElementById('rateLabel'))
+    document.getElementById('rateLabel').textContent = isHighT
+      ? 'α_W⁴ T⁴ (unsuppressed)'
+      : 'e^{−8π²/g²} (exp. suppressed)';
+
+  // Split: top 55% = energy landscape, bottom 45% = rate diagram
+  const padL = 72, padR = 40, padT = 44, padB = 30;
+  const pW = W - padL - padR;
+  const topH = H * 0.52;
+  const pH = topH - padT - padB;
+  const ox = padL, oy = padT;
+
+  // --- Top: Energy barrier landscape ---
+  ctx.fillStyle = 'rgba(5,5,20,0.25)';
+  ctx.fillRect(ox, oy, pW, pH);
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Electroweak potential barrier — instanton vs sphaleron', ox, oy - 12);
+
+  // V(n_CS): the same periodic potential with barrier height E_sph
+  function sphV(t) { return (1 - Math.cos(t)) / 2; }
+
+  const tStart = 0, tEnd = 2*Math.PI;
+  function tToX5(t) { return ox + (t/tEnd)*pW; }
+  function vToY5(v) { return oy + pH - v*pH*0.82; }
+
+  // Filled bg
+  ctx.beginPath();
+  ctx.moveTo(tToX5(tStart), vToY5(0));
+  for (let i = 0; i <= 400; i++) {
+    const t = tStart + (i/400)*tEnd;
+    ctx.lineTo(tToX5(t), vToY5(sphV(t)));
+  }
+  ctx.lineTo(tToX5(tEnd), vToY5(0));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,68,85,0.07)'; ctx.fill();
+
+  // Curve
+  ctx.strokeStyle = '#ff4455'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#ff4455'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for (let i = 0; i <= 400; i++) {
+    const t = tStart + (i/400)*tEnd;
+    if (i===0) ctx.moveTo(tToX5(t), vToY5(sphV(t)));
+    else ctx.lineTo(tToX5(t), vToY5(sphV(t)));
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // Minima
+  const minima = [{t:0, n:0},{t:2*Math.PI, n:1}];
+  for (const m of minima) {
+    const x = tToX5(m.t), y = vToY5(0);
+    ctx.shadowColor = '#ff6677'; ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2);
+    ctx.fillStyle = '#ff4455'; ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = '#ffaaaa'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('|n='+m.n+'⟩', x, y + 22); ctx.textAlign = 'left';
+  }
+
+  // Sphaleron at the saddle point t=π
+  const sphX = tToX5(Math.PI);
+  const sphY = vToY5(sphV(Math.PI));
+  const sphPulse = phase !== undefined ? 0.7 + 0.3*Math.cos(phase*4*Math.PI) : 1;
+  ctx.shadowColor = '#ffcc00'; ctx.shadowBlur = 20 * sphPulse;
+  ctx.beginPath(); ctx.arc(sphX, sphY, 9, 0, Math.PI*2);
+  ctx.fillStyle = `rgba(255,200,40,${sphPulse})`; ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#ffcc00'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('SPHALERON', sphX, sphY - 14);
+  ctx.fillStyle = 'rgba(255,200,40,0.7)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('E_sph ≈ 9 TeV', sphX, sphY - 3);
+  ctx.textAlign = 'left';
+
+  // ΔB annotation at sphaleron
+  ctx.strokeStyle = 'rgba(255,200,40,0.4)'; ctx.lineWidth = 1;
+  ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(sphX, sphY); ctx.lineTo(sphX, vToY5(0)+4); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,200,40,0.65)'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('ΔB=ΔL=N_f=3', sphX, vToY5(0) + 16); ctx.textAlign = 'left';
+
+  // Paths: instanton (T~0) tunnels under the barrier
+  const v0x = tToX5(0), v1x = tToX5(2*Math.PI);
+  const v0y = vToY5(0), v1y = vToY5(0);
+  const tunnelMidY = sphY + 24; // below the barrier
+
+  // Sphaleron path: over the barrier (high T)
+  if (T > 0.3) {
+    const alpha = Math.min(1, (T-0.3)/0.7);
+    ctx.strokeStyle = `rgba(255,180,50,${alpha*0.8})`;
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([]);
+    ctx.shadowColor = 'rgba(255,180,50,0.5)'; ctx.shadowBlur = 8*alpha;
+    ctx.beginPath();
+    ctx.moveTo(v0x, v0y);
+    ctx.bezierCurveTo(v0x + pW*0.2, sphY - pH*0.08, v1x - pW*0.2, sphY - pH*0.08, v1x, v1y);
+    ctx.stroke(); ctx.shadowBlur = 0;
+
+    // Animated particle going over
+    if (phase !== undefined && sphActive) {
+      const sp = phase;
+      const bx0 = v0x, bx3 = v1x;
+      const bx1 = v0x + pW*0.2, bx2 = v1x - pW*0.2;
+      const by0 = v0y, by3 = v1y;
+      const by1 = sphY - pH*0.08, by2 = sphY - pH*0.08;
+      const t2 = sp;
+      const px2 = Math.pow(1-t2,3)*bx0 + 3*Math.pow(1-t2,2)*t2*bx1 + 3*(1-t2)*t2*t2*bx2 + t2*t2*t2*bx3;
+      const py2 = Math.pow(1-t2,3)*by0 + 3*Math.pow(1-t2,2)*t2*by1 + 3*(1-t2)*t2*t2*by2 + t2*t2*t2*by3;
+      ctx.shadowColor = '#ffcc00'; ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.arc(px2, py2, 7, 0, Math.PI*2);
+      ctx.fillStyle = '#ffcc00'; ctx.fill(); ctx.shadowBlur = 0;
+    }
+
+    // Label
+    ctx.fillStyle = `rgba(255,200,60,${alpha*0.9})`; ctx.font = '12px Segoe UI';
+    ctx.fillText('Sphaleron transition (T > T_sph)', v0x + 8, sphY - pH*0.08 - 12);
+  }
+
+  // Instanton path: under the barrier (T~0)
+  if (T < 0.7) {
+    const alpha = Math.min(1, (0.7-T)/0.7);
+    ctx.strokeStyle = `rgba(255,220,80,${alpha*0.7})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    ctx.moveTo(v0x, v0y);
+    ctx.bezierCurveTo(v0x + pW*0.25, tunnelMidY, v1x - pW*0.25, tunnelMidY, v1x, v1y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (phase !== undefined && sphActive && T < 0.5) {
+      const sp = phase;
+      const bx0 = v0x, bx3 = v1x;
+      const bx1 = v0x + pW*0.25, bx2 = v1x - pW*0.25;
+      const by0 = v0y, by3 = v1y;
+      const by1 = tunnelMidY, by2 = tunnelMidY;
+      const t2 = sp;
+      const px2 = Math.pow(1-t2,3)*bx0 + 3*Math.pow(1-t2,2)*t2*bx1 + 3*(1-t2)*t2*t2*bx2 + t2*t2*t2*bx3;
+      const py2 = Math.pow(1-t2,3)*by0 + 3*Math.pow(1-t2,2)*t2*by1 + 3*(1-t2)*t2*t2*by2 + t2*t2*t2*by3;
+      ctx.shadowColor = '#ffe040'; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc(px2, py2, 6, 0, Math.PI*2);
+      ctx.fillStyle = '#ffe040'; ctx.fill(); ctx.shadowBlur = 0;
+    }
+
+    ctx.fillStyle = `rgba(255,220,80,${alpha*0.85})`; ctx.font = '12px Segoe UI';
+    ctx.fillText('Instanton tunneling (T≈0)', v0x + 8, tunnelMidY - 8);
+  }
+
+  // Axes
+  ctx.strokeStyle = '#44446a'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(ox, oy); ctx.lineTo(ox, oy+pH);
+  ctx.moveTo(ox, oy+pH); ctx.lineTo(ox+pW, oy+pH);
+  ctx.stroke();
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Chern-Simons number n_CS', ox + pW/2 - 55, oy + pH + 28);
+  ctx.save(); ctx.translate(ox-50, oy+pH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Potential energy', -30, 0); ctx.restore();
+
+  // --- Bottom: rate vs temperature ---
+  const byStart = topH + 8;
+  const bPadL = 72, bPadR = 60, bPadT = 20, bPadB = 36;
+  const bpW = W - bPadL - bPadR;
+  const bpH = H - byStart - bPadB;
+  if (bpH < 40) return;
+
+  ctx.fillStyle = 'rgba(5,5,20,0.25)';
+  ctx.fillRect(bPadL, byStart, bpW, bpH);
+
+  ctx.strokeStyle = '#44446a'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(bPadL, byStart); ctx.lineTo(bPadL, byStart+bpH);
+  ctx.moveTo(bPadL, byStart+bpH); ctx.lineTo(bPadL+bpW, byStart+bpH);
+  ctx.stroke();
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('T / T_sph', bPadL + bpW/2 - 20, byStart+bpH+26);
+  ctx.save(); ctx.translate(bPadL-42, byStart+bpH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('B+L violation rate', -35, 0); ctx.restore();
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Transition rate vs temperature', bPadL+4, byStart+16);
+
+  // Rate curves: low T = instanton (exp suppressed), high T = sphaleron
+  // Instanton rate: ~ exp(-E_sph/T) plotted schematically
+  const g_ew = 0.65;
+  const instAmp = Math.exp(-8*Math.PI*Math.PI/(g_ew*g_ew));
+
+  // Low-T (instanton): nearly flat, very small
+  ctx.strokeStyle = 'rgba(255,220,80,0.7)'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i <= bpW; i++) {
+    const Tv = i/bpW;
+    const rate = instAmp * bpH * 0.15;  // constant (tiny)
+    const px2 = bPadL + i;
+    const py2 = byStart + bpH - rate;
+    if (i===0) ctx.moveTo(px2,py2); else ctx.lineTo(px2,py2);
+  }
+  ctx.stroke();
+
+  // High-T (sphaleron): thermal exponential ~ exp(-E_sph/T)
+  ctx.strokeStyle = 'rgba(255,180,50,0.85)'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(255,180,50,0.4)'; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for (let i = 1; i <= bpW; i++) {
+    const Tv = i/bpW;  // T/T_sph from 0 to 1
+    // Rate ~ exp(-1/Tv) schematically, capped
+    const rate = Tv > 0.1 ? Math.min(0.9, Math.exp(-0.5/Tv)) * bpH * 0.88 : 0;
+    const px2 = bPadL + i;
+    const py2 = byStart + bpH - rate;
+    if (i===1) ctx.moveTo(px2,py2); else ctx.lineTo(px2,py2);
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // Current T marker
+  const Tpx = bPadL + T * bpW;
+  const Trate = T > 0.1 ? Math.min(0.9, Math.exp(-0.5/T)) * bpH * 0.88 : instAmp*bpH*0.15;
+  const Tpy = byStart + bpH - Trate;
+  ctx.shadowColor = T > 0.5 ? '#ffcc00' : '#ffe040'; ctx.shadowBlur = 16;
+  ctx.beginPath(); ctx.arc(Tpx, Tpy, 6, 0, Math.PI*2);
+  ctx.fillStyle = T > 0.5 ? '#ffcc00' : '#ffe040'; ctx.fill(); ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(255,224,64,0.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(Tpx, byStart+bpH); ctx.lineTo(Tpx, Tpy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Legend
+  ctx.fillStyle = 'rgba(255,220,80,0.8)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('─── Instanton (T≈0)', bPadL + bpW*0.05, byStart + bpH * 0.92);
+  ctx.fillStyle = 'rgba(255,180,50,0.9)';
+  ctx.fillText('─── Sphaleron', bPadL + bpW*0.35, byStart + bpH * 0.92);
+
+  // T_sph vertical marker
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(bPadL + bpW, byStart); ctx.lineTo(bPadL + bpW, byStart+bpH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#888'; ctx.font = '12px Segoe UI';
+  ctx.fillText('T_sph', bPadL + bpW - 18, byStart + 14);
+}
+
+// ==============================
+// TAB 6 — MODULI SPACE
+// ==============================
+let modAnimId = null;
+let modPhase = 0;
+let modActive = false;
+
+function toggleModuli() {
+  modActive = !modActive;
+  const btn = document.getElementById('modBtn');
+  btn.classList.toggle('active-btn', modActive);
+  btn.textContent = modActive ? '⏸ Pause' : '▶ Animate';
+  if (modActive) {
+    modPhase = 0;
+    animateMod();
+  } else {
+    if (modAnimId) { cancelAnimationFrame(modAnimId); modAnimId = null; }
+    draw6();
+  }
+}
+
+function animateMod() {
+  if (!modActive) return;
+  modPhase += 0.014*(window.animSpeed||0.1);
+  draw6(modPhase);
+  modAnimId = requestAnimationFrame(animateMod);
+}
+
+function draw6(phase) {
+  const cv = document.getElementById('c6');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const mkSlider = document.getElementById('modkSlider');
+  const k = mkSlider ? parseInt(mkSlider.value) : 1;
+  const dim = 8*k - 3;
+  if (document.getElementById('modkVal')) document.getElementById('modkVal').textContent = k;
+  if (document.getElementById('modDim')) document.getElementById('modDim').textContent = dim;
+
+  // Animate scale ρ oscillating
+  const animRho = phase !== undefined ? 0.6 + 0.55*Math.abs(Math.sin(phase*1.3)) : 0.9;
+
+  // Layout: left = moduli dimension bar chart, right = field space valley diagram, bottom = instanton heatmaps
+  const topH = H * 0.55;
+  const botH = H - topH - 8;
+  const botY = topH + 8;
+
+  // ===== LEFT TOP: Moduli dimension breakdown =====
+  const lW = W * 0.42;
+  const padL = 60, padR = 12, padT = 40, padB = 30;
+  const pW = lW - padL - padR;
+  const pH = topH - padT - padB;
+  const ox = padL, oy = padT;
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Moduli space dim = 8k − 3 (SU(2))', ox, oy - 14);
+
+  // Bar chart of collective coordinate types for each k
+  const coords = [
+    {label:'Position x₀', color:'#ff4455', count:4},
+    {label:'Size ρ', color:'#ff8844', count:1},
+    {label:'Orientation', color:'#44aaff', count:3},
+  ];
+
+  // For multi-instanton, show relative coords too
+  const extraPerK = k > 1 ? [
+    {label:'Relative pos.', color:'#aa44ff', count:4*(k-1)},
+    {label:'Rel. orient.', color:'#44ffaa', count:3*(k-1)},
+  ] : [];
+  const allCoords = [...coords, ...extraPerK];
+
+  const barH = Math.min(28, (pH - 20) / (allCoords.length + 1));
+  const totalDim = allCoords.reduce((s,c) => s+c.count,0);
+  const maxCount = Math.max(totalDim, 1);
+
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Collective coordinates:', ox, oy + 12);
+
+  allCoords.forEach((coord, i) => {
+    const barY = oy + 24 + i * (barH + 6);
+    const barW = (coord.count / maxCount) * pW * 0.85;
+
+    // Background
+    ctx.fillStyle = 'rgba(15,15,35,0.5)';
+    ctx.fillRect(ox, barY, pW, barH);
+
+    // Bar
+    const grad = ctx.createLinearGradient(ox, barY, ox+barW, barY);
+    grad.addColorStop(0, coord.color + 'cc');
+    grad.addColorStop(1, coord.color + '44');
+    ctx.fillStyle = grad;
+    ctx.fillRect(ox, barY, barW, barH);
+    ctx.strokeStyle = coord.color + '66'; ctx.lineWidth = 1;
+    ctx.strokeRect(ox, barY, pW, barH);
+
+    ctx.fillStyle = '#ddd'; ctx.font = '12px Segoe UI';
+    ctx.fillText(coord.label + ' ('+coord.count+')', ox + 6, barY + barH/2 + 4);
+  });
+
+  // Total
+  const totalY = oy + 24 + allCoords.length * (barH + 6) + 8;
+  ctx.strokeStyle = '#44446a'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(ox, totalY); ctx.lineTo(ox+pW, totalY); ctx.stroke();
+  ctx.fillStyle = '#ff8844'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Total: '+dim+' parameters  (= 8k−3 = 8×'+k+'−3)', ox, totalY + 16);
+
+  // ===== RIGHT TOP: Action "valley" diagram =====
+  const rX = lW + 12;
+  const rW = W - rX - 20;
+  const rPad = {l:60, r:20, t:40, b:35};
+  const rpW = rW - rPad.l - rPad.r;
+  const rpH = topH - rPad.t - rPad.b;
+  const rox = rX + rPad.l, roy = rPad.t;
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Action S[A] vs field space', rox, roy - 14);
+
+  // Background
+  ctx.fillStyle = 'rgba(5,5,20,0.25)';
+  ctx.fillRect(rox, roy, rpW, rpH);
+
+  // The "valley" is a flat line at S = 8π²k/g²
+  // Field space axis: ρ from 0 to ∞ (x-axis), S on y-axis
+  // Show a broad bowl shape: off-instanton S > 8π²k, valley S = 8π²k
+  const g_val = 1.0;
+  const S0 = 8 * Math.PI * Math.PI * k / (g_val * g_val);
+
+  function sOff(rhoV, rhoStar) {
+    // S(ρ) for a deformation away from instanton: parabolic bowl
+    const dev = (rhoV - rhoStar) / rhoStar;
+    return S0 * (1 + 0.6*dev*dev + 0.15*dev*dev*dev*dev);
+  }
+
+  const rhoStar = 1.0;  // fiducial instanton
+  const rhoMax = 3.0;
+
+  // Transverse directions (shown as curves above valley)
+  const transColors = ['rgba(80,180,255,0.55)', 'rgba(180,80,255,0.45)', 'rgba(80,255,180,0.4)'];
+  const transLabels = ['pos. dir.', 'orient. dir.', 'size ρ'];
+
+  for (let di = 0; di < 3; di++) {
+    const lift = [1.6, 1.8, 1.0][di];
+    ctx.strokeStyle = transColors[di]; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i <= rpW; i++) {
+      const rhoV = (i/rpW)*rhoMax;
+      const s = S0 + lift * (sOff(rhoV, rhoStar) - S0);
+      const sNorm = Math.min(1.0, (s - S0*0.85) / (S0*1.2 - S0*0.85));
+      const px2 = rox + i;
+      const py2 = roy + rpH - sNorm * rpH * 0.82;
+      if (i===0) ctx.moveTo(px2,py2); else ctx.lineTo(px2,py2);
+    }
+    ctx.stroke();
+    // label at right edge
+    const rhoV = rhoMax;
+    const s = S0 + lift*(sOff(rhoV,rhoStar)-S0);
+    const sNorm = Math.min(1.0,(s-S0*0.85)/(S0*1.2-S0*0.85));
+    const py2 = roy + rpH - sNorm*rpH*0.82;
+    ctx.fillStyle = transColors[di]; ctx.font = '12px Segoe UI';
+    ctx.fillText(transLabels[di], rox+rpW+3, py2+4);
+  }
+
+  // The flat valley line (S = S0 for ρ > 0, diverges at ρ=0)
+  ctx.strokeStyle = '#ff4455'; ctx.lineWidth = 3;
+  ctx.shadowColor = '#ff4455'; ctx.shadowBlur = 10;
+  ctx.beginPath();
+  for (let i = 2; i <= rpW; i++) {
+    const rhoV = (i/rpW)*rhoMax;
+    if (rhoV < 0.05) continue;
+    const sNorm = (S0 - S0*0.85) / (S0*1.2 - S0*0.85);
+    const px2 = rox + i;
+    const py2 = roy + rpH - sNorm*rpH*0.82;
+    if (i===2) ctx.moveTo(px2,py2); else ctx.lineTo(px2,py2);
+  }
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // Animated instanton blob moving along valley
+  if (phase !== undefined) {
+    const rhoAnim = 0.2 + 2.5*Math.abs(Math.sin(phase*0.9));
+    const rhoNorm = rhoAnim / rhoMax;
+    const px2 = rox + rhoNorm*rpW;
+    const sNorm = (S0 - S0*0.85) / (S0*1.2 - S0*0.85);
+    const py2 = roy + rpH - sNorm*rpH*0.82;
+    ctx.shadowColor = '#ff4455'; ctx.shadowBlur = 20;
+    ctx.beginPath(); ctx.arc(px2, py2, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#ff4455'; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,100,100,0.85)'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('ρ='+rhoAnim.toFixed(2), px2, py2 - 12); ctx.textAlign = 'left';
+  }
+
+  // Valley label
+  ctx.fillStyle = 'rgba(255,68,85,0.85)'; ctx.font = '12px Segoe UI';
+  ctx.fillText('BPS valley: S = 8π²k/g² = const', rox + 6, roy + rpH - 6);
+
+  // Axes
+  ctx.strokeStyle = '#44446a'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(rox, roy); ctx.lineTo(rox, roy+rpH);
+  ctx.moveTo(rox, roy+rpH); ctx.lineTo(rox+rpW, roy+rpH);
+  ctx.stroke();
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Scale ρ (and position, orientation)', rox+rpW/2-60, roy+rpH+26);
+  ctx.save(); ctx.translate(rox-44, roy+rpH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Action S[A]', -24, 0); ctx.restore();
+
+  // ===== BOTTOM: Instanton heatmaps at different ρ =====
+  const nHmaps = Math.min(k+2, 4);
+  const hmPad = 8;
+  const hmW = Math.floor((W - hmPad*(nHmaps+1)) / nHmaps);
+  const hmH2 = botH - 24;
+
+  ctx.fillStyle = '#aaaacc'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Same action S = 8π²k/g² — different sizes (BPS valley)', hmPad, botY + 16);
+
+  const rhoVals6 = [0.3, 0.65, 1.1, 1.7];
+  for (let hi = 0; hi < nHmaps; hi++) {
+    let rhoV;
+    if (modActive && phase !== undefined && hi === Math.floor(nHmaps/2)) {
+      rhoV = animRho;
+    } else {
+      rhoV = rhoVals6[hi];
+    }
+    const hmX2 = hmPad + hi*(hmW + hmPad);
+    const hmY2 = botY + 24;
+    const rho2v = rhoV * rhoV;
+    const scale6 = Math.min(hmW, hmH2) * 0.44;
+    const hmCx2 = hmX2 + hmW/2;
+    const hmCy2 = hmY2 + hmH2/2;
+
+    const imgData = ctx.createImageData(hmW, hmH2);
+    const data = imgData.data;
+    const fmax = 192 * rho2v * rho2v / Math.pow(rho2v, 4); // f at center
+    for (let py2 = 0; py2 < hmH2; py2++) {
+      for (let px2 = 0; px2 < hmW; px2++) {
+        const wx = (px2 - hmW/2) / scale6 * 2.8;
+        const wy = (py2 - hmH2/2) / scale6 * 2.8;
+        const r2 = wx*wx + wy*wy;
+        const denom = r2 + rho2v;
+        const f = 192 * rho2v * rho2v / (denom*denom*denom*denom);
+        const t = Math.min(1, f / fmax);
+        const idx = (py2 * hmW + px2) * 4;
+        data[idx]   = Math.round(10 + t*220);
+        data[idx+1] = Math.round(5  + t*30);
+        data[idx+2] = Math.round(15 + t*60);
+        data[idx+3] = 255;
+      }
+    }
+    ctx.putImageData(imgData, hmX2, hmY2);
+    ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 1;
+    ctx.strokeRect(hmX2, hmY2, hmW, hmH2);
+
+    // ρ indicator
+    const rhoPx6 = rhoV / 2.8 * scale6;
+    if (rhoPx6 > 3 && rhoPx6 < hmW*0.45) {
+      ctx.strokeStyle = 'rgba(255,68,85,0.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.arc(hmCx2, hmCy2, rhoPx6, 0, Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Label
+    ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('ρ='+rhoV.toFixed(2), hmCx2, hmY2 + hmH2 - 5); ctx.textAlign = 'left';
+
+    // S label
+    ctx.fillStyle = 'rgba(255,140,80,0.85)'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('S = 8π²k/g²', hmCx2, hmY2 + 14); ctx.textAlign = 'left';
+  }
+}
+
+// ==============================
+// RESIZE / INIT
+// ==============================
+function onResize() {
+  const active = document.querySelector('.tab.active');
+  if (!active) return;
+  const idx = Array.from(document.querySelectorAll('.tab')).indexOf(active);
+  if (idx === 0) draw0();
+  if (idx === 1) draw1();
+  if (idx === 2) draw2();
+  if (idx === 3) draw3();
+  if (idx === 4) draw4();
+  if (idx === 5) draw5();
+  if (idx === 6) draw6();
+}
+
+window.addEventListener('resize', onResize);
+
+// Init
+window.animSpeed=0.1;
+draw0();
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

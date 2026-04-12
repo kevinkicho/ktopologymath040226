@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>62 · AdS/CFT Holography</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]})"></script>
+<style>
+
+:root{
+  --bg1:#0a0a1a; --bg2:#10101f; --bg3:#171730;
+  --border:#252548; --text:#e8e8f8; --muted:#8888aa;
+  --accent:#a78bfa; --gold:#fbbf24; --teal:#2dd4bf;
+  --red:#f87171; --blue:#60a5fa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg1);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.85rem;opacity:.65}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.78rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.25rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.75rem;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 20px;flex-shrink:0;overflow-x:auto}
+.tab{padding:9px 16px;cursor:pointer;font-size:.82rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.pane{display:none;flex:1;overflow:hidden}
+.pane.active{display:flex}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:3px 0;flex-shrink:0}
+.controls label{font-size:.75rem;color:var(--muted)}
+input[type=range]{width:110px;accent-color:var(--accent)}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.78rem;cursor:pointer}
+select:focus{outline:none;border-color:var(--accent)}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:.78rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0a3a}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.75rem;color:var(--muted);line-height:1.7;flex-shrink:0}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:300px;min-width:190px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:13px 12px;gap:9px;flex-shrink:0}
+.side-panel h3{font-size:.86rem;color:var(--accent);margin-bottom:2px;margin-top:4px}
+.side-panel p,.side-panel li{font-size:.73rem;color:var(--muted);line-height:1.68}
+.side-panel ul{padding-left:14px}
+.side-panel .eq{font-size:.77rem;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--accent);margin:3px 0}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.pane.active{flex-direction:row}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">62</span>
+  <div class="title-block">
+    <h1>AdS/CFT Holography</h1>
+    <p>Bulk geometry, boundary field theory, entanglement, black holes, and the holographic dictionary</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">AdS Geometry</div>
+  <div class="tab" onclick="switchTab(1)">Bulk/Boundary Dict.</div>
+  <div class="tab" onclick="switchTab(2)">Ryu-Takayanagi</div>
+  <div class="tab" onclick="switchTab(3)">BTZ Black Hole</div>
+  <div class="tab" onclick="switchTab(4)">Holographic RG</div>
+  <div class="tab" onclick="switchTab(5)">Tensor Networks</div>
+  <div class="tab" onclick="switchTab(6)">Large N &amp; Strings</div>
+  <div class="tab" onclick="switchTab(7)">Applications</div>
+</div>
+
+<div id="main">
+
+<!-- ===== TAB 0: AdS GEOMETRY ===== -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0" id="info0hint">Poincaré disk: geodesics are circular arcs orthogonal to the boundary. Click twice to add a geodesic.</div>
+    <canvas id="c0" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed0Val">0.10</span>x</span>
+      <input type="range" id="speed0" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button onclick="addRandomGeodesic0()">Add Geodesic</button>
+      <button onclick="clearGeodesics0()">Clear</button>
+      <button id="btnGlobalAdS" onclick="toggleGlobalAdS()">Global AdS₃</button>
+      <label>L=<span id="lVal">1.00</span></label>
+      <input type="range" id="slL" min="0.5" max="2" step="0.01" value="1" oninput="onLChange(this.value)">
+    </div>
+    <div class="info-box" id="info0box">Click on boundary to place first endpoint</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Poincaré AdS</h3>
+    <div class="eq">$$ds^2 = \frac{L^2}{z^2}(dz^2 + dx_\mu dx^\mu)$$</div>
+    <p>The conformal boundary is at $z\to 0$. The bulk is the interior of the disk.</p>
+    <h3>Geodesics</h3>
+    <p>In the Poincaré disk model, geodesics are circular arcs orthogonal to the boundary circle, or diameters.</p>
+    <h3>Global AdS₃</h3>
+    <div class="eq">$$ds^2 = L^2(-\cosh^2\rho\, dt^2 + d\rho^2 + \sinh^2\rho\, d\phi^2)$$</div>
+    <p>Concentric rings represent constant-$\rho$ slices. The boundary is $\rho\to\infty$.</p>
+    <h3>Conformal Boundary</h3>
+    <p>The boundary $\partial(\text{AdS})$ inherits a conformal structure — a $(d-1)$-dimensional conformal field theory lives there. This is the CFT in AdS/CFT.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 1: BULK/BOUNDARY DICTIONARY ===== -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Left: bulk scalar field $\phi(z,x)$ heatmap. Right: boundary CFT correlator $\langle\mathcal{O}(x)\mathcal{O}(0)\rangle$.</div>
+    <canvas id="c1" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed1Val">0.10</span>x</span>
+      <input type="range" id="speed1" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <label>Δ=<span id="deltaVal">2.0</span></label>
+      <input type="range" id="slDelta" min="1.0" max="4.0" step="0.05" value="2.0" oninput="onDeltaChange(this.value)">
+      <button id="btnSource1" onclick="toggleSource1()">Source On</button>
+    </div>
+    <div class="info-box" id="info1box">m²L²=<span class="val" id="massVal">0.00</span> &nbsp;|&nbsp; Δ=<span class="val" id="deltaDisp">2.00</span></div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>GKPW Formula</h3>
+    <div class="eq">$$Z_\text{CFT}[J] = Z_\text{grav}[\phi\big|_\partial = J]$$</div>
+    <p>The partition function of the CFT with source $J$ equals the bulk gravity partition function with boundary condition $\phi|_\partial = J$.</p>
+    <h3>Field-Operator Map</h3>
+    <p>Each bulk field $\phi$ of mass $m$ corresponds to a CFT operator $\mathcal{O}$ of conformal dimension $\Delta$:</p>
+    <div class="eq">$$m^2 L^2 = \Delta(\Delta - d)$$</div>
+    <h3>Two-Point Function</h3>
+    <div class="eq">$$\langle\mathcal{O}(x)\mathcal{O}(0)\rangle = \frac{C_\Delta}{|x|^{2\Delta}}$$</div>
+    <p>The bulk field profile encodes the boundary correlator. Near $z=0$: $\phi \sim z^{d-\Delta} J + z^\Delta \langle\mathcal{O}\rangle$.</p>
+    <h3>Holographic Renormalization</h3>
+    <p>Near-boundary expansion extracts divergences and renormalizes them — mapping to CFT counterterms on the boundary.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 2: RYU-TAKAYANAGI ===== -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Drag gold endpoints on boundary. Green arc = RT geodesic (minimal surface). Entanglement entropy shown below.</div>
+    <canvas id="c2" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed2Val">0.10</span>x</span>
+      <input type="range" id="speed2" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnEWedge" onclick="toggleEWedge()">Entanglement Wedge</button>
+      <button id="btnPageCurve" onclick="togglePageCurve()">Page Curve</button>
+    </div>
+    <div class="info-box" id="info2box">S = c/3 · <span class="val" id="rtEntropy">0.000</span></div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Ryu-Takayanagi Formula</h3>
+    <div class="eq">$$S_A = \frac{\text{Area}(\gamma_A)}{4G_N}$$</div>
+    <p>The entanglement entropy of a boundary region $A$ equals the area of the minimal bulk surface $\gamma_A$ homologous to $A$.</p>
+    <h3>Strong Subadditivity</h3>
+    <div class="eq">$$S(AB) + S(BC) \geq S(B) + S(ABC)$$</div>
+    <p>Automatically satisfied by the RT formula via geometry — a beautiful consistency check.</p>
+    <h3>Island Formula</h3>
+    <div class="eq">$$S_\text{gen} = \frac{\text{Area}(\partial I)}{4G_N} + S_\text{bulk}$$</div>
+    <p>For evaporating black holes, an "island" contribution resolves the information paradox and gives a Page curve consistent with unitarity.</p>
+    <h3>Holographic Entanglement</h3>
+    <p>Entanglement in the boundary CFT is encoded geometrically in the bulk. Spacetime connectivity may emerge from entanglement (ER=EPR conjecture).</p>
+  </div>
+</div>
+
+<!-- ===== TAB 3: BTZ BLACK HOLE ===== -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Left: BTZ Penrose diagram. Right: thermal circle (CFT boundary). Hawking radiation animates as dots.</div>
+    <canvas id="c3" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed3Val">0.10</span>x</span>
+      <input type="range" id="speed3" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <label>M=<span id="massDisp">1.00</span></label>
+      <input type="range" id="slMass" min="0.1" max="5" step="0.05" value="1" oninput="onMassChange(this.value)">
+      <button id="btnBTZAnim" onclick="toggleBTZAnim()">Animate</button>
+    </div>
+    <div class="info-box" id="info3box">r₊=<span class="val" id="rPlusVal">1.00</span> &nbsp;|&nbsp; T_H=<span class="val" id="tHawkVal">0.159</span> &nbsp;|&nbsp; S=<span class="val" id="sbhVal">1.571</span></div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>BTZ Black Hole</h3>
+    <div class="eq">$$ds^2 = -\frac{r^2-r_+^2}{L^2}dt^2 + \frac{L^2 dr^2}{r^2-r_+^2} + r^2 d\phi^2$$</div>
+    <p>The BTZ black hole is an exact solution of 3D gravity with $\Lambda<0$. It has a horizon at $r=r_+$.</p>
+    <h3>Hawking Temperature</h3>
+    <div class="eq">$$T_H = \frac{r_+}{2\pi L^2}$$</div>
+    <p>The dual CFT is in a thermal state at temperature $T_H$. The inverse temperature $\beta=1/T_H$ is the circumference of the thermal circle.</p>
+    <h3>Bekenstein-Hawking Entropy</h3>
+    <div class="eq">$$S_{BH} = \frac{2\pi r_+}{4G_N}$$</div>
+    <p>This matches the thermal entropy of the dual CFT via the Cardy formula — a perfect holographic check.</p>
+    <h3>Penrose Diagram</h3>
+    <p>The maximally extended BTZ spacetime has two asymptotic regions connected by an Einstein-Rosen bridge (wormhole) — dual to the thermofield double state in the CFT.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 4: HOLOGRAPHIC RG ===== -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Left: RG "onion" — AdS radial slices = energy scales. Right: beta function $\beta(g)$ with fixed points.</div>
+    <canvas id="c4" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed4Val">0.10</span>x</span>
+      <input type="range" id="speed4" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnFP" onclick="toggleFP()">Fixed Points</button>
+      <button id="btnRGFlow" onclick="startRGFlow()">Flow</button>
+      <button onclick="resetRG()">Reset</button>
+    </div>
+    <div class="info-box" id="info4box">g=<span class="val" id="rgGVal">0.500</span> &nbsp;|&nbsp; β(g)=<span class="val" id="rgBetaVal">0.000</span></div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Holographic RG</h3>
+    <p>The AdS radial direction $z$ maps to the RG energy scale $\mu\sim 1/z$. Moving into the bulk = flowing to the IR.</p>
+    <h3>Callan-Symanzik Equation</h3>
+    <div class="eq">$$\mu\frac{\partial g}{\partial\mu} = \beta(g)$$</div>
+    <h3>Holographic Beta Function</h3>
+    <div class="eq">$$\beta(g) \propto z\,\partial_z \phi$$</div>
+    <p>The bulk scalar profile encodes the running of the coupling constant. Fixed points of the RG = critical points in AdS.</p>
+    <h3>c-Theorem</h3>
+    <div class="eq">$$\frac{dc}{d\mu} \leq 0$$</div>
+    <p>The number of degrees of freedom decreases along the RG flow. Holographically, this corresponds to the monotone decrease of the AdS area element toward the IR.</p>
+    <h3>Fixed Points</h3>
+    <p>UV fixed point (boundary, $z\to 0$): conformal field theory. IR fixed point (deep bulk, $z\to\infty$): another CFT or a gapped phase.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 5: TENSOR NETWORKS & MERA ===== -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">MERA: click a tensor to highlight its causal cone (gold). Toggle to HaPPY pentagon code view.</div>
+    <canvas id="c5" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed5Val">0.10</span>x</span>
+      <input type="range" id="speed5" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <button id="btnMERAView" onclick="toggleMERAView()">HaPPY Code View</button>
+      <button onclick="clearHighlight5()">Clear Highlight</button>
+    </div>
+    <div class="info-box" id="info5box">Click a tensor node to highlight its causal cone</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>MERA & Holography</h3>
+    <p>The Multi-scale Entanglement Renormalization Ansatz (MERA) has a tree structure that mirrors the geometry of Anti-de Sitter space.</p>
+    <h3>Entanglement Scaling</h3>
+    <div class="eq">$$S \sim \frac{c}{3}\ln|A|$$</div>
+    <p>MERA naturally reproduces the logarithmic entanglement entropy of a 1+1D CFT.</p>
+    <h3>HaPPY Code</h3>
+    <p>The Harlow-Almheiri-Papadodimas-Preskill-Yoshida code tiles the Poincaré disk with pentagons. Each pentagon is a perfect tensor — a model of bulk locality and quantum error correction.</p>
+    <div class="eq">$$|\psi\rangle_\text{logical} \longleftrightarrow \text{boundary state}$$</div>
+    <h3>ER = EPR</h3>
+    <p>Einstein-Rosen bridges (wormholes) are dual to Einstein-Podolsky-Rosen pairs (entanglement). Tensor network bonds = EPR pairs = ER bridge.</p>
+    <h3>Perfect Tensors</h3>
+    <p>A tensor is <em>perfect</em> if tracing out any half of its indices gives a maximally mixed state. The HaPPY code uses these to realize holographic quantum error correction.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 6: LARGE N & STRINGS ===== -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Left: genus expansion bar chart. Right: ribbon graph (double-line notation). Non-planar diagrams suppressed at large N.</div>
+    <canvas id="c6" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed6Val">0.10</span>x</span>
+      <input type="range" id="speed6" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <label>N=<span id="nVal">3</span></label>
+      <input type="range" id="slN" min="2" max="50" step="1" value="3" oninput="onNChange(this.value)">
+      <label>λ=<span id="lambdaVal">1.0</span></label>
+      <input type="range" id="slLambda" min="0.1" max="10" step="0.1" value="1.0" oninput="onLambdaChange(this.value)">
+      <button id="btnNonPlanar" onclick="toggleNonPlanar()">Non-Planar</button>
+    </div>
+    <div class="info-box" id="info6box">1/N²=<span class="val" id="invN2Val">0.111</span> &nbsp;|&nbsp; λ=g²N=<span class="val" id="thooftVal">3.0</span></div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>'t Hooft Limit</h3>
+    <div class="eq">$$N\to\infty,\quad \lambda = g^2 N = \text{fixed}$$</div>
+    <p>In this limit, only <em>planar</em> Feynman diagrams contribute. Non-planar diagrams are suppressed by $1/N^{2g}$ where $g$ is the genus.</p>
+    <h3>Topological Expansion</h3>
+    <div class="eq">$$F = \sum_{g=0}^\infty N^{2-2g} f_g(\lambda)$$</div>
+    <p>The free energy is a genus expansion analogous to the string loop expansion, with $1/N$ playing the role of the string coupling $g_s$.</p>
+    <h3>Weak/Strong Duality</h3>
+    <p>AdS/CFT is a <em>strong/weak</em> duality: when $\lambda\gg 1$ (strong coupling in CFT), the bulk is weakly curved and classical gravity applies. When $\lambda\ll 1$, the bulk geometry is highly stringy.</p>
+    <h3>Type IIB on AdS₅×S⁵</h3>
+    <div class="eq">$$\mathcal{N}=4\;\text{SYM} \;\longleftrightarrow\; \text{IIB on AdS}_5\times S^5$$</div>
+    <p>The original Maldacena duality: $\mathcal{N}=4$ super Yang-Mills with gauge group $SU(N)$ is dual to Type IIB superstring theory on $\text{AdS}_5\times S^5$ with $N$ units of 5-form flux.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 7: APPLICATIONS ===== -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-col">
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Four holographic applications. Adjust T/Tc to see how quantities change.</div>
+    <canvas id="c7" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button onclick="toggleAdsPause(this)">⏸</button>
+      <span style="font-size:.75rem;color:var(--muted)">Speed: <span id="speed7Val">0.10</span>x</span>
+      <input type="range" id="speed7" min="0" max="1" step="0.01" value="0.1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
+      <label>T/Tc=<span id="t7Val">1.00</span></label>
+      <input type="range" id="slT7" min="0.01" max="2" step="0.01" value="1.0" oninput="onT7Change(this.value)">
+    </div>
+    <div class="info-box" id="info7box">η/s=<span class="val" id="etaSVal">0.080</span> &nbsp;|&nbsp; |ψ|=<span class="val" id="psiVal">0.000</span></div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>KSS Bound</h3>
+    <div class="eq">$$\frac{\eta}{s} \geq \frac{1}{4\pi}$$</div>
+    <p>Holography predicts this universal lower bound on the viscosity-to-entropy ratio, saturated by strongly coupled plasmas like the QGP at RHIC/LHC.</p>
+    <h3>Holographic Superconductor</h3>
+    <p>Below a critical temperature $T_c$, a charged scalar condenses in the bulk — dual to Cooper pairing on the boundary. The order parameter vanishes above $T_c$.</p>
+    <h3>Strange Metal</h3>
+    <p>Holographic strange metals exhibit linear-in-$T$ resistivity $\rho\sim T$, unlike Fermi liquid $\rho\sim T^2$. This matches observations in cuprate superconductors.</p>
+    <h3>Holographic Complexity</h3>
+    <div class="eq">$$\mathcal{C}_V \sim \frac{V}{G_N L}$$</div>
+    <p>The complexity of the boundary state equals the volume of the Einstein-Rosen bridge, which grows linearly behind the horizon — even after the Hawking radiation has thermalized.</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+function _cancelAllAnims62(){
+  // Cancel any running animations
+}
+
+const ACCENT='#a78bfa', TEAL='#2dd4bf', GOLD='#fbbf24', RED='#f87171';
+let adsCurTab=0;
+
+// RAF handles
+let btzRafId=null, btzAnimating=false, btzT3=0;
+let rgRafId=null, rgAnimating=false;
+let adsRafId=null, adsAnimTime=0;
+let adsPaused=false;
+
+function adsAnimLoop(){
+  if(!adsPaused){
+    adsAnimTime+=0.016*(window.animSpeed||0.1);
+    const drawFns={0:drawTab0,1:drawTab1,2:drawTab2,5:drawTab5,6:drawTab6,7:drawTab7};
+    if(drawFns[adsCurTab])drawFns[adsCurTab]();
+  }
+  adsRafId=requestAnimationFrame(adsAnimLoop);
+}
+function toggleAdsPause(btn){
+  adsPaused=!adsPaused;
+  btn.textContent=adsPaused?'▶':'⏸';
+}
+
+function stopAll(){
+  if(btzRafId){cancelAnimationFrame(btzRafId);btzRafId=null;}
+  if(rgRafId){cancelAnimationFrame(rgRafId);rgRafId=null;}
+  if(adsRafId){cancelAnimationFrame(adsRafId);adsRafId=null;}
+  adsPaused=false;
+  document.querySelectorAll('.pane button').forEach(b=>{
+    if(b.textContent==='⏸'||b.textContent==='\u23f8'){b.textContent='\u25b6';b.classList.remove('active-btn');}
+  });
+  document.getElementById('btnBTZAnim').textContent='Animate';
+}
+
+function startTab(i){
+  adsCurTab=i;
+  const arr=[
+    ()=>{resizeC0();drawTab0();if(!adsRafId)adsRafId=requestAnimationFrame(adsAnimLoop);},
+    ()=>{resizeC1();drawTab1();if(!adsRafId)adsRafId=requestAnimationFrame(adsAnimLoop);},
+    ()=>{resizeC2();drawTab2();if(!adsRafId)adsRafId=requestAnimationFrame(adsAnimLoop);},
+    ()=>{resizeC3(0);},
+    ()=>{resizeC4();drawTab4();},
+    ()=>{resizeC5();drawTab5();if(!adsRafId)adsRafId=requestAnimationFrame(adsAnimLoop);},
+    ()=>{resizeC6();drawTab6();if(!adsRafId)adsRafId=requestAnimationFrame(adsAnimLoop);},
+    ()=>{resizeC7();drawTab7();if(!adsRafId)adsRafId=requestAnimationFrame(adsAnimLoop);}
+  ];
+  if(arr[i])arr[i]();
+}
+
+function syncSpeedControl62(tab){
+  var s=document.getElementById('speed'+tab);
+  var v=document.getElementById('speed'+tab+'Val');
+  if(s&&v){s.value=window.animSpeed||0.1;v.textContent=(window.animSpeed||0.1).toFixed(2);}
+}
+
+function switchTab(i){
+  stopAll();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',i===j));
+  syncSpeedControl62(i);
+  startTab(i);
+}
+
+// ============================================================
+// Poincaré geodesic helper
+// ============================================================
+function poincareGeodesicCenter(cx,cy,R,x1,y1,x2,y2){
+  const u1=(x1-cx)/R, v1=(y1-cy)/R, u2=(x2-cx)/R, v2=(y2-cy)/R;
+  const d1sq=u1*u1+v1*v1;
+  if(d1sq<1e-6)return null;
+  if(Math.abs(u1+u2)<0.01&&Math.abs(v1+v2)<0.01)return null;
+  const mx=(u1+u2)/2, my=(v1+v2)/2, dx=u2-u1, dy=v2-v1;
+  const coeff=-dy*u1+dx*v1;
+  if(Math.abs(coeff)<1e-9)return null;
+  const t=((1+d1sq)/2-(mx*u1+my*v1))/coeff;
+  const a=mx-t*dy, b=my+t*dx;
+  const gr=Math.sqrt((a-u1)*(a-u1)+(b-v1)*(b-v1));
+  return {gx:cx+a*R, gy:cy+b*R, gr:gr*R};
+}
+
+// ============================================================
+// TAB 0 — AdS Geometry
+// ============================================================
+let geodesics0=[];
+let globalAdS0=false;
+let clickAngle0=null;
+let adsL0=1.0;
+
+function resizeC0(){
+  const c=document.getElementById('c0');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawTab0(){
+  const c=document.getElementById('c0');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2, cy=H/2, R=Math.min(W,H)*0.44;
+
+  if(globalAdS0){
+    // Global AdS3: concentric rings + radial lines
+    ctx.strokeStyle='#333360';ctx.lineWidth=1;
+    for(let k=1;k<=6;k++){
+      ctx.beginPath();ctx.arc(cx,cy,R*k/6,0,2*Math.PI);ctx.stroke();
+    }
+    ctx.strokeStyle='#33336080';
+    for(let a=0;a<12;a++){
+      const ang=a*Math.PI/6;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(ang),cy+R*Math.sin(ang));ctx.stroke();
+    }
+    // Labels
+    ctx.fillStyle=ACCENT;ctx.font='12px sans-serif';ctx.textAlign='center';
+    for(let k=1;k<=3;k++){
+      ctx.fillText('ρ='+k,cx+R*k/6+4,cy-4);
+    }
+    // Boundary circle
+    ctx.strokeStyle=ACCENT;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle=ACCENT+'40';ctx.fill();
+    ctx.fillStyle=ACCENT;ctx.font='12px sans-serif';
+    ctx.fillText('boundary (ρ→∞)',cx,cy-R-8);
+  } else {
+    // Poincaré disk
+    ctx.fillStyle='#12122a';ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.fill();
+    ctx.strokeStyle=ACCENT;ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle=ACCENT;ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('conformal boundary',cx,cy-R-8);
+
+    // Draw geodesics
+    ctx.lineWidth=1.5;
+    geodesics0.forEach((g,idx)=>{
+      const x1=cx+R*Math.cos(g.t1), y1=cy+R*Math.sin(g.t1);
+      const x2=cx+R*Math.cos(g.t2), y2=cy+R*Math.sin(g.t2);
+      const gc=poincareGeodesicCenter(cx,cy,R,x1,y1,x2,y2);
+      ctx.strokeStyle=`hsl(${260+idx*37},70%,65%)`;
+      ctx.beginPath();
+      if(!gc){
+        ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+      } else {
+        const a1=Math.atan2(y1-gc.gy,x1-gc.gx);
+        const a2=Math.atan2(y2-gc.gy,x2-gc.gx);
+        // pick shorter arc
+        let da=a2-a1;
+        while(da>Math.PI)da-=2*Math.PI;
+        while(da<-Math.PI)da+=2*Math.PI;
+        ctx.arc(gc.gx,gc.gy,gc.gr,a1,a1+da);
+      }
+      ctx.stroke();
+      // dots on boundary
+      ctx.fillStyle=`hsl(${260+idx*37},70%,65%)`;
+      ctx.beginPath();ctx.arc(x1,y1,4,0,2*Math.PI);ctx.fill();
+      ctx.beginPath();ctx.arc(x2,y2,4,0,2*Math.PI);ctx.fill();
+    });
+
+    // First-click pending
+    if(clickAngle0!==null){
+      const px=cx+R*Math.cos(clickAngle0), py=cy+R*Math.sin(clickAngle0);
+      ctx.fillStyle=GOLD;ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);ctx.fill();
+    }
+
+    // Animated particles on geodesics
+    geodesics0.forEach((g,idx)=>{
+      const x1=cx+R*Math.cos(g.t1), y1=cy+R*Math.sin(g.t1);
+      const x2=cx+R*Math.cos(g.t2), y2=cy+R*Math.sin(g.t2);
+      const gc2=poincareGeodesicCenter(cx,cy,R,x1,y1,x2,y2);
+      for(let d=0;d<2;d++){
+        const frac=((adsAnimTime*0.3+d*0.5+idx*0.17)%1);
+        let px,py;
+        if(!gc2){
+          px=x1+(x2-x1)*frac; py=y1+(y2-y1)*frac;
+        } else {
+          const a1b=Math.atan2(y1-gc2.gy,x1-gc2.gx);
+          const a2b=Math.atan2(y2-gc2.gy,x2-gc2.gx);
+          let dab=a2b-a1b;while(dab>Math.PI)dab-=2*Math.PI;while(dab<-Math.PI)dab+=2*Math.PI;
+          const ang2=a1b+dab*frac;
+          px=gc2.gx+gc2.gr*Math.cos(ang2); py=gc2.gy+gc2.gr*Math.sin(ang2);
+        }
+        const ddx=px-cx, ddy=py-cy;
+        if(ddx*ddx+ddy*ddy<R*R){
+          const grd=ctx.createRadialGradient(px,py,0,px,py,5);
+          grd.addColorStop(0,`hsla(${260+idx*37},70%,75%,0.9)`);
+          grd.addColorStop(1,`hsla(${260+idx*37},70%,65%,0)`);
+          ctx.fillStyle=grd;
+          ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);ctx.fill();
+        }
+      }
+    });
+
+    // Subtle center glow pulse
+    const pulseR=R*0.12*(0.8+0.2*Math.sin(adsAnimTime*1.5));
+    const cgrd=ctx.createRadialGradient(cx,cy,0,cx,cy,pulseR);
+    cgrd.addColorStop(0,'rgba(167,139,250,0.18)');
+    cgrd.addColorStop(1,'rgba(167,139,250,0)');
+    ctx.fillStyle=cgrd;
+    ctx.beginPath();ctx.arc(cx,cy,pulseR,0,2*Math.PI);ctx.fill();
+
+    // Center label
+    ctx.fillStyle='#ffffff30';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('AdS bulk (Poincaré disk)',cx,cy);
+  }
+
+  // Global AdS center glow pulse
+  if(globalAdS0){
+    const pulseR2=R*0.1*(0.8+0.2*Math.sin(adsAnimTime*1.5));
+    const cgrd2=ctx.createRadialGradient(cx,cy,0,cx,cy,pulseR2);
+    cgrd2.addColorStop(0,'rgba(167,139,250,0.15)');
+    cgrd2.addColorStop(1,'rgba(167,139,250,0)');
+    ctx.fillStyle=cgrd2;
+    ctx.beginPath();ctx.arc(cx,cy,pulseR2,0,2*Math.PI);ctx.fill();
+  }
+}
+
+function addRandomGeodesic0(){
+  const t1=Math.random()*2*Math.PI;
+  let t2=t1+0.5+Math.random()*Math.PI;
+  geodesics0.push({t1,t2});
+  if(geodesics0.length>30)geodesics0.splice(0,geodesics0.length-30);
+  drawTab0();
+}
+
+function clearGeodesics0(){
+  geodesics0=[];clickAngle0=null;
+  document.getElementById('info0box').textContent='Click on boundary to place first endpoint';
+  drawTab0();
+}
+
+function toggleGlobalAdS(){
+  globalAdS0=!globalAdS0;
+  document.getElementById('btnGlobalAdS').classList.toggle('active-btn',globalAdS0);
+  drawTab0();
+}
+
+function onLChange(v){
+  adsL0=parseFloat(v);
+  document.getElementById('lVal').textContent=adsL0.toFixed(2);
+  drawTab0();
+}
+
+// Click on canvas for geodesic placement
+document.getElementById('c0').addEventListener('click',function(e){
+  if(globalAdS0)return;
+  const rect=this.getBoundingClientRect();
+  const W=this.clientWidth, H=this.clientHeight;
+  const cx=W/2, cy=H/2, R=Math.min(W,H)*0.44;
+  const mx=e.clientX-rect.left-cx, my=e.clientY-rect.top-cy;
+  const dist=Math.sqrt(mx*mx+my*my);
+  if(Math.abs(dist-R)>20)return; // must click near boundary
+  const ang=Math.atan2(my,mx);
+  if(clickAngle0===null){
+    clickAngle0=ang;
+    document.getElementById('info0box').textContent='First endpoint placed. Click second endpoint on boundary.';
+  } else {
+    geodesics0.push({t1:clickAngle0,t2:ang});
+    if(geodesics0.length>30)geodesics0.splice(0,geodesics0.length-30);
+    clickAngle0=null;
+    document.getElementById('info0box').textContent='Geodesic added. Click to add more.';
+  }
+  drawTab0();
+});
+
+// ============================================================
+// TAB 1 — Bulk/Boundary Dictionary
+// ============================================================
+let delta1=2.0, source1On=false;
+
+function resizeC1(){
+  const c=document.getElementById('c1');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawTab1(){
+  const c=document.getElementById('c1');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const split=W/2;
+  const Nx=60, Nz=40;
+  const tileW=(split-10)/Nx, tileH=H/Nz;
+
+  // Bulk heatmap
+  for(let iz=0;iz<Nz;iz++){
+    for(let ix=0;ix<Nx;ix++){
+      const z=(iz+0.5)/Nz, x=(ix+0.5)/Nx;
+      const J=source1On?(0.5+0.5*Math.cos(2*Math.PI*x)):1.0;
+      const breathe=0.8+0.2*Math.sin(adsAnimTime*2);
+      const phi=J*breathe*Math.pow(z,2-delta1+0.01)*Math.exp(-z*2);
+      const val=Math.tanh(phi*3);
+      const r=Math.round(167*val), g=Math.round(139*val), b=Math.round(250*val);
+      ctx.fillStyle=`rgb(${r},${g},${b})`;
+      ctx.fillRect(5+ix*tileW,(Nz-1-iz)*tileH,tileW+0.5,tileH+0.5);
+    }
+  }
+
+  // Label axes
+  ctx.fillStyle=ACCENT;ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('x (boundary)',5+split/2,H-2);
+  ctx.save();ctx.translate(14,H/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('z (AdS radial)',0,0);ctx.restore();
+  ctx.fillText('z→0 (boundary)',5+split/2,12);
+  ctx.fillText('z→1 (horizon)',5+split/2,H-14);
+
+  // Divider
+  ctx.strokeStyle='#444466';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(split,0);ctx.lineTo(split,H);ctx.stroke();
+
+  // Boundary correlator
+  const px0=split+10, pxW=W-10-px0;
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;
+  ctx.beginPath();
+  const Gmax=Math.pow(0.02,-2*delta1);
+  for(let i=0;i<=200;i++){
+    const x=i/200;
+    const G=Math.pow(Math.abs(x-0.5)+0.02,-2*delta1);
+    const norm=G/Gmax;
+    const px=px0+x*pxW;
+    const py=H-10-norm*(H-20);
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // Scanning dot on correlator
+  const scanX=((adsAnimTime*0.15)%1);
+  const scanG=Math.pow(Math.abs(scanX-0.5)+0.02,-2*delta1);
+  const scanNorm=scanG/Gmax;
+  const scanPx=px0+scanX*pxW;
+  const scanPy=H-10-scanNorm*(H-20);
+  const dotGrd=ctx.createRadialGradient(scanPx,scanPy,0,scanPx,scanPy,6);
+  dotGrd.addColorStop(0,'rgba(167,139,250,0.9)');
+  dotGrd.addColorStop(1,'rgba(167,139,250,0)');
+  ctx.fillStyle=dotGrd;
+  ctx.beginPath();ctx.arc(scanPx,scanPy,6,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle=ACCENT;
+  ctx.beginPath();ctx.arc(scanPx,scanPy,3,0,2*Math.PI);ctx.fill();
+
+  // Label
+  ctx.fillStyle=ACCENT;ctx.textAlign='center';
+  ctx.fillText('⟨O(x)O(0)⟩ ~ 1/|x|^{2Δ}',px0+pxW/2,14);
+  ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';
+  ctx.fillText('x',px0+pxW,H-2);
+
+  // Update info
+  const m2L2=(delta1*(delta1-2)).toFixed(2);
+  document.getElementById('massVal').textContent=m2L2;
+  document.getElementById('deltaDisp').textContent=delta1.toFixed(2);
+}
+
+function onDeltaChange(v){
+  delta1=parseFloat(v);
+  document.getElementById('deltaVal').textContent=delta1.toFixed(1);
+  drawTab1();
+}
+
+function toggleSource1(){
+  source1On=!source1On;
+  document.getElementById('btnSource1').textContent=source1On?'Source Off':'Source On';
+  document.getElementById('btnSource1').classList.toggle('active-btn',source1On);
+  drawTab1();
+}
+
+// ============================================================
+// TAB 2 — Ryu-Takayanagi
+// ============================================================
+let rt_t1=Math.PI*0.7, rt_t2=Math.PI*1.4;
+let draggingRT=0;
+let showEWedge=false, showPageCurve=false;
+
+function resizeC2(){
+  const c=document.getElementById('c2');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawTab2(){
+  const c=document.getElementById('c2');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const diskW=showPageCurve?W*0.65:W;
+  const cx=diskW/2, cy=H/2, R=Math.min(diskW,H)*0.42;
+
+  // Disk
+  ctx.fillStyle='#12122a';ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.fill();
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.stroke();
+
+  const x1=cx+R*Math.cos(rt_t1), y1=cy+R*Math.sin(rt_t1);
+  const x2=cx+R*Math.cos(rt_t2), y2=cy+R*Math.sin(rt_t2);
+  const gc=poincareGeodesicCenter(cx,cy,R,x1,y1,x2,y2);
+
+  let arcLen=0;
+  if(gc){
+    // Entanglement wedge shading
+    if(showEWedge&&gc){
+      const a1=Math.atan2(y1-gc.gy,x1-gc.gx);
+      const a2=Math.atan2(y2-gc.gy,x2-gc.gx);
+      let da=a2-a1;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;
+      ctx.fillStyle=ACCENT+'22';
+      ctx.beginPath();
+      ctx.arc(gc.gx,gc.gy,gc.gr,a1,a1+da);
+      // close to boundary arc
+      let ba1=rt_t1, ba2=rt_t2;
+      let bda=ba2-ba1;while(bda>Math.PI)bda-=2*Math.PI;while(bda<-Math.PI)bda+=2*Math.PI;
+      ctx.arc(cx,cy,R,rt_t2,rt_t1,bda>0);
+      ctx.closePath();ctx.fill();
+    }
+
+    // RT geodesic
+    ctx.strokeStyle='#34d399';ctx.lineWidth=2.5;
+    const a1=Math.atan2(y1-gc.gy,x1-gc.gx);
+    const a2=Math.atan2(y2-gc.gy,x2-gc.gx);
+    let da=a2-a1;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;
+    ctx.beginPath();ctx.arc(gc.gx,gc.gy,gc.gr,a1,a1+da);ctx.stroke();
+    arcLen=gc.gr*Math.abs(da);
+  } else {
+    ctx.strokeStyle='#34d399';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    arcLen=Math.sqrt((x2-x1)**2+(y2-y1)**2);
+  }
+
+  // Animated glow pulse traveling along RT geodesic
+  if(gc){
+    const a1g=Math.atan2(y1-gc.gy,x1-gc.gx);
+    const a2g=Math.atan2(y2-gc.gy,x2-gc.gx);
+    let dag=a2g-a1g;while(dag>Math.PI)dag-=2*Math.PI;while(dag<-Math.PI)dag+=2*Math.PI;
+    for(let p=0;p<3;p++){
+      const frac=((adsAnimTime*0.25+p*0.33)%1);
+      const angP=a1g+dag*frac;
+      const gpx=gc.gx+gc.gr*Math.cos(angP), gpy=gc.gy+gc.gr*Math.sin(angP);
+      const dxc=gpx-cx, dyc=gpy-cy;
+      if(dxc*dxc+dyc*dyc<R*R){
+        const gg=ctx.createRadialGradient(gpx,gpy,0,gpx,gpy,8);
+        gg.addColorStop(0,'rgba(52,211,153,0.8)');
+        gg.addColorStop(1,'rgba(52,211,153,0)');
+        ctx.fillStyle=gg;
+        ctx.beginPath();ctx.arc(gpx,gpy,8,0,2*Math.PI);ctx.fill();
+      }
+    }
+  }
+
+  // Animated particles inside entanglement wedge
+  if(showEWedge&&gc){
+    for(let p=0;p<8;p++){
+      const seed=p*137.5+adsAnimTime*0.4;
+      const fr=0.15+0.25*((Math.sin(seed*1.3)+1)/2);
+      const fa=rt_t1+((rt_t2-rt_t1+2*Math.PI)%(2*Math.PI))*((Math.sin(seed*0.7)+1)/2);
+      const wpx=cx+R*fr*Math.cos(fa), wpy=cy+R*fr*Math.sin(fa);
+      const dxw=wpx-cx, dyw=wpy-cy;
+      if(dxw*dxw+dyw*dyw<R*R*0.85){
+        const alpha=0.3+0.2*Math.sin(seed*2);
+        ctx.fillStyle=`rgba(167,139,250,${alpha})`;
+        ctx.beginPath();ctx.arc(wpx,wpy,2,0,2*Math.PI);ctx.fill();
+      }
+    }
+  }
+
+  // Endpoint handles
+  ctx.fillStyle=GOLD;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(x1,y1,7,0,2*Math.PI);ctx.fill();
+  ctx.beginPath();ctx.arc(x2,y2,7,0,2*Math.PI);ctx.fill();
+
+  // Entropy
+  const S=(arcLen/R/2).toFixed(3);
+  document.getElementById('rtEntropy').textContent=S;
+  ctx.fillStyle='#34d399';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('S = c/3 · '+S,cx,cy-R-10);
+
+  // Page curve inset
+  if(showPageCurve){
+    const px=diskW+10, pw=W-px-5, ph=H;
+    ctx.fillStyle='#12122a';ctx.fillRect(px,0,pw,ph);
+    ctx.strokeStyle='#333360';ctx.lineWidth=1;
+    ctx.strokeRect(px,5,pw-5,ph-10);
+    ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('Page Curve',px+pw/2,18);
+    // Draw curve
+    ctx.strokeStyle=ACCENT;ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<=200;i++){
+      const t=i/200;
+      let s;
+      if(t<0.5)s=t*2; else s=2-t*2;
+      const sx=px+10+t*(pw-20);
+      const sy=5+10+(ph-20)*(1-s*0.9);
+      if(i===0)ctx.moveTo(sx,sy);else ctx.lineTo(sx,sy);
+    }
+    ctx.stroke();
+    // Page time marker
+    ctx.strokeStyle=GOLD;ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    const tpx=px+10+0.5*(pw-20);
+    ctx.beginPath();ctx.moveTo(tpx,5+10);ctx.lineTo(tpx,ph-10);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=GOLD;ctx.font='12px sans-serif';
+    ctx.fillText('Page time',tpx,ph-12);
+    ctx.fillStyle='#8888aa';ctx.textAlign='left';
+    ctx.fillText('t',px+pw-12,ph-5);
+    ctx.fillText('S',px+12,18);
+  }
+}
+
+document.getElementById('c2').addEventListener('mousedown',function(e){
+  const rect=this.getBoundingClientRect();
+  const W=this.clientWidth, H=this.clientHeight;
+  const diskW=showPageCurve?W*0.65:W;
+  const cx=diskW/2, cy=H/2, R=Math.min(diskW,H)*0.42;
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const x1=cx+R*Math.cos(rt_t1), y1=cy+R*Math.sin(rt_t1);
+  const x2=cx+R*Math.cos(rt_t2), y2=cy+R*Math.sin(rt_t2);
+  const d1=Math.sqrt((mx-x1)**2+(my-y1)**2);
+  const d2=Math.sqrt((mx-x2)**2+(my-y2)**2);
+  if(d1<12)draggingRT=1;
+  else if(d2<12)draggingRT=2;
+});
+document.getElementById('c2').addEventListener('mousemove',function(e){
+  if(!draggingRT)return;
+  const rect=this.getBoundingClientRect();
+  const W=this.clientWidth, H=this.clientHeight;
+  const diskW=showPageCurve?W*0.65:W;
+  const cx=diskW/2, cy=H/2;
+  const mx=e.clientX-rect.left-cx, my=e.clientY-rect.top-cy;
+  const ang=Math.atan2(my,mx);
+  if(draggingRT===1)rt_t1=ang;else rt_t2=ang;
+  drawTab2();
+});
+document.getElementById('c2').addEventListener('mouseup',()=>{draggingRT=0;});
+
+function toggleEWedge(){
+  showEWedge=!showEWedge;
+  document.getElementById('btnEWedge').classList.toggle('active-btn',showEWedge);
+  drawTab2();
+}
+function togglePageCurve(){
+  showPageCurve=!showPageCurve;
+  document.getElementById('btnPageCurve').classList.toggle('active-btn',showPageCurve);
+  drawTab2();
+}
+
+// ============================================================
+// TAB 3 — BTZ Black Hole
+// ============================================================
+let btzMass=1.0;
+let btzQuanta=[];
+
+function resizeC3(t){
+  const c=document.getElementById('c3');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  drawTab3(t||btzT3);
+}
+
+function drawTab3(t){
+  const c=document.getElementById('c3');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const split=W/2;
+
+  // ---- Left: Penrose diagram ----
+  const pl=20, pr=split-10, pt=20, pb=H-20;
+  const pw=pr-pl, ph=pb-pt;
+  const pcx=pl+pw/2, pcy=pt+ph/2;
+  const pdx=Math.min(pw,ph)*0.45;
+
+  // Diamond shape
+  const top=[pcx,pt+6], bot=[pcx,pb-6], left=[pl+6,pcy], right=[pr-6,pcy];
+
+  ctx.strokeStyle='#333360';ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(top[0],top[1]);ctx.lineTo(right[0],right[1]);
+  ctx.lineTo(bot[0],bot[1]);ctx.lineTo(left[0],left[1]);
+  ctx.closePath();ctx.stroke();
+
+  // Singularity (top edge)
+  ctx.strokeStyle=RED;ctx.lineWidth=3;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(pcx-pdx*0.7,pt+ph*0.15);ctx.lineTo(pcx+pdx*0.7,pt+ph*0.15);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=RED;ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('singularity',pcx,pt+ph*0.12);
+
+  // Horizon diagonals
+  ctx.strokeStyle=GOLD;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(left[0],left[1]);ctx.lineTo(pcx,pcy-pdx*0.5);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(right[0],right[1]);ctx.lineTo(pcx,pcy+pdx*0.5);ctx.stroke();
+
+  // Boundary lines (accent)
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(top[0],top[1]);ctx.lineTo(right[0],right[1]);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bot[0],bot[1]);ctx.lineTo(right[0],right[1]);ctx.stroke();
+
+  // Labels
+  ctx.fillStyle=ACCENT;ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('boundary',right[0]-45,right[1]);
+  ctx.fillStyle=GOLD;ctx.textAlign='center';
+  ctx.fillText('horizon',pcx,pcy+5);
+
+  // Hawking quanta animation
+  if(btzAnimating){
+    if(Math.random()<0.05){
+      btzQuanta.push({x:pcx+(-20+Math.random()*40),y:pcy,vy:-0.5-Math.random(),life:1.0});
+    }
+    if(btzQuanta.length>500)btzQuanta.splice(0,btzQuanta.length-500);
+  }
+  btzQuanta.forEach(q=>{
+    ctx.fillStyle=`rgba(251,191,36,${q.life})`;
+    ctx.beginPath();ctx.arc(q.x,q.y,3,0,2*Math.PI);ctx.fill();
+  });
+
+  // ---- Right: thermal circle ----
+  const rcx=split+W/4, rcy=H/2;
+  const rR=Math.min(W-split,H)*0.32;
+
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(rcx,rcy,rR,0,2*Math.PI);ctx.stroke();
+
+  const N=8;
+  const rPlus=Math.sqrt(btzMass);
+  for(let i=0;i<N;i++){
+    const ang=i*2*Math.PI/N+t*rPlus*0.5;
+    const qx=rcx+rR*Math.cos(ang), qy=rcy+rR*Math.sin(ang);
+    ctx.fillStyle=GOLD;ctx.beginPath();ctx.arc(qx,qy,5,0,2*Math.PI);ctx.fill();
+  }
+  ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('β = 1/T_H',rcx,rcy+rR+16);
+  ctx.fillText('thermal circle',rcx,rcy);
+
+  // Update info
+  const rp=Math.sqrt(btzMass).toFixed(3);
+  const Th=(parseFloat(rp)/(2*Math.PI)).toFixed(3);
+  const Sbh=(2*Math.PI*parseFloat(rp)/4).toFixed(3);
+  document.getElementById('rPlusVal').textContent=rp;
+  document.getElementById('tHawkVal').textContent=Th;
+  document.getElementById('sbhVal').textContent=Sbh;
+}
+
+function animBTZ(){
+  if(!btzAnimating)return;
+  btzT3+=0.016*(window.animSpeed||0.1);
+  btzQuanta.forEach(q=>{q.y+=q.vy;q.life-=0.01;});
+  btzQuanta=btzQuanta.filter(q=>q.life>0);
+  drawTab3(btzT3);
+  btzRafId=requestAnimationFrame(animBTZ);
+}
+
+function toggleBTZAnim(){
+  btzAnimating=!btzAnimating;
+  document.getElementById('btnBTZAnim').textContent=btzAnimating?'Pause':'Animate';
+  document.getElementById('btnBTZAnim').classList.toggle('active-btn',btzAnimating);
+  if(btzAnimating&&!btzRafId){btzRafId=requestAnimationFrame(animBTZ);}
+}
+
+function onMassChange(v){
+  btzMass=parseFloat(v);
+  document.getElementById('massDisp').textContent=btzMass.toFixed(2);
+  if(!btzAnimating)drawTab3(btzT3);
+}
+
+// ============================================================
+// TAB 4 — Holographic RG
+// ============================================================
+let rgG=0.5, showFP=false;
+
+function beta4(g){return g*(1-g)*(g-0.2)*2;}
+
+function resizeC4(){
+  const c=document.getElementById('c4');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawTab4(){
+  const c=document.getElementById('c4');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const split=W*0.55;
+
+  // ---- Left: onion rings ----
+  const ocx=split*0.5, ocy=H/2;
+  const oR=Math.min(split*0.45,H*0.4);
+  const labels=['UV','10³','10²','10','1','IR'];
+
+  for(let k=6;k>=1;k--){
+    const r=oR*k/6;
+    const alpha=0.2+0.12*k;
+    ctx.strokeStyle=`rgba(167,139,250,${alpha})`;
+    ctx.lineWidth=k===6?2:1.5;
+    ctx.beginPath();ctx.arc(ocx,ocy,r,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle=`rgba(167,139,250,${0.04*k})`;
+    ctx.fill();
+    // label
+    if(k<=6){
+      ctx.fillStyle=`rgba(167,139,250,${0.5+0.08*k})`;
+      ctx.font='12px sans-serif';ctx.textAlign='left';
+      ctx.fillText(labels[6-k],ocx+r+2,ocy-2);
+    }
+  }
+
+  // Current g dot on ring
+  const gRing=oR*(0.1+rgG*0.85);
+  const gAng=-Math.PI/2;
+  const gx=ocx+gRing*Math.cos(gAng), gy=ocy+gRing*Math.sin(gAng);
+  ctx.fillStyle='#34d399';ctx.beginPath();ctx.arc(gx,gy,7,0,2*Math.PI);ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='#34d399';ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('g(μ)='+rgG.toFixed(2),gx+10,gy+4);
+
+  // ---- Right: beta function ----
+  const bx0=split+10, bxW=W-bx0-10;
+  const by0=20, byH=H-40;
+  const bmidY=by0+byH/2;
+
+  // Axes
+  ctx.strokeStyle='#444466';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(bx0,by0);ctx.lineTo(bx0,by0+byH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(bx0,bmidY);ctx.lineTo(bx0+bxW,bmidY);ctx.stroke();
+
+  ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('g',bx0+bxW,bmidY+12);
+  ctx.fillText('β(g)',bx0,by0-4);
+
+  // Beta curve
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const g=i/200;
+    const b=beta4(g);
+    const px=bx0+g*bxW;
+    const py=bmidY-b*byH*0.45;
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // Fixed points
+  if(showFP){
+    const fps=[{g:0,stable:true},{g:0.2,stable:false},{g:1,stable:true}];
+    fps.forEach(fp=>{
+      const px=bx0+fp.g*bxW;
+      ctx.fillStyle=fp.stable?'#34d399':RED;
+      ctx.beginPath();ctx.arc(px,bmidY,6,0,2*Math.PI);ctx.fill();
+      ctx.fillStyle='#e8e8f8';ctx.font='12px sans-serif';ctx.textAlign='center';
+      ctx.fillText('g='+fp.g,px,bmidY+16);
+    });
+  }
+
+  // Current g marker
+  const cgpx=bx0+rgG*bxW, cgb=beta4(rgG), cgpy=bmidY-cgb*byH*0.45;
+  ctx.strokeStyle=GOLD;ctx.fillStyle='transparent';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cgpx,bmidY,8,0,2*Math.PI);ctx.stroke();
+  ctx.beginPath();ctx.arc(cgpx,cgpy,5,0,2*Math.PI);ctx.stroke();
+
+  document.getElementById('rgGVal').textContent=rgG.toFixed(3);
+  document.getElementById('rgBetaVal').textContent=cgb.toFixed(3);
+}
+
+function animRG(){
+  rgG=Math.max(0,Math.min(1,rgG+beta4(rgG)*0.005));
+  drawTab4();
+  if(Math.abs(beta4(rgG))<0.001){
+    rgRafId=null;rgAnimating=false;
+    document.getElementById('btnRGFlow').classList.remove('active-btn');
+    return;
+  }
+  rgRafId=requestAnimationFrame(animRG);
+}
+
+function toggleFP(){
+  showFP=!showFP;
+  document.getElementById('btnFP').classList.toggle('active-btn',showFP);
+  drawTab4();
+}
+
+function startRGFlow(){
+  if(rgAnimating)return;
+  rgAnimating=true;
+  document.getElementById('btnRGFlow').classList.add('active-btn');
+  if(!rgRafId)rgRafId=requestAnimationFrame(animRG);
+}
+
+function resetRG(){
+  rgG=0.5;
+  if(rgRafId){cancelAnimationFrame(rgRafId);rgRafId=null;}
+  rgAnimating=false;
+  document.getElementById('btnRGFlow').classList.remove('active-btn');
+  drawTab4();
+}
+
+// ============================================================
+// TAB 5 — Tensor Networks & MERA
+// ============================================================
+let meraView=false; // false=MERA, true=HaPPY
+let meraNodes=[];
+let highlightNode=-1;
+
+function buildMERANodes(W,H){
+  meraNodes=[];
+  const levels=4;
+  const id_counter={v:0};
+  for(let l=0;l<levels;l++){
+    const nIso=Math.pow(2,3-l);
+    const nDis=Math.pow(2,2-l);
+    const yIso=H*0.1+l*(H*0.72/(levels-1));
+    const yDis=yIso+H*0.72/(levels-1)*0.4;
+    // isometries
+    for(let i=0;i<nIso;i++){
+      const x=W*0.1+i*W*0.8/(nIso);
+      meraNodes.push({x,y:yIso,type:'iso',level:l,i,id:id_counter.v++});
+    }
+    // disentanglers
+    if(l<levels-1){
+      for(let i=0;i<nDis;i++){
+        const x=W*0.1+(i+0.5)*W*0.8/(nDis);
+        meraNodes.push({x,y:yDis,type:'dis',level:l,i,id:id_counter.v++});
+      }
+    }
+  }
+  // top node
+  meraNodes.push({x:W/2,y:H*0.05,type:'top',level:-1,i:0,id:id_counter.v++});
+}
+
+function resizeC5(){
+  const c=document.getElementById('c5');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  buildMERANodes(W,H);
+}
+
+function drawTab5(){
+  const c=document.getElementById('c5');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  if(meraView){
+    // HaPPY pentagon tiling on Poincaré disk
+    const cx=W/2, cy=H/2, R=Math.min(W,H)*0.42;
+    ctx.fillStyle='#12122a';ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.fill();
+    ctx.strokeStyle=ACCENT;ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle='#8888aa';ctx.textAlign='center';ctx.font='12px sans-serif';
+    ctx.fillText('HaPPY Code — Poincaré Disk Pentagon Tiling',cx,cy-R-8);
+
+    function drawPentagon(px,py,r,angle){
+      ctx.beginPath();
+      for(let k=0;k<5;k++){
+        const a=angle+k*2*Math.PI/5-Math.PI/2;
+        if(k===0)ctx.moveTo(px+r*Math.cos(a),py+r*Math.sin(a));
+        else ctx.lineTo(px+r*Math.cos(a),py+r*Math.sin(a));
+      }
+      ctx.closePath();
+    }
+
+    // Center pentagon
+    const pr=R*0.22;
+    ctx.strokeStyle=ACCENT;ctx.lineWidth=1.5;
+    ctx.fillStyle=ACCENT+'18';
+    drawPentagon(cx,cy,pr,0);ctx.fill();ctx.stroke();
+
+    // 5 surrounding
+    for(let k=0;k<5;k++){
+      const ang=k*2*Math.PI/5-Math.PI/2;
+      const sr=R*0.46;
+      const spx=cx+sr*Math.cos(ang), spy=cy+sr*Math.sin(ang);
+      ctx.fillStyle=TEAL+'18';ctx.strokeStyle=TEAL;
+      drawPentagon(spx,spy,pr,ang+Math.PI/5);ctx.fill();ctx.stroke();
+    }
+
+    // 5 outer
+    for(let k=0;k<5;k++){
+      const ang=k*2*Math.PI/5;
+      const sr=R*0.77;
+      const spx=cx+sr*Math.cos(ang), spy=cy+sr*Math.sin(ang);
+      ctx.fillStyle=GOLD+'18';ctx.strokeStyle=GOLD;
+      drawPentagon(spx,spy,pr*0.85,ang);ctx.fill();ctx.stroke();
+    }
+
+    // Gentle rotation pulse on pentagons
+    const happyPulse=1.0+0.03*Math.sin(adsAnimTime*1.2);
+    // Animated boundary dots pulse
+    for(let k=0;k<15;k++){
+      const ang=k*2*Math.PI/15;
+      const bpulse=3+1.5*Math.sin(adsAnimTime*2+k*0.4);
+      const balpha=0.5+0.3*Math.sin(adsAnimTime*1.5+k*0.3);
+      ctx.fillStyle=`rgba(167,139,250,${balpha})`;
+      ctx.beginPath();ctx.arc(cx+R*Math.cos(ang),cy+R*Math.sin(ang),bpulse,0,2*Math.PI);ctx.fill();
+    }
+
+    ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('Each pentagon = perfect tensor (6-leg)',cx,cy+R+16);
+    return;
+  }
+
+  // MERA tree view
+  if(meraNodes.length===0)buildMERANodes(W,H);
+
+  // Draw edges between levels
+  const isoNodes=meraNodes.filter(n=>n.type==='iso');
+  const disNodes=meraNodes.filter(n=>n.type==='dis');
+  const topNode=meraNodes.find(n=>n.type==='top');
+
+  // Edges iso -> dis between levels
+  for(let l=0;l<3;l++){
+    const isoL=isoNodes.filter(n=>n.level===l);
+    const disL=disNodes.filter(n=>n.level===l);
+    isoL.forEach(iso=>{
+      const nearest=disL.sort((a,b)=>Math.abs(a.x-iso.x)-Math.abs(b.x-iso.x))[0];
+      if(nearest){
+        ctx.strokeStyle='#333360';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(iso.x,iso.y);ctx.lineTo(nearest.x,nearest.y);ctx.stroke();
+      }
+    });
+  }
+
+  // Edges: connect iso level l to iso level l+1
+  for(let l=0;l<3;l++){
+    const curL=isoNodes.filter(n=>n.level===l);
+    const nextL=isoNodes.filter(n=>n.level===l+1);
+    curL.forEach(cn=>{
+      const closest=nextL.sort((a,b)=>Math.abs(a.x-cn.x)-Math.abs(b.x-cn.x));
+      if(closest[0]){
+        ctx.strokeStyle='#333360';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(cn.x,cn.y);ctx.lineTo(closest[0].x,closest[0].y);ctx.stroke();
+      }
+    });
+  }
+
+  // Top node connections
+  isoNodes.filter(n=>n.level===3).forEach(iso=>{
+    ctx.strokeStyle='#333360';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(iso.x,iso.y);ctx.lineTo(topNode.x,topNode.y);ctx.stroke();
+  });
+
+  // Physical qubit lines at bottom
+  const bottomIsos=isoNodes.filter(n=>n.level===0);
+  bottomIsos.forEach(iso=>{
+    ctx.strokeStyle='#555577';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(iso.x,iso.y);ctx.lineTo(iso.x,iso.y+30);ctx.stroke();
+    ctx.fillStyle='#555577';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('q',iso.x,iso.y+42);
+  });
+
+  // Info flow dots traveling upward through MERA legs
+  for(let l=0;l<3;l++){
+    const curL=isoNodes.filter(n=>n.level===l);
+    const nextL=isoNodes.filter(n=>n.level===l+1);
+    curL.forEach((cn,ci)=>{
+      const closest=nextL.sort((a,b)=>Math.abs(a.x-cn.x)-Math.abs(b.x-cn.x));
+      if(closest[0]){
+        const frac=((adsAnimTime*0.4+ci*0.2+l*0.15)%1);
+        const dx5=closest[0].x-cn.x, dy5=closest[0].y-cn.y;
+        const fpx=cn.x+dx5*frac, fpy=cn.y+dy5*frac;
+        const fg=ctx.createRadialGradient(fpx,fpy,0,fpx,fpy,4);
+        fg.addColorStop(0,'rgba(45,212,191,0.8)');
+        fg.addColorStop(1,'rgba(45,212,191,0)');
+        ctx.fillStyle=fg;
+        ctx.beginPath();ctx.arc(fpx,fpy,4,0,2*Math.PI);ctx.fill();
+      }
+    });
+  }
+  // Dots from top level to top node
+  isoNodes.filter(n=>n.level===3).forEach((iso,ti)=>{
+    const frac2=((adsAnimTime*0.4+ti*0.3)%1);
+    const fpx2=iso.x+(topNode.x-iso.x)*frac2, fpy2=iso.y+(topNode.y-iso.y)*frac2;
+    const fg2=ctx.createRadialGradient(fpx2,fpy2,0,fpx2,fpy2,4);
+    fg2.addColorStop(0,'rgba(45,212,191,0.8)');
+    fg2.addColorStop(1,'rgba(45,212,191,0)');
+    ctx.fillStyle=fg2;
+    ctx.beginPath();ctx.arc(fpx2,fpy2,4,0,2*Math.PI);ctx.fill();
+  });
+
+  // Causal cone highlighting
+  let cone=new Set();
+  if(highlightNode>=0){
+    const hn=meraNodes.find(n=>n.id===highlightNode);
+    if(hn){
+      cone.add(hn.id);
+      // propagate ancestors (isometries above)
+      let curLevel=hn.level;
+      let curX=hn.x;
+      while(curLevel<3){
+        curLevel++;
+        const nextL=isoNodes.filter(n=>n.level===curLevel);
+        const nearest=nextL.sort((a,b)=>Math.abs(a.x-curX)-Math.abs(b.x-curX))[0];
+        if(nearest){cone.add(nearest.id);curX=nearest.x;}
+      }
+      cone.add(topNode.id);
+    }
+  }
+
+  // Draw nodes
+  meraNodes.forEach(n=>{
+    const inCone=cone.has(n.id);
+    const col=inCone?GOLD:(n.type==='iso'?ACCENT:n.type==='dis'?TEAL:'#34d399');
+    ctx.fillStyle=col+(n.id===highlightNode?'':'88');
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;
+    if(n.type==='dis'){
+      ctx.fillRect(n.x-8,n.y-8,16,16);
+      ctx.strokeRect(n.x-8,n.y-8,16,16);
+    } else if(n.type==='top'){
+      ctx.beginPath();ctx.arc(n.x,n.y,10,0,2*Math.PI);ctx.fill();ctx.stroke();
+    } else {
+      ctx.beginPath();ctx.arc(n.x,n.y,7,0,2*Math.PI);ctx.fill();ctx.stroke();
+    }
+    // label
+    ctx.fillStyle='#e8e8f8';ctx.font='12px sans-serif';ctx.textAlign='center';
+    if(n.type==='iso')ctx.fillText('W',n.x,n.y+3);
+    else if(n.type==='dis')ctx.fillText('U',n.x,n.y+3);
+    else ctx.fillText('T',n.x,n.y+4);
+  });
+
+  // Legend
+  ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillStyle=ACCENT;ctx.beginPath();ctx.arc(15,H-30,5,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#8888aa';ctx.fillText('isometry',22,H-27);
+  ctx.fillStyle=TEAL;ctx.fillRect(80,H-35,10,10);ctx.stroke;
+  ctx.fillStyle='#8888aa';ctx.fillText('disentangler',92,H-27);
+}
+
+document.getElementById('c5').addEventListener('click',function(e){
+  if(meraView)return;
+  const rect=this.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  let best=-1, bestD=Infinity;
+  meraNodes.forEach(n=>{
+    const d=Math.sqrt((n.x-mx)**2+(n.y-my)**2);
+    if(d<bestD){bestD=d;best=n.id;}
+  });
+  if(bestD<12){
+    highlightNode=best;
+    document.getElementById('info5box').textContent='Highlighted node '+best+' and its causal cone (gold)';
+  }
+  drawTab5();
+});
+
+function toggleMERAView(){
+  meraView=!meraView;
+  document.getElementById('btnMERAView').textContent=meraView?'MERA View':'HaPPY Code View';
+  document.getElementById('btnMERAView').classList.toggle('active-btn',meraView);
+  drawTab5();
+}
+
+function clearHighlight5(){
+  highlightNode=-1;
+  document.getElementById('info5box').textContent='Click a tensor node to highlight its causal cone';
+  drawTab5();
+}
+
+// ============================================================
+// TAB 6 — Large N & Strings
+// ============================================================
+let n6=3, lambda6=1.0, showNonPlanar=true;
+
+function resizeC6(){
+  const c=document.getElementById('c6');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawTab6(){
+  const c=document.getElementById('c6');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const split=W*0.45;
+
+  // ---- Left: bar chart ----
+  const bars=[{g:0,label:'g=0 (sphere)'},{g:1,label:'g=1 (torus)'},{g:2,label:'g=2'}];
+  const barW=(split-40)/bars.length*0.6;
+  const chartH=H*0.65, chartY=H*0.1;
+  const maxVal=Math.pow(n6,2);
+
+  bars.forEach((bar,i)=>{
+    const val=Math.pow(n6,2-2*bar.g);
+    const norm=val/maxVal;
+    const bx=split*0.15+i*(split-40)/bars.length;
+    const bh=norm*chartH;
+    const by=chartY+chartH-bh;
+    const col=i===0?ACCENT:i===1?TEAL:RED;
+    const shimmer=0.55+0.15*Math.sin(adsAnimTime*2.5+i*1.2);
+    ctx.fillStyle=col+Math.round(shimmer*255).toString(16).padStart(2,'0');
+    ctx.fillRect(bx,by,barW,bh);
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;
+    ctx.strokeRect(bx,by,barW,bh);
+    ctx.fillStyle=col;ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(val.toExponential(1),bx+barW/2,by-4);
+    ctx.fillStyle='#8888aa';
+    ctx.fillText(bar.label,bx+barW/2,chartY+chartH+14);
+    ctx.fillText('N^'+(2-2*bar.g),bx+barW/2,chartY+chartH+24);
+  });
+
+  ctx.strokeStyle='#444466';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(split*0.12,chartY);ctx.lineTo(split*0.12,chartY+chartH+2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(split*0.12,chartY+chartH+2);ctx.lineTo(split-10,chartY+chartH+2);ctx.stroke();
+  ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('N^{2-2g} contributions (N='+n6+')',split/2,H-10);
+
+  // Divider
+  ctx.strokeStyle='#444466';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(split,0);ctx.lineTo(split,H);ctx.stroke();
+
+  // ---- Right: ribbon graph ----
+  const rcx=split+(W-split)/2, rcy=H/2, rR0=(W-split)*0.22;
+  const rR=rR0*(1.0+0.03*Math.sin(adsAnimTime*2));
+
+  // Planar: circle + two external legs
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(rcx,rcy,rR,0,2*Math.PI);ctx.stroke();
+  // Double-line notation
+  ctx.strokeStyle=ACCENT+'60';ctx.lineWidth=6;
+  ctx.beginPath();ctx.arc(rcx,rcy,rR+4,0,2*Math.PI);ctx.stroke();
+  ctx.strokeStyle='#12122a';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(rcx,rcy,rR+4,0,2*Math.PI);ctx.stroke();
+
+  // External legs
+  ctx.strokeStyle=TEAL;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(rcx-rR,rcy);ctx.lineTo(rcx-rR-25,rcy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(rcx+rR,rcy);ctx.lineTo(rcx+rR+25,rcy);ctx.stroke();
+  ctx.fillStyle=TEAL;ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('planar (O(N²))',rcx,rcy+rR+16);
+
+  // Non-planar (crossing)
+  if(showNonPlanar){
+    const npBase=1/n6;
+    const npAlpha=Math.min(1,npBase*(1.0+0.5*Math.sin(adsAnimTime*3)));
+    ctx.strokeStyle=`rgba(248,113,113,${npAlpha})`;ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(rcx-rR*0.7,rcy-rR*0.4);
+    ctx.bezierCurveTo(rcx+rR*0.3,rcy-rR*0.9,rcx-rR*0.3,rcy+rR*0.9,rcx+rR*0.7,rcy+rR*0.4);
+    ctx.stroke();
+    ctx.fillStyle=`rgba(248,113,113,${npAlpha})`;ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('non-planar ~ 1/N²',rcx,rcy-rR-10);
+  }
+
+  // Update info
+  document.getElementById('invN2Val').textContent=(1/(n6*n6)).toFixed(4);
+  document.getElementById('thooftVal').textContent=(lambda6*n6).toFixed(1);
+}
+
+function onNChange(v){
+  n6=parseInt(v);
+  document.getElementById('nVal').textContent=n6;
+  drawTab6();
+}
+function onLambdaChange(v){
+  lambda6=parseFloat(v);
+  document.getElementById('lambdaVal').textContent=lambda6.toFixed(1);
+  drawTab6();
+}
+function toggleNonPlanar(){
+  showNonPlanar=!showNonPlanar;
+  document.getElementById('btnNonPlanar').classList.toggle('active-btn',showNonPlanar);
+  drawTab6();
+}
+
+// ============================================================
+// TAB 7 — Applications
+// ============================================================
+let t7=1.0;
+
+function resizeC7(){
+  const c=document.getElementById('c7');
+  const W=c.parentElement.clientWidth-20;
+  const H=c.parentElement.clientHeight-80;
+  if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  if(Math.round(c.width)===Math.round(W*dpr)&&Math.round(c.height)===Math.round(H*dpr))return;
+  c.width=Math.round(W*dpr);c.height=Math.round(H*dpr);
+  c.style.width=W+'px';c.style.height=H+'px';
+  const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function drawTab7(){
+  const c=document.getElementById('c7');
+  const W=c.clientWidth, H=c.clientHeight;
+  if(!W||!H)return;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // Auto-sweep T from 0 to 2 and back
+  const sweepPeriod=8; // seconds for full cycle
+  const sweepPhase=(adsAnimTime%sweepPeriod)/sweepPeriod;
+  t7=sweepPhase<0.5?sweepPhase*4:4-sweepPhase*4; // 0->2->0
+  t7=Math.max(0.01,Math.min(2,t7));
+  document.getElementById('t7Val').textContent=t7.toFixed(2);
+  document.getElementById('slT7').value=t7;
+
+  const qw=W/2, qh=H/2;
+  const pad=14;
+
+  function drawAxes(ox,oy,ow,oh,xl,yl){
+    ctx.strokeStyle='#444466';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(ox+pad,oy+oh-pad);ctx.lineTo(ox+ow-pad,oy+oh-pad);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ox+pad,oy+oh-pad);ctx.lineTo(ox+pad,oy+pad);ctx.stroke();
+    ctx.fillStyle='#8888aa';ctx.font='12px sans-serif';ctx.textAlign='right';
+    ctx.fillText(yl,ox+pad+2,oy+pad+8);
+    ctx.textAlign='center';
+    ctx.fillText(xl,ox+ow-pad,oy+oh-2);
+  }
+
+  // ---- Q1: QGP eta/s ----
+  drawAxes(0,0,qw,qh,'T','η/s');
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;ctx.beginPath();
+  const kss=1/(4*Math.PI);
+  for(let i=0;i<=100;i++){
+    const T=i/50; // 0 to 2
+    const eta=kss*(1+0.3*T);
+    const px=pad+(T/2)*(qw-2*pad);
+    const py=(qh-pad)-(eta-kss*0.8)/((kss*1.7-kss*0.8))*(qh-2*pad);
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  // KSS line
+  const kssY=(qh-pad)-(kss-kss*0.8)/(kss*0.9)*(qh-2*pad);
+  ctx.strokeStyle=GOLD;ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(pad,kssY);ctx.lineTo(qw-pad,kssY);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=GOLD;ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('KSS = 1/4π',pad+2,kssY-3);
+  // Current T marker
+  const cTx=pad+(t7/2)*(qw-2*pad);
+  ctx.strokeStyle='#ffffff40';ctx.lineWidth=1;ctx.setLineDash([2,2]);
+  ctx.beginPath();ctx.moveTo(cTx,pad);ctx.lineTo(cTx,qh-pad);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=ACCENT;ctx.textAlign='center';ctx.font='12px sans-serif';
+  ctx.fillText('QGP η/s',qw/2,pad+6);
+
+  // ---- Q2: Holo SC order param ----
+  drawAxes(qw,0,qw,qh,'T/Tc','|ψ|');
+  ctx.strokeStyle=TEAL;ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<=100;i++){
+    const T=i/50;
+    const psi=T<1?Math.sqrt(Math.max(0,1-T)):0;
+    const px=qw+pad+(T/2)*(qw-2*pad);
+    const py=(qh-pad)-psi*(qh-2*pad);
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  // Tc marker
+  const tcX=qw+pad+(1/2)*(qw-2*pad);
+  ctx.strokeStyle=RED;ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(tcX,pad);ctx.lineTo(tcX,qh-pad);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=RED;ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Tc',tcX,qh-pad-4);
+  ctx.fillStyle=TEAL;ctx.fillText('Holographic SC',qw+qw/2,pad+6);
+  // Current psi
+  const cPsi=t7<1?Math.sqrt(Math.max(0,1-t7)):0;
+  const cTx2=qw+pad+(t7/2)*(qw-2*pad);
+  ctx.strokeStyle='#ffffff40';ctx.lineWidth=1;ctx.setLineDash([2,2]);
+  ctx.beginPath();ctx.moveTo(cTx2,pad);ctx.lineTo(cTx2,qh-pad);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ---- Q3: Resistivity ----
+  drawAxes(0,qh,qw,qh,'T','ρ');
+  // Linear (strange metal)
+  ctx.strokeStyle=ACCENT;ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<=100;i++){
+    const T=i/50;
+    const px=pad+(T/2)*(qw-2*pad);
+    const py=qh+(qh-pad)-T*0.45*(qh-2*pad);
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.fillStyle=ACCENT;ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('ρ~T (strange metal)',pad+4,qh+pad+12);
+  // Quadratic (Fermi liquid)
+  ctx.strokeStyle=RED;ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<=100;i++){
+    const T=i/50;
+    const px=pad+(T/2)*(qw-2*pad);
+    const py=qh+(qh-pad)-T*T*0.2*(qh-2*pad);
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.fillStyle=RED;ctx.fillText('ρ~T² (Fermi liquid)',pad+4,qh+pad+24);
+  ctx.fillStyle='#8888aa';ctx.textAlign='center';
+  ctx.fillText('Resistivity',qw/2,qh+pad+6);
+
+  // ---- Q4: Complexity ----
+  drawAxes(qw,qh,qw,qh,'t','C');
+  ctx.strokeStyle=GOLD;ctx.lineWidth=2;ctx.beginPath();
+  for(let i=0;i<=100;i++){
+    const t=i/20;
+    const C=t*(1+0.1*Math.sin(3*t));
+    const px=qw+pad+(i/100)*(qw-2*pad);
+    const py=qh+(qh-pad)-C/6*(qh-2*pad);
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.fillStyle=GOLD;ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('grows behind horizon',qw+pad+4,qh+pad+16);
+  ctx.fillStyle='#8888aa';ctx.textAlign='center';
+  ctx.fillText('Holographic Complexity C_V',qw+qw/2,qh+pad+6);
+
+  // Quadrant dividers
+  ctx.strokeStyle='#333355';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(qw,0);ctx.lineTo(qw,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,qh);ctx.lineTo(W,qh);ctx.stroke();
+
+  // Update info
+  const etaS=(kss*(1+0.3*t7)).toFixed(4);
+  const psiVal=(t7<1?Math.sqrt(Math.max(0,1-t7)):0).toFixed(3);
+  document.getElementById('etaSVal').textContent=etaS;
+  document.getElementById('psiVal').textContent=psiVal;
+}
+
+function onT7Change(v){
+  t7=parseFloat(v);
+  document.getElementById('t7Val').textContent=t7.toFixed(2);
+  drawTab7();
+}
+
+// ============================================================
+// RESIZE HANDLER
+// ============================================================
+window.addEventListener('resize',()=>{
+  const fns=[
+    ()=>{resizeC0();drawTab0();},
+    ()=>{resizeC1();drawTab1();},
+    ()=>{resizeC2();drawTab2();},
+    ()=>{resizeC3(btzT3);},
+    ()=>{resizeC4();drawTab4();},
+    ()=>{resizeC5();drawTab5();},
+    ()=>{resizeC6();drawTab6();},
+    ()=>{resizeC7();drawTab7();}
+  ];
+  if(fns[adsCurTab])fns[adsCurTab]();
+});
+
+window.addEventListener('load',()=>{window.animSpeed=0.1;for(var i=0;i<=7;i++){syncSpeedControl62(i);}startTab(0);});
+</script>
+<script src="glossary-data.js" defer></script>
+<script src="glossary-tooltip.js" defer></script>
+<script src="auto-start.js" defer></script>
+</body>
+</html>

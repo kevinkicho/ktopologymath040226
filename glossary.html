@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glossary — Road to Reality Math Playground</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --cyan:#00e5ff;--gold:#ffd700;--green:#00ff99;
+  --pink:#ff44ff;--orange:#ff8844;
+}
+html{height:100%}
+body{min-height:100%;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden}
+
+/* ── HEADER ── */
+.gls-header{
+  padding:44px 24px 32px;text-align:center;
+  background:radial-gradient(ellipse 80% 55% at 50% 0%,#0d0d3a 0%,var(--bg) 70%);
+  position:relative;
+}
+.gls-header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 100%,rgba(0,229,255,.03) 0%,transparent 70%);
+  pointer-events:none;
+}
+.back-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.72rem;color:var(--dim);text-decoration:none;
+  letter-spacing:.06em;text-transform:uppercase;
+  margin-bottom:22px;transition:.15s;
+}
+.back-link:hover{color:var(--cyan)}
+.gls-header h1{
+  font-size:clamp(1.6rem,3vw,2.4rem);font-weight:700;
+  background:linear-gradient(135deg,var(--cyan) 0%,var(--gold) 60%,var(--green) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px;
+}
+.gls-header p{font-size:.85rem;color:var(--dim);max-width:520px;margin:0 auto;line-height:1.6}
+
+/* ── SEARCH + FILTER BAR ── */
+.gls-bar{
+  max-width:900px;margin:0 auto;
+  padding:24px 24px 0;
+  display:flex;flex-wrap:wrap;gap:12px;align-items:center;
+}
+.gls-search{
+  flex:1;min-width:200px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:7px;
+  padding:9px 14px 9px 36px;color:var(--text);font-size:.82rem;
+  position:relative;outline:none;transition:.15s;
+}
+.gls-search:focus{border-color:rgba(0,229,255,.4);box-shadow:0 0 0 3px rgba(0,229,255,.07)}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-icon{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  color:var(--dim);pointer-events:none;
+}
+.gls-filters{display:flex;gap:7px;flex-wrap:wrap}
+.gls-filter{
+  padding:5px 13px;border-radius:5px;font-size:.68rem;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:.15s;
+  background:transparent;border:1px solid var(--border);color:var(--dim);
+}
+.gls-filter:hover{background:var(--bg3);color:var(--text)}
+.gls-filter.on{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.4);color:var(--cyan)}
+.gls-filter.on.f-grad{background:rgba(255,215,0,.08);border-color:rgba(255,215,0,.35);color:var(--gold)}
+.gls-filter.on.f-res{background:rgba(255,68,255,.08);border-color:rgba(255,68,255,.35);color:var(--pink)}
+.gls-count{font-size:.7rem;color:var(--dim);margin-left:auto;align-self:center;white-space:nowrap}
+
+/* ── GRID ── */
+.gls-grid{
+  max-width:900px;margin:20px auto 60px;
+  padding:0 24px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;
+}
+.gls-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:9px;
+  padding:16px 18px 14px;
+  transition:.2s;cursor:default;
+  display:flex;flex-direction:column;gap:8px;
+}
+.gls-card:hover{border-color:var(--card-color,var(--cyan));transform:translateY(-2px);
+  box-shadow:0 6px 30px rgba(0,0,0,.5)}
+.gls-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.gls-card-title{font-size:.88rem;font-weight:700;color:#e8e8ff;line-height:1.2;flex:1}
+.gls-badge{font-size:.55rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px;flex-shrink:0;margin-top:2px}
+.gls-badge.ug {background:#00ff9914;color:#00ff99;border:1px solid #00ff9928}
+.gls-badge.grad{background:#ffd70014;color:#ffd700;border:1px solid #ffd70028}
+.gls-badge.res {background:#ff44ff14;color:#ff44ff;border:1px solid #ff44ff28}
+.gls-card-def{font-size:.75rem;color:#8888b0;line-height:1.6;flex:1}
+.gls-card-related{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.gls-rel{padding:2px 6px;border-radius:3px;font-size:.6rem;
+  background:#ffffff09;border:1px solid #ffffff12;color:#6868a0}
+
+/* ── ALPHABET JUMP ── */
+.gls-alpha{
+  max-width:900px;margin:0 auto;padding:0 24px 8px;
+  display:flex;flex-wrap:wrap;gap:4px;
+}
+.gls-alpha a{
+  width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;font-size:.68rem;font-weight:600;color:var(--dim);
+  text-decoration:none;border:1px solid transparent;transition:.12s;
+}
+.gls-alpha a:hover{background:var(--bg3);color:var(--text);border-color:var(--border)}
+.gls-alpha a.has-terms{color:var(--text)}
+
+/* ── LETTER HEADER ── */
+.gls-letter{
+  max-width:900px;margin:4px auto 0;padding:4px 24px 0;
+}
+.gls-letter-label{
+  font-size:.65rem;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);
+  padding-bottom:6px;display:flex;align-items:center;gap:10px;
+}
+.gls-letter-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── EMPTY STATE ── */
+.gls-empty{
+  max-width:900px;margin:40px auto;padding:0 24px;
+  text-align:center;color:var(--dim);font-size:.85rem;display:none;
+}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:20px;font-size:.68rem;color:var(--dim);
+  border-top:1px solid var(--border);max-width:900px;margin:0 auto}
+footer a{color:var(--cyan);text-decoration:none;opacity:.7}
+footer a:hover{opacity:1}
+
+/* ── FLASHCARD BUTTON ── */
+.fc-launch-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:6px;font-size:.72rem;font-weight:600;
+  letter-spacing:.05em;cursor:pointer;
+  border:1px solid rgba(0,229,255,.35);
+  background:rgba(0,229,255,.07);color:var(--cyan);
+  transition:.15s;white-space:nowrap;
+}
+.fc-launch-btn:hover{background:rgba(0,229,255,.16);border-color:var(--cyan)}
+
+/* ── FLASHCARD OVERLAY ── */
+#fcOverlay{
+  display:none;position:fixed;inset:0;z-index:10000;
+  background:rgba(5,5,15,.92);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;padding:20px;flex-direction:column;gap:14px;
+}
+#fcOverlay.open{display:flex}
+.fc-header{
+  display:flex;align-items:center;gap:14px;width:100%;max-width:560px;
+}
+.fc-title-bar{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);flex:1}
+.fc-close{
+  background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;
+  padding:4px;line-height:1;transition:.12s;
+}
+.fc-close:hover{color:var(--text)}
+/* Card flip container */
+.fc-scene{
+  width:100%;max-width:560px;perspective:1000px;
+  min-height:280px;cursor:pointer;
+}
+.fc-card{
+  position:relative;width:100%;height:280px;
+  transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);
+  border-radius:14px;
+}
+.fc-card.flipped{transform:rotateY(180deg)}
+.fc-face{
+  position:absolute;inset:0;border-radius:14px;
+  backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 28px;text-align:center;
+}
+.fc-front{
+  background:#0d0d24;border:1px solid #2a2a60;
+  box-shadow:0 0 60px rgba(0,229,255,.06);
+}
+.fc-back{
+  background:#0b0b20;border:1px solid #2a2a50;
+  transform:rotateY(180deg);
+  box-shadow:0 0 60px rgba(255,215,0,.05);
+}
+.fc-front-hint{font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);margin-bottom:18px}
+.fc-term{font-size:1.4rem;font-weight:700;color:#e8e8ff;line-height:1.25;margin-bottom:14px}
+.fc-front-badge{display:inline-block;font-size:.55rem;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;padding:2px 7px;border-radius:3px}
+.fc-front-badge.ug {background:#00ff9914;color:#00ff99;border:1px solid #00ff9928}
+.fc-front-badge.grad{background:#ffd70014;color:#ffd700;border:1px solid #ffd70028}
+.fc-front-badge.res {background:#ff44ff14;color:#ff44ff;border:1px solid #ff44ff28}
+.fc-flip-hint{font-size:.6rem;color:#33335a;margin-top:16px;letter-spacing:.04em}
+.fc-back-def{font-size:.8rem;color:#9090c0;line-height:1.6;text-align:left;overflow-y:auto;max-height:160px;width:100%}
+.fc-back-related{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;justify-content:center}
+.fc-rel-chip{padding:2px 7px;border-radius:3px;font-size:.6rem;
+  background:#ffffff09;border:1px solid #ffffff12;color:#6868a0}
+/* Controls */
+.fc-controls{display:flex;gap:10px;width:100%;max-width:560px;justify-content:center}
+.fc-btn{
+  flex:1;max-width:200px;padding:10px 16px;border-radius:8px;font-size:.82rem;
+  font-weight:600;cursor:pointer;border:1px solid;transition:.15s;
+}
+.fc-btn-gotit{
+  background:rgba(0,255,153,.08);border-color:rgba(0,255,153,.35);color:#00ff99;
+}
+.fc-btn-gotit:hover{background:rgba(0,255,153,.18);border-color:#00ff99}
+.fc-btn-again{
+  background:rgba(255,85,102,.07);border-color:rgba(255,85,102,.3);color:#ff8888;
+}
+.fc-btn-again:hover{background:rgba(255,85,102,.15);border-color:#ff5566}
+.fc-btn-show{
+  background:rgba(0,229,255,.07);border-color:rgba(0,229,255,.35);color:var(--cyan);
+  flex:1;max-width:260px;
+}
+.fc-btn-show:hover{background:rgba(0,229,255,.16);border-color:var(--cyan)}
+/* Footer row */
+.fc-footer{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:560px}
+.fc-stats{font-size:.68rem;color:var(--dim)}
+.fc-stats strong{color:var(--text)}
+.fc-progress-bar{height:3px;border-radius:2px;background:#1c1c44;width:100%;max-width:560px;overflow:hidden}
+.fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));transition:.3s}
+.fc-done-msg{
+  text-align:center;color:var(--dim);font-size:.88rem;
+  padding:20px;display:none;flex-direction:column;align-items:center;gap:12px;
+}
+.fc-done-msg.show{display:flex}
+.fc-done-msg strong{color:var(--gold);font-size:1.1rem}
+.fc-restart-btn{
+  padding:8px 20px;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;
+  border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.08);color:var(--cyan);
+  transition:.14s;
+}
+.fc-restart-btn:hover{background:rgba(0,229,255,.18)}
+/* Shuffle mode selector */
+.fc-mode-bar{display:flex;gap:7px;width:100%;max-width:560px;flex-wrap:wrap}
+.fc-mode-btn{
+  padding:4px 11px;border-radius:4px;font-size:.62rem;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:.12s;
+  border:1px solid var(--border);color:var(--dim);background:transparent;
+}
+.fc-mode-btn:hover{background:var(--bg3);color:var(--text)}
+.fc-mode-btn.on{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.4);color:var(--cyan)}
+</style>
+</head>
+<body>
+
+<div class="gls-header">
+  <div style="position:relative;z-index:1">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,3 5,8 10,13"/></svg>
+      Back to Playground
+    </a>
+    <h1>Glossary</h1>
+    <p>Definitions for mathematical and physical terms used across all 52 modules.<br>
+    Hover over any highlighted chip on the main page to see these inline.</p>
+  </div>
+</div>
+
+<div class="gls-bar">
+  <div class="search-wrap">
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+    <input class="gls-search" id="glsSearch" type="text" placeholder="Search terms…" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="gls-filters">
+    <button class="gls-filter on f-ug"  data-lvl="ug"  id="fUg">Undergrad</button>
+    <button class="gls-filter on f-grad" data-lvl="grad" id="fGrad">Graduate</button>
+    <button class="gls-filter on f-res"  data-lvl="res"  id="fRes">Research</button>
+  </div>
+  <span class="gls-count" id="glsCount"></span>
+  <button class="fc-launch-btn" id="fcLaunch">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="1.5"/><line x1="5" y1="7.5" x2="11" y2="7.5"/></svg>
+    Flashcards
+  </button>
+</div>
+
+<div class="gls-alpha" id="glsAlpha"></div>
+<div id="glsContainer"></div>
+<div class="gls-empty" id="glsEmpty">No terms match your search.</div>
+
+<footer>
+  <a href="/">← Road to Reality Math Playground</a>
+  &nbsp;·&nbsp; Based on <em>The Road to Reality</em> by Sir Roger Penrose
+</footer>
+
+<script src="glossary-data.js"></script>
+<script>
+const GLOSS = window.GLOSS;
+
+// ── Render ──
+const searchEl=document.getElementById('glsSearch');
+const container=document.getElementById('glsContainer');
+const emptyEl=document.getElementById('glsEmpty');
+const countEl=document.getElementById('glsCount');
+const alphaEl=document.getElementById('glsAlpha');
+const fButtons={ug:document.getElementById('fUg'),grad:document.getElementById('fGrad'),res:document.getElementById('fRes')};
+const activeFilters=new Set(['ug','grad','res']);
+
+// Sort alphabetically
+GLOSS.sort((a,b)=>a.title.localeCompare(b.title));
+
+function render(){
+  const q=searchEl.value.toLowerCase().trim();
+  let visible=GLOSS.filter(t=>{
+    if(!activeFilters.has(t.level)) return false;
+    if(!q) return true;
+    return t.title.toLowerCase().includes(q)||t.def.toLowerCase().includes(q)||(t.related||[]).some(r=>r.toLowerCase().includes(q));
+  });
+
+  container.innerHTML='';
+  emptyEl.style.display=visible.length?'none':'block';
+  countEl.textContent=visible.length+' term'+(visible.length!==1?'s':'');
+
+  // Group by first letter
+  const byLetter={};
+  visible.forEach(t=>{
+    const l=t.title[0].toUpperCase();
+    (byLetter[l]=byLetter[l]||[]).push(t);
+  });
+
+  Object.keys(byLetter).sort().forEach(letter=>{
+    const letterDiv=document.createElement('div');
+    letterDiv.className='gls-letter';
+    letterDiv.innerHTML=`<div class="gls-letter-label" id="L-${letter}">${letter}</div>`;
+    container.appendChild(letterDiv);
+
+    const grid=document.createElement('div');
+    grid.className='gls-grid';
+    byLetter[letter].forEach(t=>{
+      const card=document.createElement('div');
+      card.className='gls-card';
+      card.id='g-'+t.key;
+      const levelLabel={ug:'Undergrad',grad:'Graduate',res:'Research'}[t.level]||t.level;
+      const relHtml=(t.related||[]).map(r=>`<span class="gls-rel">${r}</span>`).join('');
+      card.innerHTML=`
+        <div class="gls-card-head">
+          <div class="gls-card-title">${t.title}</div>
+          <span class="gls-badge ${t.level}">${levelLabel}</span>
+        </div>
+        <div class="gls-card-def">${t.def}</div>
+        ${relHtml?`<div class="gls-card-related">${relHtml}</div>`:''}
+      `;
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  });
+
+  // Rebuild alpha bar
+  const presentLetters=new Set(Object.keys(byLetter));
+  alphaEl.innerHTML='';
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(l=>{
+    const a=document.createElement('a');
+    a.textContent=l;
+    if(presentLetters.has(l)){a.href='#L-'+l;a.classList.add('has-terms');}
+    else{a.style.opacity='.25';a.style.pointerEvents='none';}
+    alphaEl.appendChild(a);
+  });
+}
+
+searchEl.addEventListener('input',render);
+Object.entries(fButtons).forEach(([lvl,btn])=>{
+  btn.addEventListener('click',()=>{
+    activeFilters.has(lvl)?activeFilters.delete(lvl):activeFilters.add(lvl);
+    btn.classList.toggle('on',activeFilters.has(lvl));
+    render();
+  });
+});
+
+render();
+
+// ── Hash-based deep link (from module tooltips) ──────────────────────────
+(function(){
+  const h = location.hash; // e.g. #g-argand-plane
+  if(!h.startsWith('#g-')) return;
+  const key = h.slice(3);
+  // Search for the term so filters don't hide it
+  const entry = GLOSS.find(g => g.key === key);
+  if(!entry) return;
+  searchEl.value = entry.title;
+  render();
+  requestAnimationFrame(()=>{
+    const card = document.getElementById('g-'+key);
+    if(card){
+      card.scrollIntoView({behavior:'smooth',block:'center'});
+      card.style.borderColor = 'var(--cyan)';
+      card.style.boxShadow   = '0 0 0 2px rgba(0,229,255,.3)';
+    }
+  });
+})();
+
+// ── FLASHCARD MODE ──
+(function(){
+  const overlay=document.getElementById('fcOverlay');
+
+  // State
+  let deck=[], idx=0, flipped=false;
+  let gotIt=new Set(), review=new Set();
+  let sessionLevel='all'; // 'all','ug','grad','res'
+
+  function buildDeck(){
+    let terms=GLOSS.filter(t=>sessionLevel==='all'||t.level===sessionLevel);
+    // Shuffle
+    for(let i=terms.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [terms[i],terms[j]]=[terms[j],terms[i]];
+    }
+    deck=terms;
+    idx=0;
+    gotIt.clear();
+    review.clear();
+  }
+
+  function openFC(){
+    buildDeck();
+    document.getElementById('fcDoneMsg').classList.remove('show');
+    document.getElementById('fcCardArea').style.display='';
+    document.getElementById('fcControlsArea').style.display='';
+    updateCard();
+    overlay.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeFC(){
+    overlay.classList.remove('open');
+    document.body.style.overflow='';
+  }
+
+  function updateCard(){
+    if(idx>=deck.length){
+      showDone();return;
+    }
+    const t=deck[idx];
+    flipped=false;
+    const card=document.getElementById('fcCard');
+    card.classList.remove('flipped');
+
+    document.getElementById('fcFrontTerm').textContent=t.title;
+    const badge=document.getElementById('fcFrontBadge');
+    badge.className='fc-front-badge '+t.level;
+    badge.textContent={ug:'Undergrad',grad:'Graduate',res:'Research'}[t.level]||t.level;
+    document.getElementById('fcBackDef').textContent=t.def;
+    const relEl=document.getElementById('fcBackRelated');
+    relEl.innerHTML=(t.related||[]).map(r=>`<span class="fc-rel-chip">${r}</span>`).join('');
+
+    // progress
+    const done=gotIt.size+review.size;
+    const pct=deck.length>0?done/deck.length*100:0;
+    document.getElementById('fcProgressFill').style.width=pct+'%';
+    document.getElementById('fcStatsCurrent').textContent=Math.min(idx+1,deck.length);
+    document.getElementById('fcStatsTotal').textContent=deck.length;
+    document.getElementById('fcStatsGotIt').textContent=gotIt.size;
+    document.getElementById('fcStatsAgain').textContent=review.size;
+
+    // Buttons
+    document.getElementById('fcShowBtn').style.display='';
+    document.getElementById('fcActionBtns').style.display='none';
+    document.getElementById('fcFlipHint').textContent='Click card or press Space to reveal';
+  }
+
+  function flipCard(){
+    if(idx>=deck.length) return;
+    flipped=!flipped;
+    document.getElementById('fcCard').classList.toggle('flipped',flipped);
+    if(flipped){
+      document.getElementById('fcShowBtn').style.display='none';
+      document.getElementById('fcActionBtns').style.display='flex';
+      document.getElementById('fcFlipHint').textContent='Click to flip back';
+    } else {
+      document.getElementById('fcShowBtn').style.display='';
+      document.getElementById('fcActionBtns').style.display='none';
+      document.getElementById('fcFlipHint').textContent='Click card or press Space to reveal';
+    }
+  }
+
+  function answer(correct){
+    const t=deck[idx];
+    if(correct){gotIt.add(t.key);}
+    else{review.add(t.key); deck.push(t);} // push to end for re-review
+    idx++;
+    updateCard();
+  }
+
+  function showDone(){
+    document.getElementById('fcCardArea').style.display='none';
+    document.getElementById('fcControlsArea').style.display='none';
+    const done=document.getElementById('fcDoneMsg');
+    done.querySelector('.fc-done-total').textContent=gotIt.size;
+    done.querySelector('.fc-done-revs').textContent=review.size;
+    done.classList.add('show');
+  }
+
+  // Wire events
+  document.getElementById('fcLaunch').addEventListener('click',openFC);
+  document.getElementById('fcClose').addEventListener('click',closeFC);
+  overlay.addEventListener('click',e=>{if(e.target===overlay) closeFC();});
+
+  document.getElementById('fcCard').addEventListener('click',flipCard);
+  document.getElementById('fcShowBtn').addEventListener('click',flipCard);
+  document.getElementById('fcGotIt').addEventListener('click',()=>answer(true));
+  document.getElementById('fcAgain').addEventListener('click',()=>answer(false));
+  document.getElementById('fcRestart').addEventListener('click',openFC);
+
+  document.addEventListener('keydown',e=>{
+    if(!overlay.classList.contains('open')) return;
+    if(e.key==='Escape'){closeFC();return;}
+    if(e.key===' '||e.key==='ArrowRight'){e.preventDefault();
+      if(!flipped) flipCard();
+      else answer(true);
+    }
+    if(e.key==='ArrowLeft'){e.preventDefault();if(flipped) answer(false);}
+  });
+
+  // Level mode buttons
+  document.querySelectorAll('.fc-mode-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.fc-mode-btn').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+      sessionLevel=btn.dataset.level;
+    });
+  });
+})();
+</script>
+
+<!-- Flashcard Overlay -->
+<div id="fcOverlay" role="dialog" aria-modal="true" aria-label="Flashcard mode">
+  <div class="fc-header">
+    <span class="fc-title-bar">Flashcard Mode</span>
+    <div class="fc-mode-bar">
+      <button class="fc-mode-btn on" data-level="all">All</button>
+      <button class="fc-mode-btn" data-level="ug">Undergrad</button>
+      <button class="fc-mode-btn" data-level="grad">Graduate</button>
+      <button class="fc-mode-btn" data-level="res">Research</button>
+    </div>
+    <button class="fc-close" id="fcClose">✕</button>
+  </div>
+
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fcProgressFill" style="width:0%"></div></div>
+
+  <div id="fcCardArea">
+    <div class="fc-scene">
+      <div class="fc-card" id="fcCard">
+        <div class="fc-face fc-front">
+          <div class="fc-front-hint">What is this concept?</div>
+          <div class="fc-term" id="fcFrontTerm"></div>
+          <span class="fc-front-badge" id="fcFrontBadge"></span>
+          <div class="fc-flip-hint" id="fcFlipHint">Click card or press Space to reveal</div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="fc-back-def" id="fcBackDef"></div>
+          <div class="fc-back-related" id="fcBackRelated"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fcControlsArea">
+    <div class="fc-controls">
+      <button class="fc-btn fc-btn-show" id="fcShowBtn">Show Answer</button>
+      <div id="fcActionBtns" style="display:none;width:100%;max-width:560px;gap:10px;flex-wrap:nowrap">
+        <button class="fc-btn fc-btn-again" id="fcAgain">&#8634; Review Again</button>
+        <button class="fc-btn fc-btn-gotit" id="fcGotIt">&#10003; Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="fcDoneMsg" class="fc-done-msg">
+    <strong>Session Complete!</strong>
+    <p>Knew: <strong class="fc-done-total"></strong> terms &nbsp;·&nbsp; Marked for review: <strong class="fc-done-revs"></strong></p>
+    <button class="fc-restart-btn" id="fcRestart">Shuffle &amp; Restart</button>
+  </div>
+
+  <div class="fc-footer">
+    <span class="fc-stats">Card <strong id="fcStatsCurrent">1</strong> of <strong id="fcStatsTotal">0</strong></span>
+    <span class="fc-stats"><strong id="fcStatsGotIt" style="color:#00ff99">0</strong> got it &nbsp; <strong id="fcStatsAgain" style="color:#ff8888">0</strong> again</span>
+  </div>
+</div>
+</body>
+</html>

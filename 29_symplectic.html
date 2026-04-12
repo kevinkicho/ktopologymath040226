@@ -1,0 +1,2545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>29 · Symplectic Geometry &amp; Integrable Systems</title>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#00ddaa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.panes{display:flex;flex-direction:column;flex:1;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:#0a1a16}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--dim);line-height:1.7}
+.info-box .val{color:var(--accent);font-weight:600}
+/* Tab 0 layout */
+#pane0{display:none}
+#pane0.active{display:flex;flex-direction:row}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
+.side-panel{width:300px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:16px 14px;gap:12px}
+.side-panel h3{font-size:.9rem;color:var(--accent);margin-bottom:4px}
+.eq-list{list-style:none;padding:0;margin:0}
+.eq-list li{font-size:.8rem;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.eq-list li span{color:var(--accent)}
+.darboux-text{font-size:.75rem;color:var(--dim);line-height:1.65;margin-top:6px}
+/* Tab 1 full layout */
+#pane1{display:none}
+#pane1.active{display:flex;flex-direction:column}
+.tab1-main{display:flex;flex-direction:row;flex:1;overflow:hidden}
+.tab1-canvas-col{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
+.tab1-angle-col{width:280px;display:flex;flex-direction:column;padding:12px;gap:8px;overflow:hidden}
+.tab1-footer{padding:8px 16px;background:var(--bg2);border-top:1px solid var(--border);font-size:.75rem;color:var(--dim);line-height:1.6}
+/* Tab 2 layout */
+#pane2{display:none}
+#pane2.active{display:flex;flex-direction:column}
+.tab2-canvas-col{display:flex;flex-direction:column;padding:12px;gap:8px;flex:0 0 68%;overflow:hidden}
+.tab2-bottom{display:flex;flex-direction:row;flex:1;overflow:hidden;border-top:1px solid var(--border)}
+.tab2-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px;background:var(--bg2);flex:1}
+.tab2-info{width:340px;padding:12px 14px;background:var(--bg3);border-left:1px solid var(--border);font-size:.75rem;color:var(--dim);line-height:1.65;overflow-y:auto}
+.tab2-info .kdv-eq{font-size:.85rem;color:var(--accent);font-family:monospace;margin:4px 0}
+/* New deep tabs shared layout */
+#pane3,#pane4,#pane5,#pane6,#pane7{display:none}
+#pane3.active,#pane4.active,#pane5.active,#pane6.active,#pane7.active{display:flex;flex-direction:row;flex:1;overflow:hidden}
+.deep-canvas-col{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
+.deep-side{width:310px;min-width:200px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:14px 12px;gap:10px;font-size:.76rem;color:var(--dim);line-height:1.65}
+.deep-side h3{font-size:.88rem;color:var(--accent);margin-bottom:2px}
+.deep-side .formula{font-family:monospace;color:var(--accent);font-size:.82rem;margin:3px 0}
+.deep-side p{margin:0}
+.val-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:6px 10px;font-size:.75rem}
+.val-row .lbl{color:var(--dim)}
+.val-row .num{color:var(--accent);font-weight:700;min-width:52px}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 20</span>
+  <div class="title-block">
+    <h1>Symplectic Geometry &amp; Integrable Systems</h1>
+    <p>Phase space, Liouville tori, action-angle variables, and solitons — Road to Reality</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Symplectic Phase Space</div>
+  <div class="tab" onclick="switchTab(1)">Liouville Tori</div>
+  <div class="tab" onclick="switchTab(2)">KdV Solitons</div>
+  <div class="tab" onclick="switchTab(3)">ω-Form &amp; Liouville</div>
+  <div class="tab" onclick="switchTab(4)">Hamiltonian Flows</div>
+  <div class="tab" onclick="switchTab(5)">Canonical Transforms</div>
+  <div class="tab" onclick="switchTab(6)">Action-Angle</div>
+  <div class="tab" onclick="switchTab(7)">Geometric Quantization</div>
+</div>
+
+<div id="main">
+
+<!-- TAB 0: SYMPLECTIC PHASE SPACE -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim0" class="animBtn" onclick="toggleAnim(this,0)">▶ Animate</button>
+      <button class="active-btn" id="btnH0" onclick="setHamiltonian(0)">Harmonic  H=p²/2+q²/2</button>
+      <button id="btnH1" onclick="setHamiltonian(1)">Anharmonic  H=p²/2+q⁴/4−q²/2</button>
+      <button id="btnH2" onclick="setHamiltonian(2)">Pendulum  H=p²/2−cos(q)</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">H value: <span class="val" id="hVal">—</span> &nbsp;|&nbsp; Particle (q,p): <span class="val" id="pqVal">—</span></div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Symplectic Manifold</h3>
+    <ul class="eq-list">
+      <li><span>ω = Σᵢ dqⁱ∧dpᵢ</span> — symplectic 2-form</li>
+      <li><span>ı<sub>X_H</sub> ω = dH</span> — Hamiltonian vector field</li>
+      <li><span>L<sub>X_H</sub> ω = 0</span> — Liouville's theorem</li>
+      <li><span>dω = 0,  ω∧⋯∧ω ≠ 0</span> — closed &amp; non-degenerate</li>
+    </ul>
+    <div class="darboux-text">
+      <strong style="color:var(--text)">Darboux's Theorem:</strong> Every symplectic manifold locally looks like (ℝ²ⁿ, Σdqⁱ∧dpᵢ). There are no local invariants — symplectic geometry is "flat" locally. All global topology is encoded in global invariants such as the Gromov width and symplectic capacities.
+    </div>
+    <div class="darboux-text" style="margin-top:8px">
+      <strong style="color:var(--text)">Liouville's Theorem:</strong> The Hamiltonian flow preserves the symplectic volume form ωⁿ. Equivalently, phase-space area is conserved: the colored parallelogram flowing with the vector field maintains constant area.
+    </div>
+    <div class="darboux-text" style="margin-top:8px">
+      <strong style="color:var(--text)">Phase portrait:</strong> Level curves of H(q,p) = const are the trajectories. Elliptic fixed points (centers) and hyperbolic fixed points (saddles) are visible in the anharmonic and pendulum portraits.
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: LIOUVILLE TORI -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="tab1-main">
+    <div class="tab1-canvas-col">
+      <canvas id="c1"></canvas>
+      <div class="controls" data-role="sidebar">
+        <button id="btnAnim1" class="animBtn" onclick="toggleAnim(this,1)">▶ Animate</button>
+        <button id="btnRat" class="active-btn" onclick="setFreqMode('rational')">Rational ω₁/ω₂</button>
+        <button id="btnIrrat" onclick="setFreqMode('irrational')">Irrational ω₁/ω₂</button>
+        <label>ω₁/ω₂</label>
+        <input type="range" id="ratioSlider" min="30" max="200" value="75" oninput="onRatioChange()">
+        <span id="ratioVal">0.75</span>
+        <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+        <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+        <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      </div>
+    </div>
+    <div class="tab1-angle-col">
+      <div style="font-size:.8rem;color:var(--accent);margin-bottom:4px">Action-Angle Variables (θ₁, θ₂)</div>
+      <canvas id="c1b" style="flex:0 0 260px;min-height:0;width:100%"></canvas>
+      <div class="info-box" style="flex:0 0 auto;margin-top:6px;font-size:.75rem">
+        In action-angle coordinates the dynamics is <span class="val">linear</span>: θ̇ᵢ = ωᵢ = const. The torus [0,2π]² is the fundamental domain. The trajectory wraps as a straight line of slope ω₂/ω₁.
+      </div>
+    </div>
+  </div>
+  <div class="tab1-footer">
+    <strong style="color:var(--text)">Arnold-Liouville Theorem:</strong> If an n-DOF Hamiltonian system has n independent conserved quantities in involution ({Hᵢ, Hⱼ} = 0), then it is completely integrable: phase space foliates into invariant n-tori parameterized by the action variables Iᵢ. Motion on each torus is quasi-periodic with frequencies ωᵢ = ∂H/∂Iᵢ. Rational ratios give closed (periodic) orbits; irrational ratios give dense (ergodic) orbits filling the torus.
+  </div>
+</div>
+
+<!-- TAB 2: KdV SOLITONS -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="tab2-canvas-col">
+    <canvas id="c2"></canvas>
+  </div>
+  <div class="tab2-bottom">
+    <div class="tab2-controls">
+      <button id="btnAnim2" class="animBtn" onclick="toggleAnim(this,2)">▶ Animate</button>
+      <button class="active-btn" id="btn1sol" onclick="setSolitonMode(1)">1 Soliton</button>
+      <button id="btn2sol" onclick="setSolitonMode(2)">2 Solitons</button>
+      <button onclick="resetKdV()" title="Reset time to pre-collision">↺ Reset</button>
+      <label>κ₁</label>
+      <input type="range" id="k1Slider" min="40" max="150" value="100" oninput="onKChange()">
+      <span id="k1Val">1.00</span>
+      <label>κ₂</label>
+      <input type="range" id="k2Slider" min="20" max="90" value="60" oninput="onKChange()">
+      <span id="k2Val">0.60</span>
+      <label>Speed</label>
+      <input type="range" id="spdSlider" min="1" max="10" value="4">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <span style="font-size:.75rem;color:var(--dim)">Tracers show phase shift after collision</span>
+    </div>
+    <div class="tab2-info">
+      <div class="kdv-eq">∂u/∂t + 6u·∂u/∂x + ∂³u/∂x³ = 0</div>
+      <div style="margin-top:6px">Korteweg–de Vries equation, discovered 1895 for shallow water waves.</div>
+      <div style="margin-top:6px"><strong style="color:var(--text)">1-soliton:</strong> u(x,t) = −2κ²·sech²(κ(x − 4κ²t − x₀))</div>
+      <div style="margin-top:6px">The 2-soliton solution demonstrates <em style="color:var(--accent)">elastic scattering</em>: solitons pass through each other, emerging with only a phase shift. Their shapes are perfectly preserved — solitons are topologically protected nonlinear waves.</div>
+      <div style="margin-top:6px">The KdV equation has <strong style="color:var(--text)">infinitely many conserved charges</strong> Iₙ = ∫Pₙ(u, u_x, …) dx, making it completely integrable via the inverse scattering / Lax pair formulation.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: ω-FORM & LIOUVILLE AREA PRESERVATION -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="deep-canvas-col">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim3" class="animBtn" onclick="toggleAnim(this,3)">▶ Animate</button>
+      <button id="btnDrawVec" class="active-btn" onclick="setMode3('vectors')">Draw Vectors (ω measure)</button>
+      <button id="btnBlob" onclick="setMode3('blob')">Blob Evolution</button>
+      <label>Hamiltonian</label>
+      <button id="b3h0" class="active-btn" onclick="setH3(0)">Harmonic</button>
+      <button id="b3h1" onclick="setH3(1)">Pendulum</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="val-row">
+      <span class="lbl">ω(u,v) = det[u,v] =</span>
+      <span class="num" id="omegaVal">—</span>
+      <span class="lbl">Blob area:</span>
+      <span class="num" id="blobArea">—</span>
+    </div>
+  </div>
+  <div class="deep-side">
+    <h3>Symplectic 2-Form ω = dq∧dp</h3>
+    <p class="formula">ω(u,v) = u_q·v_p − u_p·v_q = det[u|v]</p>
+    <p>The symplectic form measures <em style="color:var(--text)">signed area</em> of the parallelogram spanned by two phase-space vectors. Click-drag on the canvas to place two vectors from the origin and watch ω(u,v) compute live.</p>
+    <h3 style="margin-top:8px">Liouville's Theorem</h3>
+    <p class="formula">L_{X_H} ω = 0  ⟹  ωⁿ preserved</p>
+    <p>Switch to Blob mode: a cloud of N phase-space points (shown as a deforming polygon) flows under Hamilton's equations. Its <em style="color:var(--text)">enclosed area is exactly preserved</em> even as the shape shears and stretches.</p>
+    <p style="margin-top:6px">This is the <em style="color:var(--text)">incompressibility of Hamiltonian flow</em> — the phase-space "fluid" has zero divergence: div X_H = ∂²H/∂q∂p − ∂²H/∂p∂q = 0.</p>
+    <h3 style="margin-top:8px">Compare: volume vs area</h3>
+    <p>In 2D phase space (1 DOF), ω = dq∧dp is the only invariant. In 2n dimensions all ωᵏ = ω∧⋯∧ω (k-fold) are preserved, giving an infinite tower of Poincaré invariants.</p>
+  </div>
+</div>
+
+<!-- TAB 4: HAMILTONIAN FLOWS & POISSON BRACKETS -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="deep-canvas-col">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim4" class="animBtn" onclick="toggleAnim(this,4)">▶ Animate</button>
+      <button id="b4h0" class="active-btn" onclick="setH4(0)">Free  H=p²/2m</button>
+      <button id="b4h1" onclick="setH4(1)">Harmonic  H=p²/2+q²/2</button>
+      <button id="b4h2" onclick="setH4(2)">Pendulum  H=p²/2−cos(q)</button>
+      <button id="b4h3" onclick="setH4(3)">Anharmonic  H=p²/2+q⁴/4−q²/2</button>
+      <label>Seed particles</label>
+      <input type="range" id="nSeedSlider" min="1" max="8" value="4" oninput="onNSeedChange()">
+      <span id="nSeedVal">4</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="val-row">
+      <span class="lbl">Selected H:</span>
+      <span class="num" id="h4Label">p²/2m</span>
+      <span class="lbl">{q,p} =</span>
+      <span class="num">1</span>
+      <span class="lbl">{H,H} =</span>
+      <span class="num">0</span>
+    </div>
+  </div>
+  <div class="deep-side">
+    <h3>Hamiltonian Vector Field</h3>
+    <p class="formula">X_H = (∂H/∂p) ∂_q − (∂H/∂q) ∂_p</p>
+    <p>The canvas shows <em style="color:var(--text)">streamlines</em> (level curves of H) and the vector field X_H (arrows). Colored dots are seed particles whose trajectories are integrated in real time.</p>
+    <h3 style="margin-top:8px">Poisson Bracket</h3>
+    <p class="formula">{f,g} = ∂f/∂q · ∂g/∂p − ∂f/∂p · ∂g/∂q</p>
+    <p>The Poisson bracket is the Lie bracket of Hamiltonian vector fields: X_{f,g} = [X_f, X_g]. Key identities:</p>
+    <p class="formula">{q,p} = 1  (canonical)</p>
+    <p class="formula">{H,f} = ḟ  (equation of motion)</p>
+    <p class="formula">{f,g} = −{g,f}  (antisymmetry)</p>
+    <p class="formula">{{f,g},h} + {{g,h},f} + {{h,f},g} = 0  (Jacobi)</p>
+    <h3 style="margin-top:8px">Phase Portraits</h3>
+    <p><strong style="color:var(--text)">Free particle:</strong> straight horizontal lines — momentum is conserved.</p>
+    <p style="margin-top:4px"><strong style="color:var(--text)">Harmonic oscillator:</strong> concentric ellipses — isochronous, period T=2π independent of amplitude.</p>
+    <p style="margin-top:4px"><strong style="color:var(--text)">Pendulum separatrix:</strong> the golden curve E=1 separates libration (oscillation) from rotation. Homoclinic orbits connect the saddle to itself.</p>
+    <p style="margin-top:4px"><strong style="color:var(--text)">Anharmonic:</strong> double-well potential has two stable fixed points (q=±1) and an unstable saddle at q=0. The separatrix (E=0) is a figure-eight.</p>
+  </div>
+</div>
+
+<!-- TAB 5: CANONICAL TRANSFORMATIONS & GENERATING FUNCTIONS -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="deep-canvas-col">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim5" class="animBtn" onclick="toggleAnim(this,5)">▶ Animate</button>
+      <button id="b5t0" class="active-btn" onclick="setCT(0)">Q=q², P=p/2q</button>
+      <button id="b5t1" onclick="setCT(1)">Q=p, P=−q  (rotation)</button>
+      <button id="b5t2" onclick="setCT(2)">Identity (F₂=qP)</button>
+      <label>Show</label>
+      <button id="b5before" class="active-btn" onclick="toggleCTview('before')">Before</button>
+      <button id="b5after" class="active-btn" onclick="toggleCTview('after')">After</button>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="val-row">
+      <span class="lbl">Transformation:</span>
+      <span class="num" id="ctLabel">Q=q², P=p/2q</span>
+      <span class="lbl">Area preserved:</span>
+      <span class="num" style="color:#ffd700">✓ det(J)=1</span>
+    </div>
+  </div>
+  <div class="deep-side">
+    <h3>Canonical Transformations</h3>
+    <p class="formula">(q,p) → (Q,P)  with  dQ∧dP = dq∧dp</p>
+    <p>A transformation is <em style="color:var(--text)">canonical</em> if it preserves the symplectic form ω. Equivalently its Jacobian matrix J satisfies JᵀΩJ = Ω where Ω is the standard symplectic matrix.</p>
+    <p style="margin-top:6px">The left panel shows trajectories in (q,p) coordinates; the right panel shows the same trajectories in the new (Q,P) coordinates. Shapes deform but <em style="color:var(--text)">enclosed areas are preserved</em>.</p>
+    <h3 style="margin-top:8px">Four Generating Functions</h3>
+    <p class="formula">F₁(q,Q): p=∂F₁/∂q, P=−∂F₁/∂Q</p>
+    <p class="formula">F₂(q,P): p=∂F₂/∂q, Q=∂F₂/∂P</p>
+    <p class="formula">F₃(p,Q): q=−∂F₃/∂p, P=−∂F₃/∂Q</p>
+    <p class="formula">F₄(p,P): q=−∂F₄/∂p, Q=∂F₄/∂P</p>
+    <p style="margin-top:6px">Example: <strong style="color:var(--text)">Q=q², P=p/2q</strong> is generated by F₂(q,P) = q²P, giving p=∂F₂/∂q = 2qP = 2q·(p/2q) = p ✓ and Q=∂F₂/∂P = q²✓.</p>
+    <p style="margin-top:6px"><strong style="color:var(--text)">Physical significance:</strong> Every canonical transformation corresponds to a symmetry or a change of representation. The action-angle transformation is the canonical transformation that linearizes integrable dynamics.</p>
+  </div>
+</div>
+
+<!-- TAB 6: INTEGRABLE SYSTEMS & ACTION-ANGLE VARIABLES (ENHANCED) -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="deep-canvas-col">
+    <canvas id="c6"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim6" class="animBtn" onclick="toggleAnim(this,6)">▶ Animate</button>
+      <button id="b6rat" class="active-btn" onclick="setAA('rational')">Rational ω₁:ω₂</button>
+      <button id="b6irr" onclick="setAA('irrational')">Golden ratio</button>
+      <button id="b6kam" onclick="setAA('kam')">KAM Perturbation</button>
+      <label>ω₁/ω₂</label>
+      <input type="range" id="aaRatioSlider" min="20" max="300" value="100" oninput="onAARatioChange()">
+      <span id="aaRatioVal">1.00</span>
+      <label>ε (KAM)</label>
+      <input type="range" id="kamEpsSlider" min="0" max="100" value="0" oninput="onKamEpsChange()">
+      <span id="kamEpsVal">0.00</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="val-row">
+      <span class="lbl">Mode:</span><span class="num" id="aaMode">rational</span>
+      <span class="lbl">I₁=E₁/ω₁:</span><span class="num" id="aaI1">—</span>
+      <span class="lbl">I₂=E₂/ω₂:</span><span class="num" id="aaI2">—</span>
+    </div>
+  </div>
+  <div class="deep-side">
+    <h3>Action Variables</h3>
+    <p class="formula">Iᵢ = (1/2π) ∮ pᵢ dqᵢ = Eᵢ/ωᵢ</p>
+    <p>For the 2D harmonic oscillator H = ω₁I₁ + ω₂I₂. The action Iᵢ = Eᵢ/ωᵢ is the area enclosed by the i-th orbit in the (qᵢ, pᵢ) sub-plane divided by 2π — a topological invariant.</p>
+    <h3 style="margin-top:8px">Angle Variables</h3>
+    <p class="formula">θ̇ᵢ = ∂H/∂Iᵢ = ωᵢ = const</p>
+    <p>In action-angle coordinates (I,θ) the Hamiltonian depends only on the actions: H = H(I). Dynamics is <em style="color:var(--text)">linear</em> on the torus: θᵢ(t) = ωᵢt + θᵢ(0).</p>
+    <h3 style="margin-top:8px">Rational vs Irrational Frequencies</h3>
+    <p><strong style="color:var(--text)">ω₁/ω₂ ∈ ℚ:</strong> closed orbit (Lissajous figure) — the trajectory returns to its starting point after a finite time.</p>
+    <p style="margin-top:4px"><strong style="color:var(--text)">ω₁/ω₂ ∉ ℚ:</strong> dense orbit — fills the torus ergodically. The golden ratio φ=(1+√5)/2 is the "most irrational" — KAM tori with this frequency are the last to break.</p>
+    <h3 style="margin-top:8px">KAM Theorem</h3>
+    <p class="formula">H = H₀(I) + εH₁(q,I,t)</p>
+    <p>For small perturbations ε, most tori survive if the frequencies satisfy the <em style="color:var(--text)">Diophantine condition</em> |k·ω| ≥ γ|k|⁻ᵛ. Resonant tori break first; the golden-ratio torus is the last survivor. KAM theory proves persistence of quasi-periodic motion in nearly-integrable systems.</p>
+  </div>
+</div>
+
+<!-- TAB 7: GEOMETRIC QUANTIZATION -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="deep-canvas-col">
+    <canvas id="c7"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim7" class="animBtn" onclick="toggleAnim(this,7)">▶ Animate</button>
+      <button id="b7bs" class="active-btn" onclick="setGQ('bohr')">Bohr-Sommerfeld</button>
+      <button id="b7pol" onclick="setGQ('polarization')">Polarization</button>
+      <button id="b7pre" onclick="setGQ('prequantum')">Prequantum Bundle</button>
+      <label>n (quantum #)</label>
+      <input type="range" id="gqNSlider" min="1" max="8" value="3" oninput="onGQNChange()">
+      <span id="gqNVal">3</span>
+      <label>ħ</label>
+      <input type="range" id="hbarSlider" min="5" max="50" value="20" oninput="onHbarChange()">
+      <span id="hbarVal">0.20</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="val-row">
+      <span class="lbl">∮ p dq =</span>
+      <span class="num" id="gqIntegral">—</span>
+      <span class="lbl">= nħ  →  E_n =</span>
+      <span class="num" id="gqEnergy">—</span>
+      <span class="lbl">ħω(n+½)</span>
+    </div>
+  </div>
+  <div class="deep-side">
+    <h3>Geometric Quantization</h3>
+    <p>Quantization is not merely "put hats on classical quantities." Geometric quantization shows how quantum mechanics <em style="color:var(--text)">emerges from symplectic geometry</em> in three stages:</p>
+    <h3 style="margin-top:8px">1. Prequantization</h3>
+    <p class="formula">L → phase space,  curv(∇) = ω/ħ</p>
+    <p>Construct a complex line bundle L over phase space whose curvature 2-form equals ω/ħ. Sections ψ of L are prequantum wave functions. The Dirac quantization condition: ω/2πħ must have integer cohomology class — this is why ∮ p dq = nħ.</p>
+    <h3 style="margin-top:8px">2. Polarization</h3>
+    <p class="formula">Lagrangian submanifold: T*Q ⊂ T*M</p>
+    <p>A <em style="color:var(--text)">polarization</em> selects half the phase space directions (a Lagrangian foliation). <strong style="color:var(--text)">Kähler polarization</strong> gives holomorphic wave functions; <strong style="color:var(--text)">real polarization</strong> (vertical = momentum directions) recovers position-space QM: ψ(q).</p>
+    <h3 style="margin-top:8px">3. Bohr-Sommerfeld Condition</h3>
+    <p class="formula">∮_γ p dq = nħ,  n ∈ ℤ</p>
+    <p>Only orbits γ on the torus for which the action integral is an integer multiple of ħ contribute. This selects <em style="color:var(--text)">quantized tori</em>. For the harmonic oscillator: I = E/ω = nħ → E_n = nħω (or (n+½)ħω with metaplectic correction).</p>
+    <p style="margin-top:6px">The <em style="color:var(--text)">winding number</em> of the prequantum connection around the torus is the quantum number n — quantum mechanics is topology.</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+const animIds = [null, null, null, null, null, null, null, null];
+const animT = [0, 0, 0, 0, 0, 0, 0, 0];
+
+// Tab 0 state
+let hamiltonianType = 0; // 0=harmonic, 1=anharmonic, 2=pendulum
+let particleQ = 1.5, particleP = 0.3;
+let parallelogram = { q: -1.5, p: -1.5, dq: 0.3, dp: 0.0 };
+let prlVel = { q: 0, p: 0 };
+
+// Tab 1 state
+let freqMode = 'rational';
+let freqRatio = 0.75;
+let torusTrail = [];
+let angleTrail = [];
+let t1State = { theta1: 0, theta2: 0 };
+
+// Tab 2 state
+let solitonMode = 1;
+let kappa1 = 1.0, kappa2 = 0.6;
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(i) {
+  _cancelAllAnims29();
+  document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
+  document.querySelectorAll('.pane').forEach((p, j) => p.classList.toggle('active', j === i));
+  [draw0, draw1, draw2, draw3, draw4, draw5, draw6, draw7][i]();
+  toggleAnim(document.getElementById('btnAnim'+i),i);
+}
+
+// ============================================================
+// ANIMATION
+// ============================================================
+function toggleAnim(btn, i) {
+  if (animIds[i]) {
+    cancelAnimationFrame(animIds[i]);
+    animIds[i] = null;
+    btn.textContent = '▶ Animate';
+    btn.classList.remove('active');
+    return;
+  }
+  btn.textContent = '⏸ Pause';
+  btn.classList.add('active');
+  const draws = [animFrame0, animFrame1, animFrame2, animFrame3, animFrame4, animFrame5, animFrame6, animFrame7];
+  function frame() {
+    animT[i] += (window.animSpeed || 0.1);
+    draws[i]();
+    animIds[i] = requestAnimationFrame(frame);
+  }
+  animIds[i] = requestAnimationFrame(frame);
+}
+
+function _cancelAllAnims29() {
+  for (let i = 0; i < 8; i++) {
+    if (animIds[i]) {
+      cancelAnimationFrame(animIds[i]);
+      animIds[i] = null;
+    }
+    const btn = document.getElementById('btnAnim' + i);
+    if (btn) {
+      btn.textContent = '▶ Animate';
+      btn.classList.remove('active');
+    }
+  }
+}
+function syncSpeedControl29(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function sech(x) { const e = Math.exp(-2 * x); return 2 / (Math.exp(x) + Math.exp(-x)); }
+function sech2(x) { const s = sech(x); return s * s; }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function glow(ctx, color, blur) {
+  ctx.shadowColor = color;
+  ctx.shadowBlur = blur;
+}
+function noGlow(ctx) { ctx.shadowBlur = 0; }
+
+// ============================================================
+// TAB 0 — SYMPLECTIC PHASE SPACE
+// ============================================================
+function hamiltonian(q, p) {
+  if (hamiltonianType === 0) return 0.5 * p * p + 0.5 * q * q;
+  if (hamiltonianType === 1) return 0.5 * p * p + 0.25 * q * q * q * q - 0.5 * q * q;
+  return 0.5 * p * p - Math.cos(q);
+}
+
+function dHdq(q, p) {
+  if (hamiltonianType === 0) return q;
+  if (hamiltonianType === 1) return q * q * q - q;
+  return Math.sin(q);
+}
+
+function dHdp(q, p) { return p; }
+
+function setHamiltonian(type) {
+  hamiltonianType = type;
+  // Reset particle
+  if (type === 0) { particleQ = 1.5; particleP = 0.3; }
+  else if (type === 1) { particleQ = 0.3; particleP = 0.8; }
+  else { particleQ = 0.5; particleP = 1.5; }
+  ['btnH0', 'btnH1', 'btnH2'].forEach((id, i) => {
+    document.getElementById(id).classList.toggle('active-btn', i === type);
+  });
+  draw0();
+}
+
+function animFrame0() {
+  const dt = 0.022;
+  // Verlet integration for particle
+  const fq = dHdp(particleQ, particleP);
+  const fp = -dHdq(particleQ, particleP);
+  particleQ += fq * dt;
+  particleP += fp * dt;
+  // Reflect pendulum particle
+  if (hamiltonianType === 2) {
+    if (particleQ > Math.PI) particleQ -= 2 * Math.PI;
+    if (particleQ < -Math.PI) particleQ += 2 * Math.PI;
+  }
+  // Advect parallelogram center
+  const cq = parallelogram.q, cp = parallelogram.p;
+  parallelogram.q += dHdp(cq, cp) * dt;
+  parallelogram.p -= dHdq(cq, cp) * dt;
+  if (hamiltonianType === 2) {
+    if (parallelogram.q > Math.PI) parallelogram.q -= 2 * Math.PI;
+    if (parallelogram.q < -Math.PI) parallelogram.q += 2 * Math.PI;
+  }
+  animT[0] += dt;
+  draw0();
+}
+
+function draw0() {
+  const cv = document.getElementById('c0');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const halfR = 3.2 / zoom0;
+  const qMin = -halfR, qMax = halfR, pMin = -halfR, pMax = halfR;
+  function toX(q) { return (q - qMin) / (qMax - qMin) * W; }
+  function toY(p) { return H - (p - pMin) / (pMax - pMin) * H; }
+  function toQ(x) { return x / W * (qMax - qMin) + qMin; }
+  function toP(y) { return (H - y) / H * (pMax - pMin) + pMin; }
+
+  // Background
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  // Checkerboard symplectic area visualization (subtle)
+  const cellQ = (qMax - qMin) / 12, cellP = (pMax - pMin) / 12;
+  for (let i = 0; i < 12; i++) {
+    for (let j = 0; j < 12; j++) {
+      if ((i + j) % 2 === 0) {
+        const x = toX(qMin + i * cellQ);
+        const y = toY(pMin + (j + 1) * cellP);
+        const ww = toX(qMin + (i + 1) * cellQ) - x;
+        const hh = toY(pMin + j * cellP) - y;
+        ctx.fillStyle = 'rgba(0,221,170,0.028)';
+        ctx.fillRect(x, y, ww, hh);
+      }
+    }
+  }
+
+  // Grid lines
+  ctx.strokeStyle = '#1c1c44';
+  ctx.lineWidth = 0.5;
+  for (let q = -3; q <= 3; q++) {
+    ctx.beginPath(); ctx.moveTo(toX(q), 0); ctx.lineTo(toX(q), H); ctx.stroke();
+  }
+  for (let p = -3; p <= 3; p++) {
+    ctx.beginPath(); ctx.moveTo(0, toY(p)); ctx.lineTo(W, toY(p)); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#2a2a55';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, toY(0)); ctx.lineTo(W, toY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toX(0), 0); ctx.lineTo(toX(0), H); ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  for (let q = -3; q <= 3; q += 1) {
+    if (q === 0) continue;
+    ctx.fillText(q, toX(q), toY(0) + 14);
+  }
+  ctx.textAlign = 'right';
+  for (let p = -3; p <= 3; p += 1) {
+    if (p === 0) continue;
+    ctx.fillText(p, toX(0) - 4, toY(p) + 4);
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#7070aa';
+  ctx.font = '13px Segoe UI';
+  ctx.fillText('q', W - 12, toY(0) - 6);
+  ctx.fillText('p', toX(0) + 12, 14);
+
+  // Contour lines
+  const numContours = 18;
+  const accent = '#00ddaa';
+
+  if (hamiltonianType === 0) {
+    // Harmonic: concentric ellipses — exact
+    for (let k = 1; k <= numContours; k++) {
+      const E = k * 0.4;
+      const r = Math.sqrt(2 * E);
+      const alpha = clamp(1.0 - k / (numContours + 1), 0.08, 0.75);
+      ctx.beginPath();
+      ctx.ellipse(toX(0), toY(0), r / (qMax - qMin) * W, r / (pMax - pMin) * H, 0, 0, Math.PI * 2);
+      glow(ctx, accent, k < 6 ? 8 : 4);
+      ctx.strokeStyle = `rgba(0,221,170,${alpha})`;
+      ctx.lineWidth = k < 3 ? 1.8 : 1.2;
+      ctx.stroke();
+      noGlow(ctx);
+    }
+  } else if (hamiltonianType === 1) {
+    // Anharmonic: march contours
+    drawContours1(ctx, W, H, toX, toY, qMin, qMax, pMin, pMax);
+  } else {
+    // Pendulum
+    drawContoursPendulum(ctx, W, H, toX, toY, qMin, qMax, pMin, pMax);
+  }
+
+  // Parallelogram (Liouville area preservation)
+  drawParallelogram(ctx, toX, toY);
+
+  // Moving particle
+  const px = toX(particleQ), py = toY(particleP);
+  glow(ctx, '#ffffff', 18);
+  ctx.beginPath();
+  ctx.arc(px, py, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  noGlow(ctx);
+  glow(ctx, accent, 10);
+  ctx.beginPath();
+  ctx.arc(px, py, 3, 0, Math.PI * 2);
+  ctx.fillStyle = accent;
+  ctx.fill();
+  noGlow(ctx);
+
+  // H value
+  const hNow = hamiltonian(particleQ, particleP);
+  document.getElementById('hVal').textContent = hNow.toFixed(4);
+  document.getElementById('pqVal').textContent = `(${particleQ.toFixed(2)}, ${particleP.toFixed(2)})`;
+}
+
+function drawContours1(ctx, W, H, toX, toY, qMin, qMax, pMin, pMax) {
+  const accent = '#00ddaa';
+  // Anharmonic: H = p²/2 + q⁴/4 - q²/2, fixed points at q=±1,p=0 (E=-0.25) and q=0,p=0 (E=0 saddle)
+  const energies = [-0.22, -0.18, -0.10, 0.0, 0.15, 0.35, 0.6, 0.9, 1.3, 1.8, 2.4, 3.1, 4.0, 5.0, 6.2, 7.6, 9.2, 11.0];
+  const NQ = 400;
+  for (let ei = 0; ei < energies.length; ei++) {
+    const E = energies[ei];
+    const alpha = clamp(0.85 - ei * 0.03, 0.15, 0.85);
+    ctx.strokeStyle = E === 0.0 ? `rgba(255,200,0,0.9)` : `rgba(0,221,170,${alpha})`;
+    ctx.lineWidth = E === 0.0 ? 2 : 1.2;
+    if (E === 0.0) glow(ctx, '#ffcc00', 10);
+    else glow(ctx, accent, 5);
+    // For each q, solve p² = 2(E - q⁴/4 + q²/2), draw upper and lower halves
+    let prevXU = null, prevYU = null, prevXL = null, prevYL = null;
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= NQ; i++) {
+      const q = qMin + (qMax - qMin) * i / NQ;
+      const p2 = 2 * (E - 0.25 * q * q * q * q + 0.5 * q * q);
+      if (p2 < 0) { started = false; continue; }
+      const p = Math.sqrt(p2);
+      const x = toX(q), yu = toY(p), yl = toY(-p);
+      if (!started) { ctx.moveTo(x, yu); started = true; }
+      else ctx.lineTo(x, yu);
+    }
+    // lower half in reverse
+    for (let i = NQ; i >= 0; i--) {
+      const q = qMin + (qMax - qMin) * i / NQ;
+      const p2 = 2 * (E - 0.25 * q * q * q * q + 0.5 * q * q);
+      if (p2 < 0) continue;
+      const p = Math.sqrt(p2);
+      ctx.lineTo(toX(q), toY(-p));
+    }
+    ctx.closePath();
+    ctx.stroke();
+    noGlow(ctx);
+  }
+}
+
+function drawContoursPendulum(ctx, W, H, toX, toY, qMin, qMax, pMin, pMax) {
+  const accent = '#00ddaa';
+  // Pendulum: H = p²/2 - cos(q), range E in [-1, ~2]
+  // E=-1: stable fixed point (bottom), E=1: separatrix (top saddle), E>1: rotations
+  const libEnergies = [-0.8, -0.5, -0.1, 0.3, 0.7];
+  const sepEnergy = 1.0;
+  const rotEnergies = [1.4, 1.9, 2.5, 3.2, 4.0, 5.0, 6.2, 7.6, 9.0];
+  const NQ = 500;
+
+  function drawPendulumContour(E, color, lw, glowColor, glowB) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lw;
+    glow(ctx, glowColor, glowB);
+    ctx.beginPath();
+    let started = false;
+    for (let i = 0; i <= NQ; i++) {
+      const q = qMin + (qMax - qMin) * i / NQ;
+      const p2 = 2 * (E + Math.cos(q));
+      if (p2 < 0) { started = false; continue; }
+      const p = Math.sqrt(p2);
+      const x = toX(q), y = toY(p);
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else ctx.lineTo(x, y);
+    }
+    for (let i = NQ; i >= 0; i--) {
+      const q = qMin + (qMax - qMin) * i / NQ;
+      const p2 = 2 * (E + Math.cos(q));
+      if (p2 < 0) continue;
+      ctx.lineTo(toX(q), toY(-Math.sqrt(p2)));
+    }
+    ctx.closePath();
+    ctx.stroke();
+    noGlow(ctx);
+  }
+
+  libEnergies.forEach((E, i) => {
+    const a = 0.9 - i * 0.1;
+    drawPendulumContour(E, `rgba(0,221,170,${a})`, 1.3, accent, 5);
+  });
+  // Separatrix
+  drawPendulumContour(sepEnergy, 'rgba(255,200,0,0.95)', 2.2, '#ffcc00', 12);
+  // Rotational bands
+  rotEnergies.forEach((E, i) => {
+    const a = 0.8 - i * 0.06;
+    drawPendulumContour(E, `rgba(0,221,170,${a})`, 1.2, accent, 4);
+  });
+}
+
+function drawParallelogram(ctx, toX, toY) {
+  // Draw a small parallelogram flowing with the field
+  const q = parallelogram.q, p = parallelogram.p;
+  const dq = parallelogram.dq, dp = 0.25;
+  // Corner offsets (small box in phase space)
+  const corners = [
+    [q, p],
+    [q + dq, p],
+    [q + dq, p + dp],
+    [q, p + dp],
+  ];
+  ctx.beginPath();
+  ctx.moveTo(toX(corners[0][0]), toY(corners[0][1]));
+  for (let i = 1; i < 4; i++) ctx.lineTo(toX(corners[i][0]), toY(corners[i][1]));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,221,170,0.18)';
+  ctx.fill();
+  glow(ctx, '#00ddaa', 8);
+  ctx.strokeStyle = 'rgba(0,221,170,0.85)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  noGlow(ctx);
+  // Label
+  ctx.fillStyle = 'rgba(0,221,170,0.7)';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText('ω-area', toX(q) + 4, toY(p + dp) - 4);
+}
+
+// ============================================================
+// TAB 1 — LIOUVILLE TORI
+// ============================================================
+const TORUS_TRAIL_MAX = 1800;
+const ANGLE_TRAIL_MAX = 2000;
+
+function setFreqMode(mode) {
+  freqMode = mode;
+  torusTrail = [];
+  angleTrail = [];
+  t1State = { theta1: 0, theta2: 0 };
+  document.getElementById('btnRat').classList.toggle('active-btn', mode === 'rational');
+  document.getElementById('btnIrrat').classList.toggle('active-btn', mode === 'irrational');
+  if (mode === 'rational') {
+    freqRatio = 0.75;
+    document.getElementById('ratioSlider').value = 75;
+    document.getElementById('ratioVal').textContent = '0.75';
+  } else {
+    freqRatio = 1.0 / 1.618033988; // golden ratio - 1 ≈ 0.618
+    document.getElementById('ratioSlider').value = Math.round(freqRatio * 100);
+    document.getElementById('ratioVal').textContent = freqRatio.toFixed(3);
+  }
+  draw1();
+}
+
+function onRatioChange() {
+  freqRatio = parseFloat(document.getElementById('ratioSlider').value) / 100;
+  document.getElementById('ratioVal').textContent = freqRatio.toFixed(2);
+  torusTrail = [];
+  angleTrail = [];
+  t1State = { theta1: 0, theta2: 0 };
+  draw1();
+}
+
+function animFrame1() {
+  const omega1 = 1.0, omega2 = freqRatio;
+  const dt = 0.04;
+  t1State.theta1 += omega1 * dt;
+  t1State.theta2 += omega2 * dt;
+  // wrap
+  t1State.theta1 = t1State.theta1 % (2 * Math.PI);
+  t1State.theta2 = t1State.theta2 % (2 * Math.PI);
+  torusTrail.push({ theta1: t1State.theta1, theta2: t1State.theta2 });
+  angleTrail.push({ theta1: t1State.theta1, theta2: t1State.theta2 });
+  if (torusTrail.length > TORUS_TRAIL_MAX) torusTrail.shift();
+  if (angleTrail.length > ANGLE_TRAIL_MAX) angleTrail.shift();
+  draw1();
+}
+
+function torusProject(theta1, theta2, R, r, cx, cy, rx, ry) {
+  // 3D point
+  const x3 = (R + r * Math.cos(theta1)) * Math.cos(theta2);
+  const y3 = (R + r * Math.cos(theta1)) * Math.sin(theta2);
+  const z3 = r * Math.sin(theta1);
+  // Isometric-ish rotation: rotate around X by tilt, around Y by spin
+  const tilt = 0.58; // radians
+  const spin = 0.42;
+  // Rotate around Z by spin
+  const x1 = x3 * Math.cos(spin) - y3 * Math.sin(spin);
+  const y1 = x3 * Math.sin(spin) + y3 * Math.cos(spin);
+  const z1 = z3;
+  // Rotate around X by tilt
+  const x2 = x1;
+  const y2 = y1 * Math.cos(tilt) - z1 * Math.sin(tilt);
+  const z2 = y1 * Math.sin(tilt) + z1 * Math.cos(tilt);
+  // Perspective
+  const fov = 3.5;
+  const scale = fov / (fov + z2 * 0.3);
+  return {
+    sx: cx + rx * x2 * scale,
+    sy: cy + ry * y2 * scale,
+    z: z2
+  };
+}
+
+function draw1() {
+  const cv = document.getElementById('c1');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  const cx = W * 0.42, cy = H * 0.5;
+  const R = Math.min(W, H) * 0.22;
+  const r = Math.min(W, H) * 0.09;
+  const rx = 1.0, ry = 0.88;
+
+  // Draw torus wireframe
+  const NT1 = 36, NT2 = 64;
+  // Back faces first
+  const meshPts = [];
+  for (let i = 0; i <= NT1; i++) {
+    meshPts.push([]);
+    for (let j = 0; j <= NT2; j++) {
+      const th1 = (i / NT1) * 2 * Math.PI;
+      const th2 = (j / NT2) * 2 * Math.PI;
+      meshPts[i].push(torusProject(th1, th2, R, r, cx, cy, rx, ry));
+    }
+  }
+
+  // Meridian circles (theta2 = const)
+  for (let j = 0; j < NT2; j++) {
+    const pts = meshPts.map(row => row[j]);
+    // Determine visibility by average Z
+    const avgZ = pts.reduce((s, p) => s + p.z, 0) / pts.length;
+    const alpha = avgZ > -0.5 ? 0.25 : 0.08;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].sx, pts[0].sy);
+    for (let i = 1; i <= NT1; i++) ctx.lineTo(pts[i].sx, pts[i].sy);
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(0,100,80,${alpha})`;
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+  }
+  // Latitude circles (theta1 = const)
+  for (let i = 0; i < NT1; i++) {
+    const pts = meshPts[i];
+    const avgZ = pts.reduce((s, p) => s + p.z, 0) / pts.length;
+    const alpha = avgZ > 0 ? 0.35 : 0.1;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].sx, pts[0].sy);
+    for (let j = 1; j <= NT2; j++) ctx.lineTo(pts[j].sx, pts[j].sy);
+    ctx.closePath();
+    ctx.strokeStyle = `rgba(0,130,100,${alpha})`;
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+  }
+
+  // Draw irrational trail (accent color, fading)
+  if (torusTrail.length > 1) {
+    const isRational = freqMode === 'rational';
+    const trailColor = isRational ? '#ffd700' : '#00ddaa';
+    for (let k = 1; k < torusTrail.length; k++) {
+      const pt = torusProject(torusTrail[k].theta1, torusTrail[k].theta2, R, r, cx, cy, rx, ry);
+      const ptPrev = torusProject(torusTrail[k - 1].theta1, torusTrail[k - 1].theta2, R, r, cx, cy, rx, ry);
+      const a = Math.pow(k / torusTrail.length, 0.5) * 0.85;
+      ctx.beginPath();
+      ctx.moveTo(ptPrev.sx, ptPrev.sy);
+      ctx.lineTo(pt.sx, pt.sy);
+      if (isRational) {
+        ctx.strokeStyle = `rgba(255,215,0,${a})`;
+      } else {
+        ctx.strokeStyle = `rgba(0,221,170,${a * 0.6})`;
+      }
+      ctx.lineWidth = isRational ? 2 : 1;
+      ctx.stroke();
+    }
+  }
+
+  // Current position dot
+  if (torusTrail.length > 0) {
+    const curr = torusTrail[torusTrail.length - 1];
+    const pt = torusProject(curr.theta1, curr.theta2, R, r, cx, cy, rx, ry);
+    glow(ctx, '#ffffff', 16);
+    ctx.beginPath();
+    ctx.arc(pt.sx, pt.sy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    noGlow(ctx);
+  }
+
+  // Labels
+  ctx.fillStyle = '#00ddaa';
+  ctx.font = 'bold 13px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('Liouville Torus T²', cx, 22);
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  ctx.fillText(`ω₁/ω₂ = ${freqRatio.toFixed(3)}  (${freqMode})`, cx, H - 10);
+
+  // Draw action-angle square
+  draw1b();
+}
+
+function draw1b() {
+  const cv = document.getElementById('c1b');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#0b0b1e';
+  ctx.fillRect(0, 0, W, H);
+
+  const pad = 28;
+  const sqW = W - 2 * pad, sqH = H - 2 * pad;
+
+  // Square border
+  ctx.strokeStyle = '#1c1c44';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(pad, pad, sqW, sqH);
+
+  // Grid
+  ctx.strokeStyle = '#1c1c44';
+  ctx.lineWidth = 0.5;
+  for (let k = 1; k < 4; k++) {
+    const x = pad + k * sqW / 4, y = pad + k * sqH / 4;
+    ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, pad + sqH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + sqW, y); ctx.stroke();
+  }
+
+  // Draw the angle trail as wrapped lines
+  const isRational = freqMode === 'rational';
+  if (angleTrail.length > 1) {
+    const color = isRational ? 'rgba(255,215,0,0.7)' : 'rgba(0,221,170,0.5)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = isRational ? 2 : 1;
+    let prevX = pad + (angleTrail[0].theta1 / (2 * Math.PI)) * sqW;
+    let prevY = pad + sqH - (angleTrail[0].theta2 / (2 * Math.PI)) * sqH;
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    for (let k = 1; k < angleTrail.length; k++) {
+      const nx = pad + (angleTrail[k].theta1 / (2 * Math.PI)) * sqW;
+      const ny = pad + sqH - (angleTrail[k].theta2 / (2 * Math.PI)) * sqH;
+      // Check wrap
+      const dx = Math.abs(nx - prevX), dy = Math.abs(ny - prevY);
+      if (dx > sqW * 0.5 || dy > sqH * 0.5) {
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(nx, ny);
+      } else {
+        ctx.lineTo(nx, ny);
+      }
+      prevX = nx; prevY = ny;
+    }
+    ctx.stroke();
+  }
+
+  // Current dot
+  if (torusTrail.length > 0) {
+    const curr = torusTrail[torusTrail.length - 1];
+    const x = pad + (curr.theta1 / (2 * Math.PI)) * sqW;
+    const y = pad + sqH - (curr.theta2 / (2 * Math.PI)) * sqH;
+    glow(ctx, '#ffffff', 12);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    noGlow(ctx);
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('θ₁', pad + sqW / 2, pad + sqH + 18);
+  ctx.textAlign = 'right';
+  ctx.fillText('θ₂', pad - 6, pad + sqH / 2 + 4);
+  ctx.fillText('0', pad - 3, pad + sqH + 4);
+  ctx.fillText('2π', pad + sqW + 14, pad + sqH + 4);
+  ctx.fillText('2π', pad - 3, pad + 4);
+
+  // Title
+  ctx.fillStyle = '#00ddaa';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('(θ₁, θ₂) — Angle Square', W / 2, pad - 12);
+}
+
+// ============================================================
+// TAB 2 — KdV SOLITONS
+// ============================================================
+function setSolitonMode(mode) {
+  solitonMode = mode;
+  document.getElementById('btn1sol').classList.toggle('active-btn', mode === 1);
+  document.getElementById('btn2sol').classList.toggle('active-btn', mode === 2);
+  animT[2] = -8; // reset time
+  draw2();
+}
+
+function onKChange() {
+  kappa1 = parseFloat(document.getElementById('k1Slider').value) / 100;
+  kappa2 = parseFloat(document.getElementById('k2Slider').value) / 100;
+  document.getElementById('k1Val').textContent = kappa1.toFixed(2);
+  document.getElementById('k2Val').textContent = kappa2.toFixed(2);
+  draw2();
+}
+
+function soliton1(x, t, kappa, x0) {
+  const arg = kappa * (x - 4 * kappa * kappa * t - x0);
+  const s = sech(arg);
+  return -2 * kappa * kappa * s * s;
+}
+
+// Exact 2-soliton solution for KdV
+function soliton2(x, t, k1, k2, x01, x02) {
+  const eta1 = k1 * (x - 4 * k1 * k1 * t) - k1 * x01;
+  const eta2 = k2 * (x - 4 * k2 * k2 * t) - k2 * x02;
+  const A = ((k1 - k2) / (k1 + k2));
+  const A2 = A * A;
+  const e1 = Math.exp(2 * eta1), e2 = Math.exp(2 * eta2);
+  // tau function: tau = 1 + exp(2*eta1) + exp(2*eta2) + A² * exp(2*eta1 + 2*eta2)
+  const tau = 1 + e1 + e2 + A2 * e1 * e2;
+  const dtau_x = 2 * k1 * e1 + 2 * k2 * e2 + 2 * (k1 + k2) * A2 * e1 * e2;
+  const d2tau_xx = 4 * k1 * k1 * e1 + 4 * k2 * k2 * e2 + 4 * (k1 + k2) * (k1 + k2) * A2 * e1 * e2;
+  // u = 2 * d²/dx² log(tau)
+  const logTau_xx = (d2tau_xx * tau - dtau_x * dtau_x) / (tau * tau);
+  return 2 * logTau_xx;
+}
+
+function animFrame2() {
+  const spd = parseFloat(document.getElementById('spdSlider').value) * 0.005;
+  animT[2] += spd;
+  draw2();
+}
+
+function draw2() {
+  const cv = document.getElementById('c2');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  const xMin = -15, xMax = 15;
+  const uMin = -4.5, uMax = 1.5;
+  const t = animT[2];
+  const x0A = -7, x0B = 5; // initial centers
+
+  function toSX(x) { return (x - xMin) / (xMax - xMin) * W; }
+  function toSY(u) { return H - (u - uMin) / (uMax - uMin) * H; }
+
+  // Grid / axes
+  ctx.strokeStyle = '#1a1a36';
+  ctx.lineWidth = 0.5;
+  for (let x = -14; x <= 14; x += 2) {
+    ctx.beginPath(); ctx.moveTo(toSX(x), 0); ctx.lineTo(toSX(x), H); ctx.stroke();
+  }
+  for (let u = -4; u <= 1; u++) {
+    ctx.beginPath(); ctx.moveTo(0, toSY(u)); ctx.lineTo(W, toSY(u)); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#2a2a55';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, toSY(0)); ctx.lineTo(W, toSY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toSX(0), 0); ctx.lineTo(toSX(0), H); ctx.stroke();
+
+  // Tick labels
+  ctx.fillStyle = '#55558a';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  for (let x = -14; x <= 14; x += 2) {
+    ctx.fillText(x, toSX(x), toSY(0) + 14);
+  }
+  ctx.textAlign = 'right';
+  for (let u = -4; u <= 1; u++) {
+    ctx.fillText(u, toSX(0) - 4, toSY(u) + 4);
+  }
+  ctx.fillStyle = '#7070aa';
+  ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('x', W - 10, toSY(0) - 6);
+  ctx.fillText('u', toSX(0) + 12, 14);
+
+  const NX = Math.max(400, W);
+  const accent = '#00ddaa';
+  const gold = '#ffd700';
+
+  if (solitonMode === 1) {
+    // 1-soliton
+    const uArr = [];
+    for (let i = 0; i <= NX; i++) {
+      const x = xMin + (xMax - xMin) * i / NX;
+      uArr.push(soliton1(x, t, kappa1, 0));
+    }
+    // Fill
+    ctx.beginPath();
+    ctx.moveTo(toSX(xMin), toSY(0));
+    for (let i = 0; i <= NX; i++) {
+      const x = xMin + (xMax - xMin) * i / NX;
+      ctx.lineTo(toSX(x), toSY(uArr[i]));
+    }
+    ctx.lineTo(toSX(xMax), toSY(0));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(0,221,170,0.12)';
+    ctx.fill();
+    // Stroke
+    glow(ctx, accent, 10);
+    ctx.beginPath();
+    ctx.moveTo(toSX(xMin), toSY(uArr[0]));
+    for (let i = 1; i <= NX; i++) {
+      const x = xMin + (xMax - xMin) * i / NX;
+      ctx.lineTo(toSX(x), toSY(uArr[i]));
+    }
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    noGlow(ctx);
+    // Tracer at peak
+    let peakU = 0, peakX = 0;
+    for (let i = 0; i <= NX; i++) {
+      if (uArr[i] < peakU) { peakU = uArr[i]; peakX = xMin + (xMax - xMin) * i / NX; }
+    }
+    glow(ctx, accent, 18);
+    ctx.beginPath();
+    ctx.arc(toSX(peakX), toSY(peakU), 6, 0, Math.PI * 2);
+    ctx.fillStyle = accent;
+    ctx.fill();
+    noGlow(ctx);
+
+  } else {
+    // 2-soliton
+    const uArr1 = [], uArr2 = [], uArrTotal = [];
+    for (let i = 0; i <= NX; i++) {
+      const x = xMin + (xMax - xMin) * i / NX;
+      const u = soliton2(x, t, kappa1, kappa2, x0A, x0B);
+      // Clamp to avoid blowup
+      uArrTotal.push(clamp(u, -10, 2));
+      uArr1.push(soliton1(x, t, kappa1, x0A));
+      uArr2.push(soliton1(x, t, kappa2, x0B));
+    }
+
+    // Draw exact 2-soliton as filled shape
+    ctx.beginPath();
+    ctx.moveTo(toSX(xMin), toSY(0));
+    for (let i = 0; i <= NX; i++) {
+      const x = xMin + (xMax - xMin) * i / NX;
+      ctx.lineTo(toSX(x), toSY(clamp(uArrTotal[i], uMin - 0.2, uMax + 0.2)));
+    }
+    ctx.lineTo(toSX(xMax), toSY(0));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(0,221,170,0.09)';
+    ctx.fill();
+
+    glow(ctx, accent, 8);
+    ctx.beginPath();
+    ctx.moveTo(toSX(xMin), toSY(clamp(uArrTotal[0], uMin - 0.2, uMax + 0.2)));
+    for (let i = 1; i <= NX; i++) {
+      const x = xMin + (xMax - xMin) * i / NX;
+      ctx.lineTo(toSX(x), toSY(clamp(uArrTotal[i], uMin - 0.2, uMax + 0.2)));
+    }
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    noGlow(ctx);
+
+    // Tracers at peaks of each soliton (using approximate peaks from individual components)
+    let peak1U = 0, peak1X = 0;
+    let peak2U = 0, peak2X = 0;
+    for (let i = 0; i <= NX; i++) {
+      if (uArr1[i] < peak1U) { peak1U = uArr1[i]; peak1X = xMin + (xMax - xMin) * i / NX; }
+      if (uArr2[i] < peak2U) { peak2U = uArr2[i]; peak2X = xMin + (xMax - xMin) * i / NX; }
+    }
+    // Look up exact u at peak positions
+    const u1AtPeak = soliton2(peak1X, t, kappa1, kappa2, x0A, x0B);
+    const u2AtPeak = soliton2(peak2X, t, kappa1, kappa2, x0A, x0B);
+
+    glow(ctx, accent, 18);
+    ctx.beginPath();
+    ctx.arc(toSX(peak1X), toSY(clamp(u1AtPeak, uMin, uMax)), 7, 0, Math.PI * 2);
+    ctx.fillStyle = accent;
+    ctx.fill();
+    noGlow(ctx);
+
+    glow(ctx, gold, 18);
+    ctx.beginPath();
+    ctx.arc(toSX(peak2X), toSY(clamp(u2AtPeak, uMin, uMax)), 7, 0, Math.PI * 2);
+    ctx.fillStyle = gold;
+    ctx.fill();
+    noGlow(ctx);
+
+    // Legend
+    ctx.fillStyle = accent;
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText(`κ₁ = ${kappa1.toFixed(2)}  (faster)`, 10, 18);
+    ctx.fillStyle = gold;
+    ctx.fillText(`κ₂ = ${kappa2.toFixed(2)}  (slower)`, 10, 32);
+  }
+
+  // Title
+  ctx.fillStyle = '#00ddaa';
+  ctx.font = 'bold 12px Segoe UI';
+  ctx.textAlign = 'right';
+  ctx.fillText(`t = ${t.toFixed(2)}`, W - 10, 16);
+}
+
+// ============================================================
+// ============================================================
+// PHASE SPACE ZOOM
+// ============================================================
+let zoom0 = 1.0;
+
+(function(){
+  const cv0 = document.getElementById('c0');
+  cv0.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 1/1.15;
+    zoom0 = Math.max(0.25, Math.min(6, zoom0 * factor));
+    if (!animIds[0]) draw0();
+  }, {passive: false});
+})();
+
+// ============================================================
+// KDV RESET
+// ============================================================
+function resetKdV() {
+  animT[2] = -8;
+  if (!animIds[2]) draw2();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+// Initialize animT[2] to a negative value so we see a pre-collision state
+animT[2] = -6;
+
+// Initialize parallelogram
+parallelogram = { q: -2.2, p: -1.0, dq: 0.35, dp: 0 };
+
+window.addEventListener('resize', () => {
+  const active = [...document.querySelectorAll('.pane')].findIndex(p => p.classList.contains('active'));
+  [draw0, draw1, draw2, draw3, draw4, draw5, draw6, draw7][active]();
+});
+
+// Initial draw
+draw0();
+
+// ============================================================
+// TAB 3 — ω-FORM & LIOUVILLE AREA PRESERVATION
+// ============================================================
+let mode3 = 'vectors';
+let hamType3 = 0; // 0=harmonic, 1=pendulum
+// Two user-drawn vectors (from origin in phase space)
+let vec3A = { q: 1.2, p: 0.4 };
+let vec3B = { q: 0.3, p: 1.0 };
+let dragging3 = null; // 'A' or 'B'
+// Blob: array of phase-space points on a closed polygon
+let blob3 = [];
+let blob3Init = false;
+
+function initBlob3() {
+  blob3 = [];
+  const N = 24;
+  const cq = 1.0, cp = 0.3, aq = 0.6, ap = 0.45;
+  for (let i = 0; i < N; i++) {
+    const ang = (i / N) * 2 * Math.PI;
+    blob3.push({ q: cq + aq * Math.cos(ang), p: cp + ap * Math.sin(ang) });
+  }
+  blob3Init = true;
+}
+
+function setMode3(m) {
+  mode3 = m;
+  document.getElementById('btnDrawVec').classList.toggle('active-btn', m === 'vectors');
+  document.getElementById('btnBlob').classList.toggle('active-btn', m === 'blob');
+  if (m === 'blob' && !blob3Init) initBlob3();
+  draw3();
+}
+
+function setH3(type) {
+  hamType3 = type;
+  document.getElementById('b3h0').classList.toggle('active-btn', type === 0);
+  document.getElementById('b3h1').classList.toggle('active-btn', type === 1);
+  if (blob3Init) initBlob3();
+  draw3();
+}
+
+function h3(q, p) {
+  if (hamType3 === 0) return 0.5 * p * p + 0.5 * q * q;
+  return 0.5 * p * p - Math.cos(q);
+}
+function dh3dq(q, p) {
+  if (hamType3 === 0) return q;
+  return Math.sin(q);
+}
+function dh3dp(q, p) { return p; }
+
+function blobArea3() {
+  if (blob3.length < 3) return 0;
+  let area = 0;
+  const n = blob3.length;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    area += blob3[i].q * blob3[j].p - blob3[j].q * blob3[i].p;
+  }
+  return Math.abs(area) * 0.5;
+}
+
+function animFrame3() {
+  animT[3] += 0.018*(window.animSpeed||1);
+  if (mode3 === 'blob') {
+    if (!blob3Init) initBlob3();
+    const dt = 0.018;
+    for (let pt of blob3) {
+      const fq = dh3dp(pt.q, pt.p);
+      const fp = -dh3dq(pt.q, pt.p);
+      pt.q += fq * dt;
+      pt.p += fp * dt;
+      if (hamType3 === 1) {
+        if (pt.q > Math.PI) pt.q -= 2 * Math.PI;
+        if (pt.q < -Math.PI) pt.q += 2 * Math.PI;
+      }
+    }
+  }
+  draw3();
+}
+
+function draw3() {
+  const cv = document.getElementById('c3');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const RANGE = 3.2;
+  function toX(q) { return (q + RANGE) / (2 * RANGE) * W; }
+  function toY(p) { return H - (p + RANGE) / (2 * RANGE) * H; }
+  function toQ(x) { return x / W * 2 * RANGE - RANGE; }
+  function toP(y) { return (H - y) / H * 2 * RANGE - RANGE; }
+
+  // Background
+  ctx.fillStyle = '#05050f';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle grid
+  ctx.strokeStyle = '#1c1c44';
+  ctx.lineWidth = 0.5;
+  for (let q = -3; q <= 3; q++) {
+    ctx.beginPath(); ctx.moveTo(toX(q), 0); ctx.lineTo(toX(q), H); ctx.stroke();
+  }
+  for (let p = -3; p <= 3; p++) {
+    ctx.beginPath(); ctx.moveTo(0, toY(p)); ctx.lineTo(W, toY(p)); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, toY(0)); ctx.lineTo(W, toY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toX(0), 0); ctx.lineTo(toX(0), H); ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#7070aa'; ctx.font = '13px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('q', W - 12, toY(0) - 6);
+  ctx.fillText('p', toX(0) + 12, 14);
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  for (let v = -3; v <= 3; v++) {
+    if (v === 0) continue;
+    ctx.textAlign = 'center'; ctx.fillText(v, toX(v), toY(0) + 13);
+    ctx.textAlign = 'right'; ctx.fillText(v, toX(0) - 4, toY(v) + 4);
+  }
+
+  // Phase portrait contours
+  const accent = '#00ddaa';
+  if (hamType3 === 0) {
+    for (let k = 1; k <= 14; k++) {
+      const E = k * 0.45, r = Math.sqrt(2 * E);
+      const alpha = clamp(0.7 - k * 0.035, 0.07, 0.65);
+      ctx.beginPath();
+      ctx.ellipse(toX(0), toY(0), r / (2 * RANGE) * W, r / (2 * RANGE) * H, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,221,170,' + alpha + ')'; ctx.lineWidth = 1; ctx.stroke();
+    }
+  } else {
+    for (let k = 0; k < 8; k++) {
+      const E = -0.8 + k * 0.28;
+      drawPendulumContour3(ctx, W, H, toX, toY, RANGE, E,
+        E < 0.99 ? 'rgba(0,221,170,' + (0.7 - k * 0.05) + ')' : 'rgba(255,200,0,0.95)',
+        E < 0.99 ? 1.1 : 2.2);
+    }
+    for (let k = 1; k <= 5; k++) {
+      const E = 1.0 + k * 0.6;
+      drawPendulumContour3(ctx, W, H, toX, toY, RANGE, E, 'rgba(0,221,170,' + (0.6 - k * 0.06) + ')', 1);
+    }
+  }
+
+  if (mode3 === 'vectors') {
+    // Draw parallelogram spanned by vec3A and vec3B from origin
+    const ox = toX(0), oy = toY(0);
+    const ax = toX(vec3A.q), ay = toY(vec3A.p);
+    const bx = toX(vec3B.q), by = toY(vec3B.p);
+    const cx2 = toX(vec3A.q + vec3B.q), cy2 = toY(vec3A.p + vec3B.p);
+
+    // Fill parallelogram
+    const omega = vec3A.q * vec3B.p - vec3A.p * vec3B.q;
+    const fillCol = omega >= 0 ? 'rgba(0,221,170,0.18)' : 'rgba(255,80,80,0.18)';
+    const strokeCol = omega >= 0 ? 'rgba(0,221,170,0.9)' : 'rgba(255,100,100,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ax, ay);
+    ctx.lineTo(cx2, cy2);
+    ctx.lineTo(bx, by);
+    ctx.closePath();
+    ctx.fillStyle = fillCol; ctx.fill();
+    ctx.strokeStyle = strokeCol; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Draw vectors with arrows
+    function drawArrow(fromX, fromY, toXv, toYv, color, label) {
+      ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+      glow(ctx, color, 10);
+      ctx.beginPath(); ctx.moveTo(fromX, fromY); ctx.lineTo(toXv, toYv); ctx.stroke();
+      // Arrowhead
+      const ang = Math.atan2(toYv - fromY, toXv - fromX);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(toXv, toYv);
+      ctx.lineTo(toXv - 12 * Math.cos(ang - 0.4), toYv - 12 * Math.sin(ang - 0.4));
+      ctx.lineTo(toXv - 12 * Math.cos(ang + 0.4), toYv - 12 * Math.sin(ang + 0.4));
+      ctx.closePath(); ctx.fill();
+      noGlow(ctx);
+      ctx.fillStyle = color; ctx.font = 'bold 14px Segoe UI'; ctx.textAlign = 'center';
+      ctx.fillText(label, toXv + 14 * Math.cos(ang), toYv + 14 * Math.sin(ang));
+    }
+    drawArrow(ox, oy, ax, ay, '#00ddaa', 'u');
+    drawArrow(ox, oy, bx, by, '#ffd700', 'v');
+
+    // Show omega value
+    document.getElementById('omegaVal').textContent = omega.toFixed(4);
+    document.getElementById('blobArea').textContent = '—';
+
+    // Label
+    ctx.fillStyle = '#00ddaa'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('ω(u,v) = u_q·v_p − u_p·v_q = det[u|v]', 10, 18);
+    ctx.fillStyle = (omega >= 0) ? '#00ddaa' : '#ff6060';
+    ctx.fillText('= ' + omega.toFixed(3) + (omega >= 0 ? '  (positive orientation)' : '  (negative orientation)'), 10, 33);
+    ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+    ctx.fillText('Drag vector tips to explore ω(u,v)', 10, H - 10);
+
+  } else {
+    // Blob mode
+    if (!blob3Init) initBlob3();
+    const area = blobArea3();
+    // Draw blob
+    ctx.beginPath();
+    ctx.moveTo(toX(blob3[0].q), toY(blob3[0].p));
+    for (let i = 1; i < blob3.length; i++) ctx.lineTo(toX(blob3[i].q), toY(blob3[i].p));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(0,221,170,0.18)'; ctx.fill();
+    glow(ctx, '#00ddaa', 10);
+    ctx.strokeStyle = '#00ddaa'; ctx.lineWidth = 2; ctx.stroke();
+    noGlow(ctx);
+    // Draw points
+    for (let pt of blob3) {
+      ctx.beginPath(); ctx.arc(toX(pt.q), toY(pt.p), 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#00ddaa'; ctx.fill();
+    }
+    document.getElementById('blobArea').textContent = area.toFixed(4);
+    document.getElementById('omegaVal').textContent = '—';
+    ctx.fillStyle = '#00ddaa'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('Liouville: phase-space area = ' + area.toFixed(4) + ' (conserved)', 10, 18);
+  }
+}
+
+function drawPendulumContour3(ctx, W, H, toX, toY, RANGE, E, color, lw) {
+  const NQ = 400;
+  ctx.strokeStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i <= NQ; i++) {
+    const q = -RANGE + 2 * RANGE * i / NQ;
+    const p2 = 2 * (E + Math.cos(q));
+    if (p2 < 0) { started = false; continue; }
+    const x = toX(q), y = toY(Math.sqrt(p2));
+    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  }
+  for (let i = NQ; i >= 0; i--) {
+    const q = -RANGE + 2 * RANGE * i / NQ;
+    const p2 = 2 * (E + Math.cos(q));
+    if (p2 < 0) continue;
+    ctx.lineTo(toX(q), toY(-Math.sqrt(p2)));
+  }
+  ctx.closePath(); ctx.stroke();
+}
+
+// Mouse interaction for vector drawing on canvas c3
+(function() {
+  let cv3ready = false;
+  function getCV3() {
+    return document.getElementById('c3');
+  }
+  function getPhase(e) {
+    const cv = getCV3();
+    const rect = cv.getBoundingClientRect();
+    const RANGE = 3.2;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    return { q: x / rect.width * 2 * RANGE - RANGE, p: (rect.height - y) / rect.height * 2 * RANGE - RANGE };
+  }
+  function hitTest(pt, vec, RANGE, W, H) {
+    const tx = (vec.q + RANGE) / (2 * RANGE) * W;
+    const ty = H - (vec.p + RANGE) / (2 * RANGE) * H;
+    const px = (pt.q + RANGE) / (2 * RANGE) * W;
+    const py = H - (pt.p + RANGE) / (2 * RANGE) * H;
+    return Math.hypot(tx - px, ty - py) < 18;
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    const cv = getCV3();
+    if (!cv) return;
+    cv.addEventListener('mousedown', function(e) {
+      if (mode3 !== 'vectors') return;
+      const pt = getPhase(e);
+      const RANGE = 3.2;
+      const W = cv.offsetWidth, H = cv.offsetHeight;
+      if (hitTest(pt, vec3A, RANGE, W, H)) { dragging3 = 'A'; }
+      else if (hitTest(pt, vec3B, RANGE, W, H)) { dragging3 = 'B'; }
+    });
+    cv.addEventListener('mousemove', function(e) {
+      if (!dragging3 || mode3 !== 'vectors') return;
+      const pt = getPhase(e);
+      if (dragging3 === 'A') { vec3A.q = pt.q; vec3A.p = pt.p; }
+      else { vec3B.q = pt.q; vec3B.p = pt.p; }
+      if (!animIds[3]) draw3();
+    });
+    cv.addEventListener('mouseup', function() { dragging3 = null; });
+    cv.addEventListener('mouseleave', function() { dragging3 = null; });
+  });
+  // Also attach after a short delay as fallback
+  setTimeout(function() {
+    const cv = getCV3();
+    if (!cv || cv._tab3init) return;
+    cv._tab3init = true;
+    cv.addEventListener('mousedown', function(e) {
+      if (mode3 !== 'vectors') return;
+      const rect = cv.getBoundingClientRect();
+      const RANGE = 3.2;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const pt = { q: x / rect.width * 2 * RANGE - RANGE, p: (rect.height - y) / rect.height * 2 * RANGE - RANGE };
+      const W = cv.offsetWidth, H = cv.offsetHeight;
+      const toScreen = (v, range) => (v + range) / (2 * range);
+      const dA = Math.hypot(toScreen(pt.q, RANGE) * W - toScreen(vec3A.q, RANGE) * W,
+                            (1 - toScreen(pt.p, RANGE)) * H - (1 - toScreen(vec3A.p, RANGE)) * H);
+      const dB = Math.hypot(toScreen(pt.q, RANGE) * W - toScreen(vec3B.q, RANGE) * W,
+                            (1 - toScreen(pt.p, RANGE)) * H - (1 - toScreen(vec3B.p, RANGE)) * H);
+      if (dA < 20) dragging3 = 'A';
+      else if (dB < 20) dragging3 = 'B';
+    });
+    cv.addEventListener('mousemove', function(e) {
+      if (!dragging3 || mode3 !== 'vectors') return;
+      const rect = cv.getBoundingClientRect();
+      const RANGE = 3.2;
+      const q = (e.clientX - rect.left) / rect.width * 2 * RANGE - RANGE;
+      const p = (rect.height - (e.clientY - rect.top)) / rect.height * 2 * RANGE - RANGE;
+      if (dragging3 === 'A') { vec3A.q = q; vec3A.p = p; }
+      else { vec3B.q = q; vec3B.p = p; }
+      if (!animIds[3]) draw3();
+    });
+    cv.addEventListener('mouseup', function() { dragging3 = null; });
+    cv.addEventListener('mouseleave', function() { dragging3 = null; });
+  }, 500);
+})();
+
+// ============================================================
+// TAB 4 — HAMILTONIAN FLOWS & POISSON BRACKETS
+// ============================================================
+let hamType4 = 0;
+let nSeeds4 = 4;
+// Seed particles for each Hamiltonian
+let seeds4 = [];
+const seedColors4 = ['#00ddaa','#ffd700','#ff6060','#a78bfa','#60c0ff','#ffaa60','#ff60dd','#aaffaa'];
+
+function initSeeds4() {
+  seeds4 = [];
+  const configs = [
+    // harmonic
+    [[1.5,0],[2.0,0],[0,1.5],[0,2.0],[1.0,1.0],[-1.0,1.5],[2.5,0.5],[-1.5,-1.0]],
+    // free
+    [[0,1.0],[0,1.8],[0,-1.0],[0,-1.8],[0,0.5],[0,-0.5],[0,2.5],[0,0.3]],
+    // pendulum
+    [[0.5,0],[1.5,0],[2.5,0],[0.5,1.0],[-0.5,1.0],[2.8,0.5],[1.0,1.8],[2.0,1.0]],
+    // anharmonic
+    [[1.0,0.5],[1.2,0],[0.8,0.3],[-1.0,0.5],[-1.2,0],[0.3,0.8],[-0.8,0.3],[0,1.2]],
+  ];
+  const cfg = configs[hamType4];
+  for (let i = 0; i < nSeeds4; i++) {
+    seeds4.push({ q: cfg[i][0], p: cfg[i][1], trail: [] });
+  }
+}
+
+function h4(q, p) {
+  if (hamType4 === 0) return 0.5 * p * p;
+  if (hamType4 === 1) return 0.5 * p * p + 0.5 * q * q;
+  if (hamType4 === 2) return 0.5 * p * p - Math.cos(q);
+  return 0.5 * p * p + 0.25 * q * q * q * q - 0.5 * q * q;
+}
+function dh4dq(q, p) {
+  if (hamType4 === 0) return 0;
+  if (hamType4 === 1) return q;
+  if (hamType4 === 2) return Math.sin(q);
+  return q * q * q - q;
+}
+function dh4dp(q, p) { return p; }
+
+function setH4(type) {
+  hamType4 = type;
+  const labels = ['p²/2m','p²/2+q²/2','p²/2−cos(q)','p²/2+q⁴/4−q²/2'];
+  document.getElementById('h4Label').textContent = labels[type];
+  ['b4h0','b4h1','b4h2','b4h3'].forEach((id,i) => {
+    document.getElementById(id).classList.toggle('active-btn', i === type);
+  });
+  initSeeds4();
+  draw4();
+}
+
+function onNSeedChange() {
+  nSeeds4 = parseInt(document.getElementById('nSeedSlider').value);
+  document.getElementById('nSeedVal').textContent = nSeeds4;
+  initSeeds4();
+  draw4();
+}
+
+function animFrame4() {
+  const dt = 0.025;
+  for (let s of seeds4) {
+    const fq = dh4dp(s.q, s.p);
+    const fp = -dh4dq(s.q, s.p);
+    s.q += fq * dt;
+    s.p += fp * dt;
+    if (hamType4 === 2) {
+      if (s.q > Math.PI) s.q -= 2 * Math.PI;
+      if (s.q < -Math.PI) s.q += 2 * Math.PI;
+    }
+    s.trail.push({ q: s.q, p: s.p });
+    if (s.trail.length > 600) s.trail.shift();
+  }
+  animT[4] += dt;
+  draw4();
+}
+
+function draw4() {
+  const cv = document.getElementById('c4');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  if (seeds4.length === 0) initSeeds4();
+
+  const RANGE = 3.5;
+  function toX(q) { return (q + RANGE) / (2 * RANGE) * W; }
+  function toY(p) { return H - (p + RANGE) / (2 * RANGE) * H; }
+
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 0.5;
+  for (let v = -3; v <= 3; v++) {
+    ctx.beginPath(); ctx.moveTo(toX(v), 0); ctx.lineTo(toX(v), H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, toY(v)); ctx.lineTo(W, toY(v)); ctx.stroke();
+  }
+  ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, toY(0)); ctx.lineTo(W, toY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toX(0), 0); ctx.lineTo(toX(0), H); ctx.stroke();
+
+  // Phase portrait for selected H
+  const accent = '#00ddaa';
+  if (hamType4 === 0) {
+    // Free particle: horizontal lines
+    for (let k = -6; k <= 6; k++) {
+      if (k === 0) continue;
+      const p = k * 0.5;
+      const alpha = Math.max(0.08, 0.6 - Math.abs(k) * 0.06);
+      ctx.beginPath(); ctx.moveTo(0, toY(p)); ctx.lineTo(W, toY(p));
+      ctx.strokeStyle = 'rgba(0,221,170,' + alpha + ')'; ctx.lineWidth = 1.2; ctx.stroke();
+    }
+    ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('Free particle: p = const  (straight horizontal trajectories)', 10, 18);
+  } else if (hamType4 === 1) {
+    for (let k = 1; k <= 14; k++) {
+      const E = k * 0.45, r = Math.sqrt(2 * E);
+      const alpha = clamp(0.65 - k * 0.03, 0.07, 0.6);
+      ctx.beginPath();
+      ctx.ellipse(toX(0), toY(0), r / (2 * RANGE) * W, r / (2 * RANGE) * H, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,221,170,' + alpha + ')'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('Harmonic oscillator: concentric ellipses, T=2π independent of amplitude', 10, 18);
+  } else if (hamType4 === 2) {
+    const libEs = [-0.8,-0.5,-0.2,0.3,0.7];
+    libEs.forEach((E,i) => drawPendulumContour3(ctx, W, H, toX, toY, RANGE, E,
+      'rgba(0,221,170,'+(0.7-i*0.08)+')', 1.1));
+    drawPendulumContour3(ctx, W, H, toX, toY, RANGE, 1.0, 'rgba(255,200,0,0.95)', 2.2);
+    [1.4,1.9,2.5,3.2,4.0].forEach((E,i) =>
+      drawPendulumContour3(ctx, W, H, toX, toY, RANGE, E, 'rgba(0,221,170,'+(0.7-i*0.07)+')', 1));
+    ctx.fillStyle = '#ffd700'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('Pendulum separatrix E=1 (gold): libration ↔ rotation boundary', 10, 18);
+  } else {
+    // Anharmonic: draw contours
+    const energies2 = [-0.22,-0.12,0.0,0.2,0.5,0.9,1.5,2.2,3.2];
+    const NQ2 = 350;
+    energies2.forEach((E, i) => {
+      const col = E === 0 ? 'rgba(255,200,0,0.9)' : 'rgba(0,221,170,'+(0.75-i*0.06)+')';
+      const lw = E === 0 ? 2.2 : 1.1;
+      ctx.strokeStyle = col; ctx.lineWidth = lw;
+      ctx.beginPath();
+      let started2 = false;
+      for (let ii = 0; ii <= NQ2; ii++) {
+        const q = -RANGE + 2 * RANGE * ii / NQ2;
+        const p2 = 2 * (E - 0.25 * q * q * q * q + 0.5 * q * q);
+        if (p2 < 0) { started2 = false; continue; }
+        const x2 = toX(q), y2 = toY(Math.sqrt(p2));
+        if (!started2) { ctx.moveTo(x2, y2); started2 = true; } else ctx.lineTo(x2, y2);
+      }
+      for (let ii = NQ2; ii >= 0; ii--) {
+        const q = -RANGE + 2 * RANGE * ii / NQ2;
+        const p2 = 2 * (E - 0.25 * q * q * q * q + 0.5 * q * q);
+        if (p2 < 0) continue;
+        ctx.lineTo(toX(q), toY(-Math.sqrt(p2)));
+      }
+      ctx.closePath(); ctx.stroke();
+    });
+    ctx.fillStyle = '#ffd700'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('Double-well: two centers at q=±1, separatrix E=0 (figure-eight)', 10, 18);
+  }
+
+  // Draw vector field arrows (sample grid)
+  const NV = 12;
+  const arrowScale = 0.35;
+  ctx.strokeStyle = 'rgba(0,200,160,0.3)';
+  for (let i = 1; i < NV; i++) {
+    for (let j = 1; j < NV; j++) {
+      const q = -RANGE + 2 * RANGE * i / NV;
+      const p = -RANGE + 2 * RANGE * j / NV;
+      const vq = dh4dp(q, p);
+      const vp = -dh4dq(q, p);
+      const mag = Math.hypot(vq, vp);
+      if (mag < 0.01) continue;
+      const scale = Math.min(mag, 1.5) / mag * arrowScale;
+      const sx = toX(q), sy = toY(p);
+      const ex = toX(q + vq * scale), ey = toY(p + vp * scale);
+      const len = Math.hypot(ex - sx, ey - sy);
+      if (len < 2) continue;
+      const ang = Math.atan2(ey - sy, ex - sx);
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.fillStyle = 'rgba(0,200,160,0.3)';
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(ex - 5 * Math.cos(ang - 0.5), ey - 5 * Math.sin(ang - 0.5));
+      ctx.lineTo(ex - 5 * Math.cos(ang + 0.5), ey - 5 * Math.sin(ang + 0.5));
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  // Draw seed trails and dots
+  for (let si = 0; si < seeds4.length; si++) {
+    const s = seeds4[si];
+    const col = seedColors4[si % seedColors4.length];
+    if (s.trail.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(toX(s.trail[0].q), toY(s.trail[0].p));
+      for (let k = 1; k < s.trail.length; k++) {
+        const dx = Math.abs(s.trail[k].q - s.trail[k-1].q);
+        if (dx > 1.5 && hamType4 === 2) {
+          ctx.stroke(); ctx.beginPath();
+          ctx.moveTo(toX(s.trail[k].q), toY(s.trail[k].p));
+        } else {
+          ctx.lineTo(toX(s.trail[k].q), toY(s.trail[k].p));
+        }
+      }
+      ctx.strokeStyle = col + 'aa'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    glow(ctx, col, 14);
+    ctx.beginPath(); ctx.arc(toX(s.q), toY(s.p), 5, 0, Math.PI * 2);
+    ctx.fillStyle = col; ctx.fill();
+    noGlow(ctx);
+  }
+
+  // Axes labels
+  ctx.fillStyle = '#7070aa'; ctx.font = '13px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('q', W - 12, toY(0) - 6);
+  ctx.fillText('p', toX(0) + 12, 14);
+}
+
+// ============================================================
+// TAB 5 — CANONICAL TRANSFORMATIONS & GENERATING FUNCTIONS
+// ============================================================
+let ctType = 0;
+let showCTbefore = true, showCTafter = true;
+let ct5Phase = 0; // animation phase
+
+function setCT(type) {
+  ctType = type;
+  ct5Phase = 0;
+  const labels = ['Q=q², P=p/2q','Q=p, P=−q','Identity (F₂=qP)'];
+  document.getElementById('ctLabel').textContent = labels[type];
+  ['b5t0','b5t1','b5t2'].forEach((id,i) =>
+    document.getElementById(id).classList.toggle('active-btn', i === type));
+  draw5();
+}
+
+function toggleCTview(which) {
+  if (which === 'before') showCTbefore = !showCTbefore;
+  if (which === 'after') showCTafter = !showCTafter;
+  document.getElementById('b5before').classList.toggle('active-btn', showCTbefore);
+  document.getElementById('b5after').classList.toggle('active-btn', showCTafter);
+  draw5();
+}
+
+function applyCanonical(q, p) {
+  if (ctType === 0) {
+    // Q=q², P=p/2q (only valid for q>0)
+    const Q = q * q;
+    const P = q > 0.05 ? p / (2 * q) : p * 10;
+    return [Q, P];
+  } else if (ctType === 1) {
+    // Q=p, P=-q (rotation by 90°)
+    return [p, -q];
+  } else {
+    // Identity
+    return [q, p];
+  }
+}
+
+function animFrame5() {
+  ct5Phase += 0.018*(window.animSpeed||1);
+  draw5();
+}
+
+function draw5() {
+  const cv = document.getElementById('c5');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  // Draw two panels: left = (q,p) before, right = (Q,P) after
+  const midX = W / 2;
+  const RANGE = 2.8;
+
+  function drawPanel(offsetX, panelW, coordLabel1, coordLabel2, mapFn) {
+    function toX(v) { return offsetX + (v + RANGE) / (2 * RANGE) * panelW; }
+    function toY(v) { return H - (v + RANGE) / (2 * RANGE) * H; }
+
+    // Background tint
+    ctx.fillStyle = offsetX === 0 ? 'rgba(0,30,20,0.15)' : 'rgba(0,20,40,0.15)';
+    ctx.fillRect(offsetX, 0, panelW, H);
+
+    // Grid
+    ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 0.5;
+    for (let v = -3; v <= 3; v++) {
+      ctx.beginPath(); ctx.moveTo(toX(v), 0); ctx.lineTo(toX(v), H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(offsetX, toY(v)); ctx.lineTo(offsetX + panelW, toY(v)); ctx.stroke();
+    }
+    ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(offsetX, toY(0)); ctx.lineTo(offsetX + panelW, toY(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(toX(0), 0); ctx.lineTo(toX(0), H); ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#7070aa'; ctx.font = '13px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText(coordLabel1, offsetX + panelW - 12, toY(0) - 6);
+    ctx.fillText(coordLabel2, toX(0) + 12, 14);
+
+    // Draw mapped orbits (harmonic oscillator)
+    const NE = 8, NTH = 120;
+    for (let k = 1; k <= NE; k++) {
+      const E = k * 0.4;
+      const r = Math.sqrt(2 * E);
+      const alpha = clamp(0.7 - k * 0.05, 0.1, 0.65);
+      // Generate orbit points in (q,p) then map
+      const pts = [];
+      for (let j = 0; j <= NTH; j++) {
+        const ang = (j / NTH) * 2 * Math.PI;
+        const q = r * Math.cos(ang);
+        const p = r * Math.sin(ang);
+        const [Q, P] = mapFn(q, p);
+        pts.push([Q, P]);
+      }
+      ctx.beginPath();
+      ctx.moveTo(toX(pts[0][0]), toY(pts[0][1]));
+      for (let j = 1; j <= NTH; j++) {
+        const dQ = Math.abs(pts[j][0] - pts[j-1][0]);
+        const dP = Math.abs(pts[j][1] - pts[j-1][1]);
+        if (dQ > 2 || dP > 2) {
+          ctx.stroke(); ctx.beginPath();
+          ctx.moveTo(toX(pts[j][0]), toY(pts[j][1]));
+        } else {
+          ctx.lineTo(toX(pts[j][0]), toY(pts[j][1]));
+        }
+      }
+      ctx.strokeStyle = 'rgba(0,221,170,' + alpha + ')'; ctx.lineWidth = 1.2; ctx.stroke();
+    }
+
+    // Animated particle on an orbit
+    const Eparticle = 1.2;
+    const rp = Math.sqrt(2 * Eparticle);
+    const angP = ct5Phase;
+    const q0 = rp * Math.cos(angP);
+    const p0 = rp * Math.sin(angP);
+    const [Q0, P0] = mapFn(q0, p0);
+    if (Math.abs(Q0) < RANGE * 1.5 && Math.abs(P0) < RANGE * 1.5) {
+      glow(ctx, '#ffffff', 16);
+      ctx.beginPath(); ctx.arc(toX(Q0), toY(P0), 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff'; ctx.fill();
+      noGlow(ctx);
+    }
+  }
+
+  // Panel divider
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, H); ctx.stroke();
+
+  if (showCTbefore) {
+    drawPanel(0, midX, 'q', 'p', (q,p) => [q,p]);
+    ctx.fillStyle = '#00ddaa'; ctx.font = 'bold 13px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('Original (q,p) coordinates', midX / 2, H - 10);
+  }
+  if (showCTafter) {
+    drawPanel(midX, midX, 'Q', 'P', applyCanonical);
+    ctx.fillStyle = '#ffd700'; ctx.font = 'bold 13px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('New (Q,P) coordinates', midX + midX / 2, H - 10);
+  }
+
+  // Show area comparison text
+  ctx.fillStyle = '#00ddaa'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Shapes change — enclosed areas preserved: dQ∧dP = dq∧dp', W / 2, 18);
+}
+
+// ============================================================
+// TAB 6 — ACTION-ANGLE VARIABLES (ENHANCED)
+// ============================================================
+let aaMode = 'rational';
+let aaRatio = 1.0;
+let kamEps = 0.0;
+let aaTrail = [];
+let aaState = { theta1: 0, theta2: 0 };
+const AA_TRAIL_MAX = 2500;
+
+function setAA(mode) {
+  aaMode = mode;
+  aaTrail = [];
+  aaState = { theta1: 0, theta2: 0 };
+  document.getElementById('aaMode').textContent = mode;
+  document.getElementById('b6rat').classList.toggle('active-btn', mode === 'rational');
+  document.getElementById('b6irr').classList.toggle('active-btn', mode === 'irrational');
+  document.getElementById('b6kam').classList.toggle('active-btn', mode === 'kam');
+  if (mode === 'rational') {
+    aaRatio = 1.0;
+    document.getElementById('aaRatioSlider').value = 100;
+    document.getElementById('aaRatioVal').textContent = '1.00';
+  } else if (mode === 'irrational') {
+    aaRatio = 1.0 / 1.6180339887;
+    document.getElementById('aaRatioSlider').value = Math.round(aaRatio * 100);
+    document.getElementById('aaRatioVal').textContent = aaRatio.toFixed(3);
+  }
+  draw6();
+}
+
+function onAARatioChange() {
+  aaRatio = parseFloat(document.getElementById('aaRatioSlider').value) / 100;
+  document.getElementById('aaRatioVal').textContent = aaRatio.toFixed(3);
+  aaTrail = [];
+  aaState = { theta1: 0, theta2: 0 };
+  draw6();
+}
+
+function onKamEpsChange() {
+  kamEps = parseFloat(document.getElementById('kamEpsSlider').value) / 100;
+  document.getElementById('kamEpsVal').textContent = kamEps.toFixed(2);
+  aaTrail = [];
+  aaState = { theta1: 0, theta2: 0 };
+  draw6();
+}
+
+function animFrame6() {
+  const omega1 = 1.0, omega2 = aaRatio;
+  const dt = 0.04;
+  // With KAM perturbation: add a small coupling term
+  let th1dot = omega1, th2dot = omega2;
+  if (aaMode === 'kam' && kamEps > 0) {
+    th1dot += kamEps * Math.sin(aaState.theta1 - aaState.theta2);
+    th2dot += kamEps * Math.sin(aaState.theta2 - aaState.theta1);
+  }
+  aaState.theta1 = (aaState.theta1 + th1dot * dt) % (2 * Math.PI);
+  aaState.theta2 = (aaState.theta2 + th2dot * dt) % (2 * Math.PI);
+  aaTrail.push({ theta1: aaState.theta1, theta2: aaState.theta2 });
+  if (aaTrail.length > AA_TRAIL_MAX) aaTrail.shift();
+  draw6();
+}
+
+function draw6() {
+  const cv = document.getElementById('c6');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  // Left: torus 3D, Right: angle square
+  const torusW = Math.round(W * 0.55);
+  const squareW = W - torusW;
+
+  // --- Torus ---
+  const cx3 = torusW * 0.5, cy3 = H * 0.5;
+  const R3 = Math.min(torusW, H) * 0.23;
+  const r3 = Math.min(torusW, H) * 0.09;
+  const NT1 = 32, NT2 = 64;
+
+  function torProj(th1, th2) {
+    const x3 = (R3 + r3 * Math.cos(th1)) * Math.cos(th2);
+    const y3 = (R3 + r3 * Math.cos(th1)) * Math.sin(th2);
+    const z3 = r3 * Math.sin(th1);
+    const tilt = 0.55, spin = 0.4;
+    const x1 = x3 * Math.cos(spin) - y3 * Math.sin(spin);
+    const y1 = x3 * Math.sin(spin) + y3 * Math.cos(spin);
+    const z1 = z3;
+    const x2 = x1;
+    const y2 = y1 * Math.cos(tilt) - z1 * Math.sin(tilt);
+    const z2 = y1 * Math.sin(tilt) + z1 * Math.cos(tilt);
+    const fov = 3.5, scale = fov / (fov + z2 * 0.3);
+    return { sx: cx3 + R3 * x2 * scale, sy: cy3 + R3 * y2 * scale * 0.88, z: z2 };
+  }
+
+  // Torus wireframe
+  for (let j = 0; j < NT2; j++) {
+    const th2 = (j / NT2) * 2 * Math.PI;
+    const pts = [];
+    for (let i = 0; i <= NT1; i++) { pts.push(torProj((i / NT1) * 2 * Math.PI, th2)); }
+    const avgZ = pts.reduce((s, p) => s + p.z, 0) / pts.length;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].sx, pts[0].sy);
+    for (let i = 1; i <= NT1; i++) ctx.lineTo(pts[i].sx, pts[i].sy);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(0,' + (avgZ > 0 ? 100 : 60) + ',80,' + (avgZ > -0.3 ? 0.25 : 0.08) + ')';
+    ctx.lineWidth = 0.7; ctx.stroke();
+  }
+  for (let i = 0; i < NT1; i++) {
+    const th1 = (i / NT1) * 2 * Math.PI;
+    const pts = [];
+    for (let j = 0; j <= NT2; j++) { pts.push(torProj(th1, (j / NT2) * 2 * Math.PI)); }
+    const avgZ = pts.reduce((s, p) => s + p.z, 0) / pts.length;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].sx, pts[0].sy);
+    for (let j = 1; j <= NT2; j++) ctx.lineTo(pts[j].sx, pts[j].sy);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(0,130,100,' + (avgZ > 0 ? 0.35 : 0.1) + ')';
+    ctx.lineWidth = 0.7; ctx.stroke();
+  }
+
+  // Trail on torus
+  if (aaTrail.length > 1) {
+    const isRat = aaMode === 'rational';
+    const isKAM = aaMode === 'kam';
+    for (let k = 1; k < aaTrail.length; k++) {
+      const pt0 = torProj(aaTrail[k-1].theta1, aaTrail[k-1].theta2);
+      const pt1 = torProj(aaTrail[k].theta1, aaTrail[k].theta2);
+      const a = Math.pow(k / aaTrail.length, 0.4) * 0.9;
+      ctx.beginPath(); ctx.moveTo(pt0.sx, pt0.sy); ctx.lineTo(pt1.sx, pt1.sy);
+      if (isKAM) ctx.strokeStyle = 'rgba(167,139,250,' + (a * 0.7) + ')';
+      else if (isRat) ctx.strokeStyle = 'rgba(255,215,0,' + a + ')';
+      else ctx.strokeStyle = 'rgba(0,221,170,' + (a * 0.6) + ')';
+      ctx.lineWidth = isRat ? 2 : 1; ctx.stroke();
+    }
+  }
+  if (aaTrail.length > 0) {
+    const curr = aaTrail[aaTrail.length - 1];
+    const pt = torProj(curr.theta1, curr.theta2);
+    glow(ctx, '#ffffff', 16);
+    ctx.beginPath(); ctx.arc(pt.sx, pt.sy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+    noGlow(ctx);
+  }
+
+  ctx.fillStyle = '#00ddaa'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Liouville Torus T²', cx3, 20);
+  const I1 = (1.2 / (2 * Math.PI)).toFixed(3);
+  const I2 = (1.2 * aaRatio / (2 * Math.PI)).toFixed(3);
+  document.getElementById('aaI1').textContent = I1;
+  document.getElementById('aaI2').textContent = I2;
+
+  // --- Angle square ---
+  const pad6 = 32;
+  const sqX = torusW + pad6, sqY = pad6;
+  const sqW2 = squareW - 2 * pad6, sqH2 = H - 2 * pad6;
+
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(sqX, sqY, sqW2, sqH2);
+
+  // Grid lines on angle square
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 0.5;
+  for (let k = 1; k < 4; k++) {
+    const gx = sqX + k * sqW2 / 4;
+    const gy = sqY + k * sqH2 / 4;
+    ctx.beginPath(); ctx.moveTo(gx, sqY); ctx.lineTo(gx, sqY + sqH2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sqX, gy); ctx.lineTo(sqX + sqW2, gy); ctx.stroke();
+  }
+
+  // Trail in angle square
+  if (aaTrail.length > 1) {
+    const isRat = aaMode === 'rational';
+    const isKAM = aaMode === 'kam';
+    let prevX = sqX + (aaTrail[0].theta1 / (2 * Math.PI)) * sqW2;
+    let prevY = sqY + sqH2 - (aaTrail[0].theta2 / (2 * Math.PI)) * sqH2;
+    ctx.beginPath(); ctx.moveTo(prevX, prevY);
+    ctx.strokeStyle = isKAM ? 'rgba(167,139,250,0.7)' : isRat ? 'rgba(255,215,0,0.7)' : 'rgba(0,221,170,0.5)';
+    ctx.lineWidth = isRat ? 2 : 1;
+    for (let k = 1; k < aaTrail.length; k++) {
+      const nx = sqX + (aaTrail[k].theta1 / (2 * Math.PI)) * sqW2;
+      const ny = sqY + sqH2 - (aaTrail[k].theta2 / (2 * Math.PI)) * sqH2;
+      if (Math.abs(nx - prevX) > sqW2 * 0.5 || Math.abs(ny - prevY) > sqH2 * 0.5) {
+        ctx.stroke(); ctx.beginPath(); ctx.moveTo(nx, ny);
+      } else {
+        ctx.lineTo(nx, ny);
+      }
+      prevX = nx; prevY = ny;
+    }
+    ctx.stroke();
+  }
+  if (aaTrail.length > 0) {
+    const curr = aaTrail[aaTrail.length - 1];
+    const dx6 = sqX + (curr.theta1 / (2 * Math.PI)) * sqW2;
+    const dy6 = sqY + sqH2 - (curr.theta2 / (2 * Math.PI)) * sqH2;
+    glow(ctx, '#ffffff', 12);
+    ctx.beginPath(); ctx.arc(dx6, dy6, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+    noGlow(ctx);
+  }
+
+  // Angle square labels
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  ctx.textAlign = 'center'; ctx.fillText('θ₁', sqX + sqW2 / 2, sqY + sqH2 + 18);
+  ctx.textAlign = 'right'; ctx.fillText('θ₂', sqX - 6, sqY + sqH2 / 2 + 4);
+  ctx.fillText('0', sqX - 3, sqY + sqH2 + 4);
+  ctx.fillText('2π', sqX + sqW2 + 16, sqY + sqH2 + 4);
+  ctx.fillText('2π', sqX - 3, sqY + 4);
+  ctx.fillStyle = '#00ddaa'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('(θ₁,θ₂) Angle Square', sqX + sqW2 / 2, sqY - 14);
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  ctx.fillText('ω₁/ω₂ = ' + aaRatio.toFixed(3) + '  (' + aaMode + ')', sqX + sqW2 / 2, H - 8);
+}
+
+// ============================================================
+// TAB 7 — GEOMETRIC QUANTIZATION
+// ============================================================
+let gqMode = 'bohr';
+let gqN = 3;
+let gqHbar = 0.20;
+let gqPhase = 0;
+
+function setGQ(mode) {
+  gqMode = mode;
+  document.getElementById('b7bs').classList.toggle('active-btn', mode === 'bohr');
+  document.getElementById('b7pol').classList.toggle('active-btn', mode === 'polarization');
+  document.getElementById('b7pre').classList.toggle('active-btn', mode === 'prequantum');
+  draw7();
+}
+
+function onGQNChange() {
+  gqN = parseInt(document.getElementById('gqNSlider').value);
+  document.getElementById('gqNVal').textContent = gqN;
+  draw7();
+}
+
+function onHbarChange() {
+  gqHbar = parseFloat(document.getElementById('hbarSlider').value) / 100;
+  document.getElementById('hbarVal').textContent = gqHbar.toFixed(2);
+  draw7();
+}
+
+function animFrame7() {
+  gqPhase += 0.022*(window.animSpeed||1);
+  draw7();
+}
+
+function draw7() {
+  const cv = document.getElementById('c7');
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.offsetWidth, H = cv.offsetHeight;
+  if (!W || !H) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+
+  if (gqMode === 'bohr') {
+    drawBS(ctx, W, H);
+  } else if (gqMode === 'polarization') {
+    drawPolarization(ctx, W, H);
+  } else {
+    drawPrequantum(ctx, W, H);
+  }
+}
+
+function drawBS(ctx, W, H) {
+  // Bohr-Sommerfeld: harmonic oscillator in phase space
+  // Show quantized orbits where ∮ p dq = nħ ⟹ πr² = nħ ⟹ E = nħω
+  const accent = '#00ddaa';
+  const cx = W * 0.5, cy = H * 0.5;
+  const RANGE = 3.5;
+  const scale = Math.min(W, H) * 0.5 / RANGE;
+
+  // Grid
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 0.5;
+  for (let v = -3; v <= 3; v++) {
+    ctx.beginPath(); ctx.moveTo(cx + v * scale, 0); ctx.lineTo(cx + v * scale, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, cy - v * scale); ctx.lineTo(W, cy - v * scale); ctx.stroke();
+  }
+  ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+  ctx.fillStyle = '#7070aa'; ctx.font = '13px Segoe UI';
+  ctx.textAlign = 'center'; ctx.fillText('q', W - 12, cy - 6);
+  ctx.fillText('p', cx + 12, 14);
+
+  // Draw all quantized orbits up to n=8
+  const maxN = 8;
+  for (let n = 1; n <= maxN; n++) {
+    const E_n = n * gqHbar; // E = nħω (ω=1)
+    const r = Math.sqrt(2 * E_n); // r in (q,p) space for harmonic: E=r²/2
+    const isSelected = n === gqN;
+    const alpha = isSelected ? 1.0 : clamp(0.5 - (n - gqN) * 0.07, 0.1, 0.45);
+    const lw = isSelected ? 2.5 : 1.0;
+
+    if (isSelected) {
+      glow(ctx, '#ffd700', 18);
+      ctx.strokeStyle = '#ffd700';
+    } else {
+      noGlow(ctx);
+      ctx.strokeStyle = 'rgba(0,221,170,' + alpha + ')';
+    }
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * scale, r * scale, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    noGlow(ctx);
+
+    // Label n
+    if (n <= 6) {
+      ctx.fillStyle = isSelected ? '#ffd700' : 'rgba(0,221,170,' + (alpha + 0.1) + ')';
+      ctx.font = (isSelected ? 'bold ' : '') + '10px Segoe UI';
+      ctx.textAlign = 'left';
+      ctx.fillText('n=' + n, cx + r * scale + 4, cy - 4);
+    }
+  }
+
+  // Bohr-Sommerfeld winding: animate a particle on the selected orbit
+  const E_sel = gqN * gqHbar;
+  const r_sel = Math.sqrt(2 * E_sel);
+  const angle = gqPhase;
+  const qPart = r_sel * Math.cos(angle);
+  const pPart = r_sel * Math.sin(angle);
+
+  glow(ctx, '#ffffff', 16);
+  ctx.beginPath(); ctx.arc(cx + qPart * scale, cy - pPart * scale, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  noGlow(ctx);
+
+  // Show p dq contribution as colored arc
+  const arcAng = (gqPhase % (2 * Math.PI));
+  if (arcAng > 0.01) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r_sel * scale, -Math.PI / 2, -Math.PI / 2 + arcAng, false);
+    ctx.strokeStyle = 'rgba(255,215,0,0.5)'; ctx.lineWidth = 6; ctx.stroke();
+  }
+
+  // Integral value
+  const integralVal = (Math.PI * r_sel * r_sel).toFixed(4);
+  const expectedVal = (2 * Math.PI * gqN * gqHbar).toFixed(4);
+  document.getElementById('gqIntegral').textContent = integralVal;
+  document.getElementById('gqEnergy').textContent = (gqN * gqHbar).toFixed(3);
+
+  // Info text
+  ctx.fillStyle = '#00ddaa'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Bohr-Sommerfeld: ∮ p dq = π r² = ' + integralVal, W / 2, 20);
+  ctx.fillStyle = '#ffd700'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Selected orbit n=' + gqN + ':  E_n = nħω = ' + (gqN * gqHbar).toFixed(3) + '  (ω=1)', W / 2, 36);
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Expected ∮ p dq = 2πnħ = ' + expectedVal + '  |  ħ = ' + gqHbar.toFixed(2), W / 2, H - 10);
+}
+
+function drawPolarization(ctx, W, H) {
+  // Show two complementary polarizations: position (vertical lines) vs momentum (horizontal lines)
+  const accent = '#00ddaa';
+  const cx = W * 0.5, cy = H * 0.5;
+  const scale = Math.min(W, H) * 0.5 / 3.5;
+
+  // Grid
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 0.5;
+  for (let v = -3; v <= 3; v++) {
+    ctx.beginPath(); ctx.moveTo(cx + v * scale, 0); ctx.lineTo(cx + v * scale, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, cy - v * scale); ctx.lineTo(W, cy - v * scale); ctx.stroke();
+  }
+  ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+
+  // Highlight q-axis (position polarization = vertical leaves)
+  const qHighlightX = cx + gqN * 0.4 * scale;
+  ctx.beginPath(); ctx.moveTo(qHighlightX, 0); ctx.lineTo(qHighlightX, H);
+  glow(ctx, '#00ddaa', 14);
+  ctx.strokeStyle = 'rgba(0,221,170,0.9)'; ctx.lineWidth = 2.5; ctx.stroke();
+  noGlow(ctx);
+  ctx.fillStyle = '#00ddaa'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('q-polarization leaf: q = const', qHighlightX + 50, 30);
+  ctx.fillText('(Lagrangian: ω|_{q=c}=0)', qHighlightX + 50, 44);
+
+  // Highlight p-axis (momentum polarization = horizontal leaves)
+  const pHighlightY = cy - gqN * 0.4 * scale;
+  ctx.beginPath(); ctx.moveTo(0, pHighlightY); ctx.lineTo(W, pHighlightY);
+  glow(ctx, '#ffd700', 14);
+  ctx.strokeStyle = 'rgba(255,215,0,0.9)'; ctx.lineWidth = 2.5; ctx.stroke();
+  noGlow(ctx);
+  ctx.fillStyle = '#ffd700'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('p-polarization leaf: p = const', 10, pHighlightY - 8);
+  ctx.fillText('(Lagrangian: ω|_{p=c}=0)', 10, pHighlightY - 22);
+
+  // Draw selected orbit
+  const E_sel = gqN * gqHbar;
+  const r_sel = Math.sqrt(2 * E_sel);
+  glow(ctx, '#a78bfa', 10);
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r_sel * scale, r_sel * scale, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(167,139,250,0.9)'; ctx.lineWidth = 2; ctx.stroke();
+  noGlow(ctx);
+
+  // Animate particle + projection onto q and p axes
+  const qPart = r_sel * Math.cos(gqPhase);
+  const pPart = r_sel * Math.sin(gqPhase);
+  const px6 = cx + qPart * scale, py6 = cy - pPart * scale;
+  // Dashed projection lines
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(100,100,160,0.5)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(px6, py6); ctx.lineTo(cx + qPart * scale, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(px6, py6); ctx.lineTo(cx, py6); ctx.stroke();
+  ctx.setLineDash([]);
+  // Dot on q axis
+  glow(ctx, '#00ddaa', 10);
+  ctx.beginPath(); ctx.arc(cx + qPart * scale, cy, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#00ddaa'; ctx.fill();
+  noGlow(ctx);
+  // Dot on p axis
+  glow(ctx, '#ffd700', 10);
+  ctx.beginPath(); ctx.arc(cx, py6, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffd700'; ctx.fill();
+  noGlow(ctx);
+  // Main particle
+  glow(ctx, '#ffffff', 16);
+  ctx.beginPath(); ctx.arc(px6, py6, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  noGlow(ctx);
+
+  ctx.fillStyle = '#00ddaa'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Polarization: selecting a Lagrangian foliation of phase space', W / 2, H - 20);
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  ctx.fillText('q-polarization → ψ(q) wave functions  |  p-polarization → ψ̃(p) Fourier transform', W / 2, H - 8);
+  document.getElementById('gqIntegral').textContent = (Math.PI * r_sel * r_sel).toFixed(4);
+  document.getElementById('gqEnergy').textContent = (gqN * gqHbar).toFixed(3);
+}
+
+function drawPrequantum(ctx, W, H) {
+  // Prequantum line bundle visualization:
+  // Show phase space with a "fiber" (circle) over each point, showing curvature = ω/ħ
+  const accent = '#00ddaa';
+  const cx = W * 0.5, cy = H * 0.5;
+  const RANGE = 3.0;
+  const scale = Math.min(W, H) * 0.5 / RANGE;
+
+  // Background gradient showing curvature density ω/ħ
+  const imgData = ctx.createImageData(W, H);
+  for (let ix = 0; ix < W; ix++) {
+    for (let iy = 0; iy < H; iy++) {
+      const q = (ix - cx) / scale;
+      const p = (cy - iy) / scale;
+      // Curvature density = ω/ħ = 1/ħ (uniform for flat phase space, but show modulated version)
+      const density = 1.0 / gqHbar;
+      // Color: blue-violet hue modulated by local density
+      const phase7 = (q * p / gqHbar) % (2 * Math.PI);
+      const r7 = Math.round(20 + 60 * (0.5 + 0.5 * Math.sin(phase7 + gqPhase)));
+      const g7 = Math.round(10 + 30 * (0.5 + 0.5 * Math.sin(phase7 + gqPhase + 2)));
+      const b7 = Math.round(40 + 80 * (0.5 + 0.5 * Math.cos(phase7 + gqPhase)));
+      const idx = (iy * W + ix) * 4;
+      imgData.data[idx] = r7;
+      imgData.data[idx + 1] = g7;
+      imgData.data[idx + 2] = b7;
+      imgData.data[idx + 3] = 60;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Grid + axes
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 0.5;
+  for (let v = -3; v <= 3; v++) {
+    ctx.beginPath(); ctx.moveTo(cx + v * scale, 0); ctx.lineTo(cx + v * scale, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, cy - v * scale); ctx.lineTo(W, cy - v * scale); ctx.stroke();
+  }
+  ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+
+  // Draw fibers (small circles) at a grid of base points
+  const NF = 6;
+  const fiberR = 12;
+  for (let i = -NF; i <= NF; i += 2) {
+    for (let j = -NF; j <= NF; j += 2) {
+      const q = i * 0.5, p = j * 0.5;
+      const bx = cx + q * scale, by = cy - p * scale;
+      if (bx < 5 || bx > W - 5 || by < 5 || by > H - 5) continue;
+      // Fiber circle colored by connection phase
+      const connectionPhase = (q * p / gqHbar + gqPhase) % (2 * Math.PI);
+      const fiberHue = Math.round(connectionPhase / (2 * Math.PI) * 360);
+      ctx.beginPath();
+      ctx.arc(bx, by, fiberR, 0, Math.PI * 2);
+      ctx.strokeStyle = 'hsla(' + fiberHue + ',80%,60%,0.5)'; ctx.lineWidth = 1.2; ctx.stroke();
+      // Dot on fiber showing current section value
+      const sectionAng = connectionPhase;
+      ctx.beginPath();
+      ctx.arc(bx + fiberR * Math.cos(sectionAng), by + fiberR * Math.sin(sectionAng), 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'hsla(' + fiberHue + ',100%,70%,0.9)'; ctx.fill();
+      // Base point
+      ctx.beginPath(); ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,221,170,0.6)'; ctx.fill();
+    }
+  }
+
+  // Selected quantized orbit
+  const E_sel = gqN * gqHbar;
+  const r_sel = Math.sqrt(2 * E_sel);
+  glow(ctx, '#ffd700', 12);
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r_sel * scale, r_sel * scale, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2.5; ctx.stroke();
+  noGlow(ctx);
+
+  // Animate particle showing accumulated phase
+  const qPart = r_sel * Math.cos(gqPhase);
+  const pPart = r_sel * Math.sin(gqPhase);
+  glow(ctx, '#ffffff', 16);
+  ctx.beginPath(); ctx.arc(cx + qPart * scale, cy - pPart * scale, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  noGlow(ctx);
+
+  // Winding number label
+  const windingN = Math.round(gqPhase / (2 * Math.PI));
+  ctx.fillStyle = '#ffd700'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Prequantum line bundle: curvature = ω/ħ = ' + (1.0 / gqHbar).toFixed(2), W / 2, 20);
+  ctx.fillStyle = '#00ddaa'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Fibers: U(1) phases over phase space  |  Winding around orbit n=' + gqN + '  ↔  quantum number', W / 2, 36);
+  ctx.fillStyle = '#55558a'; ctx.font = '12px Segoe UI';
+  ctx.fillText('Dirac quantization: [ω/2πħ] ∈ H²(M,ℤ)  requires  ∮ p dq = 2πnħ', W / 2, H - 10);
+  document.getElementById('gqIntegral').textContent = (Math.PI * r_sel * r_sel).toFixed(4);
+  document.getElementById('gqEnergy').textContent = (gqN * gqHbar).toFixed(3);
+}
+window.animSpeed=0.1;
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

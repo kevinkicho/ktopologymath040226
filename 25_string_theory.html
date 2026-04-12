@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>25 · String Theory &amp; Extra Dimensions</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#ff9966;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden}
+.pane.active{display:flex}
+.canvas-area{flex:1;display:flex;flex-direction:column;background:var(--bg);padding:12px;gap:8px;overflow:hidden}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--dim);line-height:1.7}
+.info-box .val{color:var(--accent);font-weight:600}
+.proof-panel{width:320px;min-width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.proof-header{padding:10px 14px;font-size:.8rem;color:var(--dim);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.proof-list{overflow-y:auto;flex:1}
+.proof-item{padding:8px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:.75rem;color:var(--dim);transition:.15s;line-height:1.5}
+.proof-item:hover{background:var(--bg3);color:var(--text)}
+.proof-item.active{background:var(--bg3);color:var(--accent)}
+.proof-content{padding:12px 14px;font-size:.8rem;line-height:1.8;color:var(--text);border-top:2px solid var(--accent)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">25</span>
+  <div class="title-block">
+    <h1>String Theory &amp; Extra Dimensions</h1>
+    <p>Worldsheets, Calabi-Yau manifolds, and the landscape — Ch. 31</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Strings &amp; Worldsheets</div>
+  <div class="tab" onclick="switchTab(1)">Calabi-Yau</div>
+  <div class="tab" onclick="switchTab(2)">T-Duality &amp; Landscape</div>
+  <div class="tab" onclick="switchTab(3)">D-Branes &amp; Open Strings</div>
+  <div class="tab" onclick="switchTab(4)">Dualities &amp; M-Theory</div>
+  <div class="tab" onclick="switchTab(5)">Holography &amp; AdS/CFT</div>
+  <div class="tab" onclick="switchTab(6)">Superstrings &amp; SUSY</div>
+  <div class="tab" onclick="switchTab(7)">String Cosmology</div>
+</div>
+
+<div id="main">
+<!-- TAB 0 -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,0)">▶ Animate</button>
+      <button onclick="resetView(0)">Reset View</button>
+      <label>Mode n</label>
+      <input type="range" id="modeSlider" min="1" max="6" value="2" oninput="draw0()">
+      <span id="modeVal">2</span>
+      <label>Alpha' (string tension)</label>
+      <input type="range" id="alphaSlider" min="1" max="20" value="5" oninput="draw0()">
+      <span id="alphaVal">0.5</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom0" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal0').textContent=(+this.value).toFixed(1);zooms[0]=window.zoomX;draw0()">
+      <span id="zoomVal0" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box" id="massInfo">
+      Mode $n$ = <span class="val" id="nVal">—</span> &nbsp;|&nbsp;
+      $m^2 = (n-1)/\alpha'$ = <span class="val" id="m2Val">—</span> &nbsp;|&nbsp;
+      <span id="stateLabel">—</span>
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>Proofs &amp; Notes</span></div>
+    <div class="proof-list" id="proofList0"></div>
+    <div class="proof-content" id="proofContent0"></div>
+  </div>
+</div>
+
+<!-- TAB 1 -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,1)">▶ Animate</button>
+      <button onclick="resetView(1)">Reset View</button>
+      <label>CY radius R</label>
+      <input type="range" id="cyRadius" min="2" max="30" value="18" oninput="draw1()">
+      <span id="cyRadVal">18</span>
+      <label>h11</label>
+      <input type="range" id="h11Slider" min="1" max="10" value="3" oninput="draw1()">
+      <span id="h11Val">3</span>
+      <label>h21</label>
+      <input type="range" id="h21Slider" min="1" max="10" value="2" oninput="draw1()">
+      <span id="h21Val">2</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom1" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal1').textContent=(+this.value).toFixed(1);zooms[1]=window.zoomX;draw1()">
+      <span id="zoomVal1" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      CY 3-fold: Hodge numbers $(h^{1,1}, h^{2,1})$ — generations $= |h^{1,1} - h^{2,1}|$.
+      Mirror symmetry swaps the pair.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>Proofs &amp; Notes</span></div>
+    <div class="proof-list" id="proofList1"></div>
+    <div class="proof-content" id="proofContent1"></div>
+  </div>
+</div>
+
+<!-- TAB 2 -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-area">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,2)">▶ Animate</button>
+      <button onclick="resetView(2)">Reset View</button>
+      <label>Winding w</label>
+      <input type="range" id="windSlider" min="1" max="4" value="1" oninput="draw2()">
+      <span id="windVal">1</span>
+      <label>Momentum p</label>
+      <input type="range" id="momSlider" min="1" max="4" value="1" oninput="draw2()">
+      <span id="momVal">1</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom2" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal2').textContent=(+this.value).toFixed(1);zooms[2]=window.zoomX;draw2()">
+      <span id="zoomVal2" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      T-duality: $R \leftrightarrow \ell_s^2/R$, $w \leftrightarrow p$.
+      Energy spectrum: $E^2 = (p/R)^2 + (wR/\ell_s^2)^2 + \text{oscillators}$.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>Proofs &amp; Notes</span></div>
+    <div class="proof-list" id="proofList2"></div>
+    <div class="proof-content" id="proofContent2"></div>
+  </div>
+</div>
+
+<!-- TAB 3: D-BRANES & OPEN STRINGS -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,3)">▶ Animate</button>
+      <button onclick="resetView(3)">Reset View</button>
+      <label>D-brane dim p</label>
+      <input type="range" id="dpSlider" min="0" max="2" value="1" oninput="draw3()">
+      <span id="dpVal">1</span>
+      <label>Mode n</label>
+      <input type="range" id="dnSlider" min="1" max="5" value="2" oninput="draw3()">
+      <span id="dnVal">2</span>
+      <label>N branes</label>
+      <input type="range" id="dNSlider" min="1" max="4" value="2" oninput="draw3()">
+      <span id="dNVal">2</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom3" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal3').textContent=(+this.value).toFixed(1);zooms[3]=window.zoomX;draw3()">
+      <span id="zoomVal3" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      D$p$-brane: $p$-dim object where open string endpoints are fixed (Dirichlet BC).
+      N coincident D-branes carry $U(N)$ gauge theory on their worldvolume.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>D-Branes &amp; Gauge Theory</span></div>
+    <div class="proof-list" id="proofList3"></div>
+    <div class="proof-content" id="proofContent3"></div>
+  </div>
+</div>
+
+<!-- TAB 4: DUALITIES & M-THEORY -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,4)">▶ Animate</button>
+      <button onclick="resetView(4)">Reset View</button>
+      <label>Coupling g_s</label>
+      <input type="range" id="gsSlider" min="1" max="20" value="5" oninput="draw4()">
+      <span id="gsVal">0.5</span>
+      <label>Radius R</label>
+      <input type="range" id="mRSlider" min="1" max="20" value="10" oninput="draw4()">
+      <span id="mRVal">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom4" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal4').textContent=(+this.value).toFixed(1);zooms[4]=window.zoomX;draw4()">
+      <span id="zoomVal4" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Five 10D superstring theories + 11D supergravity are all limits of M-theory.
+      T-duality: $R \leftrightarrow \ell_s^2/R$. S-duality: $g_s \leftrightarrow 1/g_s$.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>M-Theory &amp; Dualities</span></div>
+    <div class="proof-list" id="proofList4"></div>
+    <div class="proof-content" id="proofContent4"></div>
+  </div>
+</div>
+
+<!-- TAB 5: HOLOGRAPHY & AdS/CFT -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,5)">▶ Animate</button>
+      <button onclick="resetView(5)">Reset View</button>
+      <label>AdS radius L</label>
+      <input type="range" id="adsLSlider" min="2" max="20" value="10" oninput="draw5()">
+      <span id="adsLVal">10</span>
+      <label>Bulk mass m</label>
+      <input type="range" id="adsMSlider" min="0" max="10" value="3" oninput="draw5()">
+      <span id="adsMVal">3</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom5" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal5').textContent=(+this.value).toFixed(1);zooms[5]=window.zoomX;draw5()">
+      <span id="zoomVal5" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      AdS/CFT: Type IIB on AdS$_5\times S^5$ $\leftrightarrow$ $\mathcal{N}=4$ SYM in 4D.
+      Bulk field mass $m$ $\leftrightarrow$ boundary operator dimension $\Delta = 2 + \sqrt{4+m^2L^2}$.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>AdS/CFT Dictionary</span></div>
+    <div class="proof-list" id="proofList5"></div>
+    <div class="proof-content" id="proofContent5"></div>
+  </div>
+</div>
+
+<!-- TAB 6: SUPERSTRINGS & SUSY -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-area">
+    <canvas id="c6"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,6)">▶ Animate</button>
+      <button onclick="resetView(6)">Reset View</button>
+      <label>SUSY type</label>
+      <select id="susyType" onchange="draw6()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.8rem">
+        <option value="IIA">Type IIA</option>
+        <option value="IIB">Type IIB</option>
+        <option value="HE">Heterotic E8×E8</option>
+        <option value="HO">Heterotic SO(32)</option>
+      </select>
+      <label>Mode n</label>
+      <input type="range" id="snSlider" min="1" max="5" value="2" oninput="draw6()">
+      <span id="snVal">2</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom6" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal6').textContent=(+this.value).toFixed(1);zooms[6]=window.zoomX;draw6()">
+      <span id="zoomVal6" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      Superstring worldsheet: bosonic $X^\mu(\sigma,\tau)$ + fermionic $\psi^\mu(\sigma,\tau)$.
+      GSO projection removes tachyon, gives spacetime SUSY in 10D. 26 → 10 dimensions.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>Superstrings &amp; SUSY</span></div>
+    <div class="proof-list" id="proofList6"></div>
+    <div class="proof-content" id="proofContent6"></div>
+  </div>
+</div>
+
+<!-- TAB 7: STRING COSMOLOGY & LANDSCAPE -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-area">
+    <canvas id="c7"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button class="animBtn" onclick="toggleAnim(this,7)">▶ Animate</button>
+      <button onclick="resetView(7)">Reset View</button>
+      <label>Flux quanta N</label>
+      <input type="range" id="fluxN" min="1" max="10" value="4" oninput="draw7()">
+      <span id="fluxNVal">4</span>
+      <label>Vacua shown</label>
+      <input type="range" id="vacuaCount" min="5" max="40" value="20" oninput="draw7()">
+      <span id="vacuaCountVal">20</span>
+      <label style="font-size:.72rem;color:var(--dim)">Zoom</label>
+      <input type="range" id="zoom7" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal7').textContent=(+this.value).toFixed(1);zooms[7]=window.zoomX;draw7()">
+      <span id="zoomVal7" style="font-size:.72rem;color:var(--accent);min-width:36px">1.0</span>
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" style="font-size:.72rem;color:var(--accent);min-width:36px">0.10</span>
+    </div>
+    <div class="info-box">
+      KKLT: flux compactification stabilizes moduli → $\sim 10^{500}$ metastable de Sitter vacua.
+      Eternal inflation + bubble nucleation tunnels between vacua — the multiverse.
+    </div>
+  </div>
+  <div class="proof-panel">
+    <div class="proof-header"><span>Cosmology &amp; Landscape</span></div>
+    <div class="proof-list" id="proofList7"></div>
+    <div class="proof-content" id="proofContent7"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ---- PROOFS ---- (innerHTML used only for internal KaTeX content, not user input)
+const PROOFS=[
+  "Relativistic string action (Nambu-Goto): $S = -\\frac{1}{2\\pi\\alpha'}\\int d\\tau\\,d\\sigma\\sqrt{-\\det(\\partial_\\alpha X^\\mu \\partial_\\beta X_\\mu)}$. $\\alpha'=\\ell_s^2$ is the string length squared.",
+  "Mass spectrum (open bosonic string): $m^2 = \\frac{1}{\\alpha'}(N-1)$ where $N$ is the oscillator level. $N=0$: tachyon ($m^2<0$). Superstring: $N=0$ gives massless gauge bosons.",
+  "Critical dimension: bosonic string requires $D=26$, superstring requires $D=10$ for Weyl anomaly cancellation. Extra $D-4$ dimensions must be compactified.",
+  "Calabi-Yau condition: complex 3-fold with $SU(3)$ holonomy. Ricci-flat K\\u00e4hler manifold. Number of generations $= |\\chi(M)|/2 = |h^{1,1}-h^{2,1}|$.",
+  "T-duality: string on circle of radius $R$ is equivalent to string on radius $\\ell_s^2/R$. Momentum modes $\\leftrightarrow$ winding modes. $E^2 = (n/R)^2 + (wR/\\ell_s^2)^2 + \\text{oscillators}$.",
+  "The landscape: $\\sim 10^{500}$ metastable string vacua from flux compactifications (KKLT). Eternal inflation + anthropic selection as possible explanation for vacuum energy."
+];
+const PROOF_TITLES=[
+  "Nambu-Goto Action",
+  "Mass Spectrum",
+  "Critical Dimension",
+  "Calabi-Yau Condition",
+  "T-Duality",
+  "The Landscape"
+];
+
+// Per-tab proof data for tabs 3-7
+const PROOFS3=[
+  "Dirichlet boundary condition for open string endpoint on a Dp-brane: the Neumann direction allows endpoint to move freely (worldvolume), while Dirichlet freezes it: the endpoint X^i is fixed at the brane position for all worldsheet time. Polchinski showed in 1995 these are the objects that carry R-R charge.",
+  "D-brane tension: T_p = 1 / (g_s (2pi)^p alpha'^((p+1)/2)). At weak coupling the brane is heavy (non-perturbative). Under S-duality g_s goes to 1/g_s, so D-branes become light while fundamental strings become heavy.",
+  "N coincident Dp-branes: open strings stretching between brane i and brane j transform in the bifundamental representation. The massless gauge bosons fill out the adjoint of U(N). Separating branes breaks U(N) to U(1)^N via the Higgs mechanism — the Coulomb branch.",
+  "BPS bound: D-branes saturate M = |Z| where Z is the central charge of the SUSY algebra. BPS states are protected: their mass is determined exactly by their charge, so they are stable even at strong coupling. Essential for duality checks.",
+  "BFSS matrix model: N D0-branes are described by 9 N x N Hermitian matrices X^i(t). The action S = (1/2g_s) integral dt tr(X_dot^i X_dot^i - (1/2)[X^i,X^j]^2 + fermions) is conjectured to be a non-perturbative definition of M-theory in the infinite momentum frame.",
+  "F1/D1 S-duality in Type IIB: the SL(2,Z) duality group acts on (p,q)-strings — bound states of p fundamental strings and q D1-branes. Tension: T_(p,q) = (1/2pi alpha') sqrt(p^2 + q^2/g_s^2). The full duality web mixes all these objects."
+];
+const PTITLES3=["Dirichlet BC","D-brane Tension","U(N) Gauge Theory","BPS States","BFSS Matrix Model","F1/D1 S-Duality"];
+
+const PROOFS4=[
+  "Five consistent 10D superstring theories: Type I (unoriented, SO(32)), Type IIA (non-chiral, N=(1,1) SUSY), Type IIB (chiral, N=(2,0)), Heterotic E8xE8, Heterotic SO(32). All are limits of 11D M-theory at different points in parameter space.",
+  "T-duality exchanges: Type IIA on S^1(R) is equivalent to Type IIB on S^1(alpha'/R). Simultaneously, D0-branes map to D1-branes wrapping the circle. Heterotic SO(32) on S^1(R) is equivalent to Heterotic E8xE8 on S^1(alpha'/R) — the two heterotic theories are T-dual!",
+  "S-duality: Type IIB is self-dual under g_s to 1/g_s (SL(2,Z) symmetry). Type I and Heterotic SO(32) are S-dual to each other. Under S-duality, D-branes at weak coupling map to fundamental strings at strong coupling.",
+  "M-theory: strong coupling limit of Type IIA reveals an 11th dimension of radius R_11 = g_s^(2/3) l_s. The 11D supergravity action is S = (1/2kappa_11^2) integral d^11x sqrt(-g) R - (1/2) |G_4|^2 + C_3 wedge G_4 wedge G_4 + M2/M5-brane terms.",
+  "Horava-Witten construction: M-theory on the interval [0, pi rho] with an E8 gauge multiplet at each 10D boundary. In the limit rho to 0 gives Heterotic E8xE8 in 10D. This unified M-theory as the master theory from which all superstring theories descend.",
+  "U-duality: compactifying M-theory on T^n gives an exceptional duality group E_n(Z) acting on the moduli. For n=7 (compactify to 4D) this is E_7(Z), the largest known non-perturbative symmetry of string/M-theory. These infinite discrete groups mix perturbative and non-perturbative states."
+];
+const PTITLES4=["Five Superstring Theories","T-Duality Exchange","S-Duality","M-Theory 11D","Horava-Witten","U-Duality"];
+
+const PROOFS5=[
+  "Maldacena conjecture (1997): Type IIB superstring on AdS_5 x S^5 with N units of 5-form flux is exactly dual to N=4 SU(N) super-Yang-Mills in 4D. The t'Hooft coupling lambda = g_YM^2 N = L^4/alpha'^2 and g_s = g_YM^2/(4pi). Strong string coupling = large N gauge theory.",
+  "Mass-dimension dictionary: a scalar field phi with bulk mass m in AdS_{d+1} is dual to a boundary operator O of dimension Delta = d/2 + sqrt(d^2/4 + m^2 L^2). For d=4: Delta = 2 + sqrt(4 + m^2 L^2). The Breitenlohner-Freedman bound allows m^2 L^2 >= -4 (tachyons are OK in AdS).",
+  "Holographic RG flow: the radial coordinate z in Poincare AdS acts as the RG scale mu ~ 1/z. UV (mu large) corresponds to the AdS boundary z=0. The IR corresponds to the bulk interior. Irrelevant deformations in the CFT source fields that grow into the bulk.",
+  "Ryu-Takayanagi formula (2006): the entanglement entropy S_EE(A) of a boundary region A equals Area(gamma_A)/(4 G_N), where gamma_A is the minimal codimension-2 surface in the bulk homologous to A. This geometric formula connects quantum information to spacetime geometry.",
+  "MERA tensor network: the Multi-scale Entanglement Renormalization Ansatz is a quantum circuit that implements RG iteratively. Its causal structure maps naturally onto hyperbolic (AdS) space. Tensor network models suggest quantum entanglement is the glue that holds spacetime together (ER=EPR).",
+  "Finite temperature: a Schwarzschild-AdS_5 black hole is dual to N=4 SYM at temperature T = r_+/(pi L^2). The Hawking-Page phase transition between thermal AdS and the black hole is dual to the confinement-deconfinement (Hagedorn) transition in the large-N gauge theory."
+];
+const PTITLES5=["Maldacena Conjecture","Mass-Dimension Dictionary","Holographic RG","Ryu-Takayanagi","MERA & Bulk Geometry","Black Holes & Temperature"];
+
+const PROOFS6=[
+  "Worldsheet SUSY: the RNS (Ramond-Neveu-Schwarz) superstring adds Majorana-Weyl fermions psi^mu to the bosons X^mu. The worldsheet action is S = -(1/4pi alpha') integral d^2sigma (partial X^mu partial X_mu - i psi^mu rho^alpha partial_alpha psi_mu). The supercharge Q satisfies {Q_alpha, Q_beta} = 2(gamma^mu)_{ab} P_mu.",
+  "GSO projection: keep states with (-1)^F = +1 in NS sector (removes tachyon, keeps massless gauge boson) and (-1)^F = -1 in R sector (keeps massless spinor). The relative sign between NS and R sectors determines chirality: same sign gives IIB (chiral), opposite sign gives IIA (non-chiral). Result: spacetime SUSY and modular invariance.",
+  "Type IIA vs IIB: IIA has left- and right-moving spinors of opposite chirality in 10D, giving N=(1,1) SUSY. The R-R sector contains 1-form and 3-form field strengths. IIB has same-chirality spinors, giving chiral N=(2,0) SUSY. The R-R sector contains 0-form, 2-form, and self-dual 4-form. IIB is self-dual under SL(2,Z).",
+  "Heterotic string: the 26 left-moving coordinates split as 10 spacetime + 16 internal. The 16 internal dimensions are compactified on the E8xE8 or Spin(32)/Z2 lattice (even, self-dual lattices in 16D). This gives the gauge group directly from the worldsheet construction — a beautiful unification of gauge and gravity.",
+  "Calabi-Yau compactification: heterotic or Type II string on a CY3 (complex 3-fold with SU(3) holonomy) gives N=1 or N=2 SUSY in 4D respectively. The moduli: h^{1,1} Kahler moduli control sizes of 2-cycles, h^{2,1} complex structure moduli control shapes. Generations of chiral fermions = |h^{1,1} - h^{2,1}|.",
+  "Soft SUSY breaking: if SUSY is broken by hidden sector dynamics at scale m_{3/2} (gravitino mass), the soft terms are communicated to the visible sector via gravity mediation or gauge mediation. Gaugino masses M_{1/2} ~ m_{3/2}. LHC bounds: gluino > 2.3 TeV, squarks > 1.8 TeV. No SUSY signal so far suggests m_{3/2} >> 1 TeV."
+];
+const PTITLES6=["Worldsheet SUSY","GSO Projection","IIA vs IIB Chirality","Heterotic String","CY Compactification","Soft SUSY Breaking"];
+
+const PROOFS7=[
+  "KKLT construction (Kachru-Kallosh-Linde-Trivedi, 2003): Step 1 — stabilize complex structure moduli with 3-form fluxes G_3 = F_3 - tau H_3 threading CY 3-cycles (Gukov-Vafa-Witten superpotential W_flux = integral G_3 wedge Omega). Step 2 — stabilize Kahler moduli with non-perturbative effects (D3-instanton or gaugino condensation). Step 3 — uplift to de Sitter by adding an anti-D3-brane.",
+  "Swampland Distance Conjecture: moving a distance Delta phi > O(1) M_Pl in moduli space, an infinite tower of states (Kaluza-Klein or winding) becomes exponentially light: m ~ m_0 exp(-alpha Delta phi/M_Pl). This limits the field range available to inflation and challenges large-field inflation models.",
+  "de Sitter Swampland Conjectures: either |grad V|/V >= c/M_Pl (Ooguri-Palti-Shiu-Vafa 2018) or min eigenvalue of Hess(V)/V <= -c'/M_Pl^2. Both are incompatible with a positive cosmological constant minimum. Whether KKLT-type dS vacua truly exist in string theory is actively debated.",
+  "Bubble nucleation (Coleman-De Luccia): false vacuum decays by quantum tunneling, creating a bubble of true vacuum. The tunneling rate per unit volume is Gamma ~ A exp(-B) where B = S_E[bounce] - S_E[false vacuum]. Inside the bubble, observers see an open FRW universe. Eternal inflation is sourced by the surrounding false vacuum.",
+  "String gas cosmology (Brandenberger-Vafa): in the hagedorn phase, winding strings prevent compact dimensions from growing. Only 3 spatial dimensions can expand because wound strings in >3 dimensions cannot annihilate (intersection is generically empty for codimension > 1 in >3D). This selects the number of large dimensions dynamically.",
+  "Ekpyrotic/Cyclic cosmology: two parallel branes in 11D M-theory collide, producing a hot Big Bang. The pre-collision slow approach generates a nearly scale-invariant spectrum of perturbations. In the cyclic model (Steinhardt-Turok), the universe undergoes repeated expansions and contractions, each collision resetting entropy and structure."
+];
+const PTITLES7=["KKLT Construction","Distance Conjecture","dS Swampland Conjecture","Bubble Nucleation","String Gas Cosmology","Ekpyrotic/Cyclic"];
+
+function buildProofListGeneric(listId,titles,proofs){
+  const el=document.getElementById(listId);
+  if(!el)return;
+  const contentId=listId.replace('proofList','proofContent');
+  titles.forEach((t,i)=>{
+    const div=document.createElement('div');
+    div.className='proof-item';
+    div.textContent=i+'. '+t;
+    div.onclick=()=>{
+      el.querySelectorAll('.proof-item').forEach((d,j)=>d.classList.toggle('active',j===i));
+      const cel=document.getElementById(contentId);
+      if(cel){
+        cel.textContent='';
+        const span=document.createElement('span');
+        span.textContent=proofs[i];
+        cel.appendChild(span);
+        if(typeof renderMathInElement==='function')
+          renderMathInElement(cel,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+      }
+    };
+    el.appendChild(div);
+  });
+}
+
+function buildProofLists(){
+  ['proofList0','proofList1','proofList2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    PROOF_TITLES.forEach((t,i)=>{
+      const div=document.createElement('div');
+      div.className='proof-item';
+      div.textContent=i+'. '+t;
+      const contentId=id.replace('proofList','proofContent');
+      div.onclick=()=>showProof(i,contentId,id);
+      el.appendChild(div);
+    });
+  });
+  buildProofListGeneric('proofList3',PTITLES3,PROOFS3);
+  buildProofListGeneric('proofList4',PTITLES4,PROOFS4);
+  buildProofListGeneric('proofList5',PTITLES5,PROOFS5);
+  buildProofListGeneric('proofList6',PTITLES6,PROOFS6);
+  buildProofListGeneric('proofList7',PTITLES7,PROOFS7);
+}
+function showProof(i,contentId,listId){
+  const el=document.getElementById(contentId);
+  if(!el) return;
+  el.innerHTML=PROOFS[i];
+  document.querySelectorAll('#'+listId+' .proof-item').forEach((d,j)=>d.classList.toggle('active',j===i));
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(el,{
+      delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+      throwOnError:false
+    });
+  }
+}
+
+// ---- TAB SWITCHING ----
+function _cancelAllAnims25(){
+  animIds.forEach((id,j)=>{
+    if(id){cancelAnimationFrame(id);animIds[j]=null;}
+  });
+  document.querySelectorAll('.animBtn').forEach(b=>{
+    b.classList.remove('active');
+    b.textContent='▶ Animate';
+  });
+}
+function syncSpeedControl25(){
+  var zoomSlider=document.getElementById('zoom'+activeTab);
+  if(zoomSlider){window.zoomX=+zoomSlider.value;document.getElementById('zoomVal'+activeTab).textContent=(+zoomSlider.value).toFixed(1);}
+}
+function switchTab(i){
+  _cancelAllAnims25();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  syncSpeedControl25();
+  const allD=[draw0,draw1,draw2,draw3,draw4,draw5,draw6,draw7];
+  if(allD[i]) allD[i]();
+  // Auto-start animations
+  if(i===0) toggleAnim(document.querySelector('.animBtn'),0);
+  else if(i===1) toggleAnim(document.querySelectorAll('.animBtn')[1],1);
+  else if(i===2) toggleAnim(document.querySelectorAll('.animBtn')[2],2);
+  else if(i===3) toggleAnim(document.querySelectorAll('.animBtn')[3],3);
+  else if(i===4) toggleAnim(document.querySelectorAll('.animBtn')[4],4);
+  else if(i===5) toggleAnim(document.querySelectorAll('.animBtn')[5],5);
+  else if(i===6) toggleAnim(document.querySelectorAll('.animBtn')[6],6);
+  else if(i===7) toggleAnim(document.querySelectorAll('.animBtn')[7],7);
+}
+
+// ---- ANIMATION STATE ----
+const animIds=[null,null,null,null,null,null,null,null];
+const animOffsets=[0,0,0,0,0,0,0,0];
+function toggleAnim(btn,i){
+  if(animIds[i]){cancelAnimationFrame(animIds[i]);animIds[i]=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  const allD=[draw0,draw1,draw2,draw3,draw4,draw5,draw6,draw7];
+  function frame(){
+    animOffsets[i]+=0.02*(window.animSpeed||0.1);
+    if(allD[i]) allD[i]();
+    animIds[i]=requestAnimationFrame(frame);
+  }
+  animIds[i]=requestAnimationFrame(frame);
+}
+
+// ---- PAN/ZOOM ----
+const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+const zooms=[1,1,1,1,1,1,1,1];
+function resetView(i){pans[i]={x:0,y:0};zooms[i]=1;const allD=[draw0,draw1,draw2,draw3,draw4,draw5,draw6,draw7];if(allD[i])allD[i]();}
+
+// ---- TAB 0: STRINGS & WORLDSHEETS ----
+function draw0(){
+  const cv=document.getElementById('c0');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const n=parseInt(document.getElementById('modeSlider').value);
+  const alphaRaw=parseInt(document.getElementById('alphaSlider').value);
+  const alphaPrime=alphaRaw/10;
+  document.getElementById('modeVal').textContent=n;
+  document.getElementById('alphaVal').textContent=alphaPrime.toFixed(1);
+
+  const m2=(n-1)/alphaPrime;
+  document.getElementById('nVal').textContent=n;
+  document.getElementById('m2Val').textContent=m2.toFixed(2);
+  const stateEl=document.getElementById('stateLabel');
+  if(n===1) stateEl.textContent='Massless: graviton/gauge boson';
+  else if(n===0) stateEl.textContent='Tachyon (m\u00b2 < 0)';
+  else stateEl.textContent='Massive state level '+n;
+
+  ctx.save();
+  ctx.translate(pans[0].x,pans[0].y);
+  ctx.scale(zooms[0],zooms[0]);
+
+  const t=animOffsets[0];
+
+  // --- LEFT: Particle worldline ---
+  const plx=W*0.13,ply=H*0.14,plH=H*0.42;
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('PARTICLE',plx-30,ply-10);
+  ctx.fillStyle='rgba(255,153,102,0.4)';ctx.font='12px monospace';
+  ctx.fillText('worldline (1D)',plx-30,ply+2);
+  // Draw worldline as a wiggly curve
+  ctx.strokeStyle='#ff9966';ctx.lineWidth=2.5;
+  ctx.beginPath();
+  for(let s=0;s<=1;s+=0.01){
+    const x=plx+8*Math.sin(s*Math.PI*3+t*2);
+    const y=ply+20+s*plH;
+    if(s===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  // Particle dot moving along worldline
+  const pt2=((t*0.4)%1);
+  const pdx=plx+8*Math.sin(pt2*Math.PI*3+t*2);
+  const pdy=ply+20+pt2*plH;
+  ctx.fillStyle='#ff9966';
+  ctx.beginPath();ctx.arc(pdx,pdy,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,153,102,0.7)';ctx.font='12px monospace';
+  ctx.fillText('time \u2192',plx-30,ply+20+plH+14);
+
+  // --- CENTER: Open string worldsheet ---
+  const owx=W*0.28,owy=H*0.11,owW=W*0.20,owH=H*0.47;
+  ctx.fillStyle='rgba(255,200,100,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('OPEN STRING',owx,owy-10);
+  ctx.fillStyle='rgba(255,200,100,0.4)';ctx.font='12px monospace';
+  ctx.fillText('worldsheet (2D strip)',owx,owy+2);
+  // Draw worldsheet as a parallelogram with shading
+  const pts=[[owx,owy+20],[owx+owW,owy+20],[owx+owW+20,owy+owH+20],[owx+20,owy+owH+20]];
+  ctx.save();
+  ctx.fillStyle='rgba(255,200,100,0.08)';
+  ctx.strokeStyle='rgba(255,200,100,0.5)';ctx.lineWidth=1.5;
+  ctx.beginPath();
+  pts.forEach((p,i)=>{if(i===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1]);});
+  ctx.closePath();ctx.fill();ctx.stroke();
+  // Draw vibration mode lines (spatial slices)
+  for(let si=0;si<=8;si++){
+    const frac=si/8;
+    const x0=owx+frac*owW;const y0=owy+20;
+    const x1=owx+20+frac*owW;const y1=owy+owH+20;
+    const amp=10*Math.sin(n*Math.PI*frac)*Math.sin(t*3+frac*2);
+    ctx.strokeStyle='rgba(255,200,100,0.35)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x0+amp,y0);ctx.lineTo(x1+amp,y1);ctx.stroke();
+  }
+  ctx.restore();
+
+  // --- RIGHT: Closed string worldsheet (cylinder/torus) ---
+  const cwx=W*0.56,cwy=H*0.11,cwW=W*0.17,cwH=H*0.47;
+  ctx.fillStyle='rgba(180,150,255,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('CLOSED STRING',cwx,cwy-10);
+  ctx.fillStyle='rgba(180,150,255,0.4)';ctx.font='12px monospace';
+  ctx.fillText('worldsheet (cylinder)',cwx,cwy+2);
+  // Draw cylinder
+  const cylX=cwx+cwW/2,cylY=cwy+20,cylR=cwW/2-10,cylH=cwH;
+  ctx.save();
+  // Top ellipse
+  ctx.strokeStyle='rgba(180,150,255,0.6)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(cylX,cylY,cylR,cylR*0.35,0,0,Math.PI*2);ctx.stroke();
+  // Side lines
+  ctx.strokeStyle='rgba(180,150,255,0.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cylX-cylR,cylY);ctx.lineTo(cylX-cylR,cylY+cylH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cylX+cylR,cylY);ctx.lineTo(cylX+cylR,cylY+cylH);ctx.stroke();
+  // Bottom ellipse
+  ctx.strokeStyle='rgba(180,150,255,0.6)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(cylX,cylY+cylH,cylR,cylR*0.35,0,0,Math.PI*2);ctx.stroke();
+  // Fill
+  ctx.fillStyle='rgba(180,150,255,0.05)';
+  ctx.fillRect(cylX-cylR,cylY,cylR*2,cylH);
+  // Vibration rings
+  for(let ri=1;ri<8;ri++){
+    const fy=cylY+ri/8*cylH;
+    const amp=8*Math.sin(n*Math.PI*ri/8)*Math.sin(t*3+ri*0.5);
+    ctx.strokeStyle='rgba(180,150,255,0.35)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.ellipse(cylX,fy,cylR+amp,cylR*0.35,0,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+
+  // --- BOTTOM: Standing wave diagram ---
+  const swY=H*0.75,swX=W*0.09,swW=W*0.82;
+  ctx.fillStyle='rgba(255,153,102,0.7)';ctx.font='bold 12px monospace';
+  ctx.fillText('Vibration mode n='+n+'  (m\u00b2 = '+(n===1?'0':m2.toFixed(2))+'  /\u03b1\')',swX,swY-14);
+
+  // Draw the string base line
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(swX,swY);ctx.lineTo(swX+swW,swY);ctx.stroke();
+
+  // Draw n harmonics superimposed
+  for(let harm=1;harm<=n;harm++){
+    const amp=22/harm;
+    const col=`hsl(${20+harm*40},100%,${60+harm*3}%)`;
+    ctx.strokeStyle=col;ctx.lineWidth=harm===n?2.5:1;ctx.globalAlpha=harm===n?0.9:0.3;
+    ctx.beginPath();
+    for(let ix=0;ix<=200;ix++){
+      const frac=ix/200;
+      const xx=swX+frac*swW;
+      const yy=swY+amp*Math.sin(harm*Math.PI*frac)*Math.sin(t*3);
+      if(ix===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+    }
+    ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  // Fixed endpoints for open string
+  ctx.fillStyle='#ff9966';
+  ctx.beginPath();ctx.arc(swX,swY,4,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(swX+swW,swY,4,0,Math.PI*2);ctx.fill();
+
+  // Mode labels
+  for(let m2i=0;m2i<=Math.min(n,5);m2i++){
+    const mx2=(m2i)/alphaPrime;
+    ctx.fillStyle='rgba(255,200,100,0.6)';ctx.font='12px monospace';
+    const dy=m2i*H*0.036;
+    ctx.fillText('n='+(m2i+1)+(m2i===0?' (massless)':''),swX+swW+8,swY-dy+4);
+    ctx.strokeStyle='rgba(255,200,100,0.2)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(swX,swY-dy+1);ctx.lineTo(swX+swW,swY-dy+1);ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// Pan/zoom for canvas 0
+const cv0=document.getElementById('c0');
+let drag0s={active:false,sx:0,sy:0,px:0,py:0};
+cv0.addEventListener('mousedown',e=>{drag0s={active:true,sx:e.clientX,sy:e.clientY,px:pans[0].x,py:pans[0].y};});
+cv0.addEventListener('mousemove',e=>{if(!drag0s.active)return;pans[0].x=drag0s.px+(e.clientX-drag0s.sx);pans[0].y=drag0s.py+(e.clientY-drag0s.sy);draw0();});
+cv0.addEventListener('mouseup',()=>{drag0s.active=false;});
+cv0.addEventListener('wheel',e=>{e.preventDefault();zooms[0]=Math.max(0.2,Math.min(8,zooms[0]*(e.deltaY<0?1.1:0.91)));draw0();},{passive:false});
+
+// ---- TAB 1: CALABI-YAU ----
+function drawCYShape(ctx,cx,cy,r,phase,alpha){
+  // Draw a small "CY-like" shape: two interlocked loops
+  ctx.save();
+  ctx.globalAlpha=alpha;
+  // Outer torus-like curve
+  const steps=80;
+  ctx.strokeStyle='#ff9966';ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let i=0;i<=steps;i++){
+    const th=i/steps*Math.PI*2;
+    const rr=r*(1+0.3*Math.cos(3*th));
+    const x=cx+rr*Math.cos(th+phase);
+    const y=cy+rr*Math.sin(th+phase)*0.5;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  // Inner loop
+  ctx.strokeStyle='rgba(180,100,255,0.7)';ctx.lineWidth=0.8;
+  ctx.beginPath();
+  for(let i=0;i<=steps;i++){
+    const th=i/steps*Math.PI*2;
+    const rr=r*0.5*(1+0.4*Math.cos(2*th+phase));
+    const x=cx+rr*Math.cos(th+phase+1);
+    const y=cy+rr*Math.sin(th+phase+1)*0.6;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function draw1(){
+  const cv=document.getElementById('c1');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const cyR=parseInt(document.getElementById('cyRadius').value);
+  const h11=parseInt(document.getElementById('h11Slider').value);
+  const h21=parseInt(document.getElementById('h21Slider').value);
+  document.getElementById('cyRadVal').textContent=cyR;
+  document.getElementById('h11Val').textContent=h11;
+  document.getElementById('h21Val').textContent=h21;
+  const gens=Math.abs(h11-h21);
+
+  ctx.save();
+  ctx.translate(pans[1].x,pans[1].y);
+  ctx.scale(zooms[1],zooms[1]);
+
+  const t=animOffsets[1];
+
+  // --- Left: Main grid with attached CY shapes ---
+  const gridX=W*0.05,gridY=H*0.07,gridStepX=W*0.11,gridStepY=H*0.18,gridCols=5,gridRows=4;
+  ctx.strokeStyle='rgba(60,60,120,0.5)';ctx.lineWidth=0.8;
+  // Grid lines
+  for(let r=0;r<=gridRows;r++){
+    ctx.beginPath();
+    ctx.moveTo(gridX,gridY+r*gridStepY);
+    ctx.lineTo(gridX+gridCols*gridStepX,gridY+r*gridStepY);
+    ctx.stroke();
+  }
+  for(let c=0;c<=gridCols;c++){
+    ctx.beginPath();
+    ctx.moveTo(gridX+c*gridStepX,gridY);
+    ctx.lineTo(gridX+c*gridStepX,gridY+gridRows*gridStepY);
+    ctx.stroke();
+  }
+
+  // At each grid intersection, draw a small CY shape
+  const scaledR=cyR*0.3;
+  const alpha=Math.min(1,cyR/30)*0.9;
+  for(let r=0;r<=gridRows;r++){
+    for(let c=0;c<=gridCols;c++){
+      const cx=gridX+c*gridStepX,cy=gridY+r*gridStepY;
+      const phase=t+(r*0.3+c*0.2);
+      drawCYShape(ctx,cx,cy,scaledR,phase,alpha);
+    }
+  }
+
+  // Label
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('4 large dims (grid) + 6 compact dims (CY at each point)',gridX,gridY+gridRows*gridStepY+20);
+  ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='12px monospace';
+  ctx.fillText('Hodge: (h\u00b9\u02d9\u00b9, h\u00b2\u02d9\u00b9) = ('+h11+', '+h21+')   generations = '+gens,gridX,gridY+gridRows*gridStepY+36);
+
+  // --- Right: Mirror symmetry panel ---
+  const mirX=W*0.69,mirY=H*0.14;
+  ctx.fillStyle='rgba(180,100,255,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('Mirror Symmetry',mirX,mirY-8);
+
+  // CY1
+  ctx.fillStyle='rgba(255,153,102,0.7)';ctx.font='12px monospace';
+  ctx.fillText('CY: ('+h11+','+h21+')',mirX,mirY+60);
+  drawCYShape(ctx,mirX+55,mirY+30,18,t*0.8,0.9);
+
+  // Arrow
+  ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(mirX+85,mirY+30);ctx.lineTo(mirX+115,mirY+30);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.beginPath();ctx.moveTo(mirX+115,mirY+25);ctx.lineTo(mirX+125,mirY+30);ctx.lineTo(mirX+115,mirY+35);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='12px monospace';
+  ctx.fillText('mirror',mirX+88,mirY+22);
+
+  // CY2 (mirror)
+  ctx.fillStyle='rgba(180,100,255,0.7)';ctx.font='12px monospace';
+  ctx.fillText('CY\u2019: ('+h21+','+h11+')',mirX+125,mirY+60);
+  drawCYShape(ctx,mirX+185,mirY+30,18,-t*0.8+Math.PI,0.9);
+
+  // Same physics label
+  ctx.fillStyle='rgba(100,255,200,0.6)';ctx.font='12px monospace';
+  ctx.fillText('Same physics!',mirX+80,mirY+90);
+  ctx.fillText('gens = '+gens+' \u2194 gens = '+gens,mirX+70,mirY+104);
+
+  // Planck scale note
+  if(cyR<=5){
+    ctx.fillStyle='rgba(255,200,100,0.7)';ctx.font='12px monospace';
+    ctx.fillText('R \u2248 \u2113_P: extra dims invisible!',mirX-20,H-20);
+  }
+
+  ctx.restore();
+}
+
+const cv1=document.getElementById('c1');
+let drag1s={active:false,sx:0,sy:0,px:0,py:0};
+cv1.addEventListener('mousedown',e=>{drag1s={active:true,sx:e.clientX,sy:e.clientY,px:pans[1].x,py:pans[1].y};});
+cv1.addEventListener('mousemove',e=>{if(!drag1s.active)return;pans[1].x=drag1s.px+(e.clientX-drag1s.sx);pans[1].y=drag1s.py+(e.clientY-drag1s.sy);draw1();});
+cv1.addEventListener('mouseup',()=>{drag1s.active=false;});
+cv1.addEventListener('wheel',e=>{e.preventDefault();zooms[1]=Math.max(0.2,Math.min(8,zooms[1]*(e.deltaY<0?1.1:0.91)));draw1();},{passive:false});
+
+// ---- TAB 2: T-DUALITY & LANDSCAPE ----
+function draw2(){
+  const cv=document.getElementById('c2');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+
+  const w=parseInt(document.getElementById('windSlider').value);
+  const p=parseInt(document.getElementById('momSlider').value);
+  document.getElementById('windVal').textContent=w;
+  document.getElementById('momVal').textContent=p;
+
+  const t=animOffsets[2];
+
+  ctx.save();
+  ctx.translate(pans[2].x,pans[2].y);
+  ctx.scale(zooms[2],zooms[2]);
+
+  // --- TOP LEFT: Circle with winding string ---
+  const c1x=W*0.17,c1y=H*0.27,c1r=Math.min(W*0.08,H*0.12);
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('Radius R',c1x-28,c1y-c1r-12);
+  // Circle
+  ctx.strokeStyle='rgba(255,153,102,0.4)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(c1x,c1y,c1r,0,Math.PI*2);ctx.stroke();
+  // Wound string (w times around)
+  ctx.strokeStyle='#ff9966';ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const frac=i/200;
+    const angle=frac*Math.PI*2*w+t*0.5;
+    const rr=c1r+6*Math.sin(frac*Math.PI*w*2);
+    const x=c1x+rr*Math.cos(angle);
+    const y=c1y+rr*Math.sin(angle)*0.5;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.fillStyle='rgba(255,153,102,0.7)';ctx.font='12px monospace';
+  ctx.fillText('winding w='+w,c1x-28,c1y+c1r+18);
+
+  // --- TOP RIGHT: Circle with momentum string (T-dual) ---
+  const c2x=W*0.49,c2y=H*0.27,c2rbase=Math.min(W*0.08,H*0.12);
+  const c2r=c2rbase;  // dual radius alpha'/R shown conceptually as same size
+  ctx.fillStyle='rgba(100,200,255,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('Dual radius \u03b1\'/R',c2x-48,c2y-c2r-12);
+  ctx.strokeStyle='rgba(100,200,255,0.4)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(c2x,c2y,c2r,0,Math.PI*2);ctx.stroke();
+  // Momentum string (p times around, moving)
+  ctx.strokeStyle='#22ddff';ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const frac=i/200;
+    const angle=frac*Math.PI*2*p+t*1.2;
+    const rr=c2r+6*Math.sin(frac*Math.PI*p*2+1);
+    const x=c2x+rr*Math.cos(angle);
+    const y=c2y+rr*Math.sin(angle)*0.5;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.fillStyle='rgba(100,200,255,0.7)';ctx.font='12px monospace';
+  ctx.fillText('momentum p='+p,c2x-28,c2y+c2r+18);
+
+  // Duality arrow
+  ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(c1x+c1r+10,c1y);ctx.lineTo(c2x-c2r-10,c2y);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='12px monospace';
+  ctx.fillText('T-duality',c1x+c1r+14,c1y-8);
+  ctx.fillText('R \u2194 \u03b1\'/R',c1x+c1r+14,c1y+6);
+  ctx.fillText('w \u2194 p',c1x+c1r+14,c1y+20);
+
+  // --- ENERGY PLOT ---
+  const plotX=W*0.08,plotY=H*0.87,plotW=W*0.49,plotH=H*0.27;
+  ctx.fillStyle='rgba(255,153,102,0.7)';ctx.font='bold 12px monospace';
+  ctx.fillText('Energy E\u00b2(R)',plotX,plotY-plotH-10);
+  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='12px monospace';
+  ctx.fillText('(p/R)\u00b2 + (wR)\u00b2',plotX+60,plotY-plotH-10);
+
+  // Axes
+  ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(plotX,plotY);ctx.lineTo(plotX+plotW,plotY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(plotX,plotY);ctx.lineTo(plotX,plotY-plotH);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='12px monospace';
+  ctx.fillText('R',plotX+plotW+4,plotY+4);
+  ctx.fillText('E\u00b2',plotX-16,plotY-plotH);
+
+  // Plot E^2 = (p/R)^2 + (wR)^2 for range of R
+  const Rmin=0.1,Rmax=3.0;
+  ctx.strokeStyle='#ff9966';ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=200;i++){
+    const R=Rmin+(Rmax-Rmin)*i/200;
+    const E2=(p*p)/(R*R)+(w*w*R*R);
+    const px2=plotX+i/200*plotW;
+    const py2=plotY-Math.min(E2*8,plotH);
+    if(i===0)ctx.moveTo(px2,py2);else ctx.lineTo(px2,py2);
+  }
+  ctx.stroke();
+  // Symmetry point R = 1
+  const symX=plotX+(1-Rmin)/(Rmax-Rmin)*plotW;
+  ctx.strokeStyle='rgba(255,255,100,0.5)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(symX,plotY);ctx.lineTo(symX,plotY-plotH);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,100,0.7)';ctx.font='12px monospace';
+  ctx.fillText('R=\u03b1\u2019=1',symX-16,plotY-plotH+8);
+
+  // --- LANDSCAPE (right side) ---
+  const lsX=W*0.63,lsY=H*0.08,lsW=W*0.34,lsH=H*0.82;
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('The Landscape',lsX,lsY-8);
+  ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font='12px monospace';
+  ctx.fillText('~10\u2075\u2070\u2070 vacua',lsX+110,lsY-8);
+
+  // Draw a rugged energy landscape
+  const lsPoints=[];
+  const numValleys=18;
+  for(let i=0;i<=numValleys*8;i++){
+    const frac=i/(numValleys*8);
+    const x=lsX+frac*lsW;
+    // Rugged landscape with multiple minima
+    const y=lsY+80+
+      40*Math.sin(frac*Math.PI*numValleys*0.8)*Math.sin(frac*Math.PI*3.7)+
+      20*Math.sin(frac*Math.PI*numValleys*1.3+0.5)+
+      15*Math.sin(frac*Math.PI*numValleys*2.1+1.1)+
+      60*(frac<0.15||frac>0.85?1:0);  // walls at edges
+    lsPoints.push({x,y:Math.min(lsY+lsH-10,Math.max(lsY+10,y))});
+  }
+  // Fill under landscape
+  ctx.save();
+  ctx.fillStyle='rgba(255,100,50,0.06)';
+  ctx.beginPath();
+  ctx.moveTo(lsX,lsY+lsH);
+  lsPoints.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(lsX+lsW,lsY+lsH);
+  ctx.closePath();ctx.fill();
+  // Draw landscape curve
+  ctx.strokeStyle='#ff9966';ctx.lineWidth=1.5;
+  ctx.beginPath();
+  lsPoints.forEach((p,i)=>{if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);});
+  ctx.stroke();
+  ctx.restore();
+
+  // Animate: particle rolling in landscape
+  if(t>0){
+    const ballFrac=((t*0.15)%(lsPoints.length-1));
+    const ballIdx=Math.floor(ballFrac)%(lsPoints.length-1);
+    const bp=lsPoints[Math.min(ballIdx,lsPoints.length-1)];
+    ctx.fillStyle='#ffee44';
+    ctx.strokeStyle='rgba(255,238,68,0.4)';ctx.lineWidth=6;
+    ctx.beginPath();ctx.arc(bp.x,bp.y-7,6,0,Math.PI*2);ctx.fill();ctx.stroke();
+  }
+
+  // Mark a few vacua (valleys)
+  let vacCount=0;
+  for(let i=1;i<lsPoints.length-1;i++){
+    if(lsPoints[i].y>lsPoints[i-1].y&&lsPoints[i].y>lsPoints[i+1].y){
+      ctx.fillStyle='rgba(100,255,200,0.5)';
+      ctx.beginPath();ctx.arc(lsPoints[i].x,lsPoints[i].y,3,0,Math.PI*2);ctx.fill();
+      vacCount++;
+    }
+  }
+
+  // Anthropic label
+  ctx.fillStyle='rgba(100,255,200,0.6)';ctx.font='12px monospace';
+  ctx.fillText('Each valley = different physics',lsX,lsY+lsH+14);
+  ctx.fillText('Anthropic: we live in habitable vacuum',lsX,lsY+lsH+26);
+
+  ctx.restore();
+}
+
+const cv2=document.getElementById('c2');
+let drag2s={active:false,sx:0,sy:0,px:0,py:0};
+cv2.addEventListener('mousedown',e=>{drag2s={active:true,sx:e.clientX,sy:e.clientY,px:pans[2].x,py:pans[2].y};});
+cv2.addEventListener('mousemove',e=>{if(!drag2s.active)return;pans[2].x=drag2s.px+(e.clientX-drag2s.sx);pans[2].y=drag2s.py+(e.clientY-drag2s.sy);draw2();});
+cv2.addEventListener('mouseup',()=>{drag2s.active=false;});
+cv2.addEventListener('wheel',e=>{e.preventDefault();zooms[2]=Math.max(0.2,Math.min(8,zooms[2]*(e.deltaY<0?1.1:0.91)));draw2();},{passive:false});
+
+// ---- TAB 3: D-BRANES & OPEN STRINGS ----
+function draw3(){
+  const cv=document.getElementById('c3');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr;cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const p=parseInt(document.getElementById('dpSlider').value);
+  const n=parseInt(document.getElementById('dnSlider').value);
+  const N=parseInt(document.getElementById('dNSlider').value);
+  document.getElementById('dpVal').textContent=p;
+  document.getElementById('dnVal').textContent=n;
+  document.getElementById('dNVal').textContent=N;
+  const t=animOffsets[3];
+  ctx.save();ctx.translate(pans[3].x,pans[3].y);ctx.scale(zooms[3],zooms[3]);
+
+  // Draw N D-branes stacked vertically
+  const braneColors=['#ff9966','#66aaff','#88ff88','#ff88cc'];
+  const braneW=W*0.55,braneY0=H*0.18,braneSep=H*0.17;
+  for(let b=0;b<N;b++){
+    const by=braneY0+b*braneSep;
+    const bc=braneColors[b%braneColors.length];
+    // Draw brane as a horizontal "sheet"
+    ctx.strokeStyle=bc;ctx.lineWidth=p===0?0:2;ctx.globalAlpha=0.7;
+    if(p===0){
+      // D0: point
+      ctx.fillStyle=bc;ctx.globalAlpha=1;
+      ctx.beginPath();ctx.arc(W*0.3,by,7,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=bc;ctx.font='12px monospace';ctx.fillText('D0',W*0.3+10,by+4);
+    } else if(p===1){
+      // D1: line (fundamental string / D-string)
+      ctx.beginPath();ctx.moveTo(W*0.08,by);ctx.lineTo(W*0.62,by);ctx.stroke();
+      ctx.fillStyle=bc;ctx.font='12px monospace';ctx.globalAlpha=1;ctx.fillText('D1',W*0.63,by+4);
+    } else {
+      // D2: parallelogram
+      ctx.fillStyle=bc.replace(')',',0.07)').replace('rgb','rgba');
+      if(bc.startsWith('#')){ctx.fillStyle='rgba(255,153,102,0.07)';}
+      ctx.beginPath();
+      ctx.moveTo(W*0.06,by-22);ctx.lineTo(W*0.62,by-22);
+      ctx.lineTo(W*0.65,by+22);ctx.lineTo(W*0.09,by+22);ctx.closePath();
+      ctx.fill();ctx.globalAlpha=0.7;ctx.stroke();
+      ctx.fillStyle=bc;ctx.font='12px monospace';ctx.globalAlpha=1;ctx.fillText('D2',W*0.66,by+4);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // Draw open strings with endpoints on branes
+  const numStrings=Math.max(2,N+1);
+  for(let s=0;s<numStrings;s++){
+    const phase=s*0.9+t;
+    const b1=s%N, b2=(s+1)%N;
+    const y1=braneY0+b1*braneSep, y2=braneY0+b2*braneSep;
+    const midX=W*0.35;
+    const amp=18;
+    ctx.strokeStyle='rgba(255,240,180,0.8)';ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(let k=0;k<=40;k++){
+      const frac=k/40;
+      const x=W*0.10+frac*(W*0.52);
+      const y=y1*(1-frac)+y2*frac + amp*Math.sin(n*Math.PI*frac+phase)*Math.sin(Math.PI*frac);
+      if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Endpoints (Dirichlet: pinned to brane y-position at sigma=0 and sigma=pi)
+    const xL=W*0.10,xR=W*0.62;
+    ctx.fillStyle='#ffee44';
+    ctx.beginPath();ctx.arc(xL,y1,4,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(xR,y2,4,0,Math.PI*2);ctx.fill();
+  }
+
+  // Label
+  ctx.fillStyle='rgba(255,153,102,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('D'+p+'-brane(s)  N='+N+'  mode n='+n,W*0.06,H*0.90);
+  ctx.fillStyle='rgba(255,240,180,0.7)';ctx.font='12px monospace';
+  ctx.fillText('Open string endpoints fixed on brane (Dirichlet BC)',W*0.06,H*0.94);
+  ctx.fillStyle='rgba(100,200,255,0.6)';ctx.font='12px monospace';
+  ctx.fillText('U('+N+') gauge theory on worldvolume',W*0.06,H*0.97);
+
+  // Right panel: gauge group diagram
+  const gpX=W*0.70,gpY=H*0.15;
+  ctx.fillStyle='rgba(180,220,255,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('N='+N+' coincident branes',gpX,gpY);
+  ctx.fillStyle='rgba(180,220,255,0.5)';ctx.font='12px monospace';
+  ctx.fillText('=> U('+N+') gauge group',gpX,gpY+16);
+  ctx.fillText(N*N+' open string'+(N*N>1?'s':''),gpX,gpY+30);
+  ctx.fillText(N*N+' = '+N+'^2 gauge bosons',gpX,gpY+44);
+  // Draw N x N matrix diagram
+  const ms=22,mx0=gpX,my0=gpY+60;
+  for(let r=0;r<N;r++){
+    for(let c=0;c<N;c++){
+      const isOff=r!==c;
+      ctx.strokeStyle=isOff?'rgba(255,240,180,0.7)':'rgba(100,200,255,0.5)';
+      ctx.lineWidth=1;
+      ctx.strokeRect(mx0+c*ms,my0+r*ms,ms,ms);
+      ctx.fillStyle=isOff?'rgba(255,240,180,0.15)':'rgba(100,200,255,0.1)';
+      ctx.fillRect(mx0+c*ms+1,my0+r*ms+1,ms-2,ms-2);
+      ctx.fillStyle=isOff?'rgba(255,240,180,0.8)':'rgba(100,200,255,0.8)';
+      ctx.font='12px monospace';
+      ctx.fillText(r===c?'U':'W',mx0+c*ms+7,my0+r*ms+15);
+    }
+  }
+  ctx.fillStyle='rgba(180,220,255,0.5)';ctx.font='12px monospace';
+  ctx.fillText('Diagonal: U(1)^N photons',mx0,my0+N*ms+14);
+  ctx.fillText('Off-diag: W-bosons (massive)',mx0,my0+N*ms+26);
+
+  // D-brane tension annotation
+  ctx.fillStyle='rgba(255,200,100,0.7)';ctx.font='12px monospace';
+  const tensStr='T_'+p+' = 1/(g_s (2pi)^'+p+' alpha\'^'+((p+1)/2).toFixed(1)+')';
+  ctx.fillText(tensStr,gpX,H*0.82);
+  ctx.fillText('Heavy at weak coupling (non-perturbative)',gpX,H*0.86);
+  ctx.fillText('Polchinski 1995: D-branes carry R-R charge',gpX,H*0.90);
+
+  ctx.restore();
+}
+
+function addPanZoom(cvId,idx,drawFn){
+  const cv=document.getElementById(cvId);
+  if(!cv)return;
+  let ds={active:false,sx:0,sy:0,px:0,py:0};
+  cv.addEventListener('mousedown',e=>{ds={active:true,sx:e.clientX,sy:e.clientY,px:pans[idx].x,py:pans[idx].y};});
+  cv.addEventListener('mousemove',e=>{if(!ds.active)return;pans[idx].x=ds.px+(e.clientX-ds.sx);pans[idx].y=ds.py+(e.clientY-ds.sy);drawFn();});
+  cv.addEventListener('mouseup',()=>{ds.active=false;});
+  cv.addEventListener('wheel',e=>{e.preventDefault();zooms[idx]=Math.max(0.2,Math.min(8,zooms[idx]*(e.deltaY<0?1.1:0.91)));drawFn();},{passive:false});
+}
+
+// ---- TAB 4: DUALITIES & M-THEORY ----
+function draw4(){
+  const cv=document.getElementById('c4');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr;cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const gsRaw=parseInt(document.getElementById('gsSlider').value);
+  const gs=gsRaw/10;
+  const mR=parseInt(document.getElementById('mRSlider').value)/10;
+  document.getElementById('gsVal').textContent=gs.toFixed(1);
+  document.getElementById('mRVal').textContent=mR.toFixed(1);
+  const t=animOffsets[4];
+  ctx.save();ctx.translate(pans[4].x,pans[4].y);ctx.scale(zooms[4],zooms[4]);
+
+  // Draw web of dualities — M-theory at center, 5 theories + 11D sugra around it
+  const cx=W*0.42,cy=H*0.45;
+  const R=Math.min(W,H)*0.30;
+  const theories=[
+    {name:'Type IIA',col:'#ff9966'},
+    {name:'Type IIB',col:'#66aaff'},
+    {name:'Type I',col:'#88ff88'},
+    {name:'Het E8xE8',col:'#ffcc44'},
+    {name:'Het SO(32)',col:'#ff88cc'},
+    {name:'11D SUGRA',col:'#cc88ff'},
+  ];
+  const dualLabels=[
+    {from:0,to:1,label:'T-dual',col:'rgba(255,200,150,0.7)'},
+    {from:2,to:4,label:'S-dual',col:'rgba(150,200,255,0.7)'},
+    {from:3,to:4,label:'T-dual',col:'rgba(255,200,150,0.7)'},
+    {from:1,to:1,label:'S-self-dual',col:'rgba(150,200,255,0.7)'},
+  ];
+
+  const angles=theories.map((_,i)=>-Math.PI/2+i*(2*Math.PI/theories.length));
+  const positions=angles.map((a,i)=>({x:cx+R*Math.cos(a),y:cy+R*Math.sin(a),name:theories[i].name,col:theories[i].col}));
+
+  // Draw duality lines between nodes
+  const dualities=[
+    [0,1,'T'],[3,4,'T'],[2,4,'S'],[1,5,'strong g_s'],[0,5,'large R_11'],[0,2,'Omega proj'],[3,5,'S^1/Z_2']
+  ];
+  dualities.forEach(([a,b,lbl])=>{
+    const p1=positions[a],p2=positions[b];
+    const pulse=0.5+0.5*Math.sin(t*2+(a+b));
+    ctx.strokeStyle=`rgba(255,200,100,${0.3+0.3*pulse})`;ctx.lineWidth=1.5;
+    ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+    ctx.setLineDash([]);
+    const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;
+    ctx.fillStyle='rgba(255,200,100,0.75)';ctx.font='12px monospace';
+    ctx.fillText(lbl,mx+3,my-3);
+  });
+
+  // Draw M-theory center node
+  const mPulse=0.7+0.3*Math.sin(t*1.5);
+  ctx.fillStyle=`rgba(200,150,255,${mPulse})`;
+  ctx.beginPath();ctx.arc(cx,cy,26,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#cc88ff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(cx,cy,26,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 12px monospace';
+  ctx.textAlign='center';ctx.fillText('M-theory',cx,cy+4);ctx.textAlign='left';
+  ctx.fillStyle='rgba(200,150,255,0.5)';ctx.font='12px monospace';
+  ctx.textAlign='center';ctx.fillText('11D',cx,cy-12);ctx.textAlign='left';
+
+  // Draw theory nodes
+  positions.forEach((pos,i)=>{
+    ctx.fillStyle=pos.col;
+    ctx.beginPath();ctx.arc(pos.x,pos.y,18,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(pos.x,pos.y,18,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#000';ctx.font='bold 12px monospace';
+    ctx.textAlign='center';ctx.fillText(pos.name,pos.x,pos.y+3);ctx.textAlign='left';
+  });
+
+  // T-duality animation: circle inversion
+  const tX=W*0.75,tY=H*0.22,tR=36;
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('T-duality: R -> 1/R',tX-10,tY-50);
+  const R1=tR*(0.5+0.45*Math.abs(Math.sin(t*0.7)));
+  const R2=tR*tR/R1/tR*tR; // dual radius scales inversely
+  ctx.strokeStyle='#ff9966';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(tX-tR-4,tY,R1,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='rgba(255,153,102,0.5)';ctx.font='12px monospace';
+  ctx.fillText('R='+R1.toFixed(0),tX-tR-4-12,tY+R1+12);
+  ctx.strokeStyle='#66aaff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(tX+tR+4,tY,Math.max(6,Math.min(tR*2,tR*tR/Math.max(1,R1))),0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='rgba(100,170,255,0.5)';ctx.font='12px monospace';
+  ctx.fillText('alpha\'/R',tX+tR-4,tY+Math.max(6,Math.min(tR*2,tR*tR/Math.max(1,R1)))+12);
+  ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(tX-4,tY);ctx.lineTo(tX+4,tY);ctx.stroke();
+
+  // S-duality animation: coupling flip
+  const sX=W*0.75,sY=H*0.65;
+  ctx.fillStyle='rgba(100,200,255,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('S-duality: g_s -> 1/g_s',sX-10,sY-40);
+  const barW=80,barH=16;
+  const gsFrac=Math.min(gs,2)/2;
+  ctx.fillStyle='rgba(255,153,102,0.3)';ctx.fillRect(sX,sY,barW,barH);
+  ctx.fillStyle='#ff9966';ctx.fillRect(sX,sY,barW*gsFrac,barH);
+  ctx.fillStyle='rgba(100,200,255,0.3)';ctx.fillRect(sX,sY+22,barW,barH);
+  ctx.fillStyle='#66aaff';ctx.fillRect(sX,sY+22,barW*(1-gsFrac),barH);
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='12px monospace';
+  ctx.fillText('g_s = '+gs.toFixed(1),sX+barW+4,sY+12);
+  ctx.fillStyle='rgba(100,200,255,0.8)';
+  ctx.fillText('1/g_s = '+(1/Math.max(0.1,gs)).toFixed(1),sX+barW+4,sY+34);
+  ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='12px monospace';
+  ctx.fillText('strong <-> weak',sX,sY+54);
+
+  ctx.restore();
+}
+
+// ---- TAB 5: HOLOGRAPHY & AdS/CFT ----
+function draw5(){
+  const cv=document.getElementById('c5');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr;cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const L=parseInt(document.getElementById('adsLSlider').value);
+  const mBulk=parseInt(document.getElementById('adsMSlider').value);
+  document.getElementById('adsLVal').textContent=L;
+  document.getElementById('adsMVal').textContent=mBulk;
+  const Delta=2+Math.sqrt(4+mBulk*mBulk*L*L/25);
+  const t=animOffsets[5];
+  ctx.save();ctx.translate(pans[5].x,pans[5].y);ctx.scale(zooms[5],zooms[5]);
+
+  // Draw AdS bulk as a disk (Poincare disk model)
+  const diskX=W*0.36,diskY=H*0.50,diskR=Math.min(W*0.28,H*0.40);
+  // Fill bulk
+  const grad=ctx.createRadialGradient(diskX,diskY,0,diskX,diskY,diskR);
+  grad.addColorStop(0,'rgba(100,60,200,0.25)');
+  grad.addColorStop(0.7,'rgba(60,40,160,0.15)');
+  grad.addColorStop(1,'rgba(20,20,80,0.05)');
+  ctx.fillStyle=grad;
+  ctx.beginPath();ctx.arc(diskX,diskY,diskR,0,Math.PI*2);ctx.fill();
+  // AdS boundary circle
+  ctx.strokeStyle='rgba(255,153,102,0.8)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(diskX,diskY,diskR,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.textAlign='center';ctx.fillText('CFT boundary (4D)',diskX,diskY-diskR-8);ctx.textAlign='left';
+
+  // AdS label
+  ctx.fillStyle='rgba(180,130,255,0.7)';ctx.font='12px monospace';
+  ctx.textAlign='center';ctx.fillText('AdS bulk',diskX,diskY+8);ctx.textAlign='left';
+
+  // Draw geodesics (AdS geodesics appear as circular arcs)
+  for(let g=0;g<5;g++){
+    const angle=g*(Math.PI/4)-Math.PI/4;
+    const gx1=diskX+diskR*0.95*Math.cos(angle);
+    const gy1=diskY+diskR*0.95*Math.sin(angle);
+    const gx2=diskX+diskR*0.95*Math.cos(angle+Math.PI*0.6);
+    const gy2=diskY+diskR*0.95*Math.sin(angle+Math.PI*0.6);
+    // Straight line in Poincare disk = geodesic
+    ctx.strokeStyle='rgba(150,200,255,0.15)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(gx1,gy1);ctx.lineTo(diskX,diskY);ctx.lineTo(gx2,gy2);ctx.stroke();
+  }
+
+  // Animate bulk graviton/field propagating from boundary to bulk
+  const wavePhi=t*1.5;
+  for(let ring=1;ring<=5;ring++){
+    const rr=diskR*(ring/5)*Math.abs(Math.sin(wavePhi-ring*0.7));
+    const alpha=0.5*(1-ring/5)*Math.abs(Math.sin(wavePhi-ring*0.7));
+    ctx.strokeStyle=`rgba(180,130,255,${alpha})`;ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(diskX,diskY,rr,0,Math.PI*2);ctx.stroke();
+  }
+
+  // Ryu-Takayanagi surface: minimal arc connecting two boundary points
+  const rtAngle=Math.PI*0.9+t*0.15;
+  const rtSpan=Math.PI*0.55;
+  const rtA1=rtAngle-rtSpan/2, rtA2=rtAngle+rtSpan/2;
+  const bx1=diskX+diskR*Math.cos(rtA1),by1=diskY+diskR*Math.sin(rtA1);
+  const bx2=diskX+diskR*Math.cos(rtA2),by2=diskY+diskR*Math.sin(rtA2);
+  // Minimal geodesic in Poincare disk: semicircle orthogonal to boundary
+  const midA=(rtA1+rtA2)/2;
+  const chordMidX=(bx1+bx2)/2,chordMidY=(by1+by2)/2;
+  const chordLen=Math.sqrt((bx2-bx1)**2+(by2-by1)**2)/2;
+  const rtDepth=Math.sqrt(Math.max(0,diskR*diskR-chordLen*chordLen));
+  ctx.strokeStyle='rgba(100,255,180,0.8)';ctx.lineWidth=2.5;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(bx1,by1);
+  // Approximate RT surface as arc into bulk
+  const numPts=30;
+  for(let k=0;k<=numPts;k++){
+    const frac=k/numPts;
+    const px=bx1*(1-frac)+bx2*frac;
+    const py=by1*(1-frac)+by2*frac;
+    const sag=rtDepth*0.55*Math.sin(Math.PI*frac);
+    const nx=Math.cos(midA+Math.PI/2),ny=Math.sin(midA+Math.PI/2);
+    if(k===0)ctx.moveTo(px-sag*nx,py-sag*ny);else ctx.lineTo(px-sag*nx,py-sag*ny);
+  }
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(100,255,180,0.8)';ctx.font='12px monospace';
+  ctx.fillText('RT surface',diskX-diskR*0.1,diskY+diskR*0.85);
+  ctx.fillText('S_EE = Area/(4G_N)',diskX-diskR*0.1,diskY+diskR*0.97);
+
+  // Highlight boundary region A
+  ctx.strokeStyle='rgba(100,255,180,0.9)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(diskX,diskY,diskR,rtA1,rtA2);ctx.stroke();
+  ctx.fillStyle='rgba(100,255,180,0.8)';ctx.font='12px monospace';
+  ctx.fillText('region A',bx1-10,by1-10);
+
+  // Right panel: AdS/CFT dictionary
+  const dictX=W*0.70,dictY=H*0.10;
+  ctx.fillStyle='rgba(255,153,102,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('AdS/CFT Dictionary',dictX,dictY);
+  const entries=[
+    ['Bulk','Boundary CFT'],
+    ['graviton','stress tensor T_uv'],
+    ['scalar m^2','operator dim Delta='+Delta.toFixed(2)],
+    ['gauge field','global current J_u'],
+    ['black hole','finite temperature T'],
+    ['RT surface','entanglement entropy'],
+    ['radial coord z','RG scale mu~1/z'],
+    ['AdS radius L','sqrt(lambda) coupling'],
+  ];
+  entries.forEach((row,i)=>{
+    const yy=dictY+16+i*16;
+    ctx.fillStyle=i===0?'rgba(255,255,255,0.6)':'rgba(255,153,102,0.7)';
+    ctx.font=i===0?'bold 9px monospace':'9px monospace';
+    ctx.fillText(row[0],dictX,yy);
+    ctx.fillStyle=i===0?'rgba(255,255,255,0.6)':'rgba(100,200,255,0.7)';
+    ctx.fillText('-> '+row[1],dictX+90,yy);
+  });
+
+  // Coupling annotation
+  ctx.fillStyle='rgba(255,220,100,0.7)';ctx.font='12px monospace';
+  ctx.fillText('lambda = g_YM^2 N = L^4/alpha\'^2',dictX,H*0.70);
+  ctx.fillText('g_s = g_YM^2/(4pi)',dictX,H*0.74);
+  ctx.fillText('Large N: supergravity valid',dictX,H*0.78);
+  ctx.fillText('N=4 SYM <-> Type IIB on AdS5xS5',dictX,H*0.82);
+
+  ctx.restore();
+}
+
+// ---- TAB 6: SUPERSTRINGS & SUSY ----
+function draw6(){
+  const cv=document.getElementById('c6');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr;cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const susyType=document.getElementById('susyType').value;
+  const n=parseInt(document.getElementById('snSlider').value);
+  document.getElementById('snVal').textContent=n;
+  const t=animOffsets[6];
+  ctx.save();ctx.translate(pans[6].x,pans[6].y);ctx.scale(zooms[6],zooms[6]);
+
+  // --- Worldsheet diagram (sigma-tau grid) ---
+  const wsX=W*0.06,wsY=H*0.08,wsW=W*0.36,wsH=H*0.55;
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('Superstring worldsheet',wsX,wsY-8);
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='12px monospace';
+  ctx.fillText('sigma (0 to pi) ->',wsX,wsY+wsH+14);
+  ctx.fillText('tau (time) ^',wsX-36,wsY+wsH/2);
+
+  // tau axis
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(wsX,wsY);ctx.lineTo(wsX,wsY+wsH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(wsX,wsY+wsH);ctx.lineTo(wsX+wsW,wsY+wsH);ctx.stroke();
+
+  // Bosonic field X^mu (blue curves)
+  const numTauSlices=8;
+  for(let ti=0;ti<=numTauSlices;ti++){
+    const tau=ti/numTauSlices;
+    const y=wsY+tau*wsH;
+    ctx.strokeStyle='rgba(100,170,255,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let si=0;si<=40;si++){
+      const sig=si/40;
+      const x=wsX+sig*wsW;
+      const yy=y+8*Math.sin(n*Math.PI*sig)*Math.cos(t*2+tau*Math.PI*2);
+      if(si===0)ctx.moveTo(x,yy);else ctx.lineTo(x,yy);
+    }
+    ctx.stroke();
+  }
+
+  // Fermionic field psi^mu (orange, smaller amplitude)
+  for(let ti=0;ti<=numTauSlices;ti++){
+    const tau=ti/numTauSlices;
+    const y=wsY+tau*wsH;
+    ctx.strokeStyle='rgba(255,153,102,0.4)';ctx.lineWidth=1;
+    ctx.beginPath();
+    for(let si=0;si<=40;si++){
+      const sig=si/40;
+      const x=wsX+sig*wsW;
+      const yy=y+5*Math.cos(n*Math.PI*sig+0.5)*Math.sin(t*2.5+tau*Math.PI*2+1);
+      if(si===0)ctx.moveTo(x,yy);else ctx.lineTo(x,yy);
+    }
+    ctx.stroke();
+  }
+
+  ctx.fillStyle='rgba(100,170,255,0.7)';ctx.font='12px monospace';
+  ctx.fillText('X^mu (bosonic)',wsX,wsY+wsH+28);
+  ctx.fillStyle='rgba(255,153,102,0.7)';
+  ctx.fillText('psi^mu (fermionic)',wsX+W*0.14,wsY+wsH+28);
+
+  // --- GSO projection panel ---
+  const gsoX=W*0.47,gsoY=H*0.10;
+  ctx.fillStyle='rgba(255,200,100,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('GSO Projection',gsoX,gsoY);
+  const gsoData=[
+    {sector:'NS-',state:'tachyon',mass:-1,keep:false,col:'rgba(255,80,80,0.7)'},
+    {sector:'NS+',state:'massless boson',mass:0,keep:true,col:'rgba(100,255,150,0.7)'},
+    {sector:'R+',state:'massless fermion',mass:0,keep:true,col:'rgba(100,200,255,0.7)'},
+    {sector:'R-',state:'(remove)',mass:0,keep:susyType==='IIA',col:susyType==='IIA'?'rgba(100,200,255,0.7)':'rgba(255,80,80,0.7)'},
+  ];
+  gsoData.forEach((row,i)=>{
+    const gy=gsoY+18+i*22;
+    ctx.fillStyle=row.col;
+    ctx.fillRect(gsoX,gy,9,14);
+    ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='12px monospace';
+    ctx.fillText(row.sector+': '+row.state+(row.keep?' [KEEP]':' [GSO REMOVED]'),gsoX+13,gy+11);
+  });
+
+  // SUSY type info
+  ctx.fillStyle='rgba(255,220,100,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('Theory: '+susyType,gsoX,gsoY+120);
+  const susyInfo={
+    'IIA':'Non-chiral. Left+right spinors opposite chirality. RR: 1-form, 3-form.',
+    'IIB':'Chiral. Same chirality. Self-dual 5-form. SL(2,Z) symmetry.',
+    'HE':'Heterotic E8xE8. Left: bosonic 26D. Right: super 10D. 496 gauge bosons.',
+    'HO':'Heterotic SO(32). Left: bosonic 26D (SO(32) lattice). S-dual to Type I.'
+  };
+  ctx.fillStyle='rgba(200,200,200,0.7)';ctx.font='12px monospace';
+  const infoLines=(susyInfo[susyType]||'').split('. ');
+  infoLines.forEach((line,i)=>ctx.fillText(line+'.',gsoX,gsoY+134+i*13));
+
+  // --- Superpartner spectrum ---
+  const spX=W*0.47,spY=H*0.55;
+  ctx.fillStyle='rgba(180,130,255,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('Superpartner spectrum (schematic)',spX,spY);
+  const particles=[
+    {name:'graviton (2)',partner:'gravitino (3/2)',col:'#ffcc44'},
+    {name:'gauge boson (1)',partner:'gaugino (1/2)',col:'#ff9966'},
+    {name:'Higgs (0)',partner:'Higgsino (1/2)',col:'#66ff88'},
+    {name:'quark (1/2)',partner:'squark (0)',col:'#66aaff'},
+    {name:'lepton (1/2)',partner:'slepton (0)',col:'#ff88cc'},
+  ];
+  particles.forEach((p,i)=>{
+    const py=spY+14+i*20;
+    ctx.fillStyle=p.col;ctx.font='12px monospace';
+    ctx.fillText(p.name,spX,py);
+    ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.fillText('<->',spX+140,py);
+    ctx.fillStyle=p.col;
+    ctx.fillText(p.partner,spX+165,py);
+    // Connecting line (oscillating to show SUSY)
+    const phase=t+i;
+    ctx.strokeStyle=p.col.replace('#','rgba(').replace(')',',0.3)');
+    ctx.lineWidth=1;
+  });
+
+  // CY compactification note
+  ctx.fillStyle='rgba(100,200,255,0.6)';ctx.font='12px monospace';
+  ctx.fillText('Calabi-Yau 3-fold compactification:',spX,H*0.87);
+  ctx.fillText('10D -> 4D, N=1 SUSY (heterotic)',spX,H*0.91);
+  ctx.fillText('Generations = |h^{1,1} - h^{2,1}|',spX,H*0.95);
+
+  ctx.restore();
+}
+
+// ---- TAB 7: STRING COSMOLOGY & LANDSCAPE ----
+function draw7(){
+  const cv=document.getElementById('c7');
+  const ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth,H=cv.offsetHeight;
+  if(!W||!H)return;
+  cv.width=W*dpr;cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const fluxN=parseInt(document.getElementById('fluxN').value);
+  const vacuaC=parseInt(document.getElementById('vacuaCount').value);
+  document.getElementById('fluxNVal').textContent=fluxN;
+  document.getElementById('vacuaCountVal').textContent=vacuaC;
+  const t=animOffsets[7];
+  ctx.save();ctx.translate(pans[7].x,pans[7].y);ctx.scale(zooms[7],zooms[7]);
+
+  // --- Flux compactification: CY with fluxes ---
+  const cyX=W*0.15,cyY=H*0.22,cyR=48;
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('Flux Compactification',W*0.05,H*0.07);
+  // CY sketch
+  ctx.strokeStyle='rgba(255,153,102,0.6)';ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=80;i++){
+    const th=i/80*Math.PI*2;
+    const rr=cyR*(1+0.3*Math.cos(3*th));
+    const x=cyX+rr*Math.cos(th+t*0.2);
+    const y=cyY+rr*Math.sin(th+t*0.2)*0.55;
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  // Flux lines threading cycles
+  for(let f=0;f<fluxN;f++){
+    const fa=f*(Math.PI*2/fluxN)+t*0.3;
+    const fr=cyR*0.55;
+    ctx.strokeStyle='rgba(100,220,255,0.7)';ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.arc(cyX,cyY,fr,fa,fa+Math.PI*1.1);ctx.stroke();
+    const arX=cyX+fr*Math.cos(fa+Math.PI*1.05);
+    const arY=cyY+fr*Math.sin(fa+Math.PI*1.05)*0.55;
+    ctx.fillStyle='rgba(100,220,255,0.8)';
+    ctx.beginPath();ctx.arc(arX,arY,3,0,Math.PI*2);ctx.fill();
+  }
+  ctx.fillStyle='rgba(100,220,255,0.7)';ctx.font='12px monospace';
+  ctx.fillText(fluxN+' flux quanta threading CY cycles',W*0.05,H*0.40);
+  ctx.fillStyle='rgba(255,200,100,0.6)';
+  ctx.fillText('Each flux choice = one vacuum',W*0.05,H*0.44);
+
+  // --- Landscape potential ---
+  const lsX=W*0.05,lsY=H*0.85,lsW=W*0.55,lsH=H*0.32;
+  ctx.fillStyle='rgba(255,153,102,0.8)';ctx.font='bold 12px monospace';
+  ctx.fillText('String Landscape  (~10^500 vacua)',lsX,lsY-lsH-10);
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(lsX,lsY);ctx.lineTo(lsX+lsW,lsY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(lsX,lsY);ctx.lineTo(lsX,lsY-lsH);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.3)';ctx.font='12px monospace';
+  ctx.fillText('phi (moduli)',lsX+lsW-40,lsY+12);
+  ctx.fillText('V(phi)',lsX-28,lsY-lsH+10);
+
+  // Generate rugged landscape with vacuaC minima visible
+  const lsPts=[];
+  const seed=42;
+  for(let i=0;i<=vacuaC*6;i++){
+    const frac=i/(vacuaC*6);
+    const x=lsX+frac*lsW;
+    const y=lsY-lsH*0.2
+      -lsH*0.45*Math.abs(Math.sin(frac*Math.PI*vacuaC*0.4))
+      -lsH*0.2*Math.abs(Math.sin(frac*Math.PI*vacuaC*0.9+1.3))
+      +lsH*0.18*Math.sin(frac*Math.PI*3+0.4);
+    lsPts.push({x,y:Math.max(lsY-lsH+5,Math.min(lsY-6,y))});
+  }
+  // Fill
+  ctx.fillStyle='rgba(255,100,50,0.07)';
+  ctx.beginPath();ctx.moveTo(lsX,lsY);
+  lsPts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(lsX+lsW,lsY);ctx.closePath();ctx.fill();
+  // Curve
+  ctx.strokeStyle='#ff9966';ctx.lineWidth=1.5;
+  ctx.beginPath();lsPts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+
+  // Mark vacua (local minima)
+  let vacFound=[];
+  for(let i=1;i<lsPts.length-1;i++){
+    if(lsPts[i].y>lsPts[i-1].y&&lsPts[i].y>lsPts[i+1].y) vacFound.push(lsPts[i]);
+  }
+  vacFound.forEach((vp,vi)=>{
+    ctx.fillStyle='rgba(100,255,180,0.8)';
+    ctx.beginPath();ctx.arc(vp.x,vp.y,4,0,Math.PI*2);ctx.fill();
+  });
+
+  // Animate ball tunneling between vacua
+  if(t>0){
+    const ballIdx=Math.floor((t*0.18)%Math.max(1,vacFound.length));
+    const nextIdx=(ballIdx+1)%Math.max(1,vacFound.length);
+    if(vacFound.length>1){
+      const bp=vacFound[ballIdx];
+      const np=vacFound[nextIdx];
+      const frac=((t*0.18)%1);
+      const bx=bp.x*(1-frac)+np.x*frac;
+      // Tunneling arc (goes through barrier)
+      const barrier=Math.min(bp.y,np.y)-30;
+      const by=bp.y*(1-frac)+np.y*frac - 24*Math.sin(Math.PI*frac);
+      ctx.fillStyle='#ffee44';ctx.strokeStyle='rgba(255,238,68,0.3)';ctx.lineWidth=5;
+      ctx.beginPath();ctx.arc(bx,by,6,0,Math.PI*2);ctx.fill();ctx.stroke();
+      // Tunneling label
+      ctx.fillStyle='rgba(255,238,68,0.7)';ctx.font='12px monospace';
+      ctx.fillText('tunneling',bx-20,by-14);
+    }
+  }
+
+  ctx.fillStyle='rgba(100,255,180,0.6)';ctx.font='12px monospace';
+  ctx.fillText(vacFound.length+' vacua shown. Each = different low-energy physics.',lsX,lsY+14);
+
+  // --- Right panel: KKLT, Swampland, Cosmology ---
+  const rpX=W*0.65,rpY=H*0.08;
+  ctx.fillStyle='rgba(255,200,100,0.9)';ctx.font='bold 12px monospace';
+  ctx.fillText('Key Results',rpX,rpY);
+  const items=[
+    {hd:'KKLT (2003)',tx:'Flux+nonpert. effects stabilize all moduli. Uplift with anti-D3 -> dS vacuum.'},
+    {hd:'Swampland',tx:'|grad V|/V >= c/M_Pl ? dS vacua may be in swampland (no consistent QG).'},
+    {hd:'Eternal inflation',tx:'False vacuum patches inflate forever. Bubble nucleation seeds new universes.'},
+    {hd:'Anthropic',tx:'We observe vacuum with small Lambda because it permits stars, chemistry, life.'},
+    {hd:'String gas',tx:'Winding modes select 3 large dims. Alternative to inflationary paradigm.'},
+    {hd:'Ekpyrotic',tx:'Brane collision = hot Big Bang. Cyclic cosmology avoids initial singularity.'},
+  ];
+  items.forEach((item,i)=>{
+    const iy=rpY+16+i*52;
+    ctx.fillStyle='rgba(255,200,100,0.85)';ctx.font='bold 12px monospace';
+    ctx.fillText(item.hd,rpX,iy);
+    ctx.fillStyle='rgba(200,200,200,0.7)';ctx.font='12px monospace';
+    const words=item.tx.split(' ');let line='',lineY=iy+12;
+    words.forEach(w=>{
+      const test=line+(line?' ':'')+w;
+      if(ctx.measureText(test).width>W*0.32){
+        ctx.fillText(line,rpX,lineY);line=w;lineY+=12;
+      } else line=test;
+    });
+    ctx.fillText(line,rpX,lineY);
+  });
+
+  ctx.restore();
+}
+
+// Pan/zoom for canvases 3-7
+addPanZoom('c3',3,draw3);
+addPanZoom('c4',4,draw4);
+addPanZoom('c5',5,draw5);
+addPanZoom('c6',6,draw6);
+addPanZoom('c7',7,draw7);
+
+// ---- INIT ----
+window.animSpeed=0.1;
+window.zoomX=1;
+buildProofLists();
+requestAnimationFrame(()=>{draw0();draw1();draw2();draw3();draw4();draw5();draw6();draw7();});
+
+window.addEventListener('resize',()=>{
+  const active=[...document.querySelectorAll('.pane')].findIndex(p=>p.classList.contains('active'));
+  const allD=[draw0,draw1,draw2,draw3,draw4,draw5,draw6,draw7];
+  if(active>=0&&allD[active]) allD[active]();
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

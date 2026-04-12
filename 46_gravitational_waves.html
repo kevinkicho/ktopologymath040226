@@ -1,0 +1,2541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>46 · Gravitational Waves &amp; LIGO</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg1:#0d0d1a; --bg2:#12122a; --bg3:#1a1a35;
+  --border:#2a2a50; --text:#e8e8f8; --muted:#8888aa;
+  --accent:#88aaff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg1);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.82rem;opacity:.6}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.76rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.25rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.74rem;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 20px;flex-shrink:0}
+.tab{padding:9px 18px;cursor:pointer;font-size:.81rem;border-bottom:2px solid transparent;color:var(--muted);transition:.18s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.pane{display:none;flex:1;overflow:hidden}
+.pane.active{display:flex}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.74rem;color:var(--muted)}
+.controls input[type=range]{width:90px;accent-color:var(--accent)}
+.controls span.val{font-size:.74rem;color:var(--accent);min-width:32px}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 7px;border-radius:4px;font-size:.76rem;cursor:pointer}
+select:focus{outline:none;border-color:var(--accent)}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.76rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.on{border-color:var(--accent);color:var(--accent);background:#0a0a22}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:7px 12px;font-size:.73rem;color:var(--muted);line-height:1.65;flex-shrink:0}
+.info-box .v{color:var(--accent);font-weight:600}
+.side-panel{width:300px;min-width:200px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:13px 12px;gap:9px;flex-shrink:0}
+.side-panel h3{font-size:.85rem;color:var(--accent);margin-bottom:2px}
+.side-panel p,.side-panel li{font-size:.72rem;color:var(--muted);line-height:1.65}
+.side-panel ul{padding-left:13px}
+.side-panel .eq{font-size:.76rem;color:var(--text);padding:4px 8px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--accent);margin:2px 0}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 19, 30</span>
+  <div class="title-block">
+    <h1>≋ &nbsp;Gravitational Waves &amp; LIGO</h1>
+    <p>Binary inspiral, interferometric detection, chirp waveforms, and multimessenger astronomy — Nobel Prize 2017</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Binary Inspiral</div>
+  <div class="tab" onclick="switchTab(1)">LIGO Detector</div>
+  <div class="tab" onclick="switchTab(2)">Chirp &amp; Matched Filter</div>
+  <div class="tab" onclick="switchTab(3)">Notable Events</div>
+  <div class="tab" onclick="switchTab(4)">Merger Dynamics</div>
+  <div class="tab" onclick="switchTab(5)">LIGO Interferometry</div>
+  <div class="tab" onclick="switchTab(6)">Pulsar Timing Array</div>
+  <div class="tab" onclick="switchTab(7)">LISA &amp; Space Detectors</div>
+  <div class="tab" onclick="switchTab(8)">NS Multi-messenger</div>
+</div>
+
+<div id="main">
+
+<!-- ===== TAB 0: BINARY INSPIRAL ===== -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <canvas id="c0" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+      <label>Mass₁ ($M_\odot$):</label>
+      <input type="range" id="m1sl" min="5" max="50" value="29" oninput="onM1()">
+      <span class="val" id="m1v">29</span>
+      <label>Mass₂ ($M_\odot$):</label>
+      <input type="range" id="m2sl" min="5" max="50" value="36" oninput="onM2()">
+      <span class="val" id="m2v">36</span>
+      <label>Speed:</label>
+      <input type="range" id="spd0" min="0.1" max="1" step="0.1" value="0.3">
+      <span class="val" id="spd0v">0.3×</span>
+      <button id="btn0pp" class="btn" onclick="toggle0()">▶ Play</button>
+      <button onclick="reset0()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed0" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal0">0.1x</span>
+    </div>
+    <div class="controls" data-role="sidebar">
+      <label>Time:</label>
+      <input type="range" id="timeScrub" min="0" max="0" value="0" style="width:180px" oninput="onTimeScrub(this.value)" onmousedown="scrubbing=true" onmouseup="onScrubRelease()">
+      <span class="val" id="timeScrubVal">0.0 s</span>
+      <span id="phaseLabel" style="font-size:.73rem;font-weight:600;color:#88aaff;min-width:80px">INSPIRAL</span>
+    </div>
+    <div class="info-box">
+      Chirp mass: <span class="v" id="chirpDisp">—</span> $M_\odot$ &nbsp;|&nbsp;
+      Orbital period: <span class="v" id="periodDisp">—</span> ms &nbsp;|&nbsp;
+      Separation: <span class="v" id="sepDisp">—</span> $R_\odot$ &nbsp;|&nbsp;
+      GW freq: <span class="v" id="gwfreqDisp">—</span> Hz
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about0">
+    <h3>Gravitational Wave Generation</h3>
+    <div class="eq">$$P = -\frac{G}{5c^5}\overset{...}{Q}_{ij}\overset{...}{Q}^{ij}$$</div>
+    <p>The <strong style="color:var(--text)">quadrupole formula</strong> gives the power radiated in gravitational waves. $Q_{ij}$ is the mass quadrupole moment — only changing quadrupoles radiate.</p>
+    <h3 style="margin-top:4px">Chirp Mass</h3>
+    <div class="eq">$$\mathcal{M} = \frac{(m_1 m_2)^{3/5}}{(m_1+m_2)^{1/5}}$$</div>
+    <p>The chirp mass is the most precisely measured quantity from the gravitational waveform — it governs the rate of frequency increase ("chirp").</p>
+    <h3 style="margin-top:4px">Inspiral Timescale</h3>
+    <div class="eq">$$T_\text{merge} = \frac{12}{19}\frac{c_0^4}{\beta}\int_0^{e_0}\frac{e^{29/19}(1+\frac{121}{304}e^2)^{1181/2299}}{(1-e^2)^{3/2}}de$$</div>
+    <p>For circular orbits: $T \approx \frac{15}{304}\frac{a_0^4 c^5}{G^3 m_1 m_2 (m_1+m_2)}$</p>
+    <h3 style="margin-top:4px">Orbital Decay (Peters)</h3>
+    <div class="eq">$$\frac{da}{dt} = -\frac{64}{5}\frac{G^3 m_1 m_2(m_1+m_2)}{c^5 a^3}$$</div>
+    <p>The orbit shrinks as energy is radiated away. As $a\to 0$, frequency diverges — the "chirp." At merger, $f_\text{GW} \sim 2 f_\text{orb}$, reaching ~150 Hz for stellar-mass BHs.</p>
+    <h3 style="margin-top:4px">GW150914</h3>
+    <p>First detection: two black holes of $29\,M_\odot + 36\,M_\odot$ merging to $62\,M_\odot$, with $3\,M_\odot c^2 \approx 5\times10^{47}$ J radiated in gravitational waves — briefly outshining the entire observable universe.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 1: LIGO DETECTOR ===== -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-col">
+    <canvas id="c1" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn1animate" onclick="animate1()">▶ Animate</button>
+      <button id="btn1gw" onclick="toggle1GW()">GW On</button>
+      <label>GW freq (Hz):</label>
+      <input type="range" id="gwfreq1" min="10" max="500" value="100" oninput="onGWFreq1()">
+      <span class="val" id="gwfreq1v">100 Hz</span>
+      <label>Strain $h$:</label>
+      <input type="range" id="gwamp1" min="1" max="100" value="40" oninput="onGWAmp1()">
+      <span class="val" id="gwamp1v">4×10⁻²¹</span>
+      <button id="btnLigoSpd05" onclick="setLigoSpeed(0.5)" class="on">Speed ½×</button>
+      <button id="btnLigoSpd10" onclick="setLigoSpeed(1.0)">Speed 1×</button>
+      <button id="btnLigoSpd20" onclick="setLigoSpeed(2.0)">Speed 2×</button>
+      <button id="btn1pr" onclick="toggle1PR()">Power Recycling</button>
+      <label>Speed:</label><input type="range" id="speed1" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal1">0.1x</span>
+    </div>
+    <div class="info-box">
+      Arm length: <span class="v">4 km</span> &nbsp;|&nbsp;
+      Strain $h \sim 10^{-21}$ &nbsp;|&nbsp;
+      $\Delta L = 4\times10^3 \times 10^{-21} = 4\times10^{-18}$ m — 1/1000 of a proton diameter &nbsp;|&nbsp;
+      Output: <span class="v" id="ligoOut">Dark (no signal)</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about1">
+    <h3>Michelson Interferometer</h3>
+    <p>A laser beam is split at a <strong style="color:var(--text)">beam splitter</strong>. Light travels down two perpendicular 4-km arms, reflects off mirrors, and recombines. Without a GW, arms are equal → destructive interference → dark output.</p>
+    <div class="eq">$$\Delta\phi = \frac{4\pi L}{\lambda}h(t)$$</div>
+    <p>A passing GW stretches one arm by $+\frac{1}{2}hL$ and compresses the other by $-\frac{1}{2}hL$, creating a phase difference and a measurable light signal.</p>
+    <h3 style="margin-top:4px">Fabry-Pérot Cavities</h3>
+    <p>Each arm contains a Fabry-Pérot cavity (300 bounces): effective arm length ~1200 km, boosting sensitivity 300×.</p>
+    <h3 style="margin-top:4px">Power Recycling</h3>
+    <div class="eq">$$\text{Circulating power} \approx 100\text{ kW (from 200 W input)}$$</div>
+    <p>A recycling mirror reflects the output back in, building up laser power and reducing shot noise (quantum noise from photon counting statistics).</p>
+    <h3 style="margin-top:4px">Noise Floor</h3>
+    <p>Below $\sim$10 Hz: seismic noise. 10–100 Hz: thermal noise. Above 100 Hz: quantum (shot) noise dominates. LIGO is most sensitive at 100–300 Hz, $h\sim3\times10^{-24}/\sqrt{\text{Hz}}$.</p>
+    <h3 style="margin-top:4px">Two Detectors</h3>
+    <p>Hanford (WA) + Livingston (LA) are 3001 km apart — a GW signal arrives $\leq$10 ms apart, confirming real astrophysical origin vs. local noise. Three or more detectors triangulate sky position.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 2: CHIRP WAVEFORM ===== -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-col">
+    <canvas id="c2" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn2animate" onclick="animate2()">▶ Animate</button>
+      <button id="btn2play" onclick="toggle2Play()">Play Waveform</button>
+      <button id="btn2spec" onclick="toggle2Spec()">Spectrogram</button>
+      <button id="btn2noise" onclick="toggle2Noise()">Add Noise</button>
+      <button id="btn2snr" onclick="toggle2SNR()">Show SNR</button>
+      <button id="btn2tpl" onclick="toggle2Tpl()">Show Template</button>
+      <label>Speed:</label><input type="range" id="speed2" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal2">0.1x</span>
+    </div>
+    <div class="info-box">
+      GW150914: <span class="v">2015-09-14 09:50:45 UTC</span> &nbsp;|&nbsp;
+      Cursor time: <span class="v" id="cursorTime">—</span> s &nbsp;|&nbsp;
+      Freq: <span class="v" id="cursorFreq">—</span> Hz &nbsp;|&nbsp;
+      Strain: <span class="v" id="cursorStrain">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about2">
+    <h3>The Chirp Signal</h3>
+    <p>GW150914 swept from ~35 Hz to ~150 Hz in 0.2 seconds — the characteristic "chirp" of a binary inspiral. Both LIGO detectors saw the signal with 7ms time offset.</p>
+    <h3 style="margin-top:4px">Matched Filtering</h3>
+    <div class="eq">$$\frac{S}{N} = \frac{\langle s\,|\,h\rangle}{\sqrt{\langle h\,|\,h\rangle}}$$</div>
+    <p>Where $\langle a|b\rangle = 4\,\text{Re}\int_0^\infty \frac{\tilde{a}^*(f)\tilde{b}(f)}{S_n(f)}\,df$ and $S_n(f)$ is the noise power spectral density. LIGO achieved $\text{SNR}\approx24$ combined.</p>
+    <h3 style="margin-top:4px">GW150914 Parameters</h3>
+    <ul>
+      <li>$m_1 \approx 36\,M_\odot$, $m_2 \approx 29\,M_\odot$</li>
+      <li>$M_\text{final} \approx 62\,M_\odot$ (remnant BH)</li>
+      <li>$\sim 3\,M_\odot$ radiated as GWs</li>
+      <li>Distance: $\sim 410$ Mpc ($\sim 1.3$ billion light years)</li>
+      <li>Peak strain: $h\approx 10^{-21}$</li>
+    </ul>
+    <h3 style="margin-top:4px">Statistical Significance</h3>
+    <div class="eq">$$p\text{-value} &lt; 2\times10^{-7} \quad (5.1\sigma)$$</div>
+    <p>False alarm rate: less than 1 event per 203,000 years. Confirmed by independent analyses and both detectors.</p>
+    <h3 style="margin-top:4px">Ringdown</h3>
+    <div class="eq">$$h(t) \propto e^{-t/\tau}\cos(2\pi f_\text{QNM}\,t)$$</div>
+    <p>After merger, the remnant BH "rings down" emitting quasi-normal modes — a direct probe of Kerr black hole geometry.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 3: NOTABLE EVENTS ===== -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-col">
+    <canvas id="c3" style="flex:1;min-height:0;cursor:pointer"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn3anim" onclick="toggle3Anim()">▶ Animate</button>
+      <label>Filter:</label>
+      <select id="filter3" onchange="draw3()">
+        <option value="all">All Events</option>
+        <option value="bbh">BH-BH only</option>
+        <option value="bns">NS-NS only</option>
+        <option value="bhns">BH-NS only</option>
+      </select>
+      <button id="btn3em" onclick="toggle3EM()">EM Follow-up (GW170817)</button>
+      <button id="btn3loc" onclick="toggle3Loc()">Sky Localization</button>
+      <label>Speed:</label><input type="range" id="speed3" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal3">0.1x</span>
+    </div>
+    <div class="info-box">
+      Click an event dot to inspect it &nbsp;|&nbsp; Selected: <span class="v" id="evtName">—</span> &nbsp;|&nbsp;
+      <span class="v" id="evtParams">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about3">
+    <h3>Multimessenger Astronomy</h3>
+    <p><strong style="color:var(--text)">GW170817</strong> (Aug 17, 2017): first neutron star merger observed in both gravitational waves AND light — the dawn of multimessenger astronomy.</p>
+    <ul>
+      <li>GW signal detected by LIGO+Virgo</li>
+      <li>GRB 170817A detected 1.7s later (Fermi+INTEGRAL)</li>
+      <li>Optical kilonova AT2017gfo in NGC 4993</li>
+      <li>X-ray/radio afterglow weeks later</li>
+    </ul>
+    <h3 style="margin-top:4px">Hubble Constant</h3>
+    <div class="eq">$$H_0 = 70^{+12}_{-8}\text{ km s}^{-1}\text{Mpc}^{-1}$$</div>
+    <p>GW "standard sirens" give an independent measurement of $H_0$ — no distance ladder needed. Future detections will sharpen this dramatically.</p>
+    <h3 style="margin-top:4px">Speed of Gravity</h3>
+    <div class="eq">$$|v_\text{GW} - c|/c &lt; 5\times10^{-16}$$</div>
+    <p>The 1.7s GW-GRB delay over $\sim40$ Mpc constrains GW speed to equal $c$ to 15 decimal places — ruling out many modified gravity theories.</p>
+    <h3 style="margin-top:4px">Neutron Star EOS</h3>
+    <p>Tidal deformability from GW170817 constrains the neutron star radius to $\sim 11$–13 km and rules out very stiff equations of state.</p>
+    <h3 style="margin-top:4px">Quasi-Normal Modes</h3>
+    <div class="eq">$$f_\text{QNM} \approx \frac{c^3}{2\pi G M}\left(1 - 0.63(1-\chi)^{0.3}\right)$$</div>
+    <p>Where $\chi = a/M$ is the dimensionless spin. Each QNM frequency is a unique fingerprint of the Kerr metric — testing the "no-hair" theorem.</p>
+    <h3 style="margin-top:4px">GWTC Catalogs</h3>
+    <p>Through GWTC-3 (O1+O2+O3): 90 confirmed events. O4 ongoing. Future: LISA (space), Einstein Telescope, Cosmic Explorer.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 4: MERGER DYNAMICS & WAVEFORMS ===== -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-col">
+    <canvas id="c4" style="flex:1;min-height:0"></canvas>
+    <canvas id="c4wave" style="height:110px;flex-shrink:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Mass ratio $q=m_1/m_2$:</label>
+      <input type="range" id="q4sl" min="1" max="5" step="0.1" value="1.24" oninput="onQ4()">
+      <span class="val" id="q4v">1.24</span>
+      <label>Total mass $M$ ($M_\odot$):</label>
+      <input type="range" id="M4sl" min="20" max="150" value="65" oninput="onM4()">
+      <span class="val" id="M4v">65</span>
+      <button id="btn4pp" class="btn" onclick="toggle4()">▶ Play</button>
+      <button onclick="reset4()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed4" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal4">0.1x</span>
+    </div>
+    <div class="info-box">
+      Chirp mass: <span class="v" id="chirp4">—</span> $M_\odot$ &nbsp;|&nbsp;
+      GW freq: <span class="v" id="freq4">—</span> Hz &nbsp;|&nbsp;
+      Phase: <span class="v" id="phase4lbl">INSPIRAL</span> &nbsp;|&nbsp;
+      $f_{\rm chirp} \propto \mathcal{M}^{-5/8}$
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Quadrupole Formula</h3>
+    <div class="eq">$$\dot{h} \propto \frac{d^2 Q_{ij}}{dt^2}$$</div>
+    <p>Only accelerating mass quadrupoles radiate GWs. Monopole &amp; dipole are forbidden by conservation laws.</p>
+    <h3 style="margin-top:4px">Chirp Mass</h3>
+    <div class="eq">$$\mathcal{M}=\frac{(m_1 m_2)^{3/5}}{(m_1+m_2)^{1/5}}$$</div>
+    <p>The chirp mass governs the frequency sweep rate — the single most measurable quantity from the waveform.</p>
+    <h3 style="margin-top:4px">Notable Events</h3>
+    <ul>
+      <li><strong style="color:var(--text)">GW150914</strong>: $36+29\to62\,M_\odot$, $3\,M_\odot c^2$ radiated</li>
+      <li><strong style="color:var(--text)">GW170817</strong>: first NS-NS, optical kilonova AT2017gfo, GRB 170817A</li>
+      <li><strong style="color:var(--text)">GW190814</strong>: $23\,M_\odot$ BH + $2.6\,M_\odot$ mass-gap object</li>
+      <li><strong style="color:var(--text)">GW190521</strong>: $85+66\,M_\odot$, product $150\,M_\odot$ intermediate-mass BH</li>
+    </ul>
+    <h3 style="margin-top:4px">GWTC-3 Catalog</h3>
+    <p>O1+O2+O3 runs: 90 confirmed events. Most BBH, two BNS, a few BHNS. O4 ongoing targeting 160+ events/year at design sensitivity.</p>
+    <h3 style="margin-top:4px">Ringdown</h3>
+    <div class="eq">$$h(t)\propto e^{-t/\tau}\cos(2\pi f_{\rm QNM}\,t)$$</div>
+    <p>Quasi-normal modes probe the Kerr geometry directly — testing general relativity's no-hair theorem.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 5: LIGO INTERFEROMETRY (deep) ===== -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-col">
+    <canvas id="c5" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn5gw" onclick="toggle5GW()">GW Off</button>
+      <label>Noise:</label>
+      <button id="btn5shot" onclick="toggle5Noise('shot')">Shot noise</button>
+      <button id="btn5seis" onclick="toggle5Noise('seismic')">Seismic</button>
+      <button id="btn5therm" onclick="toggle5Noise('thermal')">Thermal</button>
+      <button id="btn5sq" onclick="toggle5Noise('squeeze')">Squeezing</button>
+      <button id="btn5fp" onclick="toggle5FP()">Fabry-Pérot</button>
+      <button id="btn5pr5" onclick="toggle5PR()">Power Recycling</button>
+      <button id="btn5sr" onclick="toggle5SR()">Signal Recycling</button>
+      <button id="btn5pp" class="btn" onclick="toggle5()">▶ Play</button>
+      <label>Speed:</label><input type="range" id="speed5" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal5">0.1x</span>
+    </div>
+    <div class="info-box">
+      Eff. arm length: <span class="v" id="effArm5">4 km</span> &nbsp;|&nbsp;
+      $h\sim10^{-21}$: $\Delta L\sim4\times10^{-18}$ m (1/1000 proton) &nbsp;|&nbsp;
+      Output: <span class="v" id="out5">Dark</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Michelson + Fabry-Pérot</h3>
+    <div class="eq">$$\Delta\phi = \frac{4\pi L_{\rm eff}}{\lambda}h(t)$$</div>
+    <p>Each 4 km arm houses a Fabry-Pérot cavity (~300 bounces) → $L_{\rm eff}\approx1200$ km effective length, boosting signal 300×.</p>
+    <h3 style="margin-top:4px">Standard Quantum Limit</h3>
+    <div class="eq">$$h_{\rm SQL}=\sqrt{\frac{8\hbar}{m\,\Omega^2 L^2}}$$</div>
+    <p>Radiation pressure noise (quantum back-action) sets a fundamental limit. <strong style="color:var(--text)">Squeezed light</strong> rotates the quantum noise ellipse to beat the SQL — already implemented in LIGO A+.</p>
+    <h3 style="margin-top:4px">Noise Budget</h3>
+    <ul>
+      <li>$&lt;10$ Hz: seismic (4-layer isolation stacks)</li>
+      <li>10–100 Hz: thermal (mirror coating Brownian noise)</li>
+      <li>$&gt;100$ Hz: quantum shot noise</li>
+      <li>Best sensitivity $\sim3\times10^{-24}/\sqrt{\rm Hz}$ at 100–300 Hz</li>
+    </ul>
+    <h3 style="margin-top:4px">Power &amp; Signal Recycling</h3>
+    <p>Power recycling mirror builds 200 W → 100 kW circulating power. Signal recycling mirror (signal recycling cavity) shapes the frequency response — can be tuned for narrow-band astrophysics.</p>
+    <h3 style="margin-top:4px">LIGO A+ &amp; Future</h3>
+    <p>LIGO A+ (2024+): 40% sensitivity improvement with squeezed light + better coatings. Einstein Telescope (triangle, 10 km arms, underground) and Cosmic Explorer (40 km L-shape) will reach $z\sim100$ for BNS.</p>
+    <h3 style="margin-top:4px">Homodyne Detection</h3>
+    <div class="eq">$$I_{\rm out}\propto P_{\rm in}\sin^2\!\left(\frac{\Delta\phi}{2}\right)\approx\frac{P_{\rm in}}{4}\Delta\phi^2$$</div>
+    <p>DC readout (homodyne) replaced RF heterodyne in Advanced LIGO, reducing technical noise below the SQL level.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 6: PULSAR TIMING ARRAY ===== -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-col">
+    <canvas id="c6" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn6pp" class="btn" onclick="toggle6()">▶ Play</button>
+      <button id="btn6hd" onclick="toggle6HD()">Show HD Curve</button>
+      <button id="btn6res" onclick="toggle6Res()">Show Residuals</button>
+      <label>GWB amplitude:</label>
+      <input type="range" id="gwbAmp6" min="1" max="10" value="5" oninput="draw6update()">
+      <span class="val" id="gwbAmpV">5</span>
+      <label>Speed:</label><input type="range" id="speed6" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal6">0.1x</span>
+    </div>
+    <div class="info-box">
+      MSPs shown: <span class="v" id="mspCount">67</span> &nbsp;|&nbsp;
+      Cadence: weeks–months &nbsp;|&nbsp;
+      GWB frequency: <span class="v">$\sim$nHz ($1/T_{\rm obs}$)</span> &nbsp;|&nbsp;
+      NANOGrav 2023: <span class="v">4.6σ HD signal</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Pulsar Timing Arrays</h3>
+    <p>Arrays of ~70 millisecond pulsars (MSPs) act as a galactic-scale GW detector. GWs stretch/compress spacetime, causing correlated changes in pulse arrival times.</p>
+    <h3 style="margin-top:4px">Hellings-Downs Correlation</h3>
+    <div class="eq">$$\Gamma(\zeta)=\frac{3}{2}\frac{1-\cos\zeta}{2}\ln\!\left(\frac{1-\cos\zeta}{2}\right)-\frac{1}{4}\frac{1-\cos\zeta}{2}+\frac{1}{2}+\frac{1}{2}\delta(\hat{\Omega})$$</div>
+    <p>Pairs of pulsars separated by angle $\zeta$ show a specific correlation pattern — the unique GWB signature (vs. clock noise which gives a flat correlation).</p>
+    <h3 style="margin-top:4px">2023 Detection</h3>
+    <ul>
+      <li><strong style="color:var(--text)">NANOGrav 15yr</strong>: 4.6σ evidence for HD correlations, $A_{\rm GWB}\approx2.4\times10^{-15}$</li>
+      <li>Confirmed by PPTA, EPTA, InPTA simultaneously (June 2023)</li>
+      <li>First nHz GWB detection</li>
+    </ul>
+    <h3 style="margin-top:4px">Possible Sources</h3>
+    <ul>
+      <li>SMBH binary background (most likely): merging supermassive BHs at all redshifts</li>
+      <li>Cosmic strings: network of topological defects from early universe</li>
+      <li>First-order phase transitions: QCD or electroweak era</li>
+      <li>Primordial GWs from inflation</li>
+    </ul>
+    <h3 style="margin-top:4px">SKA Future</h3>
+    <p>Square Kilometre Array will time $\sim$1000 MSPs with sub-μs precision — sensitivity to individual SMBH binary sources and definitive characterization of the GWB spectrum $\Omega_{\rm GW}(f)$.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 7: LISA & SPACE DETECTORS ===== -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-col">
+    <canvas id="c7" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn7pp" class="btn" onclick="toggle7()">▶ Play</button>
+      <button id="btn7tdi" onclick="toggle7TDI()">Show TDI links</button>
+      <button id="btn7src" onclick="toggle7Src()">Source classes</button>
+      <button id="btn7curve" onclick="toggle7Curve()">Sensitivity curves</button>
+      <label>LISA arm length (Mkm):</label>
+      <input type="range" id="lisa7arm" min="1" max="5" step="0.5" value="2.5" oninput="draw7update()">
+      <span class="val" id="lisa7armV">2.5</span>
+      <label>Speed:</label><input type="range" id="speed7" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal7">0.1x</span>
+    </div>
+    <div class="info-box">
+      LISA band: <span class="v">0.1 mHz – 1 Hz</span> &nbsp;|&nbsp;
+      Arm length: <span class="v" id="lisaArmDisp">2.5×10⁶ km</span> &nbsp;|&nbsp;
+      Launch: <span class="v">ESA 2035</span> &nbsp;|&nbsp;
+      Orbit: <span class="v">trailing Earth by 20°</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>LISA Constellation</h3>
+    <p>Three spacecraft in an equilateral triangle with 2.5 million km arms, trailing Earth by 20° in a heliocentric orbit. The triangle orientation rotates over 1 year.</p>
+    <h3 style="margin-top:4px">Time-Delay Interferometry</h3>
+    <div class="eq">$$X = (1-\hat{D}_{31}\hat{D}_{13})\left[y_{21}+\hat{D}_{12}y_{31}\right] - (1-\hat{D}_{12}\hat{D}_{21})\left[y_{31}+\hat{D}_{13}y_{21}\right]$$</div>
+    <p>TDI cancels laser frequency noise (dominant by $10^8$×) by combining time-delayed laser links. Essential because LISA arms are unequal in length and changing.</p>
+    <h3 style="margin-top:4px">Source Classes</h3>
+    <ul>
+      <li><strong style="color:var(--text)">Massive BH mergers</strong>: $10^4$–$10^7\,M_\odot$ at $z\sim20$, SNR $\sim10^3$–$10^5$</li>
+      <li><strong style="color:var(--text)">EMRIs</strong>: compact object spiraling into MBH over $10^5$ cycles — extreme precision tests of GR</li>
+      <li><strong style="color:var(--text)">Verification binaries</strong>: AM CVn, HM Cnc (known WD-WD binaries already detected optically)</li>
+      <li><strong style="color:var(--text)">Stochastic</strong>: GWB from cosmological phase transitions</li>
+    </ul>
+    <h3 style="margin-top:4px">LISA Pathfinder</h3>
+    <p>Launched 2015: demonstrated free-fall precision $5\times10^{-15}\,{\rm m}/\sqrt{\rm Hz}$, 100× better than required. LISA technology fully validated.</p>
+    <h3 style="margin-top:4px">Multi-band Astronomy</h3>
+    <p>LISA detects stellar BBH mergers years before LIGO — early warning enables electromagnetic follow-up. Deci-Hz gap: DECIGO (Japan) and BBO will bridge LISA and LIGO bands. Einstein Telescope + Cosmic Explorer on ground.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 8: NS PHYSICS & MULTI-MESSENGER ===== -->
+<div class="pane" data-role="panel" id="pane8">
+  <div class="canvas-col">
+    <canvas id="c8" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn8pp" class="btn" onclick="toggle8()">▶ Play</button>
+      <button id="btn8tidal" onclick="toggle8Tidal()">Tidal phase</button>
+      <button id="btn8kn" onclick="toggle8KN()">Kilonova</button>
+      <button id="btn8grb" onclick="toggle8GRB()">GRB jet</button>
+      <label>$\Lambda_{1.4}$:</label>
+      <input type="range" id="lambda8" min="100" max="1400" value="400" oninput="draw8update()">
+      <span class="val" id="lambda8V">400</span>
+      <label>Speed:</label><input type="range" id="speed8" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal8">0.1x</span>
+    </div>
+    <div class="info-box">
+      GW170817: <span class="v">Aug 17, 2017</span> &nbsp;|&nbsp;
+      AT2017gfo kilonova &nbsp;|&nbsp;
+      GRB 170817A (+1.7 s) &nbsp;|&nbsp;
+      $\Lambda_{1.4}&lt;800$ &nbsp;|&nbsp;
+      $R_{1.4}\approx11$–13 km
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>GW170817: Multi-messenger</h3>
+    <p>First NS-NS merger detected simultaneously in GWs (LIGO+Virgo), gamma rays (Fermi GRB 170817A +1.7 s), UV/optical/IR kilonova AT2017gfo in NGC 4993 (~40 Mpc), and X-ray/radio afterglow.</p>
+    <h3 style="margin-top:4px">Tidal Deformability</h3>
+    <div class="eq">$$\delta\Phi_{\rm tidal}\propto \Lambda\left(\frac{m_{\rm NS}}{d}\right)^5$$</div>
+    <p>Tidal effects appear at 5PN order in the waveform phase. Measurement constrains $\Lambda_{1.4}&lt;800$ (95% CI), ruling out stiff EOS models.</p>
+    <div class="eq">$$R_{1.4}\approx 11\text{–}13\text{ km}$$</div>
+    <h3 style="margin-top:4px">Kilonova</h3>
+    <p>NS merger ejects $\sim0.01$–$0.05\,M_\odot$ of neutron-rich material. Rapid neutron capture (r-process) synthesizes heavy elements: <strong style="color:#ffdd44">gold, platinum, uranium</strong>. Blue component (lanthanide-poor, $v\sim0.3c$) + red component (lanthanide-rich, $v\sim0.1c$).</p>
+    <h3 style="margin-top:4px">r-Process Nucleosynthesis</h3>
+    <div class="eq">$$\dot{M}_{\rm Au}\approx 0.05\,M_\odot \times f_{\rm Au} \times \mathcal{R}_{\rm BNS}$$</div>
+    <p>Each BNS merger produces ~$3\times10^{-4}\,M_\odot$ gold. At $\sim10^5$ Gpc$^{-3}$yr$^{-1}$, this accounts for the Milky Way's entire gold inventory.</p>
+    <h3 style="margin-top:4px">Speed of Gravity</h3>
+    <div class="eq">$$|v_{\rm GW}-c|/c &lt; 5\times10^{-16}$$</div>
+    <p>The 1.7 s GW-GRB delay over 40 Mpc constrains GW speed to equal $c$ to 15 decimal places, ruling out many modified gravity theories.</p>
+    <h3 style="margin-top:4px">Hubble Constant</h3>
+    <div class="eq">$$H_0 = 70^{+12}_{-8}\,{\rm km\,s^{-1}Mpc^{-1}}$$</div>
+    <p>"Standard sirens" from GW distance + redshift from host galaxy NGC 4993 give independent $H_0$ — bypassing all distance ladders.</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ─── utility ───────────────────────────────────────────────────────────────
+function _cancelAllAnims46(){
+  // Cancel all animation frames
+  [anim0,anim1,anim2,anim3,anim4,anim5,anim6,anim7,anim8]
+    .forEach(id=>{if(id)cancelAnimationFrame(id);});
+  // Reset all button states based on current state
+  const b0=document.getElementById('btn0pp');if(b0){b0.textContent='\u25b6 Play';b0.classList.remove('on');}
+  const b1=document.getElementById('btn1animate');if(b1){b1.textContent='\u25b6 Animate';b1.classList.remove('on');}
+  const b2=document.getElementById('btn2animate');if(b2){b2.textContent='\u25b6 Animate';b2.classList.remove('on');}
+  const b3=document.getElementById('btn3anim');if(b3){b3.textContent='\u25b6 Animate';b3.classList.remove('on');}
+  const b4=document.getElementById('btn4pp');if(b4){b4.textContent=paused4?'\u25b6 Play':'\u23f8 Pause';b4.classList.toggle('on',!paused4);}
+  const b5=document.getElementById('btn5pp');if(b5){b5.textContent=paused5?'\u25b6 Play':'\u23f8 Pause';b5.classList.toggle('on',!paused5);}
+  const b6=document.getElementById('btn6pp');if(b6){b6.textContent=paused6?'\u25b6 Play':'\u23f8 Pause';b6.classList.toggle('on',!paused6);}
+  const b7=document.getElementById('btn7pp');if(b7){b7.textContent=paused7?'\u25b6 Play':'\u23f8 Pause';b7.classList.toggle('on',!paused7);}
+  const b8=document.getElementById('btn8pp');if(b8){b8.textContent=paused8?'\u25b6 Play':'\u23f8 Pause';b8.classList.toggle('on',!paused8);}
+}
+function syncSpeedControl46(i){
+  const slider=document.getElementById('speed'+i);
+  const display=document.getElementById('speedVal'+i);
+  if(slider&&display){
+    display.textContent=''+(slider.value/100)+'x';
+  }
+}
+function switchTab(i){
+  _cancelAllAnims46();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',i===j));
+  syncSpeedControl46(i);
+  if(i===0) start0();
+  if(i===1) start1();
+  if(i===2) start2();
+  if(i===3) start3();
+  if(i===4) start4();
+  if(i===5) start5();
+  if(i===6) start6();
+  if(i===7) start7();
+  if(i===8) start8();
+}
+function dprCanvas(id){
+  const cv=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth, H=cv.clientHeight;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {cv,ctx,W,H};
+}
+
+// ─── TAB 0: BINARY INSPIRAL ────────────────────────────────────────────────
+let anim0=null, phase0=0, m1=29, m2=36, radius0=1.0, merging0=false, mergeFlash=0, waveHistory=[];
+let ringdownAge=0; // time since merger (for damped ringdown ripples)
+let simTime0=0;    // total simulation seconds elapsed
+let stateHistory0=[]; // recorded frames for scrubbing
+let scrubbing=false;
+const AU0=140; // pixel scale for orbital radius
+
+function onM1(){m1=+document.getElementById('m1sl').value; document.getElementById('m1v').textContent=m1; updateChirp(); reset0();}
+function onM2(){m2=+document.getElementById('m2sl').value; document.getElementById('m2v').textContent=m2; updateChirp(); reset0();}
+function updateChirp(){
+  const mc=Math.pow(m1*m2,0.6)/Math.pow(m1+m2,0.2);
+  document.getElementById('chirpDisp').textContent=mc.toFixed(2);
+}
+
+function toggle0(){
+  if(anim0){cancelAnimationFrame(anim0);anim0=null;document.getElementById('btn0pp').textContent='\u25b6 Play';document.getElementById('btn0pp').classList.remove('on');}
+  else{document.getElementById('btn0pp').textContent='\u23f8 Pause';document.getElementById('btn0pp').classList.add('on');start0();}
+}
+function reset0(){
+  cancelAnimationFrame(anim0);anim0=null;
+  phase0=0;radius0=1.0;merging0=false;mergeFlash=0;waveHistory=[];
+  ringdownAge=0;simTime0=0;stateHistory0=[];scrubbing=false;
+  const sl=document.getElementById('timeScrub');sl.max=0;sl.value=0;
+  document.getElementById('timeScrubVal').textContent='0.0 s';
+  document.getElementById('phaseLabel').textContent='INSPIRAL';
+  document.getElementById('phaseLabel').style.color='#88aaff';
+  document.getElementById('btn0pp').textContent='Play';
+  const {cv,ctx,W,H}=dprCanvas('c0'); ctx.clearRect(0,0,W,H);
+  start0();
+}
+function onTimeScrub(v){
+  const idx=parseInt(v);
+  const sl=document.getElementById('timeScrub');
+  document.getElementById('timeScrubVal').textContent=(idx/60).toFixed(1)+' s';
+  if(idx<stateHistory0.length){
+    const s=stateHistory0[idx];
+    phase0=s.phase;radius0=s.radius;merging0=s.merging;mergeFlash=s.flash;ringdownAge=s.rda;
+    waveHistory=s.wh.slice();
+    step0(0);
+  }
+}
+function onScrubRelease(){
+  scrubbing=false;
+  if(!anim0) start0();
+}
+function start0(){
+  if(anim0) return;
+  updateChirp();
+  let last=null;
+  function frame(ts){
+    if(scrubbing){anim0=requestAnimationFrame(frame);return;}
+    if(!last)last=ts;
+    const dt=(ts-last)/1000; last=ts;
+    const spd=+document.getElementById('spd0').value;
+    document.getElementById('spd0v').textContent=spd.toFixed(1)+'×';
+    step0(dt*spd);
+    anim0=requestAnimationFrame(frame);
+  }
+  anim0=requestAnimationFrame(frame);
+}
+function step0(dt){
+  const {cv,ctx,W,H}=dprCanvas('c0');
+  if(!W||!H) return;
+  const cx=W/2, cy=H*0.45;
+  const waveH=H*0.22;
+  const wavY=H-waveH-4;
+
+  // orbital mechanics
+  const M=m1+m2;
+  const chirpVal=Math.pow(m1*m2,0.6)/Math.pow(M,0.2);
+  const fOrb=0.04*Math.pow(chirpVal,-0.6)*Math.pow(radius0,-1.5); // normalized
+  const fGW=2*fOrb;
+
+  if(!merging0){
+    phase0+=2*Math.PI*fOrb*dt;
+    const dadt=0.0008*(m1*m2*M)/(radius0*radius0*radius0);
+    radius0=Math.max(0.08, radius0-dadt*dt);
+    if(radius0<0.1){ merging0=true; mergeFlash=1.0; ringdownAge=0; }
+  } else {
+    mergeFlash=Math.max(0,mergeFlash-dt*1.5);
+    ringdownAge+=dt;
+    phase0+=2*Math.PI*0.4*dt;
+    // auto-loop after ringdown fully fades (~4s post-merger)
+    if(ringdownAge>4.5){ reset0(); return; }
+  }
+
+  // record state for scrubber (cap at 1800 frames ~30s at 60fps)
+  if(!scrubbing){
+    simTime0+=dt;
+    stateHistory0.push({phase:phase0,radius:radius0,merging:merging0,flash:mergeFlash,rda:ringdownAge,wh:waveHistory.slice(-80)});
+    if(stateHistory0.length>1800) stateHistory0.shift();
+    const sl=document.getElementById('timeScrub');
+    sl.max=stateHistory0.length-1; sl.value=stateHistory0.length-1;
+    document.getElementById('timeScrubVal').textContent=simTime0.toFixed(1)+' s';
+  }
+
+  // phase label
+  const pLabel=document.getElementById('phaseLabel');
+  if(!merging0){pLabel.textContent='INSPIRAL';pLabel.style.color='#88aaff';}
+  else if(mergeFlash>0.3){pLabel.textContent='MERGER ★';pLabel.style.color='#ffdd44';}
+  else{pLabel.textContent='RINGDOWN';pLabel.style.color='#ff7744';}
+
+  const rPx=radius0*AU0*0.6;
+  const r1=m2/M, r2=m1/M; // COM fractions
+  const x1=cx+rPx*r1*Math.cos(phase0), y1=cy+rPx*r1*Math.sin(phase0)*0.35;
+  const x2=cx-rPx*r2*Math.cos(phase0), y2=cy-rPx*r2*Math.sin(phase0)*0.35;
+
+  // waveform history
+  const strain=merging0?mergeFlash*0.9:Math.pow(1/(radius0+0.01),2)*0.012;
+  waveHistory.push({f:fGW,s:strain,merged:merging0});
+  if(waveHistory.length>W) waveHistory.shift();
+
+  // clear
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#07071a';
+  ctx.fillRect(0,0,W,H);
+
+  // ripple waves (gravitational wave visualization)
+  if(!merging0){
+    const nRipple=6;
+    for(let r=0;r<nRipple;r++){
+      const age=(phase0/(2*Math.PI)+r/nRipple)%1;
+      const rr=(age*0.9+0.05)*Math.min(W,H)*0.46;
+      const alpha=(1-age)*0.55;
+      const distort=strain*12*Math.sin(age*Math.PI);
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.scale(1,0.36+0.08*Math.sin(phase0));
+      ctx.beginPath();
+      ctx.ellipse(0,0,rr+distort*rr*0.04,rr-distort*rr*0.04,0,0,2*Math.PI);
+      ctx.strokeStyle=`rgba(80,200,255,${alpha})`;
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+  } else if(ringdownAge>0){
+    // Damped ringdown ripples — quasi-normal mode ringing, decaying exponentially
+    const nRing=5;
+    for(let r=0;r<nRing;r++){
+      const phaseOffset=r/nRing;
+      const age=((ringdownAge*1.8+phaseOffset)%1);
+      const rr=(age*0.85+0.05)*Math.min(W,H)*0.46;
+      // amplitude decays exponentially with ringdownAge
+      const decay=Math.exp(-ringdownAge*1.2);
+      const alpha=(1-age)*0.65*decay;
+      if(alpha<0.01) continue;
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.scale(1,0.38);
+      ctx.beginPath();
+      ctx.ellipse(0,0,rr,rr,0,0,2*Math.PI);
+      ctx.strokeStyle=`rgba(255,160,60,${alpha})`;
+      ctx.lineWidth=1.5+(1-age)*1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // merger flash
+  if(merging0&&mergeFlash>0.01){
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,rPx*4+60*mergeFlash);
+    g.addColorStop(0,`rgba(200,220,255,${mergeFlash*0.9})`);
+    g.addColorStop(0.3,`rgba(100,160,255,${mergeFlash*0.5})`);
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  // draw BH1
+  function drawBH(x,y,mass,label){
+    const r=Math.max(5,mass*0.38);
+    const grd=ctx.createRadialGradient(x-r*0.3,y-r*0.3,0,x,y,r*2.2);
+    grd.addColorStop(0,'#aaccff');
+    grd.addColorStop(0.25,'#3366cc');
+    grd.addColorStop(0.55,'#050510');
+    grd.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(x,y,r*2.2,0,2*Math.PI);
+    ctx.fillStyle=grd; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI);
+    ctx.fillStyle='#050510'; ctx.fill();
+    ctx.fillStyle='rgba(136,170,255,0.9)';
+    ctx.font=`${Math.max(10,r*0.7)}px Segoe UI`;
+    ctx.textAlign='center';
+    ctx.fillText(label,x,y-r-5);
+  }
+
+  if(!merging0){
+    drawBH(x1,y1,m1,m1+'M☉');
+    drawBH(x2,y2,m2,m2+'M☉');
+  } else {
+    const mf=m1+m2;
+    const remnantM=mf-3; // ~3 Msun radiated as GWs
+    drawBH(cx,cy,mf*0.55,remnantM+'M☉');
+    // phase-specific label
+    const lbl=mergeFlash>0.3?'Merger! Peak GW emission':(ringdownAge<3?'Ringdown — quasi-normal modes':'Remnant black hole');
+    const lblColor=mergeFlash>0.3?'rgba(255,220,60,0.95)':mergeFlash>0?'rgba(255,140,60,0.9)':'rgba(136,170,255,0.75)';
+    ctx.fillStyle=lblColor;
+    ctx.font='bold 12px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText(lbl,cx,cy-mf*0.55*0.7-22);
+    // ringdown decay annotation
+    if(ringdownAge>0&&ringdownAge<3.5){
+      ctx.fillStyle='rgba(255,140,60,0.65)';
+      ctx.font='12px Segoe UI';
+      ctx.fillText('h(t) ∝ e^(-t/τ) cos(ω_QNM·t)',cx,cy-mf*0.55*0.7-8);
+    }
+  }
+
+  // orbital info
+  const periodMs=(1/Math.max(fOrb,0.001)*1000).toFixed(1);
+  const sepRsun=(radius0*2.4).toFixed(2);
+  document.getElementById('periodDisp').textContent=periodMs;
+  document.getElementById('sepDisp').textContent=sepRsun;
+  document.getElementById('gwfreqDisp').textContent=Math.min(fGW*1000,9999).toFixed(1);
+
+  // waveform strip
+  ctx.fillStyle='#0a0a20';
+  ctx.fillRect(0,wavY,W,waveH+4);
+  ctx.strokeStyle='rgba(136,170,255,0.25)';
+  ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(0,wavY+waveH/2);ctx.lineTo(W,wavY+waveH/2);ctx.stroke();
+
+  ctx.fillStyle='rgba(136,170,255,0.5)';
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='left';
+  ctx.fillText('h(t)',4,wavY+11);
+
+  if(waveHistory.length>1){
+    ctx.beginPath();
+    for(let i=0;i<waveHistory.length;i++){
+      const wp=waveHistory[i];
+      const wx=i*(W/waveHistory.length);
+      const amp=Math.min(waveH*0.45, wp.s*waveH*4);
+      const freq=wp.f;
+      const ph=i*0.18*freq;
+      const wy=wavY+waveH/2+Math.sin(ph)*amp;
+      i===0?ctx.moveTo(wx,wy):ctx.lineTo(wx,wy);
+    }
+    ctx.strokeStyle='#88aaff';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
+  }
+
+  // freq label
+  ctx.fillStyle='rgba(136,170,255,0.6)';
+  ctx.font='12px Segoe UI';
+  ctx.textAlign='right';
+  ctx.fillText('↑ inspiral  merger ↑',W-4,wavY+waveH-4);
+}
+
+// ─── TAB 1: LIGO DETECTOR ──────────────────────────────────────────────────
+let anim1=null, t1=0, gwOn1=false, prOn=false, ligoSpeed=0.5;
+function toggle1GW(){gwOn1=!gwOn1;document.getElementById('btn1gw').textContent=gwOn1?'GW On':'GW Off';document.getElementById('btn1gw').classList.toggle('on',gwOn1);}
+function toggle1PR(){prOn=!prOn;document.getElementById('btn1pr').classList.toggle('on',prOn);}
+function onGWFreq1(){document.getElementById('gwfreq1v').textContent=document.getElementById('gwfreq1').value+' Hz';}
+function onGWAmp1(){const v=+document.getElementById('gwamp1').value;document.getElementById('gwamp1v').textContent=v+'×10⁻²²';}
+function setLigoSpeed(s){
+  ligoSpeed=s;
+  document.getElementById('btnLigoSpd05').classList.toggle('on',s===0.5);
+  document.getElementById('btnLigoSpd10').classList.toggle('on',s===1.0);
+  document.getElementById('btnLigoSpd20').classList.toggle('on',s===2.0);
+}
+
+function start1(){
+  if(anim1) return;
+  let last=null;
+  function frame(ts){
+    if(!last)last=ts;
+    const dt=(ts-last)/1000;last=ts;
+    t1+=dt*0.5*ligoSpeed;
+    draw1();
+    anim1=requestAnimationFrame(frame);
+  }
+  anim1=requestAnimationFrame(frame);
+}
+function draw1(){
+  const {cv,ctx,W,H}=dprCanvas('c1');
+  if(!W||!H) return;
+  ctx.fillStyle='#07071a';
+  ctx.fillRect(0,0,W,H);
+
+  const gwFreq=+document.getElementById('gwfreq1').value;
+  const gwAmp=(+document.getElementById('gwamp1').value)/100.0*0.06;
+  const gwPhase=gwOn1?2*Math.PI*gwFreq*t1:0;
+  const stretch=gwOn1?gwAmp*Math.sin(gwPhase):0;
+
+  // Layout: beam splitter at center-left area, arms: right & up
+  const bsx=W*0.38, bsy=H*0.55;
+  const armH=Math.min(W*0.55, H*0.42); // horizontal arm length in px
+  const armV=Math.min(H*0.45, W*0.45); // vertical arm length
+  const hArmLen=armH*(1+stretch);
+  const vArmLen=armV*(1-stretch);
+
+  // Power recycling mirror
+  if(prOn){
+    ctx.save();
+    ctx.strokeStyle='rgba(255,200,80,0.5)';
+    ctx.lineWidth=2;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(bsx-55,bsy);
+    ctx.lineTo(bsx-85,bsy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    drawMirror(ctx,bsx-88,bsy,0,'rgba(255,200,80,0.8)','PR');
+    ctx.restore();
+  }
+
+  // Input laser
+  ctx.save();
+  ctx.strokeStyle=prOn?'rgba(255,200,80,0.9)':'rgba(60,220,120,0.9)';
+  ctx.lineWidth=3;
+  ctx.shadowColor=prOn?'#ffcc44':'#44ff88';
+  ctx.shadowBlur=8;
+  ctx.beginPath();
+  ctx.moveTo(prOn?bsx-55:bsx-40,bsy);
+  ctx.lineTo(bsx,bsy);
+  ctx.stroke();
+  ctx.restore();
+
+  // Beam splitter
+  ctx.save();
+  ctx.fillStyle='rgba(136,170,255,0.85)';
+  ctx.strokeStyle='#88aaff';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(bsx-9,bsy);ctx.lineTo(bsx,bsy-9);ctx.lineTo(bsx+9,bsy);ctx.lineTo(bsx,bsy+9);ctx.closePath();
+  ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.7)';
+  ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('BS',bsx,bsy+20);
+  ctx.restore();
+
+  // Horizontal arm
+  const hMirX=bsx+hArmLen, hMirY=bsy;
+  ctx.save();
+  ctx.strokeStyle='rgba(80,160,255,0.35)';ctx.lineWidth=12;
+  ctx.beginPath();ctx.moveTo(bsx,bsy);ctx.lineTo(hMirX,hMirY);ctx.stroke();
+  const laserT=(t1*(gwFreq*0.04+0.8))%1;
+  const lx=bsx+(hMirX-bsx)*laserT;
+  ctx.fillStyle='#ffffff';ctx.shadowColor='#aaccff';ctx.shadowBlur=14;
+  ctx.beginPath();ctx.arc(lx,bsy,4,0,2*Math.PI);ctx.fill();
+  ctx.restore();
+  drawMirror(ctx,hMirX,hMirY,0,'#88aaff','ETMx');
+  ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('4 km (H)',bsx+hArmLen/2,bsy-10);
+
+  // Vertical arm
+  const vMirX=bsx, vMirY=bsy-vArmLen;
+  ctx.save();
+  ctx.strokeStyle='rgba(80,160,255,0.35)';ctx.lineWidth=12;
+  ctx.beginPath();ctx.moveTo(bsx,bsy);ctx.lineTo(vMirX,vMirY);ctx.stroke();
+  const laserV=(t1*(gwFreq*0.04+0.8)*0.97+0.5)%1;
+  const ly=bsy-(bsy-vMirY)*laserV;
+  ctx.fillStyle='#ffffff';ctx.shadowColor='#aaccff';ctx.shadowBlur=14;
+  ctx.beginPath();ctx.arc(bsx,ly,4,0,2*Math.PI);ctx.fill();
+  ctx.restore();
+  drawMirror(ctx,vMirX,vMirY,Math.PI/2,'#88aaff','ETMy');
+  ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='right';
+  ctx.fillText('4 km (V)',bsx-12,bsy-vArmLen/2);
+
+  // Output port (photodetector)
+  const pdX=bsx, pdY=bsy+60;
+  ctx.save();
+  ctx.strokeStyle='rgba(80,160,255,0.3)';ctx.lineWidth=3;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(bsx,bsy);ctx.lineTo(pdX,pdY);ctx.stroke();
+  ctx.setLineDash([]);
+  const bright=gwOn1?0.5+0.5*Math.sin(gwPhase):0.05;
+  const grd=ctx.createRadialGradient(pdX,pdY+18,0,pdX,pdY+18,22);
+  grd.addColorStop(0,`rgba(136,170,255,${bright})`);
+  grd.addColorStop(1,'transparent');
+  ctx.fillStyle=grd;
+  ctx.beginPath();ctx.arc(pdX,pdY+18,22,0,2*Math.PI);ctx.fill();
+  ctx.strokeStyle='rgba(136,170,255,0.7)';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.rect(pdX-14,pdY+5,28,26);ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.8)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('PD',pdX,pdY+4);
+  ctx.restore();
+
+  document.getElementById('ligoOut').textContent=gwOn1?
+    `Signal! h×sin(2π·${gwFreq}·t)`:'Dark (destructive interference)';
+
+  // Output signal strip
+  const sigY=H-60, sigH=52;
+  ctx.fillStyle='#0a0a20';ctx.fillRect(0,sigY,W,sigH);
+  ctx.strokeStyle='rgba(136,170,255,0.2)';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(0,sigY+sigH/2);ctx.lineTo(W,sigY+sigH/2);ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.5)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('Output h(t)',4,sigY+11);
+  if(gwOn1){
+    ctx.beginPath();
+    for(let x=0;x<W;x++){
+      const tLocal=t1-((W-x)/W)*2;
+      const y=sigY+sigH/2+Math.sin(2*Math.PI*gwFreq*tLocal)*gwAmp*sigH*7;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='#88aaff';ctx.lineWidth=1.5;ctx.stroke();
+  }
+
+  // Labels
+  ctx.fillStyle='rgba(255,220,80,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  if(prOn) ctx.fillText('Power recycling active (200W → 100kW circulating)',bsx-40,H-70);
+}
+function drawMirror(ctx,x,y,angle,color,label){
+  ctx.save();
+  ctx.translate(x,y);ctx.rotate(angle);
+  ctx.fillStyle=color;ctx.strokeStyle=color;ctx.lineWidth=2;
+  ctx.fillRect(-4,-14,8,28);
+  ctx.restore();
+  ctx.fillStyle=color;ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(label,x,y+24);
+}
+
+// ─── TAB 2: CHIRP WAVEFORM ─────────────────────────────────────────────────
+let anim2=null,t2=0,play2=false,showSpec=true,addNoise=false,showSNR=false,showTpl=false;
+function toggle2Play(){play2=!play2;document.getElementById('btn2play').classList.toggle('on',play2);}
+function toggle2Spec(){showSpec=!showSpec;document.getElementById('btn2spec').classList.toggle('on',showSpec);}
+function toggle2Noise(){addNoise=!addNoise;document.getElementById('btn2noise').classList.toggle('on',addNoise);}
+function toggle2SNR(){showSNR=!showSNR;document.getElementById('btn2snr').classList.toggle('on',showSNR);}
+function toggle2Tpl(){showTpl=!showTpl;document.getElementById('btn2tpl').classList.toggle('on',showTpl);}
+
+function gw150914(t){ // t relative to merger (0), range -0.45..0.15
+  if(t>0.05) return 0;
+  const tc=-0.0;
+  const tau=tc-t;
+  if(tau<0) return Math.exp(-tau/0.04)*0.6*Math.cos(2*Math.PI*250*tau);
+  const f0=35, dfdt=440;
+  const f=f0+dfdt*Math.pow(tau+0.01,-0.375)*0.8;
+  const fClamp=Math.min(f,200);
+  const amp=Math.pow(Math.max(tau,0.005),-0.25)*0.055;
+  return amp*Math.cos(2*Math.PI*fClamp*tau);
+}
+function chirpFreq(t){ // instantaneous freq at time t (t<0)
+  const tau=-t; if(tau<=0) return 200;
+  return Math.min(35+440*Math.pow(tau+0.01,-0.375)*0.8, 200);
+}
+
+function start2(){
+  if(anim2) return;
+  document.getElementById('btn2spec').classList.toggle('on',showSpec);
+  let last=null;
+  function frame(ts){
+    if(!last)last=ts;
+    const dt=(ts-last)/1000;last=ts;
+    if(play2) t2=(t2+dt*0.25)%0.6;
+    draw2();
+    anim2=requestAnimationFrame(frame);
+  }
+  anim2=requestAnimationFrame(frame);
+}
+function draw2(){
+  const {cv,ctx,W,H}=dprCanvas('c2');
+  if(!W||!H) return;
+  ctx.fillStyle='#07071a';ctx.fillRect(0,0,W,H);
+
+  const tStart=-0.45, tEnd=0.12, tRange=tEnd-tStart;
+  const waveH=showSpec?Math.floor(H*0.42):H-20;
+  const specH=showSpec?H-waveH-12:0;
+  const specY=waveH+6;
+  const margin=45;
+  const plotW=W-margin-10;
+
+  // ── Waveform panel ──
+  ctx.fillStyle='#0a0a1c';ctx.fillRect(0,0,W,waveH);
+  ctx.strokeStyle='rgba(136,170,255,0.15)';ctx.lineWidth=0.5;
+  for(let y=0.2;y<=0.8;y+=0.2){
+    ctx.beginPath();ctx.moveTo(margin,waveH*y);ctx.lineTo(W-10,waveH*y);ctx.stroke();
+  }
+  // axes
+  ctx.strokeStyle='rgba(136,170,255,0.4)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(margin,5);ctx.lineTo(margin,waveH-5);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(margin,waveH/2);ctx.lineTo(W-10,waveH/2);ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';
+  ctx.textAlign='right';ctx.fillText('h(t)',margin-3,14);
+  ctx.textAlign='center';ctx.fillText('-0.4',margin+plotW*0.01,waveH-3);
+  ctx.fillText('-0.2',margin+plotW*0.43,waveH-3);
+  ctx.fillText('0',margin+plotW*0.82,waveH-3);
+  ctx.fillText('t (s)',margin+plotW*0.97,waveH-3);
+
+  // noise
+  const noise=[];
+  for(let i=0;i<=W;i++) noise[i]=(Math.random()-0.5)*0.008;
+
+  // waveform
+  ctx.beginPath();
+  const scaleH=(waveH/2-12);
+  for(let px=0;px<=plotW;px++){
+    const t=tStart+(px/plotW)*tRange;
+    let h=gw150914(t);
+    if(addNoise) h+=noise[px];
+    const x=margin+px;
+    const y=waveH/2-h*scaleH*6;
+    px===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='#88aaff';ctx.lineWidth=1.5;ctx.stroke();
+
+  // template overlay
+  if(showTpl){
+    const tplOffset=(t2-0.3)*0.12;
+    ctx.beginPath();
+    for(let px=0;px<=plotW;px++){
+      const t=tStart+(px/plotW)*tRange-tplOffset;
+      const h=gw150914(t)*0.9;
+      const x=margin+px;
+      const y=waveH/2-h*scaleH*6;
+      px===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(255,150,80,0.6)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,150,80,0.8)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('template',margin+4,14);
+  }
+
+  // cursor
+  if(play2){
+    const cx=margin+(t2/0.6)*plotW;
+    ctx.strokeStyle='rgba(255,220,80,0.8)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(cx,5);ctx.lineTo(cx,waveH-5);ctx.stroke();
+    const curT=tStart+t2/0.6*tRange;
+    document.getElementById('cursorTime').textContent=curT.toFixed(3);
+    document.getElementById('cursorFreq').textContent=chirpFreq(curT).toFixed(0);
+    const hs=gw150914(curT);
+    document.getElementById('cursorStrain').textContent=(hs*1e21).toFixed(2)+'×10⁻²¹';
+  }
+
+  // SNR strip
+  if(showSNR){
+    const snrY=waveH-32,snrH=28;
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(margin,snrY,plotW,snrH);
+    ctx.beginPath();
+    for(let px=0;px<=plotW;px++){
+      const t=tStart+(px/plotW)*tRange;
+      const raw=Math.abs(gw150914(t));
+      const snr=raw*80*(t>-0.05&&t<0.02?12:1);
+      const barH=Math.min(snrH-2,snr*snrH*0.8);
+      ctx.fillStyle=`rgba(100,200,255,${Math.min(1,snr*5)})`;
+      ctx.fillRect(margin+px,snrY+snrH-barH,1,barH);
+    }
+    ctx.fillStyle='rgba(136,170,255,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('SNR',margin+4,snrY+11);
+  }
+
+  if(!showSpec) return;
+
+  // ── Spectrogram ──
+  ctx.fillStyle='#050512';ctx.fillRect(0,specY,W,specH);
+  ctx.fillStyle='rgba(136,170,255,0.5)';ctx.font='12px Segoe UI';
+  ctx.textAlign='right';ctx.fillText('Hz',margin-3,specY+12);
+
+  const freqMin=20,freqMax=300;
+  const nTimeSteps=Math.min(plotW,200);
+  const nFreqBins=Math.min(specH-20,80);
+  const cellW=plotW/nTimeSteps;
+  const cellH=(specH-20)/nFreqBins;
+
+  for(let ti=0;ti<nTimeSteps;ti++){
+    const t=tStart+(ti/nTimeSteps)*tRange;
+    const instF=chirpFreq(t);
+    const amp=Math.abs(gw150914(t));
+    for(let fi=0;fi<nFreqBins;fi++){
+      const f=freqMin+(fi/nFreqBins)*(freqMax-freqMin);
+      const df=Math.abs(f-instF);
+      const bw=15+instF*0.08;
+      let power=amp*Math.exp(-(df*df)/(2*bw*bw));
+      if(addNoise) power+=Math.random()*0.003;
+      if(power>0.001){
+        const bright=Math.min(1,power*25);
+        const r=Math.floor(20+bright*200);
+        const g=Math.floor(80+bright*150);
+        const b=Math.floor(200+bright*55);
+        ctx.fillStyle=`rgb(${r},${g},${b})`;
+        ctx.fillRect(margin+ti*cellW, specY+specH-20-(fi+1)*cellH, cellW+1, cellH+1);
+      }
+    }
+  }
+
+  // freq axis labels
+  ctx.fillStyle='rgba(136,170,255,0.55)';ctx.font='12px Segoe UI';ctx.textAlign='right';
+  for(const f of [50,100,150,200,250]){
+    const fy=specY+specH-20-(f-freqMin)/(freqMax-freqMin)*nFreqBins*cellH;
+    ctx.fillText(f,margin-3,fy+3);
+  }
+
+  // axis label
+  ctx.fillStyle='rgba(136,170,255,0.5)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Spectrogram (time–frequency)',W/2,specY+specH-2);
+}
+
+// ─── TAB 3: NOTABLE EVENTS ─────────────────────────────────────────────────
+const events=[
+  {name:'GW150914',year:2015.71,m1:36,m2:29,type:'bbh',dist:410,special:false},
+  {name:'GW151012',year:2015.78,m1:23,m2:14,type:'bbh',dist:1100,special:false},
+  {name:'GW151226',year:2015.99,m1:14,m2:8,type:'bbh',dist:440,special:false},
+  {name:'GW170104',year:2017.01,m1:31,m2:20,type:'bbh',dist:880,special:false},
+  {name:'GW170608',year:2017.44,m1:12,m2:7,type:'bbh',dist:340,special:false},
+  {name:'GW170814',year:2017.62,m1:30,m2:25,type:'bbh',dist:540,special:false},
+  {name:'GW170817',year:2017.63,m1:1.46,m2:1.27,type:'bns',dist:40,special:true},
+  {name:'GW190425',year:2019.32,m1:2.0,m2:1.4,type:'bns',dist:159,special:false},
+  {name:'GW190814',year:2019.62,m1:23,m2:2.6,type:'bhns',dist:241,special:false},
+  {name:'GW190521',year:2019.39,m1:85,m2:66,type:'bbh',dist:5300,special:false},
+  {name:'GW200105',year:2020.02,m1:9,m2:1.9,type:'bhns',dist:280,special:false},
+  {name:'GW200115',year:2020.04,m1:6,m2:1.4,type:'bhns',dist:300,special:false},
+  {name:'GW210814',year:2021.62,m1:40,m2:32,type:'bbh',dist:2800,special:false},
+  {name:'GW220615',year:2022.46,m1:55,m2:44,type:'bbh',dist:4100,special:false},
+  {name:'GW230529',year:2023.40,m1:2.5,m2:1.2,type:'bhns',dist:200,special:false},
+];
+let anim3=null,animating3=false,animProg3=0,showEM=false,showLoc=false,selectedEvt=null;
+// Per-event reveal: tracks how many events have been shown and a pause timer
+let anim3EventIdx=0, anim3PauseClock=0, anim3FlashClock=0;
+const typeColor={bbh:'#5588ff',bns:'#ffcc44',bhns:'#cc77ff'};
+// Labels shown next to notable event dots
+const evtLabels={'GW150914':'GW150914','GW170817':'GW170817','GW190521':'GW190521 (IMR Coalescence)'};
+
+function toggle3Anim(){
+  animating3=!animating3;
+  document.getElementById('btn3anim').classList.toggle('on',animating3);
+  document.getElementById('btn3anim').textContent=animating3?'\u23f8 Pause':'\u25b6 Animate';
+  if(animating3){animProg3=0;anim3EventIdx=0;anim3PauseClock=0;anim3FlashClock=0;}
+}
+function toggle3EM(){showEM=!showEM;document.getElementById('btn3em').classList.toggle('on',showEM);}
+function toggle3Loc(){showLoc=!showLoc;document.getElementById('btn3loc').classList.toggle('on',showLoc);}
+
+function start3(){
+  if(anim3) return;
+  let last=null;
+  function frame(ts){
+    if(!last)last=ts;
+    const dt=(ts-last)/1000;last=ts;
+    if(animating3){
+      const filter=document.getElementById('filter3').value;
+      const filtered=events.filter(e=>filter==='all'||e.type===filter);
+      const sorted=[...filtered].sort((a,b)=>a.year-b.year);
+      const total=sorted.length;
+      if(anim3EventIdx<total){
+        anim3PauseClock+=dt;
+        anim3FlashClock+=dt;
+        if(anim3PauseClock>=0.5){
+          anim3PauseClock=0;
+          anim3FlashClock=0;
+          anim3EventIdx++;
+        }
+        animProg3=anim3EventIdx/total;
+      } else {
+        animating3=false;
+        animProg3=1;
+        document.getElementById('btn3anim').classList.remove('on');
+        document.getElementById('btn3anim').textContent='\u25b6 Animate';
+      }
+    }
+    draw3();
+    anim3=requestAnimationFrame(frame);
+  }
+  anim3=requestAnimationFrame(frame);
+}
+function draw3(){
+  const {cv,ctx,W,H}=dprCanvas('c3');
+  if(!W||!H) return;
+  ctx.fillStyle='#07071a';ctx.fillRect(0,0,W,H);
+
+  const filter=document.getElementById('filter3').value;
+  const marginL=55,marginR=20,marginT=30,marginB=50;
+  const plotW=W-marginL-marginR, plotH=H-marginT-marginB;
+  const yearMin=2015, yearMax=2025;
+
+  // axes
+  ctx.strokeStyle='rgba(136,170,255,0.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(marginL,marginT);ctx.lineTo(marginL,marginT+plotH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(marginL,marginT+plotH);ctx.lineTo(marginL+plotW,marginT+plotH);ctx.stroke();
+
+  // year ticks
+  ctx.fillStyle='rgba(136,170,255,0.5)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  for(let y=2016;y<=2024;y+=2){
+    const x=marginL+(y-yearMin)/(yearMax-yearMin)*plotW;
+    ctx.strokeStyle='rgba(136,170,255,0.15)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(x,marginT);ctx.lineTo(x,marginT+plotH);ctx.stroke();
+    ctx.fillText(y,x,marginT+plotH+14);
+  }
+
+  // type labels on y axis
+  const typeY={bbh:0.2, bns:0.5, bhns:0.8};
+  ctx.textAlign='right';ctx.font='12px Segoe UI';
+  ctx.fillStyle='#5588ff';ctx.fillText('BH-BH',marginL-4,marginT+plotH*0.2+4);
+  ctx.fillStyle='#ffcc44';ctx.fillText('NS-NS',marginL-4,marginT+plotH*0.5+4);
+  ctx.fillStyle='#cc77ff';ctx.fillText('BH-NS',marginL-4,marginT+plotH*0.8+4);
+
+  // EM follow-up for GW170817
+  const gw170817=events.find(e=>e.name==='GW170817');
+  const ex=marginL+(gw170817.year-yearMin)/(yearMax-yearMin)*plotW;
+  const ey=marginT+plotH*typeY[gw170817.type];
+
+  if(showEM){
+    const emPhase=(Date.now()/1000)%4;
+    const waves=[
+      {label:'GW',color:'#88aaff',delay:0},
+      {label:'GRB +1.7s',color:'#ff8844',delay:0.5},
+      {label:'Kilonova',color:'#ffee66',delay:1.2},
+      {label:'Radio',color:'#88ff88',delay:2.0},
+    ];
+    for(const w of waves){
+      const r=Math.max(0,((emPhase-w.delay+4)%4)*12);
+      if(r>0&&r<60){
+        ctx.save();
+        ctx.strokeStyle=w.color;ctx.lineWidth=1.5;ctx.globalAlpha=Math.max(0,1-r/55);
+        ctx.beginPath();ctx.arc(ex,ey,r,0,2*Math.PI);ctx.stroke();
+        if(r>15&&r<40){
+          ctx.fillStyle=w.color;ctx.font='12px Segoe UI';ctx.textAlign='left';ctx.globalAlpha=0.8;
+          ctx.fillText(w.label,ex+r+3,ey+3);
+        }
+        ctx.restore();
+      }
+    }
+  }
+
+  // sky localization ellipses
+  if(showLoc){
+    ctx.save();
+    // GW150914 big banana region
+    const e150=events[0];
+    const ex0=marginL+(e150.year-yearMin)/(yearMax-yearMin)*plotW;
+    const ey0=marginT+plotH*typeY[e150.type];
+    ctx.strokeStyle='rgba(85,136,255,0.35)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.ellipse(ex0,ey0,80,22,0.3,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle='rgba(85,136,255,0.2)';ctx.fill();
+    ctx.fillStyle='rgba(85,136,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='center';ctx.setLineDash([]);
+    ctx.fillText('~600 deg²',ex0,ey0-26);
+    // GW170817 small region
+    ctx.strokeStyle='rgba(255,200,60,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([]);
+    ctx.beginPath();ctx.ellipse(ex,ey,12,6,0.4,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle='rgba(255,200,60,0.2)';ctx.fill();
+    ctx.fillStyle='rgba(255,200,60,0.8)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('~28 deg²',ex,ey-16);
+    ctx.restore();
+  }
+
+  // draw event dots
+  const progress=animating3?animProg3:1;
+  const filtered=events.filter(e=>filter==='all'||e.type===filter);
+  const sorted=[...filtered].sort((a,b)=>a.year-b.year);
+  const nShow=Math.ceil(sorted.length*progress);
+
+  for(let i=0;i<nShow;i++){
+    const evt=sorted[i];
+    const x=marginL+(evt.year-yearMin)/(yearMax-yearMin)*plotW;
+    const y=marginT+plotH*typeY[evt.type];
+    const r=Math.max(8,Math.min(22,Math.sqrt(evt.m1+evt.m2)*1.1));
+    ctx.save();
+    const isNewest=animating3&&(i===nShow-1);
+    const flashAlpha=isNewest?Math.min(1,anim3FlashClock*4):1;
+    if(evt.special){
+      // kilonova star glow — glow radius at least 20px
+      const pulse=0.7+0.3*Math.sin(Date.now()/400);
+      const glowR=Math.max(20,r*3.5);
+      const grd=ctx.createRadialGradient(x,y,0,x,y,glowR);
+      grd.addColorStop(0,'rgba(255,220,80,0.9)');
+      grd.addColorStop(0.5,`rgba(255,160,40,${0.4*pulse})`);
+      grd.addColorStop(1,'transparent');
+      ctx.globalAlpha=flashAlpha;
+      ctx.fillStyle=grd;ctx.beginPath();ctx.arc(x,y,glowR,0,2*Math.PI);ctx.fill();
+      // star shape
+      ctx.fillStyle='#ffdd44';
+      drawStar(ctx,x,y,r*1.2,r*0.5,5);
+      ctx.fillStyle='rgba(255,220,80,0.9)';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+      ctx.fillText(evt.name,x,y-r*1.8-6);
+      // multimessenger label that fades in
+      const labelAlpha=Math.max(0,Math.min(1,(Date.now()/1000)%6-1));
+      ctx.globalAlpha=flashAlpha*labelAlpha;
+      ctx.fillStyle='#ffe066';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+      ctx.fillText('GW170817',x,y+r*1.8+14);
+      ctx.fillText('first multimessenger event!',x,y+r*1.8+28);
+      ctx.globalAlpha=1;
+    } else {
+      const col=typeColor[evt.type];
+      const dotR=Math.max(8,r);
+      const grd=ctx.createRadialGradient(x-dotR*0.3,y-dotR*0.3,0,x,y,dotR);
+      grd.addColorStop(0,'rgba(255,255,255,0.8)');
+      grd.addColorStop(0.4,col);
+      grd.addColorStop(1,'transparent');
+      ctx.globalAlpha=flashAlpha;
+      ctx.fillStyle=grd;
+      ctx.beginPath();ctx.arc(x,y,dotR,0,2*Math.PI);ctx.fill();
+      if(evt===selectedEvt){
+        ctx.strokeStyle='#ffffff';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(x,y,dotR+4,0,2*Math.PI);ctx.stroke();
+      }
+      // label for notable events
+      if(evtLabels[evt.name]){
+        ctx.fillStyle='rgba(200,220,255,0.85)';ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
+        ctx.fillText(evtLabels[evt.name],x+dotR+4,y+4);
+      }
+      ctx.globalAlpha=1;
+    }
+    ctx.restore();
+    evt._px=x;evt._py=y;evt._pr=Math.max(8,r);
+  }
+
+  // legend
+  ctx.font='12px Segoe UI';ctx.textAlign='left';
+  for(const [type,color] of Object.entries(typeColor)){
+    const lx=W-110,ly=marginT+({bbh:0,bns:1,bhns:2}[type])*18+12;
+    ctx.fillStyle=color;ctx.beginPath();ctx.arc(lx,ly,6,0,2*Math.PI);ctx.fill();
+    ctx.fillStyle='rgba(136,170,255,0.7)';ctx.fillText({bbh:'BH-BH',bns:'NS-NS',bhns:'BH-NS'}[type],lx+11,ly+4);
+  }
+  ctx.fillStyle='rgba(136,170,255,0.4)';ctx.textAlign='center';
+  ctx.font='12px Segoe UI';ctx.fillText('size ∝ √(total mass)',W-60,marginT+66);
+}
+function drawStar(ctx,cx,cy,outerR,innerR,points){
+  ctx.beginPath();
+  for(let i=0;i<points*2;i++){
+    const r=i%2===0?outerR:innerR;
+    const angle=i*Math.PI/points-Math.PI/2;
+    const x=cx+r*Math.cos(angle),y=cy+r*Math.sin(angle);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.closePath();ctx.fill();
+}
+
+// Click handler for event selection
+document.getElementById('c3').addEventListener('click',function(e){
+  const rect=this.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const mx=(e.clientX-rect.left), my=(e.clientY-rect.top);
+  let found=null;
+  for(const evt of events){
+    if(evt._px===undefined) continue;
+    const dx=mx-evt._px, dy=my-evt._py;
+    if(Math.sqrt(dx*dx+dy*dy)<evt._pr+8){found=evt;break;}
+  }
+  selectedEvt=found;
+  if(found){
+    document.getElementById('evtName').textContent=found.name;
+    document.getElementById('evtParams').textContent=
+      `${found.m1}+${found.m2} M☉ (${found.type.toUpperCase()}), d≈${found.dist} Mpc`+(found.special?' ★ Multimessenger!':'');
+  } else {
+    document.getElementById('evtName').textContent='—';
+    document.getElementById('evtParams').textContent='—';
+  }
+});
+
+// ─── Animate aliases (picked up by auto-start.js /animate/i) ───────────────
+let anim1Running=false;
+function animate1(){
+  // Toggle GW on, ensure loop is running, mark button active
+  if(!anim1Running){
+    anim1Running=true;
+    if(!gwOn1) toggle1GW();
+    document.getElementById('btn1animate').classList.add('on');
+    document.getElementById('btn1animate').textContent='⏸ Pause';
+  } else {
+    anim1Running=false;
+    if(gwOn1) toggle1GW();
+    document.getElementById('btn1animate').classList.remove('on');
+    document.getElementById('btn1animate').textContent='▶ Animate';
+  }
+  // Always ensure the draw loop is spinning
+  start1();
+}
+
+let anim2Running=false;
+function animate2(){
+  // Toggle play2 on/off and sync button label
+  anim2Running=!anim2Running;
+  if(anim2Running){
+    if(!play2) toggle2Play();
+    document.getElementById('btn2animate').classList.add('on');
+    document.getElementById('btn2animate').textContent='⏸ Pause';
+  } else {
+    if(play2) toggle2Play();
+    document.getElementById('btn2animate').classList.remove('on');
+    document.getElementById('btn2animate').textContent='▶ Animate';
+  }
+  start2();
+}
+
+// ─── init ──────────────────────────────────────────────────────────────────
+window.addEventListener('resize',()=>{
+  if(document.getElementById('pane0').classList.contains('active')) draw3();
+});
+start0();
+
+// ══════════════════════════════════════════════════════════════════
+// TAB 4: MERGER DYNAMICS & WAVEFORMS
+// ══════════════════════════════════════════════════════════════════
+let anim4=null, t4=0, q4=1.24, M4=65, paused4=false;
+let waveData4=[], waveTime4=0;
+
+function onQ4(){
+  q4=+document.getElementById('q4sl').value;
+  document.getElementById('q4v').textContent=q4.toFixed(2);
+  reset4();
+}
+function onM4(){
+  M4=+document.getElementById('M4sl').value;
+  document.getElementById('M4v').textContent=M4;
+  reset4();
+}
+function toggle4(){
+  paused4=!paused4;
+  document.getElementById('btn4pp').textContent=paused4?'\u25b6 Play':'\u23f8 Pause';
+  document.getElementById('btn4pp').classList.toggle('on',!paused4);
+  if(!paused4) start4();
+}
+function reset4(){
+  if(anim4){cancelAnimationFrame(anim4);anim4=null;}
+  t4=0; waveData4=[]; waveTime4=0; paused4=false;
+  document.getElementById('btn4pp').textContent='\u23f8 Pause';
+  document.getElementById('btn4pp').classList.add('on');
+  start4();
+}
+function start4(){
+  if(anim4) return;
+  let last4=null;
+  function frame(ts){
+    if(!last4) last4=ts;
+    const dt=(ts-last4)/1000; last4=ts;
+    if(!paused4) step4(dt*(window.animSpeed||0.1));
+    anim4=requestAnimationFrame(frame);
+  }
+  anim4=requestAnimationFrame(frame);
+}
+
+function getMasses4(){
+  // q = m1/m2, M = m1+m2
+  const m2 = M4/(1+q4), m1=q4*m2;
+  return {m1,m2};
+}
+function chirpMass4(m1,m2){ return Math.pow(m1*m2,0.6)/Math.pow(m1+m2,0.2); }
+
+function step4(dt){
+  const {cv:cv4,ctx:ctx4,W:W4,H:H4} = dprCanvas('c4');
+  const {cv:cw,ctx:ctxW,W:Ww,H:Hw} = dprCanvas('c4wave');
+  if(!W4||!H4) return;
+
+  const {m1,m2} = getMasses4();
+  const mc = chirpMass4(m1,m2);
+  document.getElementById('chirp4').textContent=mc.toFixed(2);
+
+  // Inspiral duration ~25s normalized, merger at t=20, ringdown 20-25
+  const T_insp=20, T_merg=22, T_ring=26, T_total=28;
+  t4+=dt*0.7;
+  if(t4>T_total) t4=0;
+
+  const phase = t4<T_insp?'INSPIRAL':t4<T_merg?'MERGER':'RINGDOWN';
+  const pEl=document.getElementById('phase4lbl');
+  if(phase==='INSPIRAL'){pEl.textContent='INSPIRAL';pEl.style.color='#88aaff';}
+  else if(phase==='MERGER'){pEl.textContent='MERGER ★';pEl.style.color='#ffdd44';}
+  else{pEl.textContent='RINGDOWN';pEl.style.color='#ff7744';}
+
+  // orbital radius: shrinks during inspiral
+  const tau = Math.max(0.01, T_insp - t4);
+  const radius4 = phase==='INSPIRAL' ? 0.1+0.9*Math.pow(tau/T_insp, 0.25) : 0.0;
+  // orbital phase accelerates as tau→0
+  const fOrb4 = phase==='INSPIRAL' ? 0.08*Math.pow(mc,-0.6)*Math.pow(Math.max(radius4,0.05),-1.5) : 0.8;
+  const fGW4 = 2*fOrb4;
+  document.getElementById('freq4').textContent=(fGW4*80).toFixed(1);
+
+  // accumulate waveform
+  waveTime4+=dt*0.7;
+  const strainAmp = phase==='INSPIRAL'
+    ? Math.min(1,Math.pow(1/(tau+0.05),0.5)*0.06)
+    : phase==='MERGER'
+      ? 1.0*Math.exp(-(t4-T_insp)*2)
+      : 0.4*Math.exp(-(t4-T_merg)*1.8);
+  const strainVal = strainAmp*Math.sin(2*Math.PI*fGW4*waveTime4*6);
+  waveData4.push({t:waveTime4,s:strainVal,phase});
+  const maxPts=Math.round(Ww*1.5);
+  if(waveData4.length>maxPts) waveData4.shift();
+
+  // ── orbital animation canvas ──
+  ctx4.fillStyle='#07071a';
+  ctx4.fillRect(0,0,W4,H4);
+
+  const cx=W4/2, cy=H4/2;
+  const rPx=radius4*Math.min(W4,H4)*0.35;
+  const ang4=fOrb4*t4*2*Math.PI*4;
+  const fracCOM1=m2/(m1+m2), fracCOM2=m1/(m1+m2);
+
+  // GW ripples
+  if(phase==='INSPIRAL'){
+    for(let k=0;k<6;k++){
+      const age=((ang4/(2*Math.PI)+k/6)%1);
+      const rr=(age*0.95+0.04)*Math.min(W4,H4)*0.48;
+      const al=(1-age)*0.45;
+      ctx4.save();
+      ctx4.translate(cx,cy);
+      ctx4.scale(1,0.38);
+      ctx4.beginPath();
+      ctx4.ellipse(0,0,rr,rr,0,0,2*Math.PI);
+      ctx4.strokeStyle=`rgba(100,180,255,${al})`;
+      ctx4.lineWidth=1.4;
+      ctx4.stroke();
+      ctx4.restore();
+    }
+  } else if(phase==='RINGDOWN'){
+    const decay=Math.exp(-(t4-T_merg)*1.4);
+    for(let k=0;k<5;k++){
+      const age=((  (t4-T_merg)*2+k/5)%1);
+      const rr=(age*0.9+0.04)*Math.min(W4,H4)*0.46;
+      const al=(1-age)*0.6*decay;
+      if(al<0.01) continue;
+      ctx4.save();
+      ctx4.translate(cx,cy);
+      ctx4.scale(1,0.38);
+      ctx4.beginPath();
+      ctx4.ellipse(0,0,rr,rr,0,0,2*Math.PI);
+      ctx4.strokeStyle=`rgba(255,150,60,${al})`;
+      ctx4.lineWidth=1.5+(1-age)*1.5;
+      ctx4.stroke();
+      ctx4.restore();
+    }
+  }
+
+  // merger flash
+  if(phase==='MERGER'){
+    const fl=Math.exp(-(t4-T_insp)*2.5);
+    const g=ctx4.createRadialGradient(cx,cy,0,cx,cy,120*fl+30);
+    g.addColorStop(0,`rgba(220,230,255,${fl*0.8})`);
+    g.addColorStop(0.4,`rgba(100,160,255,${fl*0.4})`);
+    g.addColorStop(1,'transparent');
+    ctx4.fillStyle=g; ctx4.fillRect(0,0,W4,H4);
+  }
+
+  function drawBH4(x,y,mass,lbl,color){
+    const r=Math.max(5,mass*0.35);
+    const grd=ctx4.createRadialGradient(x-r*0.3,y-r*0.3,0,x,y,r*2.2);
+    grd.addColorStop(0,color||'#aaccff');
+    grd.addColorStop(0.3,'#3355bb');
+    grd.addColorStop(0.6,'#050510');
+    grd.addColorStop(1,'transparent');
+    ctx4.beginPath(); ctx4.arc(x,y,r*2.2,0,2*Math.PI);
+    ctx4.fillStyle=grd; ctx4.fill();
+    ctx4.beginPath(); ctx4.arc(x,y,r,0,2*Math.PI);
+    ctx4.fillStyle='#050510'; ctx4.fill();
+    ctx4.fillStyle='rgba(150,180,255,0.9)';
+    ctx4.font=`${Math.max(9,r*0.65)}px Segoe UI`;
+    ctx4.textAlign='center';
+    ctx4.fillText(lbl,x,y-r-4);
+  }
+
+  if(phase==='INSPIRAL'){
+    const x1=cx+rPx*fracCOM1*Math.cos(ang4);
+    const y1=cy+rPx*fracCOM1*Math.sin(ang4)*0.38;
+    const x2=cx-rPx*fracCOM2*Math.cos(ang4);
+    const y2=cy-rPx*fracCOM2*Math.sin(ang4)*0.38;
+    drawBH4(x1,y1,m1,m1.toFixed(1)+'M☉');
+    drawBH4(x2,y2,m2,m2.toFixed(1)+'M☉');
+    // spiral trail
+    ctx4.beginPath();
+    for(let k=0;k<60;k++){
+      const ta=t4 - k*0.08;
+      if(ta<0) break;
+      const tau2=Math.max(0.01, T_insp-ta);
+      const r2=0.1+0.9*Math.pow(tau2/T_insp,0.25);
+      const a2=0.08*Math.pow(mc,-0.6)*Math.pow(Math.max(r2,0.05),-1.5)*ta*2*Math.PI*4;
+      const xT=cx+r2*rPx/radius4*fracCOM1*Math.cos(a2);
+      const yT=cy+r2*rPx/radius4*fracCOM1*Math.sin(a2)*0.38;
+      const al=1-k/60;
+      ctx4.strokeStyle=`rgba(88,136,255,${al*0.3})`;
+      ctx4.lineWidth=1;
+      if(k===0) ctx4.moveTo(xT,yT); else ctx4.lineTo(xT,yT);
+    }
+    ctx4.stroke();
+  } else {
+    const remM=(m1+m2)-3;
+    drawBH4(cx,cy,remM*0.5,remM.toFixed(0)+'M☉ remnant','#ccddff');
+    ctx4.fillStyle=phase==='MERGER'?'rgba(255,220,60,0.9)':'rgba(255,140,60,0.75)';
+    ctx4.font='bold 12px Segoe UI'; ctx4.textAlign='center';
+    ctx4.fillText(phase==='MERGER'?'Peak GW Emission!':'Quasi-normal mode ringdown',cx,cy-60);
+    if(phase==='RINGDOWN'){
+      ctx4.fillStyle='rgba(255,140,60,0.6)';ctx4.font='12px Segoe UI';
+      ctx4.fillText('h∝e^{-t/τ}cos(ω_QNM t)',cx,cy-44);
+    }
+  }
+
+  // chirp mass annotation
+  ctx4.fillStyle='rgba(136,170,255,0.6)';
+  ctx4.font='12px Segoe UI';ctx4.textAlign='left';
+  ctx4.fillText(`q=${q4.toFixed(2)}, M=${M4}M☉, ℳ=${mc.toFixed(1)}M☉`,8,14);
+
+  // ── waveform canvas ──
+  ctxW.fillStyle='#0a0a20';
+  ctxW.fillRect(0,0,Ww,Hw);
+  ctxW.strokeStyle='rgba(136,170,255,0.2)';ctxW.lineWidth=0.5;
+  ctxW.beginPath();ctxW.moveTo(0,Hw/2);ctxW.lineTo(Ww,Hw/2);ctxW.stroke();
+  ctxW.fillStyle='rgba(136,170,255,0.5)';ctxW.font='12px Segoe UI';
+  ctxW.textAlign='left';ctxW.fillText('h(t)',3,11);
+
+  if(waveData4.length>1){
+    ctxW.beginPath();
+    for(let i=0;i<waveData4.length;i++){
+      const wx=i*(Ww/Math.max(waveData4.length,1));
+      const wy=Hw/2-waveData4[i].s*(Hw*0.43);
+      i===0?ctxW.moveTo(wx,wy):ctxW.lineTo(wx,wy);
+    }
+    ctxW.strokeStyle='#88aaff';ctxW.lineWidth=1.5;ctxW.stroke();
+  }
+  // phase markers
+  const phaseColors={INSPIRAL:'rgba(136,170,255,0.5)',MERGER:'rgba(255,220,60,0.7)',RINGDOWN:'rgba(255,140,60,0.6)'};
+  let curPhase=null, phaseStart=0;
+  for(let i=0;i<waveData4.length;i++){
+    const p=waveData4[i].phase;
+    const px=i*(Ww/Math.max(waveData4.length,1));
+    if(p!==curPhase){
+      if(curPhase&&i>0){
+        ctxW.fillStyle=phaseColors[curPhase]||'transparent';
+        ctxW.fillRect(phaseStart,0,(px-phaseStart),3);
+      }
+      curPhase=p; phaseStart=px;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TAB 5: LIGO INTERFEROMETRY (DEEP)
+// ══════════════════════════════════════════════════════════════════
+let anim5=null, t5=0, gw5on=true, fp5on=false, pr5on=false, sr5on=false;
+let noise5={shot:false,seismic:false,thermal:false,squeeze:false};
+
+function toggle5GW(){
+  gw5on=!gw5on;
+  document.getElementById('btn5gw').textContent=gw5on?'GW On':'GW Off';
+  document.getElementById('btn5gw').classList.toggle('on',gw5on);
+}
+function toggle5FP(){fp5on=!fp5on;document.getElementById('btn5fp').classList.toggle('on',fp5on);updateArm5();}
+function toggle5PR(){pr5on=!pr5on;document.getElementById('btn5pr5').classList.toggle('on',pr5on);}
+function toggle5SR(){sr5on=!sr5on;document.getElementById('btn5sr').classList.toggle('on',sr5on);}
+function toggle5Noise(type){
+  noise5[type]=!noise5[type];
+  document.getElementById('btn5'+type).classList.toggle('on',noise5[type]);
+}
+let paused5=false;
+function toggle5(){
+  paused5=!paused5;
+  document.getElementById('btn5pp').textContent=paused5?'\u25b6 Play':'\u23f8 Pause';
+  document.getElementById('btn5pp').classList.toggle('on',!paused5);
+  if(!paused5) start5();
+}
+function updateArm5(){
+  document.getElementById('effArm5').textContent=fp5on?'1200 km (eff)':'4 km';
+}
+
+function start5(){
+  if(anim5||paused5) return;
+  let last5=null;
+  function frame(ts){
+    if(!last5) last5=ts;
+    const dt=(ts-last5)/1000; last5=ts;
+    if(!paused5) t5+=dt*(window.animSpeed||0.1)*0.7;
+    draw5();
+    anim5=requestAnimationFrame(frame);
+  }
+  anim5=requestAnimationFrame(frame);
+}
+
+function draw5(){
+  const {cv,ctx,W,H}=dprCanvas('c5');
+  if(!W||!H) return;
+  ctx.fillStyle='#07071a';ctx.fillRect(0,0,W,H);
+
+  const gwF=100, gwA=gw5on?0.06:0;
+  const stretch=gwA*Math.sin(2*Math.PI*gwF*t5*0.04);
+
+  const bsx=W*0.35, bsy=H*0.52;
+  const baseArm=Math.min(W*0.52,H*0.44);
+  const hArm=baseArm*(1+stretch);
+  const vArm=baseArm*(1-stretch);
+  const fpMult=fp5on?1.0:1.0; // visual stays same, label changes
+
+  // ── sensitivity curve (bottom strip) ──
+  const curveY=H-72, curveH=64, curveW=W-60, curveX=30;
+  ctx.fillStyle='#060614';ctx.fillRect(0,curveY-4,W,curveH+8);
+  ctx.strokeStyle='rgba(136,170,255,0.2)';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(curveX,curveY);ctx.lineTo(curveX,curveY+curveH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(curveX,curveY+curveH);ctx.lineTo(curveX+curveW,curveY+curveH);ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.45)';ctx.font='12px Segoe UI';
+  ctx.textAlign='center';ctx.fillText('10',curveX+curveW*0.08,curveY+curveH+11);
+  ctx.fillText('100',curveX+curveW*0.5,curveY+curveH+11);
+  ctx.fillText('1k Hz',curveX+curveW*0.93,curveY+curveH+11);
+  ctx.textAlign='right';ctx.fillText('h/√Hz',curveX-3,curveY+8);
+
+  // draw noise curves
+  function noiseFloor(f){
+    const shot=noise5.shot?1.0:0.0;
+    const seis=noise5.seismic?1.0:0.0;
+    const therm=noise5.thermal?1.0:0.0;
+    const sq=noise5.squeeze?0.5:1.0; // squeezing halves shot noise
+    const shotNoise=sq*3e-24*Math.sqrt(1+(f/200)*(f/200));
+    const seisNoise=seis*1e-20*Math.pow(Math.max(f,5),-4);
+    const thermNoise=therm*1e-23*Math.pow(Math.max(f,20),-0.5);
+    const base=3e-24*(1+(100/Math.max(f,10))+(f/300)*(f/300));
+    return Math.sqrt(base*base+(shot?shotNoise*shotNoise:0)+(seis?seisNoise*seisNoise:0)+(therm?thermNoise*thermNoise:0));
+  }
+  const hMin=1e-25, hMax=1e-20;
+  const fMin=8, fMax=2000;
+
+  function fToX(f){return curveX+curveW*(Math.log10(f/fMin)/Math.log10(fMax/fMin));}
+  function hToY(h){return curveY+curveH*(1-Math.log10(h/hMin)/Math.log10(hMax/hMin));}
+
+  // LIGO design sensitivity
+  ctx.beginPath();
+  for(let fi=0;fi<=200;fi++){
+    const f=fMin*Math.pow(fMax/fMin,fi/200);
+    const x=fToX(f), y=hToY(noiseFloor(f));
+    fi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='#88aaff';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('LIGO',fToX(150)+3,hToY(noiseFloor(150))-3);
+
+  // individual noise sources
+  if(noise5.seismic){
+    ctx.beginPath();
+    for(let fi=0;fi<=80;fi++){
+      const f=fMin*Math.pow(50/fMin,fi/80);
+      const h=1e-20*Math.pow(Math.max(f,5),-4);
+      const x=fToX(f), y=hToY(Math.max(h,hMin*1.01));
+      if(y<curveY||y>curveY+curveH) continue;
+      fi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(100,200,100,0.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(100,200,100,0.6)';ctx.fillText('seismic',fToX(9),curveY+15);
+  }
+  if(noise5.thermal){
+    ctx.beginPath();
+    for(let fi=0;fi<=80;fi++){
+      const f=20+fi*(200/80);
+      const h=1e-23*Math.pow(Math.max(f,20),-0.5);
+      const x=fToX(f), y=hToY(Math.max(h,hMin*1.01));
+      if(y<curveY||y>curveY+curveH) continue;
+      fi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(255,180,60,0.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,180,60,0.6)';ctx.fillText('thermal',fToX(30),curveY+28);
+  }
+  if(noise5.shot){
+    ctx.beginPath();
+    for(let fi=0;fi<=80;fi++){
+      const f=100+fi*(1900/80);
+      const sq=noise5.squeeze?0.5:1.0;
+      const h=sq*3e-24*Math.sqrt(1+(f/200)*(f/200));
+      const x=fToX(f), y=hToY(Math.max(h,hMin*1.01));
+      if(y<curveY||y>curveY+curveH) continue;
+      fi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='rgba(136,170,255,0.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(136,170,255,0.6)';ctx.fillText('shot'+(noise5.squeeze?' (sqz)':''),fToX(400),curveY+15);
+  }
+
+  // ── main interferometer drawing ──
+  // Laser source
+  const laserX=pr5on?bsx-100:bsx-55;
+  ctx.fillStyle='rgba(60,220,80,0.9)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Laser',laserX,bsy-12);
+  ctx.save();
+  ctx.strokeStyle='rgba(60,220,80,0.9)';ctx.lineWidth=3;
+  ctx.shadowColor='#44ff88';ctx.shadowBlur=8;
+  ctx.beginPath();ctx.moveTo(laserX+10,bsy);ctx.lineTo(bsx,bsy);ctx.stroke();
+  ctx.restore();
+
+  // Power recycling mirror
+  if(pr5on){
+    drawMirror(ctx,bsx-55,bsy,0,'rgba(255,180,80,0.9)','PRM');
+    ctx.save();
+    ctx.strokeStyle='rgba(255,180,80,0.6)';ctx.lineWidth=2;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(bsx-46,bsy);ctx.lineTo(bsx,bsy);ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+    ctx.fillStyle='rgba(255,180,80,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('200W→100kW',bsx-22,bsy-10);
+  }
+
+  // Beam splitter
+  ctx.save();
+  ctx.fillStyle='rgba(136,170,255,0.85)';ctx.strokeStyle='#88aaff';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(bsx-9,bsy);ctx.lineTo(bsx,bsy-9);ctx.lineTo(bsx+9,bsy);ctx.lineTo(bsx,bsy+9);ctx.closePath();
+  ctx.fill();ctx.stroke();ctx.restore();
+  ctx.fillStyle='rgba(136,170,255,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('BS',bsx,bsy+22);
+
+  // Horizontal arm with FP cavity
+  const hMirX=bsx+hArm;
+  ctx.save();ctx.strokeStyle='rgba(60,130,255,0.3)';ctx.lineWidth=fp5on?14:10;
+  ctx.beginPath();ctx.moveTo(bsx,bsy);ctx.lineTo(hMirX,bsy);ctx.stroke();
+  if(fp5on){
+    // FP input mirror
+    drawMirror(ctx,bsx+14,bsy,0,'rgba(100,200,255,0.7)','ITMx');
+    ctx.fillStyle='rgba(100,200,255,0.5)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('FP cavity ~300 bounces',bsx+hArm/2,bsy-13);
+  }
+  const lT=(t5*0.9)%1;
+  const lx=bsx+(hMirX-bsx)*lT;
+  ctx.fillStyle='#fff';ctx.shadowColor='#aaccff';ctx.shadowBlur=14;
+  ctx.beginPath();ctx.arc(lx,bsy,4,0,2*Math.PI);ctx.fill();ctx.restore();
+  drawMirror(ctx,hMirX,bsy,0,'#88aaff','ETMx');
+  ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(fp5on?'L_eff≈1200 km':'4 km',bsx+hArm/2,bsy-fp5on?26:13);
+
+  // Vertical arm
+  const vMirY=bsy-vArm;
+  ctx.save();ctx.strokeStyle='rgba(60,130,255,0.3)';ctx.lineWidth=fp5on?14:10;
+  ctx.beginPath();ctx.moveTo(bsx,bsy);ctx.lineTo(bsx,vMirY);ctx.stroke();
+  if(fp5on){
+    drawMirror(ctx,bsx,bsy-14,Math.PI/2,'rgba(100,200,255,0.7)','ITMy');
+  }
+  const lV=(t5*0.9*0.97+0.5)%1;
+  const ly=bsy-(bsy-vMirY)*lV;
+  ctx.fillStyle='#fff';ctx.shadowColor='#aaccff';ctx.shadowBlur=14;
+  ctx.beginPath();ctx.arc(bsx,ly,4,0,2*Math.PI);ctx.fill();ctx.restore();
+  drawMirror(ctx,bsx,vMirY,Math.PI/2,'#88aaff','ETMy');
+  ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='right';
+  ctx.fillText('4 km',bsx-13,bsy-vArm/2);
+
+  // Signal recycling mirror
+  if(sr5on){
+    const pdX=bsx, pdY=bsy+58;
+    drawMirror(ctx,pdX,pdY+15,0,'rgba(200,100,255,0.9)','SRM');
+    ctx.fillStyle='rgba(200,100,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Signal Recycling',pdX,pdY+36);
+  }
+
+  // Output / photodetector
+  const pdX2=bsx, pdY2=bsy+58+(sr5on?40:0);
+  ctx.save();
+  ctx.strokeStyle='rgba(60,130,255,0.3)';ctx.lineWidth=2;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(bsx,bsy);ctx.lineTo(pdX2,pdY2);ctx.stroke();
+  ctx.setLineDash([]);
+  const bright5=gw5on?0.4+0.5*Math.sin(2*Math.PI*gwF*t5*0.04):0.05;
+  const grd5=ctx.createRadialGradient(pdX2,pdY2+18,0,pdX2,pdY2+18,20);
+  grd5.addColorStop(0,`rgba(136,170,255,${bright5})`);
+  grd5.addColorStop(1,'transparent');
+  ctx.fillStyle=grd5;ctx.beginPath();ctx.arc(pdX2,pdY2+18,20,0,2*Math.PI);ctx.fill();
+  ctx.strokeStyle='rgba(136,170,255,0.7)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.rect(pdX2-13,pdY2+5,26,26);ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.8)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('PD',pdX2,pdY2+4);ctx.restore();
+
+  document.getElementById('out5').textContent=gw5on?'Signal! fringe shift':'Dark (destructive)';
+
+  // Squeeze annotation
+  if(noise5.squeeze){
+    ctx.fillStyle='rgba(255,120,200,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('Squeezed light active — beating SQL',bsx-80,H-82);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TAB 6: PULSAR TIMING ARRAY
+// ══════════════════════════════════════════════════════════════════
+let anim6=null, t6=0, paused6=false, showHD6=false, showRes6=false;
+const pulsars6=(()=>{
+  const pts=[];
+  const rng=(()=>{let s=12345;return ()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};})();
+  for(let i=0;i<67;i++){
+    const az=rng()*2*Math.PI;
+    const el=(rng()-0.5)*Math.PI*0.9;
+    pts.push({az,el,phase:rng()*2*Math.PI,period:1.5+rng()*8,residual:0,id:i});
+  }
+  return pts;
+})();
+
+function toggle6(){paused6=!paused6;document.getElementById('btn6pp').textContent=paused6?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn6pp').classList.toggle('on',!paused6);}
+function toggle6HD(){showHD6=!showHD6;document.getElementById('btn6hd').classList.toggle('on',showHD6);}
+function toggle6Res(){showRes6=!showRes6;document.getElementById('btn6res').classList.toggle('on',showRes6);}
+function draw6update(){
+  const v=+document.getElementById('gwbAmp6').value;
+  document.getElementById('gwbAmpV').textContent=v;
+}
+
+function start6(){
+  if(anim6) return;
+  let last6=null;
+  function frame(ts){
+    if(!last6) last6=ts;
+    const dt=(ts-last6)/1000; last6=ts;
+    if(!paused6) t6+=dt*(window.animSpeed||0.1)*0.4;
+    draw6();
+    anim6=requestAnimationFrame(frame);
+  }
+  anim6=requestAnimationFrame(frame);
+}
+
+function draw6(){
+  const {cv,ctx,W,H}=dprCanvas('c6');
+  if(!W||!H) return;
+  ctx.fillStyle='#07071a';ctx.fillRect(0,0,W,H);
+
+  const amp=(+document.getElementById('gwbAmp6').value)/5.0;
+
+  // Layout: sky map on left, HD curve on right (if shown)
+  const mapW=showHD6?(W*0.55):(W-10);
+  const mapCX=mapW/2+5, mapCY=H*0.48;
+  const mapRX=mapW/2-20, mapRY=mapRX*0.5;
+
+  // Draw Mollweide-like ellipse for sky
+  ctx.save();
+  ctx.strokeStyle='rgba(136,170,255,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(mapCX,mapCY,mapRX,mapRY,0,0,2*Math.PI);ctx.stroke();
+  // galactic plane
+  ctx.strokeStyle='rgba(136,170,255,0.1)';ctx.lineWidth=0.5;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(mapCX-mapRX,mapCY);ctx.lineTo(mapCX+mapRX,mapCY);ctx.stroke();
+  ctx.setLineDash([]);ctx.restore();
+
+  // GW background ripple
+  const gwPhase6=t6*0.3;
+  ctx.save();
+  for(let k=0;k<4;k++){
+    const age=((gwPhase6+k/4)%1);
+    const r=age*Math.max(mapRX,mapRY)*1.1;
+    const al=(1-age)*0.18*amp;
+    ctx.strokeStyle=`rgba(150,200,255,${al})`;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.ellipse(mapCX,mapCY,r,r*0.5,0,0,2*Math.PI);ctx.stroke();
+  }
+  ctx.restore();
+
+  // Pulsars
+  for(const p of pulsars6){
+    // project az/el to ellipse
+    const px=mapCX+mapRX*Math.cos(p.el)*Math.sin(p.az);
+    const py=mapCY-mapRY*Math.sin(p.el);
+
+    // GWB-induced residual: correlated noise at nHz
+    const gwbRes=amp*0.006*Math.sin(2*Math.PI*(t6*0.2)+p.phase);
+    p.residual=gwbRes;
+
+    // Pulsar blink (period)
+    const blink=0.5+0.5*Math.sin(2*Math.PI*t6/p.period*20+p.phase);
+    const brightness=0.5+0.5*blink;
+
+    ctx.save();
+    if(showRes6){
+      // color by residual
+      const r5=Math.abs(gwbRes)*3000;
+      const sign=gwbRes>0?'rgba(100,200,255,':'rgba(255,140,100,';
+      ctx.fillStyle=sign+Math.min(0.9,brightness*0.6+r5).toFixed(2)+')';
+    } else {
+      ctx.fillStyle=`rgba(150,200,255,${brightness*0.7})`;
+    }
+    ctx.shadowColor='#88aaff';ctx.shadowBlur=brightness*6;
+    ctx.beginPath();ctx.arc(px,py,2.5,0,2*Math.PI);ctx.fill();
+    ctx.restore();
+
+    // Residual line
+    if(showRes6&&Math.abs(p.residual)>0.001){
+      const lineLen=p.residual*2000*amp;
+      ctx.save();
+      ctx.strokeStyle=p.residual>0?'rgba(100,200,255,0.5)':'rgba(255,140,100,0.5)';
+      ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,py-lineLen);ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // Sky labels
+  ctx.fillStyle='rgba(136,170,255,0.45)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Sky Map — 67 Millisecond Pulsars',mapCX,mapCY+mapRY+14);
+  ctx.fillText('GWB causes correlated pulse-arrival residuals',mapCX,mapCY+mapRY+25);
+
+  // NANOGrav annotation
+  ctx.fillStyle='rgba(255,200,80,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('NANOGrav 2023: 4.6σ Hellings-Downs signal',8,14);
+  ctx.fillText('PPTA · EPTA · InPTA confirmation',8,26);
+
+  // ── Hellings-Downs curve ──
+  if(showHD6){
+    const hdX=mapW+10, hdW=W-mapW-15;
+    const hdY=H*0.12, hdH=H*0.72;
+    ctx.fillStyle='#080816';ctx.fillRect(hdX,hdY-10,hdW,hdH+20);
+    ctx.strokeStyle='rgba(136,170,255,0.2)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(hdX,hdY);ctx.lineTo(hdX,hdY+hdH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(hdX,hdY+hdH/2);ctx.lineTo(hdX+hdW,hdY+hdH/2);ctx.stroke();
+    ctx.fillStyle='rgba(136,170,255,0.5)';ctx.font='12px Segoe UI';
+    ctx.textAlign='center';ctx.fillText('0°',hdX+5,hdY+hdH+12);
+    ctx.fillText('90°',hdX+hdW*0.5,hdY+hdH+12);
+    ctx.fillText('180°',hdX+hdW-5,hdY+hdH+12);
+    ctx.textAlign='right';ctx.fillText('Γ(ζ)',hdX-3,hdY+8);
+    ctx.textAlign='center';ctx.fillText('Hellings-Downs',hdX+hdW/2,hdY-14);
+
+    // Theoretical HD curve
+    ctx.beginPath();
+    for(let xi=0;xi<=100;xi++){
+      const zeta=(xi/100)*Math.PI;
+      const cosZ=Math.cos(zeta);
+      const x=(1-cosZ)/2;
+      let hd;
+      if(xi===0) hd=1.0;
+      else hd=1.5*x*Math.log(Math.max(x,0.0001))-0.25*x+0.5;
+      const px=hdX+(xi/100)*hdW;
+      const py=hdY+hdH/2-hd*(hdH*0.35);
+      xi===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.strokeStyle='#88aaff';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(136,170,255,0.7)';ctx.font='12px Segoe UI';
+    ctx.textAlign='left';ctx.fillText('Theory',hdX+hdW*0.6,hdY+hdH*0.18);
+
+    // Simulated data points (pulsar pairs with scatter)
+    const rng2=(()=>{let s=99;return ()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};})();
+    for(let di=0;di<30;di++){
+      const zetaD=rng2()*Math.PI;
+      const x=(1-Math.cos(zetaD))/2;
+      let hdT=1.5*x*Math.log(Math.max(x,0.0001))-0.25*x+0.5;
+      const noise=( rng2()-0.5)*0.4;
+      hdT+=noise;
+      const dpx=hdX+(zetaD/Math.PI)*hdW;
+      const dpy=hdY+hdH/2-hdT*(hdH*0.35);
+      ctx.beginPath();ctx.arc(dpx,dpy,3,0,2*Math.PI);
+      ctx.fillStyle='rgba(255,200,80,0.7)';ctx.fill();
+    }
+    ctx.fillStyle='rgba(255,200,80,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('NANOGrav data',hdX+hdW*0.05,hdY+hdH*0.85);
+
+    // Monopole/dipole reference lines
+    ctx.strokeStyle='rgba(255,100,100,0.3)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(hdX,hdY+hdH/2-0.5*hdH*0.35);ctx.lineTo(hdX+hdW,hdY+hdH/2-0.5*hdH*0.35);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,100,100,0.4)';ctx.font='12px Segoe UI';ctx.textAlign='right';
+    ctx.fillText('monopole (clock)',hdX+hdW-3,hdY+hdH/2-0.5*hdH*0.35-3);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TAB 7: LISA & SPACE DETECTORS
+// ══════════════════════════════════════════════════════════════════
+let anim7=null, t7=0, paused7=false, showTDI7=false, showSrc7=false, showCurve7=true;
+
+function toggle7(){paused7=!paused7;document.getElementById('btn7pp').textContent=paused7?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn7pp').classList.toggle('on',!paused7);}
+function toggle7TDI(){showTDI7=!showTDI7;document.getElementById('btn7tdi').classList.toggle('on',showTDI7);}
+function toggle7Src(){showSrc7=!showSrc7;document.getElementById('btn7src').classList.toggle('on',showSrc7);}
+function toggle7Curve(){showCurve7=!showCurve7;document.getElementById('btn7curve').classList.toggle('on',showCurve7);}
+function draw7update(){
+  const v=+document.getElementById('lisa7arm').value;
+  document.getElementById('lisa7armV').textContent=v;
+  document.getElementById('lisaArmDisp').textContent=v+'×10⁶ km';
+}
+
+function start7(){
+  if(anim7) return;
+  document.getElementById('btn7curve').classList.add('on');
+  let last7=null;
+  function frame(ts){
+    if(!last7) last7=ts;
+    const dt=(ts-last7)/1000; last7=ts;
+    if(!paused7) t7+=dt*(window.animSpeed||0.1)*0.15;
+    draw7();
+    anim7=requestAnimationFrame(frame);
+  }
+  anim7=requestAnimationFrame(frame);
+}
+
+function draw7(){
+  const {cv,ctx,W,H}=dprCanvas('c7');
+  if(!W||!H) return;
+  ctx.fillStyle='#07071a';ctx.fillRect(0,0,W,H);
+
+  const arm7=(+document.getElementById('lisa7arm').value)||2.5;
+  const mainH=showCurve7?H*0.62:H-10;
+  const cx=W*0.5, cy=mainH*0.5;
+
+  // Stars background
+  const rng3=(()=>{let s=777;return ()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};})();
+  for(let i=0;i<120;i++){
+    const sx=rng3()*W, sy=rng3()*mainH;
+    const sa=0.2+rng3()*0.5;
+    ctx.fillStyle=`rgba(200,210,255,${sa})`;
+    ctx.fillRect(sx,sy,1,1);
+  }
+
+  // Sun
+  const sunR=18;
+  const sunGrd=ctx.createRadialGradient(cx,cy,0,cx,cy,sunR*2.5);
+  sunGrd.addColorStop(0,'#ffee88');sunGrd.addColorStop(0.4,'#ffaa22');sunGrd.addColorStop(1,'transparent');
+  ctx.fillStyle=sunGrd;ctx.beginPath();ctx.arc(cx,cy,sunR*2.5,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#ffdd44';ctx.beginPath();ctx.arc(cx,cy,sunR,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='rgba(255,220,100,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';ctx.fillText('Sun',cx,cy+sunR+11);
+
+  // Earth orbit
+  const earthOrbitR=Math.min(W,mainH)*0.38;
+  ctx.strokeStyle='rgba(100,150,255,0.15)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.arc(cx,cy,earthOrbitR,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);
+
+  // Earth position (one revolution per... normalize to animation)
+  const earthAngle=t7*0.4;
+  const ex=cx+earthOrbitR*Math.cos(earthAngle);
+  const ey=cy+earthOrbitR*Math.sin(earthAngle);
+  ctx.fillStyle='#4488ff';ctx.beginPath();ctx.arc(ex,ey,7,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='rgba(100,150,255,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';ctx.fillText('Earth',ex,ey-10);
+
+  // LISA constellation: trailing Earth by 20° (~0.35 rad)
+  const lisaAngle=earthAngle-0.35;
+  const lisaCenter={x:cx+earthOrbitR*Math.cos(lisaAngle), y:cy+earthOrbitR*Math.sin(lisaAngle)};
+  const lisaR=Math.min(W,mainH)*0.085; // visual size of triangle
+
+  // Three spacecraft: equilateral triangle rotating slowly
+  const rot7=t7*0.6;
+  const sc=[];
+  for(let i=0;i<3;i++){
+    const a=rot7+i*2*Math.PI/3;
+    sc.push({x:lisaCenter.x+lisaR*Math.cos(a), y:lisaCenter.y+lisaR*Math.sin(a)});
+  }
+
+  // Laser links
+  const linkColors=['rgba(80,200,255,0.55)','rgba(80,200,255,0.55)','rgba(80,200,255,0.55)'];
+  for(let i=0;i<3;i++){
+    const a=sc[i], b=sc[(i+1)%3];
+    ctx.save();
+    ctx.strokeStyle=linkColors[i];ctx.lineWidth=1.5;
+    if(showTDI7){
+      ctx.shadowColor='#50c8ff';ctx.shadowBlur=6;
+    }
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    // animated laser pulse
+    const pulse=((t7*1.5+i/3)%1);
+    const lpx=a.x+(b.x-a.x)*pulse;
+    const lpy=a.y+(b.y-a.y)*pulse;
+    ctx.fillStyle='#ffffff';ctx.shadowColor='#aaccff';ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(lpx,lpy,2.5,0,2*Math.PI);ctx.fill();
+    ctx.restore();
+    // arm label
+    const midX=(a.x+b.x)/2, midY=(a.y+b.y)/2;
+    ctx.fillStyle='rgba(100,200,255,0.5)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(arm7+'M km',midX,midY-5);
+  }
+
+  // Spacecraft
+  for(let i=0;i<3;i++){
+    const s=sc[i];
+    ctx.save();
+    ctx.fillStyle='rgba(150,210,255,0.9)';
+    ctx.strokeStyle='#88ccff';ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(s.x,s.y-7);ctx.lineTo(s.x+5,s.y+4);ctx.lineTo(s.x-5,s.y+4);ctx.closePath();
+    ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(150,210,255,0.8)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('SC'+(i+1),s.x,s.y+14);
+    ctx.restore();
+  }
+
+  // LISA label
+  ctx.fillStyle='rgba(150,210,255,0.7)';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('LISA',lisaCenter.x,lisaCenter.y+lisaR+22);
+
+  // TDI annotation
+  if(showTDI7){
+    ctx.fillStyle='rgba(80,200,255,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('TDI: time-delayed links cancel laser noise by 10⁸×',8,14);
+    ctx.fillText('X=y₂₁+D₁₂y₃₁−y₃₁−D₁₃y₂₁ (simplified)',8,26);
+  }
+
+  // Source classes overlay
+  if(showSrc7){
+    const srcItems=[
+      {label:'Massive BH mergers (z~20)',color:'#ff8844',x:W*0.75,y:mainH*0.18},
+      {label:'EMRIs (10⁵ cycles)',color:'#88ff88',x:W*0.75,y:mainH*0.30},
+      {label:'WD-WD verify. binaries',color:'#ffcc44',x:W*0.75,y:mainH*0.42},
+      {label:'Stochastic GWB',color:'#cc88ff',x:W*0.75,y:mainH*0.54},
+    ];
+    for(const s of srcItems){
+      ctx.fillStyle=s.color;ctx.font='12px Segoe UI';ctx.textAlign='left';
+      ctx.fillText('■ '+s.label,s.x,s.y);
+    }
+  }
+
+  // ── Sensitivity curve panel ──
+  if(!showCurve7) return;
+  const curY=mainH+8, curH=H-mainH-12, curX=40, curW=W-50;
+  ctx.fillStyle='#060614';ctx.fillRect(0,curY,W,curH+4);
+  ctx.fillStyle='rgba(136,170,255,0.45)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Frequency (Hz)',W/2,H-2);
+  ctx.textAlign='right';ctx.fillText('h/√Hz',curX-3,curY+8);
+
+  const fMinL=1e-5, fMaxL=1e3;
+  function fToXl(f){return curX+(curW*Math.log10(f/fMinL)/Math.log10(fMaxL/fMinL));}
+  function hToYl(h,hMin,hMax){return curY+curH*(1-Math.log10(h/hMin)/Math.log10(hMax/hMin));}
+  const hMinL=1e-24,hMaxL=1e-14;
+
+  // Axes
+  ctx.strokeStyle='rgba(136,170,255,0.2)';ctx.lineWidth=0.5;
+  for(const f of [1e-4,1e-3,1e-2,1e-1,1,10,100]){
+    const x=fToXl(f);
+    ctx.beginPath();ctx.moveTo(x,curY);ctx.lineTo(x,curY+curH);ctx.stroke();
+    ctx.fillStyle='rgba(136,170,255,0.4)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(f>=1?f.toFixed(0):f.toExponential(0),x,curY+curH+10);
+  }
+
+  // LISA sensitivity (approximate)
+  ctx.beginPath();
+  for(let xi=0;xi<=200;xi++){
+    const f=fMinL*Math.pow(fMaxL/fMinL,xi/200);
+    if(f<1e-5||f>1) continue;
+    const fknee=arm7*1e9/3e8; // arm in m / c → transit time → knee freq
+    const Sacc=9e-30*(1+(4e-4/f)*(4e-4/f))*(1+(f/8e-3)*(f/8e-3));
+    const Soms=2.25e-22*(1+(2e-3/f)*(2e-3/f));
+    const S=Sacc/(f*f)+Soms;
+    const h=Math.sqrt(S)*Math.sqrt(20/3);
+    if(h<hMinL||h>hMaxL) continue;
+    const x=fToXl(f), y=hToYl(h,hMinL,hMaxL);
+    xi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='#ffaa44';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='rgba(255,170,68,0.8)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('LISA',fToXl(3e-3)+3,hToYl(3e-20,hMinL,hMaxL));
+
+  // LIGO/ET sensitivity
+  ctx.beginPath();
+  for(let xi=0;xi<=200;xi++){
+    const f=1+xi*(2000/200);
+    const h=3e-24*(1+(100/Math.max(f,10))+Math.pow(f/300,2));
+    if(h<hMinL||h>hMaxL) continue;
+    const x=fToXl(f), y=hToYl(h,hMinL,hMaxL);
+    xi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='#88aaff';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.8)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('LIGO',fToXl(50)+3,hToYl(1e-22,hMinL,hMaxL));
+
+  // Einstein Telescope (10× better)
+  ctx.beginPath();
+  for(let xi=0;xi<=200;xi++){
+    const f=1+xi*(2000/200);
+    const h=3e-25*(1+(10/Math.max(f,2))+Math.pow(f/300,2));
+    if(h<hMinL||h>hMaxL) continue;
+    const x=fToXl(f), y=hToYl(h,hMinL,hMaxL);
+    xi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='rgba(100,255,150,0.8)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(100,255,150,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('ET',fToXl(20)+3,hToYl(1e-23,hMinL,hMaxL));
+
+  // DECIGO (deci-Hz)
+  ctx.beginPath();
+  for(let xi=0;xi<=200;xi++){
+    const f=0.01+xi*(20/200);
+    const h=4e-24*(1+(0.2/Math.max(f,0.01))*(0.2/Math.max(f,0.01))+Math.pow(f/10,2));
+    if(h<hMinL||h>hMaxL) continue;
+    const x=fToXl(f), y=hToYl(h,hMinL,hMaxL);
+    xi===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.strokeStyle='rgba(255,100,180,0.7)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,100,180,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('DECIGO',fToXl(0.15)+3,hToYl(1e-23,hMinL,hMaxL));
+
+  // PTA region
+  ctx.fillStyle='rgba(255,200,60,0.12)';
+  const ptaX1=fToXl(1e-9), ptaX2=fToXl(1e-7);
+  if(ptaX2>curX&&ptaX1<curX+curW) ctx.fillRect(Math.max(ptaX1,curX),curY,Math.min(ptaX2,curX+curW)-Math.max(ptaX1,curX),curH);
+  ctx.fillStyle='rgba(255,200,60,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  const ptaLX=(Math.max(ptaX1,curX)+Math.min(ptaX2,curX+curW))/2;
+  if(ptaX2>curX) ctx.fillText('PTA',ptaLX,curY+12);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TAB 8: NEUTRON STAR PHYSICS & MULTI-MESSENGER
+// ══════════════════════════════════════════════════════════════════
+let anim8=null, t8=0, paused8=false, showTidal8=false, showKN8=true, showGRB8=false;
+
+function toggle8(){paused8=!paused8;document.getElementById('btn8pp').textContent=paused8?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn8pp').classList.toggle('on',!paused8);}
+function toggle8Tidal(){showTidal8=!showTidal8;document.getElementById('btn8tidal').classList.toggle('on',showTidal8);}
+function toggle8KN(){showKN8=!showKN8;document.getElementById('btn8kn').classList.toggle('on',showKN8);}
+function toggle8GRB(){showGRB8=!showGRB8;document.getElementById('btn8grb').classList.toggle('on',showGRB8);}
+function draw8update(){
+  const v=+document.getElementById('lambda8').value;
+  document.getElementById('lambda8V').textContent=v;
+}
+
+function start8(){
+  if(anim8) return;
+  document.getElementById('btn8kn').classList.add('on');
+  let last8=null;
+  function frame(ts){
+    if(!last8) last8=ts;
+    const dt=(ts-last8)/1000; last8=ts;
+    if(!paused8) t8+=dt*(window.animSpeed||0.1)*0.5;
+    if(t8>40) t8=0;
+    draw8();
+    anim8=requestAnimationFrame(frame);
+  }
+  anim8=requestAnimationFrame(frame);
+}
+
+function draw8(){
+  const {cv,ctx,W,H}=dprCanvas('c8');
+  if(!W||!H) return;
+  ctx.fillStyle='#07071a';ctx.fillRect(0,0,W,H);
+
+  const lambda=(+document.getElementById('lambda8').value)||400;
+
+  // Phase: 0-5 inspiral, 5-7 merger, 7-40 kilonova/afterglow
+  const phase8 = t8<5?'INSPIRAL':t8<7?'MERGER':'KILONOVA';
+
+  // Split canvas: left = merger animation, right = tidal/lightcurve panel
+  const splitX=showTidal8?W*0.55:W;
+  const cx=splitX/2, cy=H*0.48;
+
+  // Stars
+  const rng4=(()=>{let s=2468;return ()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};})();
+  for(let i=0;i<80;i++){
+    ctx.fillStyle=`rgba(200,210,255,${0.2+rng4()*0.4})`;
+    ctx.fillRect(rng4()*splitX,rng4()*H,1,1);
+  }
+
+  if(phase8==='INSPIRAL'){
+    const tau8=Math.max(0.01,5-t8);
+    const r8=0.1+0.9*Math.pow(tau8/5,0.25);
+    const rPx8=r8*Math.min(splitX,H)*0.3;
+    const f8=0.05*Math.pow(r8,-1.5);
+    const ang8=f8*t8*2*Math.PI*6;
+
+    // GW ripples
+    for(let k=0;k<5;k++){
+      const age=((ang8/(2*Math.PI)+k/5)%1);
+      const rr=age*Math.min(splitX/2,H/2)*0.85;
+      const al=(1-age)*0.4;
+      ctx.save();ctx.translate(cx,cy);ctx.scale(1,0.38);
+      ctx.beginPath();ctx.arc(0,0,rr,0,2*Math.PI);
+      ctx.strokeStyle=`rgba(100,200,255,${al})`;ctx.lineWidth=1.5;ctx.stroke();
+      ctx.restore();
+    }
+
+    // Tidal distortion of NS
+    const tidalDist=lambda/800*Math.pow(rPx8<15?15:rPx8,-2)*50;
+    const x1=cx+rPx8*0.5*Math.cos(ang8), y1=cy+rPx8*0.5*Math.sin(ang8)*0.38;
+    const x2=cx-rPx8*0.5*Math.cos(ang8), y2=cy-rPx8*0.5*Math.sin(ang8)*0.38;
+
+    // Draw NS (elliptical, tidally deformed)
+    for(let si=0;si<2;si++){
+      const nx=si===0?x1:x2, ny=si===0?y1:y2;
+      const ns_r=8;
+      const tdist=Math.min(tidalDist,4);
+      const angle8=Math.atan2(ny-cy,nx-cx);
+      ctx.save();ctx.translate(nx,ny);ctx.rotate(angle8);
+      const grd8=ctx.createRadialGradient(0,0,0,0,0,ns_r*1.5);
+      grd8.addColorStop(0,'#aaddff');grd8.addColorStop(0.4,'#3377cc');grd8.addColorStop(0.8,'#050520');grd8.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.ellipse(0,0,ns_r+tdist,ns_r,0,0,2*Math.PI);
+      ctx.fillStyle=grd8;ctx.fill();
+      ctx.restore();
+    }
+
+    // Tidal annotation
+    if(showTidal8&&rPx8<80){
+      ctx.fillStyle='rgba(255,200,80,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+      ctx.fillText(`Λ₁.₄=${lambda} — tidal distortion visible`,cx,cy-rPx8*0.5-22);
+    }
+
+    ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+    ctx.fillText('NS-NS Inspiral — tidal distortion grows',8,14);
+
+  } else if(phase8==='MERGER'){
+    const fl=Math.exp(-(t8-5)*1.5);
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,100*fl+40);
+    g.addColorStop(0,`rgba(220,240,255,${fl*0.9})`);
+    g.addColorStop(0.4,`rgba(100,180,255,${fl*0.5})`);
+    g.addColorStop(1,'transparent');
+    ctx.fillStyle=g;ctx.fillRect(0,0,splitX,H);
+
+    // GRB jet
+    if(showGRB8){
+      ctx.save();
+      const jetL=80*fl+20;
+      const jetAngle=Math.PI/2;
+      const g2=ctx.createLinearGradient(cx,cy-jetL,cx,cy);
+      g2.addColorStop(0,'transparent');
+      g2.addColorStop(1,`rgba(255,150,50,${fl*0.8})`);
+      ctx.fillStyle=g2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);ctx.lineTo(cx-8,cy-jetL);ctx.lineTo(cx+8,cy-jetL);ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle='rgba(255,150,50,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+      ctx.fillText('GRB jet (+1.7s)',cx,cy-jetL-8);
+      ctx.restore();
+    }
+
+    ctx.fillStyle='rgba(255,220,60,0.9)';ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Merger! Peak GW + r-process nucleosynthesis begins',cx,cy+55);
+
+  } else { // KILONOVA
+    const knAge=t8-7;
+
+    // Kilonova ejecta: blue (fast, lanthanide-poor) + red (slow, lanthanide-rich)
+    if(showKN8){
+      // Blue component
+      const blueR=Math.min(splitX*0.42, knAge*14+5);
+      const blueAlpha=Math.max(0,0.7-knAge*0.025);
+      const gBlue=ctx.createRadialGradient(cx,cy,0,cx,cy,blueR);
+      gBlue.addColorStop(0,`rgba(150,200,255,${blueAlpha*0.3})`);
+      gBlue.addColorStop(0.6,`rgba(80,150,255,${blueAlpha*0.5})`);
+      gBlue.addColorStop(1,'transparent');
+      ctx.fillStyle=gBlue;ctx.beginPath();ctx.arc(cx,cy,blueR,0,2*Math.PI);ctx.fill();
+
+      // Red component (slower, smaller)
+      const redR=Math.min(splitX*0.28, knAge*7+3);
+      const redAlpha=Math.max(0,0.8-knAge*0.02);
+      const gRed=ctx.createRadialGradient(cx,cy,0,cx,cy,redR);
+      gRed.addColorStop(0,`rgba(255,100,60,${redAlpha*0.3})`);
+      gRed.addColorStop(0.6,`rgba(200,80,50,${redAlpha*0.5})`);
+      gRed.addColorStop(1,'transparent');
+      ctx.fillStyle=gRed;ctx.beginPath();ctx.arc(cx,cy,redR,0,2*Math.PI);ctx.fill();
+
+      // Element labels floating outward
+      const elements=[
+        {el:'Au',r:blueR*0.85,ang:0.4,color:'#ffdd44'},
+        {el:'Pt',r:blueR*0.75,ang:2.1,color:'#ddddff'},
+        {el:'Eu',r:blueR*0.6,ang:3.8,color:'#aaddff'},
+        {el:'U',r:redR*0.8,ang:1.2,color:'#ffaa44'},
+        {el:'Sr',r:blueR*0.5,ang:5.1,color:'#88ffaa'},
+      ];
+      for(const e of elements){
+        if(e.r<8) continue;
+        const ex=cx+e.r*Math.cos(e.ang), ey=cy+e.r*Math.sin(e.ang);
+        ctx.fillStyle=e.color;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+        ctx.fillText(e.el,ex,ey);
+      }
+
+      // Annotations
+      ctx.strokeStyle='rgba(80,150,255,0.4)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.arc(cx,cy,blueR*0.95,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='rgba(80,150,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+      ctx.fillText(`Blue: v≈0.3c, lanthanide-poor`,8,14);
+      ctx.fillStyle='rgba(220,80,60,0.7)';
+      ctx.fillText(`Red: v≈0.1c, lanthanide-rich, r-process`,8,26);
+    }
+
+    // GRB jet
+    if(showGRB8){
+      const jetL=50+knAge*2;
+      ctx.save();
+      const g2=ctx.createLinearGradient(cx,cy-Math.min(jetL,H*0.45),cx,cy+5);
+      g2.addColorStop(0,'transparent');
+      g2.addColorStop(1,'rgba(255,150,50,0.5)');
+      ctx.fillStyle=g2;
+      ctx.beginPath();
+      const jetW=4+knAge*0.3;
+      ctx.moveTo(cx,cy);ctx.lineTo(cx-jetW,cy-Math.min(jetL,H*0.45));ctx.lineTo(cx+jetW,cy-Math.min(jetL,H*0.45));ctx.closePath();
+      ctx.fill();ctx.restore();
+      ctx.fillStyle='rgba(255,150,50,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+      ctx.fillText('Relativistic jet → GRB 170817A',cx,cy-Math.min(jetL,H*0.44)-10);
+    }
+
+    // r-process annotation
+    ctx.fillStyle='rgba(255,220,60,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText(`~3×10⁻⁴ M☉ gold per event · Λ₁.₄=${lambda}`,cx,H-10);
+  }
+
+  // ── Tidal waveform panel ──
+  if(!showTidal8) return;
+  const tpX=splitX+5, tpW=W-splitX-10, tpH=H-10, tpY=5;
+
+  ctx.fillStyle='#060614';ctx.fillRect(tpX,tpY,tpW,tpH);
+  ctx.strokeStyle='rgba(136,170,255,0.2)';ctx.lineWidth=0.5;
+  ctx.beginPath();ctx.moveTo(tpX,tpY+tpH/2);ctx.lineTo(tpX+tpW,tpY+tpH/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(tpX,tpY+5);ctx.lineTo(tpX,tpY+tpH-5);ctx.stroke();
+  ctx.fillStyle='rgba(136,170,255,0.55)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('GW phase: tidal vs point-mass',tpX+tpW/2,tpY+12);
+
+  // Point-mass waveform (no tides)
+  ctx.beginPath();
+  for(let xi=0;xi<=tpW-10;xi++){
+    const tLoc=-0.3+(xi/(tpW-10))*0.32;
+    const tau2=Math.max(0.005,-tLoc);
+    const f=Math.min(35+300*Math.pow(tau2+0.01,-0.375)*0.7,200);
+    const amp=Math.pow(Math.max(tau2,0.008),-0.2)*0.08;
+    const ph2=xi*0.12*f/100;
+    const y=tpY+tpH/2+Math.sin(ph2)*amp*(tpH*0.35);
+    xi===0?ctx.moveTo(tpX+5+xi,y):ctx.lineTo(tpX+5+xi,y);
+  }
+  ctx.strokeStyle='rgba(136,170,255,0.7)';ctx.lineWidth=1.5;ctx.stroke();
+
+  // Tidal correction waveform (phase shift grows as Λ·(m/d)^5)
+  const tidalPhaseShift=lambda/800*0.15;
+  ctx.beginPath();
+  for(let xi=0;xi<=tpW-10;xi++){
+    const tLoc=-0.3+(xi/(tpW-10))*0.32;
+    const tau2=Math.max(0.005,-tLoc);
+    const f=Math.min(35+300*Math.pow(tau2+0.01,-0.375)*0.7,200);
+    const amp=Math.pow(Math.max(tau2,0.008),-0.2)*0.08;
+    const tidalPhase=tidalPhaseShift*Math.pow(f/50,5)*0.5;
+    const ph2=xi*0.12*f/100+tidalPhase;
+    const y=tpY+tpH/2+Math.sin(ph2)*amp*(tpH*0.35);
+    xi===0?ctx.moveTo(tpX+5+xi,y):ctx.lineTo(tpX+5+xi,y);
+  }
+  ctx.strokeStyle='rgba(255,150,80,0.8)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+
+  ctx.fillStyle='rgba(136,170,255,0.6)';ctx.font='12px Segoe UI';ctx.textAlign='left';
+  ctx.fillText('point-mass',tpX+5,tpY+22);
+  ctx.fillStyle='rgba(255,150,80,0.7)';
+  ctx.fillText('with tides (Λ='+lambda+')',tpX+5,tpY+32);
+
+  // Delta-phi annotation
+  ctx.fillStyle='rgba(255,200,80,0.7)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(`δΦ∝Λ(m/d)⁵`,tpX+tpW/2,tpY+tpH-18);
+  ctx.fillText(`R₁.₄≈${(10+lambda/400).toFixed(1)} km`,tpX+tpW/2,tpY+tpH-7);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  window.animSpeed=0.1;
+  for(var i=0;i<9;i++){syncSpeedControl46(i);}
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

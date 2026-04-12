@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neutrino Oscillations | Road to Reality</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05050f;--bg2:#0b0b1e;--bg3:#111128;
+  --border:#1c1c44;--text:#c0c0ea;--dim:#55558a;
+  --accent:#ffd700;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+  height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
+  border-bottom:1px solid var(--border);padding:12px 20px 0;flex-shrink:0}
+.hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+.back{font-size:.75rem;color:var(--dim);text-decoration:none;transition:.15s}
+.back:hover{color:var(--accent)}
+h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
+.sub{font-size:.72rem;color:var(--dim);font-style:italic}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tab:hover{color:var(--text);background:var(--bg2)}
+.tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
+.content{flex:1;display:flex;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden}
+.panel.active{display:flex}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);
+  padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+.sidebar.right{border-right:none;border-left:1px solid var(--border);width:270px}
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+canvas{display:block;width:100%;height:100%}
+.section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
+.eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
+.eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
+.vrow{display:flex;justify-content:space-between;padding:3px 0;
+  border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.76rem}
+.vrow:last-child{border-bottom:none}
+.vlbl{color:var(--dim)}
+.callout{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:5px;padding:9px 11px;font-size:.76rem;line-height:1.55}
+.callout strong{color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:3px}
+label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
+.val-disp{font-size:.77rem;margin-top:3px;font-family:monospace;color:var(--accent)}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s;font-family:inherit}
+.btn:hover,.btn.active{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <a href="/" class="back">← Dashboard</a>
+    <h1>Neutrino Oscillations</h1>
+    <span class="sub">2015 Nobel Physics · Kajita (Super-K) · McDonald (SNO)</span>
+  </div>
+  <div class="tabs" data-role="tab-bar">
+    <button class="tab active" onclick="switchTab(1)">Flavor Probability</button>
+    <button class="tab" onclick="switchTab(2)">PMNS Matrix</button>
+    <button class="tab" onclick="switchTab(3)">Detector View</button>
+    <button class="tab" onclick="switchTab(4)">Mass Hierarchy</button>
+    <button class="tab" onclick="switchTab(5)">Solar &amp; MSW</button>
+    <button class="tab" onclick="switchTab(6)">Majorana &amp; 0&#957;&#946;&#946;</button>
+    <button class="tab" onclick="switchTab(7)">Sterile &#957;</button>
+    <button class="tab" onclick="switchTab(8)">Next-Gen Expts</button>
+  </div>
+</header>
+
+<div class="content">
+  <!-- Panel 1 -->
+  <div class="panel active" id="p1">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Preset</div>
+      <div class="btn-row">
+        <button class="btn" onclick="setNuPreset('solar',this)">Solar</button>
+        <button class="btn active" onclick="setNuPreset('atmospheric',this)">Atm.</button>
+        <button class="btn" onclick="setNuPreset('reactor',this)">Reactor</button>
+        <button class="btn" onclick="setNuPreset('beam',this)">Beam</button>
+      </div>
+      <div class="section-lbl" style="margin-top:10px">Mixing Angles</div>
+      <label>sin²θ₁₂ <span class="val-disp" id="th12Disp">0.307</span></label>
+      <input type="range" id="th12Sl" min="0.2" max="0.4" step="0.005" value="0.307"
+        oninput="th12Disp.textContent=this.value;nu.s12=Math.sqrt(+this.value)">
+      <label>sin²θ₂₃ <span class="val-disp" id="th23Disp">0.546</span></label>
+      <input type="range" id="th23Sl" min="0.3" max="0.7" step="0.005" value="0.546"
+        oninput="th23Disp.textContent=this.value;nu.s23=Math.sqrt(+this.value)">
+      <label>sin²θ₁₃ <span class="val-disp" id="th13Disp">0.022</span></label>
+      <input type="range" id="th13Sl" min="0.01" max="0.04" step="0.001" value="0.022"
+        oninput="th13Disp.textContent=this.value;nu.s13=Math.sqrt(+this.value)">
+      <label>Energy E (GeV) <span class="val-disp" id="eDisp">1.0</span></label>
+      <input type="range" id="eSl" min="0.001" max="10" step="0.001" value="1"
+        oninput="eDisp.textContent=(+this.value).toFixed(3);nu.E_GeV=+this.value">
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim1(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv1"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Oscillation Probability</div>
+      <div class="eq-block">$$P = \sin^2\!2\theta\,\sin^2\!\frac{\Delta m^2 L}{4E}$$</div>
+      <div class="callout"><strong>Yellow</strong> = P(νe), <strong>Cyan</strong> = P(νμ), <strong>Magenta</strong> = P(ντ). Best-fit values from NuFit 5.2.</div>
+    </div>
+  </div>
+  <!-- Panel 2 -->
+  <div class="panel" data-role="panel" id="p2">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">CP Violation Phase</div>
+      <label>&#948;<sub>CP</sub> / &#960; <span class="val-disp" id="dcpDisp">0.00</span></label>
+      <input type="range" id="dcpSl" min="0" max="6.28" step="0.05" value="0"
+        oninput="dcpDisp.textContent=(+this.value/Math.PI).toFixed(2);deltaCP=+this.value">
+      <div class="callout" style="margin-top:8px">
+        The <strong>PMNS matrix</strong> encodes all neutrino mixing. Each cell shows |U_αi|² — the probability for flavor α to be detected as mass eigenstate i.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim2(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv2"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">PMNS Matrix</div>
+      <div class="eq-block">$$U = R_{23}\cdot R_{13}(\delta)\cdot R_{12}$$</div>
+      <div class="callout">The CP phase $\delta$ controls matter-antimatter asymmetry in the lepton sector. Current best fit: $\delta \approx 1.2\pi$ (T2K/NOvA).</div>
+    </div>
+  </div>
+  <!-- Panel 3 -->
+  <div class="panel" data-role="panel" id="p3">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Source</div>
+      <div class="btn-row">
+        <button class="btn active" onclick="nuSource='atmospheric';setPreset(this)">Atmospheric</button>
+        <button class="btn" onclick="nuSource='solar';setPreset(this)">Solar</button>
+      </div>
+      <div class="callout" style="margin-top:10px">
+        The animated particle changes color: <strong style="color:#ffd700">yellow</strong>=νe, <strong style="color:#00e5ff">cyan</strong>=νμ, <strong style="color:#ff44ff">magenta</strong>=ντ. Watch flavor change along the path.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim3(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv3"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Detector Results</div>
+      <div class="callout"><strong>Super-Kamiokande</strong> (1998): nearly complete νμ disappearance → θ₂₃ ≈ 45°. <strong>SNO</strong> (2002): NC flux matched SSM — confirmed oscillation, not solar deficit.</div>
+    </div>
+  </div>
+
+  <!-- Panel 4 — Mixing Matrix & Mass Hierarchy -->
+  <div class="panel" data-role="panel" id="p4">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Mixing Angles</div>
+      <label>θ₁₂ (°) <span class="val-disp" id="t12d">33.4</span></label>
+      <input type="range" id="t12s" min="25" max="45" step="0.5" value="33.4"
+        oninput="t12d.textContent=this.value;mh.th12=+this.value*Math.PI/180">
+      <label>θ₂₃ (°) <span class="val-disp" id="t23d">49.0</span></label>
+      <input type="range" id="t23s" min="35" max="55" step="0.5" value="49"
+        oninput="t23d.textContent=this.value;mh.th23=+this.value*Math.PI/180">
+      <label>θ₁₃ (°) <span class="val-disp" id="t13d">8.6</span></label>
+      <input type="range" id="t13s" min="4" max="14" step="0.2" value="8.6"
+        oninput="t13d.textContent=this.value;mh.th13=+this.value*Math.PI/180">
+      <label>δ<sub>CP</sub> (°) <span class="val-disp" id="dcd">195</span></label>
+      <input type="range" id="dcs" min="0" max="360" step="5" value="195"
+        oninput="dcd.textContent=this.value;mh.dcp=+this.value*Math.PI/180">
+      <div class="section-lbl" style="margin-top:8px">Mass Ordering</div>
+      <div class="btn-row">
+        <button class="btn active" id="nhBtn" onclick="mh.ordering='normal';setPreset(this)">Normal</button>
+        <button class="btn" id="ihBtn" onclick="mh.ordering='inverted';setPreset(this)">Inverted</button>
+      </div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" onclick="toggleAnim4(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv4"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">PMNS Best-Fit (NuFit 5.2)</div>
+      <div class="eq-block">$$U = R_{23}R_{13}(\delta_{CP})R_{12}$$</div>
+      <div class="vrow"><span class="vlbl">θ₁₂</span><span>33.4°</span></div>
+      <div class="vrow"><span class="vlbl">θ₂₃</span><span>49.0°</span></div>
+      <div class="vrow"><span class="vlbl">θ₁₃</span><span>8.57°</span></div>
+      <div class="vrow"><span class="vlbl">δ<sub>CP</sub></span><span>195° (T2K/NOvA)</span></div>
+      <div class="vrow"><span class="vlbl">Δm²₂₁</span><span>7.53×10⁻⁵ eV²</span></div>
+      <div class="vrow"><span class="vlbl">|Δm²₃₁|</span><span>2.45×10⁻³ eV²</span></div>
+      <div class="callout" style="margin-top:8px"><strong>Mass ordering:</strong> Normal (ν₁&lt;ν₂&lt;ν₃) vs Inverted (ν₃&lt;ν₁&lt;ν₂). NOvA, T2K, JUNO resolving this. <strong>Absolute mass:</strong> KATRIN &lt;0.45 eV (2022). Cosmology: Σmν &lt;0.12 eV.</div>
+    </div>
+  </div>
+
+  <!-- Panel 5 — Solar & Atmospheric / MSW -->
+  <div class="panel" data-role="panel" id="p5">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">View Mode</div>
+      <div class="btn-row">
+        <button class="btn active" onclick="msw.mode='solar';setPreset(this)">Solar MSW</button>
+        <button class="btn" onclick="msw.mode='atmospheric';setPreset(this)">Atmospheric L/E</button>
+      </div>
+      <div class="section-lbl" style="margin-top:8px">Energy (MeV)</div>
+      <label>E<sub>ν</sub> <span class="val-disp" id="mswE">10</span> MeV</label>
+      <input type="range" id="mswESl" min="1" max="50" step="0.5" value="10"
+        oninput="mswE.textContent=this.value;msw.E_MeV=+this.value">
+      <div class="callout" style="margin-top:8px">
+        <strong>MSW resonance:</strong> $2\sqrt{2}G_F n_e E = \Delta m^2\cos 2\theta$. At resonance νe fully converts — explains solar neutrino deficit at high energies.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim5(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv5"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Solar Neutrino Problem</div>
+      <div class="callout"><strong>SNO 2002 (McDonald, Nobel 2015):</strong> CC+NC+ES rates proved total flux = SSM — solar νe convert to νμ/ντ. Not a solar deficit.</div>
+      <div class="eq-block" style="margin-top:8px">$$P_{ee}^{\rm MSW}\approx \frac{1}{2}+\frac{1}{2}\cos 2\theta_m\cos 2\theta$$</div>
+      <div class="callout"><strong>Super-K 1998 (Kajita, Nobel 2015):</strong> Atmospheric νμ disappearance Up/Down asymmetry → θ₂₃≈45°, Δm²₂₃≈2.5×10⁻³ eV².</div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">Vertical L</span><span>~15 km</span></div>
+      <div class="vrow"><span class="vlbl">Horizontal L</span><span>~12,700 km</span></div>
+      <div class="vrow"><span class="vlbl">Daya Bay θ₁₃</span><span>sin²2θ₁₃=0.0841</span></div>
+    </div>
+  </div>
+
+  <!-- Panel 6 — Majorana & 0νββ -->
+  <div class="panel" data-role="panel" id="p6">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Effective Majorana Mass</div>
+      <label>|m<sub>ββ</sub>| <span class="val-disp" id="mbbD">50</span> meV</label>
+      <input type="range" id="mbbSl" min="1" max="500" step="1" value="50"
+        oninput="mbbD.textContent=this.value;bbdecay.mbb=+this.value">
+      <div class="section-lbl" style="margin-top:8px">View</div>
+      <div class="btn-row">
+        <button class="btn active" onclick="bbdecay.mode='spectrum';setPreset(this)">Spectrum</button>
+        <button class="btn" onclick="bbdecay.mode='diagram';setPreset(this)">Feynman</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>0νββ</strong> requires lepton number violation → neutrino is its own antiparticle (Majorana). Peak at Q-value; height ∝ |m<sub>ββ</sub>|².
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim6(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv6"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Neutrinoless Double Beta Decay</div>
+      <div class="eq-block">$${}^{A}_{Z}X \to {}^{A}_{Z+2}X' + 2e^- \quad [\text{no }\bar\nu]$$</div>
+      <div class="vrow"><span class="vlbl">KamLAND-Zen T½</span><span>&gt;2.3×10²⁶ yr</span></div>
+      <div class="vrow"><span class="vlbl">GERDA T½</span><span>&gt;1.8×10²⁶ yr</span></div>
+      <div class="vrow"><span class="vlbl">nEXO goal</span><span>&gt;10²⁸ yr</span></div>
+      <div class="vrow"><span class="vlbl">LEGEND-1000</span><span>&gt;10²⁸ yr</span></div>
+      <div class="callout" style="margin-top:8px"><strong>Seesaw mechanism:</strong> $m_\nu \approx m_D^2/M_R$, $M_R\sim 10^{15}$ GeV gives $m_\nu\sim 0.1$ eV. Explains tiny masses + leptogenesis. <strong>KATRIN:</strong> $m_\nu &lt;$ 0.45 eV direct limit (2022).</div>
+      <div class="eq-block" style="margin-top:6px">$$\mathcal{L}\supset \frac{m_D^2}{M_R}\bar\nu_L^c\nu_L + \text{h.c.}$$</div>
+    </div>
+  </div>
+
+  <!-- Panel 7 — Sterile Neutrinos -->
+  <div class="panel" data-role="panel" id="p7">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Sterile ν Parameters</div>
+      <label>sin²2θ₁₄ <span class="val-disp" id="stAngle">0.03</span></label>
+      <input type="range" id="stASl" min="0.001" max="0.1" step="0.001" value="0.03"
+        oninput="stAngle.textContent=(+this.value).toFixed(3);sterile.sin2th=+this.value">
+      <label>Δm²₁₄ (eV²) <span class="val-disp" id="stMass">1.0</span></label>
+      <input type="range" id="stMSl" min="0.1" max="10" step="0.1" value="1.0"
+        oninput="stMass.textContent=this.value;sterile.dm2=+this.value">
+      <div class="section-lbl" style="margin-top:8px">Anomaly View</div>
+      <div class="btn-row">
+        <button class="btn active" onclick="sterile.mode='lsnd';setPreset(this)">LSND/MiniBooNE</button>
+        <button class="btn" onclick="sterile.mode='reactor';setPreset(this)">Reactor</button>
+      </div>
+      <div class="callout" style="margin-top:8px">
+        <strong>3+1 model:</strong> 4th sterile ν with Δm²~1 eV². Active-sterile mixing via MSW. MicroBooNE (2021) disfavors simple 3+1.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim7(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv7"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Short-Baseline Anomalies</div>
+      <div class="callout"><strong>LSND (1996):</strong> ν̄μ→ν̄e excess at L/E~1 m/MeV, 3.8σ. <strong>MiniBooNE (2018):</strong> confirmed excess, 4.7σ combined. <strong>MicroBooNE (2021):</strong> no excess at predicted level — tension unresolved.</div>
+      <div class="vrow" style="margin-top:8px"><span class="vlbl">Reactor anomaly</span><span>~6% deficit</span></div>
+      <div class="vrow"><span class="vlbl">Δm²sterile</span><span>~0.1–10 eV²</span></div>
+      <div class="vrow"><span class="vlbl">IceCube limit</span><span>Δm²&gt;0.1 eV² disfavored</span></div>
+      <div class="callout" style="margin-top:8px"><strong>Dark matter candidate:</strong> keV-scale sterile ν via Dodelson-Widrow mixing. Future: <strong>SBN program</strong> (SBND+ICARUS+MicroBooNE) at Fermilab to definitively test LSND/MiniBooNE.</div>
+    </div>
+  </div>
+
+  <!-- Panel 8 — Next-Generation Experiments -->
+  <div class="panel" data-role="panel" id="p8">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Experiment</div>
+      <div class="btn-row">
+        <button class="btn active" onclick="nge.expt='dune';setPreset(this)">DUNE</button>
+        <button class="btn" onclick="nge.expt='hyperk';setPreset(this)">Hyper-K</button>
+        <button class="btn" onclick="nge.expt='icecube';setPreset(this)">IceCube</button>
+        <button class="btn" onclick="nge.expt='sn';setPreset(this)">Supernova</button>
+      </div>
+      <div class="section-lbl" style="margin-top:8px">DUNE δ<sub>CP</sub></div>
+      <label>δ<sub>CP</sub> (°) <span class="val-disp" id="duneDcp">270</span></label>
+      <input type="range" id="duneDcpSl" min="0" max="360" step="5" value="270"
+        oninput="duneDcp.textContent=this.value;nge.dcp=+this.value*Math.PI/180">
+      <div class="callout" style="margin-top:8px">
+        <strong>DUNE:</strong> 1300 km baseline, 40kt LAr TPC, Fermilab beam. 5σ CP violation in ~7 years for most δ<sub>CP</sub> values.
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn" onclick="toggleAnim8(this)">⏸</button>
+      </div>
+    </div>
+    <div class="main-area"><canvas id="cv8"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-title">Future Landscape</div>
+      <div class="vrow"><span class="vlbl">DUNE baseline</span><span>1300 km</span></div>
+      <div class="vrow"><span class="vlbl">Hyper-K mass</span><span>260 kton</span></div>
+      <div class="vrow"><span class="vlbl">IceCube-Gen2</span><span>8 km³</span></div>
+      <div class="vrow"><span class="vlbl">KM3NeT/ORCA</span><span>sea water, MO</span></div>
+      <div class="callout" style="margin-top:8px"><strong>TXS 0506+056:</strong> first astrophysical multimessenger ν source (IceCube + Fermi, 2017). Spectrum: $E^{-2.37}$ power law. <strong>SN1987A:</strong> 24 events in IMB+Kamiokande, confirmed neutrino emission. <strong>SNEWS:</strong> global SN alert network. <strong>DSNB:</strong> diffuse supernova ν background detected by Super-K + Gd (2023).</div>
+      <div class="eq-block" style="margin-top:6px">$$\frac{d\Phi}{dE}\propto E^{-2.37}\quad(\text{IceCube astro }\nu)$$</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(n){
+  _cancelAllAnims55();
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i+1===n));
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i+1===n));
+  if(n===1){ initTab1(); window.paused1=false; }
+  if(n===2){ initTab2(); window.paused2=false; }
+  if(n===3){ initTab3(); window.paused3=false; }
+  if(n===4){ initTab4(); window.paused4=false; }
+  if(n===5){ initTab5(); window.paused5=false; }
+  if(n===6){ initTab6(); window.paused6=false; }
+  if(n===7){ initTab7(); window.paused7=false; }
+  if(n===8){ initTab8(); window.paused8=false; }
+}
+
+
+function _cancelAllAnims55(){
+  // Cancel any running animations
+}
+
+let _stops = [];
+let currentTab = 1;
+
+window.switchTab = function(n) {
+  _stops.forEach(s => s && s.stop && s.stop());
+  _stops = [];
+  currentTab = n;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
+  if(n===1) _stops.push(initTab1());
+  if(n===2) _stops.push(initTab2());
+  if(n===3) _stops.push(initTab3());
+  if(n===4) _stops.push(initTab4());
+  if(n===5) _stops.push(initTab5());
+  if(n===6) _stops.push(initTab6());
+  if(n===7) _stops.push(initTab7());
+  if(n===8) _stops.push(initTab8());
+};
+
+function fitCanvas(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.parentElement.clientWidth;
+  const H = cv.parentElement.clientHeight;
+  if(Math.round(cv.width) !== Math.round(W*dpr)) {
+    cv.width = W*dpr; cv.height = H*dpr;
+    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  }
+  return {W, H, ctx: cv.getContext('2d')};
+}
+
+function setPreset(btn) {
+  btn.closest('.btn-row').querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+const presetEnergy = { solar:0.008, atmospheric:1.0, reactor:0.003, beam:0.6 };
+
+function setNuPreset(name, btn) {
+  nu.preset = name;
+  setPreset(btn);
+  const E = presetEnergy[name] || 1.0;
+  nu.E_GeV = E;
+  const sl = document.getElementById('eSl');
+  if (sl) { sl.value = E; document.getElementById('eDisp').textContent = E.toFixed(3); }
+}
+
+window.nu = {
+  s12: Math.sqrt(0.307), s23: Math.sqrt(0.546), s13: Math.sqrt(0.022),
+  dm21: 7.53e-5, dm31: 2.453e-3,
+  delta: 0, preset: 'atmospheric', E_GeV: 1.0
+};
+window.deltaCP = 0;
+window.nuSource = 'atmospheric';
+
+// Tab 4 state
+window.mh = {
+  th12: 33.4*Math.PI/180, th23: 49*Math.PI/180, th13: 8.6*Math.PI/180,
+  dcp: 195*Math.PI/180, ordering: 'normal'
+};
+// Tab 5 state
+window.msw = { mode: 'solar', E_MeV: 10 };
+// Tab 6 state
+window.bbdecay = { mbb: 50, mode: 'spectrum' };
+// Tab 7 state
+window.sterile = { sin2th: 0.03, dm2: 1.0, mode: 'lsnd' };
+// Tab 8 state
+window.nge = { expt: 'dune', dcp: 270*Math.PI/180 };
+
+const presets = {
+  solar:       { Lmin:50,    Lmax:1.5e8, Emin:0.3,  Emax:15,  label:'Solar (8B, L~1.5×10⁸ km)' },
+  atmospheric: { Lmin:10,   Lmax:1.3e4, Emin:0.1,  Emax:100, label:'Atmospheric (L~10–10⁴ km)' },
+  reactor:     { Lmin:0.1,  Lmax:500,   Emin:1.8,  Emax:10,  label:'Reactor (KamLAND, L~180 km)' },
+  beam:        { Lmin:100,  Lmax:1300,  Emin:0.5,  Emax:5,   label:'Beam (T2K, L=295 km)' }
+};
+
+function P3(alpha, L_km, E_GeV) {
+  const { s12, s23, s13, dm21, dm31 } = window.nu;
+  const c12=Math.sqrt(1-s12**2), c23=Math.sqrt(1-s23**2), c13=Math.sqrt(1-s13**2);
+  const Ue1 = c12*c13, Ue2 = s12*c13, Ue3 = s13;
+  const L = L_km, E = E_GeV*1e3;
+  const phi21 = 1.267 * dm21 * L / E;
+  const phi31 = 1.267 * dm31 * L / E;
+  const phi32 = 1.267 * (dm31-dm21) * L / E;
+  if (alpha === 0) {
+    return 1
+      - 4*Ue1**2*Ue2**2*Math.sin(phi21)**2
+      - 4*Ue1**2*Ue3**2*Math.sin(phi31)**2
+      - 4*Ue2**2*Ue3**2*Math.sin(phi32)**2;
+  }
+  if (alpha === 1) {
+    return Math.max(0, 1 - P3(0,L_km,E_GeV) - P3(2,L_km,E_GeV));
+  }
+  const Ut1=s12*s23-c12*c23*s13, Ut3=c23*c13;
+  return Math.max(0,
+    4*Ue1**2*Ut1**2*Math.sin(phi21)**2
+    + 4*Ue1**2*Ut3**2*Math.sin(phi31)**2
+    + 4*Ue2**2*Ut3**2*Math.sin(phi32)**2
+  );
+}
+
+// ── Tab 1 — Flavor Probability Curves ───────────────────────
+function initTab1() {
+  const cv = document.getElementById('cv1');
+  let raf1;
+  let paused1 = false;
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const pad={l:70,r:20,t:40,b:50};
+    const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+    const preset = presets[window.nu.preset];
+    const E_GeV = window.nu.E_GeV || 1.0;
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('L (km)', pad.l+pw/2-20, pad.t+ph+35);
+    ctx.save(); ctx.translate(18, pad.t+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('Probability', -35, 0); ctx.restore();
+    const colors = ['#ffd700','#00e5ff','#ff44ff'];
+    const labels = ['P(νe)', 'P(νμ)', 'P(ντ)'];
+    const Lmin=preset.Lmin, Lmax=preset.Lmax;
+    colors.forEach((col, alpha) => {
+      ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=2;
+      for (let px=0; px<=pw; px++) {
+        const L = Lmin * Math.pow(Lmax/Lmin, px/pw);
+        const p = Math.max(0, Math.min(1, P3(alpha, L, E_GeV)));
+        const py = pad.t + ph*(1-p);
+        px===0 ? ctx.moveTo(pad.l+px, py) : ctx.lineTo(pad.l+px, py);
+      }
+      ctx.stroke();
+      ctx.fillStyle=col; ctx.font='12px monospace';
+      ctx.fillText(labels[alpha], W-70, pad.t+18+alpha*18);
+    });
+    const logRange = Math.log10(Lmax/Lmin);
+    for (let i=0; i<=Math.floor(logRange); i++) {
+      const L = Lmin * Math.pow(10, i);
+      const px = pad.l + pw * i/logRange;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+      ctx.fillText(L>=1000?(L/1000)+'k':L, px-12, pad.t+ph+16);
+    }
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+    ctx.fillText(preset.label, pad.l, pad.t-12);
+    if (!paused1) raf1 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf1); } };
+}
+window.toggleAnim1 = function(btn) {
+  paused1 = !paused1;
+  btn.textContent = paused1 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused1);
+  if (!paused1) raf1 = requestAnimationFrame(draw);
+};
+
+// ── Tab 2 — PMNS Matrix Heatmap ──────────────────────────────
+function initTab2() {
+  const cv = document.getElementById('cv2');
+  let raf2;
+  let paused2 = false;
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const s12=window.nu.s12, s23=window.nu.s23, s13=window.nu.s13;
+    const c12=Math.sqrt(1-s12**2), c23=Math.sqrt(1-s23**2), c13=Math.sqrt(1-s13**2);
+    const delta = window.deltaCP;
+    const cross = 2*s12*c12*s23*c23*s13*Math.cos(delta);
+    const U2 = [
+      [c12**2*c13**2, s12**2*c13**2, s13**2],
+      [s12**2*c23**2+c12**2*s23**2*s13**2+cross, c12**2*c23**2+s12**2*s23**2*s13**2-cross, s23**2*c13**2],
+      [s12**2*s23**2+c12**2*c23**2*s13**2-cross, c12**2*s23**2+s12**2*c23**2*s13**2+cross, c23**2*c13**2],
+    ];
+    const flavors=['νe','νμ','ντ'], masses=['ν₁','ν₂','ν₃'];
+    const cellW=W*0.20, cellH=H*0.17, startX=W*0.18, startY=H*0.12;
+    masses.forEach((m,j)=>{
+      ctx.fillStyle='#55558a'; ctx.font='14px monospace'; ctx.textAlign='center';
+      ctx.fillText(m, startX+j*cellW+cellW/2, startY-14);
+    });
+    flavors.forEach((f,i)=>{
+      ctx.fillStyle='#55558a'; ctx.font='14px monospace'; ctx.textAlign='right';
+      ctx.fillText(f, startX-12, startY+i*cellH+cellH/2+5);
+      masses.forEach((_,j)=>{
+        const val=Math.max(0,U2[i][j]);
+        const alph=0.1+val*0.9;
+        ctx.fillStyle=`rgba(255,215,0,${alph})`;
+        ctx.fillRect(startX+j*cellW+2, startY+i*cellH+2, cellW-4, cellH-4);
+        ctx.strokeStyle='rgba(255,215,0,0.3)'; ctx.lineWidth=1;
+        ctx.strokeRect(startX+j*cellW+2, startY+i*cellH+2, cellW-4, cellH-4);
+        ctx.fillStyle='#0a0a18'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+        ctx.fillText(val.toFixed(3), startX+j*cellW+cellW/2, startY+i*cellH+cellH/2+2);
+        ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
+        ctx.fillText('|U_'+flavors[i].slice(1)+masses[j].slice(1)+'|²', startX+j*cellW+cellW/2, startY+i*cellH+cellH-8);
+      });
+    });
+    ctx.textAlign='left';
+    const dialCX = W*0.15, dialCY = H*0.72, dialR = 42;
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText(`δ₀ = ${(window.deltaCP/Math.PI).toFixed(2)}π`, dialCX-30, dialCY-dialR-12);
+    ctx.strokeStyle='rgba(255,215,0,0.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(dialCX, dialCY, dialR, 0, Math.PI*2); ctx.stroke();
+    for(let i=0;i<8;i++){
+      const a=i/8*Math.PI*2, r1=dialR-4, r2=dialR;
+      ctx.beginPath(); ctx.moveTo(dialCX+r1*Math.cos(a),dialCY+r1*Math.sin(a));
+      ctx.lineTo(dialCX+r2*Math.cos(a),dialCY+r2*Math.sin(a));
+      ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.stroke();
+    }
+    const ex=dialCX+dialR*Math.cos(delta-Math.PI/2);
+    const ey=dialCY+dialR*Math.sin(delta-Math.PI/2);
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(dialCX,dialCY); ctx.lineTo(ex,ey); ctx.stroke();
+    ctx.beginPath(); ctx.arc(ex,ey,4,0,Math.PI*2); ctx.fillStyle='#ffd700'; ctx.fill();
+    ctx.fillStyle='#888888'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('CP phase', dialCX, dialCY+dialR+14);
+    ctx.textAlign='left';
+    const barX = W*0.3, barY2 = H*0.74;
+    const cpAmt = Math.abs(cross) / (c12**2*c23**2 + s12**2*c23**2*0.01 + 0.001);
+    const barLen = Math.min(cpAmt*200, W*0.55);
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('CP-sensitive cross term:', barX, barY2-4);
+    ctx.fillStyle='#1a1a38'; ctx.fillRect(barX, barY2, W*0.55, 10);
+    ctx.fillStyle=cross>0?'#00ffcc':'#ff5566';
+    ctx.fillRect(barX, barY2, barLen, 10);
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace';
+    ctx.fillText(`${cross>0?'+':''}${cross.toFixed(4)}`, barX+W*0.55+6, barY2+9);
+    let rowSums='';
+    for(let i=0;i<3;i++){rowSums+=`col${i+1}=${U2.reduce((s,r)=>s+r[i],0).toFixed(3)}  `;}
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+    ctx.fillText('Unitarity: '+rowSums, W*0.18, H-12);
+    if (!paused2) raf2 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf2); } };
+}
+window.toggleAnim2 = function(btn) {
+  paused2 = !paused2;
+  btn.textContent = paused2 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused2);
+  if (!paused2) raf2 = requestAnimationFrame(draw);
+};
+
+// ── Tab 3 — Neutrino Flight / Flavor Evolution ──────────────
+function initTab3() {
+  const cv = document.getElementById('cv3');
+  let raf3, t3=0;
+  let paused3 = false;
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const E_GeV = window.nu.E_GeV || 1.0;
+    const isAtm = window.nuSource === 'atmospheric';
+    const Lmax = isAtm ? 12000 : 1.5e8;
+    const srcLabel = isAtm ? 'Atmosphere (cosmic ray)' : 'Sun (pp chain)';
+    const T = 300;
+    const progress = (t3 % T) / T;
+    const tubY = H * 0.38, tubH = 36;
+    const tubX1 = 60, tubX2 = W - 60;
+    const tubW = tubX2 - tubX1;
+    const steps = Math.floor(tubW);
+    for (let px = 0; px < steps; px++) {
+      const frac = px / steps;
+      const L = Lmax * frac;
+      const pee  = P3(0, L, E_GeV);
+      const pemu = P3(1, L, E_GeV);
+      const petau = Math.max(0, 1-pee-pemu);
+      const r = Math.round(255*pee + 0*pemu + 255*petau);
+      const g = Math.round(215*pee + 229*pemu + 0*petau);
+      const b = Math.round(0*pee + 255*pemu + 255*petau);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(tubX1 + px, tubY, 1, tubH);
+    }
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+    ctx.strokeRect(tubX1, tubY, tubW, tubH);
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText(srcLabel, tubX1, tubY - 22);
+    ctx.fillStyle=isAtm?'#ff44ff':'#ffd700'; ctx.font='bold 12px monospace';
+    ctx.fillText('Born as '+(isAtm?'νμ':'νe'), tubX1, tubY - 8);
+    ctx.fillText('Detector', tubX2, tubY - 8);
+    ctx.textAlign='left';
+    const nuX = tubX1 + tubW * progress;
+    const nuL = Lmax * progress;
+    const pee  = P3(0, nuL, E_GeV);
+    const pemu = P3(1, nuL, E_GeV);
+    const petau = Math.max(0, 1-pee-pemu);
+    const r = Math.round(255*pee + 0*pemu + 255*petau);
+    const g = Math.round(215*pee + 229*pemu + 0*petau);
+    const b = Math.round(0*pee + 229*pemu + 255*petau);
+    ctx.beginPath(); ctx.arc(nuX, tubY + tubH/2, 9, 0, Math.PI*2);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.shadowColor = `rgb(${r},${g},${b})`; ctx.shadowBlur = 14;
+    ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#ffffff33'; ctx.lineWidth = 1.5; ctx.stroke();
+    const barY = H * 0.62, barH2 = 18, gap = 28;
+    const barMaxW = W * 0.55;
+    const probs = [
+      {name:`P(νe)`,  p:pee,   col:'#ffd700'},
+      {name:`P(νμ)`,  p:pemu,  col:'#00e5ff'},
+      {name:`P(ντ)`,  p:petau, col:'#ff44ff'},
+    ];
+    probs.forEach((pr, i) => {
+      const y = barY + i*gap;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='right';
+      ctx.fillText(pr.name, 90, y+barH2-3);
+      ctx.fillStyle='#1a1a38'; ctx.fillRect(100, y, barMaxW, barH2);
+      ctx.fillStyle=pr.col; ctx.fillRect(100, y, barMaxW*pr.p, barH2);
+      ctx.fillStyle='#ffffff'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText(pr.p.toFixed(3), 100 + barMaxW + 6, y + barH2 - 3);
+    });
+    ctx.textAlign='left';
+    ctx.fillStyle='#666688'; ctx.font='12px monospace';
+    const Lstr = nuL < 1e6 ? nuL.toFixed(0)+' km' : (nuL/1e6).toFixed(2)+'×10⁶ km';
+    ctx.fillText(`L = ${Lstr}   E = ${E_GeV.toFixed(3)} GeV`, 100, barY + 3*gap + 16);
+    const legY = H * 0.88;
+    ctx.fillStyle='#ffd700'; ctx.fillRect(W*0.08, legY, 14, 14);
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.fillText('νe', W*0.08+18, legY+11);
+    ctx.fillStyle='#00e5ff'; ctx.fillRect(W*0.18, legY, 14, 14);
+    ctx.fillText('νμ', W*0.18+18, legY+11);
+    ctx.fillStyle='#ff44ff'; ctx.fillRect(W*0.28, legY, 14, 14);
+    ctx.fillText('ντ', W*0.28+18, legY+11);
+    ctx.fillStyle='#666688';
+    ctx.fillText('← tube color = instantaneous flavor mix', W*0.38, legY+11);
+    if (!paused3) t3++;
+    if (!paused3) raf3 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf3); } };
+}
+window.toggleAnim3 = function(btn) {
+  paused3 = !paused3;
+  btn.textContent = paused3 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused3);
+  if (!paused3) raf3 = requestAnimationFrame(draw);
+};
+
+// ── Tab 4 — Mixing Matrix & Mass Hierarchy ──────────────────
+function initTab4() {
+  const cv = document.getElementById('cv4');
+  let raf4, t4=0;
+  let paused4 = false;
+
+  function buildPMNS(th12, th23, th13, dcp) {
+    const c12=Math.cos(th12), s12=Math.sin(th12);
+    const c23=Math.cos(th23), s23=Math.sin(th23);
+    const c13=Math.cos(th13), s13=Math.sin(th13);
+    const eid = {re: Math.cos(-dcp), im: Math.sin(-dcp)};
+    // U_e1..U_tau3 real approximation (|U|²)
+    return [
+      [c12**2*c13**2,  s12**2*c13**2,  s13**2],
+      [
+        s12**2*c23**2 + c12**2*s23**2*s13**2 + 2*s12*c12*s23*c23*s13*eid.re,
+        c12**2*c23**2 + s12**2*s23**2*s13**2 - 2*s12*c12*s23*c23*s13*eid.re,
+        s23**2*c13**2
+      ],
+      [
+        s12**2*s23**2 + c12**2*c23**2*s13**2 - 2*s12*c12*s23*c23*s13*eid.re,
+        c12**2*s23**2 + s12**2*c23**2*s13**2 + 2*s12*c12*s23*c23*s13*eid.re,
+        c23**2*c13**2
+      ]
+    ];
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const spd = (window.animSpeed||0.1);
+    if (!paused4) t4 += 0.6 * spd;
+
+    const { th12, th23, th13, dcp, ordering } = window.mh;
+    const U2 = buildPMNS(th12, th23, th13, dcp);
+
+    // ── Left: Animated flavor→mass decomposition bars ──
+    const flavors = ['νe','νμ','ντ'];
+    const masses  = ['ν₁','ν₂','ν₃'];
+    const fColors = ['#ffd700','#00e5ff','#ff44ff'];
+    const mColors = ['#7777ff','#44ff88','#ff7733'];
+
+    const leftX = 30, barStart = 90, barW = W*0.28, rowH = 36, topY = 60;
+
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Flavor → Mass eigenstate decomposition', W*0.22, 28);
+    ctx.textAlign='left';
+
+    flavors.forEach((fl, i) => {
+      const y = topY + i * (rowH * 3 + 20);
+      ctx.fillStyle = fColors[i]; ctx.font='bold 13px monospace';
+      ctx.fillText(fl, leftX, y + rowH + 6);
+      // animate a pulse
+      const pulse = 0.7 + 0.3*Math.sin(t4*0.04 + i*2.1);
+      masses.forEach((ms, j) => {
+        const val = Math.max(0, U2[i][j]);
+        const blen = barW * val * pulse;
+        const by = y + j * rowH;
+        ctx.fillStyle='#1a1a38'; ctx.fillRect(barStart, by, barW, rowH-4);
+        ctx.fillStyle = mColors[j]; ctx.globalAlpha = 0.85;
+        ctx.fillRect(barStart, by, blen, rowH-4);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle='#ccccff'; ctx.font='12px monospace';
+        ctx.fillText(`|U_${fl.slice(1)}${j+1}|²=${val.toFixed(3)}`, barStart + blen + 4, by + rowH/2 + 3);
+        ctx.fillStyle = mColors[j]; ctx.font='12px monospace';
+        ctx.fillText(ms, barStart - 28, by + rowH/2 + 3);
+      });
+    });
+
+    // ── Right: Mass hierarchy diagram ──
+    const hX = W*0.60, hW = W*0.32, hBase = H*0.88;
+    const isNH = ordering === 'normal';
+
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText(isNH ? 'Normal Hierarchy' : 'Inverted Hierarchy', hX + hW/2, 28);
+
+    // eV² scale: dm21=7.53e-5, dm31=2.45e-3
+    const dm21 = 7.53e-5, dm31 = 2.45e-3;
+    // map mass-squared to canvas y (log scale)
+    const m2max = isNH ? dm31*1.2 : Math.abs(dm31)*1.2;
+    const scaleH = H * 0.65;
+
+    const masses3 = isNH
+      ? [{lbl:'ν₁', m2:0, col:'#7777ff'},{lbl:'ν₂', m2:dm21, col:'#44ff88'},{lbl:'ν₃', m2:dm31, col:'#ff7733'}]
+      : [{lbl:'ν₃', m2:0, col:'#ff7733'},{lbl:'ν₁', m2:Math.abs(dm31)-dm21, col:'#7777ff'},{lbl:'ν₂', m2:Math.abs(dm31), col:'#44ff88'}];
+
+    // flavor fractions for each mass eigenstate
+    const flavFrac = [
+      [U2[0][0], U2[1][0], U2[2][0]],
+      [U2[0][1], U2[1][1], U2[2][1]],
+      [U2[0][2], U2[1][2], U2[2][2]],
+    ];
+    const fCols = ['#ffd700','#00e5ff','#ff44ff'];
+
+    masses3.forEach((ms, idx) => {
+      const ypos = hBase - scaleH * (ms.m2 / m2max);
+      // Draw stacked flavor bar
+      const bh = 22, bw = hW * 0.65, bx = hX + hW*0.05;
+      const fracs = flavFrac[isNH ? idx : [2,0,1][idx]];
+      let cumX = bx;
+      fracs.forEach((f, fi) => {
+        const fw = bw * f;
+        ctx.fillStyle = fCols[fi]; ctx.globalAlpha = 0.9;
+        ctx.fillRect(cumX, ypos - bh/2, fw, bh);
+        ctx.globalAlpha = 1;
+        cumX += fw;
+      });
+      ctx.strokeStyle = ms.col; ctx.lineWidth = 1.5;
+      ctx.strokeRect(bx, ypos-bh/2, bw, bh);
+      ctx.fillStyle = ms.col; ctx.font = 'bold 12px monospace'; ctx.textAlign='right';
+      ctx.fillText(ms.lbl, bx - 6, ypos+4);
+      ctx.fillStyle='#888899'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText(`m²=${ms.m2.toExponential(1)} eV²`, bx+bw+4, ypos+4);
+    });
+
+    // Y axis
+    ctx.strokeStyle='#333360'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(hX, hBase-scaleH); ctx.lineTo(hX, hBase); ctx.stroke();
+    ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='right';
+    ctx.fillText('m² (eV²)', hX-4, hBase-scaleH-6);
+
+    // Legend
+    fCols.forEach((c,i)=>{
+      ctx.fillStyle=c; ctx.fillRect(hX, hBase+14+i*16, 12,12);
+      ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText(['νe','νμ','ντ'][i]+' fraction', hX+16, hBase+24+i*16);
+    });
+
+    // Δm² labels
+    ctx.strokeStyle='#444466'; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+    if(isNH){
+      const y1 = hBase - scaleH*(0/m2max);
+      const y2 = hBase - scaleH*(dm21/m2max);
+      const y3 = hBase - scaleH*(dm31/m2max);
+      ctx.beginPath(); ctx.moveTo(hX+hW*0.78,y1); ctx.lineTo(hX+hW*0.78,y2); ctx.stroke();
+      ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText('Δm²₂₁=7.5×10⁻⁵', hX+hW*0.8, (y1+y2)/2);
+      ctx.beginPath(); ctx.moveTo(hX+hW*0.78,y1); ctx.lineTo(hX+hW*0.78,y3); ctx.stroke();
+      ctx.fillText('Δm²₃₁=2.45×10⁻³', hX+hW*0.8, (y1+y3)/2);
+    }
+    ctx.setLineDash([]);
+    ctx.textAlign='left';
+
+    if (!paused4) raf4 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf4); } };
+}
+window.toggleAnim4 = function(btn) {
+  paused4 = !paused4;
+  btn.textContent = paused4 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused4);
+  if (!paused4) raf4 = requestAnimationFrame(draw);
+};
+
+// ── Tab 5 — Solar / MSW ─────────────────────────────────────
+function initTab5() {
+  const cv = document.getElementById('cv5');
+  let raf5, t5=0;
+  let paused5 = false;
+
+  // Solar density profile (normalized): ne(r) ~ ne0 * exp(-r/r0)
+  function solarDensity(r_frac) {
+    return Math.exp(-10.54*r_frac); // approx Bahcall profile
+  }
+
+  // Effective mixing angle in matter
+  function thetaMatter(E_MeV, ne_rel) {
+    const dm2 = 7.53e-5; // eV²
+    const th12 = 33.4*Math.PI/180;
+    const GF_SI = 1.166e-5; // GeV^-2
+    const ne_cm3 = ne_rel * 6.02e25; // ~solar core density
+    const E_eV = E_MeV * 1e6;
+    const A = 7.63e-14 * ne_rel * E_MeV; // in eV²
+    const cos2 = Math.cos(2*th12);
+    const sin2 = Math.sin(2*th12);
+    const denom = Math.sqrt((cos2 - A/dm2)**2 + sin2**2);
+    return 0.5*Math.asin(sin2/denom);
+  }
+
+  function drawSolar(W, H, ctx) {
+    const pad = {l:70, r:30, t:50, b:50};
+    const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+    // Draw solar interior cross-section (left half)
+    const sunCX = pad.l + pw*0.3, sunCY = pad.t + ph*0.5, sunR = Math.min(pw,ph)*0.32;
+
+    // Draw density rings
+    for(let ri=20; ri>0; ri--) {
+      const frac = ri/20;
+      const density = solarDensity(frac);
+      const alpha = density * 0.7 + 0.05;
+      ctx.beginPath(); ctx.arc(sunCX, sunCY, sunR*frac, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,${Math.round(100+120*(1-frac))},0,${alpha})`;
+      ctx.fill();
+    }
+    ctx.strokeStyle='rgba(255,200,0,0.4)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(sunCX, sunCY, sunR, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#ffd700'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Sun', sunCX, sunCY + sunR + 16);
+
+    // Neutrino path from core
+    const pathN = 80;
+    const nu_E = window.msw.E_MeV;
+    const t = t5 * 0.015;
+    const phase = t % 1; // 0→1 for animated dot
+
+    // Draw path line with MSW flavor coloring
+    for(let k=0; k<pathN; k++) {
+      const frac = k/pathN;
+      const ne = solarDensity(frac);
+      const thm = thetaMatter(nu_E, ne);
+      const Pee = Math.cos(thm)**2; // adiabatic survival probability
+      const r = Math.round(255*Pee + 255*(1-Pee)*0.5);
+      const g = Math.round(215*Pee + 0*(1-Pee));
+      const b = Math.round(0*Pee + 255*(1-Pee)*0.5);
+      const px = sunCX + sunR*frac;
+      const py = sunCY;
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(px, py-4, sunR/pathN+1, 8);
+    }
+
+    // Arrow and detector
+    const detX = sunCX + sunR + W*0.14;
+    ctx.strokeStyle='#555577'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(sunCX+sunR, sunCY); ctx.lineTo(detX-20, sunCY); ctx.stroke();
+    ctx.fillStyle='#00e5ff'; ctx.fillRect(detX, sunCY-18, 28, 36);
+    ctx.fillStyle='#0a0a18'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('SNO', detX+14, sunCY+4);
+
+    // Animated neutrino dot
+    const dotX = sunCX + (sunR + W*0.14)*phase;
+    const ne_at = solarDensity(phase < 1 ? phase : 0);
+    const thm_at = thetaMatter(nu_E, ne_at);
+    const Pee_at = phase < 0.8 ? Math.cos(thm_at)**2 : Math.cos(33.4*Math.PI/180)**2;
+    const dr=Math.round(255*Pee_at+255*(1-Pee_at)*0.5);
+    const dg=Math.round(215*Pee_at);
+    const db=Math.round(255*(1-Pee_at)*0.5);
+    ctx.beginPath(); ctx.arc(dotX, sunCY, 8, 0, Math.PI*2);
+    ctx.fillStyle=`rgb(${dr},${dg},${db})`;
+    ctx.shadowColor=`rgb(${dr},${dg},${db})`; ctx.shadowBlur=12;
+    ctx.fill(); ctx.shadowBlur=0;
+
+    // Resonance marker
+    const resR = 0.3; // approximate resonance radius fraction
+    const resX = sunCX + sunR*resR;
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(resX, sunCY-sunR*0.45); ctx.lineTo(resX, sunCY+sunR*0.45); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ff6666'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('MSW', resX, sunCY-sunR*0.5-4);
+    ctx.fillText('resonance', resX, sunCY-sunR*0.5+8);
+
+    // P(νe→νe) vs Energy plot
+    const plotX = pad.l, plotY = pad.t + ph*0.62, plotW = pw*0.55, plotH = ph*0.32;
+    ctx.fillStyle='#1a1a38'; ctx.fillRect(plotX, plotY, plotW, plotH);
+    ctx.strokeStyle='#333360'; ctx.lineWidth=1;
+    ctx.strokeRect(plotX, plotY, plotW, plotH);
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('P(νe→νe) vs Energy — MSW triangle', plotX+plotW/2, plotY-8);
+
+    ctx.beginPath(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2;
+    for(let px2=0; px2<=plotW; px2++) {
+      const E_MeV = 0.5 + (20-0.5)*px2/plotW;
+      const ne_core = 1.0;
+      const thm2 = thetaMatter(E_MeV, ne_core);
+      const Pee2 = Math.cos(thm2)**2;
+      const py2 = plotY + plotH*(1-Pee2);
+      px2===0 ? ctx.moveTo(plotX+px2, py2) : ctx.lineTo(plotX+px2, py2);
+    }
+    ctx.stroke();
+
+    // Current E marker
+    const curPx = (nu_E - 0.5)/(20-0.5)*plotW;
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(plotX+curPx, plotY); ctx.lineTo(plotX+curPx, plotY+plotH); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle='#555577'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('0.5', plotX, plotY+plotH+12);
+    ctx.fillText('20 MeV', plotX+plotW-30, plotY+plotH+12);
+    ctx.fillStyle='#555577'; ctx.textAlign='right';
+    ctx.fillText('1.0', plotX-3, plotY+8);
+    ctx.fillText('0', plotX-3, plotY+plotH);
+    ctx.textAlign='left';
+  }
+
+  function drawAtmospheric(W, H, ctx) {
+    const pad = {l:70, r:30, t:50, b:50};
+    const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+    // Draw Earth
+    const earthCX = W*0.5, earthCY = H*0.5, earthR = Math.min(pw,ph)*0.30;
+    ctx.beginPath(); ctx.arc(earthCX, earthCY, earthR, 0, Math.PI*2);
+    const grad = ctx.createRadialGradient(earthCX-earthR*0.2, earthCY-earthR*0.2, earthR*0.1, earthCX, earthCY, earthR);
+    grad.addColorStop(0,'#1a3a6a'); grad.addColorStop(0.6,'#0d2040'); grad.addColorStop(1,'#050f20');
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.strokeStyle='#2244aa'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Earth', earthCX, earthCY+4);
+    ctx.fillText('R=6371 km', earthCX, earthCY+18);
+
+    // Draw atmosphere ring
+    ctx.beginPath(); ctx.arc(earthCX, earthCY, earthR+20, 0, Math.PI*2);
+    ctx.strokeStyle='rgba(100,200,255,0.3)'; ctx.lineWidth=12; ctx.stroke();
+    ctx.strokeStyle='rgba(100,200,255,0.15)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(earthCX, earthCY, earthR+26, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#55aaee'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Atmosphere', earthCX, earthCY-earthR-28);
+
+    // Vertical neutrino (L~15 km)
+    const vAngle = -Math.PI/2;
+    const atmTop = earthR + 26;
+    const vX = earthCX + (earthR+6)*Math.cos(vAngle + 0.3);
+    const vY1 = earthCY + (earthR+atmTop)*Math.sin(vAngle + 0.3)/2 - 30;
+    const vY2 = earthCY + earthR*Math.sin(vAngle + 0.3) - 6;
+    ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(vX, vY1); ctx.lineTo(vX, vY2); ctx.stroke();
+    // arrowhead
+    ctx.beginPath(); ctx.moveTo(vX, vY2); ctx.lineTo(vX-5, vY2-10); ctx.lineTo(vX+5, vY2-10); ctx.fill();
+    ctx.fillStyle='#00e5ff'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('L≈15 km', vX+8, (vY1+vY2)/2);
+
+    // Through-Earth neutrino (L~12700 km)
+    const lAngle = Math.PI*0.15;
+    const hX1 = earthCX - (earthR+38)*Math.cos(lAngle);
+    const hY1 = earthCY + (earthR+38)*Math.sin(lAngle);
+    const hX2 = earthCX + (earthR+6)*Math.cos(lAngle);
+    const hY2 = earthCY - (earthR+6)*Math.sin(lAngle);
+    ctx.strokeStyle='#ff44ff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(hX1, hY1); ctx.lineTo(hX2, hY2); ctx.stroke();
+    ctx.fillStyle='#ff44ff'; ctx.font='12px monospace'; ctx.textAlign='right';
+    ctx.fillText('L≈12,700 km', hX1-6, hY1);
+
+    // Labels
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Upward: strong oscillation', earthCX, H*0.9);
+    ctx.fillText('Downward: minimal oscillation', earthCX, H*0.9+14);
+
+    // L/E oscillation mini-plot
+    const plotX = pad.l*0.5, plotY2 = pad.t, plotW2 = pw*0.24, plotH2 = ph*0.35;
+    ctx.fillStyle='#1a1a38'; ctx.fillRect(plotX, plotY2, plotW2, plotH2);
+    ctx.strokeStyle='#333360'; ctx.strokeRect(plotX, plotY2, plotW2, plotH2);
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('P(νμ→νμ) vs L/E', plotX+plotW2/2, plotY2-6);
+    ctx.beginPath(); ctx.strokeStyle='#00e5ff'; ctx.lineWidth=1.5;
+    for(let px3=0; px3<=plotW2; px3++){
+      const LE = 1 + 4999*px3/plotW2;
+      const phi = 1.267*2.45e-3*LE/1000;
+      const Pmumu = 1 - Math.sin(2*49*Math.PI/180)**2 * Math.sin(phi)**2;
+      const py3 = plotY2 + plotH2*(1-Math.max(0,Pmumu));
+      px3===0 ? ctx.moveTo(plotX+px3,py3) : ctx.lineTo(plotX+px3,py3);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#444466'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('1', plotX, plotY2+9); ctx.fillText('5000', plotX+plotW2-20, plotY2+plotH2+10);
+    ctx.fillText('L/E (km/GeV)', plotX, plotY2+plotH2+10);
+    ctx.textAlign='left';
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    if(window.msw.mode === 'solar') drawSolar(W, H, ctx);
+    else drawAtmospheric(W, H, ctx);
+    if (!paused5) t5 += (window.animSpeed||0.1);
+    if (!paused5) raf5 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf5); } };
+}
+window.toggleAnim5 = function(btn) {
+  paused5 = !paused5;
+  btn.textContent = paused5 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused5);
+  if (!paused5) raf5 = requestAnimationFrame(draw);
+};
+
+// ── Tab 6 — Majorana & 0νββ ─────────────────────────────────
+function initTab6() {
+  const cv = document.getElementById('cv6');
+  let raf6, t6=0;
+  let paused6 = false;
+
+  function drawSpectrum(W, H, ctx) {
+    const pad = {l:70, r:30, t:50, b:60};
+    const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+    const Qval = 2039; // keV (Ge-76 Q-value)
+
+    // axes
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Sum electron kinetic energy (keV)', pad.l+pw/2, pad.t+ph+40);
+    ctx.save(); ctx.translate(18, pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('dN/dE (a.u.)', 0, 0); ctx.restore();
+
+    // 2νββ — continuous spectrum
+    ctx.beginPath(); ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2.5;
+    for(let px=0; px<=pw; px++) {
+      const E = Qval * px/pw;
+      const phase = E/Qval;
+      // simplified spectral shape for 2νββ
+      const spec = phase**2 * (1-phase)**2 * (1 + 2*phase);
+      const py = pad.t + ph*(1 - spec*0.92);
+      px===0 ? ctx.moveTo(pad.l+px, py) : ctx.lineTo(pad.l+px, py);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#00e5ff'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('2νββ (allowed)', pad.l+pw*0.2, pad.t+20);
+
+    // 0νββ — sharp peak at Q, amplitude proportional to mbb
+    const mbb = window.bbdecay.mbb; // meV
+    const peakAmp = Math.min(0.85, (mbb/500)**0.5 * 0.85);
+    const peakW = pw * 0.018;
+    const peakX = pad.l + pw * 0.995;
+
+    ctx.beginPath(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2;
+    ctx.moveTo(peakX-peakW, pad.t+ph);
+    ctx.lineTo(peakX, pad.t + ph*(1-peakAmp));
+    ctx.lineTo(peakX+peakW, pad.t+ph);
+    ctx.stroke();
+    ctx.fillStyle='rgba(255,215,0,0.15)';
+    ctx.beginPath();
+    ctx.moveTo(peakX-peakW, pad.t+ph);
+    ctx.lineTo(peakX, pad.t + ph*(1-peakAmp));
+    ctx.lineTo(peakX+peakW, pad.t+ph);
+    ctx.closePath(); ctx.fill();
+
+    // Annotate peak
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(peakX, pad.t+ph*(1-peakAmp)-4); ctx.lineTo(peakX, pad.t); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ffd700'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('0νββ peak', peakX, pad.t+14);
+    ctx.fillText(`|m_ββ|=${mbb} meV`, peakX, pad.t+28);
+    ctx.fillText(`Q=${Qval} keV`, peakX, pad.t+ph+16);
+
+    // x-axis ticks
+    for(let tick=0; tick<=5; tick++){
+      const ex_k = Qval*tick/5;
+      const px2 = pad.l + pw*tick/5;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(ex_k.toFixed(0), px2, pad.t+ph+14);
+      ctx.strokeStyle='#333360'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(px2, pad.t+ph); ctx.lineTo(px2, pad.t+ph+4); ctx.stroke();
+    }
+    ctx.textAlign='left';
+
+    // T½ annotation
+    const T12 = mbb > 0 ? (5e25 * (50/mbb)**2).toExponential(1) : '∞';
+    ctx.fillStyle='#888899'; ctx.font='12px monospace';
+    ctx.fillText(`T½(0νββ) ∝ 1/|m_ββ|² ≈ ${T12} yr`, pad.l, H-14);
+  }
+
+  function drawFeynman(W, H, ctx) {
+    const cx = W/2, cy = H/2;
+    // Two neutrons → two protons + two electrons, no neutrinos
+    // Left side: 2 neutrons
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 13px monospace'; ctx.textAlign='center';
+    ctx.fillText('Neutrinoless Double Beta Decay', cx, 28);
+
+    const nY = [cy-70, cy+70];
+    const nodeColors = {n:'#4488ff', p:'#ff4444', e:'#ffd700', nu:'#44ff88', W:'#ff8833'};
+
+    // Neutrons (left)
+    nY.forEach((y,i) => {
+      ctx.beginPath(); ctx.arc(cx-200, y, 16, 0, Math.PI*2);
+      ctx.fillStyle=nodeColors.n; ctx.fill();
+      ctx.fillStyle='#0a0a18'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+      ctx.fillText('n', cx-200, y+5);
+    });
+
+    // Protons (right)
+    nY.forEach((y,i) => {
+      ctx.beginPath(); ctx.arc(cx+200, y, 16, 0, Math.PI*2);
+      ctx.fillStyle=nodeColors.p; ctx.fill();
+      ctx.fillStyle='#0a0a18'; ctx.font='bold 12px monospace';
+      ctx.fillText('p', cx+200, y+5);
+    });
+
+    // W boson vertices
+    const vY = [cy-70, cy+70];
+    vY.forEach((y,i) => {
+      // n→p line
+      ctx.strokeStyle='#4488ff'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(cx-184, y); ctx.lineTo(cx-60, y); ctx.stroke();
+      ctx.strokeStyle='#ff4444'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(cx+60, y); ctx.lineTo(cx+184, y); ctx.stroke();
+      // W- vertex
+      ctx.beginPath(); ctx.arc(cx-60, y, 10, 0, Math.PI*2);
+      ctx.fillStyle=nodeColors.W; ctx.fill();
+      ctx.fillStyle='#0a0a18'; ctx.font='bold 12px monospace';
+      ctx.fillText('W', cx-60, y+4);
+    });
+
+    // W propagators meeting in middle (Majorana neutrino exchange)
+    ctx.strokeStyle='#ff8833'; ctx.lineWidth=2; ctx.setLineDash([5,3]);
+    ctx.beginPath(); ctx.moveTo(cx-60, nY[0]); ctx.lineTo(cx, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-60, nY[1]); ctx.lineTo(cx, cy); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Majorana neutrino at center
+    ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI*2);
+    ctx.fillStyle=nodeColors.nu; ctx.fill();
+    ctx.fillStyle='#0a0a18'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('νM', cx, cy+4);
+    // Helicity flip arrow
+    ctx.strokeStyle='#44ff88'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx, cy-28, 10, 0.1, Math.PI-0.1); ctx.stroke();
+    ctx.fillStyle='#44ff88'; ctx.font='12px monospace';
+    ctx.fillText('↻ helicity flip', cx, cy-42);
+
+    // Electrons emitted right
+    const eOffY = [-20, 20];
+    eOffY.forEach((off,i) => {
+      ctx.strokeStyle=nodeColors.e; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(cx+60, nY[i]); ctx.lineTo(cx+130, nY[i]+off); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx+130, nY[i]+off, 8, 0, Math.PI*2);
+      ctx.fillStyle=nodeColors.e; ctx.fill();
+      ctx.fillStyle='#0a0a18'; ctx.font='bold 12px monospace';
+      ctx.fillText('e⁻', cx+130, nY[i]+off+4);
+    });
+
+    // No neutrino label
+    ctx.strokeStyle='#ff4444'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cx+150, nY[0]+30); ctx.lineTo(cx+190, nY[0]+10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+190, nY[0]+10-6); ctx.lineTo(cx+190, nY[0]+10+6); ctx.stroke();
+    ctx.fillStyle='#ff6666'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('NO ν̄ emitted!', cx+155, nY[0]-4);
+    ctx.fillText('→ ΔL=2', cx+155, nY[0]+10);
+
+    // Lepton number violation annotation
+    ctx.fillStyle='#ff4444'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Lepton number violated: ΔL = 2', cx, H-30);
+    ctx.fillStyle='#888899'; ctx.font='12px monospace';
+    ctx.fillText('Requires neutrino = its own antiparticle (Majorana)', cx, H-14);
+    ctx.textAlign='left';
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    if(window.bbdecay.mode === 'spectrum') drawSpectrum(W, H, ctx);
+    else drawFeynman(W, H, ctx);
+    if (!paused6) t6 += (window.animSpeed||0.1);
+    if (!paused6) raf6 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf6); } };
+}
+window.toggleAnim6 = function(btn) {
+  paused6 = !paused6;
+  btn.textContent = paused6 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused6);
+  if (!paused6) raf6 = requestAnimationFrame(draw);
+};
+
+// ── Tab 7 — Sterile Neutrinos ────────────────────────────────
+function initTab7() {
+  const cv = document.getElementById('cv7');
+  let raf7, t7=0;
+  let paused7 = false;
+
+  function Psterile(L_m, E_MeV, sin2th, dm2) {
+    // Approximate 2-flavor appearance/disappearance for short-baseline
+    const phi = 1.267 * dm2 * (L_m/1000) / E_MeV * 1000; // L in km, E in GeV
+    return sin2th * Math.sin(phi)**2;
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const spd = window.animSpeed||0.1;
+    t7 += spd;
+
+    const { sin2th, dm2, mode } = window.sterile;
+    const pad = {l:75, r:30, t:55, b:55};
+    const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+    // Axes
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+
+    const isLSND = mode === 'lsnd';
+    const LE_min = isLSND ? 0.1 : 0.5, LE_max = isLSND ? 5 : 30;
+    const xLabel = 'L/E (m/MeV)';
+    const yLabel = isLSND ? 'P(ν̄μ→ν̄e)' : 'P(ν̄e→ν̄e) deficit';
+
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText(xLabel, pad.l+pw/2, pad.t+ph+38);
+    ctx.fillText(isLSND ? 'LSND/MiniBooNE: ν̄μ→ν̄e appearance' : 'Reactor antineutrino anomaly (~6% deficit)', pad.l+pw/2, pad.t-20);
+    ctx.save(); ctx.translate(18, pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText(yLabel, 0, 0); ctx.restore();
+
+    // Theory curve
+    ctx.beginPath(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+    for(let px=0; px<=pw; px++){
+      const LE = LE_min * Math.pow(LE_max/LE_min, px/pw);
+      const phi = 1.267 * dm2 * LE * 1e-3; // L/E in m/MeV → km/GeV factor
+      const P = (isLSND ? 0.25 : 1) * sin2th * Math.sin(phi)**2;
+      const py = pad.t + ph*(1-Math.min(1,P*15));
+      px===0 ? ctx.moveTo(pad.l+px, py) : ctx.lineTo(pad.l+px, py);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#ffd700'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('3+1 model prediction', pad.l+10, pad.t+15);
+
+    // LSND data blob
+    if(isLSND){
+      ctx.fillStyle='rgba(255,100,100,0.3)'; ctx.strokeStyle='#ff6666'; ctx.lineWidth=1.5;
+      const blobX = pad.l + pw*(Math.log(0.8/LE_min)/Math.log(LE_max/LE_min));
+      const blobY = pad.t + ph*0.4;
+      ctx.beginPath(); ctx.ellipse(blobX, blobY, pw*0.07, ph*0.15, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#ff8888'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+      ctx.fillText('LSND+MiniBooNE', blobX, blobY-ph*0.18);
+      ctx.fillText('excess (4.7σ)', blobX, blobY-ph*0.18+14);
+
+      // MicroBooNE null result
+      ctx.strokeStyle='#44ff88'; ctx.lineWidth=2; ctx.setLineDash([5,3]);
+      ctx.beginPath(); ctx.moveTo(blobX-pw*0.1, blobY+ph*0.08); ctx.lineTo(blobX+pw*0.1, blobY+ph*0.08); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#44ff88'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText('MicroBooNE null (2021)', blobX, blobY+ph*0.15);
+    } else {
+      // Reactor deficit
+      const defY = pad.t + ph*0.3;
+      ctx.fillStyle='rgba(255,60,60,0.2)'; ctx.strokeStyle='#ff4444'; ctx.lineWidth=1.5;
+      ctx.fillRect(pad.l, defY, pw*0.4, ph*0.12);
+      ctx.strokeRect(pad.l, defY, pw*0.4, ph*0.12);
+      ctx.fillStyle='#ff8888'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+      ctx.fillText('Reactor ν̄e deficit ~6%', pad.l+pw*0.2, defY-8);
+    }
+
+    // 4-neutrino mass level diagram
+    const diagX = W*0.65, diagY = H*0.12, diagH2 = H*0.55, diagW = W*0.3;
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('3+1 Mass Spectrum', diagX+diagW/2, diagY-10);
+
+    const masses4 = [
+      {lbl:'ν₁', rel:0, col:'#7777ff'},
+      {lbl:'ν₂', rel:0.03, col:'#44ff88'},
+      {lbl:'ν₃', rel:1, col:'#ff7733'},
+      {lbl:'νs', rel:10+dm2*8, col:'#aaaacc'},
+    ];
+    const mScale = diagH2 / (10 + dm2*8 + 2);
+    masses4.forEach((m,i) => {
+      const y = diagY + diagH2 - m.rel*mScale;
+      ctx.strokeStyle=m.col; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(diagX, y); ctx.lineTo(diagX+diagW, y); ctx.stroke();
+      ctx.fillStyle=m.col; ctx.font='bold 12px monospace'; ctx.textAlign='right';
+      ctx.fillText(m.lbl, diagX-4, y+4);
+    });
+
+    // Animate mixing arrow between ν₁..ν₃ and νs
+    const pulse = Math.sin(t7*0.05)*0.5+0.5;
+    const sY = diagY + diagH2 - masses4[3].rel*mScale;
+    const aY = diagY + diagH2 - masses4[0].rel*mScale;
+    ctx.strokeStyle=`rgba(255,255,100,${0.3+pulse*0.5})`; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(diagX+diagW*0.5, sY); ctx.lineTo(diagX+diagW*0.5, aY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=`rgba(255,255,100,${0.3+pulse*0.5})`; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText(`Δm²₁₄≈${dm2} eV²`, diagX+diagW*0.5, (sY+aY)/2);
+    ctx.textAlign='left';
+
+    // x-axis ticks
+    const nTicks = 5;
+    for(let i=0; i<=nTicks; i++){
+      const LE = LE_min * Math.pow(LE_max/LE_min, i/nTicks);
+      const px2 = pad.l + pw*i/nTicks;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(LE.toFixed(1), px2, pad.t+ph+14);
+    }
+    ctx.textAlign='left';
+
+    if (!paused7) t7 += spd;
+    if (!paused7) raf7 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf7); } };
+}
+window.toggleAnim7 = function(btn) {
+  paused7 = !paused7;
+  btn.textContent = paused7 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused7);
+  if (!paused7) raf7 = requestAnimationFrame(draw);
+};
+
+// ── Tab 8 — Next-Generation Experiments ─────────────────────
+function initTab8() {
+  const cv = document.getElementById('cv8');
+  let raf8, t8=0;
+  let paused8 = false;
+
+  function drawDUNE(W, H, ctx) {
+    const pad = {l:75, r:30, t:55, b:55};
+    const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 13px monospace'; ctx.textAlign='center';
+    ctx.fillText('DUNE: CP Violation Sensitivity (L=1300 km)', W/2, 28);
+
+    // Draw P(νμ→νe) vs E for several δCP values
+    const dcp_vals = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+    const dcp_labels = ['0°','90°','180°','270°'];
+    const cols = ['#ff4444','#ffd700','#44ff88','#00e5ff'];
+
+    // Axes
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Neutrino Energy (GeV)', pad.l+pw/2, pad.t+ph+38);
+    ctx.save(); ctx.translate(18,pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('P(νμ→νe)', 0, 0); ctx.restore();
+
+    const L_km = 1300;
+    const dm31 = 2.45e-3, dm21 = 7.53e-5;
+    const s12=Math.sqrt(0.307), s23=Math.sqrt(0.546), s13=Math.sqrt(0.022);
+    const c12=Math.sqrt(1-s12**2), c23=Math.sqrt(1-s23**2), c13=Math.sqrt(1-s13**2);
+
+    const dcp_current = window.nge.dcp;
+
+    dcp_vals.forEach((dcp, di) => {
+      ctx.beginPath(); ctx.strokeStyle=cols[di]; ctx.lineWidth=1.5;
+      ctx.globalAlpha = dcp === dcp_vals[Math.round(dcp_current/(Math.PI/2))%4] ? 1.0 : 0.4;
+      for(let px=0; px<=pw; px++){
+        const E_GeV = 0.5 + 4.5*px/pw;
+        const E = E_GeV * 1e3;
+        const phi31 = 1.267*dm31*L_km/E;
+        const phi21 = 1.267*dm21*L_km/E;
+        const Jcp = s12*c12*s23*c23*c13**2*s13;
+        const P = 4*c12**2*c23**2*c13**4*s13**2*Math.sin(phi31)**2
+          + 8*Jcp*Math.cos(dcp)*Math.cos(phi31)*Math.sin(phi31)*Math.sin(phi21)
+          - 8*Jcp*Math.sin(dcp)*Math.sin(phi31)*Math.sin(phi21);
+        const py = pad.t + ph*(1-Math.max(0,Math.min(0.15,P))/0.15);
+        px===0 ? ctx.moveTo(pad.l+px, py) : ctx.lineTo(pad.l+px, py);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle=cols[di]; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText(`δ=${dcp_labels[di]}`, W-120, pad.t+16+di*16);
+    });
+
+    // Highlight CP=0 vs CP=π difference
+    ctx.strokeStyle='#ffffff33'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    const eMaxPx = pad.l + pw * (1.5-0.5)/4.5;
+    ctx.beginPath(); ctx.moveTo(eMaxPx, pad.t); ctx.lineTo(eMaxPx, pad.t+ph); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#888899'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Osc. max ~1.5 GeV', eMaxPx, pad.t+ph+14);
+
+    // Tick marks
+    for(let e=1; e<=5; e++){
+      const px2 = pad.l + pw*(e-0.5)/4.5;
+      ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(e+' GeV', px2, pad.t+ph+14);
+    }
+
+    ctx.fillStyle='#888899'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('DUNE 5σ CP sensitivity: ~7 years, 40kt LAr TPC, Fermilab→Homestake 1300 km', pad.l, H-14);
+    ctx.textAlign='left';
+  }
+
+  function drawHyperK(W, H, ctx) {
+    const cx = W/2, cy = H*0.45;
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 13px monospace'; ctx.textAlign='center';
+    ctx.fillText('Hyper-Kamiokande: 260 kton Water Cherenkov', cx, 28);
+
+    // Draw detector outline
+    const dW = W*0.30, dH = H*0.52;
+    const dX = cx - dW/2, dY = cy - dH/2;
+    ctx.fillStyle='#05152a'; ctx.fillRect(dX, dY, dW, dH);
+    ctx.strokeStyle='#2255aa'; ctx.lineWidth=2;
+    ctx.strokeRect(dX, dY, dW, dH);
+
+    // Water fill
+    ctx.fillStyle='rgba(0,80,200,0.25)'; ctx.fillRect(dX+3, dY+3, dW-6, dH-6);
+
+    // PMT dots on walls
+    const nPMT = 30;
+    for(let i=0; i<nPMT; i++){
+      const frac = i/nPMT;
+      // top wall
+      ctx.beginPath(); ctx.arc(dX+dW*frac, dY+8, 4, 0, Math.PI*2);
+      ctx.fillStyle='rgba(180,220,255,0.5)'; ctx.fill();
+      // bottom wall
+      ctx.beginPath(); ctx.arc(dX+dW*frac, dY+dH-8, 4, 0, Math.PI*2);
+      ctx.fill();
+    }
+    for(let i=0; i<20; i++){
+      const frac = i/20;
+      ctx.beginPath(); ctx.arc(dX+8, dY+dH*frac, 4, 0, Math.PI*2);
+      ctx.fillStyle='rgba(180,220,255,0.5)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(dX+dW-8, dY+dH*frac, 4, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle='rgba(180,220,255,0.7)'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Hyper-K', cx, cy+4);
+    ctx.fillStyle='#6688aa'; ctx.font='12px monospace';
+    ctx.fillText('260 kton fiducial', cx, cy+18);
+    ctx.fillText('PMT coverage ~40%', cx, cy+30);
+
+    // Cherenkov ring from atmospheric neutrino interaction
+    const t8s = t8 * 0.02;
+    const ringR = (t8s % 1) * Math.min(dW,dH)*0.38;
+    if(ringR > 2){
+      ctx.beginPath(); ctx.arc(cx+20, cy-20, ringR, 0, Math.PI*2);
+      ctx.strokeStyle=`rgba(100,200,255,${Math.max(0,0.9-ringR/60)})`;
+      ctx.lineWidth=2; ctx.stroke();
+    }
+
+    // Stats panel
+    const sX = W*0.05, sY = H*0.65;
+    ctx.fillStyle='#1a1a38'; ctx.fillRect(sX, sY, W*0.38, H*0.22);
+    ctx.strokeStyle='#333360'; ctx.strokeRect(sX, sY, W*0.38, H*0.22);
+    const stats = [
+      'Atmospheric ν: ~200/year (x 20 SK)',
+      'Solar ν: high-stats flavor ratio',
+      'Beam (T2HK): δCP at 5σ + MH',
+      'Proton decay: p→e+π⁰ sensitivity ×5'
+    ];
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+    ctx.fillText('Hyper-K Physics Goals:', sX+8, sY+14);
+    stats.forEach((s,i)=>{
+      ctx.fillStyle='#888899'; ctx.font='12px monospace';
+      ctx.fillText('• '+s, sX+8, sY+28+i*14);
+    });
+
+    // Right panel: IceCube astro spectrum
+    const icX = W*0.57, icY = H*0.12, icW = W*0.38, icH = H*0.55;
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('IceCube: Astrophysical ν Spectrum', icX+icW/2, icY-8);
+    ctx.fillStyle='#1a1a38'; ctx.fillRect(icX, icY, icW, icH);
+    ctx.strokeStyle='#333360'; ctx.strokeRect(icX, icY, icW, icH);
+
+    ctx.beginPath(); ctx.strokeStyle='#00e5ff'; ctx.lineWidth=2;
+    for(let px=0; px<=icW; px++){
+      const logE = 3 + 4*px/icW; // 1 TeV to 10 PeV
+      const E = Math.pow(10, logE);
+      const flux = Math.pow(E/1e5, -2.37) * 1e-8;
+      const logFlux = Math.log10(flux+1e-20);
+      const py = icY + icH*(1-(logFlux+20)/8);
+      px===0 ? ctx.moveTo(icX+px, py) : ctx.lineTo(icX+px, py);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#00e5ff'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('dΦ/dE ∝ E⁻²·³⁷', icX+8, icY+16);
+    ctx.fillStyle='#888899'; ctx.font='12px monospace';
+    ctx.fillText('1 TeV', icX+4, icY+icH+12);
+    ctx.fillText('10 PeV', icX+icW-24, icY+icH+12);
+    ctx.fillStyle='#ffd700'; ctx.fillRect(icX+icW*0.42, icY+icH*0.35-6, 12,12);
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace';
+    ctx.fillText('TXS 0506+056', icX+icW*0.42+16, icY+icH*0.35+4);
+    ctx.textAlign='left';
+  }
+
+  function drawSN(W, H, ctx) {
+    const t = t8 * 0.018;
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 13px monospace'; ctx.textAlign='center';
+    ctx.fillText('Supernova Neutrino Burst (SN1987A → DSNB)', W/2, 28);
+
+    // Time profile of SN neutrino emission
+    const pad = {l:75, r:30, t:55, b:55};
+    const pw = W-pad.l-pad.r, ph = H*0.42-pad.t;
+
+    ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+    ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Time after core bounce (s)', pad.l+pw/2, pad.t+ph+35);
+    ctx.save(); ctx.translate(18,pad.t+ph/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('Luminosity (a.u.)', 0, 0); ctx.restore();
+
+    const flavColors = ['#ffd700','#00e5ff','#ff44ff'];
+    const flavLabels = ['νe (neutronization)', 'ν̄e (cooling)', 'νx (all flavors)'];
+    const flavProfiles = [
+      (t) => t<0 ? 0 : t<0.05 ? t/0.05 : Math.exp(-t/0.3)*0.8,  // νe burst
+      (t) => t<0 ? 0 : Math.exp(-t/5)*0.7,                          // ν̄e
+      (t) => t<0 ? 0 : Math.exp(-t/4)*0.6,                           // νx
+    ];
+
+    flavProfiles.forEach((profile, fi) => {
+      ctx.beginPath(); ctx.strokeStyle=flavColors[fi]; ctx.lineWidth=2;
+      for(let px=0; px<=pw; px++){
+        const tSec = -0.5 + 12.5*px/pw;
+        const lum = profile(tSec);
+        const py = pad.t + ph*(1-Math.min(1,lum));
+        px===0 ? ctx.moveTo(pad.l+px, py) : ctx.lineTo(pad.l+px, py);
+      }
+      ctx.stroke();
+      ctx.fillStyle=flavColors[fi]; ctx.font='12px monospace'; ctx.textAlign='left';
+      ctx.fillText(flavLabels[fi], W-200, pad.t+14+fi*13);
+    });
+
+    // Animated detector events (SN1987A — 24 events)
+    const evX = pad.l + pw*(0.04+0.04*(t%8));
+    const evY = pad.t + ph*0.5;
+    ctx.beginPath(); ctx.arc(evX, evY, 5, 0, Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.shadowColor='#ffd700'; ctx.shadowBlur=8;
+    ctx.fill(); ctx.shadowBlur=0;
+
+    // SN1987A annotation
+    ctx.fillStyle='#ff8833'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('SN1987A: 24 events detected!', pad.l+pw*0.5, pad.t+ph+16);
+    ctx.fillStyle='#666688'; ctx.font='12px monospace';
+    ctx.fillText('IMB (8) + Kamiokande (11) + Baksan (5) · Feb 23, 1987', pad.l+pw*0.5, pad.t+ph+28);
+
+    // DSNB spectrum
+    const dX = pad.l, dY2 = H*0.52, dW2 = pw*0.45, dH2 = H*0.3;
+    ctx.fillStyle='#1a1a38'; ctx.fillRect(dX, dY2, dW2, dH2);
+    ctx.strokeStyle='#333360'; ctx.strokeRect(dX, dY2, dW2, dH2);
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('Diffuse SN ν Background (DSNB)', dX+dW2/2, dY2-8);
+    ctx.beginPath(); ctx.strokeStyle='#ff7733'; ctx.lineWidth=2;
+    for(let px=0; px<=dW2; px++){
+      const E = 5+35*px/dW2;
+      const flux = E**2 * Math.exp(-E/6) / 500;
+      const py = dY2 + dH2*(1-Math.min(1,flux*8));
+      px===0 ? ctx.moveTo(dX+px, py) : ctx.lineTo(dX+px, py);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#888899'; ctx.font='12px monospace';
+    ctx.fillText('5 MeV', dX+4, dY2+dH2+12);
+    ctx.fillText('40 MeV', dX+dW2-24, dY2+dH2+12);
+    ctx.fillStyle='#ff7733'; ctx.font='12px monospace'; ctx.textAlign='left';
+    ctx.fillText('Super-K+Gd detected DSNB (2023)', dX+4, dY2+12);
+
+    // SNEWS network diagram
+    const nX = W*0.55, nY2 = H*0.52, nR = 55;
+    ctx.fillStyle='#aaaacc'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('SNEWS Alert Network', nX, nY2-8);
+    const detectors = ['Super-K','IceCube','KamLAND','LVD','Borexino'];
+    const angles = detectors.map((_,i) => i/detectors.length*Math.PI*2 - Math.PI/2);
+    detectors.forEach((d, i) => {
+      const dx = nX + nR*Math.cos(angles[i]);
+      const dy = nY2 + nR*Math.sin(angles[i]);
+      const pulse2 = Math.sin(t*0.2 + i*1.2)*0.5+0.5;
+      ctx.beginPath(); ctx.arc(dx, dy, 10, 0, Math.PI*2);
+      ctx.fillStyle=`rgba(0,200,255,${0.3+pulse2*0.5})`; ctx.fill();
+      ctx.strokeStyle='#00c8ff'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='#aaaacc'; ctx.font='12px monospace'; ctx.textAlign='center';
+      ctx.fillText(d, dx, dy+20);
+      // connection lines
+      if(i>0){
+        ctx.strokeStyle='rgba(0,200,255,0.2)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(nX,nY2); ctx.lineTo(dx,dy); ctx.stroke();
+      }
+    });
+    ctx.beginPath(); ctx.arc(nX, nY2, 12, 0, Math.PI*2);
+    ctx.fillStyle='rgba(255,100,0,0.7)'; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+    ctx.fillText('SNEWS', nX, nY2+4);
+    ctx.textAlign='left';
+  }
+
+  function draw() {
+    const {W, H, ctx} = fitCanvas(cv);
+    ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const expt = window.nge.expt;
+    if(expt === 'dune') drawDUNE(W, H, ctx);
+    else if(expt === 'hyperk' || expt === 'icecube') drawHyperK(W, H, ctx);
+    else drawSN(W, H, ctx);
+    if (!paused8) t8 += (window.animSpeed||0.1);
+    if (!paused8) raf8 = requestAnimationFrame(draw);
+  }
+  draw();
+  return { stop() { cancelAnimationFrame(raf8); } };
+}
+window.toggleAnim8 = function(btn) {
+  paused8 = !paused8;
+  btn.textContent = paused8 ? '▶' : '⏸';
+  btn.classList.toggle('active', paused8);
+  if (!paused8) raf8 = requestAnimationFrame(draw);
+};
+
+window.animSpeed=0.1;
+switchTab(1);
+window.addEventListener('resize', () => { _stops.forEach(s=>s&&s.stop&&s.stop()); _stops=[]; switchTab(currentTab); });
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

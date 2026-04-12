@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>33 · de Rham Cohomology &amp; Characteristic Classes</title>
+<style>
+
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#33ccff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.85rem;opacity:.7}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px;flex-shrink:0}
+.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+.pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden;min-height:0}
+.pane.active{display:flex}
+.canvas-area{flex:1;display:flex;flex-direction:column;background:var(--bg);padding:10px;gap:6px;overflow:hidden;min-height:0}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;cursor:crosshair;width:100%;flex:1;min-height:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.78rem;color:var(--dim)}
+.controls input[type=range]{width:110px;accent-color:var(--accent)}
+.controls span{font-size:.78rem;color:var(--accent);min-width:36px}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.78rem;color:var(--dim);line-height:1.7;flex-shrink:0}
+.info-box .val{color:var(--accent);font-weight:600}
+.side-panel{width:300px;min-width:200px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:14px;gap:10px;flex-shrink:0}
+.side-panel h3{font-size:.9rem;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:4px}
+.side-panel p{font-size:.76rem;color:var(--dim);line-height:1.7}
+.side-panel .eq{font-size:.8rem;color:var(--text);background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:5px 10px;font-family:monospace;margin:2px 0}
+.caption-box{background:var(--bg3);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;padding:6px 10px;font-size:.74rem;color:var(--dim);line-height:1.6;margin:2px 0}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.panes{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+
+/* Tab 1 specific */
+.split-h{display:flex;flex-direction:column;flex:1;overflow:hidden;gap:6px;min-height:0}
+.betti-strip{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:.76rem;color:var(--dim);line-height:1.7;flex-shrink:0}
+.betti-strip .highlight{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 15</span>
+  <div class="title-block">
+    <h1>de Rham Cohomology &amp; Characteristic Classes</h1>
+    <p>Closed vs exact forms · Betti numbers · Chern classes and monopoles</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Closed vs Exact</div>
+  <div class="tab" onclick="switchTab(1)">Betti Numbers</div>
+  <div class="tab" onclick="switchTab(2)">Chern Classes</div>
+  <div class="tab" onclick="switchTab(3)">de Rham Complex</div>
+  <div class="tab" onclick="switchTab(4)">Čech Cohomology</div>
+  <div class="tab" onclick="switchTab(5)">Poincaré Duality</div>
+  <div class="tab" onclick="switchTab(6)">Char. Classes</div>
+  <div class="tab" onclick="switchTab(7)">Sheaf &amp; GAGA</div>
+</div>
+
+<div id="main">
+
+<!-- TAB 0 -->
+<div class="pane active" id="pane0">
+  <div class="canvas-area">
+    <canvas id="c0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed1" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal1" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button onclick="drawLoop(true)">Loop Around Hole</button>
+      <button onclick="drawLoop(false)">Loop NOT Around Hole</button>
+      <button id="animLoopBtn" class="animBtn" onclick="toggleAnimLoop()">▶ Animate</button>
+      <span id="integralDisplay" style="font-size:.82rem;min-width:200px"></span>
+    </div>
+    <div class="info-box">
+      Winding around hole: <span class="val" id="windInfo">both loops shown — cyan winds, green avoids</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>H¹(ℝ²\{0}) = ℝ</h3>
+    <div class="eq">ω = (x dy − y dx)/(x²+y²)</div>
+    <div class="eq">ω = dθ  (locally)</div>
+    <div class="eq">dω = 0  — ω is CLOSED</div>
+    <div class="eq">∮_γ ω = 2πn  (winding n)</div>
+    <div class="eq">ω ≠ df  globally — NOT EXACT</div>
+    <div class="caption-box">On full ℝ²: ω = d(arctan(y/x)) IS exact — no hole, so H¹=0.</div>
+    <div class="caption-box">On ℝ²\{0}: ω cannot be written as df globally because θ = arctan(y/x) is multi-valued — it jumps by 2π around the hole!</div>
+    <div class="caption-box">The HOLE in the space creates a non-trivial cohomology class [ω] ∈ H¹. This is the mathematical reason the Aharonov-Bohm effect exists!</div>
+    <p style="margin-top:4px">Arrow color encodes direction (angle) of the 1-form at each point. The swirling pattern reveals rotational symmetry of dθ.</p>
+  </div>
+</div>
+
+<!-- TAB 1 -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="canvas-area">
+    <canvas id="c1"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button onclick="addHandle()">+ Handle (genus+1)</button>
+      <button onclick="resetSphere()">Reset to S²</button>
+      <span id="genusInfo" style="font-size:.82rem">genus=0 · b₁=0 · χ=2</span>
+    </div>
+    <div class="betti-strip" id="bettiStrip">
+      Click a surface to inspect its cohomology groups.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>de Rham's Theorem</h3>
+    <div class="eq">H^k_dR(M) ≅ H^k(M; ℝ)</div>
+    <p>Betti numbers bₖ = dim Hᵏ count k-dimensional holes:</p>
+    <div class="eq">b₀ = connected components</div>
+    <div class="eq">b₁ = independent loops (handles)</div>
+    <div class="eq">b₂ = independent 2-cavities</div>
+    <div class="eq">χ = b₀ − b₁ + b₂  (Euler char.)</div>
+    <div class="caption-box">Gauss-Bonnet: ∫_M K dA = 2πχ(M) — curvature integrates to topology!</div>
+    <div class="caption-box">Hodge theorem: every cohomology class has a unique harmonic representative.</div>
+    <p>The Euler characteristic χ is a topological invariant — it doesn't change under continuous deformation.</p>
+  </div>
+</div>
+
+<!-- TAB 2 -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-area">
+    <canvas id="c2"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed3" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal3" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Monopole charge n =</label>
+      <input type="range" id="nSlider" min="-2" max="2" value="1" step="1" oninput="onNSlider()">
+      <span id="nVal" style="color:var(--accent);font-weight:700">1</span>
+      <button id="animChernBtn" class="animBtn" onclick="toggleAnimChern()">▶ Animate</button>
+    </div>
+    <div class="info-box">
+      First Chern number: <span class="val" id="chernNum">c₁ = 1</span> &nbsp;|&nbsp;
+      ∫_S² F/2π = <span class="val" id="chernInt">1</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Chern Classes</h3>
+    <p>For a complex vector bundle E over M:</p>
+    <div class="eq">c₁(E) = [Tr F/2πi] ∈ H²(M,ℤ)</div>
+    <div class="eq">c₂(E) = [(TrF)²−(TrF²)]/8π²</div>
+    <div class="eq">det(1+itF/2π) = Σ cₖ(E) tᵏ</div>
+    <p style="margin-top:4px">Chern-Weil theorem: invariant polynomials of curvature give integral cohomology classes.</p>
+    <h3 style="margin-top:6px">Physical Applications</h3>
+    <div class="caption-box">c₁ = magnetic monopole charge (Dirac). The Dirac string is invisible iff c₁ ∈ ℤ.</div>
+    <div class="caption-box">c₂ = Yang-Mills instanton number. Tunneling between vacua in QCD.</div>
+    <div class="caption-box">Atiyah-Singer: index(D) = ∫ ch(E)·Â(TM) — analytic index = topological index.</div>
+    <div class="caption-box">Anomaly cancellation in string theory requires c₂(E) = c₂(TM). Green-Schwarz mechanism.</div>
+  </div>
+</div>
+
+<!-- TAB 3: de Rham Complex -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-area">
+    <canvas id="c3"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal4" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Manifold:</label>
+      <button onclick="setDRManifold('S1')">S¹ (circle)</button>
+      <button onclick="setDRManifold('T2')">T² (torus)</button>
+      <button onclick="setDRManifold('S2')">S² (sphere)</button>
+      <button id="animDRbtn" class="animBtn" onclick="toggleDRanim()">▶ Animate</button>
+      <span id="drFormType" style="font-size:.8rem;color:var(--accent)">closed, not exact (winding)</span>
+    </div>
+    <div class="info-box" id="drInfo">
+      H⁰=ℝ &nbsp;|&nbsp; H¹=ℝ &nbsp;|&nbsp; Euler χ=0 &nbsp;—&nbsp; S¹: one connected component, one loop
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>de Rham Complex</h3>
+    <div class="eq">Ω⁰ →^d Ω¹ →^d Ω² →^d Ω³</div>
+    <div class="eq">d² = 0  (d∘d = 0)</div>
+    <div class="eq">H^k_dR = ker(d:Ωᵏ→Ωᵏ⁺¹) / im(d:Ωᵏ⁻¹→Ωᵏ)</div>
+    <p>Closed forms: dω=0 (kernel). Exact forms: ω=dη (image). Cohomology = closed mod exact.</p>
+    <div class="caption-box">S¹: H⁰=ℝ, H¹=ℝ. The generator of H¹ is dθ — closed (d(dθ)=0) but not exact (θ is multivalued).</div>
+    <div class="caption-box">T²: H⁰=ℝ, H¹=ℝ², H²=ℝ. Two independent 1-forms: dθ₁ and dθ₂.</div>
+    <div class="caption-box">S²: H⁰=ℝ, H¹=0, H²=ℝ. No closed non-exact 1-forms — simply connected!</div>
+    <h3 style="margin-top:6px">Key Principle</h3>
+    <div class="eq">d² = 0 ⟹ im ⊂ ker</div>
+    <p>This is why cohomology is well-defined: every exact form is automatically closed.</p>
+    <div class="caption-box">de Rham's theorem: H^k_dR(M) ≅ H^k_singular(M; ℝ) — smooth and topological cohomology agree!</div>
+  </div>
+</div>
+
+<!-- TAB 4: Čech Cohomology -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-area">
+    <canvas id="c4"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed5" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal5" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button onclick="setCechSets(3)">3 Sets (S¹ cover)</button>
+      <button onclick="setCechSets(4)">4 Sets (add overlap)</button>
+      <button id="animCechBtn" class="animBtn" onclick="toggleCechAnim()">▶ Animate</button>
+      <span id="cechH" style="font-size:.8rem;color:var(--accent)">H⁰=ℤ, H¹=ℤ</span>
+    </div>
+    <div class="info-box" id="cechInfo">
+      3 open sets cover S¹. Nerve = triangle boundary (no fill). H¹=ℤ detects the hole.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Čech Cohomology</h3>
+    <p>Given a good cover {Uᵢ} of X, the Čech complex uses intersections:</p>
+    <div class="eq">Č⁰ = ∏ Uᵢ &nbsp; Č¹ = ∏ Uᵢ∩Uⱼ &nbsp; Č² = ∏ Uᵢ∩Uⱼ∩Uₖ</div>
+    <div class="eq">Ȟᵏ(X, ℤ) = Hᵏ(Č•)</div>
+    <div class="caption-box">Good cover: all intersections are contractible. Then Čech cohomology equals singular cohomology (Leray's theorem).</div>
+    <h3 style="margin-top:6px">Nerve of a Cover</h3>
+    <p>The nerve N(U) has one vertex per Uᵢ, one edge per Uᵢ∩Uⱼ≠∅, one triangle per Uᵢ∩Uⱼ∩Uₖ≠∅, etc.</p>
+    <div class="caption-box">S¹ with 3 sets: nerve = triangle boundary. H⁰=ℤ (connected), H¹=ℤ (one 1-cycle).</div>
+    <div class="caption-box">Add 4th set making triple overlap nonempty: nerve gains a filled triangle → becomes contractible → H¹=0!</div>
+    <h3 style="margin-top:6px">Čech–de Rham Isomorphism</h3>
+    <div class="eq">Ȟᵏ(M, ℝ) ≅ H^k_dR(M)</div>
+    <p>On smooth manifolds, Čech and de Rham cohomologies agree — two complementary views of the same topology.</p>
+  </div>
+</div>
+
+<!-- TAB 5: Poincaré Duality -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-area">
+    <canvas id="c5"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal6" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button id="animPDBtn" class="animBtn" onclick="togglePDanim()">▶ Animate</button>
+      <button onclick="setPDmode('torus')">Torus Pairing</button>
+      <button onclick="setPDmode('dual')">Poincaré Dual</button>
+      <span id="pdInfo" style="font-size:.8rem;color:var(--accent)">H¹ × H¹ → ℝ via intersection</span>
+    </div>
+    <div class="info-box" id="pdBetti">
+      T²: b₀=1, b₁=2, b₂=1 · Poincaré duality: Hᵏ ≅ Hⁿ⁻ᵏ · Intersection form is non-degenerate
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Poincaré Duality</h3>
+    <p>For a closed orientable n-manifold M:</p>
+    <div class="eq">Hᵏ(M) ≅ Hⁿ⁻ᵏ(M)</div>
+    <div class="eq">⟨[α],[β]⟩ = ∫_M α∧β</div>
+    <p>The wedge product and integration pair k-forms with (n-k)-forms non-degenerately.</p>
+    <div class="caption-box">Torus T² (n=2): H¹(T²)=ℝ². The pairing H¹×H¹→ℝ via ∫dθ₁∧dθ₂ = 1 is the intersection form.</div>
+    <div class="caption-box">Geometric picture: a 1-cycle γ and 1-cocycle ω — the integral ∫_γ ω counts how many times γ crosses the Poincaré dual of ω.</div>
+    <h3 style="margin-top:6px">Poincaré Dual</h3>
+    <div class="eq">PD([N]) = [ω_N] ∈ Hⁿ⁻ᵏ(M)</div>
+    <p>A k-dimensional submanifold N ↔ an (n−k)-cohomology class: ∫_N α = ∫_M α∧ω_N.</p>
+    <div class="caption-box">For the torus: the horizontal circle gives a class in H₁, its Poincaré dual is a 1-form whose integral across any transverse curve = intersection number.</div>
+    <h3 style="margin-top:6px">Betti Symmetry</h3>
+    <div class="eq">bₖ = bₙ₋ₖ  (Poincaré duality)</div>
+    <p>T²: b₀=b₂=1, b₁=2. The middle dimension b₁=2 reflects two independent loops.</p>
+  </div>
+</div>
+
+<!-- TAB 6: Characteristic Classes -->
+<div class="pane" data-role="panel" id="pane6">
+  <div class="canvas-area">
+    <canvas id="c6"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <label>Vortices n =</label>
+      <input type="range" id="vortexN" min="0" max="4" value="2" step="1" oninput="onVortexSlider()">
+      <span id="vortexNval" style="color:var(--accent);font-weight:700">2</span>
+      <button id="animVortexBtn" class="animBtn" onclick="toggleVortexAnim()">▶ Animate</button>
+      <button onclick="setCCmode('chern')">c₁ (Chern)</button>
+      <button onclick="setCCmode('euler')">Euler class</button>
+    </div>
+    <div class="info-box" id="ccInfo">
+      c₁ counts vortices = magnetic flux quanta through surface. c₁ ∈ H²(M,ℤ) is an integer.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Characteristic Classes</h3>
+    <p>For a complex line bundle L (U(1) bundle) over M:</p>
+    <div class="eq">c₁(L) = [F/2π] ∈ H²(M, ℤ)</div>
+    <p>The first Chern class is the integral cohomology class of the curvature 2-form divided by 2π.</p>
+    <div class="caption-box">Integer obstruction: c₁ ∈ ℤ measures how twisted the bundle is. c₁=0 iff the bundle is trivial (globally).</div>
+    <h3 style="margin-top:6px">Classifying Space</h3>
+    <div class="eq">BU(1) = ℂP^∞</div>
+    <div class="eq">[M, ℂP^∞] ≅ H²(M, ℤ)</div>
+    <p>Any U(1) bundle over M is classified by a map M→ℂP^∞. The generator of H²(ℂP^∞)=ℤ pulls back to c₁.</p>
+    <div class="caption-box">ℂP¹ = S²: the Hopf fibration S³→S² is the non-trivial U(1) bundle with c₁=1.</div>
+    <h3 style="margin-top:6px">Euler Class</h3>
+    <div class="eq">e(E) ∈ Hⁿ(M)  for rank-n bundle</div>
+    <p>The Euler class of the tangent bundle equals the Euler characteristic: ∫_M e(TM) = χ(M).</p>
+    <div class="caption-box">Gauss-Bonnet: ∫_M K dA = 2πχ(M). This is Euler class = Chern-Weil representative of e(TM).</div>
+    <div class="caption-box">Physical: c₁ counts vortex lines (Abrikosov vortices in superconductors) or magnetic monopoles. Each vortex contributes one flux quantum Φ₀ = h/e.</div>
+  </div>
+</div>
+
+<!-- TAB 7: Sheaf & GAGA -->
+<div class="pane" data-role="panel" id="pane7">
+  <div class="canvas-area">
+    <canvas id="c7"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+      <button onclick="setSheafMode('resolution')">Čech Resolution</button>
+      <button onclick="setSheafMode('gaga')">GAGA Principle</button>
+      <button onclick="setSheafMode('penrose')">Penrose Transform</button>
+      <button id="animSheafBtn" class="animBtn" onclick="toggleSheafAnim()">▶ Animate</button>
+    </div>
+    <div class="info-box" id="sheafInfo">
+      Sheaf cohomology unifies algebraic, analytic, and topological invariants on complex manifolds.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Sheaf Cohomology</h3>
+    <p>A sheaf ℱ on X assigns groups ℱ(U) to open sets, with restriction maps. The cohomology Hᵖ(X, ℱ) measures global obstructions to patching local sections.</p>
+    <div class="eq">0 → H⁰(X,ℱ) → ∏ ℱ(Uᵢ) → ∏ ℱ(Uᵢ∩Uⱼ) → …</div>
+    <div class="caption-box">H⁰ = global sections (functions that agree everywhere). Higher Hᵖ = obstructions to gluing.</div>
+    <h3 style="margin-top:6px">GAGA Principle</h3>
+    <div class="eq">Hᵖ(X^an, ℱ^an) ≅ Hᵖ(X, ℱ)</div>
+    <p>Serre (1956): for a projective variety X over ℂ, algebraic and analytic cohomologies agree. Holomorphic = algebraic on compact spaces!</p>
+    <div class="caption-box">GAGA = Géométrie Algébrique et Géométrie Analytique. Bridging abstract algebra and complex analysis.</div>
+    <h3 style="margin-top:6px">Penrose Transform</h3>
+    <div class="eq">massless field of helicity s ↔ H¹(PT, O(−2s−2))</div>
+    <p>Twistor space PT = ℂP³\ℂP¹. Massless free fields on Minkowski space ↔ sheaf cohomology classes on twistor space.</p>
+    <div class="caption-box">s=1 (Maxwell): electromagnetic field ↔ H¹(PT, O(−4)). s=2 (gravity): graviton ↔ H¹(PT, O(−6)).</div>
+    <div class="caption-box">The Penrose transform converts PDE solutions into sheaf cohomology — topology encodes physics!</div>
+    <div class="caption-box">On ℂP¹: Hᵖ(ℂP¹, O(n)) = 0 for p=1, n≥−1. Riemann-Roch: χ(O(n)) = n+1 (for n≥0).</div>
+  </div>
+</div>
+
+</div><!-- end #main -->
+
+<script>
+function _cancelAllAnims33(){
+  // Cancel all animation frames
+  for(let i=0;i<10;i++){
+    let id=requestAnimationFrame(()=>{});
+    cancelAnimationFrame(id);
+  }
+}
+
+
+// ===================== TAB SWITCHING =====================
+function cancelAllAnimations(){
+  if(animLoopId){cancelAnimationFrame(animLoopId);animLoopId=null;}
+  if(handleAnimId){cancelAnimationFrame(handleAnimId);handleAnimId=null;}
+  if(chernAnimId){cancelAnimationFrame(chernAnimId);chernAnimId=null;}
+  if(drAnimId){cancelAnimationFrame(drAnimId);drAnimId=null;}
+  if(cechAnimId){cancelAnimationFrame(cechAnimId);cechAnimId=null;}
+  if(pdAnimId){cancelAnimationFrame(pdAnimId);pdAnimId=null;}
+  if(vortexAnimId){cancelAnimationFrame(vortexAnimId);vortexAnimId=null;}
+  if(sheafAnimId){cancelAnimationFrame(sheafAnimId);sheafAnimId=null;}
+  // Reset button states
+  const btns = ['animLoopBtn','animChernBtn','animDRbtn','animCechBtn','animPDBtn','animVortexBtn','animSheafBtn'];
+  btns.forEach(id => {
+    const b = document.getElementById(id);
+    if(b){ b.textContent='▶ Animate'; b.classList.remove('active'); }
+  });
+}
+function switchTab(i){
+  cancelAllAnimations();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  requestAnimationFrame(()=>{
+    if(i===0){draw0();toggleAnimLoop();}
+    if(i===1) draw1();
+    if(i===2){draw2();toggleAnimChern();}
+    if(i===3){draw3();toggleDRanim();}
+    if(i===4){draw4();toggleCechAnim();}
+    if(i===5){draw5();togglePDanim();}
+    if(i===6){draw6();toggleVortexAnim();}
+    if(i===7){draw7();toggleSheafAnim();}
+  });
+}
+
+function syncSpeedControl33(){
+  // Speed control consolidated to single global slider - no per-tab sync needed
+}
+
+// ===================== TAB 0: CLOSED VS EXACT =====================
+const cv0 = document.getElementById('c0');
+const ctx0 = cv0.getContext('2d');
+
+let animLoopActive = false;
+let animLoopId = null;
+let animT = 0;
+let animRunningIntegral0 = 0;
+let animRunningIntegral1 = 0;
+
+function toggleAnimLoop(){
+  animLoopActive = !animLoopActive;
+  const btn = document.getElementById('animLoopBtn');
+  if(btn) {
+    btn.textContent = animLoopActive ? '⏸ Pause' : '▶ Animate';
+    btn.classList.toggle('active', animLoopActive);
+  }
+  if(animLoopActive){ animT=0; animRunningIntegral0=0; animRunningIntegral1=0; animLoopStep(); }
+  else { if(animLoopId) cancelAnimationFrame(animLoopId); animLoopId=null; draw0(); }
+}
+
+function animLoopStep(){
+  if(!animLoopActive) return;
+  animT = (animT + 0.008) % 1;
+  draw0(animT);
+  const seg0 = loopIntegral(true, animT);
+  const seg1 = loopIntegral(false, animT);
+  document.getElementById('integralDisplay').textContent =
+    `∮ progress: wind loop = ${(seg0/(2*Math.PI)).toFixed(3)}×2π  |  avoid loop = ${(seg1/(2*Math.PI)).toFixed(3)}×2π`;
+  animLoopId = requestAnimationFrame(animLoopStep);
+}
+
+function loopIntegral(aroundHole, tEnd){
+  // Numerical integration of ω along loop from t=0 to tEnd
+  const N = 200;
+  const tMax = tEnd * N | 0;
+  let integral = 0;
+  const cx=0, cy=0;
+  for(let i=0; i<tMax; i++){
+    const t0 = i/N * 2*Math.PI;
+    const t1 = (i+1)/N * 2*Math.PI;
+    let x0,y0,x1,y1;
+    if(aroundHole){
+      x0 = 2.5*Math.cos(t0); y0 = 2.5*Math.sin(t0);
+      x1 = 2.5*Math.cos(t1); y1 = 2.5*Math.sin(t1);
+    } else {
+      x0 = 3 + 2*Math.cos(t0); y0 = 2*Math.sin(t0);
+      x1 = 3 + 2*Math.cos(t1); y1 = 2*Math.sin(t1);
+    }
+    const mx = (x0+x1)/2, my = (y0+y1)/2;
+    const dx = x1-x0, dy = y1-y0;
+    const r2 = mx*mx+my*my;
+    if(r2 < 1e-6) continue;
+    integral += (-my*dx + mx*dy)/r2;
+  }
+  return integral;
+}
+
+function draw0(animT_val){
+  const dpr = window.devicePixelRatio||1;
+  const W = cv0.offsetWidth, H = cv0.offsetHeight;
+  if(!W||!H) return;
+  cv0.width = W*dpr; cv0.height = H*dpr;
+  ctx0.setTransform(dpr,0,0,dpr,0,0);
+
+  // coordinate transform: math coords to canvas
+  const scale = Math.min(W,H)*0.08; // pixels per unit
+  const ox = W*0.5, oy = H*0.5;
+  function toC(mx,my){ return [ox+mx*scale, oy-my*scale]; }
+
+  // background grid
+  ctx0.fillStyle = '#05050f';
+  ctx0.fillRect(0,0,W,H);
+
+  const gridRange = Math.ceil(Math.max(W,H)/(2*scale))+1;
+  ctx0.strokeStyle = '#1a1a35';
+  ctx0.lineWidth = 0.5;
+  for(let gx=-gridRange;gx<=gridRange;gx++){
+    const [cx1] = toC(gx,-gridRange);
+    const [cx2,cy2] = toC(gx,gridRange);
+    ctx0.beginPath(); ctx0.moveTo(cx1,oy+gridRange*scale); ctx0.lineTo(cx2,cy2); ctx0.stroke();
+  }
+  for(let gy=-gridRange;gy<=gridRange;gy++){
+    const [x1,y1] = toC(-gridRange,gy);
+    const [x2,y2] = toC(gridRange,gy);
+    ctx0.beginPath(); ctx0.moveTo(x1,y1); ctx0.lineTo(x2,y2); ctx0.stroke();
+  }
+
+  // Axes
+  ctx0.strokeStyle = '#2a2a55';
+  ctx0.lineWidth = 1;
+  ctx0.beginPath(); ctx0.moveTo(0,oy); ctx0.lineTo(W,oy); ctx0.stroke();
+  ctx0.beginPath(); ctx0.moveTo(ox,0); ctx0.lineTo(ox,H); ctx0.stroke();
+
+  // Vector field: ω = (-y dx + x dy)/(x²+y²)
+  const gridStep = 1.2;
+  const maxArrow = scale*0.45;
+  for(let gx=-gridRange+0.5; gx<=gridRange; gx+=gridStep){
+    for(let gy=-gridRange+0.5; gy<=gridRange; gy+=gridStep){
+      const r2 = gx*gx+gy*gy;
+      if(r2 < 0.4) continue;
+      // 1-form components as vector field (hodge dual direction)
+      const omx = -gy/r2;
+      const omy = gx/r2;
+      const mag = Math.sqrt(omx*omx+omy*omy);
+      const len = Math.min(mag*scale*0.7, maxArrow);
+      const ux = omx/mag, uy = omy/mag;
+      const [cx1,cy1] = toC(gx,gy);
+      const angle = Math.atan2(uy,-ux); // hue based on direction
+      const hue = ((angle/(2*Math.PI))*360+360)%360;
+      const alpha = Math.min(0.7, 0.15+0.4*Math.min(1,2/Math.sqrt(r2)));
+      ctx0.strokeStyle = `hsla(${hue},80%,65%,${alpha})`;
+      ctx0.fillStyle = `hsla(${hue},80%,65%,${alpha})`;
+      ctx0.lineWidth = 1;
+      // arrow
+      const ex = cx1 + ux*len*scale*0.12;
+      const ey = cy1 - uy*len*scale*0.12;
+      drawArrow(ctx0, cx1, cy1, ex, ey, 4);
+    }
+  }
+
+  // Draw loop around hole
+  const loopR1 = 2.5;
+  drawCircleLoop(ctx0, toC, 0, 0, loopR1, '#33ccff', '∮ω = 2π  (winding=1)', animT_val, true, scale);
+
+  // Draw loop not around hole
+  const loopCx = 3, loopR2 = 2;
+  drawCircleLoop(ctx0, toC, loopCx, 0, loopR2, '#44ff88', '∮ω = 0  (winding=0)', animT_val, false, scale);
+
+  // Hole at origin — glowing dot
+  const [hx,hy] = toC(0,0);
+  const glowR = scale*0.22;
+  const grd = ctx0.createRadialGradient(hx,hy,0,hx,hy,glowR*2.5);
+  grd.addColorStop(0,'rgba(255,80,80,0.9)');
+  grd.addColorStop(0.3,'rgba(255,60,60,0.5)');
+  grd.addColorStop(1,'rgba(255,60,60,0)');
+  ctx0.fillStyle=grd;
+  ctx0.beginPath(); ctx0.arc(hx,hy,glowR*2.5,0,2*Math.PI); ctx0.fill();
+  ctx0.fillStyle='#ff5555';
+  ctx0.beginPath(); ctx0.arc(hx,hy,4,0,2*Math.PI); ctx0.fill();
+
+  // Hole label
+  ctx0.font='bold 12px Segoe UI';
+  ctx0.fillStyle='#ff8888';
+  ctx0.textAlign='center';
+  ctx0.fillText('hole = ℝ²\\{0}', hx, hy-glowR*2.5-6);
+
+  // Legend
+  ctx0.font='12px Segoe UI';
+  ctx0.fillStyle='#33ccff'; ctx0.textAlign='left';
+  ctx0.fillText('● winds hole: ∮ω = 2π', 14, 20);
+  ctx0.fillStyle='#44ff88';
+  ctx0.fillText('● avoids hole: ∮ω = 0', 14, 38);
+}
+
+function drawCircleLoop(ctx, toC, cx, cy, r, color, label, animT, aroundHole, scale){
+  const N = 120;
+  ctx.beginPath();
+  for(let i=0;i<=N;i++){
+    const t = i/N*2*Math.PI;
+    const [px,py] = toC(cx+r*Math.cos(t), cy+r*Math.sin(t));
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  }
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Arrow head on loop to show direction
+  const t_arr = Math.PI*0.5;
+  const [ax,ay] = toC(cx+r*Math.cos(t_arr), cy+r*Math.sin(t_arr));
+  const dx2 = -Math.sin(t_arr)*r, dy2 = Math.cos(t_arr)*r;
+  const mag = Math.sqrt(dx2*dx2+dy2*dy2);
+  const [ax2,ay2] = toC(cx+r*Math.cos(t_arr)+dx2/mag*0.01, cy+r*Math.sin(t_arr)+dy2/mag*0.01);
+  const adx = ax2-ax, ady = ay2-ay;
+  const alen = Math.sqrt(adx*adx+ady*ady)||1;
+  drawArrowHead(ctx, ax, ay, adx/alen, ady/alen, 8, color);
+
+  // Label
+  const [lx,ly] = toC(cx, cy-r-0.3);
+  ctx.font='12px Segoe UI'; ctx.fillStyle=color; ctx.textAlign='center';
+  ctx.fillText(label, lx, ly);
+
+  // Animated point
+  if(animT !== undefined){
+    const ta = animT * 2 * Math.PI;
+    const [px,py] = toC(cx+r*Math.cos(ta), cy+r*Math.sin(ta));
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(px,py,5,0,2*Math.PI); ctx.fill();
+    // trailing arc
+    ctx.beginPath();
+    const tStart = (animT-0.15)*2*Math.PI;
+    const tEnd2 = animT*2*Math.PI;
+    const [sx,sy] = toC(cx+r*Math.cos(tStart), cy+r*Math.sin(tStart));
+    ctx.moveTo(sx,sy);
+    for(let i=1;i<=20;i++){
+      const tt = tStart + (tEnd2-tStart)*i/20;
+      const [qx,qy] = toC(cx+r*Math.cos(tt), cy+r*Math.sin(tt));
+      ctx.lineTo(qx,qy);
+    }
+    ctx.strokeStyle = color.replace(')',',0.4)').replace('rgb','rgba').replace('#33ccff','rgba(51,204,255,0.4)').replace('#44ff88','rgba(68,255,136,0.4)');
+    ctx.lineWidth=4; ctx.stroke();
+  }
+}
+
+function drawArrow(ctx, x1,y1,x2,y2, headSize){
+  const dx=x2-x1, dy=y2-y1;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  if(len<1) return;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  drawArrowHead(ctx,x2,y2,dx/len,dy/len,headSize,null);
+}
+
+function drawArrowHead(ctx,x,y,ux,uy,size,color){
+  const angle = Math.atan2(uy,ux);
+  if(color) ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.lineTo(x-size*Math.cos(angle-0.4), y-size*Math.sin(angle-0.4));
+  ctx.lineTo(x-size*Math.cos(angle+0.4), y-size*Math.sin(angle+0.4));
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ===================== TAB 1: BETTI NUMBERS =====================
+const cv1 = document.getElementById('c1');
+const ctx1 = cv1.getContext('2d');
+
+let selectedSurface = 0;
+let genus = 0;
+let handleAnimT = null;
+let handleAnimId = null;
+
+const surfaces = [
+  { name:'S²', genus:0, b0:1,b1:0,b2:1, chi:2, orientable:true,
+    desc:'Simply connected: every loop bounds a disk. No holes.', color:'#33ccff' },
+  { name:'T²', genus:1, b0:1,b1:2,b2:1, chi:0, orientable:true,
+    desc:'Two independent loops: meridian and longitude. One handle.', color:'#ff9933' },
+  { name:'Σ₂', genus:2, b0:1,b1:4,b2:1, chi:-2, orientable:true,
+    desc:'Four independent loops. Two handles (double torus).', color:'#cc44ff' },
+  { name:'ℝP²', genus:0, b0:1,b1:0,b2:0, chi:1, orientable:false,
+    desc:'Non-orientable. H₂=0 over ℤ (only ℤ/2 torsion).', color:'#ff4466' },
+  { name:'K', genus:0, b0:1,b1:1,b2:0, chi:0, orientable:false,
+    desc:'Klein bottle. Non-orientable, cannot embed in ℝ³.', color:'#66ff44' },
+];
+
+cv1.addEventListener('click', e=>{
+  const dpr=window.devicePixelRatio||1;
+  const W=cv1.offsetWidth, H=cv1.offsetHeight;
+  const rect = cv1.getBoundingClientRect();
+  const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+  // Hit test surface regions
+  const positions = getSurfacePositions(W,H);
+  positions.forEach((pos,i)=>{
+    const dx=mx-pos.x, dy=my-pos.y;
+    if(dx*dx+dy*dy < pos.r*pos.r){
+      selectedSurface=i; draw1();
+      updateBettiStrip();
+    }
+  });
+});
+
+function getSurfacePositions(W,H){
+  const pad = W*0.1;
+  const cols=[0.18,0.42,0.66,0.3,0.54];
+  const rows=[0.28,0.28,0.28,0.68,0.68];
+  const r = Math.min(W,H)*0.085;
+  return cols.map((cx,i)=>({x:W*cx, y:H*rows[i], r:r}));
+}
+
+function addHandle(){
+  genus++;
+  selectedSurface = Math.min(2, genus); // show genus-matched or genus 2 max
+  // Update custom Betti for workshop mode
+  draw1();
+  document.getElementById('genusInfo').textContent =
+    `genus=${genus} · b₁=${2*genus} · χ=${2-2*genus}`;
+  updateBettiStrip();
+  // Animate handle addition
+  handleAnimT = 0;
+  if(handleAnimId) cancelAnimationFrame(handleAnimId);
+  animateHandle();
+}
+
+function resetSphere(){
+  genus=0; selectedSurface=0;
+  draw1();
+  document.getElementById('genusInfo').textContent='genus=0 · b₁=0 · χ=2';
+  updateBettiStrip();
+}
+
+function updateBettiStrip(){
+  const s = surfaces[selectedSurface];
+  const el = document.getElementById('bettiStrip');
+  el.innerHTML = `<span class="highlight">${s.name}</span> &nbsp;—&nbsp; `+
+    `H⁰ = ℤ &nbsp;|&nbsp; H¹ = ℤ<sup>${s.b1}</sup> &nbsp;|&nbsp; `+
+    `H² = ${s.orientable?'ℤ':'0 (non-orientable)'} &nbsp;|&nbsp; `+
+    `χ = ${s.chi} &nbsp;|&nbsp; `+
+    `<span class="highlight">${s.desc}</span>`;
+}
+
+let bettiAnimT1 = 0;
+let bettiAnimId1 = null;
+let bettiAnimActive = false;
+
+function draw1(){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv1.offsetWidth, H=cv1.offsetHeight;
+  if(!W||!H) return;
+  cv1.width=W*dpr; cv1.height=H*dpr;
+  ctx1.setTransform(dpr,0,0,dpr,0,0);
+
+  ctx1.fillStyle='#05050f';
+  ctx1.fillRect(0,0,W,H);
+
+  const positions = getSurfacePositions(W,H);
+
+  // Draw the Euler characteristic formula at top
+  ctx1.font='bold 13px Segoe UI';
+  ctx1.fillStyle='var(--text)';
+  ctx1.textAlign='center';
+  ctx1.fillStyle='#c0c0ea';
+  ctx1.fillText('χ = b₀ − b₁ + b₂  (Euler-Poincaré formula)', W*0.42, H*0.06);
+
+  surfaces.forEach((s,i)=>{
+    const pos = positions[i];
+    const isSelected = i===selectedSurface;
+    drawSurface(ctx1, s, pos.x, pos.y, pos.r, isSelected);
+  });
+
+  // Workshop area: interactive genus surface
+  drawWorkshop(ctx1, W, H);
+}
+
+function drawSurface(ctx, s, cx, cy, r, selected){
+  ctx.save();
+  if(selected){
+    // Glow
+    const grd = ctx.createRadialGradient(cx,cy,0,cx,cy,r*1.6);
+    grd.addColorStop(0,'rgba(51,204,255,0.18)');
+    grd.addColorStop(1,'rgba(51,204,255,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.arc(cx,cy,r*1.6,0,2*Math.PI); ctx.fill();
+  }
+
+  const color = selected?'#33ccff':s.color;
+
+  if(s.name==='S²'){
+    // Sphere: circle with highlight
+    ctx.strokeStyle=color; ctx.lineWidth=selected?2.5:1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.stroke();
+    // Equator ellipse
+    ctx.strokeStyle=color+'88'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(cx,cy,r,r*0.25,0,0,2*Math.PI); ctx.stroke();
+    // Highlight
+    const grad2 = ctx.createRadialGradient(cx-r*0.3,cy-r*0.3,0,cx,cy,r);
+    grad2.addColorStop(0,color+'44');
+    grad2.addColorStop(1,'transparent');
+    ctx.fillStyle=grad2;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fill();
+  } else if(s.name==='T²'){
+    // Torus: two concentric circles
+    const R=r*0.75, ri=r*0.3;
+    ctx.strokeStyle=color; ctx.lineWidth=selected?2.5:1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,ri,0,2*Math.PI); ctx.stroke();
+    // Cross lines showing meridian/longitude
+    ctx.strokeStyle=color+'55'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(cx,cy,R,R*0.2,0,0,2*Math.PI); ctx.stroke();
+    // Fill donut region
+    ctx.fillStyle=color+'0a';
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle='#05050f';
+    ctx.beginPath(); ctx.arc(cx,cy,ri,0,2*Math.PI); ctx.fill();
+  } else if(s.name==='Σ₂'){
+    // Genus-2: figure-8 style
+    const rr = r*0.5;
+    ctx.strokeStyle=color; ctx.lineWidth=selected?2.5:1.5;
+    ctx.beginPath(); ctx.arc(cx-rr,cy,rr,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+rr,cy,rr,0,2*Math.PI); ctx.stroke();
+    // Inner holes
+    const ri2=rr*0.38;
+    ctx.strokeStyle=color+'66'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(cx-rr,cy,ri2,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+rr,cy,ri2,0,2*Math.PI); ctx.stroke();
+    ctx.fillStyle=color+'0a';
+    ctx.beginPath(); ctx.arc(cx-rr,cy,rr,0,2*Math.PI); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+rr,cy,rr,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle='#05050f';
+    ctx.beginPath(); ctx.arc(cx-rr,cy,ri2,0,2*Math.PI); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+rr,cy,ri2,0,2*Math.PI); ctx.fill();
+  } else if(s.name==='ℝP²'){
+    // Projective plane: square with identification arrows
+    const sz=r*0.85;
+    ctx.strokeStyle=color; ctx.lineWidth=selected?2:1.5;
+    ctx.strokeRect(cx-sz,cy-sz,sz*2,sz*2);
+    // Identification arrows on edges
+    ctx.fillStyle=color; ctx.strokeStyle=color;
+    // Top/bottom: same direction (→)
+    drawEdgeArrow(ctx, cx-sz*0.3,cy-sz, cx+sz*0.3,cy-sz, color);
+    drawEdgeArrow(ctx, cx-sz*0.3,cy+sz, cx+sz*0.3,cy+sz, color);
+    // Left/right: opposite direction for RP2
+    drawEdgeArrow(ctx, cx-sz,cy-sz*0.3, cx-sz,cy+sz*0.3, color);
+    drawEdgeArrow(ctx, cx+sz,cy+sz*0.3, cx+sz,cy-sz*0.3, color);
+    ctx.font='12px Segoe UI'; ctx.fillStyle=color+'aa'; ctx.textAlign='center';
+    ctx.fillText('id', cx,cy);
+  } else if(s.name==='K'){
+    // Klein bottle: square with identification (one pair same, one pair opposite)
+    const sz=r*0.85;
+    ctx.strokeStyle=color; ctx.lineWidth=selected?2:1.5;
+    ctx.strokeRect(cx-sz,cy-sz,sz*2,sz*2);
+    // Left/right: same direction →
+    drawEdgeArrow(ctx, cx-sz,cy-sz*0.3, cx-sz,cy+sz*0.3, color);
+    drawEdgeArrow(ctx, cx+sz,cy-sz*0.3, cx+sz,cy+sz*0.3, color);
+    // Top/bottom: opposite direction (Klein twist)
+    drawEdgeArrow(ctx, cx-sz*0.3,cy-sz, cx+sz*0.3,cy-sz, '#ffaa33');
+    drawEdgeArrow(ctx, cx+sz*0.3,cy+sz, cx-sz*0.3,cy+sz, '#ffaa33');
+    ctx.font='12px Segoe UI'; ctx.fillStyle=color+'aa'; ctx.textAlign='center';
+    ctx.fillText('Klein', cx,cy);
+  }
+
+  // Labels below each surface
+  ctx.font=`${selected?'bold ':''}12px Segoe UI`;
+  ctx.fillStyle=color;
+  ctx.textAlign='center';
+  ctx.fillText(s.name, cx, cy+r+16);
+  ctx.font='12px Segoe UI';
+  ctx.fillStyle='#8888bb';
+  ctx.fillText(`b₁=${s.b1}  χ=${s.chi}`, cx, cy+r+30);
+
+  ctx.restore();
+}
+
+function drawEdgeArrow(ctx,x1,y1,x2,y2,color){
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  const mx=(x1+x2)/2,my=(y1+y2)/2;
+  const ux=dx/len,uy=dy/len;
+  const hs=5;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.moveTo(mx+ux*hs, my+uy*hs);
+  ctx.lineTo(mx-ux*hs-uy*hs*0.6, my-uy*hs+ux*hs*0.6);
+  ctx.lineTo(mx-ux*hs+uy*hs*0.6, my-uy*hs-ux*hs*0.6);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawWorkshop(ctx, W, H){
+  const wy = H*0.84;
+  const wLabel = W*0.42;
+  ctx.font='12px Segoe UI';
+  ctx.fillStyle='#55558a';
+  ctx.textAlign='center';
+  ctx.fillText(`Topology Workshop: genus ${genus} surface`, wLabel, wy-12);
+
+  // Draw genus-g surface schematically
+  const g = Math.max(0,genus);
+  const startX = wLabel - g*22 - 18;
+  // sphere base
+  ctx.strokeStyle='#33ccff';
+  ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(startX,wy+10,18,0,2*Math.PI); ctx.stroke();
+  ctx.fillStyle='#33ccff11';
+  ctx.beginPath(); ctx.arc(startX,wy+10,18,0,2*Math.PI); ctx.fill();
+
+  // handles
+  for(let gi=0;gi<g;gi++){
+    const hx = startX + 40 + gi*44;
+    ctx.strokeStyle='#ff9933';
+    ctx.lineWidth=1.5;
+    // handle = cylinder between two circles
+    ctx.beginPath(); ctx.ellipse(hx,wy+10,12,20,0,0,2*Math.PI); ctx.stroke();
+    ctx.strokeStyle='#ff993344'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(hx,wy-10,12,5,0,0,Math.PI,true); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(hx,wy+30,12,5,0,0,Math.PI); ctx.stroke();
+
+    // connecting line from sphere
+    if(gi===0){
+      ctx.strokeStyle='#33ccff55'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(startX+18,wy+10); ctx.lineTo(hx-12,wy+10); ctx.stroke();
+    } else {
+      ctx.strokeStyle='#33ccff55'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(hx-44+12,wy+10); ctx.lineTo(hx-12,wy+10); ctx.stroke();
+    }
+  }
+
+  // Betti formula display
+  const b1w = 2*g, chiw = 2-2*g;
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='#c0c0ea';
+  ctx.textAlign='left';
+  const fx = wLabel + Math.max(g,1)*22 + 36;
+  ctx.fillText(`b₀=1  b₁=${b1w}  b₂=1`, fx, wy);
+  ctx.fillStyle='#33ccff';
+  ctx.fillText(`χ = 1−${b1w}+1 = ${chiw}`, fx, wy+18);
+}
+
+function animateHandle(){
+  if(handleAnimT===null) return;
+  handleAnimT+=0.02*(window.animSpeed||0.1);
+  draw1();
+  if(handleAnimT<1) handleAnimId=requestAnimationFrame(animateHandle);
+  else handleAnimT=null;
+}
+
+// ===================== TAB 2: CHERN CLASSES =====================
+const cv2 = document.getElementById('c2');
+const ctx2 = cv2.getContext('2d');
+
+let monopoleN = 1;
+let chernAnimActive = false;
+let chernAnimId = null;
+let chernAnimT = 0;
+
+function onNSlider(){
+  monopoleN = parseInt(document.getElementById('nSlider').value);
+  document.getElementById('nVal').textContent = monopoleN;
+  document.getElementById('chernNum').textContent = `c₁ = ${monopoleN}`;
+  document.getElementById('chernInt').textContent = `${monopoleN}`;
+  draw2();
+}
+
+function toggleAnimChern(){
+  chernAnimActive = !chernAnimActive;
+  const btn = document.getElementById('animChernBtn');
+  if(btn) {
+    btn.textContent = chernAnimActive ? '⏸ Pause' : '▶ Animate';
+    btn.classList.toggle('active', chernAnimActive);
+  }
+  if(chernAnimActive){ chernAnimT=0; chernAnimStep(); }
+  else { if(chernAnimId) cancelAnimationFrame(chernAnimId); chernAnimId=null; draw2(); }
+}
+
+function chernAnimStep(){
+  if(!chernAnimActive) return;
+  chernAnimT = (chernAnimT+0.012*(window.animSpeed||0.1))%1;
+  draw2(chernAnimT);
+  chernAnimId = requestAnimationFrame(chernAnimStep);
+}
+
+function draw2(aT){
+  const dpr=window.devicePixelRatio||1;
+  const W=cv2.offsetWidth, H=cv2.offsetHeight;
+  if(!W||!H) return;
+  cv2.width=W*dpr; cv2.height=H*dpr;
+  ctx2.setTransform(dpr,0,0,dpr,0,0);
+
+  ctx2.fillStyle='#05050f';
+  ctx2.fillRect(0,0,W,H);
+
+  const n = monopoleN;
+
+  // ---- SCENE 1: Monopole on S² (top half) ----
+  const s1h = H*0.48;
+  drawMonopoleScene(ctx2, W, s1h, n, aT);
+
+  // Divider
+  ctx2.strokeStyle='#1c1c44'; ctx2.lineWidth=1;
+  ctx2.beginPath(); ctx2.moveTo(0,s1h); ctx2.lineTo(W,s1h); ctx2.stroke();
+
+  // ---- SCENE 2: Chern-Weil / fiber bundle (bottom half) ----
+  drawChernWeilScene(ctx2, W, H, s1h, n, aT);
+}
+
+function drawMonopoleScene(ctx, W, H, n, aT){
+  const cx = W*0.5, cy = H*0.5;
+  const sphereR = H*0.32;
+
+  // Title
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='#c0c0ea'; ctx.textAlign='left';
+  ctx.fillText('Magnetic Monopole on S²  (Dirac, 1931)', 14, 18);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#55558a';
+  ctx.fillText(`c₁ = monopole charge n = ${n}`, 14, 34);
+
+  // Sphere S²
+  ctx.strokeStyle='#33ccff';
+  ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,sphereR,0,2*Math.PI); ctx.stroke();
+
+  // Equator
+  ctx.strokeStyle='#33ccff66'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.ellipse(cx,cy,sphereR,sphereR*0.2,0,0,2*Math.PI); ctx.stroke();
+
+  // North/South hemisphere labels
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff88'; ctx.textAlign='center';
+  ctx.fillText('A_N (north patch)', cx, cy-sphereR*0.5);
+  ctx.fillText('A_S (south patch)', cx, cy+sphereR*0.5);
+
+  // Monopole field lines
+  const numLines = Math.abs(n);
+  const fieldColor = n>=0 ? '#ff6644' : '#44aaff';
+  for(let fi=0; fi<numLines; fi++){
+    if(numLines===0) break;
+    const baseAngle = fi/numLines * 2*Math.PI;
+    // Draw radial field lines from center outward
+    for(let j=0;j<12;j++){
+      const phi = baseAngle + j*2*Math.PI/12/Math.max(1,numLines);
+      const cosT = Math.cos(phi);
+      const sinT = Math.sin(phi);
+      // Field lines from sphere surface outward
+      const lineLen = H*0.38;
+      const sx = cx + sphereR*cosT*0.9;
+      const sy = cy + sphereR*sinT*0.5;
+      const ex = cx + (sphereR+lineLen*0.4)*cosT*0.9;
+      const ey = cy + (sphereR+lineLen*0.4)*sinT*0.5;
+      const alpha = 0.12+0.08*(fi%2);
+      ctx.strokeStyle = `${fieldColor}${Math.round(alpha*255).toString(16).padStart(2,'0')}`;
+      ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
+    }
+  }
+
+  // Monopole at center
+  const mGrd = ctx.createRadialGradient(cx,cy,0,cx,cy,sphereR*0.25);
+  mGrd.addColorStop(0, n===0?'rgba(80,80,80,0.9)':'rgba(255,100,60,0.9)');
+  mGrd.addColorStop(1, 'rgba(255,60,30,0)');
+  ctx.fillStyle=mGrd;
+  ctx.beginPath(); ctx.arc(cx,cy,sphereR*0.25,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle = n===0?'#888888':'#ff6644';
+  ctx.beginPath(); ctx.arc(cx,cy,4,0,2*Math.PI); ctx.fill();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ff9977'; ctx.textAlign='center';
+  ctx.fillText(`n=${n}`, cx, cy+16);
+
+  // Transition function at equator
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa44'; ctx.textAlign='center';
+  ctx.fillText(`A_N − A_S = n·dφ  (winding ${n}×)`, cx, cy+sphereR+18);
+
+  // Integral formula
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText(`∫_S² F/2π = ${n}  =  c₁`, cx, H-10);
+
+  // Animated parallel transport on equator
+  if(aT !== undefined){
+    const tAngle = aT*2*Math.PI;
+    const ex = cx + sphereR*Math.cos(tAngle);
+    const ey = cy + sphereR*Math.sin(tAngle)*0.2;
+    ctx.fillStyle='#33ccff';
+    ctx.beginPath(); ctx.arc(ex,ey,5,0,2*Math.PI); ctx.fill();
+
+    // Phase indicator
+    const phase = n * tAngle;
+    const phaseX = cx + sphereR*0.6*Math.cos(phase);
+    const phaseY = cy + sphereR*0.6*Math.sin(phase);
+    ctx.strokeStyle='#33ccff88'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(phaseX,phaseY); ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccffaa'; ctx.textAlign='left';
+    ctx.fillText(`phase = n·φ = ${(phase%(2*Math.PI)).toFixed(2)}`, cx+sphereR+10, cy);
+  }
+}
+
+function drawChernWeilScene(ctx, W, H, offsetY, n, aT){
+  const sceneH = H-offsetY;
+  const cy0 = offsetY;
+
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='#c0c0ea'; ctx.textAlign='left';
+  ctx.fillText('Chern-Weil: Fiber Bundle & Parallel Transport', 14, cy0+16);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#55558a';
+  ctx.fillText('c₁(E) = [Tr F/2πi] ∈ H²(M,ℤ) — local curvature → global topology', 14, cy0+32);
+
+  const basY = cy0 + sceneH*0.45;
+  const basW = W*0.7;
+  const basX = W*0.5;
+
+  // Base manifold M (curved band)
+  ctx.strokeStyle='#33ccff66'; ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=100;i++){
+    const t=i/100;
+    const bx = basX - basW*0.45 + basW*0.9*t;
+    const by = basY + Math.sin(t*Math.PI)*sceneH*0.08;
+    if(i===0) ctx.moveTo(bx,by); else ctx.lineTo(bx,by);
+  }
+  ctx.stroke();
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff88'; ctx.textAlign='center';
+  ctx.fillText('Base M', basX, basY+sceneH*0.15);
+
+  // Fibers (vertical lines above base)
+  const nFibers = 9;
+  for(let fi=0;fi<=nFibers;fi++){
+    const t=fi/nFibers;
+    const bx = basX - basW*0.45 + basW*0.9*t;
+    const by = basY + Math.sin(t*Math.PI)*sceneH*0.08;
+    const fh = sceneH*0.3;
+    ctx.strokeStyle='#2a2a55'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx,by-fh); ctx.stroke();
+
+    // Connection: horizontal subspace (tilted line at midpoint)
+    const connAngle = 0.25*Math.sin(t*Math.PI*2 + (aT||0)*2*Math.PI);
+    const mx=bx, my=by-fh*0.5;
+    ctx.strokeStyle='#33ccff33'; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(mx-12*Math.cos(connAngle), my-12*Math.sin(connAngle));
+    ctx.lineTo(mx+12*Math.cos(connAngle), my+12*Math.sin(connAngle));
+    ctx.stroke();
+  }
+
+  // Fiber label
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff55'; ctx.textAlign='left';
+  ctx.fillText('U(1)', basX-basW*0.45-18, basY - sceneH*0.3 + 4);
+  ctx.fillStyle='#55558a';
+  ctx.fillText('fibers', basX-basW*0.45-22, basY-sceneH*0.15+4);
+
+  // Curvature parallelogram (holonomy demo)
+  const loopCx = basX + basW*0.05;
+  const loopCy = basY + Math.sin(0.5*Math.PI)*sceneH*0.08;
+  const lsz = 20;
+  const fh2 = sceneH*0.3;
+  ctx.strokeStyle='#ff9933'; ctx.lineWidth=1.5;
+  ctx.strokeRect(loopCx-lsz,loopCy-lsz,lsz*2,lsz*2);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ff9933aa'; ctx.textAlign='center';
+  ctx.fillText('Γ (loop)', loopCx, loopCy-lsz-4);
+
+  // Holonomy angle display
+  const holAngle = n*(aT||0)*2*Math.PI;
+  const fiberX = loopCx;
+  const fiberY = loopCy - fh2*0.5;
+  ctx.strokeStyle='#cc44ff88'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(fiberX, fiberY, 14, 0, 2*Math.PI); ctx.stroke();
+  ctx.strokeStyle='#cc44ff';  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(fiberX, fiberY);
+  ctx.lineTo(fiberX+14*Math.cos(holAngle), fiberY+14*Math.sin(holAngle));
+  ctx.stroke();
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#cc44ffaa'; ctx.textAlign='center';
+  ctx.fillText('holonomy', fiberX, fiberY+22);
+  ctx.fillText(`= e^{i·${n}·φ}`, fiberX, fiberY+33);
+
+  // Chern-Weil formula banner
+  const fY = cy0 + sceneH*0.88;
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText('Chern-Weil: c₁ = [Tr(F/2πi)] ∈ H²(M,ℤ)', W*0.5, fY);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#55558a'; ctx.textAlign='center';
+  ctx.fillText('Local curvature 2-form F integrates to give integer topological invariant', W*0.5, fY+16);
+}
+
+// ===================== RESIZE / INIT =====================
+window.addEventListener('resize', ()=>{
+  const activeTab = [...document.querySelectorAll('.tab')].findIndex(t=>t.classList.contains('active'));
+  if(activeTab===0) draw0();
+  if(activeTab===1) draw1();
+  if(activeTab===2) draw2();
+  if(activeTab===3) draw3();
+  if(activeTab===4) draw4();
+  if(activeTab===5) draw5();
+  if(activeTab===6) draw6();
+  if(activeTab===7) draw7();
+});
+
+// Initial draw
+draw0();
+updateBettiStrip();
+
+// ===================== TAB 3: de Rham Complex =====================
+const cv3 = document.getElementById('c3');
+const ctx3 = cv3.getContext('2d');
+let drManifold = 'S1';
+let drAnimActive = false;
+let drAnimId = null;
+let drAnimT = 0;
+
+function setDRManifold(m){
+  drManifold = m;
+  const infos = {
+    'S1': 'H⁰=ℝ | H¹=ℝ | Euler χ=0 — S¹: one connected component, one loop',
+    'T2': 'H⁰=ℝ | H¹=ℝ² | H²=ℝ | Euler χ=0 — T²: two independent 1-cycles',
+    'S2': 'H⁰=ℝ | H¹=0 | H²=ℝ | Euler χ=2 — S²: simply connected, no 1-cycles'
+  };
+  document.getElementById('drInfo').textContent = infos[m];
+  draw3();
+}
+
+function toggleDRanim(){
+  drAnimActive = !drAnimActive;
+  const btn = document.getElementById('animDRbtn');
+  if(btn) {
+    btn.textContent = drAnimActive ? '⏸ Pause' : '▶ Animate';
+    btn.classList.toggle('active', drAnimActive);
+  }
+  if(drAnimActive){ drAnimT=0; drAnimStep3(); }
+  else { if(drAnimId) cancelAnimationFrame(drAnimId); drAnimId=null; draw3(); }
+}
+
+function drAnimStep3(){
+  if(!drAnimActive) return;
+  drAnimT = (drAnimT + 0.007) % 1;
+  draw3(drAnimT);
+  drAnimId = requestAnimationFrame(drAnimStep3);
+}
+
+function draw3(aT){
+  const dpr = window.devicePixelRatio||1;
+  const W = cv3.offsetWidth, H = cv3.offsetHeight;
+  if(!W||!H) return;
+  cv3.width = W*dpr; cv3.height = H*dpr;
+  ctx3.setTransform(dpr,0,0,dpr,0,0);
+  ctx3.fillStyle='#05050f'; ctx3.fillRect(0,0,W,H);
+
+  // ---- Top half: Chain complex diagram ----
+  const chainY = H*0.22;
+  drawChainComplex(ctx3, W, chainY, drManifold);
+
+  // ---- Bottom half: manifold + 1-form visualization ----
+  const vizY = H*0.42;
+  const vizH = H - vizY - 10;
+  drawDRviz(ctx3, W, vizY, vizH, drManifold, aT);
+}
+
+function drawChainComplex(ctx, W, cy, manifold){
+  // Draw: Ω⁰ →^d Ω¹ →^d Ω² →^d Ω³
+  const steps = ['Ω⁰', 'Ω¹', 'Ω²', 'Ω³'];
+  const xs = [W*0.12, W*0.35, W*0.58, W*0.81];
+  const bettis = {
+    'S1': [1,1,0,0],
+    'T2': [1,2,1,0],
+    'S2': [1,0,1,0]
+  };
+  const bb = bettis[manifold];
+
+  ctx.font='bold 14px Segoe UI'; ctx.textAlign='center';
+  steps.forEach((lbl,i)=>{
+    // Box
+    ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1.5;
+    ctx.strokeRect(xs[i]-28, cy-20, 56, 40);
+    ctx.fillStyle = bb[i]>0 ? '#33ccff' : '#55558a';
+    ctx.fillText(lbl, xs[i], cy+5);
+    // dim H^k
+    ctx.font='12px Segoe UI';
+    ctx.fillStyle = bb[i]>0 ? '#33ccffaa' : '#33336688';
+    ctx.fillText('dim H'+i+'='+bb[i], xs[i], cy+24);
+    ctx.font='bold 14px Segoe UI';
+    // Arrow to next
+    if(i<3){
+      const ax1 = xs[i]+28, ax2 = xs[i+1]-28;
+      const ay = cy;
+      ctx.strokeStyle='#33ccff66'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(ax1,ay); ctx.lineTo(ax2,ay); ctx.stroke();
+      drawArrowHead(ctx, ax2, ay, 1, 0, 7, '#33ccff66');
+      ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa33'; ctx.textAlign='center';
+      ctx.fillText('d', (ax1+ax2)/2, ay-6);
+      ctx.font='bold 14px Segoe UI';
+    }
+  });
+
+  // d²=0 annotation
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ff6644'; ctx.textAlign='center';
+  ctx.fillText('d² = 0  (every exact form is closed)', W*0.5, cy+44);
+
+  // Cohomology formula
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Hᵏ = ker(d: Ωᵏ→Ωᵏ⁺¹) / im(d: Ωᵏ⁻¹→Ωᵏ)', W*0.5, cy+62);
+}
+
+function drawDRviz(ctx, W, oy, vizH, manifold, aT){
+  const cx = W*0.5, cy = oy + vizH*0.42;
+  const R = Math.min(vizH*0.36, W*0.18);
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+
+  if(manifold==='S1'){
+    // Draw S¹ with a 1-form (arrows tangent) — closed but not exact
+    ctx.fillText('S¹: dθ is closed but not exact (winding number ≠ 0)', cx, oy+12);
+    // Circle
+    ctx.strokeStyle='#33ccff55'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2*Math.PI); ctx.stroke();
+    // Tangent 1-form arrows around circle
+    const NA = 20;
+    for(let i=0;i<NA;i++){
+      const ang = i/NA * 2*Math.PI;
+      const px = cx + R*Math.cos(ang), py = cy + R*Math.sin(ang);
+      // tangent direction
+      const tx = -Math.sin(ang), ty = Math.cos(ang);
+      const al = R*0.18;
+      ctx.strokeStyle='#33ccff'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(px - tx*al*0.4, py - ty*al*0.4);
+      ctx.lineTo(px + tx*al*0.6, py + ty*al*0.6); ctx.stroke();
+      drawArrowHead(ctx, px+tx*al*0.6, py+ty*al*0.6, tx, ty, 5, '#33ccff');
+    }
+    // Animated point
+    if(aT !== undefined){
+      const ta = aT * 2*Math.PI;
+      const px = cx + R*Math.cos(ta), py = cy + R*Math.sin(ta);
+      ctx.fillStyle='#ffaa33';
+      ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.fill();
+      // running integral label
+      const integral = aT * 2 * Math.PI;
+      ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa33'; ctx.textAlign='center';
+      ctx.fillText('∫ dθ = '+integral.toFixed(2)+' → 2π as t→1', cx, oy+vizH*0.92);
+    }
+    // Exact form comparison — gradient of f
+    const R2 = R*0.52;
+    const cx2 = cx + W*0.3;
+    ctx.strokeStyle='#44ff8855'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx2, cy, R2, 0, 2*Math.PI); ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+    ctx.fillText('exact: ω=df (∮=0)', cx2, cy+R2+16);
+    const NB = 16;
+    for(let i=0;i<NB;i++){
+      const ang = i/NB * 2*Math.PI;
+      const px = cx2 + R2*Math.cos(ang), py = cy + R2*Math.sin(ang);
+      // radial outward (gradient of r)
+      const tx = Math.cos(ang)*0.5, ty = Math.sin(ang)*0.5;
+      const al = R2*0.22;
+      ctx.strokeStyle='#44ff88'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(px-tx*al*0.4, py-ty*al*0.4);
+      ctx.lineTo(px+tx*al*0.6, py+ty*al*0.6); ctx.stroke();
+      drawArrowHead(ctx, px+tx*al*0.6, py+ty*al*0.6, tx, ty, 4, '#44ff88');
+    }
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+    ctx.fillText('closed not exact: ω=dθ (∮=2π)', cx, cy+R+16);
+
+  } else if(manifold==='T2'){
+    // Torus: draw two independent 1-forms dθ₁, dθ₂
+    ctx.fillText('T²: two independent closed 1-forms: dθ₁ (longitude) and dθ₂ (meridian)', cx, oy+12);
+    const RO = R, RI = R*0.38;
+    ctx.strokeStyle='#33ccff55'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,RO,0,2*Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,RI,0,2*Math.PI); ctx.stroke();
+    ctx.fillStyle='#05050f';
+    ctx.beginPath(); ctx.arc(cx,cy,RI,0,2*Math.PI); ctx.fill();
+    // Horizontal (longitude) arrows
+    const NL = 14;
+    for(let i=0;i<NL;i++){
+      const ang = i/NL*2*Math.PI;
+      const rm = (RO+RI)/2;
+      const px = cx + rm*Math.cos(ang), py = cy + rm*Math.sin(ang);
+      const tx = -Math.sin(ang), ty = Math.cos(ang);
+      const al = rm*0.18;
+      ctx.strokeStyle='#33ccff'; ctx.lineWidth=1.3;
+      ctx.beginPath(); ctx.moveTo(px-tx*al*0.3,py-ty*al*0.3); ctx.lineTo(px+tx*al*0.7,py+ty*al*0.7); ctx.stroke();
+      drawArrowHead(ctx,px+tx*al*0.7,py+ty*al*0.7,tx,ty,4,'#33ccff');
+    }
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+    ctx.fillText('dθ₁', cx, cy-RO-8);
+    // Meridian arrows (radial spokes for dθ₂)
+    const NM = 8;
+    for(let i=0;i<NM;i++){
+      const ang = i/NM*2*Math.PI;
+      const px = cx + (RI+4)*Math.cos(ang), py = cy + (RI+4)*Math.sin(ang);
+      const ex = cx + (RO-4)*Math.cos(ang), ey = cy + (RO-4)*Math.sin(ang);
+      ctx.strokeStyle='#ff9933'; ctx.lineWidth=1.3;
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(ex,ey); ctx.stroke();
+      drawArrowHead(ctx,ex,ey,Math.cos(ang),Math.sin(ang),4,'#ff9933');
+    }
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#ff9933'; ctx.textAlign='center';
+    ctx.fillText('dθ₂', cx+RO+14, cy);
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#cc44ff'; ctx.textAlign='center';
+    ctx.fillText('H¹(T²) = ℝ²  (span: [dθ₁],[dθ₂])', cx, oy+vizH*0.9);
+    if(aT !== undefined){
+      const ta = aT*2*Math.PI;
+      const rm2 = (RO+RI)/2;
+      const px2 = cx+rm2*Math.cos(ta), py2 = cy+rm2*Math.sin(ta);
+      ctx.fillStyle='#ffaa33'; ctx.beginPath(); ctx.arc(px2,py2,6,0,2*Math.PI); ctx.fill();
+    }
+
+  } else { // S2
+    ctx.fillText('S²: H¹=0 — every closed 1-form is exact (simply connected)', cx, oy+12);
+    ctx.strokeStyle='#33ccff55'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.stroke();
+    ctx.strokeStyle='#33ccff33'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(cx,cy,R,R*0.22,0,0,2*Math.PI); ctx.stroke();
+    // Any loop on S² bounds a disk — show contractible loop
+    const lR = R*0.55;
+    ctx.strokeStyle='#44ff88'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(cx,cy+R*0.25,lR*0.7,0,2*Math.PI); ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+    ctx.fillText('any loop bounds a disk → ω exact', cx, cy+R*0.25+lR*0.7+14);
+    if(aT !== undefined){
+      const ta = aT*2*Math.PI;
+      const px2 = cx+lR*0.7*Math.cos(ta), py2 = cy+R*0.25+lR*0.7*Math.sin(ta);
+      ctx.fillStyle='#ffaa33'; ctx.beginPath(); ctx.arc(px2,py2,5,0,2*Math.PI); ctx.fill();
+    }
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ff6644'; ctx.textAlign='center';
+    ctx.fillText('H¹(S²) = 0  (no non-trivial 1-cycles)', cx, oy+vizH*0.9);
+  }
+}
+
+// ===================== TAB 4: Čech Cohomology =====================
+const cv4 = document.getElementById('c4');
+const ctx4 = cv4.getContext('2d');
+let cechSets = 3;
+let cechAnimActive = false;
+let cechAnimId = null;
+let cechAnimT = 0;
+
+function setCechSets(n){
+  cechSets = n;
+  const msg = n===3
+    ? '3 open sets cover S¹. Nerve = triangle boundary (no fill). H¹=ℤ detects the hole.'
+    : '4th set creates triple overlap — nerve gains filled triangle — becomes contractible. H¹=0!';
+  document.getElementById('cechInfo').textContent = msg;
+  document.getElementById('cechH').textContent = n===3 ? 'H⁰=ℤ, H¹=ℤ' : 'H⁰=ℤ, H¹=0 (contractible)';
+  draw4();
+}
+
+function toggleCechAnim(){
+  cechAnimActive = !cechAnimActive;
+  const btn = document.getElementById('animCechBtn');
+  if(btn) {
+    btn.textContent = cechAnimActive ? '⏸ Pause' : '▶ Animate';
+    btn.classList.toggle('active', cechAnimActive);
+  }
+  if(cechAnimActive){ cechAnimT=0; cechAnimStep4(); }
+  else { if(cechAnimId) cancelAnimationFrame(cechAnimId); cechAnimId=null; draw4(); }
+}
+
+function cechAnimStep4(){
+  if(!cechAnimActive) return;
+  cechAnimT = (cechAnimT+0.006*(window.animSpeed||0.1)) % 1;
+  draw4(cechAnimT);
+  cechAnimId = requestAnimationFrame(cechAnimStep4);
+}
+
+function draw4(aT){
+  const dpr = window.devicePixelRatio||1;
+  const W = cv4.offsetWidth, H = cv4.offsetHeight;
+  if(!W||!H) return;
+  cv4.width=W*dpr; cv4.height=H*dpr;
+  ctx4.setTransform(dpr,0,0,dpr,0,0);
+  ctx4.fillStyle='#05050f'; ctx4.fillRect(0,0,W,H);
+
+  const leftW = W*0.52;
+  // ---- Left: S¹ with open cover ----
+  drawCechCover(ctx4, leftW, H, cechSets, aT);
+
+  // Divider
+  ctx4.strokeStyle='#1c1c44'; ctx4.lineWidth=1;
+  ctx4.beginPath(); ctx4.moveTo(leftW,0); ctx4.lineTo(leftW,H); ctx4.stroke();
+
+  // ---- Right: Nerve simplicial complex ----
+  drawNerve(ctx4, leftW, W, H, cechSets, aT);
+}
+
+function drawCechCover(ctx, W, H, nSets, aT){
+  const cx = W*0.5, cy = H*0.5;
+  const R = Math.min(H,W)*0.28;
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Open Cover of S¹', cx, H*0.07);
+
+  // Draw S¹
+  ctx.strokeStyle='#33ccff44'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.stroke();
+
+  const colors = ['#33ccff','#ff9933','#cc44ff','#44ff88'];
+  const alphas = [0.18,0.16,0.15,0.14];
+  // Arcs for each open set
+  for(let i=0;i<nSets;i++){
+    const startAng = (i/nSets - 0.12) * 2*Math.PI;
+    const endAng   = ((i+1)/nSets + 0.12) * 2*Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx,cy,R,startAng,endAng);
+    ctx.strokeStyle = colors[i];
+    ctx.lineWidth = 8;
+    ctx.globalAlpha = 0.7;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    // Label
+    const midAng = (startAng+endAng)/2;
+    const lx = cx + (R+22)*Math.cos(midAng);
+    const ly = cy + (R+22)*Math.sin(midAng);
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=colors[i]; ctx.textAlign='center';
+    ctx.fillText('U'+(i+1), lx, ly);
+  }
+
+  // Intersection highlights
+  ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  for(let i=0;i<nSets;i++){
+    const j = (i+1)%nSets;
+    const midAng = ((i+0.5)/nSets + 0.5*(1/nSets+0.0)) * 2*Math.PI;
+    const intAng = (i+1)/nSets * 2*Math.PI;
+    const ix = cx + R*Math.cos(intAng), iy = cy + R*Math.sin(intAng);
+    ctx.fillStyle='#ffffff88';
+    ctx.beginPath(); ctx.arc(ix,iy,4,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle='#ffffff66';
+    ctx.fillText('U'+(i+1)+'∩U'+((i+1)%nSets+1), ix, iy - 8);
+  }
+
+  // Triple intersection (when 4 sets)
+  if(nSets>=4){
+    ctx.fillStyle='#44ff8888';
+    ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('U₁∩U₂∩U₃ ≠ ∅', cx, cy-R*0.4);
+    ctx.fillText('(contractible!)', cx, cy-R*0.4+13);
+  }
+
+  // Animated traversal
+  if(aT !== undefined){
+    const ta = aT*2*Math.PI;
+    const px = cx+R*Math.cos(ta), py = cy+R*Math.sin(ta);
+    ctx.fillStyle='#ffaa33'; ctx.beginPath(); ctx.arc(px,py,5,0,2*Math.PI); ctx.fill();
+  }
+}
+
+function drawNerve(ctx, ox, W, H, nSets, aT){
+  const cx = ox + (W-ox)*0.5;
+  const cy = H*0.5;
+  const nr = Math.min(H,W-ox)*0.28;
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Nerve N(U) — Simplicial Complex', cx, H*0.07);
+
+  const colors = ['#33ccff','#ff9933','#cc44ff','#44ff88'];
+  // Vertices positions
+  const verts = [];
+  for(let i=0;i<nSets;i++){
+    const ang = (i/nSets - 0.25) * 2*Math.PI;
+    verts.push({ x: cx + nr*Math.cos(ang), y: cy + nr*Math.sin(ang) });
+  }
+
+  // Fill triangle for the first 3 sets if nSets>=4 (triple intersection)
+  if(nSets>=4){
+    ctx.beginPath();
+    ctx.moveTo(verts[0].x, verts[0].y);
+    ctx.lineTo(verts[1].x, verts[1].y);
+    ctx.lineTo(verts[2].x, verts[2].y);
+    ctx.closePath();
+    ctx.fillStyle='rgba(68,255,136,0.12)';
+    ctx.fill();
+    ctx.strokeStyle='#44ff8866'; ctx.lineWidth=1.5;
+    ctx.stroke();
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+    ctx.fillText('filled = H¹=0', cx, cy-nr*0.3);
+  }
+
+  // Draw edges (pairwise intersections non-empty)
+  for(let i=0;i<nSets;i++){
+    const j=(i+1)%nSets;
+    ctx.strokeStyle='#33ccff66'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(verts[i].x,verts[i].y); ctx.lineTo(verts[j].x,verts[j].y); ctx.stroke();
+  }
+
+  // Draw vertices
+  verts.forEach((v,i)=>{
+    ctx.fillStyle=colors[i];
+    ctx.beginPath(); ctx.arc(v.x,v.y,9,0,2*Math.PI); ctx.fill();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#000'; ctx.textAlign='center';
+    ctx.fillText('U'+(i+1), v.x, v.y+4);
+  });
+
+  // Cohomology display
+  const h0 = 'H⁰ = ℤ (connected)';
+  const h1 = nSets===3 ? 'H¹ = ℤ (one 1-cycle = hole!)' : 'H¹ = 0 (contractible: filled triangle)';
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText(h0, cx, H*0.82);
+  ctx.fillStyle = nSets===3 ? '#ff9933' : '#44ff88';
+  ctx.fillText(h1, cx, H*0.82+16);
+
+  // Čech–de Rham isomorphism
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#cc44ffaa'; ctx.textAlign='center';
+  ctx.fillText('Ȟᵏ(M,ℝ) ≅ H^k_dR(M)', cx, H*0.82+36);
+
+  // Animated highlight
+  if(aT !== undefined){
+    const vi = Math.floor(aT * nSets) % nSets;
+    const vj = (vi+1)%nSets;
+    ctx.strokeStyle='#ffaa33'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(verts[vi].x,verts[vi].y); ctx.lineTo(verts[vj].x,verts[vj].y); ctx.stroke();
+  }
+}
+
+// ===================== TAB 5: Poincaré Duality =====================
+const cv5 = document.getElementById('c5');
+const ctx5 = cv5.getContext('2d');
+let pdMode = 'torus';
+let pdAnimActive = false;
+let pdAnimId = null;
+let pdAnimT = 0;
+
+function setPDmode(m){
+  pdMode = m;
+  draw5();
+}
+
+function togglePDanim(){
+  pdAnimActive = !pdAnimActive;
+  const btn = document.getElementById('animPDBtn');
+  if(btn) {
+    btn.textContent = pdAnimActive ? '⏸ Pause' : '▶ Animate';
+    btn.classList.toggle('active', pdAnimActive);
+  }
+  if(pdAnimActive){ pdAnimT=0; pdAnimStep5(); }
+  else { if(pdAnimId) cancelAnimationFrame(pdAnimId); pdAnimId=null; draw5(); }
+}
+
+function pdAnimStep5(){
+  if(!pdAnimActive) return;
+  pdAnimT = (pdAnimT+0.006*(window.animSpeed||0.1)) % 1;
+  draw5(pdAnimT);
+  pdAnimId = requestAnimationFrame(pdAnimStep5);
+}
+
+function draw5(aT){
+  const dpr = window.devicePixelRatio||1;
+  const W = cv5.offsetWidth, H = cv5.offsetHeight;
+  if(!W||!H) return;
+  cv5.width=W*dpr; cv5.height=H*dpr;
+  ctx5.setTransform(dpr,0,0,dpr,0,0);
+  ctx5.fillStyle='#05050f'; ctx5.fillRect(0,0,W,H);
+
+  if(pdMode==='torus'){
+    drawPDtorus(ctx5,W,H,aT);
+  } else {
+    drawPDdual(ctx5,W,H,aT);
+  }
+}
+
+function drawPDtorus(ctx,W,H,aT){
+  const cx = W*0.5, cy = H*0.44;
+  const RO = Math.min(H,W)*0.22, RI = RO*0.38;
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Poincaré Duality on T²: H¹ × H¹ → ℝ via ∫dθ₁∧dθ₂', cx, H*0.07);
+
+  // Torus outline
+  ctx.strokeStyle='#33ccff44'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,RO,0,2*Math.PI); ctx.stroke();
+  ctx.fillStyle='#05050f';
+  ctx.beginPath(); ctx.arc(cx,cy,RI,0,2*Math.PI); ctx.fill();
+  ctx.strokeStyle='#33ccff33'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,RI,0,2*Math.PI); ctx.stroke();
+
+  // Horizontal 1-cycle γ₁ (longitude) — blue
+  const rm = (RO+RI)/2;
+  ctx.strokeStyle='#33ccff'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.arc(cx,cy,rm,0,2*Math.PI); ctx.stroke();
+  drawArrowHead(ctx, cx+rm, cy, 0, 1, 8, '#33ccff');
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='left';
+  ctx.fillText('γ₁ (longitude, [dθ₁])', cx+rm+8, cy-5);
+
+  // Vertical 1-cocycle ω₂ (radial form) — orange
+  const numSpokes = 8;
+  for(let i=0;i<numSpokes;i++){
+    const ang = i/numSpokes * 2*Math.PI;
+    const x1 = cx + (RI+2)*Math.cos(ang), y1 = cy + (RI+2)*Math.sin(ang);
+    const x2 = cx + (RO-2)*Math.cos(ang), y2 = cy + (RO-2)*Math.sin(ang);
+    ctx.strokeStyle='#ff9933'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    drawArrowHead(ctx, x2, y2, Math.cos(ang), Math.sin(ang), 5, '#ff9933');
+  }
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ff9933'; ctx.textAlign='center';
+  ctx.fillText('ω₂ = dθ₂ (meridian cocycle)', cx, cy+RO+20);
+
+  // Intersection point highlight
+  const intAng = Math.PI*0.25;
+  const ix = cx + rm*Math.cos(intAng), iy = cy + rm*Math.sin(intAng);
+  ctx.fillStyle='#cc44ff';
+  ctx.beginPath(); ctx.arc(ix,iy,7,0,2*Math.PI); ctx.fill();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#cc44ff'; ctx.textAlign='left';
+  ctx.fillText('γ₁ ∩ ω₂ = 1', ix+10, iy-5);
+
+  // Animated point on γ₁
+  if(aT !== undefined){
+    const ta = aT*2*Math.PI;
+    const px = cx+rm*Math.cos(ta), py = cy+rm*Math.sin(ta);
+    ctx.fillStyle='#ffaa33';
+    ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.fill();
+    const running = aT * 2*Math.PI;
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#ffaa33'; ctx.textAlign='center';
+    ctx.fillText('∫_γ₁ dθ₁ = '+running.toFixed(2)+' → 2π', cx, H*0.88);
+  }
+
+  // Betti numbers
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText('T²: b₀=1  b₁=2  b₂=1  |  Poincaré: Hᵏ ≅ H²⁻ᵏ  |  ∫ dθ₁∧dθ₂ = 1', cx, H*0.93);
+}
+
+function drawPDdual(ctx,W,H,aT){
+  const cx = W*0.5, cy = H*0.44;
+  const RO = Math.min(H,W)*0.22, RI = RO*0.38;
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Poincaré Dual: submanifold ↔ cohomology class', cx, H*0.07);
+
+  // Torus
+  ctx.strokeStyle='#33ccff33'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,RO,0,2*Math.PI); ctx.stroke();
+  ctx.fillStyle='#05050f';
+  ctx.beginPath(); ctx.arc(cx,cy,RI,0,2*Math.PI); ctx.fill();
+  ctx.strokeStyle='#33ccff22';
+  ctx.beginPath(); ctx.arc(cx,cy,RI,0,2*Math.PI); ctx.stroke();
+
+  // Submanifold N (horizontal circle = longitude)
+  const rm = (RO+RI)/2;
+  ctx.strokeStyle='#44ff88'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(cx,cy,rm,0,2*Math.PI); ctx.stroke();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+  ctx.fillText('N (1-submanifold)', cx, cy-rm-8);
+
+  // Poincaré dual ωN = dθ₂ (radial)
+  const numSpokes = 10;
+  for(let i=0;i<numSpokes;i++){
+    const ang = i/numSpokes * 2*Math.PI;
+    const x1 = cx+(RI+3)*Math.cos(ang), y1 = cy+(RI+3)*Math.sin(ang);
+    const x2 = cx+(RO-3)*Math.cos(ang), y2 = cy+(RO-3)*Math.sin(ang);
+    const t = (aT!==undefined) ? Math.abs(Math.sin(aT*2*Math.PI + ang)) : 0.6;
+    ctx.strokeStyle=`rgba(204,68,255,${0.3+0.5*t})`; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    drawArrowHead(ctx,x2,y2,Math.cos(ang),Math.sin(ang),4,'#cc44ff');
+  }
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#cc44ff'; ctx.textAlign='center';
+  ctx.fillText('PD([N]) = [ω_N] ∈ H¹(T²)', cx, cy+RO+20);
+
+  // Integration formula
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('∫_N α = ∫_M α∧ω_N  for any 1-form α', cx, H*0.82);
+  ctx.fillStyle='#33ccff';
+  ctx.fillText('PD: Hₖ(M) ≅ Hⁿ⁻ᵏ(M)  (n=dim M)', cx, H*0.87);
+  ctx.fillStyle='#ff9933';
+  ctx.fillText('Intersection form: ⟨[α],[β]⟩ = ∫_M α∧β', cx, H*0.92);
+}
+
+// ===================== TAB 6: Characteristic Classes (Vortices) =====================
+const cv6 = document.getElementById('c6');
+const ctx6 = cv6.getContext('2d');
+let vortexNval = 2;
+let vortexAnimActive = false;
+let vortexAnimId = null;
+let vortexAnimT = 0;
+let ccMode = 'chern';
+
+function onVortexSlider(){
+  vortexNval = parseInt(document.getElementById('vortexN').value);
+  document.getElementById('vortexNval').textContent = vortexNval;
+  document.getElementById('ccInfo').textContent =
+    'c₁ = '+vortexNval+' vortices. Each vortex contributes one flux quantum Φ₀=h/e. c₁ ∈ H²(M,ℤ) = '+vortexNval;
+  draw6();
+}
+
+function toggleVortexAnim(){
+  vortexAnimActive = !vortexAnimActive;
+  const btn = document.getElementById('animVortexBtn');
+  if(btn) {
+    btn.textContent = vortexAnimActive ? '⏸ Pause' : '▶ Animate';
+    btn.classList.toggle('active', vortexAnimActive);
+  }
+  if(vortexAnimActive){ vortexAnimT=0; vortexAnimStep6(); }
+  else { if(vortexAnimId) cancelAnimationFrame(vortexAnimId); vortexAnimId=null; draw6(); }
+}
+
+function vortexAnimStep6(){
+  if(!vortexAnimActive) return;
+  vortexAnimT = (vortexAnimT+0.008*(window.animSpeed||0.1)) % 1;
+  draw6(vortexAnimT);
+  vortexAnimId = requestAnimationFrame(vortexAnimStep6);
+}
+
+function setCCmode(m){ ccMode=m; draw6(); }
+
+function draw6(aT){
+  const dpr = window.devicePixelRatio||1;
+  const W = cv6.offsetWidth, H = cv6.offsetHeight;
+  if(!W||!H) return;
+  cv6.width=W*dpr; cv6.height=H*dpr;
+  ctx6.setTransform(dpr,0,0,dpr,0,0);
+  ctx6.fillStyle='#05050f'; ctx6.fillRect(0,0,W,H);
+
+  if(ccMode==='chern'){
+    drawVortexScene(ctx6,W,H,aT);
+  } else {
+    drawEulerScene(ctx6,W,H,aT);
+  }
+}
+
+function drawVortexScene(ctx,W,H,aT){
+  const cx = W*0.5, cy = H*0.45;
+  const R = Math.min(H,W)*0.3;
+  const n = vortexNval;
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('First Chern Class: c₁ counts vortices = flux quanta', cx, H*0.07);
+
+  // Surface (circle = boundary of disk D²)
+  ctx.strokeStyle='#33ccff66'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.stroke();
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff66'; ctx.textAlign='center';
+  ctx.fillText('Surface Σ (= S² or D²)', cx, cy+R+16);
+
+  // Vortex positions
+  const vortexPositions = [];
+  for(let i=0;i<n;i++){
+    const ang = i/Math.max(1,n)*2*Math.PI;
+    const vr = n===1 ? 0 : R*0.45;
+    vortexPositions.push({ x: cx+vr*Math.cos(ang), y: cy+vr*Math.sin(ang) });
+  }
+
+  // Field lines from each vortex (flux tubes)
+  vortexPositions.forEach((v,vi)=>{
+    const numLines = 12;
+    for(let fi=0;fi<numLines;fi++){
+      const ang = fi/numLines*2*Math.PI;
+      const lineT = aT !== undefined ? aT : 0.5;
+      // Animate flux outward
+      const maxR2 = R*0.82;
+      const curR = maxR2 * lineT;
+      const ex = v.x + curR*Math.cos(ang);
+      const ey = v.y + curR*Math.sin(ang);
+      const dist2surf = Math.sqrt((ex-cx)*(ex-cx)+(ey-cy)*(ey-cy));
+      if(dist2surf > R*0.95) continue;
+      const alpha = 0.25 * (1 - lineT*0.5);
+      ctx.strokeStyle=`rgba(255,100,60,${alpha})`; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(v.x,v.y); ctx.lineTo(ex,ey); ctx.stroke();
+    }
+    // Vortex core
+    const grd = ctx.createRadialGradient(v.x,v.y,0,v.x,v.y,18);
+    grd.addColorStop(0,'rgba(255,80,40,0.9)');
+    grd.addColorStop(1,'rgba(255,60,20,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.arc(v.x,v.y,18,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle='#ff6644';
+    ctx.beginPath(); ctx.arc(v.x,v.y,4,0,2*Math.PI); ctx.fill();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ff9977'; ctx.textAlign='center';
+    ctx.fillText('Φ₀', v.x, v.y-10);
+  });
+
+  // c₁ formula
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText('c₁(L) = [F/2π] ∈ H²(Σ,ℤ)  =  '+n, cx, H*0.86);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#ff9933'; ctx.textAlign='center';
+  ctx.fillText('∫_Σ F/2π = c₁ = number of flux quanta = '+n, cx, H*0.91);
+
+  // BU(1) = ℂP∞
+  ctx.fillStyle='#cc44ff'; ctx.textAlign='center';
+  ctx.fillText('Classifying space: BU(1) = ℂP^∞  |  [M, ℂP^∞] ≅ H²(M,ℤ)', cx, H*0.96);
+}
+
+function drawEulerScene(ctx,W,H,aT){
+  const cx = W*0.5, cy = H*0.46;
+  const R = Math.min(H,W)*0.27;
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Euler Class: e(TM) and Gauss-Bonnet', cx, H*0.07);
+
+  // S² with curvature visualization
+  ctx.strokeStyle='#33ccff66'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.stroke();
+  ctx.strokeStyle='#33ccff33'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.ellipse(cx,cy,R,R*0.22,0,0,2*Math.PI); ctx.stroke();
+
+  // Normal vectors (outward pointing, showing e(TM))
+  const numN = 14;
+  for(let i=0;i<numN;i++){
+    const ang = i/numN*2*Math.PI;
+    const px = cx+R*Math.cos(ang), py = cy+R*Math.sin(ang);
+    const t = aT !== undefined ? Math.abs(Math.sin(aT*2*Math.PI*2+ang)) : 0.7;
+    const nl = R*0.18*(0.5+0.5*t);
+    const nx = Math.cos(ang)*nl, ny = Math.sin(ang)*nl;
+    ctx.strokeStyle=`rgba(204,68,255,${0.4+0.4*t})`; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+nx,py+ny); ctx.stroke();
+    drawArrowHead(ctx,px+nx,py+ny,Math.cos(ang),Math.sin(ang),4,'#cc44ff');
+  }
+
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#cc44ff'; ctx.textAlign='left';
+  ctx.fillText('e(TM) ∈ H²(S²)', cx+R+8, cy-5);
+
+  // Gauss-Bonnet banner
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#ff9933'; ctx.textAlign='center';
+  ctx.fillText('Gauss-Bonnet: ∫_M K dA = 2πχ(M)', cx, H*0.82);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText('S²: ∫K dA = 4π = 2π·χ(S²) = 2π·2', cx, H*0.87);
+  ctx.fillStyle='#44ff88';
+  ctx.fillText('∫_M e(TM) = χ(M)  (Euler class evaluates to Euler characteristic)', cx, H*0.92);
+  ctx.fillStyle='#c0c0ea';
+  ctx.fillText('e(E) ∈ Hⁿ(M) for rank-n vector bundle  |  e = top Chern class for complex bundles', cx, H*0.97);
+}
+
+// ===================== TAB 7: Sheaf Cohomology & GAGA =====================
+const cv7 = document.getElementById('c7');
+const ctx7 = cv7.getContext('2d');
+let sheafMode = 'resolution';
+let sheafAnimActive = false;
+let sheafAnimId = null;
+let sheafAnimT = 0;
+
+function setSheafMode(m){
+  sheafMode = m;
+  const msgs = {
+    resolution: 'Sheaf cohomology unifies algebraic, analytic, and topological invariants on complex manifolds.',
+    gaga: 'GAGA (Serre 1956): algebraic and analytic cohomology agree on projective varieties over ℂ.',
+    penrose: 'Penrose transform: massless fields ↔ H¹(PT, O(−2s−2)) on twistor space.'
+  };
+  document.getElementById('sheafInfo').textContent = msgs[m];
+  draw7();
+}
+
+function toggleSheafAnim(){
+  sheafAnimActive = !sheafAnimActive;
+  const btn = document.getElementById('animSheafBtn');
+  if(btn) {
+    btn.textContent = sheafAnimActive ? '⏸ Pause' : '▶ Animate';
+    btn.classList.toggle('active', sheafAnimActive);
+  }
+  if(sheafAnimActive){ sheafAnimT=0; sheafAnimStep7(); }
+  else { if(sheafAnimId) cancelAnimationFrame(sheafAnimId); sheafAnimId=null; draw7(); }
+}
+
+function sheafAnimStep7(){
+  if(!sheafAnimActive) return;
+  sheafAnimT = (sheafAnimT+0.005*(window.animSpeed||0.1)) % 1;
+  draw7(sheafAnimT);
+  sheafAnimId = requestAnimationFrame(sheafAnimStep7);
+}
+
+function draw7(aT){
+  const dpr = window.devicePixelRatio||1;
+  const W = cv7.offsetWidth, H = cv7.offsetHeight;
+  if(!W||!H) return;
+  cv7.width=W*dpr; cv7.height=H*dpr;
+  ctx7.setTransform(dpr,0,0,dpr,0,0);
+  ctx7.fillStyle='#05050f'; ctx7.fillRect(0,0,W,H);
+
+  if(sheafMode==='resolution'){
+    drawSheafResolution(ctx7,W,H,aT);
+  } else if(sheafMode==='gaga'){
+    drawGAGA(ctx7,W,H,aT);
+  } else {
+    drawPenrose(ctx7,W,H,aT);
+  }
+}
+
+function drawSheafResolution(ctx,W,H,aT){
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Čech Resolution of a Sheaf ℱ on ℂP¹', W*0.5, H*0.07);
+
+  // ℂP¹ = S² with two patches U₀, U₁
+  const cx=W*0.5, cy=H*0.32, R=Math.min(H,W)*0.17;
+  ctx.strokeStyle='#33ccff55'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.stroke();
+  ctx.strokeStyle='#33ccff33';
+  ctx.beginPath(); ctx.ellipse(cx,cy,R,R*0.22,0,0,2*Math.PI); ctx.stroke();
+
+  // U₀ (north patch) arc
+  ctx.strokeStyle='#33ccff'; ctx.lineWidth=5; ctx.globalAlpha=0.6;
+  ctx.beginPath(); ctx.arc(cx,cy,R,-Math.PI*0.6,Math.PI*0.6); ctx.stroke();
+  ctx.globalAlpha=1;
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='left';
+  ctx.fillText('U₀', cx+R+6, cy-8);
+
+  // U₁ (south patch) arc
+  ctx.strokeStyle='#ff9933'; ctx.lineWidth=5; ctx.globalAlpha=0.6;
+  ctx.beginPath(); ctx.arc(cx,cy,R,Math.PI*0.4,Math.PI*1.6); ctx.stroke();
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#ff9933'; ctx.textAlign='right';
+  ctx.fillText('U₁', cx-R-6, cy+8);
+
+  // Resolution complex
+  const rowY = H*0.58;
+  const stages = [
+    { label:'0', val:'→', color:'#55558a' },
+    { label:'ℱ(U₀)×ℱ(U₁)', val:'Č⁰', color:'#33ccff' },
+    { label:'→', val:'δ⁰', color:'#ff9933' },
+    { label:'ℱ(U₀∩U₁)', val:'Č¹', color:'#cc44ff' },
+    { label:'→ 0', val:'', color:'#55558a' },
+  ];
+  const stageX = [W*0.06, W*0.2, W*0.44, W*0.58, W*0.84];
+  stages.forEach((s,i)=>{
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=s.color; ctx.textAlign='center';
+    ctx.fillText(s.label, stageX[i], rowY);
+    if(s.val){
+      ctx.font='12px Segoe UI'; ctx.fillStyle=s.color+'99';
+      ctx.fillText(s.val, stageX[i], rowY+14);
+    }
+  });
+
+  // H⁰ and H¹
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText('H⁰(ℂP¹, O) = ker δ⁰ = global sections', W*0.5, H*0.72);
+  ctx.fillStyle='#ff9933';
+  ctx.fillText('H¹(ℂP¹, O(n)) = coker δ⁰', W*0.5, H*0.78);
+  ctx.fillStyle='#44ff88';
+  ctx.fillText('Hᵖ(ℂP¹, O(n)) = 0  for p≥2 (dim ℂP¹ = 1)', W*0.5, H*0.84);
+
+  // Sheaf cohomology long exact sequence
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#cc44ffaa'; ctx.textAlign='center';
+  ctx.fillText('Riemann-Roch: χ(O(n)) = n+1  (for n≥0)', W*0.5, H*0.90);
+
+  // Animation: pulse on patches
+  if(aT !== undefined){
+    const t = aT;
+    const pulseR = R*(0.8+0.2*Math.sin(t*2*Math.PI));
+    ctx.strokeStyle=`rgba(255,165,0,${0.3+0.3*Math.abs(Math.sin(t*Math.PI*3))})`;
+    ctx.lineWidth=2; ctx.globalAlpha=0.8;
+    ctx.beginPath(); ctx.arc(cx,cy,pulseR,0,2*Math.PI); ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+}
+
+function drawGAGA(ctx,W,H,aT){
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('GAGA: Algebraic = Analytic on Projective Varieties', W*0.5, H*0.07);
+
+  // Two-column comparison
+  const lx = W*0.25, rx = W*0.75, colY = H*0.22;
+  ctx.font='bold 12px Segoe UI';
+  ctx.fillStyle='#33ccff'; ctx.textAlign='center'; ctx.fillText('Algebraic (Zariski)', lx, colY);
+  ctx.fillStyle='#ff9933'; ctx.textAlign='center'; ctx.fillText('Analytic (Classical)', rx, colY);
+
+  // GAGA arrow
+  const arrowY = H*0.35;
+  ctx.strokeStyle='#44ff88'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(W*0.35, arrowY); ctx.lineTo(W*0.65, arrowY); ctx.stroke();
+  drawArrowHead(ctx, W*0.65, arrowY, 1, 0, 8, '#44ff88');
+  drawArrowHead(ctx, W*0.35, arrowY, -1, 0, 8, '#44ff88');
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+  ctx.fillText('GAGA ≅', W*0.5, arrowY-8);
+
+  const items = [
+    ['Algebraic sheaf ℱ', 'Analytic sheaf ℱ^an'],
+    ['Zariski open cover', 'Classical open cover'],
+    ['Alg. Hᵖ(X, ℱ)', 'An. Hᵖ(X^an, ℱ^an)'],
+    ['Polynomial sections', 'Holomorphic sections'],
+    ['Proj. variety X/ℂ', 'Complex manifold X^an'],
+  ];
+  items.forEach((pair,i)=>{
+    const iy = colY + 40 + i*32;
+    const t = (aT !== undefined) ? Math.abs(Math.sin(aT*2*Math.PI + i*0.5)) : 0.6;
+    ctx.font='12px Segoe UI';
+    ctx.fillStyle=`rgba(51,204,255,${0.5+0.4*t})`; ctx.textAlign='center';
+    ctx.fillText(pair[0], lx, iy);
+    ctx.fillStyle=`rgba(255,153,51,${0.5+0.4*t})`; ctx.textAlign='center';
+    ctx.fillText(pair[1], rx, iy);
+    // connector
+    ctx.strokeStyle=`rgba(68,255,136,${0.2+0.3*t})`; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(lx+80,iy-4); ctx.lineTo(rx-80,iy-4); ctx.stroke();
+  });
+
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+  ctx.fillText('On compact projective X: holomorphic = algebraic (Serre 1956)', W*0.5, H*0.87);
+  ctx.fillStyle='#cc44ff';
+  ctx.fillText('Consequence: moduli spaces, Hodge theory, mirror symmetry all rely on GAGA', W*0.5, H*0.92);
+}
+
+function drawPenrose(ctx,W,H,aT){
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Penrose Transform: Twistor Space ↔ Spacetime', W*0.5, H*0.07);
+
+  // Left: Twistor space PT
+  const tx = W*0.26, ty = H*0.42;
+  const tR = Math.min(H,W)*0.14;
+  ctx.strokeStyle='#cc44ff66'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(tx,ty,tR,0,2*Math.PI); ctx.stroke();
+  ctx.strokeStyle='#cc44ff33'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.ellipse(tx,ty,tR,tR*0.3,0,0,2*Math.PI); ctx.stroke();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#cc44ff'; ctx.textAlign='center';
+  ctx.fillText('Twistor Space PT', tx, ty+tR+18);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#cc44ffaa';
+  ctx.fillText('= ℂP³ \\ ℂP¹', tx, ty+tR+32);
+
+  // Right: Minkowski space M⁴
+  const mx = W*0.74, my = H*0.42;
+  const mR = tR;
+  // Draw light cone schematic
+  ctx.strokeStyle='#33ccff55'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(mx,my-mR); ctx.lineTo(mx-mR*0.7,my+mR*0.7); ctx.lineTo(mx+mR*0.7,my+mR*0.7); ctx.closePath(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(mx,my+mR); ctx.lineTo(mx-mR*0.7,my-mR*0.7); ctx.lineTo(mx+mR*0.7,my-mR*0.7); ctx.closePath(); ctx.stroke();
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#33ccff'; ctx.textAlign='center';
+  ctx.fillText('Minkowski M⁴', mx, my+mR+18);
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#33ccffaa';
+  ctx.fillText('(complexified)', mx, my+mR+32);
+
+  // Penrose transform arrow
+  const arrowMidY = H*0.42;
+  const t = aT !== undefined ? aT : 0.5;
+  const arrowProgress = aT !== undefined ? t : 1;
+  const ax1 = tx+tR+8, ax2 = mx-tR-8;
+  const axMid = ax1 + (ax2-ax1)*arrowProgress;
+  ctx.strokeStyle='#44ff88'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(ax1,arrowMidY); ctx.lineTo(axMid,arrowMidY); ctx.stroke();
+  if(arrowProgress > 0.95) drawArrowHead(ctx,ax2,arrowMidY,1,0,8,'#44ff88');
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+  ctx.fillText('Penrose Transform', W*0.5, arrowMidY-14);
+
+  // Helicity table
+  const tableY = H*0.65;
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#c0c0ea'; ctx.textAlign='center';
+  ctx.fillText('Massless Field Dictionary', W*0.5, tableY);
+  const rows = [
+    ['Helicity s', 'Twistor sheaf', 'Spacetime field'],
+    ['s = 1', 'H¹(PT, O(-4))', 'Maxwell (F_μν)'],
+    ['s = 1/2', 'H¹(PT, O(-3))', 'Dirac (ψ_α)'],
+    ['s = 2', 'H¹(PT, O(-6))', 'Graviton (h_μν)'],
+    ['s = -1', 'H¹(PT, O(0))', 'Anti-Maxwell'],
+  ];
+  const colXs = [W*0.2, W*0.5, W*0.8];
+  const headerColors = ['#ffaa33','#cc44ff','#33ccff'];
+  rows.forEach((row,ri)=>{
+    const ry = tableY+16+ri*20;
+    row.forEach((cell,ci)=>{
+      const pulse = aT !== undefined ? Math.abs(Math.sin(aT*2*Math.PI*1.5+ri*0.7)) : 0.7;
+      const alpha = ri===0 ? 0.9 : 0.4+0.5*pulse;
+      ctx.font = ri===0 ? 'bold 9px Segoe UI' : '9px Segoe UI';
+      ctx.fillStyle = ri===0
+        ? headerColors[ci]
+        : `rgba(${ci===0?'255,170,51':ci===1?'204,68,255':'51,204,255'},${alpha})`;
+      ctx.textAlign='center';
+      ctx.fillText(cell, colXs[ci], ry);
+    });
+  });
+
+  // Formula
+  ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#44ff88'; ctx.textAlign='center';
+  ctx.fillText('H¹(PT, O(−2s−2))  ↔  helicity-s massless field on M⁴', W*0.5, H*0.94);
+}
+
+// Init speed controls
+window.animSpeed=0.1;
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>

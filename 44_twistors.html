@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>44 · Twistor Theory</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+<style>
+
+:root{
+  --bg1:#0d0d1a; --bg2:#12122a; --bg3:#1a1a35;
+  --border:#2a2a50; --text:#e8e8f8; --muted:#8888aa; --accent:#00ffdd;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg1);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;padding-bottom:38px;overflow:hidden;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.85rem;opacity:.65}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.78rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.3rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.76rem;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 22px;flex-shrink:0;overflow-x:auto}
+.tab{padding:10px 18px;cursor:pointer;font-size:.82rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.pane{display:none;flex:1;overflow:hidden}
+.pane.active{display:flex}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;flex-shrink:0}
+.controls label{font-size:.76rem;color:var(--muted)}
+.controls input[type=range]{width:100px;accent-color:var(--accent)}
+.controls span.val{font-size:.76rem;color:var(--accent);min-width:34px}
+select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:.78rem;cursor:pointer}
+select:focus{outline:none;border-color:var(--accent)}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 13px;border-radius:4px;cursor:pointer;font-size:.78rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:#001a16}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 13px;font-size:.75rem;color:var(--muted);line-height:1.7;flex-shrink:0}
+.info-box .hi{color:var(--accent);font-weight:600}
+.side-panel{width:300px;min-width:200px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:14px 13px;gap:9px;flex-shrink:0}
+.side-panel h3{font-size:.87rem;color:var(--accent);margin-bottom:2px}
+.side-panel p,.side-panel li{font-size:.73rem;color:var(--muted);line-height:1.68}
+.side-panel ul{padding-left:14px}
+.side-panel .eq{font-size:.77rem;color:var(--text);padding:5px 8px;background:var(--bg3);border-radius:4px;border-left:2px solid var(--accent);margin:3px 0;overflow-wrap:break-word;word-break:break-word;}
+/* pane layouts */
+#pane0.active,#pane1.active,#pane2.active,#pane3.active,#pane4.active,#pane5.active{flex-direction:row}
+.canvas-col{display:flex;flex-direction:column;flex:1;padding:11px;gap:7px;overflow:hidden;min-width:0}
+.half-col{display:flex;flex-direction:column;flex:1;padding:11px;gap:7px;overflow:hidden;min-width:0}
+.half-col+.half-col{border-left:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">← Back</a>
+  <span class="badge">Ch. 33</span>
+  <div class="title-block">
+    <h1>𝕋 &nbsp;Twistor Theory</h1>
+    <p>Twistor space, Penrose transform, Robinson congruence, and the amplituhedron</p>
+  </div>
+</header>
+
+<div class="tabs" data-role="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">Twistor Correspondence</div>
+  <div class="tab" onclick="switchTab(1)">Penrose Transform</div>
+  <div class="tab" onclick="switchTab(2)">Robinson &amp; Hopf</div>
+  <div class="tab" onclick="switchTab(3)">Amplituhedron</div>
+  <div class="tab" onclick="switchTab(4)">MHV Amplitudes</div>
+  <div class="tab" onclick="switchTab(5)">BCFW Recursion</div>
+</div>
+
+<div id="main">
+
+<!-- ===== TAB 0: TWISTOR CORRESPONDENCE ===== -->
+<div class="pane active" id="pane0">
+  <div class="canvas-col">
+    <div style="font-size:.79rem;color:var(--accent);flex-shrink:0">Minkowski space (left) ↔ Twistor space CP³ (right) — drag the point P</div>
+    <canvas id="c0" style="flex:1;min-height:0;cursor:crosshair"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="0.1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">0.10</span>
+
+      <button id="btn0anim" onclick="t0.toggleAnim()">▶ Animate</button>
+      <button id="btn0rays" class="active-btn" onclick="t0.toggleRays()">Show Null Rays</button>
+      <button id="btn0sphere" class="active-btn" onclick="t0.toggleSphere()">Show Riemann Sphere</button>
+      <label>Speed:</label><input type="range" id="speed0" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal0">0.1x</span>
+    </div>
+    <div class="info-box">
+      Incidence: <span class="hi">$\omega^A = i\,x^{AA'}\pi_{A'}$</span> &nbsp;|&nbsp;
+      Point P in Minkowski ↔ CP¹ line in <span class="hi">PT</span> &nbsp;|&nbsp;
+      Null ray through P ↔ single twistor point
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about0">
+    <h3>Twistor Space</h3>
+    <p>Twistor space $\mathbb{T}\cong\mathbb{C}^4$ is a complex 4-dimensional space. A twistor is a pair</p>
+    <div class="eq">$$Z^\alpha = (\omega^A,\,\pi_{A'})$$</div>
+    <p>where $\omega^A$ is a two-component complex spinor and $\pi_{A'}$ its dual. Projective twistor space is</p>
+    <div class="eq">$$\mathbb{PT}\cong\mathbb{CP}^3$$</div>
+    <h3 style="margin-top:4px">Incidence Relation</h3>
+    <p>A twistor $Z^\alpha$ is incident with a spacetime point $x^{AA'}$ when</p>
+    <div class="eq">$$\omega^A = i\,x^{AA'}\pi_{A'}$$</div>
+    <p>For fixed $x$, the set of incident twistors forms a <strong style="color:var(--text)">CP¹ line</strong> (a Riemann sphere) inside $\mathbb{CP}^3$.</p>
+    <h3 style="margin-top:4px">Duality</h3>
+    <ul>
+      <li>Point in Minkowski space → line in $\mathbb{PT}$</li>
+      <li>Twistor $Z^\alpha$ → null ray in Minkowski space</li>
+      <li>Two points are null-separated ↔ their CP¹ lines intersect</li>
+    </ul>
+    <div class="eq">$$x^{AA'} \text{ null-sep from } y^{AA'} \iff L_x \cap L_y \neq \emptyset$$</div>
+    <p>This geometry elegantly encodes the causal structure of spacetime without coordinates.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 1: PENROSE TRANSFORM ===== -->
+<div class="pane" data-role="panel" id="pane1">
+  <div class="half-col">
+    <div style="font-size:.79rem;color:var(--accent);flex-shrink:0">Massless field on Minkowski space (helicity $s$ wave)</div>
+    <canvas id="c1" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar" style="flex-wrap:wrap;gap:6px 12px">
+      <span style="font-size:.76rem;color:var(--muted);align-self:center">Helicity $s$:</span>
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#ff4444"><input type="checkbox" id="hcb_n32" value="-1.5" onchange="t1.onCbChange()"> −3/2 gravitino</label>
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#ff44cc"><input type="checkbox" id="hcb_n1" value="-1" onchange="t1.onCbChange()"> −1 photon (L)</label>
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#44ff88"><input type="checkbox" id="hcb_n12" value="-0.5" onchange="t1.onCbChange()"> −½ electron (L)</label>
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#ff9900"><input type="checkbox" id="hcb_0" value="0" onchange="t1.onCbChange()"> 0 scalar (Higgs)</label>
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#ffffff"><input type="checkbox" id="hcb_p12" value="0.5" checked onchange="t1.onCbChange()"> +½ electron (R)</label>
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#00ccff"><input type="checkbox" id="hcb_p1" value="1" onchange="t1.onCbChange()"> +1 photon (R)</label>
+      <label style="display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#ffd700"><input type="checkbox" id="hcb_p32" value="1.5" onchange="t1.onCbChange()"> +3/2 graviton</label>
+    </div>
+    <div class="controls" data-role="sidebar">
+      <button id="btn1fib" class="active-btn" onclick="t1.toggleFib()">Show Double Fibration</button>
+      <button id="btn1anim" onclick="t1.toggleAnim()">▶ Animate</button>
+      <label>Speed:</label><input type="range" id="speed1" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal1">0.1x</span>
+    </div>
+    <div class="info-box" id="helInfo">Showing helicity $s=+\tfrac{1}{2}$: electron (R) — line bundle $\mathcal{O}(-1)$ on $\mathbb{PT}^+$</div>
+    <div class="info-box" id="fibBox" style="font-size:.72rem">
+      <span style="color:var(--accent);font-weight:600">Double Fibration:</span>
+      $\mathbb{M} \xleftarrow{q} \mathbb{F} \xrightarrow{p} \mathbb{PT}$ &nbsp;|&nbsp;
+      $\mathbb{F}=\mathbb{M}\times\mathbb{CP}^1$ — pull back cohomology, integrate over CP¹ fibers
+    </div>
+  </div>
+  <div class="half-col">
+    <div style="font-size:.79rem;color:var(--accent);flex-shrink:0">Cohomology class on twistor space / contour integral</div>
+    <canvas id="c1b" style="flex:1;min-height:0"></canvas>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Penrose Transform</h3>
+    <p>Massless free fields on Minkowski space correspond to sheaf cohomology classes on twistor space:</p>
+    <div class="eq">$$\phi_{A_1\cdots A_{2s}}(x) = \oint_{\mathbb{CP}^1} \pi_{A_1}\cdots\pi_{A_{2s}}\,f(Z)\,d\pi$$</div>
+    <p>where $f\in H^1(\mathbb{PT}^+,\mathcal{O}(2s-2))$.</p>
+    <h3 style="margin-top:4px">Double Fibration</h3>
+    <div class="eq">$$\mathbb{M} \xleftarrow{q} \mathbb{F} \xrightarrow{p} \mathbb{PT}$$</div>
+    <p>$\mathbb{F}=\mathbb{M}\times\mathbb{CP}^1$ is the correspondence space. Pulling back cohomology from $\mathbb{PT}$ and integrating over the CP¹ fibers gives fields on $\mathbb{M}$.</p>
+    <h3 style="margin-top:4px">Physics Dictionary</h3>
+    <ul>
+      <li>$s=\pm 3/2$: gravitino / graviton</li>
+      <li>$s=\pm 1$: photon (Maxwell)</li>
+      <li>$s=\pm\tfrac{1}{2}$: electron / Weyl neutrino</li>
+      <li>$s=0$: massless scalar (Higgs)</li>
+    </ul>
+    <p>The transform is an isomorphism for helicity $s\neq 0$; for $s=0$ one uses a different cohomology group.</p>
+    <h3 style="margin-top:4px">Color Key</h3>
+    <ul>
+      <li style="color:#ff4444">s=−3/2: gravitino (red)</li>
+      <li style="color:#ff44cc">s=−1: photon L (magenta)</li>
+      <li style="color:#44ff88">s=−½: electron L (green)</li>
+      <li style="color:#ff9900">s=0: scalar (orange)</li>
+      <li style="color:#ffffff">s=+½: electron R (white)</li>
+      <li style="color:#00ccff">s=+1: photon R (cyan)</li>
+      <li style="color:#ffd700">s=+3/2: graviton (gold)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== TAB 2: ROBINSON CONGRUENCE & HOPF ===== -->
+<div class="pane" data-role="panel" id="pane2">
+  <div class="canvas-col">
+    <div style="font-size:.79rem;color:var(--accent);flex-shrink:0">Hopf fibration $S^3\to S^2$ — fibers (circles) project from 3D, base = celestial sphere</div>
+    <canvas id="c2" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn2rot" class="active-btn" onclick="t2.toggleRot()">Rotate</button>
+      <label>Speed:</label>
+      <input type="range" id="rotSpd" min="1" max="20" value="5" oninput="t2.onSpd()">
+      <label>Fibers:</label>
+      <input type="range" id="fiberCount" min="5" max="50" value="18" oninput="t2.onFibers()">
+      <span class="val" id="fiberVal">18</span>
+      <button id="btn2link" onclick="t2.highlightLink()">Highlight Linking</button>
+      <label>Global:</label><input type="range" id="speed2" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal2">0.1x</span>
+    </div>
+    <div class="info-box" id="linkInfo">
+      Hopf fibration: $S^3\to S^2$. Every two distinct fibers are <span class="hi">linked exactly once</span>. Linking number = 1.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about2">
+    <h3>Hopf Fibration</h3>
+    <p>The Hopf map $h: S^3\to S^2$ sends a unit quaternion to a point on the 2-sphere:</p>
+    <div class="eq">$$h(z_1,z_2) = \bigl(2\operatorname{Re}(z_1\bar{z}_2),\,2\operatorname{Im}(z_1\bar{z}_2),\,|z_1|^2-|z_2|^2\bigr)$$</div>
+    <p>Each fiber $h^{-1}(p)\cong S^1$ is a great circle in $S^3$. Projected stereographically to $\mathbb{R}^3$, these circles are Villarceau circles — every pair is linked exactly once.</p>
+    <h3 style="margin-top:4px">Robinson Congruence</h3>
+    <p>A single (non-null) twistor $Z^\alpha$ determines a <em>Robinson congruence</em>: a twisted family of null rays in Minkowski space whose cross-sections form circles sweeping out a torus — precisely the Hopf fibration.</p>
+    <div class="eq">$$Z^\alpha \longleftrightarrow \text{Robinson congruence (null geodesics)}$$</div>
+    <h3 style="margin-top:4px">Spinor Connection</h3>
+    <p>The Hopf fibration underlies spin-$\tfrac{1}{2}$ representations: a $2\pi$ rotation maps a spinor to its negative, requiring a full $4\pi$ to return. The fiber $S^1\subset S^3$ double-covers $SO(2)$.</p>
+    <div class="eq">$$\pi_3(S^2)\cong\mathbb{Z},\quad \text{generator = Hopf map}$$</div>
+    <p>There is also a quaternionic version: $S^7\to S^4$ with fibers $S^3$, related to octonions and the instanton moduli space.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 3: AMPLITUHEDRON ===== -->
+<div class="pane" data-role="panel" id="pane3">
+  <div class="canvas-col">
+    <div style="font-size:.79rem;color:var(--accent);flex-shrink:0">Amplituhedron in momentum-twistor space — amplitude = $\int_{\mathcal{A}}\Omega$</div>
+    <canvas id="c3" style="flex:1;min-height:0;cursor:pointer"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn3add" onclick="t3.addParticle()">Add Particle</button>
+      <button id="btn3tri" class="active-btn" onclick="t3.toggleTri()">Triangulate (BCFW)</button>
+      <button id="btn3anim" onclick="t3.toggleAnim()">▶ Animate</button>
+      <label style="margin-left:6px">Particles: <span class="val" id="nPart">4</span></label>
+      <label>Speed:</label><input type="range" id="speed3" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal3">0.1x</span>
+    </div>
+    <div class="info-box" id="ampInfo">
+      Amplitude = $\displaystyle\int_{\text{amplituhedron}} \Omega$ &nbsp;|&nbsp; BCFW triangulation: each triangle = one on-shell diagram &nbsp;|&nbsp; <span class="hi" id="triCount">2 triangles</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about3">
+    <h3>Momentum Twistors</h3>
+    <p>Hodges (2009) introduced momentum twistors $Z_i=(\lambda_i,\mu_i)$ where</p>
+    <div class="eq">$$\mu_i^{A'} = x_i^{AA'}\lambda_{iA}$$</div>
+    <p>Supermomentum conservation is automatic; the BCFW recursion becomes a simple geometric statement in $\mathbb{CP}^3$.</p>
+    <h3 style="margin-top:4px">Amplituhedron</h3>
+    <p>Arkani-Hamed &amp; Trnka (2013): all tree-level and loop amplitudes of $\mathcal{N}=4$ SYM are encoded as the <em>volume</em> of a geometric object</p>
+    <div class="eq">$$\mathcal{A}_{n,k,L} \subset \text{Gr}(k,n)$$</div>
+    <p>called the amplituhedron, living in the Grassmannian. No Feynman diagrams needed — locality and unitarity <em>emerge</em> from the geometry.</p>
+    <h3 style="margin-top:4px">BCFW Recursion</h3>
+    <div class="eq">$$A_n = \sum_{\text{facets}} A_L \cdot \frac{1}{P^2} \cdot A_R$$</div>
+    <p>Each BCFW term triangulates the amplituhedron. The canonical form $\Omega$ has logarithmic singularities on all boundaries — the amplitude is its integral.</p>
+    <h3 style="margin-top:4px">Volume Form</h3>
+    <div class="eq">$$\Omega = \frac{\langle 1\,2\,3\,4\rangle^4}{\langle 1\,2\,3\,4\rangle\langle 2\,3\,4\,5\rangle\cdots\langle n\,1\,2\,3\rangle}$$</div>
+    <p>The angle brackets $\langle i\,j\,k\,l\rangle = \det(Z_i,Z_j,Z_k,Z_l)$ are the basic invariants of momentum-twistor geometry.</p>
+  </div>
+</div>
+
+
+<!-- ===== TAB 4: MHV AMPLITUDES ===== -->
+<div class="pane" data-role="panel" id="pane4">
+  <div class="canvas-col">
+    <div style="font-size:.79rem;color:var(--accent);flex-shrink:0">MHV gluon scattering — toggle helicities, watch Parke-Taylor amplitude update live</div>
+    <canvas id="c4" style="flex:1;min-height:0;cursor:pointer"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn4anim" class="" onclick="t4.toggleAnim()">▶ Animate</button>
+      <button id="btn4reset" onclick="t4.resetHelicities()">Reset Helicities</button>
+      <label>n gluons:</label>
+      <input type="range" id="mhvN" min="4" max="7" value="4" oninput="t4.onNChange()">
+      <span class="val" id="mhvNval">4</span>
+      <label>Speed:</label><input type="range" id="speed4" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal4">0.1x</span>
+    </div>
+    <div class="info-box" id="mhvInfo">
+      Parke-Taylor: <span class="hi" id="ptFormula">A₄(1⁻2⁻3⁺4⁺) = ⟨12⟩⁴ / (⟨12⟩⟨23⟩⟨34⟩⟨41⟩)</span>
+      &nbsp;|&nbsp; Click gluon labels to flip helicity &nbsp;|&nbsp;
+      MHV = exactly 2 negative helicities
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about4">
+    <h3>MHV Amplitudes</h3>
+    <p>Maximally Helicity Violating (MHV) amplitudes are tree-level gluon scattering amplitudes with exactly two negative-helicity gluons. All others vanish (helicity conservation) or are MHV.</p>
+    <h3 style="margin-top:6px">Parke-Taylor Formula (1986)</h3>
+    <div class="eq">$$A_n(1^-\!2^-\!3^+\!\cdots n^+) = \frac{\langle 12\rangle^4}{\langle 12\rangle\langle 23\rangle\cdots\langle n1\rangle}$$</div>
+    <p>A single line replacing thousands of Feynman diagrams! The angle bracket is the spinor inner product $\langle ij\rangle = \epsilon_{AB}\lambda_i^A\lambda_j^B$.</p>
+    <h3 style="margin-top:6px">Spinor-Helicity</h3>
+    <p>Massless momenta are rank-1: $p^{AA'} = \lambda^A\tilde\lambda^{A'}$. Helicity $+1$ polarization uses $\tilde\lambda$; helicity $-1$ uses $\lambda$. The denominators $\langle i\,i{+}1\rangle$ encode collinear singularities.</p>
+    <div class="eq">$$[ij] = \epsilon_{A'B'}\tilde\lambda_i^{A'}\tilde\lambda_j^{B'}$$</div>
+    <h3 style="margin-top:6px">Vanishing Amplitudes</h3>
+    <ul>
+      <li>All same helicity: $A_n(+\!+\!\cdots\!+) = 0$</li>
+      <li>One flip: $A_n(-\!+\!\cdots\!+) = 0$</li>
+      <li>Two flips: MHV — Parke-Taylor applies</li>
+      <li>Three flips: NMHV — needs BCFW recursion</li>
+    </ul>
+    <p style="margin-top:4px">The MHV amplitude is holomorphic in $\lambda_i$ — it only involves angle brackets, never square brackets. This holomorphicity is the seed of Witten's twistor string theory.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 5: BCFW RECURSION ===== -->
+<div class="pane" data-role="panel" id="pane5">
+  <div class="canvas-col">
+    <div style="font-size:.79rem;color:var(--accent);flex-shrink:0">BCFW recursion — complex momentum shift $z$ sweeps the plane; poles light up at physical residues</div>
+    <canvas id="c5" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btn5anim" class="" onclick="t5.toggleAnim()">▶ Animate</button>
+      <button id="btn5diagrams" class="active-btn" onclick="t5.toggleDiagrams()">Show Sub-Diagrams</button>
+      <label>n particles:</label>
+      <input type="range" id="bcfwN" min="4" max="6" value="4" oninput="t5.onNChange()">
+      <span class="val" id="bcfwNval">4</span>
+      <label>Speed:</label><input type="range" id="speed5" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal5">0.1x</span>
+    </div>
+    <div class="info-box" id="bcfwInfo">
+      Shift: <span class="hi">p̂₁(z) = p₁ + z·η, &nbsp;p̂₂(z) = p₂ − z·η</span>
+      &nbsp;|&nbsp; Amplitude = residue sum at poles $z_i$ where $P̂(z_i)^2 = 0$
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about5">
+    <h3>BCFW On-Shell Recursion</h3>
+    <p>Britto, Cachazo, Feng, Witten (2005): shift two momenta by a complex parameter $z$:</p>
+    <div class="eq">$$\hat{p}_1(z) = p_1 + z\,\eta,\quad \hat{p}_2(z) = p_2 - z\,\eta$$</div>
+    <p>where $\eta^\mu$ is a reference null vector with $\eta\cdot p_1 = \eta\cdot p_2 = 0$.</p>
+    <h3 style="margin-top:6px">Cauchy Residue Theorem</h3>
+    <p>The shifted amplitude $A_n(z)$ is rational in $z$ and vanishes as $|z|\to\infty$. By Cauchy's theorem:</p>
+    <div class="eq">$$A_n(0) = -\sum_{\text{poles }z_i} \text{Res}_{z=z_i} A_n(z)$$</div>
+    <p>Each pole occurs when an internal propagator goes on-shell: $\hat{P}_I^2(z_i) = 0$.</p>
+    <h3 style="margin-top:6px">Factorization</h3>
+    <p>At each pole the amplitude factorizes into two lower-point on-shell amplitudes:</p>
+    <div class="eq">$$A_n = \sum_{I,h} A_L(\hat{1},\ldots,\hat{P}_I^{-h})\,\frac{i}{P_I^2}\,A_R(\hat{P}_I^h,\ldots,\hat{2})$$</div>
+    <h3 style="margin-top:6px">Why It Works</h3>
+    <p>The shift preserves momentum conservation and on-shell conditions for all external legs. Locality (poles only from propagators) and unitarity (factorization) are the only inputs — Feynman rules are not needed.</p>
+    <p style="margin-top:4px">This recursion is what triangulates the amplituhedron: each BCFW term is a simplex in the geometric decomposition.</p>
+  </div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+// ─────────────────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────────────────
+function dprCanvas(id){
+  const cv=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+  const rect=cv.getBoundingClientRect();
+  cv.width=rect.width*dpr; cv.height=rect.height*dpr;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {cv,ctx,W:rect.width,H:rect.height,dpr};
+}
+function resize(){
+  if(activeTab===0) t0.resize();
+  else if(activeTab===1) t1.resize();
+  else if(activeTab===2) t2.resize();
+  else if(activeTab===3) t3.resize();
+  else if(activeTab===4) t4.resize();
+  else if(activeTab===5) t5.resize();
+}
+window.addEventListener('resize',()=>{setTimeout(resize,60)});
+
+let activeTab=0;
+function syncSpeedControl44(i){
+  const slider=document.getElementById('speed'+i);
+  const display=document.getElementById('speedVal'+i);
+  if(slider&&display){display.textContent=''+(slider.value/100)+'x';}
+}
+function _cancelAllAnims44(){
+  // Animation cleanup handled by individual tab stop() methods
+}
+
+function switchTab(i){
+  // Cancel all animation loops before switching to prevent stacking
+  t0.stop(); t1.stop(); t2.stop(); t3.stop(); t4.stop(); t5.stop();
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  syncSpeedControl44(i);
+  activeTab=i;
+  setTimeout(resize,30);
+  if(i===0) t0.start();
+  if(i===1) t1.start();
+  if(i===2) t2.start();
+  if(i===3) t3.start();
+  if(i===4) t4.start();
+  if(i===5) t5.start();
+}
+
+// ─────────────────────────────────────────────────────────
+// TAB 0 — TWISTOR CORRESPONDENCE
+// ─────────────────────────────────────────────────────────
+const t0=(()=>{
+  let cv,ctx,W,H;
+  let animating=false,showRays=true,showSphere=true;
+  let raf=null, phase=0;
+  // Point P position (in left half, normalized 0-1)
+  let Px=0.5,Py=0.5;
+  let dragging=false;
+
+  function setup(){
+    const el=document.getElementById('c0');
+    const dpr=window.devicePixelRatio||1;
+    const rect=el.getBoundingClientRect();
+    const newW=rect.width, newH=rect.height;
+    // Only resize canvas when dimensions actually change
+    if(el.width!==Math.round(newW*dpr)||el.height!==Math.round(newH*dpr)){
+      el.width=Math.round(newW*dpr); el.height=Math.round(newH*dpr);
+    }
+    cv=el; ctx=el.getContext('2d'); W=newW; H=newH;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    cv.onmousedown=onMD; cv.onmousemove=onMM; cv.onmouseup=()=>dragging=false;
+    cv.onmouseleave=()=>dragging=false;
+    if(!raf) raf=requestAnimationFrame(loop);
+  }
+
+  function onMD(e){
+    const r=cv.getBoundingClientRect();
+    const mx=(e.clientX-r.left),my=(e.clientY-r.top);
+    if(mx<W/2-4){dragging=true; movePt(mx,my);}
+  }
+  function onMM(e){
+    if(!dragging) return;
+    const r=cv.getBoundingClientRect();
+    movePt(e.clientX-r.left,e.clientY-r.top);
+  }
+  function movePt(mx,my){
+    const LW=W/2-8;
+    Px=Math.max(0.05,Math.min(0.95,(mx-16)/LW));
+    Py=Math.max(0.1,Math.min(0.9,(my-16)/(H-32)));
+  }
+
+  function loop(ts){
+    raf=requestAnimationFrame(loop);
+    if(animating){
+      phase+=0.012*(window.animSpeed||0.1);
+      Px=0.5+0.35*Math.cos(phase);
+      Py=0.5+0.3*Math.sin(phase*0.7);
+    }
+    draw(ts);
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const mid=Math.floor(W/2);
+    const LW=mid-8, RX=mid+8, RW=W-8-RX;
+    // ── LEFT: Minkowski cross-section ──
+    // background
+    ctx.fillStyle='#0a0a1e'; ctx.fillRect(8,8,LW,H-16);
+    ctx.strokeStyle='#2a2a50'; ctx.lineWidth=1; ctx.strokeRect(8,8,LW,H-16);
+    // label
+    ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI';
+    ctx.fillText('Minkowski space M',18,24);
+    // grid lines (light cone pattern)
+    ctx.save(); ctx.beginPath(); ctx.rect(8,8,LW,H-16); ctx.clip();
+    ctx.strokeStyle='#1a1a35'; ctx.lineWidth=0.6;
+    for(let i=-10;i<20;i++){
+      const gx=8+i*(LW/8);
+      ctx.beginPath(); ctx.moveTo(gx,8); ctx.lineTo(gx,H-8); ctx.stroke();
+    }
+    for(let j=-10;j<20;j++){
+      const gy=8+j*((H-16)/8);
+      ctx.beginPath(); ctx.moveTo(8,gy); ctx.lineTo(8+LW,gy); ctx.stroke();
+    }
+    ctx.restore(); // end left-half grid clip
+    // point P
+    const Ppx=8+Px*LW, Ppy=8+Py*(H-16);
+    // null rays through P
+    if(showRays){
+      const numRays=8;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(8,8,LW,H-16); ctx.clip();
+      for(let k=0;k<numRays;k++){
+        const ang=(k/numRays)*Math.PI*2;
+        const cdx=Math.cos(ang+Math.PI/4)*Math.SQRT2; // 45-deg null rays
+        const cdy=-Math.sin(ang+Math.PI/4)*Math.SQRT2;
+        // only draw rays at ±45 (null directions in 2D)
+      }
+      // draw actual null rays (diagonal = null in 2D Minkowski)
+      const nullDirs=[[1,1],[1,-1],[-1,1],[-1,-1],[0.97,0.97+0.1],[0.97,-0.97],[1.1,0.9],[-0.9,1.1]];
+      nullDirs.forEach(([dx,dy],ki)=>{
+        const t1a=Math.sqrt(dx*dx+dy*dy),ndx=dx/t1a,ndy=dy/t1a;
+        const len=Math.max(W,H)*1.5;
+        const alpha=0.55-ki*0.03;
+        ctx.strokeStyle=`rgba(0,255,221,${Math.max(0.15,alpha)})`;
+        ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.moveTo(Ppx-ndx*len,Ppy-ndy*len);
+        ctx.lineTo(Ppx+ndx*len,Ppy+ndy*len);
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+    // point P dot
+    ctx.beginPath(); ctx.arc(Ppx,Ppy,7,0,Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='var(--accent)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#e8e8f8'; ctx.font='bold 12px Segoe UI';
+    ctx.fillText('P',Ppx+10,Ppy-6);
+
+    // ── RIGHT: Twistor space CP³ ──
+    ctx.fillStyle='#070716'; ctx.fillRect(RX,8,RW,H-16);
+    ctx.strokeStyle='#2a2a50'; ctx.lineWidth=1; ctx.strokeRect(RX,8,RW,H-16);
+    ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI';
+    ctx.fillText('Twistor space PT≅CP³',RX+10,24);
+
+    const cx=RX+RW/2, cy=H/2;
+    // background star field
+    ctx.save();
+    ctx.beginPath(); ctx.rect(RX,8,RW,H-16); ctx.clip();
+    for(let s=0;s<40;s++){
+      const sx=RX+((s*173)%RW), sy=8+((s*97)%(H-16));
+      ctx.fillStyle='rgba(255,255,255,0.15)';
+      ctx.beginPath(); ctx.arc(sx,sy,0.8,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+
+    // CP¹ line (Riemann sphere cross-section) — an ellipse
+    // Radius is at least 35% of the smaller right-half dimension so it's always visible
+    const rxBase=Math.min(RW,H)*0.35;
+    const rx=rxBase*(0.7+0.3*Px);
+    const ry=Math.min(rx*(0.4+0.3*Py), (H-32)*0.45);
+    if(showSphere){
+      // glow
+      const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,rx+20);
+      grd.addColorStop(0,'rgba(255,200,0,0.08)');
+      grd.addColorStop(1,'rgba(255,200,0,0)');
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.ellipse(cx,cy,rx+20,ry+20,0,0,Math.PI*2); ctx.fill();
+
+      ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.stroke();
+      // equator dashes
+      ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry*0.25,0,0,Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
+      // label
+      ctx.fillStyle='#ffd700'; ctx.font='12px Segoe UI';
+      ctx.fillText('CP¹ line (Riemann sphere)',RX+10,H-20);
+    }
+
+    // null rays as points on CP¹
+    if(showRays&&showSphere){
+      const pts=8;
+      for(let k=0;k<pts;k++){
+        const ang=(k/pts)*Math.PI*2;
+        const px2=cx+rx*Math.cos(ang);
+        const py2=cy+ry*Math.sin(ang);
+        ctx.beginPath(); ctx.arc(px2,py2,4,0,Math.PI*2);
+        ctx.fillStyle='rgba(0,255,221,0.85)'; ctx.fill();
+        ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+      }
+    }
+
+    // ── DIVIDER ──
+    ctx.strokeStyle='#2a2a50'; ctx.lineWidth=1; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(W/2,16); ctx.lineTo(W/2,H-16); ctx.stroke();
+    ctx.setLineDash([]);
+    // ↔ arrows label
+    ctx.fillStyle='var(--accent)'; ctx.font='bold 14px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText('↔',W/2,H/2+5);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa';
+    ctx.fillText('twistor',W/2,H/2+20);
+    ctx.textAlign='left';
+  }
+
+  return{
+    start(){setup()},
+    stop(){ if(raf){cancelAnimationFrame(raf);raf=null;} },
+    resize(){setup()},
+    toggleAnim(){
+      animating=!animating;
+      const b=document.getElementById('btn0anim');
+      b.classList.toggle('active-btn',animating);
+      b.textContent=animating?'\u23f8 Pause':'\u25b6 Animate';
+    },
+    toggleRays(){
+      showRays=!showRays;
+      document.getElementById('btn0rays').classList.toggle('active-btn',showRays);
+    },
+    toggleSphere(){
+      showSphere=!showSphere;
+      document.getElementById('btn0sphere').classList.toggle('active-btn',showSphere);
+    }
+  };
+})();
+
+// ─────────────────────────────────────────────────────────
+// TAB 1 — PENROSE TRANSFORM
+// ─────────────────────────────────────────────────────────
+const t1=(()=>{
+  let cv1,ctx1,W1,H1;
+  let cv2,ctx2,W2,H2;
+  let raf=null, phase=0;
+  let animating=false, showFib=true;
+
+  // Helicity data keyed by string value
+  const helData={
+    '-1.5':{name:'gravitino',        bundle:'\\mathcal{O}(-5)', color:'#ff4444'},
+    '-1':  {name:'photon (left)',     bundle:'\\mathcal{O}(-4)', color:'#ff44cc'},
+    '-0.5':{name:'electron (left)',   bundle:'\\mathcal{O}(-3)', color:'#44ff88'},
+    '0':   {name:'scalar (Higgs)',    bundle:'\\mathcal{O}(-2)', color:'#ff9900'},
+    '0.5': {name:'electron (right)',  bundle:'\\mathcal{O}(-1)', color:'#ffffff'},
+    '1':   {name:'photon (right)',    bundle:'\\mathcal{O}(0)',  color:'#00ccff'},
+    '1.5': {name:'graviton',          bundle:'\\mathcal{O}(2)',  color:'#ffd700'},
+  };
+
+  // Checkbox ids → helicity value strings
+  const cbMap=[
+    {id:'hcb_n32', val:'-1.5'},
+    {id:'hcb_n1',  val:'-1'},
+    {id:'hcb_n12', val:'-0.5'},
+    {id:'hcb_0',   val:'0'},
+    {id:'hcb_p12', val:'0.5'},
+    {id:'hcb_p1',  val:'1'},
+    {id:'hcb_p32', val:'1.5'},
+  ];
+
+  function getChecked(){
+    return cbMap.filter(({id})=>{
+      const el=document.getElementById(id);
+      return el&&el.checked;
+    }).map(({val})=>val);
+  }
+
+  function setupCanvas(id){
+    const el=document.getElementById(id);
+    const dpr=window.devicePixelRatio||1;
+    const rect=el.getBoundingClientRect();
+    const newW=rect.width, newH=rect.height;
+    if(el.width!==Math.round(newW*dpr)||el.height!==Math.round(newH*dpr)){
+      el.width=Math.round(newW*dpr); el.height=Math.round(newH*dpr);
+    }
+    const ctx=el.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {cv:el,ctx,W:newW,H:newH,dpr};
+  }
+
+  function setup(){
+    let d=setupCanvas('c1'); cv1=d.cv; ctx1=d.ctx; W1=d.W; H1=d.H;
+    d=setupCanvas('c1b'); cv2=d.cv; ctx2=d.ctx; W2=d.W; H2=d.H;
+    if(!raf) raf=requestAnimationFrame(loop);
+  }
+
+  function loop(){
+    raf=requestAnimationFrame(loop);
+    if(animating) phase+=0.025*(window.animSpeed||0.1);
+    drawLeft(); drawRight();
+  }
+
+  function hexToRgb(hex){
+    return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];
+  }
+
+  function drawLeft(){
+    ctx1.clearRect(0,0,W1,H1);
+    ctx1.fillStyle='#080818'; ctx1.fillRect(0,0,W1,H1);
+
+    const checked=getChecked();
+    if(checked.length===0){
+      ctx1.fillStyle='#8888aa'; ctx1.font='12px Segoe UI'; ctx1.textAlign='center';
+      ctx1.fillText('Select at least one helicity above',W1/2,H1/2);
+      ctx1.textAlign='left';
+      return;
+    }
+
+    // Draw each checked helicity as an overlaid waveform at 0.6 opacity
+    const rows=12, cols=40;
+    checked.forEach(val=>{
+      const hd=helData[val]||helData['0.5'];
+      const col=hd.color;
+      const [cr,cg,cb]=hexToRgb(col);
+      const s=Math.abs(parseFloat(val))||0.1;
+      for(let j=0;j<rows;j++){
+        const y=H1*(j+0.5)/rows;
+        for(let i=0;i<cols;i++){
+          const x=W1*(i+0.5)/cols;
+          const val2=Math.sin((i/cols)*Math.PI*2*s*4+phase+(j/rows)*Math.PI*2*s)*0.5+0.5;
+          const sz=4+val2*5;
+          const alpha=(0.3+val2*0.6)*0.6;
+          ctx1.beginPath(); ctx1.arc(x,y,sz,0,Math.PI*2);
+          ctx1.fillStyle=`rgba(${cr},${cg},${cb},${alpha})`;
+          ctx1.fill();
+        }
+      }
+    });
+
+    // legend of active helicities
+    ctx1.font='12px Segoe UI';
+    checked.forEach((val,idx)=>{
+      const hd=helData[val];
+      const [cr,cg,cb]=hexToRgb(hd.color);
+      ctx1.fillStyle=`rgba(${cr},${cg},${cb},0.9)`;
+      ctx1.fillText(`s=${val}: ${hd.name}`,8,14+idx*13);
+    });
+  }
+
+  function arrow(ctx,x1,y1,x2,y2){
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    const ang=Math.atan2(y2-y1,x2-x1);
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-8*Math.cos(ang-0.4),y2-8*Math.sin(ang-0.4));
+    ctx.lineTo(x2-8*Math.cos(ang+0.4),y2-8*Math.sin(ang+0.4));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function drawRight(){
+    ctx2.clearRect(0,0,W2,H2);
+    ctx2.fillStyle='#060614'; ctx2.fillRect(0,0,W2,H2);
+    const checked=getChecked();
+    const firstVal=checked.length>0?checked[0]:'0.5';
+    const hd=helData[firstVal]||helData['0.5'];
+    const col=hd.color;
+    const cx=W2/2, cy=H2*0.42;
+    const rx=Math.min(W2,H2)*0.26, ry=rx*0.5;
+
+    // CP¹ circle (base of contour integral)
+    ctx2.strokeStyle=col; ctx2.lineWidth=2;
+    ctx2.beginPath(); ctx2.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx2.stroke();
+    // glow fill
+    const grd=ctx2.createRadialGradient(cx,cy,0,cx,cy,rx);
+    const r2=parseInt(col.slice(1,3),16),g2=parseInt(col.slice(3,5),16),b2=parseInt(col.slice(5,7),16);
+    grd.addColorStop(0,`rgba(${r2},${g2},${b2},0.12)`);
+    grd.addColorStop(1,`rgba(${r2},${g2},${b2},0)`);
+    ctx2.fillStyle=grd; ctx2.beginPath(); ctx2.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx2.fill();
+
+    // sweep arc for contour integral animation
+    if(animating){
+      const sweepAng=((phase*0.9)%(Math.PI*2));
+      ctx2.strokeStyle=`rgba(255,255,255,0.7)`; ctx2.lineWidth=3;
+      ctx2.beginPath(); ctx2.ellipse(cx,cy,rx,ry,0,-Math.PI/2,sweepAng-Math.PI/2); ctx2.stroke();
+      // moving point on arc
+      const ax=cx+rx*Math.cos(sweepAng-Math.PI/2);
+      const ay=cy+ry*Math.sin(sweepAng-Math.PI/2);
+      ctx2.beginPath(); ctx2.arc(ax,ay,5,0,Math.PI*2);
+      ctx2.fillStyle='#fff'; ctx2.fill();
+    }
+
+    // cohomology label
+    ctx2.fillStyle='#8888aa'; ctx2.font='12px Segoe UI'; ctx2.textAlign='center';
+    ctx2.fillText(`H¹(PT⁺, ${hd.bundle})`,cx,cy+ry+22);
+    ctx2.fillStyle=col; ctx2.font='bold 12px Segoe UI';
+    ctx2.fillText(`Cohomology class for s=${firstVal}`,cx,20);
+
+    // show some "cochain" lines inside
+    for(let k=0;k<6;k++){
+      const ang1=(k/6)*Math.PI*2+phase*0.3;
+      const ang2=ang1+Math.PI*0.55;
+      const px1=cx+rx*Math.cos(ang1), py1=cy+ry*Math.sin(ang1);
+      const px2=cx+rx*Math.cos(ang2), py2=cy+ry*Math.sin(ang2);
+      ctx2.strokeStyle=`rgba(${r2},${g2},${b2},0.3)`; ctx2.lineWidth=1; ctx2.setLineDash([3,4]);
+      ctx2.beginPath(); ctx2.moveTo(px1,py1); ctx2.lineTo(px2,py2); ctx2.stroke();
+    }
+    ctx2.setLineDash([]);
+    ctx2.textAlign='left';
+    // helicity info
+    ctx2.fillStyle='#8888aa'; ctx2.font='12px Segoe UI';
+    ctx2.fillText(`Line bundle: ${hd.bundle} on CP³`,8,H2-22);
+    ctx2.fillText(`Contour integral ∮ π…f(Z) dπ`,8,H2-8);
+  }
+
+  return{
+    start(){setup()},
+    stop(){ if(raf){cancelAnimationFrame(raf);raf=null;} },
+    resize(){setup()},
+    onCbChange(){
+      const checked=getChecked();
+      if(checked.length===0){
+        document.getElementById('helInfo').textContent='Select at least one helicity to see field details.';
+        return;
+      }
+      const parts=checked.map(val=>{
+        const hd=helData[val];
+        return `s=${val}: ${hd.name}`;
+      });
+      const firstHd=helData[checked[0]];
+      document.getElementById('helInfo').innerHTML=
+        `Active: ${parts.join(' | ')} — first bundle $${firstHd.bundle}$ on $\\mathbb{PT}^+$`;
+      renderMathInElement(document.getElementById('helInfo'),{delimiters:[{left:'$',right:'$',display:false},{left:'$$',right:'$$',display:true}]});
+    },
+    toggleFib(){
+      showFib=!showFib;
+      document.getElementById('btn1fib').classList.toggle('active-btn',showFib);
+      const fb=document.getElementById('fibBox');
+      if(fb) fb.style.display=showFib?'block':'none';
+    },
+    toggleAnim(){
+      animating=!animating;
+      const b=document.getElementById('btn1anim');
+      b.classList.toggle('active-btn',animating);
+      b.textContent=animating?'\u23f8 Pause':'\u25b6 Animate';
+    }
+  };
+})();
+
+// ─────────────────────────────────────────────────────────
+// TAB 2 — ROBINSON CONGRUENCE & HOPF FIBRATION
+// ─────────────────────────────────────────────────────────
+const t2=(()=>{
+  let cv,ctx,W,H;
+  let rotating=true, raf=null, phase=0, spd=5;
+  let fiberN=18, linkHighlight=false, linkTimer=0;
+
+  // Hopf fiber: point on S² given by (theta,phi) -> circle in R³
+  function hopfFiber(theta,phi,t,pts=60){
+    const result=[];
+    const cth=Math.cos(theta/2), sth=Math.sin(theta/2);
+    const cph=Math.cos(phi/2), sph=Math.sin(phi/2);
+    for(let k=0;k<pts;k++){
+      const psi=(k/pts)*Math.PI*2+t;
+      // Hopf fiber parameterisation in R⁴, stereographic to R³
+      const a= cth*Math.cos(psi);
+      const b= cth*Math.sin(psi);
+      const c= sth*Math.cos(phi+psi);
+      const d= sth*Math.sin(phi+psi);
+      // Stereographic projection from S³ subset R⁴ to R³
+      // (a,b,c,d) -> (b/(1-a), c/(1-a), d/(1-a))
+      const denom=1-a+1e-9;
+      result.push([b/denom, c/denom, d/denom]);
+    }
+    return result;
+  }
+
+  // Simple 3D rotation matrices
+  function rotY(pts,ang){
+    const c=Math.cos(ang),s=Math.sin(ang);
+    return pts.map(([x,y,z])=>[c*x+s*z,y,-s*x+c*z]);
+  }
+  function rotX(pts,ang){
+    const c=Math.cos(ang),s=Math.sin(ang);
+    return pts.map(([x,y,z])=>[x,c*y-s*z,s*y+c*z]);
+  }
+
+  function project(pts,W,H){
+    const fov=2.5;
+    return pts.map(([x,y,z])=>{
+      const scale=fov/(fov+z+3);
+      return [W/2+x*scale*Math.min(W,H)*0.38, H/2-y*scale*Math.min(W,H)*0.38, z];
+    });
+  }
+
+  function setup(){
+    const el=document.getElementById('c2');
+    const dpr=window.devicePixelRatio||1;
+    const rect=el.getBoundingClientRect();
+    const newW=rect.width, newH=rect.height;
+    // Only reallocate canvas memory when dimensions actually change
+    if(el.width!==Math.round(newW*dpr)||el.height!==Math.round(newH*dpr)){
+      el.width=Math.round(newW*dpr); el.height=Math.round(newH*dpr);
+    }
+    cv=el; ctx=el.getContext('2d'); W=newW; H=newH;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(!raf) raf=requestAnimationFrame(loop);
+  }
+
+  function loop(){
+    raf=requestAnimationFrame(loop);
+    if(rotating) phase+=spd*0.003;
+    if(linkHighlight) linkTimer-=0.02;
+    if(linkTimer<0){linkHighlight=false;linkTimer=0;}
+    draw();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#060614'; ctx.fillRect(0,0,W,H);
+    // draw fibers
+    const fibers=[];
+    for(let k=0;k<fiberN;k++){
+      const theta=Math.PI*(k+0.5)/fiberN;
+      const phi=(k/fiberN)*Math.PI*2;
+      let pts=hopfFiber(theta,phi,phase,50);
+      pts=rotX(pts,0.4);
+      pts=rotY(pts,phase*0.5);
+      const projected=project(pts,W,H);
+      const hue=(k/fiberN)*360;
+      fibers.push({projected,hue,k});
+    }
+    // sort by avg z for painter's algorithm
+    fibers.sort((a,b)=>{
+      const za=a.projected.reduce((s,p)=>s+p[2],0)/a.projected.length;
+      const zb=b.projected.reduce((s,p)=>s+p[2],0)/b.projected.length;
+      return za-zb;
+    });
+    fibers.forEach(({projected,hue,k})=>{
+      const isLink=linkHighlight&&(k===0||k===Math.floor(fiberN/4));
+      const alpha=isLink?1.0:0.65;
+      const lw=isLink?2.5:1.2;
+      ctx.beginPath();
+      ctx.moveTo(projected[0][0],projected[0][1]);
+      for(let i=1;i<projected.length;i++){
+        ctx.lineTo(projected[i][0],projected[i][1]);
+      }
+      ctx.closePath();
+      ctx.strokeStyle=`hsla(${hue},90%,${isLink?75:55}%,${alpha})`;
+      ctx.lineWidth=lw;
+      ctx.stroke();
+      if(isLink){
+        // label
+        const mx=projected.reduce((s,p)=>s+p[0],0)/projected.length;
+        const my=projected.reduce((s,p)=>s+p[1],0)/projected.length;
+        ctx.fillStyle='#fff'; ctx.font='bold 12px Segoe UI';
+        ctx.fillText(k===0?'Fiber A':'Fiber B',mx+6,my);
+      }
+    });
+    // linking number label
+    if(linkHighlight){
+      ctx.fillStyle='rgba(0,255,221,0.95)'; ctx.font='bold 13px Segoe UI';
+      ctx.textAlign='center';
+      ctx.fillText('Linking number = 1',W/2,H-18);
+      ctx.textAlign='left';
+    }
+    // ── celestial sphere indicator ──
+    ctx.strokeStyle='rgba(255,215,0,0.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(W/2,H/2,Math.min(W,H)*0.42,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#ffd700'; ctx.font='12px Segoe UI';
+    ctx.fillText('S² = Celestial / Riemann sphere',8,H-8);
+  }
+
+  return{
+    start(){setup()},
+    stop(){ if(raf){cancelAnimationFrame(raf);raf=null;} },
+    resize(){setup()},
+    toggleRot(){
+      rotating=!rotating;
+      document.getElementById('btn2rot').classList.toggle('active-btn',rotating);
+    },
+    onSpd(){ spd=parseFloat(document.getElementById('rotSpd').value); },
+    onFibers(){
+      fiberN=parseInt(document.getElementById('fiberCount').value);
+      document.getElementById('fiberVal').textContent=fiberN;
+    },
+    highlightLink(){ linkHighlight=true; linkTimer=4.0; }
+  };
+})();
+
+// ─────────────────────────────────────────────────────────
+// TAB 3 — AMPLITUHEDRON
+// ─────────────────────────────────────────────────────────
+const t3=(()=>{
+  let cv,ctx,W,H;
+  let raf=null, phase=0;
+  let nParticles=4, showTri=true, animating=false;
+  // Vertices of amplituhedron polygon (normalized -1..1)
+  let verts=[
+    [0.55,0.55],[0.55,-0.55],[-0.55,-0.55],[-0.55,0.55]
+  ];
+  let draggingVert=-1;
+
+  function setup(){
+    const el=document.getElementById('c3');
+    const dpr=window.devicePixelRatio||1;
+    const rect=el.getBoundingClientRect();
+    const newW=rect.width, newH=rect.height;
+    // Only reallocate canvas memory when dimensions actually change
+    if(el.width!==Math.round(newW*dpr)||el.height!==Math.round(newH*dpr)){
+      el.width=Math.round(newW*dpr); el.height=Math.round(newH*dpr);
+    }
+    cv=el; ctx=el.getContext('2d'); W=newW; H=newH;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    cv.onmousedown=onMD; cv.onmousemove=onMM; cv.onmouseup=()=>draggingVert=-1;
+    cv.onmouseleave=()=>draggingVert=-1;
+    if(!raf) raf=requestAnimationFrame(loop);
+  }
+
+  function toScreen(v){ return [W/2+v[0]*Math.min(W,H)*0.35, H/2+v[1]*Math.min(W,H)*0.35]; }
+  function fromScreen(x,y){ return [(x-W/2)/(Math.min(W,H)*0.35),(y-H/2)/(Math.min(W,H)*0.35)]; }
+
+  function onMD(e){
+    const r=cv.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    for(let i=0;i<verts.length;i++){
+      const [sx,sy]=toScreen(verts[i]);
+      if(Math.hypot(mx-sx,my-sy)<14){draggingVert=i; return;}
+    }
+  }
+  function onMM(e){
+    if(draggingVert<0) return;
+    const r=cv.getBoundingClientRect();
+    const v=fromScreen(e.clientX-r.left,e.clientY-r.top);
+    verts[draggingVert]=[Math.max(-0.95,Math.min(0.95,v[0])),Math.max(-0.95,Math.min(0.95,v[1]))];
+  }
+
+  function loop(){
+    raf=requestAnimationFrame(loop);
+    if(animating){
+      phase+=0.018*(window.animSpeed||0.1);
+      // gently morph vertices
+      verts=verts.map((v,i)=>{
+        const base_r=0.5+0.15*Math.cos(i*1.3);
+        const base_a=(i/nParticles)*Math.PI*2;
+        const r=base_r+0.12*Math.sin(phase+i*2.1);
+        const a=base_a+0.08*Math.sin(phase*0.7+i*1.5);
+        return [r*Math.cos(a),r*Math.sin(a)];
+      });
+    }
+    draw();
+  }
+
+  function fanTriangulate(vs){
+    // fan triangulation from vertex 0
+    const tris=[];
+    for(let i=1;i<vs.length-1;i++) tris.push([0,i,i+1]);
+    return tris;
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#060614'; ctx.fillRect(0,0,W,H);
+    const sv=verts.map(toScreen);
+
+    // triangulation
+    const tris=fanTriangulate(sv);
+    const triColors=['rgba(0,255,221,0.13)','rgba(0,200,180,0.10)','rgba(0,150,140,0.08)',
+                     'rgba(0,255,221,0.11)','rgba(0,180,160,0.09)'];
+    if(showTri){
+      // For n>8 reduce visual clutter: only show every other triangle's interior fill and skip centroid labels
+      const reducedMode = nParticles > 8;
+      tris.forEach((tri,ti)=>{
+        const [a,b,c]=tri.map(i=>sv[i]);
+        ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.lineTo(c[0],c[1]); ctx.closePath();
+        if(!reducedMode || ti%2===0){
+          ctx.fillStyle=triColors[ti%triColors.length]; ctx.fill();
+        }
+        const dashAlpha = reducedMode ? 0.28 : 0.45;
+        ctx.strokeStyle=`rgba(0,255,221,${dashAlpha})`; ctx.lineWidth=1; ctx.setLineDash([4,3]); ctx.stroke();
+        ctx.setLineDash([]);
+        // label triangle centroid — skip for large n to avoid clutter
+        if(!reducedMode){
+          const mcx=(a[0]+b[0]+c[0])/3, mcy=(a[1]+b[1]+c[1])/3;
+          ctx.fillStyle='rgba(0,255,221,0.7)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+          ctx.fillText(`T${ti+1}`,mcx,mcy+4);
+        }
+      });
+    } else {
+      // solid fill
+      ctx.beginPath(); ctx.moveTo(sv[0][0],sv[0][1]);
+      for(let i=1;i<sv.length;i++) ctx.lineTo(sv[i][0],sv[i][1]);
+      ctx.closePath();
+      const grd=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*0.38);
+      grd.addColorStop(0,'rgba(0,255,221,0.18)'); grd.addColorStop(1,'rgba(0,255,221,0.04)');
+      ctx.fillStyle=grd; ctx.fill();
+    }
+    ctx.textAlign='left';
+
+    // outline
+    ctx.beginPath(); ctx.moveTo(sv[0][0],sv[0][1]);
+    for(let i=1;i<sv.length;i++) ctx.lineTo(sv[i][0],sv[i][1]);
+    ctx.closePath();
+    ctx.strokeStyle='var(--accent)'; ctx.lineWidth=2.5; ctx.stroke();
+
+    // vertices
+    const labels=['Z₁','Z₂','Z₃','Z₄','Z₅','Z₆','Z₇','Z₈','Z₉','Z₁₀','Z₁₁','Z₁₂'];
+    sv.forEach(([x,y],i)=>{
+      ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2);
+      ctx.fillStyle='var(--accent)'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='#fff'; ctx.font='bold 12px Segoe UI';
+      const off=14;
+      const ang=Math.atan2(y-H/2,x-W/2);
+      ctx.fillText(labels[i]||`Z${i+1}`,x+Math.cos(ang)*off-5,y+Math.sin(ang)*off+4);
+    });
+
+    // Omega annotation
+    ctx.fillStyle='rgba(0,255,221,0.6)'; ctx.font='13px Segoe UI';
+    ctx.textAlign='center';
+    ctx.fillText('Ω  (volume form)',W/2,H-28);
+    ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa';
+    ctx.fillText('Amplitude = ∫ Ω',W/2,H-12);
+    ctx.textAlign='left';
+
+    // update tri count
+    document.getElementById('triCount').textContent=`${tris.length} BCFW triangle${tris.length!==1?'s':''}`;
+  }
+
+  function resetVerts(){
+    verts=[];
+    for(let i=0;i<nParticles;i++){
+      const a=(i/nParticles)*Math.PI*2-Math.PI/2;
+      const r=0.52+0.08*((i%2===0)?1:-1);
+      verts.push([r*Math.cos(a),r*Math.sin(a)]);
+    }
+  }
+
+  return{
+    start(){resetVerts(); setup();},
+    stop(){ if(raf){cancelAnimationFrame(raf);raf=null;} },
+    resize(){setup();},
+    addParticle(){
+      if(nParticles>=12) nParticles=4; else nParticles++;
+      document.getElementById('nPart').textContent=nParticles;
+      resetVerts();
+    },
+    toggleTri(){
+      showTri=!showTri;
+      document.getElementById('btn3tri').classList.toggle('active-btn',showTri);
+    },
+    toggleAnim(){
+      animating=!animating;
+      const b=document.getElementById('btn3anim');
+      b.classList.toggle('active-btn',animating);
+      b.textContent=animating?'\u23f8 Pause':'\u25b6 Animate';
+    }
+  };
+})();
+
+// ─────────────────────────────────────────────────────────
+// TAB 4 — MHV AMPLITUDES (Parke-Taylor)
+// ─────────────────────────────────────────────────────────
+const t4=(()=>{
+  let cv,ctx,W,H;
+  let raf=null, phase=0, animating=true;
+  let nGluons=4;
+  // helicities[i]: true = minus (-), false = plus (+)
+  let helicities=[true,true,false,false,false,false,false];
+
+  function setupCanvas(){
+    const el=document.getElementById('c4');
+    const dpr=window.devicePixelRatio||1;
+    const rect=el.getBoundingClientRect();
+    const newW=rect.width, newH=rect.height;
+    if(el.width!==Math.round(newW*dpr)||el.height!==Math.round(newH*dpr)){
+      el.width=Math.round(newW*dpr); el.height=Math.round(newH*dpr);
+    }
+    cv=el; ctx=el.getContext('2d'); W=newW; H=newH;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    cv.onclick=onClick;
+    if(!raf) raf=requestAnimationFrame(loop);
+  }
+
+  function onClick(e){
+    const r=cv.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    // check if click is near a gluon label
+    const cx=W/2, cy=H/2;
+    const radius=Math.min(W,H)*0.31;
+    for(let i=0;i<nGluons;i++){
+      const ang=(i/nGluons)*Math.PI*2 - Math.PI/2;
+      const gx=cx+radius*Math.cos(ang), gy=cy+radius*Math.sin(ang);
+      if(Math.hypot(mx-gx,my-gy)<20){
+        helicities[i]=!helicities[i];
+        updateFormula();
+        return;
+      }
+    }
+  }
+
+  // Count negative helicities
+  function countMinus(){ return helicities.slice(0,nGluons).filter(Boolean).length; }
+
+  // Compute a simplified Parke-Taylor value using random but consistent spinor products
+  // We use a deterministic pseudorandom seeded by index to get angle brackets
+  function angleBC(i,j){
+    // deterministic "spinor product" magnitude for display
+    const seed=(i*17+j*31)%97;
+    return 0.3+0.7*Math.abs(Math.sin(seed+phase*0.1));
+  }
+
+  function computeAmplitude(){
+    const nm=countMinus();
+    if(nm<2) return {type:'zero',val:0};
+    if(nm===nGluons) return {type:'zero',val:0};
+    // Find the two minus positions
+    const minusIdx=[];
+    for(let i=0;i<nGluons;i++) if(helicities[i]) minusIdx.push(i);
+    if(nm===2){
+      // MHV — Parke-Taylor
+      const i=minusIdx[0], j=minusIdx[1];
+      const num=Math.pow(angleBC(i,j),4);
+      let denom=1;
+      for(let k=0;k<nGluons;k++) denom*=angleBC(k,(k+1)%nGluons);
+      return {type:'MHV',val:num/denom,i,j};
+    }
+    // NMHV or higher — indicate it's more complex
+    return {type:'NMHV+',val:null};
+  }
+
+  function updateFormula(){
+    const nm=countMinus();
+    const el=document.getElementById('ptFormula');
+    if(!el) return;
+    const labels=['1','2','3','4','5','6','7'];
+    const hstr=helicities.slice(0,nGluons).map((h,i)=>labels[i]+(h?'⁻':'⁺')).join('');
+    if(nm===0||nm===1){
+      el.textContent='A('+hstr+') = 0  (helicity vanishes)';
+    } else if(nm===nGluons){
+      el.textContent='A('+hstr+') = 0  (all-minus vanishes)';
+    } else if(nm===2){
+      const minusIdx=[];
+      for(let i=0;i<nGluons;i++) if(helicities[i]) minusIdx.push(i);
+      const a=minusIdx[0]+1, b=minusIdx[1]+1;
+      const denom=labels.slice(0,nGluons).map((l,i)=>'⟨'+l+(labels[(i+1)%nGluons])+'⟩').join('');
+      el.textContent='A('+hstr+') = ⟨'+a+b+'⟩⁴ / ('+denom+')';
+    } else {
+      el.textContent='A('+hstr+') — NMHV: needs BCFW recursion';
+    }
+  }
+
+  function loop(){
+    raf=requestAnimationFrame(loop);
+    if(animating) phase+=0.02*(window.animSpeed||0.1);
+    draw();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#060614'; ctx.fillRect(0,0,W,H);
+
+    const cx=W/2, cy=H/2;
+    const radius=Math.min(W,H)*0.31;
+    const nm=countMinus();
+    const amp=computeAmplitude();
+
+    // Draw amplitude type label
+    ctx.textAlign='center';
+    let typeLabel='', typeColor='#8888aa';
+    if(nm===0||nm===1||nm===nGluons){ typeLabel='Vanishing amplitude (A=0)'; typeColor='#ff4444'; }
+    else if(nm===2){ typeLabel='MHV — Parke-Taylor formula'; typeColor='#00ffdd'; }
+    else if(nm===3){ typeLabel='NMHV — BCFW recursion needed'; typeColor='#ffd700'; }
+    else { typeLabel='N²MHV — higher BCFW required'; typeColor='#ff9900'; }
+    ctx.fillStyle=typeColor; ctx.font='bold 13px Segoe UI';
+    ctx.fillText(typeLabel, cx, 26);
+
+    // Central vertex blob
+    const blob_r=18+4*Math.sin(phase);
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,blob_r*2);
+    grd.addColorStop(0,'rgba(0,255,221,0.35)');
+    grd.addColorStop(1,'rgba(0,255,221,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.arc(cx,cy,blob_r*2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy,blob_r,0,Math.PI*2);
+    ctx.fillStyle='#1a1a35'; ctx.fill();
+    ctx.strokeStyle='#00ffdd'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#00ffdd'; ctx.font='bold 12px Segoe UI';
+    ctx.fillText('A'+nGluons, cx, cy+4);
+
+    // Draw gluon legs
+    for(let i=0;i<nGluons;i++){
+      const ang=(i/nGluons)*Math.PI*2 - Math.PI/2;
+      const gx=cx+radius*Math.cos(ang), gy=cy+radius*Math.sin(ang);
+      const isMinus=helicities[i];
+      const isSpecial=amp.type==='MHV'&&(i===amp.i||i===amp.j);
+      // pulsing effect on special legs
+      const pulse=isSpecial?(0.7+0.3*Math.sin(phase*3)):1;
+
+      // wavy leg line
+      ctx.save();
+      ctx.beginPath();
+      const dx=gx-cx, dy=gy-cy;
+      const len=Math.sqrt(dx*dx+dy*dy);
+      const ux=dx/len, uy=dy/len;
+      const nx=-uy, ny=ux; // normal
+      const steps=20;
+      ctx.moveTo(cx+ux*blob_r, cy+uy*blob_r);
+      for(let s=1;s<=steps;s++){
+        const t2=s/steps;
+        const lx=cx+ux*(blob_r+t2*(len-blob_r-20));
+        const ly=cy+uy*(blob_r+t2*(len-blob_r-20));
+        const wave=Math.sin(t2*Math.PI*4-phase*2)*4*(isMinus?-1:1);
+        ctx.lineTo(lx+nx*wave, ly+ny*wave);
+      }
+      ctx.strokeStyle=isSpecial?`rgba(0,255,221,${pulse})`:(isMinus?'rgba(255,100,100,0.85)':'rgba(120,180,255,0.85)');
+      ctx.lineWidth=isSpecial?2.5:1.5;
+      ctx.stroke();
+      ctx.restore();
+
+      // arrowhead at end
+      const ex=cx+ux*(len-20), ey=cy+uy*(len-20);
+      const arrAng=Math.atan2(gy-cy,gx-cx);
+      ctx.save();
+      ctx.translate(ex,ey);
+      ctx.rotate(arrAng);
+      ctx.beginPath();
+      ctx.moveTo(10,0); ctx.lineTo(0,-5); ctx.lineTo(0,5); ctx.closePath();
+      ctx.fillStyle=isMinus?'rgba(255,100,100,0.85)':'rgba(120,180,255,0.85)';
+      ctx.fill();
+      ctx.restore();
+
+      // Gluon node circle
+      ctx.beginPath(); ctx.arc(gx,gy,16,0,Math.PI*2);
+      const nodeGrd=ctx.createRadialGradient(gx,gy,0,gx,gy,16);
+      const col=isMinus?'#ff6464':'#6496ff';
+      nodeGrd.addColorStop(0,col+'44'); nodeGrd.addColorStop(1,col+'00');
+      ctx.fillStyle=nodeGrd; ctx.fill();
+      ctx.beginPath(); ctx.arc(gx,gy,12,0,Math.PI*2);
+      ctx.strokeStyle=isSpecial?'#00ffdd':col;
+      ctx.lineWidth=isSpecial?2.5:1.5; ctx.stroke();
+
+      // helicity label
+      ctx.fillStyle='#fff'; ctx.font='bold 13px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText((i+1)+(isMinus?'⁻':'⁺'), gx, gy+4.5);
+      ctx.fillText(isMinus?'−':'+', gx, gy+18);
+    }
+
+    // Amplitude value box
+    if(amp.type==='MHV'&&amp.val!==null){
+      const v=amp.val.toFixed(3);
+      ctx.fillStyle='rgba(0,30,26,0.82)';
+      ctx.beginPath(); ctx.roundRect(cx-80,cy+radius+10,160,36,6); ctx.fill();
+      ctx.strokeStyle='#00ffdd'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='#00ffdd'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText('|A| ≈ '+v+' (normalized)', cx, cy+radius+33);
+    } else if(amp.type==='zero'){
+      ctx.fillStyle='rgba(30,0,0,0.82)';
+      ctx.beginPath(); ctx.roundRect(cx-80,cy+radius+10,160,36,6); ctx.fill();
+      ctx.strokeStyle='#ff4444'; ctx.lineWidth=1; ctx.stroke();
+      ctx.fillStyle='#ff4444'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText('A = 0  (selection rule)', cx, cy+radius+33);
+    }
+
+    // Click-to-toggle hint
+    ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('click gluon to flip helicity', cx, H-10);
+    ctx.textAlign='left';
+  }
+
+  return{
+    start(){ updateFormula(); setupCanvas(); },
+    stop(){ if(raf){cancelAnimationFrame(raf);raf=null;} },
+    resize(){ setupCanvas(); },
+    toggleAnim(){
+      animating=!animating;
+      const b=document.getElementById('btn4anim');
+      b.classList.toggle('active-btn',animating);
+      b.textContent=animating?'\u23f8 Pause':'\u25b6 Animate';
+    },
+    resetHelicities(){
+      helicities=[true,true,false,false,false,false,false];
+      updateFormula();
+    },
+    onNChange(){
+      nGluons=parseInt(document.getElementById('mhvN').value);
+      document.getElementById('mhvNval').textContent=nGluons;
+      // ensure at least 2 minus for MHV display
+      helicities=helicities.map((h,i)=>i<2?true:false);
+      updateFormula();
+    }
+  };
+})();
+
+// ─────────────────────────────────────────────────────────
+// TAB 5 — BCFW RECURSION
+// ─────────────────────────────────────────────────────────
+const t5=(()=>{
+  let cv,ctx,W,H;
+  let raf=null, phase=0, animating=true, showDiagrams=true;
+  let nParticles=4;
+
+  function setupCanvas(){
+    const el=document.getElementById('c5');
+    const dpr=window.devicePixelRatio||1;
+    const rect=el.getBoundingClientRect();
+    const newW=rect.width, newH=rect.height;
+    if(el.width!==Math.round(newW*dpr)||el.height!==Math.round(newH*dpr)){
+      el.width=Math.round(newW*dpr); el.height=Math.round(newH*dpr);
+    }
+    cv=el; ctx=el.getContext('2d'); W=newW; H=newH;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(!raf) raf=requestAnimationFrame(loop);
+  }
+
+  // BCFW poles: for n particles there are n-3 BCFW diagrams
+  function getBCFWPoles(n){
+    const poles=[];
+    for(let k=2;k<n-1;k++){
+      // pole position in complex z-plane
+      const ang=(k/(n-1))*Math.PI*2;
+      const r=0.4+0.15*Math.sin(k*1.7);
+      poles.push({zr:r*Math.cos(ang), zi:r*Math.sin(ang), k});
+    }
+    return poles;
+  }
+
+  function loop(){
+    raf=requestAnimationFrame(loop);
+    if(animating) phase+=0.022*(window.animSpeed||0.1);
+    draw();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#060614'; ctx.fillRect(0,0,W,H);
+
+    const poles=getBCFWPoles(nParticles);
+    const nBCFW=poles.length; // = n-3
+
+    // Layout: left half = complex z-plane, right half = BCFW diagrams
+    const mid=Math.floor(W*0.52);
+    const LW=mid-10, RX=mid+10, RW=W-10-RX;
+
+    // ── LEFT: complex z-plane ──
+    ctx.fillStyle='#0a0a1e'; ctx.fillRect(8,8,LW,H-16);
+    ctx.strokeStyle='#2a2a50'; ctx.lineWidth=1; ctx.strokeRect(8,8,LW,H-16);
+
+    const planeX=8+LW/2, planeY=8+(H-16)/2;
+    const planeScale=Math.min(LW,H-16)*0.36;
+
+    // Grid
+    ctx.save(); ctx.beginPath(); ctx.rect(8,8,LW,H-16); ctx.clip();
+    ctx.strokeStyle='#1a1a35'; ctx.lineWidth=0.5;
+    for(let i=-5;i<=5;i++){
+      const gx=planeX+i*planeScale*0.4;
+      ctx.beginPath(); ctx.moveTo(gx,8); ctx.lineTo(gx,H-8); ctx.stroke();
+    }
+    for(let i=-5;i<=5;i++){
+      const gy=planeY+i*planeScale*0.4;
+      ctx.beginPath(); ctx.moveTo(8,gy); ctx.lineTo(8+LW,gy); ctx.stroke();
+    }
+    // Axes
+    ctx.strokeStyle='#4444aa'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(8,planeY); ctx.lineTo(8+LW,planeY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(planeX,8); ctx.lineTo(planeX,H-8); ctx.stroke();
+    ctx.fillStyle='#6666cc'; ctx.font='12px Segoe UI';
+    ctx.fillText('Re(z)',8+LW-30,planeY-6);
+    ctx.fillText('Im(z)',planeX+4,16);
+    ctx.restore();
+
+    // z trajectory (circle in complex plane)
+    const zr=planeScale*0.72;
+    ctx.save(); ctx.beginPath(); ctx.rect(8,8,LW,H-16); ctx.clip();
+    ctx.strokeStyle='rgba(0,255,221,0.2)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.arc(planeX,planeY,zr,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw z(t) swept arc so far
+    const sweepEnd=phase%(Math.PI*2);
+    ctx.strokeStyle='rgba(0,255,221,0.6)'; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.arc(planeX,planeY,zr,-Math.PI/2,-Math.PI/2+sweepEnd);
+    ctx.stroke();
+
+    // current z position
+    const zCurAng=sweepEnd-Math.PI/2;
+    const zCx=planeX+zr*Math.cos(zCurAng), zCy=planeY+zr*Math.sin(zCurAng);
+    ctx.beginPath(); ctx.arc(zCx,zCy,6,0,Math.PI*2);
+    ctx.fillStyle='#00ffdd'; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#00ffdd'; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('z(t)', zCx, zCy-10);
+
+    // Poles
+    poles.forEach(({zr:pr,zi:pi,k})=>{
+      const px=planeX+pr*planeScale, py=planeY-pi*planeScale;
+      // check proximity to current z
+      const dist=Math.hypot(zCx-px,zCy-py);
+      const isNear=dist<30;
+      const glow=isNear?(0.9+0.1*Math.sin(phase*6)):0.5;
+      // X marker for pole
+      const s=8;
+      ctx.strokeStyle=`rgba(255,${isNear?220:80},${isNear?80:80},${glow})`;
+      ctx.lineWidth=isNear?3:1.5;
+      ctx.beginPath(); ctx.moveTo(px-s,py-s); ctx.lineTo(px+s,py+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px+s,py-s); ctx.lineTo(px-s,py+s); ctx.stroke();
+      if(isNear){
+        // ring
+        ctx.beginPath(); ctx.arc(px,py,14+4*Math.sin(phase*8),0,Math.PI*2);
+        ctx.strokeStyle='rgba(255,220,80,0.7)'; ctx.lineWidth=2; ctx.stroke();
+      }
+      ctx.fillStyle=isNear?'#ffdc50':'#ff8888';
+      ctx.font='12px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText('z'+k,px,py-12);
+    });
+    ctx.restore();
+
+    // z-plane label
+    ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText('Complex z-plane',18,24);
+    ctx.fillStyle='#00ffdd'; ctx.font='12px Segoe UI';
+    ctx.fillText('× = BCFW pole (P̂²(zᵢ)=0)',18,H-10);
+
+    // ── RIGHT: BCFW diagrams ──
+    ctx.fillStyle='#07071a'; ctx.fillRect(RX,8,RW,H-16);
+    ctx.strokeStyle='#2a2a50'; ctx.lineWidth=1; ctx.strokeRect(RX,8,RW,H-16);
+    ctx.fillStyle='#8888aa'; ctx.font='12px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText('BCFW terms (on-shell diagrams)',RX+8,24);
+
+    if(showDiagrams){
+      const diagH=(H-32)/(nBCFW||1);
+      poles.forEach(({k},di)=>{
+        const dy=8+di*diagH+diagH*0.1;
+        const dh=diagH*0.8;
+        const dcx=RX+RW/2, dcy=dy+dh/2;
+        const dcr=Math.min(RW*0.15,dh*0.3);
+
+        // check if this diagram's pole is near current z
+        const poleAngle=((poles[di].zr>0?Math.atan2(poles[di].zi,poles[di].zr):Math.PI+Math.atan2(poles[di].zi,poles[di].zr)));
+        const dist=Math.hypot(zCx-(planeX+poles[di].zr*planeScale), zCy-(planeY-poles[di].zi*planeScale));
+        const lit=dist<30;
+        const alpha=lit?1.0:0.45;
+
+        // Left blob (AL)
+        ctx.beginPath(); ctx.arc(dcx-dcr*2.2,dcy,dcr,0,Math.PI*2);
+        ctx.fillStyle=`rgba(0,100,80,${alpha*0.4})`; ctx.fill();
+        ctx.strokeStyle=`rgba(0,255,180,${alpha})`; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.fillStyle=`rgba(0,255,180,${alpha})`; ctx.font='bold 12px Segoe UI'; ctx.textAlign='center';
+        ctx.fillText('A'+(k-1),dcx-dcr*2.2,dcy+4);
+
+        // Propagator line
+        ctx.strokeStyle=`rgba(255,200,80,${alpha})`; ctx.lineWidth=lit?3:1.5;
+        ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(dcx-dcr*1.2,dcy); ctx.lineTo(dcx+dcr*1.2,dcy); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle=`rgba(255,200,80,${alpha})`; ctx.font='12px Segoe UI';
+        ctx.fillText('1/P̂²', dcx, dcy-8);
+
+        // Right blob (AR)
+        ctx.beginPath(); ctx.arc(dcx+dcr*2.2,dcy,dcr,0,Math.PI*2);
+        ctx.fillStyle=`rgba(60,0,120,${alpha*0.4})`; ctx.fill();
+        ctx.strokeStyle=`rgba(180,80,255,${alpha})`; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.fillStyle=`rgba(180,80,255,${alpha})`; ctx.font='bold 12px Segoe UI';
+        ctx.fillText('A'+(nParticles-k+1),dcx+dcr*2.2,dcy+4);
+
+        // Lit indicator
+        if(lit){
+          ctx.fillStyle='rgba(255,220,80,0.9)';
+          ctx.font='bold 12px Segoe UI'; ctx.textAlign='right';
+          ctx.fillText('◀ POLE RESIDUE',RX+RW-8,dcy+4);
+        }
+      });
+    }
+
+    // Bottom formula
+    ctx.fillStyle='rgba(0,255,221,0.7)'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('Aₙ = Σᵢ Aₗ(ẑ) · 1/P̂ᵢ² · Aᵣ(ẑ)',W/2,H-10);
+    ctx.textAlign='left';
+  }
+
+  return{
+    start(){ setupCanvas(); },
+    stop(){ if(raf){cancelAnimationFrame(raf);raf=null;} },
+    resize(){ setupCanvas(); },
+    toggleAnim(){
+      animating=!animating;
+      const b=document.getElementById('btn5anim');
+      b.classList.toggle('active-btn',animating);
+      b.textContent=animating?'\u23f8 Pause':'\u25b6 Animate';
+    },
+    toggleDiagrams(){
+      showDiagrams=!showDiagrams;
+      document.getElementById('btn5diagrams').classList.toggle('active-btn',showDiagrams);
+    },
+    onNChange(){
+      nParticles=parseInt(document.getElementById('bcfwN').value);
+      document.getElementById('bcfwNval').textContent=nParticles;
+    }
+  };
+})();
+
+// ─────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────
+window.animSpeed=0.1;
+window.addEventListener('load',()=>{
+  t0.start();
+  for(var i=0;i<6;i++){syncSpeedControl44(i);}
+  // re-render math in about panels
+  ['about0','about2','about3','about4','about5'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  });
+});
+</script>
+
+<script src="glossary-data.js"></script>
+<script src="glossary-tooltip.js"></script>
+
+<script src="auto-start.js"></script>
+</body>
+</html>
