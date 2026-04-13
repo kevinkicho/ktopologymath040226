@@ -128,6 +128,34 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 .sl2c-info{position:absolute;top:10px;left:10px;font-family:monospace;font-size:.72rem;
   color:var(--accent);background:rgba(5,5,15,.85);border:1px solid var(--border);
   border-radius:4px;padding:6px 10px;line-height:1.7;pointer-events:none}
+
+/* Guided Tutorial */
+.tut-box{background:linear-gradient(135deg,rgba(68,221,255,.08),rgba(255,215,0,.05));
+  border:1px solid rgba(68,221,255,.3);border-radius:6px;padding:9px 11px}
+.tut-progress{display:flex;gap:4px;margin-bottom:8px}
+.tut-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.25s}
+.tut-dot.done{background:var(--accent)}
+.tut-dot.curr{background:var(--gold);box-shadow:0 0 6px rgba(255,215,0,.6)}
+.tut-title{font-size:.8rem;font-weight:700;color:var(--gold);margin-bottom:4px}
+.tut-desc{font-size:.72rem;color:var(--text);line-height:1.55;margin-bottom:8px}
+.tut-desc strong{color:var(--accent)}
+.tut-nav{display:flex;gap:4px}
+.tut-nav .btn{flex:1}
+.tut-hint{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  background:rgba(5,5,15,.92);border:1px solid var(--gold);border-radius:6px;
+  padding:8px 18px;font-size:.78rem;color:var(--gold);pointer-events:none;
+  white-space:nowrap;z-index:10;animation:tutPulse 1.5s ease-in-out infinite}
+@keyframes tutPulse{0%,100%{opacity:.85;box-shadow:0 0 8px rgba(255,215,0,.3)}
+  50%{opacity:1;box-shadow:0 0 18px rgba(255,215,0,.6)}}
+.tut-ring{position:absolute;border:2px solid var(--gold);border-radius:50%;
+  pointer-events:none;z-index:5;animation:tutRingPulse 1.2s ease-in-out infinite}
+@keyframes tutRingPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.9;transform:scale(1.15)}}
+.canvas-wrap{position:relative}
+.paradox-tut-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(5,5,15,.88);border:1px solid var(--gold);border-radius:8px;
+  padding:14px 22px;z-index:8;max-width:320px;text-align:center;
+  pointer-events:none;animation:tutFadeIn .4s ease-out}
+@keyframes tutFadeIn{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 </style>
 </head>
 <body>
@@ -197,12 +225,44 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
     </div>
     <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn" id="mink-anim-btn" onclick="minkToggleAnim()">Play</button>
+        <button class="btn red" onclick="minkResetAnim()">Reset</button>
+      </div>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="mink-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
+      </div>
+      <div style="margin-top:4px">
+        <label style="font-size:.68rem;color:var(--dim)">Demo</label>
+        <div class="btn-row" style="margin-top:3px">
+          <button class="btn active" id="mink-demo-orbit" onclick="minkSetDemo('orbit')">Orbit</button>
+          <button class="btn" id="mink-demo-light" onclick="minkSetDemo('light')">Light sweep</button>
+          <button class="btn" id="mink-demo-spin" onclick="minkSetDemo('spin')">Spin</button>
+        </div>
+      </div>
+    </div>
+    <div>
       <div class="callout">
         <strong>Light Cone</strong><br>
         Cyan shading: future (ct&gt;0)<br>
         Red shading: past (ct&lt;0)<br>
         Gray: spacelike region<br>
         $s^2 = (c\Delta t)^2 - (\Delta x)^2$
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Guided Tutorial</div>
+      <div class="tut-box">
+        <div class="tut-progress" id="mink-tut-dots"></div>
+        <div class="tut-title" id="mink-tut-title">Minkowski Spacetime</div>
+        <div class="tut-desc" id="mink-tut-desc">Step through key concepts interactively.</div>
+        <div class="tut-nav">
+          <button class="btn" onclick="minkTutPrev()">Back</button>
+          <button class="btn gold" id="mink-tut-next-btn" onclick="minkTutNext()">Start</button>
+        </div>
       </div>
     </div>
     <div style="margin-top:auto">
@@ -214,7 +274,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
   </div>
   <div class="canvas-wrap" id="mink-wrap">
     <canvas id="mink-canvas"></canvas>
-    <div class="hint">Drag cyan (A) and gold (B) events · Grid in spacetime units</div>
+    <div class="hint" id="mink-hint">Drag cyan (A) and gold (B) events · Grid in spacetime units</div>
+    <div id="mink-tut-hint-el" style="display:none"></div>
+    <div id="mink-tut-ring" style="display:none"></div>
   </div>
 </div>
 
@@ -254,6 +316,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <div class="matrix-wrap" id="matrix-disp">—</div>
       </div>
     </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn" id="boost-anim-btn" onclick="boostToggleAnim()">Play</button>
+        <button class="btn red" onclick="boostResetAnim()">Reset</button>
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="boost-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
+      </div>
+    </div>
     <div style="margin-top:auto">
       <div class="proof-chips">
         <span class="chip" onclick="showProof(1)">Lorentz Xform</span>
@@ -291,8 +365,13 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div>
       <div class="section-lbl">Animation</div>
       <div class="btn-row">
-        <button class="btn" id="anim-btn" onclick="toggleTwinAnim()">▶ Start Journey</button>
-        <button class="btn red" onclick="resetTwinAnim()">Reset</button>
+        <button class="btn" id="anim-btn" onclick="twinToggleAnim()">Play</button>
+        <button class="btn red" onclick="twinResetAnim()">Reset</button>
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="twin-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
       </div>
       <div class="eq-block" style="margin-top:8px">
         <div class="vrow"><span class="vlbl">Age (stay)</span><span id="age-stay" style="color:var(--accent)">0.0</span></div>
@@ -328,6 +407,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" id="par-btn-sim" onclick="selectParadox('sim')">Simultaneity</button>
       </div>
     </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn" id="par-anim-btn" onclick="parToggleAnim()">Play</button>
+        <button class="btn red" onclick="parResetAnim()">Reset</button>
+      </div>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="par-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
+      </div>
+    </div>
     <div id="par-barn-ctrl">
       <div class="section-lbl" style="margin-top:8px">Velocity β = v/c</div>
       <input type="range" id="par-beta" min="0.1" max="0.99" step="0.01" value="0.7" oninput="drawParadox()">
@@ -350,6 +441,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         In the barn frame the pole fits (length-contracted). In the pole frame the barn is shorter. Both are correct! The "simultaneous closing of doors" differs between frames — resolving the apparent contradiction.
       </div>
     </div>
+    <div>
+      <div class="section-lbl">Guided Tutorial</div>
+      <div class="tut-box">
+        <div class="tut-progress" id="par-tut-dots"></div>
+        <div class="tut-title" id="par-tut-title">Barn-Pole Paradox</div>
+        <div class="tut-desc" id="par-tut-desc">Step through this famous thought experiment.</div>
+        <div class="tut-nav">
+          <button class="btn" onclick="parTutPrev()">Back</button>
+          <button class="btn gold" id="par-tut-next-btn" onclick="parTutNext()">Start</button>
+        </div>
+      </div>
+    </div>
     <div style="margin-top:auto">
       <div class="proof-chips">
         <span class="chip" onclick="showProof(3)">Length Contraction</span>
@@ -360,6 +463,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
   <div class="canvas-wrap" id="paradox-wrap">
     <canvas id="paradox-canvas"></canvas>
     <div class="hint" id="paradox-hint">Top: Barn frame · Bottom: Pole frame</div>
+    <div id="par-tut-overlay" style="display:none"></div>
   </div>
 </div>
 
@@ -388,6 +492,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-block">
         <div class="vrow"><span class="vlbl">E²</span><span id="fv-Esq">1.000</span></div>
         <div class="vrow"><span class="vlbl">p²c²+m²c⁴</span><span id="fv-rhs">1.000</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn" id="fv-anim-btn" onclick="fvToggleAnim()">Play</button>
+        <button class="btn red" onclick="fvResetAnim()">Reset</button>
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="fv-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
       </div>
     </div>
     <div>
@@ -427,8 +543,16 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <div class="vrow"><span class="vlbl">Unruh T</span><span id="pd-unruh-T" style="color:var(--gold)">—</span></div>
         <div class="vrow"><span class="vlbl">T = aħ/(2πck_B)</span><span style="font-size:.65rem;color:var(--dim)">natural</span></div>
       </div>
-      <div style="margin-top:8px">
-        <button class="btn active" id="pd-anim-btn" onclick="togglePenroseAnim()">Pause</button>
+    </div>
+    <div style="margin-top:8px">
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn" id="pd-anim-btn" onclick="penroseToggleAnim()">Play</button>
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="penrose-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
       </div>
     </div>
     <div>
@@ -459,8 +583,20 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" id="sl-btn-rot" onclick="selectSL('rot')">Rotation</button>
       </div>
       <label style="margin-top:8px">Parameter</label>
-      <input type="range" id="sl-param" min="0" max="6.28" step="0.05" value="0" oninput="drawSL2C()">
+      <input type="range" id="sl-param" min="0" max="6.28" step="0.05" value="0" oninput="slParam=parseFloat(this.value);drawSL2C()">
       <div class="val-disp" id="sl-param-disp">φ = 0.00 rad</div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn" id="sl-anim-btn" onclick="slToggleAnim()">Play</button>
+        <button class="btn red" onclick="slResetAnim()">Reset</button>
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+        <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+        <input type="range" id="sl-speed" min="1" max="10" value="3" step="1" style="flex:1">
+        <span style="font-size:.65rem;color:var(--dim)">1×</span>
+      </div>
     </div>
     <div>
       <div class="section-lbl">SL(2,ℂ) Matrix A</div>
@@ -473,6 +609,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <div class="vrow"><span class="vlbl">x</span><span id="sl-vx">0.00</span></div>
         <div class="vrow"><span class="vlbl">y</span><span id="sl-vy">0.50</span></div>
         <div class="vrow"><span class="vlbl">z</span><span id="sl-vz">0.00</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Guided Tutorial</div>
+      <div class="tut-box">
+        <div class="tut-progress" id="sl-tut-dots"></div>
+        <div class="tut-title" id="sl-tut-title">SL(2,ℂ) & Lorentz Cover</div>
+        <div class="tut-desc" id="sl-tut-desc">Step through the spinor double cover.</div>
+        <div class="tut-nav">
+          <button class="btn" onclick="slTutPrev()">Back</button>
+          <button class="btn gold" id="sl-tut-next-btn" onclick="slTutNext()">Start</button>
+        </div>
       </div>
     </div>
     <div>
@@ -526,63 +674,401 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 
 <script>
 function _cancelAllAnims08(){
-  // Cancel all animation frames
-  for(let i=0;i<10;i++){
-    let id=requestAnimationFrame(()=>{});
-    cancelAnimationFrame(id);
-  }
+  if(typeof boostStopAnim==='function') boostStopAnim();
+  if(typeof twinStopAnim==='function') twinStopAnim();
+  if(typeof penroseStopAnim==='function') penroseStopAnim();
+  if(typeof fvStopAnim==='function') fvStopAnim();
+  if(typeof slStopAnim==='function') slStopAnim();
+  if(typeof minkStopAnim==='function') minkStopAnim();
+  if(typeof parStopAnim==='function') parStopAnim();
 }
 
-
-  window.animSpeed=0.1;
-
-  function autoStartAnimations() {
-    if (window.animSpeed === undefined) {
-      window.animSpeed = 0.1;
-    }
-    // Auto-start animations for all tabs
-    document.querySelectorAll('.btn[id$="-anim-btn"], .btn[id$="AnimBtn"]').forEach(btn => {
-      if (btn.textContent.includes('▶') || btn.textContent.includes('Start')) {
-        btn.click();
-      }
-    });
-  }
-  autoStartAnimations();
-// ══════════════════════════════════════════════
-//  UTILITIES
-// ══════════════════════════════════════════════
 function switchTab(id, btn) {
-  // Cancel all running animations when leaving tabs
-  if (id !== 'penrose' && penroseAnimReq) {
-    cancelAnimationFrame(penroseAnimReq);
-    penroseAnimReq = null;
-    penroseAnimRunning = true;
-    const pbtn = document.getElementById('pd-anim-btn');
-    if(pbtn){pbtn.classList.add('active');pbtn.textContent='Pause';}
-  }
-  if (id !== 'twin' && twinAnimId) {
-    cancelAnimationFrame(twinAnimId);
-    twinAnimId = null;
-    twinAnim = false;
-    const tbtn = document.getElementById('anim-btn');
-    if(tbtn){tbtn.textContent='▶ Start Journey';tbtn.classList.remove('active');}
-  }
+  _cancelAllAnims08();
+  minkTutReset();
+  parTutReset();
+  slTutReset();
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   btn.classList.add('active');
   setTimeout(() => {
-    if (id === 'mink')    resizeMink();
-    if (id === 'boost')   { resizeBoost(); updateBoost(); }
-    if (id === 'twin')    resizeTwin();
-    if (id === 'paradox') resizeParadox();
-    if (id === '4vec')    resize4Vec();
-    if (id === 'penrose') { resizePenrose(); if (penroseAnimRunning && !penroseAnimReq) penroseAnimReq = requestAnimationFrame(penroseFrame); }
-    if (id === 'sl2c')    { resizeSL2C(); drawSL2C(); }
+    if (id === 'mink')    { resizeMink(); minkToggleAnim(); }
+    if (id === 'boost')   { resizeBoost(); if(typeof boostStartAnim==='function') boostStartAnim(); }
+    if (id === 'twin')    { resizeTwin(); if(typeof twinStartAnim==='function') twinStartAnim(); }
+    if (id === 'paradox') { resizeParadox(); parToggleAnim(); }
+    if (id === '4vec')    { resize4Vec(); if(typeof fvStartAnim==='function') fvStartAnim(); }
+    if (id === 'penrose') { resizePenrose(); if(typeof penroseStartAnim==='function') penroseStartAnim(); }
+    if (id === 'sl2c')    { resizeSL2C(); if(typeof slStartAnim==='function') slStartAnim(); }
   }, 20);
 }
 
 function fmt(v, d=1) { return v.toFixed(d); }
+
+// ══════════════════════════════════════════════
+//  GUIDED TUTORIAL — MINKOWSKI
+// ══════════════════════════════════════════════
+const minkTutSteps = [
+  { title: 'The Spacetime Grid',
+    desc: 'In special relativity, space and time form a <strong>4-dimensional manifold</strong>. Here we show just 1+1 dimensions: x (horizontal) and ct (vertical). The grid is in spacetime units.',
+    evtA: {x:100,ct:100}, overlay: 'grid', hintPos: 'center' },
+  { title: 'The Light Cone',
+    desc: 'Light always travels at 45° in these units — that\'s the <strong>speed limit</strong> of the universe. The dashed lines form the <strong>light cone</strong>: the boundary between causal and non-causal regions.',
+    evtA: {x:100,ct:100}, overlay: 'lightcone', hintPos: 'cone' },
+  { title: 'Timelike Separation',
+    desc: 'Drag event <strong>A</strong> above the light cone. Two events are <strong>timelike-separated</strong> if one can causally influence the other: Δs² > 0. A material particle can travel between them.',
+    evtA: {x:1,ct:3}, overlay: 'timelike', hintPos: 'evtA' },
+  { title: 'Spacelike Separation',
+    desc: 'Drag event <strong>B</strong> sideways from A. Events are <strong>spacelike-separated</strong> (Δs² < 0) when no signal can connect them — they are outside each other\'s light cones. Different observers disagree on their time ordering.',
+    evtA: {x:1,ct:3}, evtB: {x:3.5,ct:1.2}, overlay: 'spacelike', hintPos: 'evtB' },
+  { title: 'Lightlike (Null) Separation',
+    desc: 'Place both events on the light cone: Δs² = 0. Only a <strong>light ray</strong> can connect them. The interval vanishes — the same in every frame.',
+    evtA: {x:2,ct:2}, evtB: {x:-1.5,ct:-1.5}, overlay: 'lightlike', hintPos: 'center' },
+  { title: 'Worldlines & Proper Time',
+    desc: 'A worldline is any timelike curve through spacetime. <strong>Proper time τ</strong> along it is the Minkowski analogue of arc-length: $d\\tau^2 = dt^2 - dx^2/c^2$. Straight paths (geodesics) maximize proper time.',
+    evtA: {x:2,ct:3}, overlay: 'worldline', hintPos: 'center' },
+  { title: 'Explore Freely!',
+    desc: 'You can now <strong>drag events A and B</strong> freely. Watch how Δs² and its classification change as you move them around. Try placing them on the light cone!',
+    evtA: {x:2,ct:3}, evtB: {x:-1.5,ct:4}, overlay: null, hintPos: null }
+];
+
+let minkTutStep = -1;
+let minkTutAnimId = null;
+
+function minkTutUpdate() {
+  const dotsEl = document.getElementById('mink-tut-dots');
+  const titleEl = document.getElementById('mink-tut-title');
+  const descEl = document.getElementById('mink-tut-desc');
+  const btnEl = document.getElementById('mink-tut-next-btn');
+  const hintEl = document.getElementById('mink-tut-hint-el');
+  const ringEl = document.getElementById('mink-tut-ring');
+  const total = minkTutSteps.length;
+
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('span');
+    d.className = 'tut-dot' + (i < minkTutStep ? ' done' : '') + (i === minkTutStep ? ' curr' : '');
+    dotsEl.appendChild(d);
+  }
+
+  if (minkTutStep < 0) {
+    titleEl.textContent = 'Minkowski Spacetime';
+    descEl.textContent = 'Step through key concepts interactively.';
+    btnEl.textContent = 'Start';
+    hintEl.style.display = 'none';
+    ringEl.style.display = 'none';
+    document.getElementById('mink-hint').textContent = 'Drag cyan (A) and gold (B) events · Grid in spacetime units';
+    drawMink();
+    return;
+  }
+
+  const step = minkTutSteps[minkTutStep];
+  titleEl.textContent = 'Step ' + (minkTutStep + 1) + ': ' + step.title;
+  descEl.innerHTML = step.desc;
+  btnEl.textContent = minkTutStep === total - 1 ? 'Restart' : 'Next →';
+
+  if (step.evtA) { evtA.x = step.evtA.x; evtA.ct = step.evtA.ct; }
+  if (step.evtB) { evtB.x = step.evtB.x; evtB.ct = step.evtB.ct; }
+
+  if (step.hintPos === 'center') {
+    hintEl.style.display = 'none';
+  } else if (step.hintPos) {
+    hintEl.style.display = '';
+    const labelMap = { cone: '↓ Light cone at 45°', evtA: '↓ Drag event A!', evtB: '↓ Drag event B!' };
+    hintEl.textContent = labelMap[step.hintPos] || '';
+    hintEl.className = 'tut-hint';
+  } else {
+    hintEl.style.display = 'none';
+  }
+
+  ringEl.style.display = (step.hintPos === 'evtA' || step.hintPos === 'evtB') ? '' : 'none';
+
+  document.getElementById('mink-hint').textContent = step.overlay
+    ? ('Tutorial: ' + step.title)
+    : 'Drag cyan (A) and gold (B) events · Grid in spacetime units';
+
+  drawMink();
+  minkTutAnimateOverlay(step.overlay);
+}
+
+function minkTutAnimateOverlay(type) {
+  if (minkTutAnimId) { cancelAnimationFrame(minkTutAnimId); minkTutAnimId = null; }
+  if (!type || minkTutStep < 0) return;
+  let t = 0;
+  function loop() {
+    t += 0.02;
+    drawMink();
+    const ctx = minkCtx;
+    ctx.save();
+    ctx.setTransform(minkDpr,0,0,minkDpr,0,0);
+    const W = minkW, H = minkH;
+    const ox = minkOX, oy = minkOY, sc = minkScale;
+    const alpha = 0.12 + 0.08 * Math.sin(t * 3);
+
+    if (type === 'grid') {
+      ctx.strokeStyle = 'rgba(68,221,255,' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(W, oy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, H); ctx.stroke();
+      ctx.fillStyle = 'rgba(68,221,255,0.85)'; ctx.font = 'bold 14px monospace';
+      ctx.fillText('x →', W - 50, oy + 22);
+      ctx.fillText('ct ↑', ox + 8, 24);
+      const pulse = 4 + 3 * Math.sin(t * 4);
+      ctx.beginPath(); ctx.arc(ox + 3 * sc, oy, pulse, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(68,221,255,0.5)'; ctx.fill();
+    } else if (type === 'lightcone') {
+      ctx.save();
+      const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, sc * 5);
+      grad.addColorStop(0, 'rgba(255,255,255,' + (0.15 + 0.08 * Math.sin(t * 2.5)).toFixed(3) + ')');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(0, 0); ctx.lineTo(W, 0);
+      ctx.lineTo(W, oy - (W - ox)); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(0, H);
+      ctx.lineTo(0, oy + ox); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    } else if (type === 'timelike') {
+      const cO = toCanvas(0, 0);
+      const cA = toCanvas(evtA.x, evtA.ct);
+      ctx.strokeStyle = 'rgba(68,221,255,' + (0.4 + 0.2 * Math.sin(t * 3)).toFixed(3) + ')';
+      ctx.lineWidth = 3; ctx.setLineDash([8, 5]);
+      ctx.beginPath(); ctx.moveTo(cO.cx, cO.cy); ctx.lineTo(cA.cx, cA.cy); ctx.stroke();
+      ctx.setLineDash([]);
+      const s2 = interval({x:0,ct:0}, evtA);
+      ctx.fillStyle = 'rgba(68,221,255,0.9)'; ctx.font = 'bold 14px monospace';
+      ctx.fillText('Δs² = ' + s2.toFixed(0) + ' (timelike ✓)', (cO.cx+cA.cx)/2 + 10, (cO.cy+cA.cy)/2 - 10);
+    } else if (type === 'spacelike') {
+      const cA = toCanvas(evtA.x, evtA.ct);
+      const cB = toCanvas(evtB.x, evtB.ct);
+      ctx.strokeStyle = 'rgba(255,68,102,' + (0.4 + 0.2 * Math.sin(t * 3)).toFixed(3) + ')';
+      ctx.lineWidth = 3; ctx.setLineDash([8, 5]);
+      ctx.beginPath(); ctx.moveTo(cA.cx, cA.cy); ctx.lineTo(cB.cx, cB.cy); ctx.stroke();
+      ctx.setLineDash([]);
+      const s2 = interval(evtA, evtB);
+      ctx.fillStyle = 'rgba(255,68,102,0.9)'; ctx.font = 'bold 14px monospace';
+      ctx.fillText('Δs² = ' + s2.toFixed(0) + ' (spacelike ✗)', (cA.cx+cB.cx)/2 + 10, (cA.cy+cB.cy)/2 - 10);
+    } else if (type === 'lightlike') {
+      const pulse = 0.5 + 0.3 * Math.sin(t * 4);
+      ctx.strokeStyle = 'rgba(255,255,255,' + pulse.toFixed(3) + ')';
+      ctx.lineWidth = 2.5;
+      const s2A = interval({x:0,ct:0}, evtA);
+      const s2B = interval({x:0,ct:0}, evtB);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.font = 'bold 14px monospace';
+      if (Math.abs(s2A) < 2) ctx.fillText('A: Δs²≈0 (null!)', 14, H - 50);
+      if (Math.abs(s2B) < 2) ctx.fillText('B: Δs²≈0 (null!)', 14, H - 34);
+      const cA = toCanvas(evtA.x, evtA.ct);
+      ctx.beginPath(); ctx.arc(cA.cx, cA.cy, 10 + 6*Math.sin(t*4), 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.stroke();
+    } else if (type === 'worldline') {
+      ctx.strokeStyle = 'rgba(0,255,153,0.6)'; ctx.lineWidth = 2.5;
+      ctx.setLineDash([]);
+      const pts = [{x:0,ct:0}, {x:0.5,ct:1.5}, {x:0.3,ct:3}];
+      ctx.beginPath();
+      for (let i = 0; i < pts.length; i++) {
+        const c = toCanvas(pts[i].x, pts[i].ct);
+        if (i === 0) ctx.moveTo(c.cx, c.cy); else ctx.lineTo(c.cx, c.cy);
+      }
+      ctx.stroke();
+      let tau2 = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const dx = pts[i].x - pts[i-1].x, dct = pts[i].ct - pts[i-1].ct;
+        tau2 += dct*dct - dx*dx;
+      }
+      ctx.setLineDash([6,4]);
+      ctx.strokeStyle = 'rgba(0,255,153,0.3)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(toCanvas(0,0).cx, toCanvas(0,0).cy);
+      ctx.lineTo(toCanvas(0.3,3).cx, toCanvas(0.3,3).cy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(0,255,153,0.9)'; ctx.font = 'bold 13px monospace';
+      ctx.fillText('τ curved < τ straight!', 14, H - 28);
+    }
+    ctx.restore();
+    minkTutAnimId = requestAnimationFrame(loop);
+  }
+  minkTutAnimId = requestAnimationFrame(loop);
+}
+
+function minkTutNext() {
+  if (minkTutAnimId) { cancelAnimationFrame(minkTutAnimId); minkTutAnimId = null; }
+  if (minkTutStep < 0) minkTutStep = 0;
+  else minkTutStep++;
+  if (minkTutStep >= minkTutSteps.length) { minkTutStep = -1; minkTutUpdate(); return; }
+  minkTutUpdate();
+}
+
+function minkTutPrev() {
+  if (minkTutAnimId) { cancelAnimationFrame(minkTutAnimId); minkTutAnimId = null; }
+  minkTutStep--;
+  if (minkTutStep < -1) minkTutStep = -1;
+  minkTutUpdate();
+}
+
+function minkTutReset() {
+  if (minkTutAnimId) { cancelAnimationFrame(minkTutAnimId); minkTutAnimId = null; }
+  minkTutStep = -1;
+  minkTutUpdate();
+}
+
+// ══════════════════════════════════════════════
+//  GUIDED TUTORIAL — SR PARADOXES
+// ══════════════════════════════════════════════
+const barnTutSteps = [
+  { title: 'The Setup',
+    desc: 'A <strong>pole</strong> of rest length L₀ = 200 races toward a <strong>barn</strong> of rest width W₀ = 150. At rest, the pole is longer than the barn — it shouldn\'t fit!',
+    beta: 0.0, overlay: 'setup' },
+  { title: 'Barn Frame: Contraction!',
+    desc: 'In the <strong>barn frame</strong>, the pole is length-contracted: L′ = L₀/γ. At β = 0.7, γ ≈ 1.4, so L′ ≈ 143 — it <strong>fits inside</strong>! Both barn doors close simultaneously.',
+    beta: 0.70, overlay: 'barn_frame' },
+  { title: 'Pole Frame: Shorter Barn!',
+    desc: 'Now ride with the pole. The <strong>barn is length-contracted</strong>: W′ = W₀/γ ≈ 107. The barn is even shorter! How can the pole fit? It <strong>doesn\'t</strong> in this frame!',
+    beta: 0.70, overlay: 'pole_frame' },
+  { title: 'The Resolution',
+    desc: '<strong>Simultaneity is relative!</strong> The barn doors that close "at the same time" in the barn frame do <em>not</em> close at the same time in the pole frame. The front door closes (and opens) <em>before</em> the back door. Both frames agree on all physical events.',
+    beta: 0.70, overlay: 'resolution' },
+  { title: 'Explore the Slider!',
+    desc: 'Drag the β slider to see how length contraction changes at different speeds. At β → 1, the pole shrinks dramatically — but the barn shrinks even more in the pole frame! (Animation paused so you can interact.)',
+    beta: 0.80, overlay: null, pause: true }
+];
+
+const simTutSteps = [
+  { title: 'Simultaneous Events',
+    desc: 'Two lightning strikes at x = −2 and x = +2 happen <em>simultaneously</em> (at ct = 0) in the <strong>lab frame</strong>. Both hits have the same ct coordinate.',
+    beta: 0.0 },
+  { title: 'Boosted Observer',
+    desc: 'A moving observer at speed β sees these events <strong>at different times</strong>! Event A (behind) happens <em>earlier</em>, event B (ahead) happens <em>later</em>. The simultaneity plane tilts by Δt = βΔx/c.',
+    beta: 0.60 },
+  { title: 'Increasing β',
+    desc: 'Slowly increase β to see the time separation grow. The spatial separation remains, but the <strong>temporal ordering</strong> can reverse for spacelike-separated events!',
+    beta: 0.85 },
+  { title: 'The Key Insight',
+    desc: '<strong>Simultaneity is frame-dependent.</strong> This is the heart of special relativity. There is no universal "now" — the slice of spacetime you call "simultaneous" depends on your state of motion.',
+    beta: 0.60 }
+];
+
+let parTutStep = -1;
+let parTutAnimId = null;
+
+function parTutUpdate() {
+  const total = currentParadox === 'barn' ? barnTutSteps.length : simTutSteps.length;
+  const dotsEl = document.getElementById('par-tut-dots');
+  const titleEl = document.getElementById('par-tut-title');
+  const descEl = document.getElementById('par-tut-desc');
+  const btnEl = document.getElementById('par-tut-next-btn');
+  const overlay = document.getElementById('par-tut-overlay');
+
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('span');
+    d.className = 'tut-dot' + (i < parTutStep ? ' done' : '') + (i === parTutStep ? ' curr' : '');
+    dotsEl.appendChild(d);
+  }
+
+  if (parTutStep < 0) {
+    titleEl.textContent = currentParadox === 'barn' ? 'Barn–Pole Paradox' : 'Relativity of Simultaneity';
+    descEl.textContent = currentParadox === 'barn' ? 'Step through this famous thought experiment.' : 'Explore how simultaneity depends on motion.';
+    btnEl.textContent = 'Start';
+    overlay.style.display = 'none';
+    drawParadox();
+    return;
+  }
+
+  const steps = currentParadox === 'barn' ? barnTutSteps : simTutSteps;
+  const step = steps[parTutStep];
+  titleEl.textContent = 'Step ' + (parTutStep + 1) + ': ' + step.title;
+  descEl.innerHTML = step.desc;
+  btnEl.textContent = parTutStep === total - 1 ? 'Restart' : 'Next →';
+
+  if (currentParadox === 'barn') {
+    document.getElementById('par-beta').value = step.beta;
+  } else {
+    document.getElementById('par-beta2').value = step.beta;
+  }
+
+  if (step.pause) {
+    if (parAnimating) parToggleAnim();
+  }
+
+  if (currentParadox === 'barn' && step.overlay) {
+    overlay.style.display = '';
+    overlay.className = 'paradox-tut-overlay';
+    overlay.innerHTML = '';
+    const textEl = document.createElement('div');
+    textEl.style.cssText = 'font-size:.8rem;font-weight:700;color:#ffd700;margin-bottom:4px';
+    textEl.textContent = step.title;
+    overlay.appendChild(textEl);
+    const subEl = document.createElement('div');
+    subEl.style.cssText = 'font-size:.72rem;color:#c0c0ea';
+    if (step.overlay === 'setup') subEl.textContent = 'Pole (L₀=200) vs Barn (W₀=150)';
+    else if (step.overlay === 'barn_frame') subEl.textContent = 'Top: Pole contracts to fit!';
+    else if (step.overlay === 'pole_frame') subEl.textContent = 'Bottom: Barn contracts even more!';
+    else if (step.overlay === 'resolution') subEl.textContent = 'Doors don\'t close simultaneously!';
+    overlay.appendChild(subEl);
+  } else {
+    overlay.style.display = 'none';
+  }
+
+  drawParadox();
+  if (currentParadox === 'barn') parTutAnimateBarn(step);
+}
+
+function parTutAnimateBarn(step) {
+  if (parTutAnimId) { cancelAnimationFrame(parTutAnimId); parTutAnimId = null; }
+  if (!step || !step.overlay || step.overlay === 'setup') return;
+  let t = 0;
+  function loop() {
+    t += 0.02;
+    drawParadox();
+    if (step.overlay && step.overlay !== 'setup') {
+      const ctx = paradoxCtx;
+      ctx.save();
+      ctx.setTransform(paradxDpr,0,0,paradxDpr,0,0);
+      const W = paradoxW, H = paradoxH;
+      if (step.overlay === 'barn_frame') {
+        const pulse = 0.3 + 0.2 * Math.sin(t * 4);
+        ctx.strokeStyle = 'rgba(68,221,255,' + pulse.toFixed(3) + ')';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([]);
+        ctx.strokeRect(W * 0.25, H * 0.02, W * 0.5, H * 0.44);
+        ctx.restore();
+      } else if (step.overlay === 'pole_frame') {
+        const pulse = 0.3 + 0.2 * Math.sin(t * 4);
+        ctx.strokeStyle = 'rgba(0,255,153,' + pulse.toFixed(3) + ')';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([]);
+        ctx.strokeRect(W * 0.25, H * 0.52, W * 0.5, H * 0.44);
+        ctx.restore();
+      } else if (step.overlay === 'resolution') {
+        ctx.fillStyle = 'rgba(255,215,0,' + (0.1 + 0.05 * Math.sin(t * 3)).toFixed(3) + ')';
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+      } else { ctx.restore(); }
+    }
+    parTutAnimId = requestAnimationFrame(loop);
+  }
+  parTutAnimId = requestAnimationFrame(loop);
+}
+
+function parTutNext() {
+  if (parTutAnimId) { cancelAnimationFrame(parTutAnimId); parTutAnimId = null; }
+  const total = currentParadox === 'barn' ? barnTutSteps.length : simTutSteps.length;
+  if (parTutStep < 0) parTutStep = 0;
+  else parTutStep++;
+  if (parTutStep >= total) { parTutStep = -1; parTutUpdate(); return; }
+  parTutUpdate();
+}
+
+function parTutPrev() {
+  if (parTutAnimId) { cancelAnimationFrame(parTutAnimId); parTutAnimId = null; }
+  parTutStep--;
+  if (parTutStep < -1) parTutStep = -1;
+  parTutUpdate();
+}
+
+function parTutReset() {
+  if (parTutAnimId) { cancelAnimationFrame(parTutAnimId); parTutAnimId = null; }
+  parTutStep = -1;
+  parTutUpdate();
+}
 
 // ══════════════════════════════════════════════
 //  TAB 1 — MINKOWSKI DIAGRAM
@@ -590,17 +1076,104 @@ function fmt(v, d=1) { return v.toFixed(d); }
 const minkCanvas = document.getElementById('mink-canvas');
 const minkCtx = minkCanvas.getContext('2d');
 let minkW = 0, minkH = 0;
-let minkOX = 0, minkOY = 0; // origin in canvas pixels
-const SCALE = 1; // 1 unit = 1 px initially, recalc on resize
-let minkScale = 60; // px per spacetime unit
+let minkOX = 0, minkOY = 0;
+const SCALE = 1;
+let minkScale = 60;
+let minkDpr = 1;
 
 let evtA = {x: 2, ct: 3};
 let evtB = {x: -1.5, ct: 4};
 let dragging = null;
 
 let worldlines = [];
-let wlMode = false; // waiting for 2 clicks
-let wlPending = null; // first click point
+let wlMode = false;
+let wlPending = null;
+
+let minkAnimating = false, minkAnimId = null;
+let minkAnimT = 0;
+let minkDemo = 'orbit';
+
+function minkGetSpeed() { return parseFloat(document.getElementById('mink-speed').value) / 10 || 0.3; }
+
+function minkSetDemo(mode) {
+  minkDemo = mode;
+  document.getElementById('mink-demo-orbit').classList.toggle('active', mode === 'orbit');
+  document.getElementById('mink-demo-light').classList.toggle('active', mode === 'light');
+  document.getElementById('mink-demo-spin').classList.toggle('active', mode === 'spin');
+  minkAnimT = 0;
+}
+
+function minkStartLoop() {
+  if (minkAnimId) return;
+  function loop() {
+    if (minkAnimating) {
+      var speed = minkGetSpeed();
+      minkAnimT += speed * 0.004;
+      if (minkDemo === 'light') {
+        if (minkAnimT > Math.PI * 2) minkAnimT -= Math.PI * 2;
+      } else {
+        if (minkAnimT > Math.PI * 2) minkAnimT -= Math.PI * 2;
+      }
+      if (minkDemo === 'orbit') {
+        evtA.x = 2.5 * Math.cos(minkAnimT);
+        evtA.ct = 2.5 + 1.5 * Math.sin(minkAnimT);
+        evtB.x = -2 * Math.cos(minkAnimT * 0.7 + 1);
+        evtB.ct = 3 + Math.sin(minkAnimT * 0.7 + 1) * 2;
+      } else if (minkDemo === 'light') {
+        var angle = minkAnimT;
+        evtA.x = 3 * Math.cos(angle);
+        evtA.ct = 3 * Math.sin(angle);
+        evtB.x = -3 * Math.cos(angle);
+        evtB.ct = -3 * Math.sin(angle);
+      } else if (minkDemo === 'spin') {
+        evtA.x = 1.5 * Math.cos(minkAnimT);
+        evtA.ct = 3 * Math.sin(minkAnimT * 0.6);
+        evtB.x = 2 * Math.sin(minkAnimT * 0.8) + 1;
+        evtB.ct = 2.5 * Math.cos(minkAnimT * 0.5);
+      }
+      drawMink();
+    }
+    if (minkAnimating) {
+      minkAnimId = requestAnimationFrame(loop);
+    } else {
+      minkAnimId = null;
+    }
+  }
+  minkAnimId = requestAnimationFrame(loop);
+}
+
+function minkToggleAnim() {
+  if (minkAnimating) {
+    minkAnimating = false;
+    if (minkAnimId) { cancelAnimationFrame(minkAnimId); minkAnimId = null; }
+    document.getElementById('mink-anim-btn').textContent = 'Play';
+    document.getElementById('mink-anim-btn').classList.remove('active');
+    return;
+  }
+  minkAnimating = true;
+  minkAnimT = 0;
+  document.getElementById('mink-anim-btn').textContent = 'Pause';
+  document.getElementById('mink-anim-btn').classList.add('active');
+  minkStartLoop();
+}
+
+function minkResetAnim() {
+  minkAnimating = false;
+  minkAnimT = 0;
+  if (minkAnimId) { cancelAnimationFrame(minkAnimId); minkAnimId = null; }
+  document.getElementById('mink-anim-btn').textContent = 'Play';
+  document.getElementById('mink-anim-btn').classList.remove('active');
+  evtA = {x: 2, ct: 3};
+  evtB = {x: -1.5, ct: 4};
+  drawMink();
+}
+
+window.minkStopAnim = function() {
+  minkAnimating = false;
+  if (minkAnimId) { cancelAnimationFrame(minkAnimId); minkAnimId = null; }
+  document.getElementById('mink-anim-btn').textContent = 'Play';
+  document.getElementById('mink-anim-btn').classList.remove('active');
+};
 
 function toggleWorldlineMode() {
   wlMode = !wlMode;
@@ -621,11 +1194,15 @@ function clearWorldlines() {
 }
 
 function resizeMink() {
-  const wrap = document.getElementById('mink-wrap');
-  minkW = wrap.clientWidth;
-  minkH = wrap.clientHeight;
-  minkCanvas.width = minkW;
-  minkCanvas.height = minkH;
+  const wrap = minkCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  minkDpr = window.devicePixelRatio || 1;
+  minkW = rect.width;
+  minkH = rect.height;
+  minkCanvas.style.width = minkW + 'px';
+  minkCanvas.style.height = minkH + 'px';
+  minkCanvas.width = minkW * minkDpr;
+  minkCanvas.height = minkH * minkDpr;
   minkOX = minkW / 2;
   minkOY = minkH / 2;
   minkScale = Math.min(minkW, minkH) / 10;
@@ -652,6 +1229,8 @@ function classify(s2) {
 function drawMink() {
   const ctx = minkCtx;
   const W = minkW, H = minkH;
+  ctx.save();
+  ctx.setTransform(minkDpr,0,0,minkDpr,0,0);
   ctx.clearRect(0, 0, W, H);
 
   // Background
@@ -838,6 +1417,7 @@ function drawMink() {
   document.getElementById('mA-ct').textContent = evtA.ct.toFixed(1);
   document.getElementById('mB-x').textContent = evtB.x.toFixed(1);
   document.getElementById('mB-ct').textContent = evtB.ct.toFixed(1);
+  ctx.restore();
 }
 
 // Mouse interaction
@@ -887,14 +1467,83 @@ minkCanvas.addEventListener('mouseleave', () => { dragging = null; });
 // ══════════════════════════════════════════════
 const boostCanvas = document.getElementById('boost-canvas');
 const boostCtx = boostCanvas.getContext('2d');
-let boostW = 0, boostH = 0;
+let boostW = 0, boostH = 0, boostDpr = 1;
+let boostAnimating = false, boostAnimId = null, boostBeta = 0;
+let boostDir = 1;
+
+function boostGetSpeed() {
+  return parseFloat(document.getElementById('boost-speed').value) / 10 || 0.3;
+}
+
+function boostStartLoop() {
+  if (boostAnimId) return;
+  function loop() {
+    if (boostAnimating) {
+      var speed = boostGetSpeed();
+      boostBeta += speed * 0.003 * boostDir;
+      if (boostBeta >= 0.95) { boostBeta = 0.95; boostDir = -1; }
+      if (boostBeta <= -0.95) { boostBeta = -0.95; boostDir = 1; }
+      document.getElementById('beta-slider').value = boostBeta.toFixed(2);
+      updateBoost();
+    }
+    if (boostAnimating) {
+      boostAnimId = requestAnimationFrame(loop);
+    } else {
+      boostAnimId = null;
+    }
+  }
+  boostAnimId = requestAnimationFrame(loop);
+}
+
+function boostToggleAnim() {
+  if (boostAnimating) {
+    boostAnimating = false;
+    if (boostAnimId) { cancelAnimationFrame(boostAnimId); boostAnimId = null; }
+    document.getElementById('boost-anim-btn').textContent = 'Play';
+    document.getElementById('boost-anim-btn').classList.remove('active');
+    return;
+  }
+  boostAnimating = true;
+  document.getElementById('boost-anim-btn').textContent = 'Pause';
+  document.getElementById('boost-anim-btn').classList.add('active');
+  boostStartLoop();
+}
+
+function boostResetAnim() {
+  boostAnimating = false;
+  boostBeta = 0;
+  boostDir = 1;
+  if (boostAnimId) { cancelAnimationFrame(boostAnimId); boostAnimId = null; }
+  document.getElementById('boost-anim-btn').textContent = 'Play';
+  document.getElementById('boost-anim-btn').classList.remove('active');
+  document.getElementById('beta-slider').value = 0;
+  updateBoost();
+}
+
+window.boostStartAnim = function() {
+  boostAnimating = true;
+  document.getElementById('boost-anim-btn').textContent = 'Pause';
+  document.getElementById('boost-anim-btn').classList.add('active');
+  boostStartLoop();
+};
+
+window.boostStopAnim = function() {
+  boostAnimating = false;
+  if (boostAnimId) { cancelAnimationFrame(boostAnimId); boostAnimId = null; }
+  document.getElementById('boost-anim-btn').textContent = 'Play';
+  document.getElementById('boost-anim-btn').classList.remove('active');
+};
 
 function resizeBoost() {
-  const wrap = document.getElementById('boost-wrap');
-  boostW = wrap.clientWidth;
-  boostH = wrap.clientHeight;
-  boostCanvas.width = boostW;
-  boostCanvas.height = boostH;
+  const wrap = boostCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  boostDpr = window.devicePixelRatio || 1;
+  boostW = rect.width;
+  boostH = rect.height;
+  boostCanvas.style.width = boostW + 'px';
+  boostCanvas.style.height = boostH + 'px';
+  boostCanvas.width = boostW * boostDpr;
+  boostCanvas.height = boostH * boostDpr;
   drawBoost();
 }
 
@@ -920,6 +1569,8 @@ function updateBoost() {
 function drawBoost() {
   const ctx = boostCtx;
   const W = boostW, H = boostH;
+  ctx.save();
+  ctx.setTransform(boostDpr,0,0,boostDpr,0,0);
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = '#05050f';
   ctx.fillRect(0, 0, W, H);
@@ -955,6 +1606,7 @@ function drawBoost() {
   drawFrameS(ctx, lOX, lOY, sc, beta, gamma, L0, dtau);
   // ── RIGHT: Frame S' ──
   drawFrameSPrime(ctx, rOX, rOY, sc, beta, gamma, L0, dtau);
+  ctx.restore();
 }
 
 function drawMinkFrame(ctx, ox, oy, sc, W_half) {
@@ -1167,18 +1819,25 @@ function drawFrameSPrime(ctx, ox, oy, sc, beta, gamma, L0, dtau) {
 // ══════════════════════════════════════════════
 const twinCanvas = document.getElementById('twin-canvas');
 const twinCtx = twinCanvas.getContext('2d');
-let twinW = 0, twinH = 0;
+let twinW = 0, twinH = 0, twinDpr = 1;
 let twinAnim = false;
 let twinAnimId = null;
-let twinT0 = null;
-let twinProgress = 0; // 0..1
+let twinProgress = 0;
+
+function twinGetSpeed(){
+  return parseFloat(document.getElementById('twin-speed').value)/10 || 0.3;
+}
 
 function resizeTwin() {
-  const wrap = document.getElementById('twin-wrap');
-  twinW = wrap.clientWidth;
-  twinH = wrap.clientHeight;
-  twinCanvas.width = twinW;
-  twinCanvas.height = twinH;
+  const wrap = twinCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  twinDpr = window.devicePixelRatio || 1;
+  twinW = rect.width;
+  twinH = rect.height;
+  twinCanvas.style.width = twinW + 'px';
+  twinCanvas.style.height = twinH + 'px';
+  twinCanvas.width = twinW * twinDpr;
+  twinCanvas.height = twinH * twinDpr;
   drawTwin(twinProgress);
 }
 
@@ -1213,13 +1872,15 @@ function updateTwin() {
     document.getElementById('tau-travel').style.color = '#ff4466';
     document.getElementById('tau-diff').textContent = '—';
   }
-  resetTwinAnim();
+  twinResetAnim();
   drawTwin(0);
 }
 
 function drawTwin(progress) {
   const ctx = twinCtx;
   const W = twinW, H = twinH;
+  ctx.save();
+  ctx.setTransform(twinDpr,0,0,twinDpr,0,0);
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = '#05050f';
   ctx.fillRect(0, 0, W, H);
@@ -1387,50 +2048,67 @@ function drawTwin(progress) {
     document.getElementById('age-stay').textContent = '0.0';
     document.getElementById('age-travel').textContent = '0.0';
   }
+  ctx.restore();
 }
 
-function toggleTwinAnim() {
-  twinAnim = !twinAnim;
-  const btn = document.getElementById('anim-btn');
-  if (twinAnim) {
-    btn.textContent = '⏸ Pause';
-    btn.classList.add('active');
-    twinT0 = null;
-    requestAnimationFrame(animTwin);
-  } else {
-    btn.textContent = '▶ Start Journey';
-    btn.classList.remove('active');
-    if (twinAnimId) cancelAnimationFrame(twinAnimId);
+function twinStartLoop(){
+  if(twinAnimId) return;
+  function loop(){
+    if(twinAnim){
+      var speed = twinGetSpeed();
+      twinProgress += speed * 0.004;
+      if(twinProgress > 1){
+        twinProgress = 0;
+      }
+    }
+    if(twinAnim){
+      drawTwin(twinProgress);
+      twinAnimId = requestAnimationFrame(loop);
+    } else {
+      twinAnimId = null;
+    }
   }
+  twinAnimId = requestAnimationFrame(loop);
 }
 
-function resetTwinAnim() {
+function twinToggleAnim() {
+  if(twinAnim){
+    twinAnim = false;
+    if(twinAnimId){cancelAnimationFrame(twinAnimId);twinAnimId=null;}
+    document.getElementById('anim-btn').textContent = 'Play';
+    document.getElementById('anim-btn').classList.remove('active');
+    return;
+  }
+  twinAnim = true;
+  document.getElementById('anim-btn').textContent = 'Pause';
+  document.getElementById('anim-btn').classList.add('active');
+  twinStartLoop();
+}
+
+function twinResetAnim() {
   twinAnim = false;
   twinProgress = 0;
-  twinT0 = null;
-  if (twinAnimId) cancelAnimationFrame(twinAnimId);
-  document.getElementById('anim-btn').textContent = '▶ Start Journey';
+  if(twinAnimId){cancelAnimationFrame(twinAnimId);twinAnimId=null;}
+  document.getElementById('anim-btn').textContent = 'Play';
   document.getElementById('anim-btn').classList.remove('active');
   document.getElementById('age-stay').textContent = '0.0';
   document.getElementById('age-travel').textContent = '0.0';
   drawTwin(0);
 }
 
-function animTwin(ts) {
-  if (!twinAnim) return;
-  if (!twinT0) twinT0 = ts;
-  const elapsed = ts - twinT0;
-  const duration = 4000; // 4 seconds for full journey
-  twinProgress = Math.min(elapsed / duration, 1);
-  drawTwin(twinProgress);
-  if (twinProgress < 1) {
-    twinAnimId = requestAnimationFrame(animTwin);
-  } else {
-    twinAnim = false;
-    document.getElementById('anim-btn').textContent = '▶ Start Journey';
-    document.getElementById('anim-btn').classList.remove('active');
-  }
-}
+window.twinStartAnim = function(){
+  twinAnim = true;
+  document.getElementById('anim-btn').textContent = 'Pause';
+  document.getElementById('anim-btn').classList.add('active');
+  twinStartLoop();
+};
+
+window.twinStopAnim = function(){
+  twinAnim = false;
+  if(twinAnimId){cancelAnimationFrame(twinAnimId);twinAnimId=null;}
+  document.getElementById('anim-btn').textContent = 'Play';
+  document.getElementById('anim-btn').classList.remove('active');
+};
 
 // ══════════════════════════════════════════════
 //  PROOF PANEL
@@ -1529,15 +2207,87 @@ function closeProof() {
 // ══════════════════════════════════════════════
 const paradoxCanvas = document.getElementById('paradox-canvas');
 const paradoxCtx = paradoxCanvas.getContext('2d');
-let paradoxW = 0, paradoxH = 0;
+let paradoxW = 0, paradoxH = 0, paradxDpr = 1;
 let currentParadox = 'barn';
+let parAnimating = false, parAnimId = null, parAnimT = 0;
+let parBarnPhase = 0;
+
+function parGetSpeed() { return parseFloat(document.getElementById('par-speed').value) / 10 || 0.3; }
+
+function parStartLoop() {
+  if (parAnimId) return;
+  function loop() {
+    if (parAnimating) {
+      var speed = parGetSpeed();
+      parAnimT += speed * 0.008;
+      if (currentParadox === 'barn') {
+        if (parBarnPhase === 0 && parAnimT > 0.15) { parBarnPhase = 1; parAnimT = 0; }
+        if (parBarnPhase === 1 && parAnimT > 0.55) { parBarnPhase = 2; }
+        if (parBarnPhase === 2 && parAnimT > 0.85) { parBarnPhase = 3; }
+        if (parBarnPhase === 3 && parAnimT > 1.15) { parBarnPhase = 0; parAnimT = 0; }
+      } else {
+        var newBeta = 0.82 * Math.sin(parAnimT * 1.2);
+        document.getElementById('par-beta2').value = newBeta.toFixed(2);
+      }
+      drawParadox();
+    }
+    if (parAnimating) {
+      parAnimId = requestAnimationFrame(loop);
+    } else {
+      parAnimId = null;
+    }
+  }
+  parAnimId = requestAnimationFrame(loop);
+}
+
+function parToggleAnim() {
+  if (parAnimating) {
+    parAnimating = false;
+    if (parAnimId) { cancelAnimationFrame(parAnimId); parAnimId = null; }
+    document.getElementById('par-anim-btn').textContent = 'Play';
+    document.getElementById('par-anim-btn').classList.remove('active');
+    return;
+  }
+  parAnimating = true;
+  parAnimT = 0;
+  parBarnPhase = 0;
+  document.getElementById('par-anim-btn').textContent = 'Pause';
+  document.getElementById('par-anim-btn').classList.add('active');
+  parStartLoop();
+}
+
+function parResetAnim() {
+  parAnimating = false;
+  parAnimT = 0;
+  parBarnPhase = 0;
+  if (parAnimId) { cancelAnimationFrame(parAnimId); parAnimId = null; }
+  document.getElementById('par-anim-btn').textContent = 'Play';
+  document.getElementById('par-anim-btn').classList.remove('active');
+  if (currentParadox === 'barn') {
+    document.getElementById('par-beta').value = '0.7';
+  } else {
+    document.getElementById('par-beta2').value = '0.6';
+  }
+  drawParadox();
+}
+
+window.parStopAnim = function() {
+  parAnimating = false;
+  if (parAnimId) { cancelAnimationFrame(parAnimId); parAnimId = null; }
+  document.getElementById('par-anim-btn').textContent = 'Play';
+  document.getElementById('par-anim-btn').classList.remove('active');
+};
 
 function resizeParadox() {
-  const wrap = document.getElementById('paradox-wrap');
-  paradoxW = wrap.clientWidth;
-  paradoxH = wrap.clientHeight;
-  paradoxCanvas.width = paradoxW;
-  paradoxCanvas.height = paradoxH;
+  const wrap = paradoxCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  paradxDpr = window.devicePixelRatio || 1;
+  paradoxW = rect.width;
+  paradoxH = rect.height;
+  paradoxCanvas.style.width = paradoxW + 'px';
+  paradoxCanvas.style.height = paradoxH + 'px';
+  paradoxCanvas.width = paradoxW * paradxDpr;
+  paradoxCanvas.height = paradoxH * paradxDpr;
   drawParadox();
 }
 
@@ -1555,6 +2305,11 @@ function setCalloutContent(id, titleText, bodyText) {
 
 function selectParadox(name) {
   currentParadox = name;
+  if (parAnimating) { parAnimating = false; if (parAnimId) { cancelAnimationFrame(parAnimId); parAnimId = null; } }
+  document.getElementById('par-anim-btn').textContent = 'Play';
+  document.getElementById('par-anim-btn').classList.remove('active');
+  parAnimT = 0; parBarnPhase = 0;
+  parTutReset();
   document.getElementById('par-btn-barn').classList.toggle('active', name === 'barn');
   document.getElementById('par-btn-sim').classList.toggle('active', name === 'sim');
   document.getElementById('par-barn-ctrl').style.display = name === 'barn' ? '' : 'none';
@@ -1564,10 +2319,12 @@ function selectParadox(name) {
     setCalloutContent('par-callout', 'Barn\u2013Pole Paradox',
       'In the barn frame the pole fits (length-contracted). In the pole frame the barn is shorter. Both are correct! The \u201csimultaneous closing of doors\u201d differs between frames \u2014 resolving the apparent contradiction.');
     hint.textContent = 'Top: Barn frame \u00b7 Bottom: Pole frame';
+    document.getElementById('par-tut-title').textContent = 'Barn\u2013Pole Paradox';
   } else {
     setCalloutContent('par-callout', 'Relativity of Simultaneity',
       'Two events simultaneous in one frame are not simultaneous in a boosted frame. The simultaneity plane tilts \u2014 a spatial separation \u0394x adds a time offset \u03b2\u00b7\u0394x/c.');
     hint.textContent = 'Top: Lab frame \u00b7 Bottom: Moving frame (\u03b2 slider)';
+    document.getElementById('par-tut-title').textContent = 'Relativity of Simultaneity';
   }
   drawParadox();
 }
@@ -1580,23 +2337,28 @@ function drawParadox() {
 function drawBarnPole() {
   const ctx = paradoxCtx;
   const W = paradoxW, H = paradoxH;
+  ctx.save();
+  ctx.setTransform(paradxDpr,0,0,paradxDpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = '#05050f'; ctx.fillRect(0,0,W,H);
 
   const beta  = parseFloat(document.getElementById('par-beta').value);
-  const gamma = 1 / Math.sqrt(1 - beta*beta);
+  const gamma = 1 / Math.sqrt(Math.max(0.01, 1 - beta*beta));
   const L0 = 200, W0 = 150;
   const Lpole_barn = L0 / gamma;
   const Wbarn_pole = W0 / gamma;
 
-  document.getElementById('par-beta-disp').textContent = 'beta=' + beta.toFixed(2) + '  gamma=' + gamma.toFixed(2);
+  document.getElementById('par-beta-disp').textContent = '\u03b2=' + beta.toFixed(2) + '  \u03b3=' + gamma.toFixed(2);
   document.getElementById('par-L0').textContent = L0;
   document.getElementById('par-W0').textContent = W0;
   document.getElementById('par-Lprime').textContent = Lpole_barn.toFixed(1) + ' px';
   document.getElementById('par-Wprime').textContent  = Wbarn_pole.toFixed(1) + ' px';
 
   const rowH = H / 2;
-  const drawFrame = (oy, poleLen, barnLen, labelPole, labelBarn, clrPole, frameLabel) => {
+  const animOn = parAnimating && parBarnPhase >= 1;
+  const slideFrac = animOn ? Math.min(parAnimT, 1) : -1;
+
+  const drawFrame = (oy, poleLen, barnLen, labelPole, labelBarn, clrPole, frameLabel, isBarnFrame) => {
     const cx = W / 2;
     const barny  = oy + rowH * 0.3;
     const poley  = oy + rowH * 0.56;
@@ -1609,55 +2371,98 @@ function drawBarnPole() {
     ctx.save(); ctx.font = 'bold 13px monospace'; ctx.fillStyle = '#c0c0ea';
     ctx.fillText(frameLabel, 14, oy + 18); ctx.restore();
 
-    // Barn
-    ctx.save();
     const bx = cx - barnLen/2;
+    ctx.save();
     ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2.5;
     ctx.strokeRect(bx, barny - barH/2, barnLen, barH);
     ctx.font = '12px monospace'; ctx.fillStyle = '#ffd700';
     ctx.fillText('barn ' + labelBarn + '=' + barnLen.toFixed(0), bx, barny - barH/2 - 5);
-    ctx.strokeStyle = 'rgba(255,215,0,0.4)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(bx, barny-barH/2); ctx.lineTo(bx, barny+barH/2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bx+barnLen, barny-barH/2); ctx.lineTo(bx+barnLen, barny+barH/2); ctx.stroke();
+
+    if (animOn) {
+      const progress = slideFrac;
+      const leftDoorClosed  = progress < 0.35 || progress > 0.65;
+      const rightDoorClosed = progress < 0.30 || progress > 0.70;
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = leftDoorClosed ? 'rgba(255,68,102,0.9)' : 'rgba(255,215,0,0.3)';
+      ctx.beginPath(); ctx.moveTo(bx, barny - barH/2); ctx.lineTo(bx, barny + barH/2); ctx.stroke();
+      ctx.strokeStyle = rightDoorClosed ? 'rgba(68,221,255,0.9)' : 'rgba(255,215,0,0.3)';
+      ctx.beginPath(); ctx.moveTo(bx+barnLen, barny - barH/2); ctx.lineTo(bx+barnLen, barny + barH/2); ctx.stroke();
+      ctx.font = '11px monospace';
+      ctx.fillStyle = leftDoorClosed ? '#ff4466' : 'rgba(255,215,0,0.5)';
+      ctx.fillText(leftDoorClosed ? 'closed' : 'open', bx - 38, barny + 4);
+      ctx.fillStyle = rightDoorClosed ? '#44ddff' : 'rgba(255,215,0,0.5)';
+      ctx.fillText(rightDoorClosed ? 'closed' : 'open', bx + barnLen + 6, barny + 4);
+    } else {
+      ctx.strokeStyle = 'rgba(255,215,0,0.4)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(bx, barny-barH/2); ctx.lineTo(bx, barny+barH/2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx+barnLen, barny-barH/2); ctx.lineTo(bx+barnLen, barny+barH/2); ctx.stroke();
+    }
     ctx.restore();
 
-    // Pole
     ctx.save();
-    const px = cx - poleLen/2;
+    let px;
+    if (animOn) {
+      const travelRange = W * 1.0;
+      if (isBarnFrame) {
+        px = (bx - poleLen) + slideFrac * travelRange;
+      } else {
+        px = (bx + barnLen + 20) - slideFrac * travelRange;
+      }
+    } else {
+      px = cx - poleLen/2;
+    }
     ctx.globalAlpha = 0.2; ctx.fillStyle = clrPole;
     ctx.fillRect(px, poley-poleH/2, poleLen, poleH); ctx.globalAlpha = 1;
     ctx.strokeStyle = clrPole; ctx.lineWidth = 2.5;
     ctx.strokeRect(px, poley-poleH/2, poleLen, poleH);
     ctx.font = '12px monospace'; ctx.fillStyle = clrPole;
     ctx.fillText('pole ' + labelPole + '=' + poleLen.toFixed(0), px, poley + poleH/2 + 14);
-    // Arrow
     const arrowX = px + poleLen + 12;
     ctx.strokeStyle = clrPole; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(arrowX, poley); ctx.lineTo(arrowX + 35, poley); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(arrowX+35, poley-5); ctx.lineTo(arrowX+44, poley); ctx.lineTo(arrowX+35, poley+5); ctx.fill();
-    ctx.fillText('b=' + beta.toFixed(2), arrowX + 2, poley - 6);
+    ctx.fillText('\u03b2=' + beta.toFixed(2), arrowX + 2, poley - 6);
     ctx.restore();
+
+    if (animOn) {
+      const poleLeft  = px;
+      const poleRight = px + poleLen;
+      const barnLeft  = bx;
+      const barnRight = bx + barnLen;
+      const overlap = Math.max(0, Math.min(poleRight, barnRight) - Math.max(poleLeft, barnLeft));
+      if (overlap > 0) {
+        const coverage = overlap / barnLen;
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,255,153,' + (coverage * 0.15).toFixed(3) + ')';
+        ctx.fillRect(bx, barny - barH/2, barnLen, barH);
+        ctx.restore();
+      }
+    }
 
     const fits = poleLen <= barnLen;
     ctx.save(); ctx.font = 'bold 12px monospace';
     ctx.fillStyle = fits ? '#00ff99' : '#ff4466';
-    ctx.fillText(fits ? '\u2713 Pole FITS in barn' : '\u2717 Pole does NOT fit', cx - 70, poley + poleH/2 + 32);
+    ctx.fillText(fits ? '\u2713 Pole FITS in barn' : '\u2717 Pole does NOT fit', cx - 80, poley + poleH/2 + 32);
     ctx.restore();
   };
 
-  drawFrame(0,    Lpole_barn, W0,  "L'", "W0",  '#44ddff', 'Barn Frame (barn at rest)');
-  drawFrame(rowH, L0,         Wbarn_pole, 'L0', "W'", '#00ff99', 'Pole Frame (pole at rest)');
+  drawFrame(0,    Lpole_barn, W0,  "L'", "W0",  '#44ddff', 'Barn Frame (barn at rest)', true);
+  drawFrame(rowH, L0,         Wbarn_pole, 'L0', "W'", '#00ff99', 'Pole Frame (pole at rest)', false);
+  ctx.restore();
 }
 
 function drawSimultaneity() {
   const ctx = paradoxCtx;
   const W = paradoxW, H = paradoxH;
+  ctx.save();
+  ctx.setTransform(paradxDpr,0,0,paradxDpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = '#05050f'; ctx.fillRect(0,0,W,H);
 
   const beta  = parseFloat(document.getElementById('par-beta2').value);
-  const gamma = 1 / Math.sqrt(1 - beta*beta);
-  document.getElementById('par-beta2-disp').textContent = 'beta = ' + beta.toFixed(2);
+  const betaClamp = Math.max(-0.98, Math.min(0.98, beta));
+  const gamma = 1 / Math.sqrt(Math.max(0.01, 1 - betaClamp*betaClamp));
+  document.getElementById('par-beta2-disp').textContent = '\u03b2 = ' + betaClamp.toFixed(2) + '  \u03b3 = ' + gamma.toFixed(2);
 
   const sc = Math.min(W * 0.07, H * 0.08);
   const rowH = H / 2;
@@ -1722,6 +2527,7 @@ function drawSimultaneity() {
 
   drawSimFrame(0,    'Lab Frame (events simultaneous)', Ax0, 0,    Bx0, 0,    '#44ddff');
   drawSimFrame(rowH, 'Moving Frame (\u03b2 slider)',      AxP, ActP, BxP, BctP, '#ffd700');
+  ctx.restore();
 }
 
 // ══════════════════════════════════════════════
@@ -1729,14 +2535,83 @@ function drawSimultaneity() {
 // ══════════════════════════════════════════════
 const fvCanvas = document.getElementById('4vec-canvas');
 const fvCtx = fvCanvas.getContext('2d');
-let fvW = 0, fvH = 0;
+let fvW = 0, fvH = 0, fvDpr = 1;
+let fvAnimating = false, fvAnimId = null, fvBeta = 0;
+let fvTrail = [];
+
+function fvGetSpeed() {
+  return parseFloat(document.getElementById('fv-speed').value) / 10 || 0.3;
+}
+
+function fvStartLoop() {
+  if (fvAnimId) return;
+  function loop() {
+    if (fvAnimating) {
+      var speed = fvGetSpeed();
+      fvBeta += speed * 0.006;
+      if (fvBeta >= 0.999) fvBeta = 0;
+      document.getElementById('fv-beta').value = fvBeta.toFixed(3);
+      update4Vec();
+    }
+    if (fvAnimating) {
+      fvAnimId = requestAnimationFrame(loop);
+    } else {
+      fvAnimId = null;
+    }
+  }
+  fvAnimId = requestAnimationFrame(loop);
+}
+
+function fvToggleAnim() {
+  if (fvAnimating) {
+    fvAnimating = false;
+    if (fvAnimId) { cancelAnimationFrame(fvAnimId); fvAnimId = null; }
+    document.getElementById('fv-anim-btn').textContent = 'Play';
+    document.getElementById('fv-anim-btn').classList.remove('active');
+    return;
+  }
+  fvAnimating = true;
+  document.getElementById('fv-anim-btn').textContent = 'Pause';
+  document.getElementById('fv-anim-btn').classList.add('active');
+  fvStartLoop();
+}
+
+function fvResetAnim() {
+  fvAnimating = false;
+  fvBeta = 0;
+  fvTrail = [];
+  if (fvAnimId) { cancelAnimationFrame(fvAnimId); fvAnimId = null; }
+  document.getElementById('fv-anim-btn').textContent = 'Play';
+  document.getElementById('fv-anim-btn').classList.remove('active');
+  document.getElementById('fv-beta').value = '0';
+  update4Vec();
+}
+
+window.fvStartAnim = function () {
+  fvAnimating = true;
+  document.getElementById('fv-anim-btn').textContent = 'Pause';
+  document.getElementById('fv-anim-btn').classList.add('active');
+  fvStartLoop();
+};
+
+window.fvStopAnim = function () {
+  fvAnimating = false;
+  fvTrail = [];
+  if (fvAnimId) { cancelAnimationFrame(fvAnimId); fvAnimId = null; }
+  document.getElementById('fv-anim-btn').textContent = 'Play';
+  document.getElementById('fv-anim-btn').classList.remove('active');
+};
 
 function resize4Vec() {
-  const wrap = document.getElementById('4vec-wrap');
-  fvW = wrap.clientWidth;
-  fvH = wrap.clientHeight;
-  fvCanvas.width = fvW;
-  fvCanvas.height = fvH;
+  const wrap = fvCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  fvDpr = window.devicePixelRatio || 1;
+  fvW = rect.width;
+  fvH = rect.height;
+  fvCanvas.style.width = fvW + 'px';
+  fvCanvas.style.height = fvH + 'px';
+  fvCanvas.width = fvW * fvDpr;
+  fvCanvas.height = fvH * fvDpr;
   draw4Vec();
 }
 
@@ -1760,6 +2635,8 @@ function update4Vec() {
 function draw4Vec() {
   const ctx = fvCtx;
   const W = fvW, H = fvH;
+  ctx.save();
+  ctx.setTransform(fvDpr,0,0,fvDpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = '#05050f'; ctx.fillRect(0,0,W,H);
 
@@ -1829,6 +2706,26 @@ function draw4Vec() {
     ctx.restore();
   });
 
+  // Light-pulse trail
+  if (fvAnimating || fvTrail.length > 0) {
+    if (fvAnimating) {
+      fvTrail.push({ x: pval, y: Eval });
+      if (fvTrail.length > 30) fvTrail.shift();
+    }
+    ctx.save();
+    fvTrail.forEach((pt, i) => {
+      const alpha = (i + 1) / fvTrail.length * 0.5;
+      const cpx = ox + pt.x * sc, cpy = oy - pt.y * sc;
+      if (cpy > 14 && cpx < W - 8) {
+        ctx.beginPath();
+        ctx.arc(cpx, cpy, 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,215,0,' + alpha.toFixed(3) + ')';
+        ctx.fill();
+      }
+    });
+    ctx.restore();
+  }
+
   // Particle dot
   const dotX = ox + pval*sc, dotY = oy - Eval*sc;
   if(dotY > 14 && dotX < W-8){
@@ -1858,6 +2755,7 @@ function draw4Vec() {
   ctx.font='12px monospace'; ctx.fillStyle='#55558a';
   ctx.fillText('Cyan dot = rest state', ox+4, oy - H*0.12);
   ctx.restore();
+  ctx.restore();
 }
 
 // ══════════════════════════════════════════════
@@ -1865,26 +2763,41 @@ function draw4Vec() {
 // ══════════════════════════════════════════════
 const penroseCanvas = document.getElementById('penrose-canvas');
 const penroseCtx = penroseCanvas.getContext('2d');
-let penroseW = 0, penroseH = 0;
+let penroseW = 0, penroseH = 0, penroseDpr = 1;
 let currentPenrose = 'mink';
 let penroseAnimReq = null;
-let penroseAnimRunning = true;
+let penroseAnimRunning = false;
+let penroseAngle = 0;
+
+function penroseGetSpeed(){
+  return parseFloat(document.getElementById('penrose-speed').value)/10 || 0.3;
+}
 
 function resizePenrose() {
-  const wrap = document.getElementById('penrose-wrap');
-  penroseW = wrap.clientWidth;
-  penroseH = wrap.clientHeight;
-  penroseCanvas.width = penroseW;
-  penroseCanvas.height = penroseH;
+  const wrap = penroseCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  penroseDpr = window.devicePixelRatio || 1;
+  penroseW = rect.width;
+  penroseH = rect.height;
+  penroseCanvas.style.width = penroseW + 'px';
+  penroseCanvas.style.height = penroseH + 'px';
+  penroseCanvas.width = penroseW * penroseDpr;
+  penroseCanvas.height = penroseH * penroseDpr;
   drawPenrose();
 }
 
 function selectPenrose(name) {
   if (penroseAnimReq) { cancelAnimationFrame(penroseAnimReq); penroseAnimReq = null; }
   currentPenrose = name;
-  penroseAnimRunning = true;
-  const btn = document.getElementById('pd-anim-btn');
-  if(btn){btn.classList.add('active');btn.textContent='Pause';}
+  penroseAngle = 0;
+  if (!penroseAnimRunning) {
+    penroseAnimRunning = true;
+    document.getElementById('pd-anim-btn').textContent = 'Pause';
+    document.getElementById('pd-anim-btn').classList.add('active');
+  }
+  penroseStartLoop();
+  resizePenrose();
+  drawPenrose();
   document.getElementById('pd-btn-mink').classList.toggle('active', name==='mink');
   document.getElementById('pd-btn-rindler').classList.toggle('active', name==='rindler');
   document.getElementById('pd-btn-unruh').classList.toggle('active', name==='unruh');
@@ -1912,20 +2825,56 @@ function drawPenrose() {
   else drawUnruhEffect();
 }
 
-function togglePenroseAnim() {
-  penroseAnimRunning = !penroseAnimRunning;
-  const btn = document.getElementById('pd-anim-btn');
-  btn.classList.toggle('active', penroseAnimRunning);
-  btn.textContent = penroseAnimRunning ? 'Pause' : 'Play';
-  if(penroseAnimRunning && !penroseAnimReq) {
-    if(currentPenrose==='rindler') penroseAnimReq = requestAnimationFrame(drawRindlerWedge);
-    else if(currentPenrose==='unruh') penroseAnimReq = requestAnimationFrame(drawUnruhEffect);
+function penroseStartLoop(){
+  if(penroseAnimReq) return;
+  function loop(){
+    if(penroseAnimRunning){
+      var speed = penroseGetSpeed();
+      penroseAngle += speed * 0.02;
+    }
+    if(penroseAnimRunning){
+      drawPenrose();
+      penroseAnimReq = requestAnimationFrame(loop);
+    } else {
+      penroseAnimReq = null;
+    }
   }
+  penroseAnimReq = requestAnimationFrame(loop);
 }
+
+function penroseToggleAnim() {
+  if(penroseAnimRunning){
+    penroseAnimRunning = false;
+    if(penroseAnimReq){cancelAnimationFrame(penroseAnimReq);penroseAnimReq=null;}
+    document.getElementById('pd-anim-btn').textContent = 'Play';
+    document.getElementById('pd-anim-btn').classList.remove('active');
+    return;
+  }
+  penroseAnimRunning = true;
+  document.getElementById('pd-anim-btn').textContent = 'Pause';
+  document.getElementById('pd-anim-btn').classList.add('active');
+  penroseStartLoop();
+}
+
+window.penroseStartAnim = function(){
+  penroseAnimRunning = true;
+  document.getElementById('pd-anim-btn').textContent = 'Pause';
+  document.getElementById('pd-anim-btn').classList.add('active');
+  penroseStartLoop();
+};
+
+window.penroseStopAnim = function(){
+  penroseAnimRunning = false;
+  if(penroseAnimReq){cancelAnimationFrame(penroseAnimReq);penroseAnimReq=null;}
+  document.getElementById('pd-anim-btn').textContent = 'Play';
+  document.getElementById('pd-anim-btn').classList.remove('active');
+};
 
 function drawPenroseMink() {
   const ctx = penroseCtx;
   const W = penroseW, H = penroseH;
+  ctx.save();
+  ctx.setTransform(penroseDpr,0,0,penroseDpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = '#05050f'; ctx.fillRect(0,0,W,H);
 
@@ -1993,14 +2942,67 @@ function drawPenroseMink() {
   }
   ctx.setLineDash([]); ctx.restore();
 
+  // Animated particles along worldlines and null geodesics
+  if (penroseAnimRunning || penroseAngle > 0) {
+    const t0 = penroseAngle;
+    ctx.save();
+    // Timelike particles
+    worldlineXs.forEach((fx, ii) => {
+      const frac = ((t0 * 0.15 + ii * 0.23) % 1) * 2 - 0.5;
+      const py = cy - half*(1-Math.abs(fx)) * frac;
+      const px = cx + fx*half;
+      if (py > cy - half*(1-Math.abs(fx)) && py < cy + half*(1-Math.abs(fx))) {
+        const grd = ctx.createRadialGradient(px, py, 0, px, py, 10);
+        grd.addColorStop(0, 'hsl(' + (200+ii*30) + ',80%,65%)');
+        grd.addColorStop(1, 'hsla(' + (200+ii*30) + ',80%,65%,0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI*2);
+        ctx.fillStyle = 'hsl(' + (200+ii*30) + ',80%,75%)'; ctx.fill();
+      }
+    });
+    // Null ray along future right null infinity
+    const nullFrac = (t0 * 0.2) % 1;
+    const npx = cx + half*nullFrac;
+    const npy = cy - half*nullFrac;
+    if (nullFrac > 0.05 && nullFrac < 0.95) {
+      const ngrd = ctx.createRadialGradient(npx, npy, 0, npx, npy, 12);
+      ngrd.addColorStop(0, 'rgba(255,255,255,0.9)');
+      ngrd.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = ngrd;
+      ctx.beginPath(); ctx.arc(npx, npy, 12, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(npx, npy, 4, 0, Math.PI*2);
+      ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.font = '10px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.fillText('photon', npx+10, npy-4);
+    }
+    // Null ray along future left
+    const nullFrac2 = ((t0 * 0.2) + 0.5) % 1;
+    const npx2 = cx - half*nullFrac2;
+    const npy2 = cy - half*nullFrac2;
+    if (nullFrac2 > 0.05 && nullFrac2 < 0.95) {
+      const ngrd2 = ctx.createRadialGradient(npx2, npy2, 0, npx2, npy2, 10);
+      ngrd2.addColorStop(0, 'rgba(0,255,153,0.8)');
+      ngrd2.addColorStop(1, 'rgba(0,255,153,0)');
+      ctx.fillStyle = ngrd2;
+      ctx.beginPath(); ctx.arc(npx2, npy2, 10, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(npx2, npy2, 3, 0, Math.PI*2);
+      ctx.fillStyle = '#00ff99'; ctx.fill();
+    }
+    ctx.restore();
+  }
+
   ctx.save(); ctx.font = 'bold 14px monospace'; ctx.fillStyle = '#44ddff';
   ctx.fillText('Penrose\u2013Carter Diagram: Minkowski Space', 14, 22); ctx.restore();
+  ctx.restore();
 }
 
 function drawRindlerWedge() {
   if(currentPenrose !== 'rindler') return;
   const ctx = penroseCtx;
   const W = penroseW, H = penroseH;
+  ctx.save();
+  ctx.setTransform(penroseDpr,0,0,penroseDpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = '#05050f'; ctx.fillRect(0,0,W,H);
 
@@ -2061,7 +3063,7 @@ function drawRindlerWedge() {
 
   // Animated proper-time dot on first worldline
   const xi0 = 1.0/accel;
-  const tau = ((Date.now()/1000) * 0.7) % 10 - 5;
+  const tau = ((penroseAngle*0.3) % 10) - 5;
   const dotXR = ox + Math.sqrt(xi0*xi0+tau*tau)*sc;
   const dotYR = oy - tau*sc;
   if(dotXR<W-8 && dotYR>8 && dotYR<H-8){
@@ -2086,13 +3088,15 @@ function drawRindlerWedge() {
   ctx.save(); ctx.font = 'bold 13px monospace'; ctx.fillStyle = '#44ddff';
   ctx.fillText('Rindler Wedge \u2014 Uniformly Accelerating Observer', 14, 22); ctx.restore();
 
-  if(penroseAnimRunning) penroseAnimReq = requestAnimationFrame(drawRindlerWedge);
+  ctx.restore();
 }
 
 function drawUnruhEffect() {
   if(currentPenrose !== 'unruh') return;
   const ctx = penroseCtx;
   const W = penroseW, H = penroseH;
+  ctx.save();
+  ctx.setTransform(penroseDpr,0,0,penroseDpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle = '#05050f'; ctx.fillRect(0,0,W,H);
 
@@ -2103,7 +3107,7 @@ function drawUnruhEffect() {
 
   const sc = Math.min(W,H) * 0.065;
   const ox = W/2, oy = H/2;
-  const now = Date.now() / 1000;
+  const now = penroseAngle;
 
   // Thermal photon particles drifting along null geodesics
   ctx.save();
@@ -2153,7 +3157,7 @@ function drawUnruhEffect() {
   ctx.stroke(); ctx.restore();
 
   // Animated dot
-  const tau2 = (now*0.75) % 10 - 5;
+  const tau2 = (penroseAngle*0.75) % 10 - 5;
   const dxU = ox + Math.sqrt(xi0U*xi0U+tau2*tau2)*sc;
   const dyU = oy - tau2*sc;
   if(dxU<W-8 && dyU>8 && dyU<H-8){
@@ -2183,7 +3187,101 @@ function drawUnruhEffect() {
   ctx.save(); ctx.font = 'bold 13px monospace'; ctx.fillStyle = '#44ddff';
   ctx.fillText('Unruh Effect \u2014 Thermal Radiation for Accelerating Observer', 14, 22); ctx.restore();
 
-  if(penroseAnimRunning) penroseAnimReq = requestAnimationFrame(drawUnruhEffect);
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════
+//  GUIDED TUTORIAL — SL(2,C)
+// ══════════════════════════════════════════════
+const slTutSteps = [
+  { title: 'The Lorentz Group Problem',
+    desc: 'The <strong>Lorentz group</strong> SO(3,1) describes all rotations and boosts in spacetime. But it\'s <strong>not simply connected</strong> — there are closed paths in SO(3,1) that cannot be continuously shrunk to a point. This means we need a <strong>covering group</strong> to describe spinor transformations.',
+    mode: 'rot', param: 0, highlight: 'info' },
+  { title: 'Rotation & the Double Cover',
+    desc: 'A spatial rotation by angle <strong>θ</strong> corresponds to a <strong>2×2 unitary matrix</strong> with angle θ/2. The right panel shows this: the <strong>gold arrow</strong> (outer circle) traces the physical rotation angle θ, while the <strong>green arrow</strong> (inner circle) traces the spinor phase θ/2.',
+    mode: 'rot', param: 1.0, highlight: 'phasor' },
+  { title: '360° ≠ Identity for Spinors',
+    desc: 'Watch: as θ reaches <strong>2π</strong> (one full rotation), the physical vector returns to its start — but the spinor <strong>has only covered half its cycle</strong> (θ/2 = π). A spinor needs <strong>θ = 4π</strong> (two full rotations) to return to itself. This is the<strong> double cover</strong>: A and −A map to the same Λ.',
+    mode: 'rot', param: 6.0, highlight: 'phasor' },
+  { title: 'The Boost: Hyperbolic Functions',
+    desc: 'A Lorentz boost with <strong>rapidity η</strong> maps to SL(2,ℂ) via <strong>cosh(η/2)</strong> and <strong>sinh(η/2)</strong>. The left panel shows the Minkowski diagram with the transformed 4-vector. The right panel traces the point (sinh(η/2), cosh(η/2)) along the <strong>unit mass hyperbola</strong>.',
+    mode: 'boost', param: 0.5, highlight: 'phasor' },
+  { title: 'Rapidity & Relativity',
+    desc: 'Rapidities <strong>add linearly</strong>: if you boost by η₁ then η₂, the total is η₁+η₂. This is why rapidity is more natural than velocity (β = tanh η). Watch how the 4-vector crawls along the hyperbola — <strong>cosh²(η/2) − sinh²(η/2) = 1</strong> preserves the spacetime interval.',
+    mode: 'boost', param: 2.5, highlight: 'phasor' },
+  { title: 'Pauli Matrices & Hermitian X',
+    desc: 'We encode a 4-vector x^μ = (t, x, y, z) into a <strong>Hermitian matrix</strong> X = x^μ σ_μ = [[t+z, x−iy], [x+iy, t−z]]. The transformation X → <strong>AXA†</strong> preserves the Hermitian property and the determinant: <strong>det(X) = −s²</strong>, which is just the invariant interval!',
+    mode: 'rot', param: 2.0, highlight: 'matrix' },
+  { title: 'Why Two Matrices, One Transform',
+    desc: 'Since A and −A produce the <strong>same Λ</strong>, the map SL(2,ℂ) → SO⁺(3,1) is <strong>two-to-one</strong>: a 360° rotation gives {A, −A} = {e^{iπ}, −e^{iπ}} ≠ {I, −I}, but a 720° rotation gives {I, −I}. This is why <strong>spin-½ particles</strong> (fermions) have spinor wavefunctions that acquire a −1 sign under 2π rotation.',
+    mode: 'rot', param: 5.5, highlight: 'phasor' },
+  { title: 'From Spinors to Reality',
+    desc: 'This double cover is not abstract — it\'s the reason <strong>electron spin</strong> needs 720° to return to its original state. Dirac\'s equation uses SL(2,ℂ) spinors explicitly. The <strong>Dirac spinor</strong> ξ transforms under the (½,0) representation of SL(2,ℂ), while the conjugate η̄ transforms under (0,½). Together they form a <strong>Dirac bispinor</strong>.',
+    mode: 'boost', param: 4.0, highlight: 'none' }
+];
+
+let slTutStep = -1;
+
+function slTutUpdate() {
+  const total = slTutSteps.length;
+  const dotsEl = document.getElementById('sl-tut-dots');
+  const titleEl = document.getElementById('sl-tut-title');
+  const descEl = document.getElementById('sl-tut-desc');
+  const btnEl = document.getElementById('sl-tut-next-btn');
+  const infoEl = document.getElementById('sl2c-info');
+
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('span');
+    d.className = 'tut-dot' + (i < slTutStep ? ' done' : '') + (i === slTutStep ? ' curr' : '');
+    dotsEl.appendChild(d);
+  }
+
+  if (slTutStep < 0) {
+    titleEl.textContent = 'SL(2,ℂ) & Lorentz Cover';
+    descEl.textContent = 'Step through the spinor double cover.';
+    btnEl.textContent = 'Start';
+    infoEl.style.display = '';
+    return;
+  }
+
+  const step = slTutSteps[slTutStep];
+  titleEl.textContent = 'Step ' + (slTutStep + 1) + ': ' + step.title;
+  descEl.innerHTML = step.desc;
+  btnEl.textContent = slTutStep === total - 1 ? 'Restart' : 'Next →';
+
+  if (step.mode !== sl2cMode) selectSL(step.mode);
+  document.getElementById('sl-param').value = step.param;
+  slParam = step.param;
+
+  if (step.highlight === 'phasor') {
+    infoEl.style.display = 'none';
+  } else if (step.highlight === 'matrix') {
+    infoEl.style.display = '';
+  } else {
+    infoEl.style.display = '';
+  }
+
+  drawSL2C();
+}
+
+function slTutNext() {
+  const total = slTutSteps.length;
+  if (slTutStep < 0) slTutStep = 0;
+  else slTutStep++;
+  if (slTutStep >= total) { slTutStep = -1; slTutUpdate(); return; }
+  slTutUpdate();
+}
+
+function slTutPrev() {
+  slTutStep--;
+  if (slTutStep < -1) slTutStep = -1;
+  slTutUpdate();
+}
+
+function slTutReset() {
+  slTutStep = -1;
+  slTutUpdate();
 }
 
 // ══════════════════════════════════════════════
@@ -2191,25 +3289,34 @@ function drawUnruhEffect() {
 // ══════════════════════════════════════════════
 const sl2cCanvas = document.getElementById('sl2c-canvas');
 const sl2cCtx = sl2cCanvas.getContext('2d');
-let sl2cW = 0, sl2cH = 0;
+let sl2cW = 0, sl2cH = 0, sl2cDpr = 1;
 let sl2cMode = 'boost';
+let slAnimating = false, slAnimId = null, slParam = 0;
+let slBoostDir = 1;
+let slTrail = [];
+
+function slGetSpeed() {
+  return parseFloat(document.getElementById('sl-speed').value) / 10 || 0.3;
+}
 
 function resizeSL2C() {
-  const wrap = document.getElementById('sl2c-wrap');
-  sl2cW = wrap.clientWidth;
-  sl2cH = wrap.clientHeight;
-  sl2cCanvas.width = sl2cW;
-  sl2cCanvas.height = sl2cH;
+  const wrap = sl2cCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  sl2cDpr = window.devicePixelRatio || 1;
+  sl2cW = rect.width;
+  sl2cH = rect.height;
+  sl2cCanvas.style.width = sl2cW + 'px';
+  sl2cCanvas.style.height = sl2cH + 'px';
+  sl2cCanvas.width = sl2cW * sl2cDpr;
+  sl2cCanvas.height = sl2cH * sl2cDpr;
 }
 
 function selectSL(mode) {
   sl2cMode = mode;
+  slTrail = [];
   document.getElementById('sl-btn-boost').classList.toggle('active', mode==='boost');
   document.getElementById('sl-btn-rot').classList.toggle('active', mode==='rot');
-  const param = parseFloat(document.getElementById('sl-param').value);
-  document.getElementById('sl-param-disp').textContent = mode==='boost'
-    ? '\u03b7 = ' + param.toFixed(2) + ' (rapidity)'
-    : '\u03b8 = ' + param.toFixed(2) + ' rad';
+  slParam = parseFloat(document.getElementById('sl-param').value);
   drawSL2C();
 }
 
@@ -2222,11 +3329,9 @@ function drawSL2C() {
   // Compute SL(2,C) matrix
   let a00r,a00i,a01r,a01i,a10r,a10i,a11r,a11i;
   if(sl2cMode==='boost'){
-    // Boost in x: A = [[cosh(eta/2), sinh(eta/2)],[sinh(eta/2), cosh(eta/2)]]
     a00r=Math.cosh(param/2);a00i=0; a01r=Math.sinh(param/2);a01i=0;
     a10r=Math.sinh(param/2);a10i=0; a11r=Math.cosh(param/2);a11i=0;
   } else {
-    // Rotation about z: A = diag(e^{i*theta/2}, e^{-i*theta/2})
     a00r= Math.cos(param/2); a00i= Math.sin(param/2); a01r=0;a01i=0;
     a10r=0;a10i=0; a11r= Math.cos(param/2); a11i=-Math.sin(param/2);
   }
@@ -2248,23 +3353,19 @@ function drawSL2C() {
   const mulC = (ar,ai,br,bi) => ({r:ar*br-ai*bi, i:ar*bi+ai*br});
   const addC = (a,b) => ({r:a.r+b.r, i:a.i+b.i});
 
-  // AX
   const AX00 = addC(mulC(a00r,a00i,X00r,X00i), mulC(a01r,a01i,X10r,X10i));
   const AX01 = addC(mulC(a00r,a00i,X01r,X01i), mulC(a01r,a01i,X11r,X11i));
   const AX10 = addC(mulC(a10r,a10i,X00r,X00i), mulC(a11r,a11i,X10r,X10i));
   const AX11 = addC(mulC(a10r,a10i,X01r,X01i), mulC(a11r,a11i,X11r,X11i));
 
-  // A-dagger = conjugate transpose
   const Ad00r=a00r,Ad00i=-a00i, Ad01r=a10r,Ad01i=-a10i;
   const Ad10r=a01r,Ad10i=-a01i, Ad11r=a11r,Ad11i=-a11i;
 
-  // X' = AX * A†
   const Xp00 = addC(mulC(AX00.r,AX00.i,Ad00r,Ad00i), mulC(AX01.r,AX01.i,Ad10r,Ad10i));
   const Xp01 = addC(mulC(AX00.r,AX00.i,Ad01r,Ad01i), mulC(AX01.r,AX01.i,Ad11r,Ad11i));
   const Xp10 = addC(mulC(AX10.r,AX10.i,Ad00r,Ad00i), mulC(AX11.r,AX11.i,Ad10r,Ad10i));
   const Xp11 = addC(mulC(AX10.r,AX10.i,Ad01r,Ad01i), mulC(AX11.r,AX11.i,Ad11r,Ad11i));
 
-  // Extract x'^mu from X' (Hermitian by construction)
   const xtP = (Xp00.r + Xp11.r)/2;
   const xzP = (Xp00.r - Xp11.r)/2;
   const xxP = Xp01.r;
@@ -2279,101 +3380,440 @@ function drawSL2C() {
   document.getElementById('sl2c-info').textContent =
     'X = x\u1d58 \u03c3_\u03bc\ndet(X\u2032) = ' + detX.toFixed(4) + '\n(preserved \u2261 \u2212s\u00b2)';
 
-  // Draw
+  // ── DRAW ──
   const ctx = sl2cCtx;
   const W = sl2cW, H = sl2cH;
+  if (W === 0 || H === 0) { ctx.restore(); return; }
+  ctx.save();
+  ctx.setTransform(sl2cDpr,0,0,sl2cDpr,0,0);
   ctx.clearRect(0,0,W,H); ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
 
   const half = W/2;
+  const margin = 20;
+  const plotW = half - margin*2;
+  const plotH = H - margin*2 - 36;
+
+  // Divider
   ctx.save(); ctx.strokeStyle='#1c1c44'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
   ctx.beginPath(); ctx.moveTo(half,0); ctx.lineTo(half,H); ctx.stroke();
   ctx.setLineDash([]); ctx.restore();
 
-  ctx.save(); ctx.font='bold 12px monospace';
-  ctx.fillStyle='#44ddff'; ctx.fillText('4-vector x\u1d58 (spatial projection)',14,20);
-  ctx.fillStyle='#ffd700'; ctx.fillText('Hermitian matrix X = x\u1d58\u03c3_\u03bc', half+14,20);
-  ctx.restore();
+  // ── LEFT PANEL ──
+  if (sl2cMode === 'boost') {
+    // Boost: (x, ct) Minkowski plane with auto-scale
+    const maxAbs = Math.max(1.5, Math.abs(xxP)*1.3, Math.abs(xtP)*1.3);
+    const sc = Math.min(plotW, plotH) / (2 * maxAbs);
+    const ox = margin + plotW/2;
+    const oy = margin + 36 + plotH/2;
 
-  // ── LEFT: vector diagram (x,y plane) ──
-  const sc3 = Math.min(half,H) * 0.3;
-  const lox = half/2, loy = H/2;
+    ctx.save(); ctx.font='bold 12px monospace';
+    ctx.fillStyle='#44ddff'; ctx.fillText('Lorentz Boost (x, ct)', margin, margin+16);
+    ctx.restore();
 
-  ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.4)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(lox,loy); ctx.lineTo(lox+sc3,loy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(lox,loy); ctx.lineTo(lox,loy-sc3); ctx.stroke();
-  ctx.fillStyle='#44ddff'; ctx.font='12px monospace';
-  ctx.fillText('x',lox+sc3+4,loy+4);
-  ctx.fillText('y',lox+3,loy-sc3-4);
-  ctx.restore();
+    // Grid
+    ctx.save(); ctx.strokeStyle='#1c1c44'; ctx.lineWidth=0.5;
+    const gridStep = maxAbs > 5 ? Math.ceil(maxAbs/4) : Math.ceil(maxAbs/3);
+    for (let i=-8; i<=8; i++) {
+      const gpx = ox + i*gridStep*sc;
+      if (gpx > margin && gpx < half-margin) { ctx.beginPath(); ctx.moveTo(gpx, margin+36); ctx.lineTo(gpx, H-margin); ctx.stroke(); }
+      const gpy = oy - i*gridStep*sc;
+      if (gpy > margin+36 && gpy < H-margin) { ctx.beginPath(); ctx.moveTo(margin, gpy); ctx.lineTo(half-margin, gpy); ctx.stroke(); }
+    }
+    ctx.restore();
 
-  // Unit circle
-  ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.15)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.arc(lox,loy,sc3,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    // Light cone (45° lines)
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1; ctx.setLineDash([5,4]);
+    const lcEnd = Math.min(plotW, plotH)/2;
+    ctx.beginPath(); ctx.moveTo(ox-lcEnd, oy+lcEnd); ctx.lineTo(ox+lcEnd, oy-lcEnd); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+lcEnd, oy+lcEnd); ctx.lineTo(ox-lcEnd, oy-lcEnd); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
 
-  // Original vector (faint)
-  ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.3)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
-  ctx.beginPath(); ctx.moveTo(lox,loy); ctx.lineTo(lox+xx*sc3, loy-xy*sc3); ctx.stroke();
-  ctx.setLineDash([]); ctx.restore();
+    // Hyperbolic reference curves: mass shell for m=1 (t²-x²=1)
+    ctx.save(); ctx.strokeStyle='rgba(0,255,153,0.3)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); let hFirst=true;
+    for (let t=-maxAbs; t<=maxAbs; t+=0.02) {
+      const xval = Math.sqrt(Math.max(0.01, t*t - 1));
+      if (xval <= maxAbs) {
+        const px = ox + xval*sc, py = oy - t*sc;
+        if (px > margin && px < half-margin && py > margin+36 && py < H-margin) {
+          if(hFirst){ctx.moveTo(px,py);hFirst=false;} else ctx.lineTo(px,py);
+        }
+      }
+    }
+    ctx.stroke();
+    hFirst = true;
+    ctx.beginPath();
+    for (let t=-maxAbs; t<=maxAbs; t+=0.02) {
+      const xval = -Math.sqrt(Math.max(0.01, t*t - 1));
+      if (Math.abs(xval) <= maxAbs) {
+        const px = ox + xval*sc, py = oy - t*sc;
+        if (px > margin && px < half-margin && py > margin+36 && py < H-margin) {
+          if(hFirst){ctx.moveTo(px,py);hFirst=false;} else ctx.lineTo(px,py);
+        }
+      }
+    }
+    ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.font='11px monospace'; ctx.fillStyle='rgba(0,255,153,0.6)';
+    ctx.fillText('m=1 shell', margin+4, oy - sc + 4); ctx.restore();
 
-  // Transformed vector
-  const tPx = lox + xxP*sc3, tPy = loy - xyP*sc3;
-  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
-  ctx.beginPath(); ctx.moveTo(lox,loy); ctx.lineTo(tPx,tPy); ctx.stroke();
-  ctx.beginPath(); ctx.arc(tPx,tPy,6,0,Math.PI*2);
-  ctx.fillStyle='#ffd700'; ctx.fill();
-  ctx.font='12px monospace'; ctx.fillStyle='#ffd700';
-  ctx.fillText('('+xxP.toFixed(2)+','+xyP.toFixed(2)+','+xzP.toFixed(2)+')', tPx+8,tPy-6);
-  ctx.restore();
+    // Axes
+    ctx.save(); ctx.strokeStyle='#44ddff'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(margin, oy); ctx.lineTo(half-margin, oy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox, margin+36); ctx.lineTo(ox, H-margin); ctx.stroke();
+    ctx.fillStyle='#44ddff'; ctx.font='12px monospace';
+    ctx.fillText('x', half-margin-14, oy+16); ctx.fillText('ct', ox+6, margin+48);
+    ctx.restore();
 
-  // "A and -A" note
-  ctx.save(); ctx.font='12px monospace'; ctx.fillStyle='#00ff99';
-  ctx.fillText('A and \u2212A give same \u039b (double cover)', lox-half*0.45, H-22);
-  ctx.restore();
+    // Trail
+    if (slTrail.length > 1) {
+      ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.25)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); let trFirst=true;
+      slTrail.forEach(p => {
+        const tv = Math.cosh(p/2)*1 + Math.sinh(p/2)*0;
+        const xv = Math.cosh(p/2)*0 + Math.sinh(p/2)*1;
+        const bxp = ox + xv*sc, byp = oy - tv*sc;
+        if (bxp > margin && bxp < half-margin && byp > margin+36 && byp < H-margin) {
+          if(trFirst){ctx.moveTo(bxp,byp);trFirst=false;} else ctx.lineTo(bxp,byp);
+        }
+      });
+      ctx.stroke(); ctx.restore();
+    }
 
-  // ── RIGHT: bar chart of Hermitian matrix entries ──
-  const rox = half+22, roy = H/2;
-  const barW=30, barGap=18, barSc=Math.min(H*0.30,55);
-  const entries = [
-    {label:'ReX\u2080\u2080', val:Xp00.r, orig:X00r},
-    {label:'ReX\u2080\u2081', val:Xp01.r, orig:X01r},
-    {label:'ImX\u2080\u2081', val:Xp01.i, orig:X01i},
-    {label:'ReX\u2081\u2081', val:Xp11.r, orig:X11r},
-  ];
+    // Original vector (faint cyan)
+    ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.4)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + xx*sc, oy - xt*sc); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(ox + xx*sc, oy - xt*sc, 4, 0, Math.PI*2);
+    ctx.fillStyle='rgba(68,221,255,0.5)'; ctx.fill(); ctx.restore();
 
-  ctx.save();
-  entries.forEach((e,ii) => {
-    const bx = rox + ii*(barW+barGap);
-    // original (faint cyan)
-    const oh = e.orig * barSc;
-    ctx.fillStyle = 'rgba(68,221,255,0.25)';
-    if(oh>=0) ctx.fillRect(bx, roy-oh, barW, oh);
-    else      ctx.fillRect(bx, roy, barW, -oh);
-    ctx.strokeStyle='rgba(68,221,255,0.5)'; ctx.lineWidth=1;
-    if(oh>=0) ctx.strokeRect(bx, roy-oh, barW, oh);
-    else      ctx.strokeRect(bx, roy, barW, -oh);
-    // transformed (gold)
-    const th2 = e.val * barSc;
-    ctx.fillStyle = 'rgba(255,215,0,0.5)';
-    const bx2=bx+barW+3;
-    if(th2>=0) ctx.fillRect(bx2, roy-th2, 12, th2);
-    else       ctx.fillRect(bx2, roy, 12, -th2);
-    ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5;
-    if(th2>=0) ctx.strokeRect(bx2, roy-th2, 12, th2);
-    else       ctx.strokeRect(bx2, roy, 12, -th2);
-    // label
-    ctx.fillStyle='#55558a'; ctx.font='12px monospace';
-    ctx.save(); ctx.translate(bx+barW/2, roy+16); ctx.rotate(-Math.PI/4);
-    ctx.fillText(e.label,0,0); ctx.restore();
-    ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
-    ctx.fillText(e.val.toFixed(2), bx, roy+42);
-  });
-  // Legend
-  ctx.fillStyle='rgba(68,221,255,0.4)'; ctx.fillRect(rox, H-40,14,10);
-  ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace'; ctx.fillText('before',rox+18,H-32);
-  ctx.fillStyle='#ffd700'; ctx.fillRect(rox+80,H-40,14,10);
-  ctx.fillText('after (AXA\u2020)',rox+98,H-32);
+    // Transformed vector (gold)
+    const tPx = ox + xxP*sc, tPy = oy - xtP*sc;
+    ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(tPx, tPy); ctx.stroke();
+    const grd = ctx.createRadialGradient(tPx,tPy,0,tPx,tPy,12);
+    grd.addColorStop(0,'rgba(255,215,0,0.6)'); grd.addColorStop(1,'rgba(255,215,0,0)');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(tPx,tPy,12,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(tPx,tPy,5,0,Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='11px monospace'; ctx.fillStyle='#ffd700';
+    ctx.fillText('(' + xxP.toFixed(2) + ', ' + xtP.toFixed(2) + ')c', tPx+10, tPy-8);
+    ctx.restore();
+
+    // s² label
+    const s2orig = xt*xt - xx*xx - xy*xy - xz*xz;
+    ctx.save(); ctx.font='12px monospace';
+    ctx.fillStyle='#00ff99'; ctx.fillText('s\u00b2 = ' + s2orig.toFixed(2) + ' (origin)', margin, H-36);
+    ctx.fillStyle='#ffd700'; ctx.fillText('s\u00b2 = ' + detX.toFixed(2) + ' (transformed)', margin, H-20);
+    ctx.restore();
+
+  } else {
+    // Rotation: (x, y) spatial plane with auto-scale
+    const maxAbs = Math.max(1.2, Math.abs(xxP)*1.3, Math.abs(xyP)*1.3);
+    const sc = Math.min(plotW, plotH) / (2 * maxAbs);
+    const ox = margin + plotW/2;
+    const oy = margin + 36 + plotH/2;
+
+    ctx.save(); ctx.font='bold 12px monospace';
+    ctx.fillStyle='#44ddff'; ctx.fillText('Rotation (x, y)', margin, margin+16);
+    ctx.restore();
+
+    // Grid
+    ctx.save(); ctx.strokeStyle='#1c1c44'; ctx.lineWidth=0.5;
+    const rotGridStep = maxAbs > 3 ? 1 : 0.5;
+    for (let i=-8; i<=8; i++) {
+      const gpx = ox + i*rotGridStep*sc;
+      if (gpx > margin && gpx < half-margin) { ctx.beginPath(); ctx.moveTo(gpx, margin+36); ctx.lineTo(gpx, H-margin); ctx.stroke(); }
+      const gpy = oy - i*rotGridStep*sc;
+      if (gpy > margin+36 && gpy < H-margin) { ctx.beginPath(); ctx.moveTo(margin, gpy); ctx.lineTo(half-margin, gpy); ctx.stroke(); }
+    }
+    ctx.restore();
+
+    // Unit circle (original vector magnitude)
+    const origMag = Math.sqrt(xx*xx + xy*xy);
+    ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(ox, oy, origMag*sc, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+
+    // Axes
+    ctx.save(); ctx.strokeStyle='#44ddff'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(margin, oy); ctx.lineTo(half-margin, oy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox, margin+36); ctx.lineTo(ox, H-margin); ctx.stroke();
+    ctx.fillStyle='#44ddff'; ctx.font='12px monospace';
+    ctx.fillText('x', half-margin-14, oy+16); ctx.fillText('y', ox+6, margin+48);
+    ctx.restore();
+
+    // Trail
+    if (slTrail.length > 1) {
+      ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.2)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); let trFirst=true;
+      slTrail.forEach(p => {
+        const xr = Math.cos(p/2)*xx - Math.sin(p/2)*xy;
+        const yr = Math.cos(p/2)*xy + Math.sin(p/2)*xx;
+        const tpx = ox + xr*sc, tpy = oy - yr*sc;
+        if (tpx > margin && tpx < half-margin && tpy > margin+36 && tpy < H-margin) {
+          if(trFirst){ctx.moveTo(tpx,tpy);trFirst=false;} else ctx.lineTo(tpx,tpy);
+        }
+      });
+      ctx.stroke(); ctx.restore();
+    }
+
+    // Original vector (faint cyan)
+    ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.4)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + xx*sc, oy - xy*sc); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(ox + xx*sc, oy - xy*sc, 4, 0, Math.PI*2);
+    ctx.fillStyle='rgba(68,221,255,0.5)'; ctx.fill(); ctx.restore();
+
+    // Angle arc for original
+    if (Math.abs(xx) > 0.01 || Math.abs(xy) > 0.01) {
+      const origAngle = Math.atan2(xy, xx);
+      ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.4)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.arc(ox, oy, 18, -origAngle, 0); ctx.stroke(); ctx.restore();
+    }
+
+    // Transformed vector (gold)
+    const tPx = ox + xxP*sc, tPy = oy - xyP*sc;
+    const transMag = Math.sqrt(xxP*xxP + xyP*xyP);
+    ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(tPx, tPy); ctx.stroke();
+
+    // Angle arc for transformed
+    const transAngle = Math.atan2(xyP, xxP);
+    ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(ox, oy, 24, 0, -transAngle, transAngle > 0); ctx.stroke();
+
+    const grd = ctx.createRadialGradient(tPx,tPy,0,tPx,tPy,12);
+    grd.addColorStop(0,'rgba(255,215,0,0.6)'); grd.addColorStop(1,'rgba(255,215,0,0)');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(tPx,tPy,12,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(tPx,tPy,5,0,Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='11px monospace'; ctx.fillStyle='#ffd700';
+    ctx.fillText('(' + xxP.toFixed(2) + ', ' + xyP.toFixed(2) + ')', tPx+10, tPy-8);
+    ctx.restore();
+
+    // Labels
+    ctx.save(); ctx.font='12px monospace';
+    ctx.fillStyle='#44ddff'; ctx.fillText('|v| = ' + origMag.toFixed(2) + ' (origin)', margin, H-36);
+    ctx.fillStyle='#ffd700'; ctx.fillText('|v| = ' + transMag.toFixed(2) + ' (rotated)', margin, H-20);
+    ctx.restore();
+  }
+
+  // ── RIGHT PANEL: Spinor phasor / matrix visualization ──
+  const rOx = half + margin + plotW/2;
+  const rOy = margin + 36 + plotH/2;
+  const rSc = Math.min(plotW, plotH) * 0.35;
+
+  if (sl2cMode === 'rot') {
+    // Rotation: show θ vs θ/2 phasor (double cover)
+    ctx.save(); ctx.font='bold 12px monospace';
+    ctx.fillStyle='#44ddff'; ctx.fillText('Double Cover: \u03b8 vs \u03b8/2', half+margin, margin+16);
+    ctx.restore();
+
+    // Outer circle (spacetime angle θ)
+    ctx.save(); ctx.strokeStyle='rgba(68,221,255,0.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(rOx, rOy, rSc, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+
+    // Inner circle (spinor angle θ/2)
+    const innerR = rSc * 0.55;
+    ctx.save(); ctx.strokeStyle='rgba(0,255,153,0.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(rOx, rOy, innerR, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+
+    // Axis lines
+    ctx.save(); ctx.strokeStyle='#1c1c44'; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.moveTo(rOx-rSc-10, rOy); ctx.lineTo(rOx+rSc+10, rOy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rOx, rOy-rSc-10); ctx.lineTo(rOx, rOy+rSc+10); ctx.stroke();
+    ctx.restore();
+
+    // Outer phasor: vector angle = θ
+    const theta = param;
+    const outerX = rOx + rSc * Math.cos(theta);
+    const outerY = rOy - rSc * Math.sin(theta);
+    ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(rOx, rOy); ctx.lineTo(outerX, outerY); ctx.stroke();
+    ctx.beginPath(); ctx.arc(outerX, outerY, 5, 0, Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill(); ctx.restore();
+
+    // Inner phasor: spinor angle θ/2
+    const halfTheta = theta / 2;
+    const innerX = rOx + innerR * Math.cos(halfTheta);
+    const innerY = rOy - innerR * Math.sin(halfTheta);
+    ctx.save(); ctx.strokeStyle='#00ff99'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(rOx, rOy); ctx.lineTo(innerX, innerY); ctx.stroke();
+    ctx.beginPath(); ctx.arc(innerX, innerY, 4, 0, Math.PI*2);
+    ctx.fillStyle='#00ff99'; ctx.fill(); ctx.restore();
+
+    // θ sweep arc (outer)
+    ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.35)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(rOx, rOy, rSc*0.3, 0, -theta, theta > 0); ctx.stroke(); ctx.restore();
+
+    // θ/2 sweep arc (inner)
+    ctx.save(); ctx.strokeStyle='rgba(0,255,153,0.35)'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(rOx, rOy, innerR*0.3, 0, -halfTheta, halfTheta > 0); ctx.stroke(); ctx.restore();
+
+    // Labels
+    ctx.save(); ctx.font='12px monospace';
+    ctx.fillStyle='#ffd700'; ctx.fillText('\u03b8 = ' + theta.toFixed(2), half+margin, rOy+rSc+20);
+    ctx.fillStyle='#00ff99'; ctx.fillText('\u03b8/2 = ' + halfTheta.toFixed(2), half+margin, rOy+rSc+36);
+    ctx.fillStyle='rgba(68,221,255,0.6)'; ctx.fillText('outer: vector rotation \u03b8', half+margin, rOy+rSc+52);
+    ctx.fillStyle='rgba(0,255,153,0.6)'; ctx.fillText('inner: spinor phase \u03b8/2', half+margin, rOy+rSc+68);
+    ctx.font='11px monospace'; ctx.fillStyle='#c0c0ea';
+    ctx.fillText('A 2\u03c0 rotation \u2192 A returns,', half+margin, rOy+rSc+86);
+    ctx.fillText('but spinor needs 4\u03c0 to return.', half+margin, rOy+rSc+100);
+    ctx.restore();
+
+  } else {
+    // Boost: show cosh/sinh hyperbolic curve with phasor
+    ctx.save(); ctx.font='bold 12px monospace';
+    ctx.fillStyle='#44ddff'; ctx.fillText('Rapidity \u03b7: cosh(\u03b7/2), sinh(\u03b7/2)', half+margin, margin+16);
+    ctx.restore();
+
+    // Auto-scale for hyperbolic functions
+    const eta = param;
+    const ch = Math.cosh(eta/2);
+    const sh = Math.sinh(eta/2);
+    const maxHyp = Math.max(2, ch*1.3, (eta > 0.1 ? sh*1.3 : 1.3));
+    const hSc = Math.min(plotW, plotH-20) / (2 * maxHyp);
+
+    // Hyperbolic reference curves
+    ctx.save(); ctx.strokeStyle='rgba(0,255,153,0.25)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); let hypFirst=true;
+    for (let e2=-maxHyp; e2<=maxHyp; e2+=0.02) {
+      const tVal = Math.sqrt(Math.max(0.01, 1 + e2*e2));
+      if (tVal <= maxHyp) {
+        const cpx = rOx + e2*hSc, cpy = rOy - tVal*hSc;
+        if (cpx > half+margin && cpx < W-margin && cpy > margin+20 && cpy < H-margin) {
+          if(hypFirst){ctx.moveTo(cpx,cpy);hypFirst=false;} else ctx.lineTo(cpx,cpy);
+        }
+      }
+    }
+    ctx.stroke();
+    hypFirst = true;
+    ctx.beginPath();
+    for (let e2=-maxHyp; e2<=maxHyp; e2+=0.02) {
+      const tVal = -Math.sqrt(Math.max(0.01, 1 + e2*e2));
+      if (Math.abs(tVal) <= maxHyp) {
+        const cpx = rOx + e2*hSc, cpy = rOy - tVal*hSc;
+        if (cpx > half+margin && cpx < W-margin && cpy > margin+20 && cpy < H-margin) {
+          if(hypFirst){ctx.moveTo(cpx,cpy);hypFirst=false;} else ctx.lineTo(cpx,cpy);
+        }
+      }
+    }
+    ctx.stroke(); ctx.restore();
+
+    // Grid
+    ctx.save(); ctx.strokeStyle='#1c1c44'; ctx.lineWidth=0.5;
+    for (let i=-5; i<=5; i++) {
+      const gpx = rOx + i*hSc;
+      if (gpx > half+margin && gpx < W-margin) { ctx.beginPath(); ctx.moveTo(gpx, margin+20); ctx.lineTo(gpx, H-margin); ctx.stroke(); }
+      const gpy = rOy - i*hSc;
+      if (gpy > margin+20 && gpy < H-margin) { ctx.beginPath(); ctx.moveTo(half+margin, gpy); ctx.lineTo(W-margin, gpy); ctx.stroke(); }
+    }
+    ctx.restore();
+
+    // 45° lines (lightlike)
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(rOx-rSc, rOy-rSc); ctx.lineTo(rOx+rSc, rOy+rSc); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rOx+rSc, rOy-rSc); ctx.lineTo(rOx-rSc, rOy+rSc); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+
+    // Axes
+    ctx.save(); ctx.strokeStyle='#44ddff'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(half+margin, rOy); ctx.lineTo(W-margin, rOy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rOx, margin+20); ctx.lineTo(rOx, H-margin); ctx.stroke();
+    ctx.fillStyle='#44ddff'; ctx.font='12px monospace';
+    ctx.fillText('sinh(\u03b7/2)', W-margin-70, rOy+16);
+    ctx.fillText('cosh(\u03b7/2)', rOx+6, margin+32);
+    ctx.restore();
+
+    // Current point on hyperbola
+    const phX = rOx + sh*hSc;
+    const phY = rOy - ch*hSc;
+    ctx.save(); ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(rOx, rOy-ch*hSc); ctx.lineTo(phX, phY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rOx, rOy); ctx.lineTo(phX, phY); ctx.stroke();
+    ctx.setLineDash([]);
+    const grd2 = ctx.createRadialGradient(phX,phY,0,phX,phY,12);
+    grd2.addColorStop(0,'rgba(255,215,0,0.6)'); grd2.addColorStop(1,'rgba(255,215,0,0)');
+    ctx.fillStyle=grd2; ctx.beginPath(); ctx.arc(phX,phY,12,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(phX,phY,5,0,Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    ctx.restore();
+
+    // Labels
+    ctx.save(); ctx.font='12px monospace';
+    ctx.fillStyle='#ffd700'; ctx.fillText('cosh(\u03b7/2) = ' + ch.toFixed(3), half+margin, H-36);
+    ctx.fillStyle='#ffd700'; ctx.fillText('sinh(\u03b7/2) = ' + sh.toFixed(3), half+margin, H-20);
+    ctx.fillStyle='rgba(0,255,153,0.6)'; ctx.fillText('cosh\u00b2 - sinh\u00b2 = 1 (hyperbola)', half+margin, H-52);
+    ctx.restore();
+  }
   ctx.restore();
 }
+
+function slStartLoop() {
+  if (slAnimId) return;
+  function loop() {
+    if (slAnimating) {
+      var speed = slGetSpeed();
+      if (sl2cMode === 'rot') {
+        slParam += speed * 0.008;
+        if (slParam > 6.2832) slParam -= 6.2832;
+      } else {
+        slParam += speed * 0.008 * slBoostDir;
+        if (slParam >= 5) { slParam = 5; slBoostDir = -1; }
+        if (slParam <= 0.01) { slParam = 0.01; slBoostDir = 1; }
+      }
+      document.getElementById('sl-param').value = slParam;
+      if (slTrail.length > 80) slTrail.shift();
+      slTrail.push(slParam);
+      drawSL2C();
+    }
+    if (slAnimating) {
+      slAnimId = requestAnimationFrame(loop);
+    } else {
+      slAnimId = null;
+    }
+  }
+  slAnimId = requestAnimationFrame(loop);
+}
+
+function slToggleAnim() {
+  if (slAnimating) {
+    slAnimating = false;
+    if (slAnimId) { cancelAnimationFrame(slAnimId); slAnimId = null; }
+    document.getElementById('sl-anim-btn').textContent = 'Play';
+    document.getElementById('sl-anim-btn').classList.remove('active');
+    return;
+  }
+  slAnimating = true;
+  document.getElementById('sl-anim-btn').textContent = 'Pause';
+  document.getElementById('sl-anim-btn').classList.add('active');
+  slStartLoop();
+}
+
+function slResetAnim() {
+  slAnimating = false;
+  slParam = 0;
+  slTrail = [];
+  if (slAnimId) { cancelAnimationFrame(slAnimId); slAnimId = null; }
+  document.getElementById('sl-anim-btn').textContent = 'Play';
+  document.getElementById('sl-anim-btn').classList.remove('active');
+  document.getElementById('sl-param').value = 0;
+  slBoostDir = 1;
+  selectSL(sl2cMode);
+}
+
+window.slStartAnim = function() {
+  slAnimating = true;
+  document.getElementById('sl-anim-btn').textContent = 'Pause';
+  document.getElementById('sl-anim-btn').classList.add('active');
+  slStartLoop();
+};
+
+window.slStopAnim = function() {
+  slAnimating = false;
+  if (slAnimId) { cancelAnimationFrame(slAnimId); slAnimId = null; }
+  document.getElementById('sl-anim-btn').textContent = 'Play';
+  document.getElementById('sl-anim-btn').classList.remove('active');
+};
 
 // ══════════════════════════════════════════════
 //  INIT & RESIZE
@@ -2394,8 +3834,36 @@ window.addEventListener('load', () => {
   resizeMink();
   updateBoost();
   updateTwin();
-  // Paradox tab pre-init (so sidebar values are correct)
   document.getElementById('par-btn-barn').classList.add('active');
+  minkTutUpdate();
+  parTutUpdate();
+  slTutUpdate();
+  minkToggleAnim();
+
+  // Pause animations when browser tab is hidden, resume when visible
+  var _visPaused = {};
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      // Record which animations were running, then pause them
+      _visPaused.mink = minkAnimating; if(minkAnimating) minkToggleAnim();
+      _visPaused.boost = boostAnimating; if(boostAnimating) boostStopAnim();
+      _visPaused.twin = twinAnim; if(twinAnim) twinToggleAnim();
+      _visPaused.par = parAnimating; if(parAnimating) parToggleAnim();
+      _visPaused.fv = fvAnimating; if(fvAnimating) fvToggleAnim();
+      _visPaused.pen = penroseAnimRunning; if(penroseAnimRunning) penroseToggleAnim();
+      _visPaused.sl = slAnimating; if(slAnimating) slToggleAnim();
+    } else {
+      // Resume animations that were running before tab was hidden
+      if(_visPaused.mink) minkToggleAnim();
+      if(_visPaused.boost) { boostAnimating=true; document.getElementById('boost-anim-btn').textContent='Pause'; document.getElementById('boost-anim-btn').classList.add('active'); boostStartLoop(); }
+      if(_visPaused.twin) twinToggleAnim();
+      if(_visPaused.par) parToggleAnim();
+      if(_visPaused.fv) fvToggleAnim();
+      if(_visPaused.pen) penroseToggleAnim();
+      if(_visPaused.sl) slToggleAnim();
+      _visPaused = {};
+    }
+  });
 });
 </script>
 

@@ -98,8 +98,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
 /* canvas containers */
-.canvas-block{padding:14px 18px;border-bottom:1px solid var(--border)}
-.canvas-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:8px}
+.canvas-block{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;flex-direction:column}
+.canvas-block canvas{display:block;flex:1 1 0;min-height:0;width:100%;height:0}
+#boxMainArea{overflow:hidden}
+#boxMainArea>.canvas-block{flex:1 1 0;min-height:0}
+.canvas-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:8px;flex-shrink:0}
 .two-col{display:flex;gap:16px;padding:14px 18px;border-bottom:1px solid var(--border)}
 .two-col .col{flex:1;display:flex;flex-direction:column;gap:6px}
 
@@ -112,6 +115,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 .sg-layout{display:flex;gap:0;flex:1;overflow:hidden}
 .sg-main{flex:1;overflow:hidden;padding:14px 18px;display:flex;flex-direction:column;gap:10px}
 .sg-side{width:220px;background:var(--bg2);border-left:1px solid var(--border);padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.sg-visual-row{display:flex;gap:10px;height:55vh;min-height:120px}
+.sg-visual-row>div.first-col{flex:1;display:flex;flex-direction:column}
+.sg-visual-row>div.second-col{width:180px;flex-shrink:0;display:flex;flex-direction:column}
+.sg-bottom-row{display:flex;gap:10px;height:22vh;min-height:60px}
+.sg-bottom-row>div{flex:1;display:flex;flex-direction:column}
 
 /* stats histogram */
 .hist-bar-wrap{display:flex;align-items:flex-end;gap:8px;height:80px;padding:4px 0}
@@ -140,6 +148,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 .corr-gauge{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:5px;height:24px;overflow:hidden;margin-top:4px}
 .corr-fill{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width .15s,left .15s}
 .corr-zero{position:absolute;top:0;bottom:0;width:2px;background:var(--dim);left:50%}
+
+.tut-box{background:linear-gradient(135deg,rgba(68,221,255,.08),rgba(255,215,0,.05));
+  border:1px solid rgba(68,221,255,.3);border-radius:6px;padding:9px 11px}
+.tut-progress{display:flex;gap:4px;margin-bottom:8px}
+.tut-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:.25s}
+.tut-dot.done{background:var(--accent)}
+.tut-dot.curr{background:var(--gold);box-shadow:0 0 6px rgba(255,215,0,.6)}
+.tut-title{font-size:.8rem;font-weight:700;color:var(--gold);margin-bottom:4px}
+.tut-desc{font-size:.72rem;color:var(--text);line-height:1.55;margin-bottom:8px}
+.tut-desc strong{color:var(--accent)}
+.tut-nav{display:flex;gap:4px}
+.tut-nav .btn{flex:1}
 </style>
 </head>
 <body>
@@ -206,20 +226,20 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         </div>
       </div>
     </div>
-    <div class="main-area" id="boxMainArea">
-      <div class="canvas-block">
-        <div class="canvas-title">Wavefunction ψ_n(x) &amp; Probability density |ψ|²</div>
-        <canvas id="wfCanvas" width="640" height="200"></canvas>
-      </div>
-      <div class="canvas-block">
-        <div class="canvas-title">Energy Level Diagram (n = 1..8)</div>
-        <canvas id="energyCanvas" width="640" height="220"></canvas>
-      </div>
-      <div class="canvas-block">
-        <div class="canvas-title">Superposition |Ψ(x,t)|² — time evolution</div>
-        <canvas id="supCanvas" width="640" height="180"></canvas>
-      </div>
-    </div>
+     <div class="main-area" id="boxMainArea" style="overflow:hidden">
+       <div class="canvas-block" style="flex:1.1;display:flex;flex-direction:column">
+         <div class="canvas-title">Wavefunction ψ_n(x) &amp; Probability density |ψ|²</div>
+         <div id="wfCanvasWrap" style="flex:1;min-height:0"><canvas id="wfCanvas"></canvas></div>
+       </div>
+       <div class="canvas-block" style="flex:1.1;display:flex;flex-direction:column">
+         <div class="canvas-title">Energy Level Diagram (n = 1..8)</div>
+         <div id="energyCanvasWrap" style="flex:1.1;min-height:0"><canvas id="energyCanvas"></canvas></div>
+       </div>
+       <div class="canvas-block" style="flex:0.8;display:flex;flex-direction:column">
+         <div class="canvas-title">Superposition |Ψ(x,t)|² — time evolution</div>
+         <div id="supCanvasWrap" style="flex:1;min-height:0"><canvas id="supCanvas"></canvas></div>
+       </div>
+     </div>
   </div>
 
   <!-- TAB 1: UNCERTAINTY -->
@@ -240,8 +260,8 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
           oninput="document.getElementById('sigmaV').textContent=(+this.value).toFixed(2);updateUncertainty()">
       </div>
       <div>
-        <label>Central momentum k₀ <span id="k0V" class="val-disp">1.5</span></label>
-        <input type="range" id="k0Slider" min="-5" max="5" value="1.5" step="0.1"
+        <label>Central momentum k₀ <span id="k0V" class="val-disp">0.1</span></label>
+        <input type="range" id="k0Slider" min="-5" max="5" value="0.1" step="0.1"
           oninput="document.getElementById('k0V').textContent=(+this.value).toFixed(1);updateUncertainty()">
       </div>
       <div class="eq-block">
@@ -259,35 +279,58 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         </div>
         <div style="font-size:.66rem;color:var(--dim);margin-top:3px">← min (ℏ/2) &nbsp;&nbsp; max →</div>
       </div>
+      <div>
+        <div class="section-lbl">Guided Tutorial</div>
+        <div class="tut-box" id="unc-tut-box">
+          <div class="tut-progress" id="unc-tut-dots"></div>
+          <div class="tut-title" id="unc-tut-title">Heisenberg Uncertainty</div>
+          <div class="tut-desc" id="unc-tut-desc">Step through the uncertainty principle.</div>
+          <div class="tut-nav">
+            <button class="btn" onclick="uncTutPrev()">Back</button>
+            <button class="btn gold" id="unc-tut-next-btn" onclick="uncTutNext()">Start</button>
+          </div>
+        </div>
+      </div>
       <div class="callout" style="margin-top:4px">
         $\sigma_x\,\sigma_p \geq \dfrac{\hbar}{2}$
         <br><small>Gaussian achieves the minimum.</small>
         <button class="proof-btn" onclick="openProof(2)">proof</button>
       </div>
       <div>
+        <div class="section-lbl">Animation</div>
         <div class="btn-row">
           <button class="btn active" id="waveAnimBtn" onclick="toggleWaveAnim()">Pause</button>
+          <button class="btn red" onclick="waveResetAnim()">Reset</button>
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:4px">
+          <input type="checkbox" id="uncSweepCb" checked onchange="uncAnimActive=this.checked" style="accent-color:var(--accent)">
+          <label for="uncSweepCb" style="font-size:.72rem;color:var(--text)">Sweep σ</label>
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+          <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+          <input type="range" id="waveSpeedSlider" min="1" max="10" value="3" step="1" style="flex:1">
+          <span style="font-size:.65rem;color:var(--dim)">1×</span>
         </div>
       </div>
     </div>
-    <div class="main-area">
-      <div class="two-col">
+    <div class="main-area" id="uncMainArea" style="overflow:hidden;display:flex;flex-direction:column">
+      <div class="two-col" style="flex:0 0 auto">
         <div class="col">
           <div class="canvas-title">Position space |ψ(x)|²</div>
-          <canvas id="posCanvas" width="340" height="180"></canvas>
+          <div id="posCanvasWrap" style="flex:1;min-height:0"><canvas id="posCanvas"></canvas></div>
         </div>
         <div class="col">
           <div class="canvas-title">Momentum space |φ(k)|²</div>
-          <canvas id="momCanvas" width="340" height="180"></canvas>
+          <div id="momCanvasWrap" style="flex:1;min-height:0"><canvas id="momCanvas"></canvas></div>
         </div>
       </div>
-      <div class="canvas-block">
+      <div class="canvas-block" style="flex:1.2;display:flex;flex-direction:column;min-height:0">
         <div class="canvas-title">Wave packet propagation (time evolution)</div>
-        <canvas id="propCanvas" width="700" height="160"></canvas>
+        <div id="uncPropCanvasWrap" style="flex:1;min-height:0"><canvas id="propCanvas"></canvas></div>
       </div>
-      <div class="canvas-block" style="border-bottom:none">
+      <div class="canvas-block" style="flex:1;display:flex;flex-direction:column;min-height:0;border-bottom:none">
         <div class="canvas-title">Uncertainty principle: varying σ</div>
-        <canvas id="uncCanvas" width="700" height="120"></canvas>
+        <div id="uncUncCanvasWrap" style="flex:1;min-height:0"><canvas id="uncCanvas"></canvas></div>
       </div>
     </div>
   </div>
@@ -296,24 +339,24 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
   <div class="panel" data-role="panel" id="tab2">
     <div class="sg-layout">
       <div class="sg-main">
-        <div style="display:flex;gap:16px;align-items:flex-start">
-          <div style="flex:1">
+        <div class="sg-visual-row">
+          <div class="first-col">
             <div class="canvas-title">Stern-Gerlach apparatus</div>
-            <canvas id="sgCanvas" width="560" height="200"></canvas>
+            <div id="sgCanvasWrap" style="flex:1;min-height:0"><canvas id="sgCanvas"></canvas></div>
           </div>
-          <div style="width:180px">
+          <div class="second-col">
             <div class="canvas-title">Bloch sphere</div>
-            <canvas id="blochCanvas" width="180" height="180"></canvas>
+            <div id="blochCanvasWrap" style="flex:1;min-height:0"><canvas id="blochCanvas"></canvas></div>
           </div>
         </div>
-        <div style="display:flex;gap:16px">
-          <div style="flex:1">
+        <div class="sg-bottom-row">
+          <div>
             <div class="canvas-title">Measurement statistics (N trials)</div>
-            <canvas id="histCanvas" width="340" height="100"></canvas>
+            <div id="histCanvasWrap" style="flex:1;min-height:0"><canvas id="histCanvas"></canvas></div>
           </div>
-          <div style="flex:1">
+          <div>
             <div class="canvas-title">Sequential measurements demo</div>
-            <canvas id="seqCanvas" width="340" height="100"></canvas>
+            <div id="seqCanvasWrap" style="flex:1;min-height:0"><canvas id="seqCanvas"></canvas></div>
           </div>
         </div>
       </div>
@@ -329,9 +372,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         </div>
         <div class="eq-block">
           <div class="eq-title">Probabilities</div>
-          <div class="vrow"><span class="vlbl">P(↑)</span><span id="pUp" style="color:var(--cyan)">0.50</span></div>
-          <div class="vrow"><span class="vlbl">P(↓)</span><span id="pDown" style="color:var(--pink)">0.50</span></div>
-          <div class="vrow"><span class="vlbl">Last outcome</span><span id="lastOut" style="color:var(--accent)">—</span></div>
+          <div class="vrow"><span class="vlbl">P(↑)</span><span id="pUp" style="color:var(--cyan);min-width:48px;text-align:right">0.500</span></div>
+          <div class="vrow"><span class="vlbl">P(↓)</span><span id="pDown" style="color:var(--pink);min-width:48px;text-align:right">0.500</span></div>
+          <div class="vrow"><span class="vlbl">Last outcome</span><span id="lastOut" style="color:var(--accent);min-width:80px;text-align:right">—</span></div>
         </div>
         <div>
           <div class="section-lbl">Measure axis</div>
@@ -345,15 +388,20 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
           <button class="btn" onclick="measureOnce()" style="width:100%;margin-bottom:6px">Measure!</button>
           <button class="btn" onclick="run100()" style="width:100%">Run 100 trials</button>
         </div>
+        <div>
+          <div class="section-lbl">Animation</div>
+          <div class="btn-row">
+            <button class="btn" id="sgAnimBtn" onclick="sgToggleAnim()">Play</button>
+            <button class="btn red" onclick="sgResetAnim()">Reset</button>
+          </div>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:4px">
+            <input type="checkbox" id="sgPrecessCb" onchange="sgPrecessRunning=this.checked" style="accent-color:var(--accent)">
+            <label for="sgPrecessCb" style="font-size:.72rem;color:var(--text)">Precess φ</label>
+          </div>
+        </div>
         <div class="callout" style="font-size:.72rem">
           $|\psi\rangle = \cos\tfrac{\theta}{2}|\uparrow\rangle + e^{i\varphi}\sin\tfrac{\theta}{2}|\downarrow\rangle$
           <button class="proof-btn" onclick="openProof(4)">proof</button>
-        </div>
-        <div style="border-top:1px solid var(--border);padding-top:8px">
-          <div class="section-lbl">Sequential demo</div>
-          <div style="font-size:.72rem;color:var(--dim);margin-bottom:6px">Z → X → Z shows information loss</div>
-          <button class="btn" onclick="runSeqDemo()" style="width:100%">Run sequence</button>
-          <div id="seqLog" style="margin-top:6px;font-size:.7rem;color:var(--text);line-height:1.6"></div>
         </div>
         <div>
           <div class="section-lbl">Born rule</div>
@@ -361,6 +409,24 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
             $P(a) = |\langle a|\psi\rangle|^2$
             <button class="proof-btn" onclick="openProof(1)">proof</button>
           </div>
+        </div>
+        <div>
+          <div class="section-lbl">Guided Tutorial</div>
+          <div class="tut-box" id="sg-tut-box">
+            <div class="tut-progress" id="sg-tut-dots"></div>
+            <div class="tut-title" id="sg-tut-title">Spin & Stern-Gerlach</div>
+            <div class="tut-desc" id="sg-tut-desc">Step through quantum spin measurement.</div>
+            <div class="tut-nav">
+              <button class="btn" onclick="sgTutPrev()">Back</button>
+              <button class="btn gold" id="sg-tut-next-btn" onclick="sgTutNext()">Start</button>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:8px">
+          <div class="section-lbl">Sequential demo</div>
+          <div style="font-size:.72rem;color:var(--dim);margin-bottom:6px">Z → X → Z shows information loss</div>
+          <button class="btn" onclick="runSeqDemo()" style="width:100%">Run sequence</button>
+          <div id="seqLog" style="margin-top:6px;font-size:.7rem;color:var(--text);line-height:1.6;min-height:4.2em"></div>
         </div>
       </div>
     </div>
@@ -372,9 +438,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="wigner-layout">
       <div class="wigner-main">
         <div class="canvas-title">Wigner Function W(x,p) — Phase Space Quasi-Probability Distribution</div>
-        <canvas id="wignerCanvas" width="520" height="340"></canvas>
+        <div id="wignerCanvasWrap" style="flex:1;min-height:0"><canvas id="wignerCanvas"></canvas></div>
         <div class="canvas-title" style="margin-top:6px">Marginal Distributions: |ψ(x)|² and |φ(p)|²</div>
-        <canvas id="wignerMargCanvas" width="520" height="110"></canvas>
+        <div id="wignerMargCanvasWrap" style="height:90px;min-height:60px"><canvas id="wignerMargCanvas"></canvas></div>
       </div>
       <div class="wigner-side">
         <div>
@@ -411,6 +477,30 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         </div>
         <div class="callout" style="font-size:.72rem;margin-top:0">
           <strong>Decoherence</strong> destroys interference fringes, W→0 negative regions, classical limit emerges.
+        </div>
+        <div>
+          <div class="section-lbl">Animation</div>
+          <div class="btn-row">
+            <button class="btn" id="wignerAnimBtn" onclick="wignerToggleAnim()">Play</button>
+            <button class="btn red" onclick="wignerResetAnim()">Reset</button>
+          </div>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+            <input type="range" id="wignerSpeedSlider" min="1" max="10" value="3" step="1" style="flex:1">
+            <span style="font-size:.65rem;color:var(--dim)">1×</span>
+          </div>
+        </div>
+        <div>
+          <div class="section-lbl">Guided Tutorial</div>
+          <div class="tut-box" id="wig-tut-box">
+            <div class="tut-progress" id="wig-tut-dots"></div>
+            <div class="tut-title" id="wig-tut-title">Wigner Function</div>
+            <div class="tut-desc" id="wig-tut-desc">Step through phase space quantum mechanics.</div>
+            <div class="tut-nav">
+              <button class="btn" onclick="wigTutPrev()">Back</button>
+              <button class="btn gold" id="wig-tut-next-btn" onclick="wigTutNext()">Start</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -494,9 +584,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="two-panel">
       <div class="two-panel-main">
         <div class="canvas-title">Path Integral — Double-Slit: ~30 paths colored by phase e^(iS/ℏ)</div>
-        <canvas id="pathCanvas" width="620" height="380"></canvas>
+        <div id="pathCanvasWrap" style="flex:1;min-height:0"><canvas id="pathCanvas"></canvas></div>
         <div class="canvas-title" style="margin-top:6px">Phase Sum (Phasor Diagram) at Screen Point</div>
-        <canvas id="phasorCanvas" width="620" height="130"></canvas>
+        <div id="phasorCanvasWrap" style="height:130px;min-height:90px"><canvas id="phasorCanvas"></canvas></div>
       </div>
       <div class="two-panel-side">
         <div>
@@ -535,8 +625,27 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
           Small ℏ → classical limit.
         </div>
         <div>
-          <div class="btn-row" style="margin-top:6px">
+          <div class="section-lbl">Animation</div>
+          <div class="btn-row">
             <button class="btn active" id="pathAnimBtn" onclick="togglePathAnim()">Pause</button>
+            <button class="btn red" onclick="resetPathAnim()">Reset</button>
+          </div>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+            <input type="range" id="pathSpeedSlider" min="1" max="10" value="3" step="1" style="flex:1">
+            <span style="font-size:.65rem;color:var(--dim)">1×</span>
+          </div>
+        </div>
+        <div>
+          <div class="section-lbl">Guided Tutorial</div>
+          <div class="tut-box" id="path-tut-box">
+            <div class="tut-progress" id="path-tut-dots"></div>
+            <div class="tut-title" id="path-tut-title">Path Integral</div>
+            <div class="tut-desc" id="path-tut-desc">Step through Feynman's sum-over-paths.</div>
+            <div class="tut-nav">
+              <button class="btn" onclick="pathTutPrev()">Back</button>
+              <button class="btn gold" id="path-tut-next-btn" onclick="pathTutNext()">Start</button>
+            </div>
           </div>
         </div>
       </div>
@@ -609,9 +718,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="two-panel">
       <div class="two-panel-main">
         <div class="canvas-title">Rabi Oscillations &amp; Quantum Zeno Effect</div>
-        <canvas id="zenoCanvas" width="620" height="260"></canvas>
+        <div id="zenoCanvasWrap" style="flex:1;min-height:0"><canvas id="zenoCanvas"></canvas></div>
         <div class="canvas-title" style="margin-top:6px">Survival Probability vs Measurement Frequency</div>
-        <canvas id="zenoFreqCanvas" width="620" height="160"></canvas>
+        <div id="zenoFreqCanvasWrap" style="height:160px;min-height:100px"><canvas id="zenoFreqCanvas"></canvas></div>
       </div>
       <div class="two-panel-side">
         <div>
@@ -643,7 +752,31 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
           <strong>Anti-Zeno:</strong> at intermediate measurement rates, decay can <em>accelerate</em> (shown in blue).
         </div>
         <div>
-          <button class="btn active" id="zenoAnimBtn" onclick="toggleZenoAnim()" style="width:100%;margin-top:4px">Pause</button>
+          <div class="section-lbl">Animation</div>
+          <div class="btn-row">
+            <button class="btn active" id="zenoAnimBtn" onclick="toggleZenoAnim()">Pause</button>
+            <button class="btn red" onclick="resetZenoAnim()">Reset</button>
+          </div>
+          <label style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.72rem;color:var(--text)">
+            <input type="checkbox" id="zenoSweepCb" checked> Sweep n (measurement count)
+          </label>
+          <div style="margin-top:4px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:.65rem;color:var(--dim)">0.1×</span>
+            <input type="range" id="zenoSpeedSlider" min="1" max="10" value="3" step="1" style="flex:1">
+            <span style="font-size:.65rem;color:var(--dim)">1×</span>
+          </div>
+        </div>
+        <div>
+          <div class="section-lbl">Guided Tutorial</div>
+          <div class="tut-box" id="zeno-tut-box">
+            <div class="tut-progress" id="zeno-tut-dots"></div>
+            <div class="tut-title" id="zeno-tut-title">Quantum Zeno</div>
+            <div class="tut-desc" id="zeno-tut-desc">Step through the quantum Zeno effect.</div>
+            <div class="tut-nav">
+              <button class="btn" onclick="zenoTutPrev()">Back</button>
+              <button class="btn gold" id="zeno-tut-next-btn" onclick="zenoTutNext()">Start</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -684,21 +817,8 @@ function _cancelAllAnims09(){
   }
 }
 
-
   window.animSpeed=0.1;
 
-  function autoStartAnimations() {
-    if (window.animSpeed === undefined) {
-      window.animSpeed = 0.1;
-    }
-    // Auto-start animations for all tabs
-    document.querySelectorAll('.btn[id$="AnimBtn"], .btn[id$="animBtn"]').forEach(btn => {
-      if (btn.textContent.includes('▶') || btn.textContent.includes('Play')) {
-        btn.click();
-      }
-    });
-  }
-  autoStartAnimations();
 /* =====================================================================
    PROOF DATA
    ===================================================================== */
@@ -782,30 +902,65 @@ function closeProof(){
 let _activeTab=0;
 function cancelAllAnimations(){
   if(animId){cancelAnimationFrame(animId);animId=null;}
+  animRunning=false;
+  const ab0=document.getElementById('animBtn');if(ab0){ab0.textContent='Play';ab0.classList.remove('active');}
   if(wavePropId){cancelAnimationFrame(wavePropId);wavePropId=null;}
+  waveAnimRunning=false;
+  const wb=document.getElementById('waveAnimBtn');if(wb){wb.textContent='Play';wb.classList.remove('active');}
   if(sgAnimRaf){cancelAnimationFrame(sgAnimRaf);sgAnimRaf=null;}
+  if(sgAnimId){cancelAnimationFrame(sgAnimId);sgAnimId=null;}
+  sgAnimRunning=false;sgPrecessRunning=false;sgAutoMeasure=0;
+  const sgBtn=document.getElementById('sgAnimBtn');if(sgBtn){sgBtn.textContent='Play';sgBtn.classList.remove('active');}
+  const sgCb=document.getElementById('sgPrecessCb');if(sgCb)sgCb.checked=false;
   if(bloch2AnimId){cancelAnimationFrame(bloch2AnimId);bloch2AnimId=null;}
-  bloch2Running=true;
+  bloch2Running=false;
   const b2btn=document.getElementById('bloch2AnimBtn');
-  if(b2btn){b2btn.classList.add('active');b2btn.textContent='⏸ Pause';}
+  if(b2btn){b2btn.textContent='▶ Play';b2btn.classList.remove('active');}
   if(pathAnimId){cancelAnimationFrame(pathAnimId);pathAnimId=null;}
-  if(bellAnimId){cancelAnimationFrame(bellAnimId);bellAnimId=null;bellAnimRunning=true;
-    const bbtn=document.getElementById('bellAnimBtn');if(bbtn){bbtn.classList.add('active');bbtn.textContent='Pause';}}
+  pathAnimRunning=false;pathParticles=[];
+  const pbtn=document.getElementById('pathAnimBtn');if(pbtn){pbtn.textContent='Play';pbtn.classList.remove('active');}
+  if(bellAnimId){cancelAnimationFrame(bellAnimId);bellAnimId=null;}
+  bellAnimRunning=false;
+  const bbtn=document.getElementById('bellAnimBtn');if(bbtn){bbtn.textContent='Play';bbtn.classList.remove('active');}
   if(zenoAnimId){cancelAnimationFrame(zenoAnimId);zenoAnimId=null;}
+  zenoAnimRunning=false;
+  const zbtn=document.getElementById('zenoAnimBtn');if(zbtn){zbtn.textContent='Play';zbtn.classList.remove('active');}
+  if(wignerAnimId){cancelAnimationFrame(wignerAnimId);wignerAnimId=null;}
+  wignerAnimRunning=false;
+  const wigbtn=document.getElementById('wignerAnimBtn');if(wigbtn){wigbtn.textContent='Play';wigbtn.classList.remove('active');}
 }
 function switchTab(i){
   cancelAllAnimations();
+  uncTutReset();
+  sgTutReset();
+  wigTutReset();
+  pathTutReset();
+  zenoTutReset();
   _activeTab=i;
   document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
   document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
-  if(i===0){resizeBoxCanvases();if(!animId)animate();}
-  if(i===1){resizeUncCanvases();if(!wavePropId)animateWave();}
-  if(i===2){drawSG();drawBloch();drawHist();drawSeqCanvas();}
-  if(i===3){setTimeout(()=>{window.resizeCanvas(document.getElementById('wignerCanvas'));
-    window.resizeCanvas(document.getElementById('wignerMargCanvas'));
+  if(i===0){resizeBoxCanvases();if(!animRunning){animRunning=true;document.getElementById('animBtn').textContent='Pause';document.getElementById('animBtn').classList.add('active');}if(!animId)animate();}
+  if(i===1){resizeUncCanvases();if(!waveAnimRunning){waveAnimRunning=true;document.getElementById('waveAnimBtn').textContent='Pause';document.getElementById('waveAnimBtn').classList.add('active');}if(!wavePropId)animateWave();}
+  if(i===2){
+    setTimeout(()=>{
+      resizeSGCanvases();
+      if(!sgAnimRunning){
+        sgAnimRunning=true;
+        sgPrecessRunning=true;
+        document.getElementById('sgAnimBtn').textContent='Pause';
+        document.getElementById('sgAnimBtn').classList.add('active');
+        document.getElementById('sgPrecessCb').checked=true;
+      }
+      if(!sgAnimId) sgAnimLoop();
+      drawSG();drawBloch();drawHist();drawSeqCanvas();
+    },100);
+  }
+  if(i===3){setTimeout(()=>{resizeWignerCanvas();
+    if(!wignerAnimRunning){wignerAnimRunning=true;const wb=document.getElementById('wignerAnimBtn');if(wb){wb.textContent='Pause';wb.classList.add('active');}}
+    if(!wignerAnimId) wignerAnimLoop();
     drawWigner();},60);}
   if(i===4){setTimeout(()=>{resizeBloch2Canvas();resetBloch2Anim();},60);}
-  if(i===5){setTimeout(()=>{resizePathCanvas();drawPathIntegral();if(!pathAnimId)animatePath();},60);}
+  if(i===5){setTimeout(()=>{resizePathCanvas();drawPathIntegral();pathAnimRunning=true;const pbtn=document.getElementById('pathAnimBtn');if(pbtn){pbtn.textContent='Pause';pbtn.classList.add('active');}if(!pathAnimId)animatePath();},60);}
   if(i===6){setTimeout(()=>{
     window.resizeCanvas(document.getElementById('bellCanvas'));
     window.resizeCanvas(document.getElementById('bellCorrCanvas'));
@@ -815,7 +970,7 @@ function switchTab(i){
     if(bbtn){bbtn.classList.add('active');bbtn.textContent='Pause';}
     if(!bellAnimId)animateBell();
   },60);}
-  if(i===7){setTimeout(()=>{resizeZenoCanvas();updateZeno();if(!zenoAnimId)animateZeno();},60);}
+  if(i===7){setTimeout(()=>{resizeZenoCanvas();updateZeno();zenoAnimRunning=true;const zbtn=document.getElementById('zenoAnimBtn');if(zbtn){zbtn.classList.add('active');zbtn.textContent='Pause';}if(!zenoAnimId)animateZeno();},60);}
 }
 
 /* =====================================================================
@@ -836,57 +991,73 @@ function setN(n){
 }
 
 function resizeBoxCanvases(){
-  ['wfCanvas','energyCanvas','supCanvas'].forEach(id=>{
-    const c=document.getElementById(id);
-    const rect = c.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    c.width = rect.width * dpr;
-    c.height = rect.height * dpr;
-    const ctx = c.getContext('2d');
-    ctx.scale(dpr, dpr);
+  const dpr=window.devicePixelRatio||1;
+  const pairs=[
+    {cid:'wfCanvas',wid:'wfCanvasWrap'},
+    {cid:'energyCanvas',wid:'energyCanvasWrap'},
+    {cid:'supCanvas',wid:'supCanvasWrap'}
+  ];
+  pairs.forEach(({cid,wid})=>{
+    const c=document.getElementById(cid);
+    const w=document.getElementById(wid);
+    if(!c||!w) return;
+    const bw=w.clientWidth,bh=w.clientHeight;
+    if(bw>10&&bh>10){
+      c.style.width=bw+'px';c.style.height=bh+'px';
+      c.width=Math.round(bw*dpr);c.height=Math.round(bh*dpr);
+    }
   });
   drawWavefunction();drawEnergyDiagram();
 }
 
 function drawWavefunction(){
   const c=document.getElementById('wfCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
 
-  const pad=40,plotW=W-2*pad,plotH=H-40;
-  const midY=H/2;
+  const padL=40,padR=16,padT=18,padB=18;
+  const plotW=W-padL-padR,plotH=H-padT-padB;
+  // Zero line below center (60%) so |ψ|² peaks fit above
+  const midY=padT+plotH*0.6;
+  const topSpace=midY-padT,botSpace=H-padB-midY;
+
+  // Separate scales: ψ and |ψ|²
+  const psiScale=Math.min(topSpace,botSpace)/1.45;
+  const probScale=topSpace*0.45;
 
   // axes
   ctx.strokeStyle='#1c1c44';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(pad,20);ctx.lineTo(pad,H-20);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(pad,midY);ctx.lineTo(W-pad,midY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(padL,padT);ctx.lineTo(padL,H-padB);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(padL,midY);ctx.lineTo(W-padR,midY);ctx.stroke();
   // walls
   ctx.strokeStyle='#55558a';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(pad,20);ctx.lineTo(pad,H-20);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(W-pad,20);ctx.lineTo(W-pad,H-20);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(padL,padT);ctx.lineTo(padL,H-padB);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W-padR,padT);ctx.lineTo(W-padR,H-padB);ctx.stroke();
 
   const N=200;
-  const scale=plotH/2*0.8;
 
   // |psi|^2 filled
   ctx.beginPath();
   for(let i=0;i<=N;i++){
     const x=i/N;
-    const px=pad+x*plotW;
-    const py=midY-Math.pow(psi(currentN,x),2)*plotH*0.38;
+    const px=padL+x*plotW;
+    const py=midY-Math.pow(psi(currentN,x),2)*probScale;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
   }
-  ctx.lineTo(W-pad,midY);ctx.lineTo(pad,midY);ctx.closePath();
+  ctx.lineTo(W-padR,midY);ctx.lineTo(padL,midY);ctx.closePath();
   ctx.fillStyle='rgba(136,255,68,0.12)';ctx.fill();
 
   // probability density curve
   ctx.beginPath();ctx.strokeStyle='rgba(136,255,68,0.5)';ctx.lineWidth=1;
   for(let i=0;i<=N;i++){
     const x=i/N;
-    const px=pad+x*plotW;
-    const py=midY-Math.pow(psi(currentN,x),2)*plotH*0.38;
+    const px=padL+x*plotW;
+    const py=midY-Math.pow(psi(currentN,x),2)*probScale;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
   }
   ctx.stroke();
@@ -895,8 +1066,8 @@ function drawWavefunction(){
   ctx.beginPath();ctx.strokeStyle='#00e5ff';ctx.lineWidth=2;
   for(let i=0;i<=N;i++){
     const x=i/N;
-    const px=pad+x*plotW;
-    const py=midY-psi(currentN,x)*scale;
+    const px=padL+x*plotW;
+    const py=midY-psi(currentN,x)*psiScale;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
   }
   ctx.stroke();
@@ -905,61 +1076,67 @@ function drawWavefunction(){
   ctx.fillStyle='#ffd700';
   for(let k=1;k<currentN;k++){
     const x=k/currentN;
-    const px=pad+x*plotW;
+    const px=padL+x*plotW;
     ctx.beginPath();ctx.arc(px,midY,4,0,2*Math.PI);ctx.fill();
   }
 
   // labels
   ctx.fillStyle='#55558a';ctx.font='12px monospace';
-  ctx.fillText('ψ_'+currentN+'(x)',pad+6,30);
-  ctx.fillStyle='rgba(136,255,68,0.6)';ctx.fillText('|ψ|²',pad+6,44);
+  ctx.fillText('ψ_'+currentN+'(x)',padL+6,padT+2);
+  ctx.fillStyle='rgba(136,255,68,0.6)';ctx.fillText('|ψ|²',padL+6,padT+14);
   ctx.fillStyle='#55558a';
-  ctx.fillText('0',pad-10,H-22);ctx.fillText('L',W-pad-4,H-22);
+  ctx.fillText('0',padL-12,H-padB);ctx.fillText('L',W-padR-4,H-padB);
 }
 
 function drawEnergyDiagram(){
   const c=document.getElementById('energyCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
-  const pad=60,plotW=W-pad-40;
-  const maxE=64;// n=8: 64 E1
+  const padL=60,padR=40,padT=22,padB=18;
+  const plotW=W-padL-padR,plotH=H-padT-padB;
+  const maxE=64;
   const nMax=8;
   for(let n=1;n<=nMax;n++){
     const e=n*n;
-    const y=H-20-(e/maxE)*(H-40);
+    const y=H-padB-(e/maxE)*plotH;
     const isSelected=n===currentN;
     ctx.strokeStyle=isSelected?'#88ff44':'#1c1c44';
     ctx.lineWidth=isSelected?2.5:1;
-    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+plotW,y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+plotW,y);ctx.stroke();
     if(isSelected){
       ctx.fillStyle='rgba(136,255,68,0.15)';
-      ctx.fillRect(pad,y-10,plotW,20);
+      ctx.fillRect(padL,y-10,plotW,20);
     }
     ctx.fillStyle=isSelected?'#88ff44':'#55558a';
     ctx.font=isSelected?'bold 11px monospace':'10px monospace';
     ctx.fillText('n='+n,6,y+4);
-    ctx.fillText(e+'E₁',W-38,y+4);
+    ctx.fillText(e+'E₁',W-padR+4,y+4);
   }
   ctx.fillStyle='#55558a';ctx.font='12px sans-serif';
-  ctx.fillText('Energy levels E_n = n² E₁',pad,14);
+  ctx.fillText('Energy levels E_n = n² E₁',padL,padT-4);
 }
 
 function drawSuperposition(){
   const c=document.getElementById('supCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
-  const pad=40,plotW=W-2*pad;
-  const baseY=H-30; // baseline at bottom
-  const plotH=H-50; // available height for plot
+  const padL=40,padR=16,padT=18,padB=18;
+  const plotW=W-padL-padR,plotH=H-padT-padB;
+  const baseY=H-padB;
   const E1=En(supN1),E2=En(supN2);
   const dE=E2-E1;
   const N=200;
 
-  // compute all prob values first, find max for dynamic scaling
   const probs=new Float64Array(N+1);
   for(let i=0;i<=N;i++){
     const x=i/N;
@@ -970,33 +1147,119 @@ function drawSuperposition(){
   const maxProb=Math.max(...probs,0.001);
   const scale=plotH*0.85/maxProb;
 
-  // filled area
   ctx.beginPath();
-  ctx.moveTo(pad,baseY);
+  ctx.moveTo(padL,baseY);
   for(let i=0;i<=N;i++){
-    const px=pad+i/N*plotW;
+    const px=padL+i/N*plotW;
     const py=baseY-probs[i]*scale;
     ctx.lineTo(px,py);
   }
-  ctx.lineTo(W-pad,baseY);ctx.closePath();
+  ctx.lineTo(W-padR,baseY);ctx.closePath();
   ctx.fillStyle='rgba(136,255,68,0.08)';ctx.fill();
 
-  // curve
   ctx.beginPath();ctx.strokeStyle='#88ff44';ctx.lineWidth=2;
   for(let i=0;i<=N;i++){
-    const px=pad+i/N*plotW;
+    const px=padL+i/N*plotW;
     const py=baseY-probs[i]*scale;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
   }
   ctx.stroke();
 
   ctx.fillStyle='#55558a';ctx.font='12px monospace';
-  ctx.fillText('|Ψ(x,t)|² = cos(θ)ψ_'+supN1+' + sin(θ)ψ_'+supN2+',  t='+animT.toFixed(1),pad,14);
+  ctx.fillText('|Ψ(x,t)|² = cos(θ)ψ_'+supN1+' + sin(θ)ψ_'+supN2+',  t='+animT.toFixed(1),padL,padT-2);
 
-  // walls
   ctx.strokeStyle='#2a2a55';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(pad,10);ctx.lineTo(pad,H-10);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(W-pad,10);ctx.lineTo(W-pad,H-10);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(padL,padT);ctx.lineTo(padL,baseY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W-padR,padT);ctx.lineTo(W-padR,baseY);ctx.stroke();
+}
+
+// ══════════════════════════════════════════════
+//  GUIDED TUTORIAL — UNCERTAINTY PRINCIPLE
+// ══════════════════════════════════════════════
+const uncTutSteps = [
+  { title: 'What Is Uncertainty?',
+    desc: 'In classical mechanics, a particle has a precise position <strong>x</strong> and momentum <strong>p</strong>. In quantum mechanics, <strong>you cannot know both exactly</strong>. The more precisely you localise a wave packet in space, the broader it becomes in momentum space.',
+    type: 'gaussian', sigma: 1.5, k0: 1.5 },
+  { title: 'Position Space |ψ(x)|²',
+    desc: 'The top-left plot shows |ψ(x)|² — the probability of finding the particle at position x. The dashed lines mark ±σ_x, the <strong>spread in position</strong>. A narrow peak means the particle is well-localised in space.',
+    type: 'gaussian', sigma: 1.5, k0: 0 },
+  { title: 'Narrow Position → Broad Momentum',
+    desc: 'Watch what happens as σ shrinks (the sweep animation). The position peak narrows, but the momentum distribution <strong>broadens</strong> — the particle becomes <em>less</em> certain in momentum. Try it yourself by unchecking "Sweep σ" and dragging the σ slider.',
+    type: 'gaussian', sigma: 0.7, k0: 0 },
+  { title: 'Momentum Space |φ(k)|²',
+    desc: 'The top-right plot shows |φ(k)|² — the Fourier transform of ψ(x). This is the <strong>momentum distribution</strong>. Its width σ_p is the uncertainty in momentum. The central peak sits at k₀ (the slider below).',
+    type: 'gaussian', sigma: 1.5, k0: 1.5 },
+  { title: 'The Uncertainty Product σ_x·σ_p',
+    desc: 'The gauge on the left shows σ_x·σ_p. The <strong>gold line</strong> marks ℏ/2 — the <em>minimum possible</em> value. For a Gaussian, the product is exactly ℏ/2. For square or triangle wave packets, it is always <em>larger</em>.',
+    type: 'gaussian', sigma: 1.5, k0: 1.5 },
+  { title: 'Square Wave Packet',
+    desc: 'Switch to a <strong>square wave packet</strong>. Its sharp edges mean it is very well localised in position, but its momentum distribution has <strong>long tails</strong> (sinc-like oscillations). The uncertainty product is significantly above ℏ/2.',
+    type: 'square', sigma: 1.2, k0: 0 },
+  { title: 'Triangle Wave Packet',
+    desc: 'A <strong>triangle wave packet</strong> is intermediate — smoother than a square but sharper than a Gaussian. Its momentum distribution falls off as 1/k² (vs 1/k for square, e⁻ᵏ² for Gaussian). Again σ_x·σ_p &gt; ℏ/2.',
+    type: 'triangle', sigma: 1.5, k0: 0 },
+  { title: 'Wave Packet Propagation',
+    desc: 'The bottom plot shows how the wave packet <em>spreads</em> over time. A Gaussian spreads as <strong>σ(t) = √(σ² + t²/4σ²)</strong>. Narrow packets spread faster because they contain more momentum components. The animated dot tracks the classical trajectory.',
+    type: 'gaussian', sigma: 0.8, k0: 2.0 },
+  { title: 'The Deep Meaning',
+    desc: 'The uncertainty principle is <strong>not about measurement disturbance</strong> (a common misconception). It is a fundamental property of Fourier-transform pairs: any function and its FT obey σ_x·σ_k ≥ ½. It encodes the <strong>complementarity</strong> between position and momentum — you can optimise one at the cost of the other, but never both simultaneously.',
+    type: 'gaussian', sigma: 2.0, k0: 0 }
+];
+
+let uncTutStep = -1;
+
+function uncTutUpdate() {
+  const total = uncTutSteps.length;
+  const dotsEl = document.getElementById('unc-tut-dots');
+  const titleEl = document.getElementById('unc-tut-title');
+  const descEl = document.getElementById('unc-tut-desc');
+  const btnEl = document.getElementById('unc-tut-next-btn');
+
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('span');
+    d.className = 'tut-dot' + (i < uncTutStep ? ' done' : '') + (i === uncTutStep ? ' curr' : '');
+    dotsEl.appendChild(d);
+  }
+
+  if (uncTutStep < 0) {
+    titleEl.textContent = 'Heisenberg Uncertainty';
+    descEl.textContent = 'Step through the uncertainty principle.';
+    btnEl.textContent = 'Start';
+    return;
+  }
+
+  const step = uncTutSteps[uncTutStep];
+  titleEl.textContent = 'Step ' + (uncTutStep + 1) + ': ' + step.title;
+  descEl.innerHTML = step.desc;
+  btnEl.textContent = uncTutStep === total - 1 ? 'Restart' : 'Next →';
+
+  document.getElementById('wptType').value = step.type;
+  document.getElementById('sigmaSlider').value = step.sigma;
+  document.getElementById('k0Slider').value = step.k0;
+  document.getElementById('sigmaV').textContent = step.sigma.toFixed(2);
+  document.getElementById('k0V').textContent = step.k0.toFixed(1);
+
+  updateUncertainty();
+}
+
+function uncTutNext() {
+  const total = uncTutSteps.length;
+  if (uncTutStep < 0) uncTutStep = 0;
+  else uncTutStep++;
+  if (uncTutStep >= total) { uncTutStep = -1; uncTutUpdate(); return; }
+  uncTutUpdate();
+}
+
+function uncTutPrev() {
+  uncTutStep--;
+  if (uncTutStep < -1) uncTutStep = -1;
+  uncTutUpdate();
+}
+
+function uncTutReset() {
+  uncTutStep = -1;
+  uncTutUpdate();
 }
 
 function animate(){
@@ -1109,8 +1372,11 @@ function updateUncertainty(){
 
 function drawPosCanvas(psi2,xs,sx){
   const c=document.getElementById('posCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
   const pad=30,plotW=W-2*pad,plotH=H-pad-16;
@@ -1145,8 +1411,11 @@ function drawPosCanvas(psi2,xs,sx){
 
 function drawMomCanvas(phi2n,ks,sp){
   const c=document.getElementById('momCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
   const pad=30,plotW=W-2*pad,plotH=H-pad-16;
@@ -1180,7 +1449,9 @@ function drawUncCanvas(){
   const c=document.getElementById('uncCanvas');
   if(!c) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
   const pad=40,plotW=W-2*pad,plotH=H-30;
@@ -1221,13 +1492,40 @@ function drawUncCanvas(){
   ctx.fillStyle='rgba(0,229,255,0.7)';ctx.fillText('Square',pad+70,24);
   ctx.fillStyle='rgba(255,68,255,0.7)';ctx.fillText('Triangle',pad+130,24);
   ctx.fillStyle='#55558a';ctx.fillText('σ_x·σ_p vs σ (all ≥ ℏ/2)',pad+4,H-4);
+
+  // Current σ marker — pulse between curves
+  const sigma = +document.getElementById('sigmaSlider').value;
+  const type = document.getElementById('wptType').value;
+  const sx = +document.getElementById('unc_sx').textContent || 1;
+  const sp = +document.getElementById('unc_sp').textContent || 0.5;
+  const prod = sx * sp;
+  const dotX = pad + (sigma - sigMin) / (sigMax - sigMin) * plotW;
+  const dotY = H - 20 - Math.min(prod, 4) / 4 * plotH;
+
+  // Vertical line at current σ
+  ctx.strokeStyle='rgba(255,215,0,0.3)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(dotX,10);ctx.lineTo(dotX,H-20);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Pulsing dot
+  const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.005);
+  const glow = ctx.createRadialGradient(dotX,dotY,0,dotX,dotY,10);
+  glow.addColorStop(0, 'rgba(255,215,0,' + pulse.toFixed(2) + ')');
+  glow.addColorStop(1, 'rgba(255,215,0,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();ctx.arc(dotX,dotY,10,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(dotX,dotY,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffd700';ctx.font='11px monospace';
+  ctx.fillText('σ='+sigma.toFixed(2)+' → '+prod.toFixed(2),dotX+8,dotY-8);
 }
 
 function drawPropCanvas(){
   const c=document.getElementById('propCanvas');
   if(!c) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
   const sigma=+document.getElementById('sigmaSlider').value;
@@ -1282,10 +1580,26 @@ function drawPropCanvas(){
   ctx.beginPath();ctx.moveTo(pad,H-20);ctx.lineTo(W-pad,H-20);ctx.stroke();
 }
 
+let uncSweepDir = -1;
+let uncAnimActive = true;
+
 function animateWave(){
   if(_activeTab!==1){wavePropId=null;return;}
-  wavePropT+=0.012 * (window.animSpeed || 0.1);
-  drawWavePacket();
+  if(waveAnimRunning) {
+    const speed = +(document.getElementById('waveSpeedSlider')?.value || 3);
+    wavePropT += 0.004 * speed;
+    if(uncAnimActive) {
+      const sigmaSlider = document.getElementById('sigmaSlider');
+      let sigma = +sigmaSlider.value;
+      sigma += 0.02 * speed * uncSweepDir;
+      if(sigma <= 0.5) { sigma = 0.5; uncSweepDir = 1; }
+      if(sigma >= 5.0) { sigma = 5.0; uncSweepDir = -1; }
+      sigmaSlider.value = sigma;
+      document.getElementById('sigmaV').textContent = sigma.toFixed(2);
+    }
+  }
+  updateUncertainty();
+  drawPropCanvas();
   wavePropId=requestAnimationFrame(animateWave);
 }
 
@@ -1293,19 +1607,224 @@ function toggleWaveAnim(){
   waveAnimRunning=!waveAnimRunning;
   document.getElementById('waveAnimBtn').textContent=waveAnimRunning?'Pause':'Play';
   document.getElementById('waveAnimBtn').classList.toggle('active',waveAnimRunning);
+  if(waveAnimRunning && !wavePropId) animateWave();
+}
+
+function waveResetAnim(){
+  wavePropT=0;
+  document.getElementById('sigmaSlider').value=1.5;
+  document.getElementById('sigmaV').textContent='1.50';
+  document.getElementById('k0Slider').value=0.1;
+  document.getElementById('k0V').textContent='0.1';
+  uncSweepDir=-1;
+  drawPropCanvas();
+  updateUncertainty();
 }
 
 function resizeUncCanvases(){
-  ['posCanvas','momCanvas','propCanvas','uncCanvas'].forEach(id=>{
-    const c=document.getElementById(id);
-    const rect = c.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    c.width = rect.width * dpr;
-    c.height = rect.height * dpr;
-    const ctx = c.getContext('2d');
-    ctx.scale(dpr, dpr);
+  const dpr=window.devicePixelRatio||1;
+  const pairs=[
+    {canvasId:'posCanvas',wrapId:'posCanvasWrap'},
+    {canvasId:'momCanvas',wrapId:'momCanvasWrap'},
+    {canvasId:'propCanvas',wrapId:'uncPropCanvasWrap'},
+    {canvasId:'uncCanvas',wrapId:'uncUncCanvasWrap'}
+  ];
+  pairs.forEach(({canvasId,wrapId})=>{
+    const c=document.getElementById(canvasId);
+    const wrap=document.getElementById(wrapId);
+    if(!c||!wrap) return;
+    const w=wrap.clientWidth;
+    const h=wrap.clientHeight;
+    if(w<10||h<10) return;
+    c.style.width=w+'px';
+    c.style.height=h+'px';
+    c.width=Math.round(w*dpr);
+    c.height=Math.round(h*dpr);
   });
   updateUncertainty();
+}
+
+/* =====================================================================
+   GUIDED TUTORIAL — STERN-GERLACH
+   ===================================================================== */
+const sgTutSteps = [
+  { title: 'Quantum Spin-½',
+    desc: 'A spin-½ particle (like an electron) has an intrinsic angular momentum called <strong>spin</strong>. In any measurement, it can only yield two outcomes: <strong>↑ (+½)</strong> or <strong>↓ (−½)</strong>. There is no third option.',
+    theta: 90, phi: 0, axis: 'Z' },
+  { title: 'The Bloch Sphere',
+    desc: 'Any pure spin-½ state is a point on the <strong>Bloch sphere</strong>: $|ψ⟩ = \\cos(θ/2)|↑⟩ + e^{iφ}\\sin(θ/2)|↓⟩$. The vector from the origin to that point encodes the state. θ=0 is |↑⟩ (north pole), θ=π is |↓⟩ (south pole).',
+    theta: 90, phi: 0, axis: 'Z' },
+  { title: 'Equal Superposition',
+    desc: 'With <strong>θ = 90°</strong>, we\'re on the equator: $|ψ⟩ = \\frac{1}{\\sqrt{2}}(|↑⟩ + e^{iφ}|↓⟩)$. The probabilities are <strong>P(↑) = P(↓) = ½</strong>. The cyan vector points sideways on the Bloch sphere.',
+    theta: 90, phi: 0, axis: 'Z' },
+  { title: 'Polarized States',
+    desc: 'Drag θ to <strong>0°</strong>: the state is |↑⟩ — P(↑) = 1. The vector points straight up. Drag to <strong>180°</strong>: it\'s |↓⟩ — P(↓) = 1, vector points down. Anything in between is a superposition.',
+    theta: 0, phi: 0, axis: 'Z' },
+  { title: 'Measuring Along Z',
+    desc: 'Click <strong>"Measure!"</strong> to fire the particle through the apparatus. The beam splits into two: ↑ (cyan) and ↓ (pink). The probability of each outcome is given by the <strong>Born rule</strong>: P(↑) = cos²(θ/2).',
+    theta: 90, phi: 0, axis: 'Z' },
+  { title: 'Collapse',
+    desc: 'After measuring ↑ along Z, the state <strong>collapses</strong> to |↑⟩ — no matter what it was before! The Bloch vector snaps to the north pole. Try measuring again: you\'ll always get ↑.',
+    theta: 0, phi: 0, axis: 'Z' },
+  { title: 'Measuring Along X',
+    desc: 'Switch to the <strong>X axis</strong>. Now the measurement projects onto |±x⟩ eigenstates. For a Z-eigenstate |↑⟩ = (|+x⟩+|−x⟩)/√2, we get <strong>50/50</strong> outcomes. The X-axis is incompatible with Z!',
+    theta: 0, phi: 0, axis: 'X' },
+  { title: 'Sequential Measurements: Information Loss',
+    desc: 'Click <strong>"Run sequence"</strong> to see Z → X → Z. After the first Z measurement, you know the result. But the X measurement <strong>destroys the Z information</strong> — a subsequent Z measurement gives a random 50/50 outcome. This is <strong>complementarity</strong>.',
+    theta: 90, phi: 0, axis: 'Z' },
+  { title: 'The Azimuthal Angle φ',
+    desc: 'The angle <strong>φ</strong> controls the <strong>phase</strong> between |↑⟩ and |↓⟩. It doesn\'t affect Z-probabilities but matters for measurements along X and Y. For X-measurement: P(+x) = cos²(θ/2) + sin(θ/2)cos(θ/2)cos(φ). Try varying φ with X axis selected!',
+    theta: 90, phi: 90, axis: 'X' }
+];
+
+let sgTutStep = -1;
+
+function sgTutUpdate() {
+  const total = sgTutSteps.length;
+  const dotsEl = document.getElementById('sg-tut-dots');
+  const titleEl = document.getElementById('sg-tut-title');
+  const descEl = document.getElementById('sg-tut-desc');
+  const btnEl = document.getElementById('sg-tut-next-btn');
+
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('span');
+    d.className = 'tut-dot' + (i < sgTutStep ? ' done' : '') + (i === sgTutStep ? ' curr' : '');
+    dotsEl.appendChild(d);
+  }
+
+  if (sgTutStep < 0) {
+    titleEl.textContent = 'Spin & Stern-Gerlach';
+    descEl.textContent = 'Step through quantum spin measurement.';
+    btnEl.textContent = 'Start';
+    return;
+  }
+
+  const step = sgTutSteps[sgTutStep];
+  titleEl.textContent = 'Step ' + (sgTutStep + 1) + ': ' + step.title;
+  descEl.innerHTML = step.desc;
+  btnEl.textContent = sgTutStep === total - 1 ? 'Restart' : 'Next →';
+
+  document.getElementById('sgTh').value = step.theta;
+  document.getElementById('sgPh').value = step.phi;
+  document.getElementById('sgTh_v').textContent = step.theta + '°';
+  document.getElementById('sgPh_v').textContent = step.phi + '°';
+  sgState.theta = step.theta * Math.PI / 180;
+  sgState.phi = step.phi * Math.PI / 180;
+  setAxis(step.axis);
+  updateBloch();
+}
+
+function sgTutNext() {
+  const total = sgTutSteps.length;
+  if (sgTutStep < 0) sgTutStep = 0;
+  else sgTutStep++;
+  if (sgTutStep >= total) { sgTutStep = -1; sgTutUpdate(); return; }
+  sgTutUpdate();
+}
+
+function sgTutPrev() {
+  sgTutStep--;
+  if (sgTutStep < -1) sgTutStep = -1;
+  sgTutUpdate();
+}
+
+function sgTutReset() {
+  sgTutStep = -1;
+  sgTutUpdate();
+}
+
+function resizeSGCanvases() {
+  const dpr = window.devicePixelRatio || 1;
+  const pairs = [
+    {canvasId:'sgCanvas',    containerId:'sgCanvasWrap'},
+    {canvasId:'blochCanvas', containerId:'blochCanvasWrap'},
+    {canvasId:'histCanvas',  containerId:'histCanvasWrap'},
+    {canvasId:'seqCanvas',   containerId:'seqCanvasWrap'}
+  ];
+  pairs.forEach(({canvasId, containerId}) => {
+    const c = document.getElementById(canvasId);
+    const wrap = document.getElementById(containerId);
+    if (!c || !wrap) return;
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    if (w < 10 || h < 10) return;
+    c.style.width = w + 'px';
+    c.style.height = h + 'px';
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(h * dpr);
+  });
+}
+
+function sgToggleAnim() {
+  sgAnimRunning = !sgAnimRunning;
+  const btn = document.getElementById('sgAnimBtn');
+  btn.textContent = sgAnimRunning ? 'Pause' : 'Play';
+  btn.classList.toggle('active', sgAnimRunning);
+  if (sgAnimRunning) {
+    sgPrecessRunning = true;
+    document.getElementById('sgPrecessCb').checked = true;
+    if (!sgAnimId) sgAnimLoop();
+  }
+}
+
+function sgResetAnim() {
+  sgAnimRunning = false;
+  sgPrecessRunning = false;
+  sgAutoMeasure = 0;
+  sgSeqAnim = null;
+  sgState.phi = 0;
+  sgStats = {up:0,down:0,total:0};
+  sgAnimState = null;
+  document.getElementById('sgPh').value = 0;
+  document.getElementById('sgPh_v').textContent = '0°';
+  if (sgAnimId) { cancelAnimationFrame(sgAnimId); sgAnimId = null; }
+  const btn = document.getElementById('sgAnimBtn');
+  btn.textContent = 'Play'; btn.classList.remove('active');
+  const cb = document.getElementById('sgPrecessCb');
+  if (cb) { cb.checked = false; }
+  document.getElementById('lastOut').textContent = '—';
+  updateBloch();
+  drawHist();
+  drawSG();
+}
+
+function sgAnimLoop() {
+  if (_activeTab !== 2) { sgAnimId = null; return; }
+  if (sgAnimRunning) {
+    if (sgPrecessRunning) {
+    sgState.phi += 0.015;
+    if (sgState.phi > 2 * Math.PI) sgState.phi -= 2 * Math.PI;
+    const phDeg = Math.round(sgState.phi * 180 / Math.PI) % 360;
+    document.getElementById('sgPh').value = phDeg;
+    document.getElementById('sgPh_v').textContent = phDeg + '°';
+      const p = getProbs();
+      document.getElementById('pUp').textContent = p.up.toFixed(3);
+      document.getElementById('pDown').textContent = p.down.toFixed(3);
+    }
+    // auto-measure every ~30 frames
+    sgAutoMeasure++;
+    if (sgAutoMeasure >= 30) {
+      sgAutoMeasure = 0;
+      const p = getProbs();
+      const outcome = Math.random() < p.up ? 'up' : 'down';
+      sgAnimState = {t: 0, outcome: outcome};
+      sgStats.up += (outcome === 'up' ? 1 : 0);
+      sgStats.down += (outcome === 'down' ? 1 : 0);
+      sgStats.total++;
+      document.getElementById('lastOut').textContent = outcome === 'up' ? '↑ up' : '↓ down';
+      drawHist();
+    }
+    // advance measurement animation
+    if (sgAnimState) {
+      sgAnimState.t += 2;
+      if (sgAnimState.t >= 90) sgAnimState = null;
+    }
+    drawSG(sgAnimState);
+    drawBloch();
+    if(sgSeqAnim) sgSeqStep();
+  }
+  sgAnimId = requestAnimationFrame(sgAnimLoop);
 }
 
 /* =====================================================================
@@ -1314,9 +1833,12 @@ function resizeUncCanvases(){
 let sgState={theta:Math.PI/2,phi:0};
 let sgStats={up:0,down:0,total:0};
 let sgAxis='Z';
-let sgAnimState=null;// {x,y,vy,outcome,t}
-let seqState=null;// sequential demo
-let seqLog=[];
+let sgAnimState=null;
+let sgAnimRunning=false;
+let sgAnimId=null;
+let sgPrecessRunning=false;
+let sgAutoMeasure=0; // counter for auto-measure interval
+let seqState=null;
 
 function getProbs(){
   let th=sgState.theta,ph=sgState.phi;
@@ -1344,11 +1866,14 @@ function updateBloch(){
 
 function drawBloch(){
   const c=document.getElementById('blochCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr, H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
-  const cx=W/2,cy=H/2,r=70;
+  const cx=W/2,cy=H/2,r=Math.min(W,H)*0.38;
 
   // sphere outline
   ctx.strokeStyle='#1c1c44';ctx.lineWidth=1;
@@ -1374,6 +1899,22 @@ function drawBloch(){
   const sy=-r*Math.cos(th);
   ctx.strokeStyle='#88ff44';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+sx,cy+sy);ctx.stroke();
+
+  // pulsing glow on tip when animating
+  if(sgAnimRunning) {
+    const pulse = 0.4 + 0.3 * Math.sin(Date.now() * 0.005);
+    const glow = ctx.createRadialGradient(cx+sx,cy+sy,0,cx+sx,cy+sy,14);
+    glow.addColorStop(0, 'rgba(136,255,68,' + pulse.toFixed(2) + ')');
+    glow.addColorStop(1, 'rgba(136,255,68,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(cx+sx,cy+sy,14,0,Math.PI*2); ctx.fill();
+    // trace circle showing precession path
+    const traceR = r*Math.sin(th);
+    ctx.strokeStyle='rgba(136,255,68,0.15)';ctx.lineWidth=1;ctx.setLineDash([3,4]);
+    ctx.beginPath();ctx.ellipse(cx,cy-r*Math.cos(th),traceR,traceR*0.28,0,0,2*Math.PI);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
   ctx.fillStyle='#88ff44';
   ctx.beginPath();ctx.arc(cx+sx,cy+sy,5,0,2*Math.PI);ctx.fill();
 
@@ -1384,24 +1925,51 @@ function drawBloch(){
 
 function drawSG(animS){
   const c=document.getElementById('sgCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr, H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
+  const sc=Math.min(W/560,H/200);
+  const ox=(W-560*sc)/2, oy=(H-200*sc)/2;
+  ctx.save();
+  ctx.translate(ox,oy);
+  ctx.scale(sc,sc);
+  // All coordinates below are in 560×200 reference space
+  // Use RW=560, RH=200 instead of W,H
+  const RW=560, RH=200;
 
   // beam source
   ctx.fillStyle='#1c1c44';
-  ctx.fillRect(10,H/2-15,40,30);
+  ctx.fillRect(10,RH/2-15,40,30);
   ctx.fillStyle='#55558a';ctx.font='12px sans-serif';
-  ctx.fillText('Beam',12,H/2+4);
+  ctx.fillText('Beam',12,RH/2+4);
 
   // beam line
   ctx.strokeStyle='rgba(136,255,68,0.3)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
-  ctx.beginPath();ctx.moveTo(50,H/2);ctx.lineTo(180,H/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(50,RH/2);ctx.lineTo(180,RH/2);ctx.stroke();
   ctx.setLineDash([]);
 
+  // animated beam particles
+  if(sgAnimRunning) {
+    const t = Date.now() * 0.003;
+    for(let p = 0; p < 3; p++) {
+      const frac = ((t + p * 0.33) % 1);
+      const bx = 50 + frac * 130;
+      const glow = ctx.createRadialGradient(bx,RH/2,0,bx,RH/2,8);
+      glow.addColorStop(0,'rgba(136,255,68,0.7)');
+      glow.addColorStop(1,'rgba(136,255,68,0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(bx,RH/2,8,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#88ff44';
+      ctx.beginPath(); ctx.arc(bx,RH/2,3,0,Math.PI*2); ctx.fill();
+    }
+  }
+
   // magnet region
-  const mx=190,mw=120,mt=20,mb=H-20;
+  const mx=190,mw=120,mt=20,mb=RH-20;
   ctx.fillStyle='#0a1a30';ctx.fillRect(mx,mt,mw,mb-mt);
   ctx.strokeStyle='#1c1c44';ctx.lineWidth=1;ctx.strokeRect(mx,mt,mw,mb-mt);
   // N pole (top)
@@ -1427,21 +1995,19 @@ function drawSG(animS){
 
   // output paths
   const exitX=mx+mw;
-  // up path
   ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
-  ctx.beginPath();ctx.moveTo(exitX,H/2);ctx.quadraticCurveTo(exitX+40,H/2-20,exitX+90,H/2-50);ctx.stroke();
-  // down path
+  ctx.beginPath();ctx.moveTo(exitX,RH/2);ctx.quadraticCurveTo(exitX+40,RH/2-20,exitX+90,RH/2-50);ctx.stroke();
   ctx.strokeStyle='rgba(255,68,255,0.3)';
-  ctx.beginPath();ctx.moveTo(exitX,H/2);ctx.quadraticCurveTo(exitX+40,H/2+20,exitX+90,H/2+50);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(exitX,RH/2);ctx.quadraticCurveTo(exitX+40,RH/2+20,exitX+90,RH/2+50);ctx.stroke();
   ctx.setLineDash([]);
 
   // detectors
   ctx.fillStyle='rgba(0,229,255,0.1)';ctx.strokeStyle='#00e5ff';ctx.lineWidth=1.5;
-  ctx.fillRect(exitX+85,H/2-70,50,30);ctx.strokeRect(exitX+85,H/2-70,50,30);
-  ctx.fillStyle='#00e5ff';ctx.font='12px sans-serif';ctx.fillText('↑ +½',exitX+90,H/2-50);
+  ctx.fillRect(exitX+85,RH/2-70,50,30);ctx.strokeRect(exitX+85,RH/2-70,50,30);
+  ctx.fillStyle='#00e5ff';ctx.font='12px sans-serif';ctx.fillText('↑ +½',exitX+90,RH/2-50);
   ctx.fillStyle='rgba(255,68,255,0.1)';ctx.strokeStyle='#ff44ff';
-  ctx.fillRect(exitX+85,H/2+40,50,30);ctx.strokeRect(exitX+85,H/2+40,50,30);
-  ctx.fillStyle='#ff44ff';ctx.fillText('↓ -½',exitX+90,H/2+62);
+  ctx.fillRect(exitX+85,RH/2+40,50,30);ctx.strokeRect(exitX+85,RH/2+40,50,30);
+  ctx.fillStyle='#ff44ff';ctx.fillText('↓ -½',exitX+90,RH/2+62);
 
   // axis label
   ctx.fillStyle='#55558a';ctx.font='12px monospace';
@@ -1454,28 +2020,28 @@ function drawSG(animS){
     let px,py;
     if(progress<0.4){
       px=50+progress/0.4*130;
-      py=H/2;
+      py=RH/2;
     } else if(progress<1){
       const p2=(progress-0.4)/0.6;
       const startX=180,endX=exitX+110;
       px=startX+p2*(endX-startX);
       const deflect=a.outcome==='up'?-50:50;
-      py=H/2+p2*p2*deflect;
+      py=RH/2+p2*p2*deflect;
     } else {
       px=exitX+110;
-      py=H/2+(a.outcome==='up'?-50:50);
+      py=RH/2+(a.outcome==='up'?-50:50);
     }
     const col=a.outcome==='up'?'#00e5ff':'#ff44ff';
     ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=8;
-    ctx.beginPath();ctx.arc(px,py,6,0,2*Math.PI);ctx.fill();
+    ctx.beginPath();ctx.arc(px,py,6,0,Math.PI*2);ctx.fill();
     ctx.shadowBlur=0;
     if(progress>=1){
-      // light up detector
-      const dx2=exitX+85,dy2=a.outcome==='up'?H/2-70:H/2+40;
+      const dx2=exitX+85,dy2=a.outcome==='up'?RH/2-70:RH/2+40;
       ctx.fillStyle=a.outcome==='up'?'rgba(0,229,255,0.35)':'rgba(255,68,255,0.35)';
       ctx.fillRect(dx2,dy2,50,30);
     }
   }
+  ctx.restore();
 }
 
 let sgAnimRaf=null;
@@ -1531,39 +2097,40 @@ function run100(){
 
 function drawHist(){
   const c=document.getElementById('histCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr, H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
   const p=getProbs();
   const total=sgStats.total||1;
   const upFrac=sgStats.up/total;
   const downFrac=sgStats.down/total;
-  const bw=60,bh=H-30;
+  const bw=W*0.18,bh=H-26;
   const labels=[
-    {x:60,frac:upFrac,theory:p.up,col:'#00e5ff',lbl:'↑'},
-    {x:160,frac:downFrac,theory:p.down,col:'#ff44ff',lbl:'↓'}
+    {x:W*0.3,frac:upFrac,theory:p.up,col:'#00e5ff',lbl:'↑'},
+    {x:W*0.7,frac:downFrac,theory:p.down,col:'#ff44ff',lbl:'↓'}
   ];
   ctx.strokeStyle='#1c1c44';ctx.lineWidth=1;
-  ctx.beginPath();ctx.moveTo(20,H-20);ctx.lineTo(W-20,H-20);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(16,H-18);ctx.lineTo(W-16,H-18);ctx.stroke();
   for(const lb of labels){
-    // measured bar
-    ctx.fillStyle=lb.col+'44';
     const bHeight=lb.frac*bh;
-    ctx.fillRect(lb.x-bw/2,H-20-bHeight,bw,bHeight);
+    ctx.fillStyle=lb.col+'44';
+    ctx.fillRect(lb.x-bw/2,H-18-bHeight,bw,bHeight);
     ctx.strokeStyle=lb.col;ctx.lineWidth=1.5;
-    ctx.strokeRect(lb.x-bw/2,H-20-bHeight,bw,bHeight);
-    // theory line
+    ctx.strokeRect(lb.x-bw/2,H-18-bHeight,bw,bHeight);
     const th=lb.theory*bh;
     ctx.strokeStyle=lb.col;ctx.lineWidth=2;ctx.setLineDash([4,3]);
-    ctx.beginPath();ctx.moveTo(lb.x-bw/2-5,H-20-th);ctx.lineTo(lb.x+bw/2+5,H-20-th);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(lb.x-bw/2-5,H-18-th);ctx.lineTo(lb.x+bw/2+5,H-18-th);ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle=lb.col;ctx.font='12px monospace';
-    ctx.fillText(lb.lbl,lb.x-4,H-8);
-    ctx.fillText((lb.frac*100).toFixed(0)+'%',lb.x-12,H-20-bHeight-3);
+    ctx.fillText(lb.lbl,lb.x-4,H-6);
+    ctx.fillText((lb.frac*100).toFixed(0)+'%',lb.x-12,H-18-bHeight-3);
   }
   ctx.fillStyle='#55558a';ctx.font='12px monospace';
-  ctx.fillText('n='+sgStats.total+' | dashed=theory',20,12);
+  ctx.fillText('n='+sgStats.total+' | dashed=theory',16,12);
 }
 
 function setAxis(ax){
@@ -1577,65 +2144,107 @@ function setAxis(ax){
   drawSG();drawBloch();
 }
 
+let sgSeqAnim = null; // {step:0..3, t:0..60, out1, out2, out3}
+
 function runSeqDemo(){
-  // Measure Z, then X, then Z
-  const logEl=document.getElementById('seqLog');
-  seqLog=[];
-  // Step 1: measure Z
+  if(sgSeqAnim) return; // already running
   const th=sgState.theta;
   const pUp1=Math.cos(th/2)*Math.cos(th/2);
-  const r1=Math.random();
-  const out1=r1<pUp1?'↑':'↓';
-  const state1Th=out1==='↑'?0:Math.PI;
-  seqLog.push('Z-measure: '+out1+' (P(↑)='+pUp1.toFixed(2)+')');
-  // Step 2: measure X on state1
-  // |↑_z⟩ = (|+x⟩+|-x⟩)/√2 → P(+x)=0.5
-  const pUp2=0.5;
-  const out2=Math.random()<pUp2?'+x':'-x';
-  const state2Th=out2==='+x'?Math.PI/2:Math.PI/2;
-  const state2Ph=out2==='+x'?0:Math.PI;
-  seqLog.push('X-measure: '+out2+' (P(+x)=0.50 always)');
-  // Step 3: measure Z again on X-eigenstate
-  // X-eigenstate |+x⟩ or |-x⟩: both give P(↑_z)=0.5
-  const pUp3=0.5;
-  const out3=Math.random()<pUp3?'↑':'↓';
-  seqLog.push('Z-measure again: '+out3+' (P(↑)=0.50 — randomized!)');
-  seqLog.push('→ X measurement destroyed Z information');
-  logEl.innerHTML=seqLog.map((l,i)=>`<div style="color:${i<2?'#c0c0ea':'#88ff44'}">${l}</div>`).join('');
-  drawSeqCanvas(out1,out2,out3);
+  const out1=Math.random()<pUp1?'↑':'↓';
+  const out2=Math.random()<0.5?'+x':'-x';
+  const out3=Math.random()<0.5?'↑':'↓';
+  const logEl=document.getElementById('seqLog');
+  logEl.innerHTML = '<div style="color:#c0c0ea">Running Z → X → Z...</div>';
+  sgSeqAnim = {step:0, t:0, out1, out2, out3, logged:[]};
+  if(!sgAnimRunning) sgToggleAnim();
 }
 
-function drawSeqCanvas(out1,out2,out3){
-  const c=document.getElementById('seqCanvas');
-  const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
-  const steps=[
-    {x:40,label:'Z',outcome:out1||'?',col:'#00e5ff'},
-    {x:160,label:'X',outcome:out2||'?',col:'#ffd700'},
-    {x:280,label:'Z',outcome:out3||'?',col:'#ff44ff'}
-  ];
-  ctx.fillStyle='#55558a';ctx.font='12px monospace';
-  ctx.fillText('Sequential: Z → X → Z',8,12);
-  for(const s of steps){
-    ctx.fillStyle='#1c1c44';
-    ctx.fillRect(s.x-25,H/2-22,50,44);
-    ctx.strokeStyle=s.col;ctx.lineWidth=1.5;
-    ctx.strokeRect(s.x-25,H/2-22,50,44);
-    ctx.fillStyle=s.col;ctx.font='bold 12px sans-serif';
-    ctx.textAlign='center';ctx.fillText(s.label,s.x,H/2-6);
-    ctx.font='12px monospace';ctx.fillText(s.outcome||'?',s.x,H/2+14);
-    ctx.textAlign='left';
-    if(s.x<280){
-      ctx.strokeStyle='#2a2a55';ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.moveTo(s.x+26,H/2);ctx.lineTo(s.x+60,H/2);ctx.stroke();
+function sgSeqStep(){
+  if(!sgSeqAnim) return;
+  const a = sgSeqAnim;
+  a.t += 2;
+  if(a.t >= 60){
+    a.t = 0;
+    a.step++;
+    const logEl=document.getElementById('seqLog');
+    if(a.step===1){
+      a.logged.push('Z-measure: <strong style="color:#00e5ff">'+a.out1+'</strong>');
+    } else if(a.step===2){
+      a.logged.push('X-measure: <strong style="color:#ffd700">'+a.out2+'</strong> (50/50 from Z-collapsed state)');
+    } else if(a.step===3){
+      a.logged.push('Z-measure: <strong style="color:#ff44ff">'+a.out3+'</strong> (50/50 — Z info destroyed!)');
+      a.logged.push('<span style="color:#88ff44">→ X measurement destroyed original Z information</span>');
+    }
+    if(a.step > 3){
+      logEl.innerHTML = a.logged.map(l=>'<div style="font-size:.72rem;line-height:1.6">'+l+'</div>').join('');
+      sgSeqAnim = null;
+    } else {
+      logEl.innerHTML = a.logged.map(l=>'<div style="font-size:.72rem;line-height:1.6">'+l+'</div>').join('') +
+        '<div style="font-size:.72rem;color:var(--dim)">Step '+(a.step+1)+'/3...</div>';
     }
   }
-  if(out3){
-    ctx.fillStyle='rgba(136,255,68,0.7)';ctx.font='12px monospace';
+  drawSeqCanvas(a);
+}
+
+function drawSeqCanvas(seqAnim){
+  const c=document.getElementById('seqCanvas');
+  if(!c||c.width<10) return;
+  const ctx=c.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr, H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
+
+  const steps=[
+    {frac:0.2,label:'Z',col:'#00e5ff'},
+    {frac:0.5,label:'X',col:'#ffd700'},
+    {frac:0.8,label:'Z',col:'#ff44ff'}
+  ];
+
+  let outcomes = ['?','?','?'];
+  let activeStep = -1;
+  let progress = 0;
+  if(seqAnim && seqAnim.step !== undefined){
+    activeStep = seqAnim.step;
+    progress = seqAnim.t / 60;
+    outcomes[0] = activeStep >= 1 ? seqAnim.out1 : (activeStep === 0 ? '...' : '?');
+    outcomes[1] = activeStep >= 2 ? seqAnim.out2 : (activeStep === 1 ? '...' : '?');
+    outcomes[2] = activeStep >= 3 ? seqAnim.out3 : (activeStep === 2 ? '...' : '?');
+  }
+
+  ctx.fillStyle='#55558a';ctx.font='12px monospace';
+  ctx.fillText('Sequential: Z \u2192 X \u2192 Z',8,12);
+  for(let i=0;i<steps.length;i++){
+    const s=steps[i];
+    const x=s.frac*W;
+    const isActive = i === activeStep;
+    ctx.fillStyle= isActive ? s.col+'33' : '#1c1c44';
+    ctx.fillRect(x-25,H/2-22,50,44);
+    ctx.strokeStyle= isActive ? s.col : s.col+'88';
+    ctx.lineWidth= isActive ? 2 : 1.5;
+    ctx.strokeRect(x-25,H/2-22,50,44);
+    ctx.fillStyle=s.col;ctx.font='bold 12px sans-serif';
+    ctx.textAlign='center';ctx.fillText(s.label,x,H/2-6);
+    ctx.font='12px monospace';
+    ctx.fillStyle = (i < activeStep) ? s.col : (i === activeStep ? '#fff' : '#55558a');
+    ctx.fillText(outcomes[i],x,H/2+14);
+    ctx.textAlign='left';
+  }
+  for(let i=0;i<steps.length-1;i++){
+    const x1=steps[i].frac*W+26,x2=steps[i+1].frac*W-26;
+    const arrowProgress = (i < activeStep) ? 1 : (i === activeStep ? progress : 0);
+    ctx.strokeStyle='#2a2a55';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(x1,H/2);ctx.lineTo(x1+(x2-x1)*arrowProgress,H/2);ctx.stroke();
+    if(arrowProgress > 0.9){
+      ctx.fillStyle='#2a2a55';
+      ctx.beginPath();ctx.moveTo(x2,H/2-4);ctx.lineTo(x2+6,H/2);ctx.lineTo(x2,H/2+4);ctx.fill();
+    }
+  }
+  if(activeStep >= 3){
+    ctx.fillStyle='rgba(136,255,68,0.8)';ctx.font='bold 12px monospace';
     ctx.textAlign='center';
-    ctx.fillText('50/50!',280,H/2+32);
+    ctx.fillText('50/50! Z info lost',steps[2].frac*W,H/2+32);
     ctx.textAlign='left';
   }
 }
@@ -1652,10 +2261,13 @@ function setWignerState(s){
 }
 
 function resizeWignerCanvas(){
-  const c=document.getElementById('wignerCanvas');
-  window.resizeCanvas(c);
-  const m=document.getElementById('wignerMargCanvas');
-  window.resizeCanvas(m);
+  const dpr = window.devicePixelRatio || 1;
+  const c = document.getElementById('wignerCanvas');
+  const cw = document.getElementById('wignerCanvasWrap');
+  const m = document.getElementById('wignerMargCanvas');
+  const mw = document.getElementById('wignerMargCanvasWrap');
+  if(cw && c){const w=cw.clientWidth,h=cw.clientHeight;if(w>10&&h>10){c.style.width=w+'px';c.style.height=h+'px';c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);}}
+  if(mw && m){const w=mw.clientWidth,h=mw.clientHeight;if(w>10&&h>10){m.style.width=w+'px';m.style.height=h+'px';m.width=Math.round(w*dpr);m.height=Math.round(h*dpr);}}
 }
 
 // Compute Wigner function on a grid
@@ -1721,11 +2333,12 @@ function computeWignerGrid(Nx,Np,xMax,pMax){
 
 function drawWigner(){
   const c=document.getElementById('wignerCanvas');
+  if(!c||c.width<50) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
-  if(W<50||H<50) return;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr, H=c.height/dpr;
 
-  const Nx=Math.floor(W),Np=Math.floor(H);
+  const Nx=Math.min(Math.floor(W),200),Np=Math.min(Math.floor(H),200);
   const xMax=4,pMax=4;
   const grid=computeWignerGrid(Nx,Np,xMax,pMax);
 
@@ -1733,7 +2346,11 @@ function drawWigner(){
   let gMin=Infinity,gMax=-Infinity;
   for(let v of grid){if(v<gMin)gMin=v;if(v>gMax)gMax=v;}
 
-  const imgData=ctx.createImageData(Nx,Np);
+  // Draw heatmap to offscreen canvas at Nx×Np, then scale
+  const offscreen=document.createElement('canvas');
+  offscreen.width=Nx;offscreen.height=Np;
+  const offCtx=offscreen.getContext('2d');
+  const imgData=offCtx.createImageData(Nx,Np);
   for(let i=0;i<Nx;i++){
     for(let j=0;j<Np;j++){
       const idx=(j*Nx+i)*4; // canvas: row=j(p), col=i(x), flip p axis
@@ -1753,7 +2370,14 @@ function drawWigner(){
       imgData.data[idx+3]=255;
     }
   }
-  ctx.putImageData(imgData,0,0);
+  offCtx.putImageData(imgData,0,0);
+
+  // Scale to main canvas with imageSmoothingEnabled for smooth interpolation
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(offscreen,0,0,W,H);
 
   // axes labels
   ctx.fillStyle='rgba(0,0,0,0.5)';
@@ -1779,8 +2403,11 @@ function drawWigner(){
 
 function drawWignerMarginals(grid,Nx,Np,xMax,pMax){
   const c=document.getElementById('wignerMargCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
 
@@ -1824,6 +2451,154 @@ function drawWignerMarginals(grid,Nx,Np,xMax,pMax){
   ctx.fillStyle='#00e5ff';ctx.font='12px monospace';ctx.fillText('|ψ(x)|²',pad+2,12);
   ctx.fillStyle='#ff44ff';ctx.fillText('|φ(p)|²',pad+80,12);
   ctx.fillStyle='#55558a';ctx.fillText('x / p →',W/2-20,H-2);
+}
+
+// --- Wigner Animation ---
+let wignerAnimRunning=false, wignerAnimId=null, wignerAnimT=0;
+let wignerAnimMode=0; // 0=sweep α, 1=pulse brightness, 2=sweep decoherence
+
+function wignerToggleAnim(){
+  wignerAnimRunning=!wignerAnimRunning;
+  const btn=document.getElementById('wignerAnimBtn');
+  if(wignerAnimRunning){
+    btn.textContent='Pause';btn.classList.add('active');
+    if(!wignerAnimId) wignerAnimLoop();
+  } else {
+    btn.textContent='Play';btn.classList.remove('active');
+    if(wignerAnimId){cancelAnimationFrame(wignerAnimId);wignerAnimId=null;}
+  }
+}
+
+function wignerResetAnim(){
+  wignerAnimT=0;
+  const alphaSlider=document.getElementById('alphaSlider');
+  const decohSlider=document.getElementById('decohSlider');
+  alphaSlider.value=1.5;
+  decohSlider.value=0;
+  document.getElementById('alphaV').textContent='1.5';
+  document.getElementById('decohV').textContent='0.00';
+  drawWigner();
+}
+
+function wignerAnimLoop(){
+  if(!wignerAnimRunning) return;
+  const speed=+document.getElementById('wignerSpeedSlider').value;
+  wignerAnimT+=0.01*speed;
+  const alphaSlider=document.getElementById('alphaSlider');
+  const decohSlider=document.getElementById('decohSlider');
+
+  if(wignerState===0){
+    // Coherent: sweep α back and forth between 0.2 and 2.5
+    const alpha=1.35+1.15*Math.sin(wignerAnimT*0.8);
+    alphaSlider.value=alpha.toFixed(1);
+    document.getElementById('alphaV').textContent=alpha.toFixed(1);
+    decohSlider.value=0;
+    document.getElementById('decohV').textContent='0.00';
+  } else if(wignerState===1){
+    // Fock |1⟩: pulse decoherence between 0 and 0.5
+    const gamma=0.25*(1+Math.sin(wignerAnimT*0.6));
+    decohSlider.value=gamma.toFixed(2);
+    document.getElementById('decohV').textContent=gamma.toFixed(2);
+    alphaSlider.value=1.5;
+    document.getElementById('alphaV').textContent='1.5';
+  } else {
+    // Cat: sweep α (separation) and oscillate decoherence
+    const alpha=1.0+0.8*Math.sin(wignerAnimT*0.5);
+    const gamma=0.5*(1+Math.sin(wignerAnimT*0.9));
+    alphaSlider.value=alpha.toFixed(1);
+    document.getElementById('alphaV').textContent=alpha.toFixed(1);
+    decohSlider.value=gamma.toFixed(2);
+    document.getElementById('decohV').textContent=gamma.toFixed(2);
+  }
+
+  drawWigner();
+  wignerAnimId=requestAnimationFrame(wignerAnimLoop);
+}
+
+// --- Wigner Guided Tour ---
+const wigTutSteps=[
+  {title:'Phase Space & the Wigner Function',
+   desc:'The <strong>Wigner function</strong> W(x,p) is a quasi-probability distribution on phase space. Unlike a classical probability, it can be <strong>negative</strong> — this is the hallmark of quantum mechanics.',
+   state:0,alpha:1.5,gamma:0},
+  {title:'Coherent State',
+   desc:'A <strong>coherent state</strong> |α⟩ is the most classical quantum state. Its Wigner function is a Gaussian bump centered at (x₀, 0) — always <strong>non-negative</strong>. It looks just like a classical probability distribution!',
+   state:0,alpha:1.5,gamma:0},
+  {title:'Moving the Coherent State',
+   desc:'Increase α to move the bump further from the origin. The Wigner function just shifts — it remains a perfect Gaussian with W ≥ 0. This is why coherent states are "classical-like".',
+   state:0,alpha:2.5,gamma:0},
+  {title:'Fock State |1⟩',
+   desc:'The <strong>Fock state</strong> |n=1⟩ has a ring-shaped Wigner function with a <strong>dark center</strong>. The center is <strong>negative</strong> (pink) — this is impossible for any classical probability! The ring shape comes from the 4r²−1 factor.',
+   state:1,alpha:1.5,gamma:0},
+  {title:'Decoherence Kills Negativity',
+   desc:'Slide the <strong>decoherence γ</strong> up. The negative center fades and the Wigner function morphs toward a classical Gaussian. Decoherence destroys quantum features, turning "quantum weirdness" into classical probability.',
+   state:1,alpha:1.5,gamma:0.5},
+  {title:'Cat State |α⟩+|−α⟩',
+   desc:'A <strong>cat state</strong> (Schrödinger cat) is a superposition of two coherent states. The Wigner function shows two bumps (the two "cats") plus <strong>interference fringes</strong> (oscillating stripes) between them — pure quantum!',
+   state:2,alpha:1.5,gamma:0},
+  {title:'Interference Fringes',
+   desc:'The fringes between the two bumps are the quantum signature. They oscillate as cos(4px₀) and are <strong>negative</strong> in alternating stripes. These fringes have no classical analog — they vanish under decoherence.',
+   state:2,alpha:2.0,gamma:0},
+  {title:'Decoherence of the Cat',
+   desc:'Increase γ to see decoherence <strong>kill the fringes</strong> while leaving the two bumps intact. This is exactly what happens physically: the environment "measures" which cat, destroying coherence between them. The two bumps survive — they become independent classical probabilities.',
+   state:2,alpha:1.5,gamma:0.8},
+  {title:'Marginal distributions',
+   desc:'The bottom graph shows the <strong>marginals</strong>: integrating W(x,p) over p gives |ψ(x)|² (cyan), integrating over x gives |φ(p)|² (pink). These are always non-negative — the negativity is hidden in the 2D structure. You can\'t detect quantumness from marginals alone!',
+   state:2,alpha:2.0,gamma:0}
+];
+
+let wigTutStep=-1;
+
+function wigTutUpdate(){
+  const total=wigTutSteps.length;
+  const dotsEl=document.getElementById('wig-tut-dots');
+  const titleEl=document.getElementById('wig-tut-title');
+  const descEl=document.getElementById('wig-tut-desc');
+  const btnEl=document.getElementById('wig-tut-next-btn');
+
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('span');
+    d.className='tut-dot'+(i<wigTutStep?' done':'')+(i===wigTutStep?' curr':'');
+    dotsEl.appendChild(d);
+  }
+
+  if(wigTutStep<0){
+    titleEl.textContent='Wigner Function';
+    descEl.textContent='Step through phase space quantum mechanics.';
+    btnEl.textContent='Start';
+    return;
+  }
+
+  const step=wigTutSteps[wigTutStep];
+  titleEl.textContent='Step '+(wigTutStep+1)+': '+step.title;
+  descEl.innerHTML=step.desc;
+  btnEl.textContent=wigTutStep===total-1?'Restart':'Next →';
+
+  setWignerState(step.state);
+  document.getElementById('alphaSlider').value=step.alpha;
+  document.getElementById('alphaV').textContent=step.alpha.toFixed(1);
+  document.getElementById('decohSlider').value=step.gamma;
+  document.getElementById('decohV').textContent=step.gamma.toFixed(2);
+  drawWigner();
+}
+
+function wigTutNext(){
+  const total=wigTutSteps.length;
+  if(wigTutStep<0) wigTutStep=0;
+  else wigTutStep++;
+  if(wigTutStep>=total){wigTutStep=-1;wigTutUpdate();return;}
+  wigTutUpdate();
+}
+
+function wigTutPrev(){
+  wigTutStep--;
+  if(wigTutStep<-1) wigTutStep=-1;
+  wigTutUpdate();
+}
+
+function wigTutReset(){
+  wigTutStep=-1;
+  wigTutUpdate();
 }
 
 /* =====================================================================
@@ -2072,24 +2847,52 @@ function drawBlochTimeCanvas(){
 let pathAnimRunning=true;
 let pathAnimId=null;
 let pathAnimPhase=0;
+let pathParticles=[];
 
 function togglePathAnim(){
   pathAnimRunning=!pathAnimRunning;
-  document.getElementById('pathAnimBtn').textContent=pathAnimRunning?'Pause':'Play';
-  document.getElementById('pathAnimBtn').classList.toggle('active',pathAnimRunning);
+  const btn=document.getElementById('pathAnimBtn');
+  btn.textContent=pathAnimRunning?'Pause':'Play';
+  btn.classList.toggle('active',pathAnimRunning);
+}
+
+function resetPathAnim(){
+  pathAnimPhase=0;
+  pathParticles=[];
+  document.getElementById('screenYSlider').value=0;
+  document.getElementById('screenYV').textContent='0.00';
+  document.getElementById('hbarSlider').value=1;
+  document.getElementById('hbarV').textContent='1.00';
+  document.getElementById('slitDSlider').value=0.3;
+  document.getElementById('slitDV').textContent='0.30';
+  drawPathIntegral();
 }
 
 function resizePathCanvas(){
-  const c=document.getElementById('pathCanvas');
-  window.resizeCanvas(c);
-  const p=document.getElementById('phasorCanvas');
-  window.resizeCanvas(p);
+  const dpr=window.devicePixelRatio||1;
+  const pairs=[
+    {cid:'pathCanvas',wid:'pathCanvasWrap'},
+    {cid:'phasorCanvas',wid:'phasorCanvasWrap'}
+  ];
+  pairs.forEach(({cid,wid})=>{
+    const c=document.getElementById(cid);
+    const w=document.getElementById(wid);
+    if(!c||!w) return;
+    const bw=w.clientWidth,bh=w.clientHeight;
+    if(bw>10&&bh>10){
+      c.style.width=bw+'px';c.style.height=bh+'px';
+      c.width=Math.round(bw*dpr);c.height=Math.round(bh*dpr);
+    }
+  });
 }
 
 function drawPathIntegral(){
   const c=document.getElementById('pathCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
 
@@ -2097,60 +2900,45 @@ function drawPathIntegral(){
   const hbar=+document.getElementById('hbarSlider').value;
   const slitD=+document.getElementById('slitDSlider').value;
 
-  // Geometry (normalized)
   const srcX=0.06*W, srcY=H/2;
   const slitX=0.42*W;
   const screenX=0.93*W;
-  const slit1Y=H/2 - slitD*H*0.45;
-  const slit2Y=H/2 + slitD*H*0.45;
-  const screenPY=H/2 + screenY*H*0.45;
+  const slit1Y=H/2-slitD*H*0.45;
+  const slit2Y=H/2+slitD*H*0.45;
+  const screenPY=H/2+screenY*H*0.45;
 
-  // Draw screen
-  ctx.strokeStyle='#2a2a55';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(screenX,20);ctx.lineTo(screenX,H-20);ctx.stroke();
-
-  // Draw slit barrier
-  ctx.strokeStyle='#3a3a6a';ctx.lineWidth=4;
-  ctx.beginPath();ctx.moveTo(slitX,20);ctx.lineTo(slitX,slit1Y-12);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(slitX,slit1Y+12);ctx.lineTo(slitX,slit2Y-12);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(slitX,slit2Y+12);ctx.lineTo(slitX,H-20);ctx.stroke();
-
-  // Draw interference pattern on screen (intensity)
+  // Interference pattern on screen
   const screenIH=H-40;
   for(let sy=0;sy<screenIH;sy++){
-    const yN=(sy/(screenIH-1)-0.5)*2; // -1..+1
-    const d1=Math.sqrt((screenX-slitX)*(screenX-slitX)+(yN*H*0.45-(-slitD*H*0.45))*(yN*H*0.45-(-slitD*H*0.45)));
-    const d2=Math.sqrt((screenX-slitX)*(screenX-slitX)+(yN*H*0.45-(slitD*H*0.45))*(yN*H*0.45-(slitD*H*0.45)));
-    const phase=(d1-d2)/hbar;
+    const yN=(sy/(screenIH-1)-0.5)*2;
+    const dd1=Math.sqrt((screenX-slitX)*(screenX-slitX)+(yN*H*0.45-(-slitD*H*0.45))*(yN*H*0.45-(-slitD*H*0.45)));
+    const dd2=Math.sqrt((screenX-slitX)*(screenX-slitX)+(yN*H*0.45-(slitD*H*0.45))*(yN*H*0.45-(slitD*H*0.45)));
+    const phase=(dd1-dd2)/hbar;
     const intensity=0.5*(1+Math.cos(phase));
     const bright=Math.round(intensity*200);
     ctx.fillStyle='rgb('+bright+','+bright+','+Math.round(bright*0.4)+')';
     ctx.fillRect(screenX+4,20+sy,18,1);
   }
 
-  // Draw ~30 paths from source through slit 1 to screen point
+  // Draw ~30 paths from source through each slit
   const nPaths=15;
   for(let si=0;si<2;si++){
     const slitY=si===0?slit1Y:slit2Y;
     for(let pi=0;pi<nPaths;pi++){
       const t=pi/(nPaths-1);
-      // paths spread around geometric straight line with Gaussian weight
       const spread=0.35;
       const deviation=(t-0.5)*spread*H;
-      // path goes: source → mid point (with deviation) → slit → screen
       const midX=(srcX+slitX)/2;
       const midY=(srcY+slitY)/2+deviation;
 
-      // Action S for this path (approximate as sum of segment lengths * mass * c)
       const seg1=Math.sqrt((midX-srcX)*(midX-srcX)+(midY-srcY)*(midY-srcY));
       const seg2=Math.sqrt((slitX-midX)*(slitX-midX)+(slitY-midY)*(slitY-midY));
       const seg3=Math.sqrt((screenX-slitX)*(screenX-slitX)+(screenPY-slitY)*(screenPY-slitY));
       const S=(seg1+seg2+seg3)*0.8/W;
       const phase=S/hbar+pathAnimPhase;
 
-      // Color by phase: hue mapped to phase
       const hue=((phase%(2*Math.PI))/(2*Math.PI)*360+360)%360;
-      const alpha=Math.exp(-Math.pow(t-0.5,2)*16)*0.7; // Gaussian weight
+      const alpha=Math.exp(-Math.pow(t-0.5,2)*16)*0.7;
       ctx.strokeStyle='hsla('+hue.toFixed(0)+',80%,60%,'+alpha.toFixed(2)+')';
       ctx.lineWidth=1;
       ctx.beginPath();
@@ -2159,6 +2947,40 @@ function drawPathIntegral(){
       ctx.lineTo(screenX,screenPY);
       ctx.stroke();
     }
+  }
+
+  // Animated particles traveling paths
+  const slitDVal=slitD;
+  for(let i=pathParticles.length-1;i>=0;i--){
+    const p=pathParticles[i];
+    p.t+=0.012;
+    if(p.t>1){pathParticles.splice(i,1);continue;}
+    const pSrcX=0.06*W,pSrcY=H/2;
+    const pSlitX2=0.42*W;
+    const pScreenX2=0.93*W;
+    const pSlitY=p.si===0?(H/2-slitDVal*H*0.45):(H/2+slitDVal*H*0.45);
+    const pScreenPY=H/2+screenY*H*0.45;
+    const deviation=(p.fracT-0.5)*p.spread*H;
+    const midY=(pSrcY+pSlitY)/2+deviation;
+    let px,py;
+    if(p.t<0.4){
+      const tt=p.t/0.4;
+      px=pSrcX+((pSrcX+pSlitX2)/2-pSrcX)*tt;
+      py=pSrcY+(midY-pSrcY)*tt;
+    } else if(p.t<0.7){
+      const tt=(p.t-0.4)/0.3;
+      px=(pSrcX+pSlitX2)/2+(pSlitX2-(pSrcX+pSlitX2)/2)*tt;
+      py=midY+(pSlitY-midY)*tt;
+    } else {
+      const tt=(p.t-0.7)/0.3;
+      px=pSlitX2+(pScreenX2-pSlitX2)*tt;
+      py=pSlitY+(pScreenPY-pSlitY)*tt;
+    }
+    const glow=1-Math.abs(p.t-0.5)*0.6;
+    ctx.fillStyle=p.color;
+    ctx.shadowColor=p.color;ctx.shadowBlur=6*glow;
+    ctx.beginPath();ctx.arc(px,py,3,0,2*Math.PI);ctx.fill();
+    ctx.shadowBlur=0;
   }
 
   // Source dot
@@ -2171,7 +2993,7 @@ function drawPathIntegral(){
   ctx.beginPath();ctx.arc(slitX,slit1Y,5,0,2*Math.PI);ctx.fill();
   ctx.beginPath();ctx.arc(slitX,slit2Y,5,0,2*Math.PI);ctx.fill();
 
-  // Screen point (draggable)
+  // Screen point
   const d1=Math.sqrt((screenX-slitX)*(screenX-slitX)+(screenPY-slit1Y)*(screenPY-slit1Y));
   const d2=Math.sqrt((screenX-slitX)*(screenX-slitX)+(screenPY-slit2Y)*(screenPY-slit2Y));
   const phaseDiff=(d1-d2)/hbar;
@@ -2189,7 +3011,15 @@ function drawPathIntegral(){
   ctx.fillStyle=intensity>0.6?'#ffd700':'#55558a';
   ctx.fillText(intensity>0.6?'BRIGHT':'DARK',screenX+28,screenPY+4);
 
-  // intensity display
+  // Slit barrier
+  ctx.strokeStyle='#3a3a6a';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(slitX,20);ctx.lineTo(slitX,slit1Y-12);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(slitX,slit1Y+12);ctx.lineTo(slitX,slit2Y-12);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(slitX,slit2Y+12);ctx.lineTo(slitX,H-20);ctx.stroke();
+  // Screen line
+  ctx.strokeStyle='#2a2a55';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(screenX,20);ctx.lineTo(screenX,H-20);ctx.stroke();
+
   document.getElementById('pathIntensity').textContent=(intensity).toFixed(3);
   document.getElementById('pathPhaseSum').textContent=(phaseDiff/(2*Math.PI)*360).toFixed(1)+'°';
 
@@ -2198,12 +3028,14 @@ function drawPathIntegral(){
 
 function drawPhasorDiagram(d1,d2,hbar){
   const c=document.getElementById('phasorCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
 
-  // Show 30 phasors (15 from each slit), then the resultant
   const nP=15;
   const cx1=W*0.22,cy1=H/2;
   const cx2=W*0.62,cy2=H/2;
@@ -2214,7 +3046,6 @@ function drawPhasorDiagram(d1,d2,hbar){
   const ph2=d2/hbar+pathAnimPhase;
 
   function drawPhasors(cx,cy,basePhase,color,label){
-    // draw individual phasors with slight spread
     for(let i=0;i<nP;i++){
       const spread=0.15*(i/(nP-1)-0.5);
       const ph=basePhase+spread;
@@ -2223,7 +3054,6 @@ function drawPhasorDiagram(d1,d2,hbar){
       ctx.strokeStyle=color.replace('1.0','0.35');ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.stroke();
     }
-    // main phasor
     const ex=cx+r*Math.cos(basePhase);
     const ey=cy-r*Math.sin(basePhase);
     ctx.strokeStyle=color;ctx.lineWidth=2;
@@ -2236,7 +3066,6 @@ function drawPhasorDiagram(d1,d2,hbar){
   drawPhasors(cx1,cy1,ph1,'rgba(0,229,255,1.0)','Slit 1');
   drawPhasors(cx2,cy2,ph2,'rgba(255,68,255,1.0)','Slit 2');
 
-  // Resultant at screen point
   const re=Math.cos(ph1)+Math.cos(ph2);
   const im=-Math.sin(ph1)-Math.sin(ph2);
   const amp=Math.sqrt(re*re+im*im)/2;
@@ -2251,8 +3080,7 @@ function drawPhasorDiagram(d1,d2,hbar){
   ctx.fillStyle='#55558a';ctx.font='12px monospace';
   ctx.fillText('|K|²='+(amp*amp).toFixed(3),W*0.7,12);
 
-  // circles
-  [cx1,cx2,cx3].forEach((cx,k)=>{
+  [cx1,cx2,cx3].forEach((cx)=>{
     ctx.strokeStyle='#1c1c44';ctx.lineWidth=1;
     ctx.beginPath();ctx.arc(cx,cy1,r,0,2*Math.PI);ctx.stroke();
   });
@@ -2260,9 +3088,105 @@ function drawPhasorDiagram(d1,d2,hbar){
 
 function animatePath(){
   if(_activeTab!==5){pathAnimId=null;return;}
-  if(pathAnimRunning) pathAnimPhase+=0.025*(window.animSpeed||1);
+  const speed=+document.getElementById('pathSpeedSlider').value;
+  if(pathAnimRunning) pathAnimPhase+=0.025*speed*0.33;
+  // Spawn particles occasionally
+  if(pathAnimRunning&&Math.random()<0.06*speed){
+    const si=Math.random()<0.5?0:1;
+    const pi=Math.floor(Math.random()*15);
+    const t=pi/14;
+    const color=si===0?'#00e5ff':'#ff44ff';
+    // deviationY will be computed from canvas dimensions in drawPathIntegral
+    // But we store si and pi so the path can be computed
+    pathParticles.push({t:0,si:si,pi:pi,color:color,
+      fracT:t,spread:0.35});
+  }
   drawPathIntegral();
   pathAnimId=requestAnimationFrame(animatePath);
+}
+
+// --- Path Integral Guided Tour ---
+const pathTutSteps=[
+  {title:'Feynman\'s Sum Over Paths',
+   desc:'In quantum mechanics, a particle doesn\'t take one path from A to B — it takes <strong>all paths simultaneously</strong>. The amplitude to go from source to screen is the sum over every possible path, each weighted by $e^{iS/\\hbar}$.',
+   screenY:0,hbar:1,slitD:0.3},
+  {title:'Each Path Has a Phase',
+   desc:'Each path contributes a complex phase $e^{iS/\\hbar}$ where $S$ is the action. Paths are colored by their phase: <strong>similar colors = similar action</strong>. Notice how paths near the classical trajectory have nearly the same color.',
+   screenY:0,hbar:1,slitD:0.3},
+  {title:'Constructive Interference',
+   desc:'Move the screen point to a <strong>bright fringe</strong> (gold dot). The phasor arrows from both slits point in similar directions — they add up! The sum phasor is large, giving a high $|K|^2$. This is constructive interference.',
+   screenY:0,hbar:1,slitD:0.3},
+  {title:'Destructive Interference',
+   desc:'Move to a <strong>dark fringe</strong> (pink dot). The phasors from the two slits point in <strong>opposite directions</strong> — they cancel! The resultant is small, $|K|^2 \\approx 0$. This is destructive interference.',
+   screenY:0.5,hbar:1,slitD:0.3},
+  {title:'The Classical Limit: ℏ → 0',
+   desc:'Decrease <strong>ℏ toward 0</strong>. The phases start oscillating wildly — only the path near the <strong>stationary action</strong> (classical path) has coherent phase. All others destructively interfere! This is how classical mechanics emerges from quantum mechanics.',
+   screenY:0,hbar:0.15,slitD:0.3},
+  {title:'Quantum Regime: ℏ → Large',
+   desc:'Increase <strong>ℏ</strong>. Now phases change slowly, and many paths contribute coherently. The interference pattern becomes <strong>broad and smooth</strong> — the quantum wave spreads wide. The particle is "everywhere at once."',
+   screenY:0,hbar:2,slitD:0.3},
+  {title:'Wider Slit Separation',
+   desc:'Increase <strong>d</strong> (slit separation). The fringes become <strong>closer together</strong> — more fringes fit on the screen. This is because the path difference between the two slits changes faster with angle. The phasors from the two slits cycle through constructive and destructive more rapidly.',
+   screenY:0,hbar:1,slitD:0.6},
+  {title:'The Phasor Diagram',
+   desc:'The bottom diagram shows three phasor groups: <strong>Slit 1</strong> (cyan), <strong>Slit 2</strong> (pink), and their <strong>Sum</strong> (gold/orange). When they point in the same direction → bright. Opposite → dark. The circle shows the reference for unit amplitude.',
+   screenY:0,hbar:1,slitD:0.3}
+];
+
+let pathTutStep=-1;
+
+function pathTutUpdate(){
+  const total=pathTutSteps.length;
+  const dotsEl=document.getElementById('path-tut-dots');
+  const titleEl=document.getElementById('path-tut-title');
+  const descEl=document.getElementById('path-tut-desc');
+  const btnEl=document.getElementById('path-tut-next-btn');
+
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('span');
+    d.className='tut-dot'+(i<pathTutStep?' done':'')+(i===pathTutStep?' curr':'');
+    dotsEl.appendChild(d);
+  }
+
+  if(pathTutStep<0){
+    titleEl.textContent='Path Integral';
+    descEl.textContent='Step through Feynman\'s sum-over-paths.';
+    btnEl.textContent='Start';
+    return;
+  }
+
+  const step=pathTutSteps[pathTutStep];
+  titleEl.textContent='Step '+(pathTutStep+1)+': '+step.title;
+  descEl.innerHTML=step.desc;
+  btnEl.textContent=pathTutStep===total-1?'Restart':'Next →';
+
+  document.getElementById('screenYSlider').value=step.screenY;
+  document.getElementById('screenYV').textContent=step.screenY.toFixed(2);
+  document.getElementById('hbarSlider').value=step.hbar;
+  document.getElementById('hbarV').textContent=step.hbar.toFixed(2);
+  document.getElementById('slitDSlider').value=step.slitD;
+  document.getElementById('slitDV').textContent=step.slitD.toFixed(2);
+  drawPathIntegral();
+}
+
+function pathTutNext(){
+  const total=pathTutSteps.length;
+  if(pathTutStep<0) pathTutStep=0;
+  else pathTutStep++;
+  if(pathTutStep>=total){pathTutStep=-1;pathTutUpdate();return;}
+  pathTutUpdate();
+}
+
+function pathTutPrev(){
+  pathTutStep--;
+  if(pathTutStep<-1) pathTutStep=-1;
+  pathTutUpdate();
+}
+
+function pathTutReset(){
+  pathTutStep=-1;
+  pathTutUpdate();
 }
 
 /* =====================================================================
@@ -2478,18 +3402,42 @@ function toggleBellAnim(){
 let zenoAnimRunning=true;
 let zenoAnimId=null;
 let zenoAnimT=0;
+let zenoSweepN=true;
 
 function toggleZenoAnim(){
   zenoAnimRunning=!zenoAnimRunning;
-  document.getElementById('zenoAnimBtn').textContent=zenoAnimRunning?'Pause':'Play';
-  document.getElementById('zenoAnimBtn').classList.toggle('active',zenoAnimRunning);
+  const btn=document.getElementById('zenoAnimBtn');
+  btn.textContent=zenoAnimRunning?'Pause':'Play';
+  btn.classList.toggle('active',zenoAnimRunning);
+}
+
+function resetZenoAnim(){
+  zenoAnimT=0;
+  document.getElementById('omegaSlider').value=1;
+  document.getElementById('omegaV').textContent='1.00';
+  document.getElementById('zenoTSlider').value=3.14;
+  document.getElementById('zenoTV').textContent='3.14';
+  document.getElementById('zenoN').value=1;
+  document.getElementById('zenon_v').textContent='1';
+  updateZeno();
 }
 
 function resizeZenoCanvas(){
-  const c=document.getElementById('zenoCanvas');
-  window.resizeCanvas(c);
-  const f=document.getElementById('zenoFreqCanvas');
-  window.resizeCanvas(f);
+  const dpr=window.devicePixelRatio||1;
+  const pairs=[
+    {cid:'zenoCanvas',wid:'zenoCanvasWrap'},
+    {cid:'zenoFreqCanvas',wid:'zenoFreqCanvasWrap'}
+  ];
+  pairs.forEach(({cid,wid})=>{
+    const c=document.getElementById(cid);
+    const w=document.getElementById(wid);
+    if(!c||!w) return;
+    const bw=w.clientWidth,bh=w.clientHeight;
+    if(bw>10&&bh>10){
+      c.style.width=bw+'px';c.style.height=bh+'px';
+      c.width=Math.round(bw*dpr);c.height=Math.round(bh*dpr);
+    }
+  });
 }
 
 function updateZeno(){
@@ -2512,8 +3460,11 @@ function updateZeno(){
 
 function drawZenoCanvas(){
   const c=document.getElementById('zenoCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
 
@@ -2524,14 +3475,31 @@ function drawZenoCanvas(){
   const toX=t=>pad+t/T*plotW;
   const toY=p=>H-20-p*plotH;
 
+  const sweepCb=document.getElementById('zenoSweepCb');
+  const isSweeping=sweepCb&&sweepCb.checked;
+
+  // Time sweep: only used when NOT sweeping n
+  const tSweepDuration=T*1.15;
+  const tSweep=(zenoAnimT*0.12)%tSweepDuration;
+  const tInInterval=tSweep<T?tSweep:-(1);
+
   ctx.strokeStyle='#1c1c44';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(pad,H-20);ctx.lineTo(W-pad,H-20);ctx.stroke();
   ctx.beginPath();ctx.moveTo(pad,16);ctx.lineTo(pad,H-20);ctx.stroke();
+  // P=1 line
   ctx.strokeStyle='#2a2a55';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(pad,H-20-plotH);ctx.lineTo(W-pad,H-20-plotH);ctx.stroke();
   ctx.beginPath();ctx.moveTo(pad,H-20-plotH*0.5);ctx.lineTo(W-pad,H-20-plotH*0.5);ctx.stroke();
   ctx.setLineDash([]);
 
-  // Free Rabi oscillation
+  // y-axis labels
+  ctx.fillStyle='#55558a';ctx.font='11px monospace';
+  ctx.fillText('1.0',pad-28,H-20-plotH+4);
+  ctx.fillText('0.5',pad-28,H-20-plotH*0.5+4);
+  ctx.fillText('0',pad-18,H-20+4);
+  ctx.fillText('t →',W/2-8,H-4);
+
+  // Free Rabi oscillation (full, dim)
   const Npts=300;
   ctx.beginPath();ctx.strokeStyle='rgba(136,255,68,0.7)';ctx.lineWidth=2;
   for(let i=0;i<=Npts;i++){
@@ -2541,42 +3509,104 @@ function drawZenoCanvas(){
   }
   ctx.stroke();
 
-  // Zeno: step function approximation
-  ctx.beginPath();ctx.strokeStyle='#00e5ff';ctx.lineWidth=2;
+  // P=0 baseline
+  ctx.beginPath();ctx.strokeStyle='rgba(0,229,255,0.15)';ctx.lineWidth=1;
+  ctx.moveTo(pad,toY(0));ctx.lineTo(W-pad,toY(0));ctx.stroke();
+
+  // When sweeping n: show a "previous n" ghost staircase for comparison
+  if(isSweeping&&n>2){
+    const ghostN=Math.max(1,n-5<n/3?1:Math.round(n/3));
+    if(ghostN<n&&ghostN>=1){
+      ctx.beginPath();ctx.strokeStyle='rgba(0,229,255,0.15)';ctx.lineWidth=1.5;
+      let gSurvP=1;
+      ctx.moveTo(toX(0),toY(0));
+      for(let k=0;k<ghostN;k++){
+        const t0=k/ghostN*T;
+        const t1=(k+1)/ghostN*T;
+        const dt=t1-t0;
+        const pTrans=Math.sin(Omega*dt)*Math.sin(Omega*dt);
+        for(let m=0;m<=10;m++){
+          const tt=t0+m/10*dt;
+          const pFL=gSurvP*Math.sin(Omega*(tt-t0))*Math.sin(Omega*(tt-t0));
+          ctx.lineTo(toX(tt),toY(pFL));
+        }
+        gSurvP*=(1-pTrans);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // Zeno: step function with collapse markers (only when NOT sweeping)
   let survP=1;
+  ctx.beginPath();ctx.strokeStyle='#00e5ff';ctx.lineWidth=2;
   ctx.moveTo(toX(0),toY(0));
   for(let k=0;k<n;k++){
     const t0=k/n*T;
     const t1=(k+1)/n*T;
     const dt=t1-t0;
-    // prob transitions in this interval given survival
     const pTrans=Math.sin(Omega*dt)*Math.sin(Omega*dt);
-    // evolve freely in interval
     for(let m=0;m<=10;m++){
       const tt=t0+m/10*dt;
       const pFree_local=survP*Math.sin(Omega*(tt-t0))*Math.sin(Omega*(tt-t0));
       ctx.lineTo(toX(tt),toY(pFree_local));
     }
     survP*=(1-pTrans);
-    // measurement resets to ground (collapses to |0⟩ state)
-    // draw vertical drop and reset
     ctx.strokeStyle='#00e5ff';ctx.stroke();
-    ctx.beginPath();
-    ctx.setLineDash([2,2]);
-    ctx.moveTo(toX(t1),toY(survP*Math.sin(Omega*dt)*Math.sin(Omega*dt)));
-    ctx.lineTo(toX(t1),toY(0));
-    ctx.stroke();
-    ctx.setLineDash([]);
+
+    // Collapse lines: only show when NOT sweeping n
+    if(!isSweeping){
+      const flashAge=tInInterval>=0?(tInInterval-t1)/(T/n):999;
+      const isFlashing=flashAge>=0&&flashAge<0.35;
+      ctx.beginPath();
+      if(isFlashing){
+        const flash=Math.max(0,1-flashAge/0.35);
+        ctx.strokeStyle='rgba(0,229,255,'+(0.3+0.7*flash).toFixed(2)+')';
+        ctx.lineWidth=2+3*flash;
+        ctx.setLineDash([]);
+        ctx.save();ctx.shadowColor='#00e5ff';ctx.shadowBlur=12*flash;
+        ctx.moveTo(toX(t1),toY(0));
+        ctx.lineTo(toX(t1),toY(Math.min(1,survP*Math.sin(Omega*dt)*Math.sin(Omega*dt))));
+        ctx.stroke();
+        ctx.restore();
+        ctx.fillStyle='#00e5ff';ctx.shadowColor='#00e5ff';ctx.shadowBlur=8*flash;
+        ctx.beginPath();ctx.arc(toX(t1),toY(0),3+2*flash,0,2*Math.PI);ctx.fill();
+        ctx.shadowBlur=0;
+      } else {
+        ctx.strokeStyle='rgba(0,229,255,0.2)';
+        ctx.lineWidth=1;
+        ctx.setLineDash([2,2]);
+        ctx.moveTo(toX(t1),toY(0));
+        ctx.lineTo(toX(t1),toY(Math.min(1,survP*Math.sin(Omega*dt)*Math.sin(Omega*dt))));
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+
     ctx.beginPath();ctx.strokeStyle='#00e5ff';ctx.lineWidth=2;
     ctx.moveTo(toX(t1),toY(0));
   }
   ctx.stroke();
 
-  // Anti-Zeno: at intermediate n, can enhance
-  // Only show if n is in range where anti-Zeno is visible
+  // Final survival probability label
+  const pSurvFinal=Math.pow(1-Math.sin(Omega*T/n)*Math.sin(Omega*T/n),n);
+  // When sweeping, show a prominent P_surv readout
+  if(isSweeping){
+    ctx.fillStyle='#00e5ff';ctx.font='bold 14px monospace';
+    const pLabel='n = '+n+'  →  P_surv = '+pSurvFinal.toFixed(4);
+    const tw=ctx.measureText(pLabel).width;
+    ctx.fillStyle='rgba(5,5,15,0.8)';
+    ctx.fillRect(pad+4,H-16-20,tw+8,18);
+    ctx.fillStyle='#00e5ff';
+    ctx.fillText(pLabel,pad+8,H-20-6);
+  } else {
+    ctx.fillStyle='rgba(0,229,255,0.8)';ctx.font='11px monospace';
+    ctx.fillText('P_surv='+pSurvFinal.toFixed(3),W-pad-90,toY(Math.min(1,pSurvFinal))-4);
+  }
+
+  // Anti-Zeno
   const tauZ=Math.PI/(2*Omega);
   const antiZenoN=Math.max(1,Math.round(T/(2*tauZ)));
-  if(Math.abs(n-antiZenoN)>antiZenoN*0.5){
+  if(Math.abs(n-antiZenoN)>antiZenoN*0.5&&n>2){
     ctx.beginPath();ctx.strokeStyle='rgba(255,136,68,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
     let survAZ=1;
     ctx.moveTo(toX(0),toY(0));
@@ -2593,25 +3623,29 @@ function drawZenoCanvas(){
     ctx.stroke();ctx.setLineDash([]);
   }
 
-  // Current time marker (animation)
-  ctx.strokeStyle='rgba(255,215,0,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
-  const tCur=(zenoAnimT%(T+0.5));
-  if(tCur<T){
-    ctx.beginPath();ctx.moveTo(toX(tCur),16);ctx.lineTo(toX(tCur),H-20);ctx.stroke();
+  // Time sweep line: only when NOT sweeping n
+  if(!isSweeping&&tInInterval>=0&&tInInterval<T){
+    ctx.strokeStyle='rgba(255,215,0,0.6)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(toX(tInInterval),16);ctx.lineTo(toX(tInInterval),H-20);ctx.stroke();
+    ctx.setLineDash([]);
+    const pFreeAtT=Math.sin(Omega*tInInterval)*Math.sin(Omega*tInInterval);
+    ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(toX(tInInterval),toY(pFreeAtT),4,0,2*Math.PI);ctx.fill();
   }
-  ctx.setLineDash([]);
 
   ctx.fillStyle='rgba(136,255,68,0.7)';ctx.font='12px monospace';ctx.fillText('Free Rabi sin²(Ωt)',pad+4,14);
   ctx.fillStyle='#00e5ff';ctx.fillText('Zeno (n='+n+' meas.)',pad+4,26);
-  if(Math.abs(n-Math.round(T/(2*Math.PI/(2*Omega))))>1)
+  if(Math.abs(n-Math.round(T/(2*Math.PI/(2*Omega))))>1&&n>2)
     {ctx.fillStyle='rgba(255,136,68,0.7)';ctx.fillText('Anti-Zeno regime',pad+4,38);}
-  ctx.fillStyle='#55558a';ctx.fillText('t',W/2,H-4);ctx.fillText('P↑',pad+2,H-20-plotH-2);
+  ctx.fillStyle='#55558a';ctx.fillText('P↑',pad+2,H-20-plotH-2);
 }
 
 function drawZenoFreqCanvas(){
   const c=document.getElementById('zenoFreqCanvas');
+  if(!c||c.width<10) return;
   const ctx=c.getContext('2d');
-  const W=c.width,H=c.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=c.width/dpr,H=c.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle='#05050f';ctx.fillRect(0,0,W,H);
 
@@ -2642,8 +3676,8 @@ function drawZenoFreqCanvas(){
   ctx.moveTo(toX(1),toY(1-Math.pow(1-Math.sin(Omega*T)*Math.sin(Omega*T),1)));
   for(let n=1;n<=nMax;n++){
     const dt=T/n;
-    const pTrans=Math.sin(Omega*dt)*Math.sin(Omega*dt)*n/T*0.4; // effective decay rate × T
-    const pDecay=1-Math.pow(1-pTrans,1);// effective at this n
+    const pTrans=Math.sin(Omega*dt)*Math.sin(Omega*dt)*n/T*0.4;
+    const pDecay=1-Math.pow(1-pTrans,1);
     ctx.lineTo(toX(n),toY(Math.max(0,Math.min(1,pDecay))));
   }
   ctx.stroke();ctx.setLineDash([]);
@@ -2654,10 +3688,46 @@ function drawZenoFreqCanvas(){
   ctx.beginPath();ctx.moveTo(pad,toY(pFree));ctx.lineTo(W-pad,toY(pFree));ctx.stroke();
   ctx.setLineDash([]);
 
-  // current n marker
+  // P=1 reference line
+  ctx.strokeStyle='rgba(0,229,255,0.15)';ctx.lineWidth=1;ctx.setLineDash([3,5]);
+  ctx.beginPath();ctx.moveTo(pad,toY(1));ctx.lineTo(W-pad,toY(1));ctx.stroke();
+  ctx.setLineDash([]);
+
+  // current n marker: prominent pulsing gold when sweeping, synced flash when not
+  const sweepCb2=document.getElementById('zenoSweepCb');
+  const isSweeping2=sweepCb2&&sweepCb2.checked;
   if(nCur>=1&&nCur<=nMax){
-    ctx.strokeStyle='rgba(255,215,0,0.6)';ctx.lineWidth=1.5;
+    let dotR=4, lineW=1.5, lineA=0.6;
+    if(isSweeping2){
+      // When sweeping n: smooth gentle pulse — the dot shows where we ARE on the curve
+      const sp=0.5+0.3*Math.sin(zenoAnimT*3);
+      lineA=0.4+0.4*sp;
+      lineW=1.5+sp;
+      dotR=4+2*sp;
+    } else {
+      // When not sweeping: flash brighter when the time sweep crosses a measurement boundary
+      const tSweepDuration_t=T*1.15;
+      const tSweep_t=(zenoAnimT*0.12)%tSweepDuration_t;
+      const tInT=tSweep_t<T?tSweep_t:-1;
+      const nearestBoundary=Math.round(tInT/(T/nCur))*T/nCur;
+      const nearBound=Math.abs(tInT-nearestBoundary)<T/nCur*0.25&&tInT>=0;
+      const sp=nearBound?0.8+0.2*Math.sin(zenoAnimT*8):0.4+0.2*Math.sin(zenoAnimT*2);
+      lineA=sp;
+      lineW=nearBound?2.5:1.5;
+      dotR=4+3*sp;
+    }
+    ctx.strokeStyle='rgba(255,215,0,'+lineA.toFixed(2)+')';ctx.lineWidth=lineW;
     ctx.beginPath();ctx.moveTo(toX(nCur),14);ctx.lineTo(toX(nCur),H-14);ctx.stroke();
+    // Gold dot on the survival curve
+    const dt=T/nCur;
+    const pStep=Math.sin(Omega*dt)*Math.sin(Omega*dt);
+    const pSurv=Math.pow(1-pStep,nCur);
+    ctx.fillStyle='#ffd700';ctx.beginPath();ctx.arc(toX(nCur),toY(pSurv),dotR,0,2*Math.PI);ctx.fill();
+    // P value label next to dot when sweeping
+    if(isSweeping2){
+      ctx.fillStyle='#ffd700';ctx.font='11px monospace';
+      ctx.fillText('P='+pSurv.toFixed(3),toX(nCur)+6,toY(pSurv)+4);
+    }
   }
 
   ctx.fillStyle='#00e5ff';ctx.font='12px monospace';ctx.fillText('P_survive(T)',pad+4,12);
@@ -2665,7 +3735,6 @@ function drawZenoFreqCanvas(){
   ctx.fillStyle='rgba(136,255,68,0.5)';ctx.fillText('P_free',pad+160,12);
   ctx.fillStyle='#55558a';ctx.fillText('n (log scale) →',W/2-30,H-2);
 
-  // x tick labels
   [1,2,5,10,20,50,100].forEach(n=>{
     if(n<=nMax){
       ctx.fillStyle='#55558a';ctx.font='12px monospace';
@@ -2676,9 +3745,116 @@ function drawZenoFreqCanvas(){
 
 function animateZeno(){
   if(_activeTab!==7){zenoAnimId=null;return;}
-  if(zenoAnimRunning) zenoAnimT+=0.018*(window.animSpeed||1);
+  const speed=+document.getElementById('zenoSpeedSlider').value;
+  if(zenoAnimRunning){
+    zenoAnimT+=0.018*speed*0.33;
+    // Sweep n if checkbox is checked
+    const sweepCb=document.getElementById('zenoSweepCb');
+    if(sweepCb&&sweepCb.checked){
+      // Ping-pong n from 1 to 100 and back
+      const cycle=zenoAnimT*0.15*speed*0.33;
+      const nMax=80;
+      const nMin=1;
+      const range=nMax-nMin;
+      const phase=cycle%(range*2);
+      const sweepN=phase<range?nMin+phase:nMin+range*2-phase;
+      const n=Math.round(Math.max(nMin,Math.min(nMax,sweepN)));
+      const slider=document.getElementById('zenoN');
+      if(n!==+slider.value){
+        slider.value=n;
+        document.getElementById('zenon_v').textContent=n;
+        updateZeno();
+      }
+    }
+  }
   drawZenoCanvas();
+  drawZenoFreqCanvas();
   zenoAnimId=requestAnimationFrame(animateZeno);
+}
+
+// --- Zeno Guided Tour ---
+const zenoTutSteps=[
+  {title:'Rabi Oscillations',
+   desc:'A two-level system with Rabi frequency Ω oscillates between states |0⟩ and |1⟩. The probability of being in |1⟩ at time t is <strong>P(t) = sin²(Ωt)</strong>. The green curve shows this free oscillation.',
+   Omega:1,T:3.14,n:1},
+  {title:'One Measurement (n=1)',
+   desc:'With <strong>n=1</strong> measurement, the Zeno curve (cyan) is identical to free Rabi oscillation — a single measurement at the end changes nothing. P_Zeno = P_free.',
+   Omega:1,T:3.14,n:1},
+  {title:'Few Measurements (n=3)',
+   desc:'With <strong>n=3</strong> measurements, each measurement <strong>collapses the state</strong> back to |0⟩. The Zeno curve is a staircase: at each measurement, probability resets. You can see the dashed vertical lines showing collapse.',
+   Omega:1,T:3.14,n:3},
+  {title:'Many Measurements (n=20)',
+   desc:'With <strong>n=20</strong> measurements, the probability stays near zero most of the time! Each measurement happens so frequently that the system barely evolves between them. P_Zeno ≈ 1 — the system is <strong>frozen</strong>.',
+   Omega:1,T:3.14,n:20},
+  {title:'The Zeno Limit (n→∞)',
+   desc:'As <strong>n→∞</strong>, P_Zeno → 1 exactly. This is the quantum Zeno effect: infinitely frequent measurements completely suppress transitions. Set n=100 to see this limit approached.',
+   Omega:1,T:3.14,n:80},
+  {title:'Survival vs Frequency Plot',
+   desc:'The bottom graph shows P_survive(T) vs n (log scale). As n increases, survival probability → 1 (cyan curve goes up). The gold line marks your current n. The green dashed line shows P_free for reference.',
+   Omega:1,T:3.14,n:10},
+  {title:'Anti-Zeno Effect',
+   desc:'At <strong>intermediate</strong> measurement rates (n ≈ T/(2τ_Z)), decay can be <strong>accelerated</strong> — this is the <strong>anti-Zeno effect</strong> (orange dashed line). The system decays faster than free evolution! Try Ω=2, n=5 to see this.',
+   Omega:2,T:3.14,n:5},
+  {title:'The Paradox',
+   desc:'The Zeno effect seems paradoxical: watching a system prevents it from changing! But the resolution is that each measurement <strong>collapses the wavefunction</strong>, resetting the exponential growth of transition probability. Short time: P ≈ (Ωδt)² — so each step is second-order small, and their product → 1.',
+   Omega:1,T:3.14,n:50}
+];
+
+let zenoTutStep=-1;
+
+function zenoTutUpdate(){
+  const total=zenoTutSteps.length;
+  const dotsEl=document.getElementById('zeno-tut-dots');
+  const titleEl=document.getElementById('zeno-tut-title');
+  const descEl=document.getElementById('zeno-tut-desc');
+  const btnEl=document.getElementById('zeno-tut-next-btn');
+
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('span');
+    d.className='tut-dot'+(i<zenoTutStep?' done':'')+(i===zenoTutStep?' curr':'');
+    dotsEl.appendChild(d);
+  }
+
+  if(zenoTutStep<0){
+    titleEl.textContent='Quantum Zeno';
+    descEl.textContent='Step through the quantum Zeno effect.';
+    btnEl.textContent='Start';
+    return;
+  }
+
+  const step=zenoTutSteps[zenoTutStep];
+  titleEl.textContent='Step '+(zenoTutStep+1)+': '+step.title;
+  descEl.innerHTML=step.desc;
+  btnEl.textContent=zenoTutStep===total-1?'Restart':'Next →';
+
+  document.getElementById('omegaSlider').value=step.Omega;
+  document.getElementById('omegaV').textContent=step.Omega.toFixed(2);
+  document.getElementById('zenoTSlider').value=step.T;
+  document.getElementById('zenoTV').textContent=step.T.toFixed(2);
+  document.getElementById('zenoN').value=step.n;
+  document.getElementById('zenon_v').textContent=step.n;
+  document.getElementById('zenoNdisp').textContent=step.n;
+  updateZeno();
+}
+
+function zenoTutNext(){
+  const total=zenoTutSteps.length;
+  if(zenoTutStep<0) zenoTutStep=0;
+  else zenoTutStep++;
+  if(zenoTutStep>=total){zenoTutStep=-1;zenoTutUpdate();return;}
+  zenoTutUpdate();
+}
+
+function zenoTutPrev(){
+  zenoTutStep--;
+  if(zenoTutStep<-1) zenoTutStep=-1;
+  zenoTutUpdate();
+}
+
+function zenoTutReset(){
+  zenoTutStep=-1;
+  zenoTutUpdate();
 }
 
 /* =====================================================================
@@ -2688,6 +3864,11 @@ window.addEventListener('load',()=>{
   setN(1);
   animate();
   updateUncertainty();
+  uncTutUpdate();
+  sgTutUpdate();
+  wigTutUpdate();
+  pathTutUpdate();
+  zenoTutUpdate();
   animateWave();
   drawBloch();drawSG();drawHist();drawSeqCanvas();
 
@@ -2700,6 +3881,32 @@ window.addEventListener('load',()=>{
   animatePath();
   animateBell();
   animateZeno();
+
+  // Pause all animations when browser tab hidden, resume when visible
+  var _visPaused09 = {};
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      _visPaused09.anim = animRunning; if(animRunning) toggleAnim();
+      _visPaused09.wave = waveAnimRunning; if(waveAnimRunning) toggleWaveAnim();
+      _visPaused09.bloch2 = bloch2Running; if(bloch2Running) toggleBloch2Anim();
+      _visPaused09.path = pathAnimRunning; if(pathAnimRunning) togglePathAnim();
+      _visPaused09.bell = bellAnimRunning; if(bellAnimRunning) toggleBellAnim();
+      _visPaused09.zeno = zenoAnimRunning; if(zenoAnimRunning) toggleZenoAnim();
+      _visPaused09.sg = sgAnimRunning; if(sgAnimRunning) sgToggleAnim();
+      _visPaused09.wigner = wignerAnimRunning; if(wignerAnimRunning) wignerToggleAnim();
+    } else {
+      // Resume animations that were running before tab was hidden
+      if(_visPaused09.anim) { animRunning=true; document.getElementById('animBtn').textContent='Pause'; document.getElementById('animBtn').classList.add('active'); if(!animId) animate(); }
+      if(_visPaused09.wave) { waveAnimRunning=true; document.getElementById('waveAnimBtn').textContent='Pause'; document.getElementById('waveAnimBtn').classList.add('active'); if(!wavePropId) animateWave(); }
+      if(_visPaused09.bloch2) { bloch2Running=true; document.getElementById('bloch2AnimBtn').textContent='⏸ Pause'; document.getElementById('bloch2AnimBtn').classList.add('active'); if(!bloch2AnimId) bloch2AnimId=requestAnimationFrame(animateBloch2); }
+      if(_visPaused09.path) { pathAnimRunning=true; document.getElementById('pathAnimBtn').textContent='Pause'; document.getElementById('pathAnimBtn').classList.add('active'); if(!pathAnimId) animatePath(); }
+      if(_visPaused09.bell) { bellAnimRunning=true; document.getElementById('bellAnimBtn').classList.add('active'); document.getElementById('bellAnimBtn').textContent='Pause'; if(!bellAnimId) animateBell(); }
+      if(_visPaused09.zeno) { zenoAnimRunning=true; document.getElementById('zenoAnimBtn').classList.add('active'); document.getElementById('zenoAnimBtn').textContent='Pause'; if(!zenoAnimId) animateZeno(); }
+      if(_visPaused09.sg) { sgAnimRunning=true; document.getElementById('sgAnimBtn').textContent='Pause'; document.getElementById('sgAnimBtn').classList.add('active'); if(!sgAnimId) sgAnimLoop(); }
+      if(_visPaused09.wigner) { wignerAnimRunning=true; document.getElementById('wignerAnimBtn').textContent='Pause'; document.getElementById('wignerAnimBtn').classList.add('active'); if(!wignerAnimId) wignerAnimLoop(); }
+      _visPaused09 = {};
+    }
+  });
 });
 
 window.addEventListener('resize',()=>{
@@ -2708,6 +3915,7 @@ window.addEventListener('resize',()=>{
   const idx=[...document.querySelectorAll('.panel')].indexOf(activePanel);
   if(idx===0) resizeBoxCanvases();
   if(idx===1) resizeUncCanvases();
+  if(idx===2) resizeSGCanvases();
   if(idx===3){resizeWignerCanvas();drawWigner();}
   if(idx===5){resizePathCanvas();drawPathIntegral();}
   if(idx===6){resizeBellCanvas();updateBell();}

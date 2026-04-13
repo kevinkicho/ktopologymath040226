@@ -15,9 +15,24 @@ node server.js   # starts Express (OS picks port, printed to console)
 
 ## Recent Progress (April 2026)
 
-Major interactive improvements to modules 05 and 07:
+Major interactive improvements to modules 05, 06, 07, 08, and 09:
 
-### 05_fourier.html — Fourier Series Visualizer
+### 06_complex_calculus.html — Complex Calculus & Riemann Surfaces
+Complete overhaul of all 9 tabs with guided tours, animation lifecycle, and DPR-safe rendering:
+
+- **All 9 tabs**: DPR-safe rendering (`setTransform(dpr,0,0,dpr,0,0)` + offscreen canvas for pixel-level domain coloring), responsive canvas sizing via CSS `100%` (no inline px), auto-start animation on tab entry, proper cleanup on exit, `visibilitychange` pause/resume
+- **Tab 0 Smooth World**: Taylor series convergence animation, 11-step guided tour, derivative toggles during animation
+- **Tab 1 Holomorphic Maps**: Animated z-point with gold trail, pole/zero markers, f(z) phasor display, 8-step guided tour
+- **Tab 2 Riemann Surfaces**: Rewritten walk-around-branch-point animation with ghost sheet points, transition flash, f(z) info overlay, sheet/loop counter, 8-step guided tour, auto-start walk animation
+- **Tab 3 3D Surface**: Cached auto-fit camera (no breathing during rotation), 7-step guided tour, zoom-fit via wrapper div
+- **Tab 4 Laurent & Poles**: Zoom-fit domain coloring so annulus circles stay within panels, pulsing annulus boundaries during animation, large N counter overlay, 6-step guided tour
+- **Tab 5 Residue→Real**: 4-step guided tour, auto-start contour animation
+- **Tab 6 Analytic Continuation**: Per-demo animation overlays (geom: convergence point tracing, disks: continuation path trail, zeta: evaluation point on ζ landscape), 5-step guided tour
+- **Tab 7 Saddle Point**: 4-step guided tour, auto-start N→∞ animation
+- **Tab 8 Physics Apps**: 4-step guided tour, auto-start animation
+- **Animation lifecycle**: `cancelAllAnimations()` sets all `animating=false` and cancels all rAF loops; each `initXxx()` sets `animating=true` and restarts — no stale frames, no memory leaks
+
+### 09_quantum.html — Quantum Mechanics (completed earlier)
 - **Laplace & Z tab**: Complete redesign — all 4 quadrants simultaneous (s-plane, z-plane, Bode, impulse response); live pole/zero dragging on s-plane with z-plane auto-computed via z=e^(sT); pole-stability animation
 - **Wavelets tab**: Added auto-starting animation sweeping scale/translation; play/pause/reset/speed controls; fixed scalogram range
 - **Fourier Physics tab**: QM wavepacket view-tracking; looping 20-second animations for heat/wave/QM modes
@@ -218,10 +233,11 @@ Each file adds its own `--accent` color.
 - **63 interactive modules** with real-time canvas animation at 60 fps
 - **Global glossary tooltips** — hover any term to get a definition popup; hold 3 s to pin
 - **Auto-start animations** — every module starts its animation automatically on load
-- **Animation lifecycle management** — `cancelAllAnimations()` stops all rAF loops on tab switch to prevent CPU waste on hidden tabs (implemented in 01, 06, 09, 10, 18, 33 + 7 modules with built-in cleanup)
+- **Animation lifecycle management** — `cancelAllAnimations()` stops all rAF loops and sets `animating=false` on tab switch; each `initXxx()` sets `animating=true` and restarts — implemented in 01, 06, 07, 08, 09, 10, 18, 33 + 7 modules with built-in cleanup; `visibilitychange` handler pauses/resumes all animations when browser tab is hidden/shown
 - **Animation watchdog** — detects frozen animations and restarts them automatically (~24 s)
 - **KaTeX** equation rendering throughout
-- **Per-panel speed controls** — each module has its own Play/Pause/Reset buttons and speed slider (0.1×–1×) integrated into the sidebar; speed reads per-frame for real-time adjustment
+- **Per-panel speed controls** — each module has its own Play/Pause/Reset buttons and speed slider (0.1×–3×) integrated into the sidebar; speed reads per-frame for real-time adjustment
+- **Guided tours** — step-by-step walkthroughs with progress dots, prev/next navigation, and auto-configuration of sliders/buttons per step (module 06: all 9 tabs; module 09: all 8 tabs)
 - **Time scrubber** on binary inspiral (Ch. 46) — drag to rewind to the merger moment
 - **Helicity checkboxes** on Penrose transform (Ch. 44) — overlay up to 7 massless field species simultaneously
 - **Draggable commutative diagrams** in category theory (Ch. 52)

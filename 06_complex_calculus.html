@@ -39,6 +39,7 @@ h1{font-size:1.35rem;color:var(--violet);text-shadow:0 0 24px rgba(170,119,255,.
   padding:14px;width:210px;overflow-y:auto;display:flex;flex-direction:column;gap:13px;flex-shrink:0}
 .sidebar.right{border-right:none;border-left:1px solid var(--border);width:252px}
 .canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--bg)}
+.canvas-wrap canvas{width:100%;height:100%}
 canvas{display:block}
 
 .section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
@@ -96,6 +97,17 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 .dbtn.d2{color:#ffd700}.dbtn.d2.active{border-color:#ffd700;background:rgba(255,215,0,.1)}
 .dbtn.d3{color:#00ff99}.dbtn.d3.active{border-color:#00ff99;background:rgba(0,255,153,.1)}
 .dbtn.d4{color:#ff44ff}.dbtn.d4.active{border-color:#ff44ff;background:rgba(255,68,255,.1)}
+.tut-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-top:6px}
+.tut-progress{display:flex;gap:3px;margin-bottom:6px}
+.tut-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .15s}
+.tut-dot.done{background:var(--violet)}.tut-dot.curr{background:var(--gold)}
+.tut-title{font-size:.76rem;font-weight:600;color:var(--text);margin-bottom:4px}
+.tut-desc{font-size:.71rem;color:var(--dim);line-height:1.55}
+.tut-nav{display:flex;gap:4px;margin-top:6px}
+.btn.gold{border-color:var(--gold);color:var(--gold)}
+.btn.gold:hover{background:rgba(255,215,0,.15)}
+.btn.red{border-color:#e55;color:#e55}
+.btn.red:hover{background:rgba(238,85,85,.1)}
 </style>
 </head>
 <body>
@@ -149,6 +161,30 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>x range: <span id="xrange-disp" class="val-disp">&#177;3</span></label>
       <input type="range" id="xrange-sl" min="1" max="8" step="0.5" value="3" oninput="setXRange(+this.value)">
     </div>
+    <div>
+      <div class="section-lbl">Taylor Animation</div>
+      <div class="btn-row">
+        <button class="btn" id="smooth-anim-btn" onclick="toggleSmoothAnim(this)">▶ Animate Taylor</button>
+        <button class="btn red" id="smooth-reset-btn" onclick="resetSmoothAnim(this)">Reset</button>
+      </div>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+        <span>Speed</span>
+        <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+      </div>
+      <div style="margin-top:4px;font-size:.72rem;color:var(--dim)">Taylor terms: <span id="taylor-n-disp" style="color:var(--gold)">0</span></div>
+    </div>
+    <div>
+      <div class="section-lbl">Guided Tutorial</div>
+      <div class="tut-box" id="smooth-tut-box">
+        <div class="tut-progress" id="smooth-tut-dots"></div>
+        <div class="tut-title" id="smooth-tut-title">Taylor Series</div>
+        <div class="tut-desc" id="smooth-tut-desc">Step through Taylor convergence.</div>
+        <div class="tut-nav">
+          <button class="btn" onclick="smoothTutPrev()">Back</button>
+          <button class="btn gold" id="smooth-tut-next-btn" onclick="smoothTutNext()">Start</button>
+        </div>
+      </div>
+    </div>
     <div class="callout">
       <strong>C&#8734; vs C&#969;</strong><br>
       The bump function is infinitely differentiable everywhere yet its Taylor series at x=0 is identically zero&nbsp;&mdash; it is <em>not</em> analytic. This is impossible for complex functions:
@@ -157,7 +193,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 
-  <div class="canvas-wrap">
+  <div class="canvas-wrap" id="swrap">
     <canvas id="canvas-smooth"></canvas>
   </div>
 
@@ -208,8 +244,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div>
       <div class="section-lbl">Contour &#8750;</div>
       <button class="btn" id="contour-toggle" onclick="toggleContour(this)">Show contour &#8750;</button>
-      <button class="btn active" id="holo-anim-btn" onclick="toggleHoloAnim(this)">Pause</button>
-    </div>
+       <button class="btn active" id="holo-anim-btn" onclick="toggleHoloAnim(this)">Pause</button>
+       <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+         <span>Speed</span>
+         <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+       </div>
+     </div>
     <div id="contour-controls" style="display:none">
       <label>Radius: <span id="cr-disp" class="val-disp">1.20</span></label>
       <input type="range" id="cr-sl" min="0.2" max="3.5" step="0.05" value="1.2" oninput="setContourR(+this.value)">
@@ -227,6 +267,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
     </div>
     <div style="font-size:.7rem;color:var(--dim);line-height:1.5">Drag to pan &middot; Scroll to zoom</div>
+    <div>
+      <div class="section-lbl">Guided Tutorial</div>
+      <div class="tut-box" id="holo-tut-box">
+        <div class="tut-progress" id="holo-tut-dots"></div>
+        <div class="tut-title" id="holo-tut-title">Holomorphic Maps</div>
+        <div class="tut-desc" id="holo-tut-desc">Step through domain coloring and residues.</div>
+        <div class="tut-nav">
+          <button class="btn" onclick="holoTutPrev()">Back</button>
+          <button class="btn gold" id="holo-tut-next-btn" onclick="holoTutNext()">Start</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="canvas-wrap" id="hwrap">
@@ -285,7 +337,23 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
     <div>
       <div class="section-lbl">Animation</div>
-      <button class="btn" id="walk-btn" onclick="walkAroundBranchPoint()">Walk around branch point</button>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn" id="walk-btn" onclick="walkAroundBranchPoint()">Walk around branch point</button>
+        <button class="btn" id="riemann-reset-btn" onclick="resetRiemannAnim()">Reset</button>
+      </div>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+        <span>Speed</span>
+        <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+      </div>
+    </div>
+    <div class="tut-box" id="riemann-tut-box">
+      <div class="tut-progress" id="riemann-tut-dots"></div>
+      <div class="tut-title" id="riemann-tut-title">Riemann Surfaces</div>
+      <div class="tut-desc" id="riemann-tut-desc">Step through multi-valued functions and branch cuts.</div>
+      <div class="tut-nav">
+        <button class="btn" onclick="riemannTutPrev()">Back</button>
+        <button class="btn gold" id="riemann-tut-next-btn" onclick="riemannTutNext()">Start</button>
+      </div>
     </div>
     <div class="callout">
       <strong>Riemann Mapping Theorem</strong><br>
@@ -355,9 +423,22 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
     <div>
       <button class="btn active" id="s3-anim-btn" onclick="toggleS3Anim(this)">Stop rotation</button>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+        <span>Speed</span>
+        <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+      </div>
     </div>
     <div class="callout" style="font-size:.72rem;line-height:1.5">
       <strong>|f(z)|</strong> plotted as height above the complex plane. Poles appear as capped peaks (max height 3). Drag to rotate &middot; Scroll to zoom.
+    </div>
+    <div class="tut-box" id="s3-tut-box">
+      <div class="tut-progress" id="s3-tut-dots"></div>
+      <div class="tut-title" id="s3-tut-title">3D Surface</div>
+      <div class="tut-desc" id="s3-tut-desc">Explore |f(z)| as a landscape. Step through key surfaces.</div>
+      <div class="tut-nav">
+        <button class="btn" onclick="s3TutPrev()">Back</button>
+        <button class="btn gold" id="s3-tut-next-btn" onclick="s3TutNext()">Start</button>
+      </div>
     </div>
   </div>
 
@@ -392,9 +473,22 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div>
       <button class="btn" id="lf-cw-btn" onclick="toggleCW(this)">Show Casorati-Weierstrass</button>
       <button class="btn active" id="laurent-anim-btn" onclick="toggleLaurentAnim(this)">Stop N cycle</button>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+        <span>Speed</span>
+        <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+      </div>
     </div>
     <div class="callout" style="font-size:.71rem;line-height:1.55">
       <strong>Casorati-Weierstrass:</strong> Near an essential singularity, f(z) maps every punctured neighborhood to a dense subset of &#8450;. The image of any small disk is essentially <em>all</em> of &#8450;.
+    </div>
+    <div class="tut-box" id="laurent-tut-box">
+      <div class="tut-progress" id="laurent-tut-dots"></div>
+      <div class="tut-title" id="laurent-tut-title">Laurent & Poles</div>
+      <div class="tut-desc" id="laurent-tut-desc">Step through singularities and Laurent expansions.</div>
+      <div class="tut-nav">
+        <button class="btn" onclick="laurentTutPrev()">Back</button>
+        <button class="btn gold" id="laurent-tut-next-btn" onclick="laurentTutNext()">Start</button>
+      </div>
     </div>
   </div>
 
@@ -452,6 +546,15 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="callout" style="font-size:.71rem;line-height:1.55">
       <strong>Key idea:</strong> Close the real-axis integral with a large semicircle. The arc contributes 0 (Jordan's lemma). Only the residue at the enclosed pole remains.
     </div>
+    <div class="tut-box" id="ri-tut-box">
+      <div class="tut-progress" id="ri-tut-dots"></div>
+      <div class="tut-title" id="ri-tut-title">Residue → Real</div>
+      <div class="tut-desc" id="ri-tut-desc">Step through real integrals via contour methods.</div>
+      <div class="tut-nav">
+        <button class="btn" onclick="riTutPrev()">Back</button>
+        <button class="btn gold" id="ri-tut-next-btn" onclick="riTutNext()">Start</button>
+      </div>
+    </div>
   </div>
 
   <div class="canvas-wrap" id="riwrap">
@@ -500,9 +603,22 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
     <div>
       <button class="btn active" id="ac-anim-btn" onclick="toggleACAnim(this)">Stop</button>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+        <span>Speed</span>
+        <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+      </div>
     </div>
     <div class="callout" style="font-size:.71rem;line-height:1.55">
       <strong>Identity principle:</strong> If two analytic functions agree on any set with a limit point, they agree everywhere. This makes analytic continuation <em>unique</em>.
+    </div>
+    <div class="tut-box" id="ac-tut-box">
+      <div class="tut-progress" id="ac-tut-dots"></div>
+      <div class="tut-title" id="ac-tut-title">Analytic Cont.</div>
+      <div class="tut-desc" id="ac-tut-desc">Step through analytic continuation and extension.</div>
+      <div class="tut-nav">
+        <button class="btn" onclick="acTutPrev()">Back</button>
+        <button class="btn gold" id="ac-tut-next-btn" onclick="acTutNext()">Start</button>
+      </div>
     </div>
   </div>
 
@@ -561,9 +677,22 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
     <div>
       <button class="btn active" id="sp-anim-btn" onclick="toggleSPAnim(this)">Stop animation</button>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+        <span>Speed</span>
+        <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+      </div>
     </div>
     <div class="callout" style="font-size:.71rem;line-height:1.55">
       <strong>Saddle point:</strong> where $f'(z)=0$. The dominant contribution as $N\to\infty$ comes from a Gaussian integral around the saddle, giving the steepest-descent approximation.
+    </div>
+    <div class="tut-box" id="sp-tut-box">
+      <div class="tut-progress" id="sp-tut-dots"></div>
+      <div class="tut-title" id="sp-tut-title">Saddle Point</div>
+      <div class="tut-desc" id="sp-tut-desc">Step through steepest-descent approximations.</div>
+      <div class="tut-nav">
+        <button class="btn" onclick="spTutPrev()">Back</button>
+        <button class="btn gold" id="sp-tut-next-btn" onclick="spTutNext()">Start</button>
+      </div>
     </div>
   </div>
 
@@ -622,9 +751,22 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
     <div>
       <button class="btn active" id="ph-anim-btn" onclick="togglePHAnim(this)">Stop</button>
+      <div style="margin-top:4px;display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--dim)">
+        <span>Speed</span>
+        <input type="range" min="0.1" max="3" step="0.1" value="1" style="flex:1" oninput="window.animSpeed=+this.value">
+      </div>
     </div>
     <div class="callout" style="font-size:.71rem;line-height:1.55">
       <strong>Causality &rarr; analyticity:</strong> The requirement that the dielectric response function be causal (no response before the cause) forces $\tilde{\chi}(\omega)$ to be analytic in the upper half-plane $\mathrm{Im}(\omega)&gt;0$.
+    </div>
+    <div class="tut-box" id="ph-tut-box">
+      <div class="tut-progress" id="ph-tut-dots"></div>
+      <div class="tut-title" id="ph-tut-title">Physics Apps</div>
+      <div class="tut-desc" id="ph-tut-desc">Step through complex analysis in physics.</div>
+      <div class="tut-nav">
+        <button class="btn" onclick="phTutPrev()">Back</button>
+        <button class="btn gold" id="ph-tut-next-btn" onclick="phTutNext()">Start</button>
+      </div>
     </div>
   </div>
 
@@ -702,12 +844,6 @@ function _cancelAllAnims06(){
     if (window.animSpeed === undefined) {
       window.animSpeed = 0.1;
     }
-    // Auto-start animations for all tabs
-    document.querySelectorAll('.btn[id$="-anim-btn"], .btn[id$="AnimBtn"]').forEach(btn => {
-      if (btn.textContent.includes('▶') || btn.textContent.includes('►')) {
-        btn.click();
-      }
-    });
   }
   autoStartAnimations();
 // ══════════════════════════════════════════════
@@ -769,7 +905,7 @@ function renderDomainColoring(canvas,view,f){
 // ══════════════════════════════════════════════
 // TAB 1: SMOOTH WORLD
 // ══════════════════════════════════════════════
-const SMOOTH={func:'sin',showD:[true,true,false,false,false],xRange:3,rafId:null};
+const SMOOTH={func:'sin',showD:[true,true,false,false,false],xRange:3,rafId:null,taylorN:0,taylorAnimating:false,taylorAnimId:null};
 const DCOLORS=['#aa77ff','#00e5ff','#ffd700','#00ff99','#ff44ff'];
 const SFUNCS={
   sin: {name:'sin x',   cls:'C&#969; (analytic)',       taylor:'$\\sin x = x - \\dfrac{x^3}{3!} + \\dfrac{x^5}{5!} - \\cdots$',
@@ -794,7 +930,9 @@ function renderSmooth(){
   const canvas=document.getElementById('canvas-smooth');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   const cx=W/2,cy=H/2;
   const xRange=SMOOTH.xRange;
@@ -859,30 +997,285 @@ function setSmooth(key,btn){
   const td=document.getElementById('taylor-display');
   if(td) td.innerHTML=SFUNCS[key].taylor;
   if(window.renderMathInElement) renderMathInElement(td,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
-  renderSmooth();
+  if(SMOOTH.taylorAnimating) renderSmoothTaylor(Math.floor(SMOOTH.taylorN));
+  else renderSmooth();
 }
 function toggleDeriv(i,btn){
   SMOOTH.showD[i]=!SMOOTH.showD[i];
   btn.classList.toggle('active',SMOOTH.showD[i]);
-  renderSmooth();
+  if(SMOOTH.taylorAnimating) renderSmoothTaylor(Math.floor(SMOOTH.taylorN));
+  else renderSmooth();
 }
 function setXRange(v){
   SMOOTH.xRange=v;
   document.getElementById('xrange-disp').textContent='±'+v;
+  if(SMOOTH.taylorAnimating) renderSmoothTaylor(Math.floor(SMOOTH.taylorN));
+  else renderSmooth();
+}
+// --- Smooth Taylor animation ---
+// --- Smooth Guided Tour ---
+
+const smoothTutSteps=[
+  {title:'The Taylor Idea',
+   desc:'Any smooth function can be <strong>approximated near a point</strong> by a polynomial. The Taylor series builds this polynomial term by term: $f(x) \\approx f(0) + f\'(0)x + \\frac{f\'\'(0)}{2!}x^2 + \\cdots$ Each term bends the curve a little closer to the true shape.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:0},
+  {title:'Term 0: The Constant',
+   desc:'With <strong>0 terms</strong>, the Taylor sum is just zero — nothing matches. The gold "approximation" is a flat line at y=0. We haven\'t used any information about f yet.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:0},
+  {title:'Term 1: The Linear Slope',
+   desc:'Adding <strong>1 term</strong> gives $f(0) + f\'(0)x$. For sin(x), that\'s $0 + 1 \\cdot x = x$. The gold line is just a straight line through the origin with slope 1. It matches sin(x) <strong>very close to x=0</strong> but diverges quickly.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:1},
+  {title:'Term 2: The Quadratic Bend',
+   desc:'Adding <strong>2 terms</strong> gives $x - \\frac{x^3}{6}$. Wait — for sin(x), $f\'\'(0) = 0$ because $\\sin\'\'(x) = -\\sin(x)$ and $\\sin(0)=0$. So the 2nd term vanishes! The curve <strong>doesn\'t change</strong> from 1 term. This happens whenever an even derivative is zero at the expansion point.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:2},
+  {title:'Term 3: The Cubic Correction',
+   desc:'Adding <strong>3 terms</strong> gives $x - \\frac{x^3}{6}$. Now the cubic term <strong>bends the line back down</strong>, imitating the arch of sin(x). The approximation is visibly curving! The match extends further from the origin.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:3},
+  {title:'Terms 4→6: Higher Corrections',
+   desc:'Terms 4 and 5 vanish (even derivatives of sin at 0 are zero). Term 6 adds $+\\frac{x^7}{5040}$, refining the curve further. <strong>Each additional term improves the fit over a wider interval</strong>. The gold curve hugs the purple sin(x) more closely.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:6},
+  {title:'The Radius of Convergence',
+   desc:'For <strong>sin(x)</strong>, the Taylor series converges <em>everywhere</em> — adding more terms always improves the fit. But this isn\'t true for all functions. Let\'s see what happens with a function that has limited convergence.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:8},
+  {title:'Non-Analytic: |x| at x=0',
+   desc:'Switch to <strong>|x|</strong>. This function is <strong>not differentiable</strong> at x=0 — it has a corner! The Taylor series at x=0 is just $f(0)=0$. No matter how many terms we add, the polynomial stays flat at zero. <strong>The Taylor series cannot capture the corner</strong> — it only knows about smoothness at the expansion point.',
+   func:'abs',xRange:3,showD:[true,true,false,false,false],n:3},
+  {title:'The Bump: C∞ but Not Analytic',
+   desc:'The <strong>bump function</strong> is infinitely differentiable — C∞ — yet all its derivatives at x=±1 are zero. The Taylor series at x=0 is just 0 (plus tiny corrections). It <strong>cannot reproduce the bump</strong> no matter how many terms. This is the key: C∞ is not enough. You need <strong>holomorphic</strong> (complex-differentiable) to guarantee the Taylor series works.',
+   func:'bump',xRange:3,showD:[true,true,false,false,false],n:5},
+  {title:'Key Insight: Complex → Analytic',
+   desc:'In the <strong>real</strong> world, a function can be C∞ without being analytic (bump function). In the <strong>complex</strong> world, this is impossible: if f(z) is complex-differentiable (holomorphic) at a point, then its Taylor series <strong>automatically converges</strong> in a disk around that point. Holomorphic ⟹ analytic. This is the fundamental rigidity of complex analysis.',
+   func:'sin',xRange:3,showD:[true,true,false,false,false],n:8}
+];
+
+let smoothTutStep=-1;
+
+function smoothTutApply(step){
+  SMOOTH.func=step.func;
+  SMOOTH.xRange=step.xRange;
+  SMOOTH.showD=step.showD.slice();
+  SMOOTH.taylorN=step.n;
+  document.getElementById('xrange-sl').value=step.xRange;
+  document.getElementById('xrange-disp').textContent='±'+step.xRange;
+  document.getElementById('taylor-n-disp').textContent=step.n;
+  document.querySelectorAll('#panel-smooth .func-grid .fbtn').forEach(b=>b.classList.remove('active'));
+  const fbtn=document.getElementById('sf-'+step.func);if(fbtn)fbtn.classList.add('active');
+  document.querySelectorAll('#panel-smooth .dbtn').forEach((b,i)=>{
+    b.classList.toggle('active',SMOOTH.showD[i]);
+  });
+  if(SMOOTH.taylorAnimating){
+    renderSmoothTaylor(step.n);
+  } else {
+    renderSmoothTaylor(step.n);
+  }
+}
+
+function smoothTutUpdate(){
+  const total=smoothTutSteps.length;
+  const dotsEl=document.getElementById('smooth-tut-dots');
+  const titleEl=document.getElementById('smooth-tut-title');
+  const descEl=document.getElementById('smooth-tut-desc');
+  const btnEl=document.getElementById('smooth-tut-next-btn');
+
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('span');
+    d.className='tut-dot'+(i<smoothTutStep?' done':'')+(i===smoothTutStep?' curr':'');
+    dotsEl.appendChild(d);
+  }
+
+  if(smoothTutStep<0){
+    titleEl.textContent='Taylor Series';
+    descEl.textContent='Step through Taylor convergence.';
+    btnEl.textContent='Start';
+    return;
+  }
+
+  const step=smoothTutSteps[smoothTutStep];
+  titleEl.textContent='Step '+(smoothTutStep+1)+': '+step.title;
+  descEl.innerHTML=step.desc;
+  btnEl.textContent=smoothTutStep===total-1?'Restart':'Next →';
+
+  smoothTutApply(step);
+}
+
+function smoothTutNext(){
+  if(smoothTutStep<0) smoothTutStep=0;
+  else smoothTutStep++;
+  if(smoothTutStep>=smoothTutSteps.length){smoothTutStep=-1;smoothTutUpdate();return;}
+  smoothTutUpdate();
+}
+
+function smoothTutPrev(){
+  smoothTutStep--;
+  if(smoothTutStep<-1) smoothTutStep=-1;
+  smoothTutUpdate();
+}
+
+function smoothTutReset(){
+  smoothTutStep=-1;
+  smoothTutUpdate();
+}
+
+function resetSmoothAnim(){
+  if(SMOOTH.taylorAnimating){
+    SMOOTH.taylorAnimating=false;
+    if(SMOOTH.taylorAnimId){cancelAnimationFrame(SMOOTH.taylorAnimId);SMOOTH.taylorAnimId=null;}
+    const ab=document.getElementById('smooth-anim-btn');
+    if(ab){ab.textContent='▶ Animate Taylor';ab.classList.remove('active');}
+  }
+  SMOOTH.taylorN=0;
+  SMOOTH.func='sin';
+  SMOOTH.showD=[true,true,false,false,false];
+  SMOOTH.xRange=3;
+  document.getElementById('taylor-n-disp').textContent='0';
+  document.getElementById('xrange-sl').value=3;
+  document.getElementById('xrange-disp').textContent='±3';
+  document.getElementById('sf-sin').click();
+  document.querySelectorAll('#panel-smooth .dbtn').forEach((b,i)=>{
+    b.classList.toggle('active',SMOOTH.showD[i]);
+  });
   renderSmooth();
 }
+
+function toggleSmoothAnim(btn){
+  SMOOTH.taylorAnimating=!SMOOTH.taylorAnimating;
+  if(SMOOTH.taylorAnimating){
+    SMOOTH.taylorN=0;
+    btn.textContent='Stop';btn.classList.add('active');
+    smoothTaylorLoop();
+  } else {
+    btn.textContent='▶ Animate Taylor';btn.classList.remove('active');
+    if(SMOOTH.taylorAnimId){cancelAnimationFrame(SMOOTH.taylorAnimId);SMOOTH.taylorAnimId=null;}
+    SMOOTH.taylorN=0;
+    document.getElementById('taylor-n-disp').textContent='0';
+    renderSmooth();
+  }
+}
+
+function smoothTaylorLoop(){
+  if(!SMOOTH.taylorAnimating) return;
+  const speed=window.animSpeed||1;
+  SMOOTH.taylorN+=0.08*speed;
+  if(SMOOTH.taylorN>8) SMOOTH.taylorN=0;
+  const n=Math.floor(SMOOTH.taylorN);
+  document.getElementById('taylor-n-disp').textContent=n;
+  renderSmoothTaylor(n);
+  SMOOTH.taylorAnimId=requestAnimationFrame(smoothTaylorLoop);
+}
+
+function renderSmoothTaylor(nTerms){
+  const canvas=document.getElementById('canvas-smooth');
+  if(!canvas||canvas.width===0)return;
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+  const xRange=SMOOTH.xRange;
+  const scaleX=W/(xRange*2);
+  const scaleY=H/6;
+  // grid
+  ctx.strokeStyle='#1c1c44';ctx.lineWidth=1;
+  for(let gx=-Math.ceil(xRange);gx<=Math.ceil(xRange);gx++){
+    const px=cx+gx*scaleX;
+    ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
+  }
+  for(let gy=-3;gy<=3;gy++){
+    const py=cy-gy*scaleY/3*scaleY;
+    ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
+  }
+  // axes
+  ctx.strokeStyle='#2a2a5a';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  ctx.fillStyle='#33335a';ctx.font='12px monospace';ctx.textAlign='center';
+  for(let gx=-Math.ceil(xRange);gx<=Math.ceil(xRange);gx++){
+    if(gx===0)continue;
+    ctx.fillText(gx,cx+gx*scaleX,cy+14);
+  }
+  // exact function (dim)
+  const f=SFUNCS[SMOOTH.func].f;
+  ctx.beginPath();ctx.strokeStyle='rgba(170,119,255,0.25)';ctx.lineWidth=2;
+  let first=true;
+  for(let px=0;px<W;px++){
+    const x=((px-cx)/scaleX);
+    let y;
+    try{y=f(x);}catch(e){y=NaN;}
+    if(!isFinite(y)||Math.abs(y)>5){first=true;continue;}
+    const py=cy-y*scaleY;
+    if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  // numerical derivatives (if toggled on)
+  for(let order=4;order>=1;order--){
+    if(!SMOOTH.showD[order])continue;
+    ctx.beginPath();
+    ctx.strokeStyle=DCOLORS[order];
+    ctx.lineWidth=1.5;
+    let first2=true;
+    for(let px=0;px<W;px++){
+      const x=((px-cx)/scaleX);
+      let y;
+      try{y=nthDeriv(f,x,order);}catch(e){y=NaN;}
+      if(!isFinite(y)||Math.abs(y)>5){first2=true;continue;}
+      const py=cy-y*scaleY;
+      if(first2){ctx.moveTo(px,py);first2=false;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+  // Taylor partial sum (bright)
+  const N=nTerms;
+  if(N>0){
+    ctx.beginPath();ctx.strokeStyle='#ffd700';ctx.lineWidth=2.5;
+    first=true;
+    for(let px=0;px<W;px++){
+      const x=((px-cx)/scaleX);
+      let y=0;
+      try{
+        // Compute Taylor partial sum at x up to order N-1
+        for(let k=0;k<N;k++){
+          const dk=nthDeriv(f,0,k);
+          if(!isFinite(dk))break;
+          y+=dk*(Math.pow(x,k)/factorial(k));
+        }
+      }catch(e){y=NaN;}
+      if(!isFinite(y)||Math.abs(y)>5){first=true;continue;}
+      const py=cy-y*scaleY;
+      if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+  // Legend
+  const labels=['f','f\'','f\'\'','f\'\'\'','f⁴'];
+  let lx=12,ly=18;
+  ctx.fillStyle='#aa77ff';ctx.font='12px monospace';ctx.textAlign='left';
+  ctx.fillText('f(x)',lx,ly);lx+=44;
+  ctx.fillStyle='#ffd700';
+  ctx.fillText('Taylor n='+N,lx,ly);lx+=90;
+  for(let i=1;i<5;i++){
+    if(!SMOOTH.showD[i])continue;
+    ctx.strokeStyle=DCOLORS[i];ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(lx,ly-5);ctx.lineTo(lx+18,ly-5);ctx.stroke();
+    ctx.fillStyle=DCOLORS[i];
+    ctx.fillText(labels[i],lx+22,ly);
+    lx+=55;
+  }
+}
+
+function factorial(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+
 function initSmooth(){
   const canvas=document.getElementById('canvas-smooth');
-  const wrap=document.getElementById('panel-smooth').querySelector('.canvas-wrap');
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+  const wrap=document.getElementById('swrap');
+  const dpr=window.devicePixelRatio||1;
+  const bw=wrap.clientWidth,bh=wrap.clientHeight;
+   canvas.width=Math.round(bw*dpr);canvas.height=Math.round(bh*dpr);
+   renderSmooth();
   const td=document.getElementById('taylor-display');
   if(td){td.innerHTML=SFUNCS[SMOOTH.func].taylor;if(window.renderMathInElement)renderMathInElement(td,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});}
-  renderSmooth();
+  smoothTutUpdate();
 }
 
 // ══════════════════════════════════════════════
@@ -986,49 +1379,220 @@ let holoAnimT=0;
 function drawHoloOverlay(){
   if(!holoCanvas)return;
   const ctx=holoCtx;
-  const W=holoCanvas.width,H=holoCanvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=holoCanvas.width/dpr,H=holoCanvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   // restore domain coloring
-  if(holoOffscreen){ctx.drawImage(holoOffscreen,0,0);}
-  if(!HVIEW.showContour)return;
+  if(holoOffscreen){ctx.drawImage(holoOffscreen,0,0,W,H);}
   const toScreen=(re,im)=>({
     x:W/2+(re-HVIEW.cx)*HVIEW.scale,
     y:H/2-(im-HVIEW.cy)*HVIEW.scale
   });
-  const r=HCONTOUR.r*HVIEW.scale;
-  const cc=toScreen(HCONTOUR.cx,HCONTOUR.cy);
-  // draw contour circle
-  ctx.beginPath();ctx.arc(cc.x,cc.y,r,0,Math.PI*2);
-  ctx.strokeStyle='rgba(255,230,80,0.85)';ctx.lineWidth=2;ctx.stroke();
-  // center dot
-  ctx.beginPath();ctx.arc(cc.x,cc.y,4,0,Math.PI*2);
-  ctx.fillStyle='rgba(255,230,80,0.8)';ctx.fill();
-  // moving point on contour
-  holoAnimT=(holoAnimT+0.018*(window.animSpeed||1))%(Math.PI*2);
-  const mre=HCONTOUR.cx+HCONTOUR.r*Math.cos(holoAnimT);
-  const mim=HCONTOUR.cy+HCONTOUR.r*Math.sin(holoAnimT);
-  const ms=toScreen(mre,mim);
-  ctx.beginPath();ctx.arc(ms.x,ms.y,6,0,Math.PI*2);
-  ctx.fillStyle='#ffffff';ctx.fill();
-  ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.stroke();
-  // arrow tangent
-  const tx=-Math.sin(holoAnimT),ty=Math.cos(holoAnimT);
-  const arrowLen=16;
-  ctx.beginPath();ctx.moveTo(ms.x,ms.y);
-  ctx.lineTo(ms.x+tx*arrowLen,ms.y-ty*arrowLen);
-  ctx.strokeStyle='rgba(255,215,0,0.6)';ctx.lineWidth=1.5;ctx.stroke();
-  // f(z) value indicator (small overlay)
   const fd=HFUNCS[HVIEW.funcKey];
-  const fz=fd.f({re:mre,im:mim});
-  const mag=cabs(fz);
-  const ang=Math.atan2(fz.im,fz.re);
-  const hue=((ang/(2*Math.PI))+1)%1;
-  const [cr,cg,cb]=hslToRgb(hue,0.9,0.55);
-  ctx.fillStyle=`rgb(${cr},${cg},${cb})`;
-  ctx.fillRect(W-56,H-56,44,44);
-  ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.strokeRect(W-56,H-56,44,44);
-  ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(W-56,H-12,44,12);
-  ctx.fillStyle='#c0c0ea';ctx.font='12px monospace';ctx.textAlign='center';
-  ctx.fillText('f(z)',W-34,H-3);
+  // Always draw contour circle if animation is running (auto-show)
+  if(HVIEW.animating||HVIEW.showContour){
+    const r=HCONTOUR.r*HVIEW.scale;
+    const cc=toScreen(HCONTOUR.cx,HCONTOUR.cy);
+    // draw contour circle
+    ctx.beginPath();ctx.arc(cc.x,cc.y,r,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,230,80,0.85)';ctx.lineWidth=2;ctx.stroke();
+    // center dot
+    ctx.beginPath();ctx.arc(cc.x,cc.y,4,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,230,80,0.8)';ctx.fill();
+  }
+  // Moving z-point (always during animation)
+  if(HVIEW.animating){
+    holoAnimT=(holoAnimT+0.018*(window.animSpeed||1))%(Math.PI*2);
+    const mre=HCONTOUR.cx+HCONTOUR.r*Math.cos(holoAnimT);
+    const mim=HCONTOUR.cy+HCONTOUR.r*Math.sin(holoAnimT);
+    const ms=toScreen(mre,mim);
+    // trail (fading arc behind the point)
+    ctx.beginPath();
+    const trailLen=0.8;
+    for(let tt=0;tt<trailLen;tt+=0.02){
+      const ang=holoAnimT-tt;
+      const tre=HCONTOUR.cx+HCONTOUR.r*Math.cos(ang);
+      const tim=HCONTOUR.cy+HCONTOUR.r*Math.sin(ang);
+      const ts=toScreen(tre,tim);
+      if(tt===0)ctx.moveTo(ts.x,ts.y);else ctx.lineTo(ts.x,ts.y);
+    }
+    const fade=0.5;
+    ctx.strokeStyle='rgba(255,215,0,'+fade.toFixed(2)+')';ctx.lineWidth=3;ctx.stroke();
+    // z-point (white dot with gold ring)
+    ctx.beginPath();ctx.arc(ms.x,ms.y,8,0,Math.PI*2);
+    ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(ms.x,ms.y,5,0,Math.PI*2);
+    ctx.fillStyle='#ffffff';ctx.fill();
+    // Arrow tangent showing direction
+    const tx=-Math.sin(holoAnimT),ty=Math.cos(holoAnimT);
+    const arrowLen=20;
+    ctx.beginPath();ctx.moveTo(ms.x,ms.y);
+    ctx.lineTo(ms.x+tx*arrowLen,ms.y-ty*arrowLen);
+    ctx.strokeStyle='rgba(255,215,0,0.7)';ctx.lineWidth=1.5;ctx.stroke();
+    // f(z) value: show as colored square + phasor
+    const fz=fd.f({re:mre,im:mim});
+    const mag=cabs(fz);
+    const ang=Math.atan2(fz.im,fz.re);
+    const hue=((ang/(2*Math.PI))+1)%1;
+    const [cr,cg,cb]=hslToRgb(hue,0.9,0.55);
+    // f(z) color swatch
+    ctx.fillStyle=`rgb(${cr},${cg},${cb})`;
+    ctx.fillRect(W-80,H-70,50,50);
+    ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1;ctx.strokeRect(W-80,H-70,50,50);
+    // phasor arrow inside swatch
+    const pcx=W-55,pcy=H-45;
+    const pLen=Math.min(20,mag*8);
+    ctx.beginPath();ctx.moveTo(pcx,pcy);
+    ctx.lineTo(pcx+pLen*Math.cos(ang),pcy-pLen*Math.sin(ang));
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.stroke();
+    // labels
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(W-80,H-24,50,24);
+    ctx.fillStyle='#c0c0ea';ctx.font='11px monospace';ctx.textAlign='center';
+    ctx.fillText('f(z)',W-55,H-14);
+    ctx.font='10px monospace';ctx.fillStyle=mag<100?'#ffd700':'#ff4444';
+    ctx.fillText('|f|='+mag.toFixed(1),W-55,H-4);
+    // z label near the dot
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    const labelX=ms.x+12,labelY=ms.y-12;
+    ctx.fillRect(labelX-2,labelY-10,70,14);
+    ctx.fillStyle='#ffffff';ctx.font='11px monospace';ctx.textAlign='left';
+    ctx.fillText('z='+mre.toFixed(2)+(mim>=0?'+':'')+mim.toFixed(2)+'i',labelX,labelY);
+    // Pole markers (small × symbols)
+    fd.poles.forEach(p=>{
+      const ps=toScreen(p.re,p.im);
+      ctx.strokeStyle='#ff4444';ctx.lineWidth=2;
+      const s=6;
+      ctx.beginPath();ctx.moveTo(ps.x-s,ps.y-s);ctx.lineTo(ps.x+s,ps.y+s);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(ps.x+s,ps.y-s);ctx.lineTo(ps.x-s,ps.y+s);ctx.stroke();
+    });
+    // Zero markers (small ○ symbols)
+    fd.zeros.forEach(z=>{
+      const zs=toScreen(z.re,z.im);
+      ctx.strokeStyle='#00ff99';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(zs.x,zs.y,5,0,Math.PI*2);ctx.stroke();
+    });
+  }
+  if(!HVIEW.animating&&HVIEW.showContour){
+    // Static contour: just show circle + center (no moving point)
+    const r=HCONTOUR.r*HVIEW.scale;
+    const cc=toScreen(HCONTOUR.cx,HCONTOUR.cy);
+    // pole/zero markers even when not animating
+    fd.poles.forEach(p=>{
+      const ps=toScreen(p.re,p.im);
+      ctx.strokeStyle='#ff4444';ctx.lineWidth=2;
+      const s=6;
+      ctx.beginPath();ctx.moveTo(ps.x-s,ps.y-s);ctx.lineTo(ps.x+s,ps.y+s);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(ps.x+s,ps.y-s);ctx.lineTo(ps.x-s,ps.y+s);ctx.stroke();
+    });
+    fd.zeros.forEach(z=>{
+      const zs=toScreen(z.re,z.im);
+      ctx.strokeStyle='#00ff99';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(zs.x,zs.y,5,0,Math.PI*2);ctx.stroke();
+    });
+  }
+}
+
+// --- Holomorphic Guided Tour ---
+const holoTutSteps=[
+  {title:'Domain Coloring',
+   desc:'The canvas shows a <strong>domain coloring</strong> of f(z). The <strong>hue</strong> encodes the phase (argument) of f(z) — rainbow from −π to +π. The <strong>brightness</strong> encodes the modulus |f(z)|. Bright = large, dark = small. Watch the moving point orbit — its color in the domain coloring IS the value f(z).',
+   func:'1/z',showContour:true,cx:0,cy:0,r:1.2,scale:120},
+  {title:'Poles Appear as Color Wheels',
+   desc:'At a <strong>pole</strong>, |f(z)| → ∞, but the phase still cycles through all colors around it. Look at z=0 for 1/z — you see a tiny <strong>color wheel</strong> where every hue cycles once around the point. This is the signature of a simple pole.',
+   func:'1/z',showContour:true,cx:0,cy:0,r:0.5,scale:200},
+  {title:'Zeros: The Reverse Color Wheel',
+   desc:'At a <strong>zero</strong>, |f(z)| = 0 (dark center) and the phase cycles <strong>backwards</strong>. Switch to z² — at the origin, the hue cycles twice (order-2 zero). The order of a zero or pole equals how many times the rainbow cycles around it.',
+   func:'z2',showContour:false,cx:0,cy:0,r:1.2,scale:120},
+  {title:'The Residue Theorem',
+   desc:'Enable the contour. The <strong>∮ f(z) dz</strong> equals <strong>2πi × sum of residues</strong> inside. For 1/z with the contour around the origin: the integral = 2πi · 1 = 6.2832i. The gold dot traces the contour — the integral accumulates f(z)·dz at each step along the path.',
+   func:'1/z',showContour:true,cx:0,cy:0,r:1.2,scale:120},
+  {title:'Moving the Contour Past Poles',
+   desc:'If the contour <strong>doesn\'t enclose the pole</strong>, the integral is 0! Drag the contour center away from the origin. When z=0 is outside the circle, the numerical integral drops to ≈0. The residue theorem only counts poles <em>inside</em>.',
+   func:'1/z',showContour:true,cx:1,cy:0,r:0.5,scale:120},
+  {title:'Two Poles: 1/(z²+1)',
+   desc:'Switch to 1/(z²+1) — poles at z=±i. The domain coloring shows <strong>two color wheels</strong>. If the contour encircles both, the integral picks up both residues. If it encircles only one, it picks up just that residue.',
+   func:'1/z2p1',showContour:true,cx:0,cy:0,r:1.2,scale:120},
+  {title:'Entire Functions: sin(z)',
+   desc:'<strong>sin(z)</strong> is entire — no poles anywhere! The domain coloring has no color wheels (infinitely bright swirls). Instead, you see repeating bands of zeros along the real axis at nπ. No contour integral is ever non-zero from residues.',
+   func:'sinz',showContour:false,cx:0,cy:0,r:1.2,scale:120},
+  {title:'Conformal Mapping: z−1/z',
+   desc:'Holomorphic maps are <strong>conformal</strong> — they preserve angles. For z−1/z (Joukowski-like), circles map to ellipses and the mapping is angle-preserving everywhere except at the critical point z=0. This conformality is what makes holomorphic functions so rigid.',
+   func:'z-1/z',showContour:false,cx:0,cy:0,r:1.2,scale:120}
+];
+
+let holoTutStep=-1;
+
+function holoTutApply(step){
+  HVIEW.funcKey=step.func;
+  HVIEW.showContour=step.showContour;
+  HCONTOUR.cx=step.cx;HCONTOUR.cy=step.cy;HCONTOUR.r=step.r;
+  HVIEW.scale=step.scale;
+  document.getElementById('zoom-sl').value=step.scale;
+  document.getElementById('zoom-disp').textContent=step.scale;
+  document.getElementById('cr-sl').value=step.r;
+  document.getElementById('cr-disp').textContent=step.r.toFixed(2);
+  document.getElementById('ccx-sl').value=step.cx;
+  document.getElementById('ccx-disp').textContent=step.cx.toFixed(2);
+  document.getElementById('ccy-sl').value=step.cy;
+  document.getElementById('ccy-disp').textContent=step.cy.toFixed(2);
+  // Update function button state
+  document.querySelectorAll('#panel-holomorphic .func-grid .fbtn').forEach(b=>b.classList.remove('active'));
+  const fbtn=document.getElementById('hf-'+step.func);if(fbtn)fbtn.classList.add('active');
+  // Update contour toggle button
+  const ctBtn=document.getElementById('contour-toggle');
+  if(ctBtn){ctBtn.textContent=step.showContour?'Hide contour ∮':'Show contour ∮';}
+  document.getElementById('contour-controls').style.display=step.showContour?'block':'none';
+  holoDirty=true;
+  updateHInfo();
+  renderHolomorphic();
+  if(HVIEW.showContour) updateContourResult();
+}
+
+function holoTutUpdate(){
+  const total=holoTutSteps.length;
+  const dotsEl=document.getElementById('holo-tut-dots');
+  const titleEl=document.getElementById('holo-tut-title');
+  const descEl=document.getElementById('holo-tut-desc');
+  const btnEl=document.getElementById('holo-tut-next-btn');
+
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('span');
+    d.className='tut-dot'+(i<holoTutStep?' done':'')+(i===holoTutStep?' curr':'');
+    dotsEl.appendChild(d);
+  }
+
+  if(holoTutStep<0){
+    titleEl.textContent='Holomorphic Maps';
+    descEl.textContent='Step through domain coloring and residues.';
+    btnEl.textContent='Start';
+    return;
+  }
+
+  const step=holoTutSteps[holoTutStep];
+  titleEl.textContent='Step '+(holoTutStep+1)+': '+step.title;
+  descEl.innerHTML=step.desc;
+  btnEl.textContent=holoTutStep===total-1?'Restart':'Next →';
+
+  holoTutApply(step);
+}
+
+function holoTutNext(){
+  if(holoTutStep<0) holoTutStep=0;
+  else holoTutStep++;
+  if(holoTutStep>=holoTutSteps.length){holoTutStep=-1;holoTutUpdate();return;}
+  holoTutUpdate();
+}
+
+function holoTutPrev(){
+  holoTutStep--;
+  if(holoTutStep<-1) holoTutStep=-1;
+  holoTutUpdate();
+}
+
+function holoTutReset(){
+  holoTutStep=-1;
+  holoTutUpdate();
 }
 
 function holoFrame(){
@@ -1048,18 +1612,20 @@ function toggleHoloAnim(btn){
 function renderHolomorphic(){
   if(!holoCanvas)return;
   const fd=HFUNCS[HVIEW.funcKey];
-  // render to offscreen
-  if(!holoOffscreen){holoOffscreen=document.createElement('canvas');holoOffscreen.width=holoCanvas.width;holoOffscreen.height=holoCanvas.height;}
-  holoOffscreen.width=holoCanvas.width;holoOffscreen.height=holoCanvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=holoCanvas.width/dpr,H=holoCanvas.height/dpr;
+  // render to offscreen at logical resolution
+  if(!holoOffscreen){holoOffscreen=document.createElement('canvas');}
+  holoOffscreen.width=Math.round(W);holoOffscreen.height=Math.round(H);
   renderDomainColoring(holoOffscreen,{cx:HVIEW.cx,cy:HVIEW.cy,scale:HVIEW.scale},fd.f);
   // draw axes on offscreen
   const octx=holoOffscreen.getContext('2d');
-  const W=holoCanvas.width,H=holoCanvas.height;
-  const axisX=W/2-HVIEW.cx*HVIEW.scale;
-  const axisY=H/2+HVIEW.cy*HVIEW.scale;
+  const oW=holoOffscreen.width,oH=holoOffscreen.height;
+  const axisX=oW/2-HVIEW.cx*HVIEW.scale;
+  const axisY=oH/2+HVIEW.cy*HVIEW.scale;
   octx.strokeStyle='rgba(255,255,255,0.25)';octx.lineWidth=1;
-  octx.beginPath();octx.moveTo(axisX,0);octx.lineTo(axisX,H);octx.stroke();
-  octx.beginPath();octx.moveTo(0,axisY);octx.lineTo(W,axisY);octx.stroke();
+  octx.beginPath();octx.moveTo(axisX,0);octx.lineTo(axisX,oH);octx.stroke();
+  octx.beginPath();octx.moveTo(0,axisY);octx.lineTo(oW,axisY);octx.stroke();
   // unit circle
   octx.beginPath();octx.arc(axisX,axisY,HVIEW.scale,0,Math.PI*2);
   octx.strokeStyle='rgba(255,255,255,0.12)';octx.lineWidth=1;octx.stroke();
@@ -1070,10 +1636,15 @@ function renderHolomorphic(){
     if(g===0)continue;
     const px=axisX+g*HVIEW.scale;
     const py=axisY+g*HVIEW.scale;
-    if(px>10&&px<W-10) octx.fillText(g,px,axisY+14);
-    if(py>10&&py<H-10){octx.textAlign='right';octx.fillText(g+'i',axisX-4,py+4);octx.textAlign='center';}
+    if(px>10&&px<oW-10) octx.fillText(g,px,axisY+14);
+    if(py>10&&py<oH-10){octx.textAlign='right';octx.fillText(g+'i',axisX-4,py+4);octx.textAlign='center';}
   }
   updateHInfo();
+  // draw offscreen to main canvas
+  const hctx=holoCtx;
+  hctx.setTransform(dpr,0,0,dpr,0,0);
+  hctx.clearRect(0,0,W,H);
+  hctx.drawImage(holoOffscreen,0,0,W,H);
   holoDirty=false;
 }
 function setHFunc(key,btn){
@@ -1098,13 +1669,16 @@ function resetView(){HVIEW.cx=0;HVIEW.cy=0;HVIEW.scale=120;document.getElementBy
 function initHolomorphic(){
   holoCanvas=document.getElementById('canvas-holo');
   const wrap=document.getElementById('hwrap');
-  holoCanvas.width=wrap.clientWidth;holoCanvas.height=wrap.clientHeight;
+  const dpr=window.devicePixelRatio||1;
+   holoCanvas.width=Math.round(wrap.clientWidth*dpr);holoCanvas.height=Math.round(wrap.clientHeight*dpr);
   holoCtx=holoCanvas.getContext('2d');
   renderHolomorphic();
+  holoTutUpdate();
   // set up button state
   const hb=document.getElementById('holo-anim-btn');
-  if(hb){hb.classList.toggle('active',HVIEW.animating);hb.textContent=HVIEW.animating?'Pause':'Play';}
-  if(HVIEW.animating&&!holoAnimId) holoAnimId=requestAnimationFrame(holoFrame);
+  HVIEW.animating=true;
+  if(hb){hb.classList.toggle('active',true);hb.textContent='Pause';}
+  holoAnimId=requestAnimationFrame(holoFrame);
   // pan/zoom
   let dragging=false,lastX=0,lastY=0;
   holoCanvas.addEventListener('mousedown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;});
@@ -1178,7 +1752,9 @@ function renderRiemann(){
   const canvas=document.getElementById('canvas-riemann');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   const fd=RFUNCS[RSTATE.func];
   const view={cx:0,cy:0,scale:Math.min(W,H)/5};
@@ -1192,6 +1768,12 @@ function renderRiemann(){
     const tmp2=document.createElement('canvas');tmp2.width=W-(W/2|0);tmp2.height=H;
     renderDomainColoring(tmp2,view,fd.f2);
     ctx.drawImage(tmp2,W/2|0,0);
+    // branch cut (dashed line) on each sheet
+    const cx1=W/4,cx2=3*W/4,cy=H/2;
+    ctx.strokeStyle='rgba(255,68,68,0.35)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(cx1,cy);ctx.lineTo(cx1-W/4,cy);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx2,cy);ctx.lineTo(cx2-W/4,cy);ctx.stroke();
+    ctx.setLineDash([]);
     // divider
     ctx.strokeStyle='rgba(170,119,255,0.5)';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
@@ -1237,93 +1819,266 @@ function setRFunc(key,btn){
   document.querySelectorAll('#panel-riemann .func-grid .fbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   updateRInfo();
-  renderRiemann();
+  if(!RSTATE.animating) renderRiemann();
 }
 function setRView(v,btn){
   RSTATE.view=v;
   document.querySelectorAll('#panel-riemann .btn-row .btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  // Walk animation only works in 'both' view — stop if switching away
+  if(v!=='both'&&RSTATE.animating){
+    RSTATE.animating=false;
+    if(RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;}
+    const wb=document.getElementById('walk-btn');
+    if(wb){wb.textContent='Walk around branch point';wb.classList.remove('active');}
+  }
+  renderRiemann();
+}
+function riemannAnimFrame(){
+  if(currentTab!=='riemann'||!RSTATE.animating){RSTATE.animId=null;return;}
+  const canvas=document.getElementById('canvas-riemann');
+  if(!canvas||canvas.width===0){RSTATE.animId=null;return;}
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  const fd=RFUNCS[RSTATE.func];
+  const view={cx:0,cy:0,scale:Math.min(W,H)/5};
+  // force 'both' view for walk animation
+  const halfW=W/2|0;
+  const cx1=halfW/2,cx2=halfW+halfW/2,cy=H/2;
+  const sc=view.scale;
+  // render both sheets fresh
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const tmp1=document.createElement('canvas');tmp1.width=Math.round(halfW);tmp1.height=Math.round(H);
+  renderDomainColoring(tmp1,view,fd.f1);
+  const tmp2=document.createElement('canvas');tmp2.width=Math.round(W-halfW);tmp2.height=Math.round(H);
+  renderDomainColoring(tmp2,view,fd.f2);
+  ctx.drawImage(tmp1,0,0);ctx.drawImage(tmp2,halfW,0);
+  // divider
+  ctx.strokeStyle='rgba(170,119,255,0.5)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
+  ctx.fillStyle='rgba(170,119,255,0.85)';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Sheet 1',W/4,22);ctx.fillText('Sheet 2',3*W/4,22);
+  // branch cut line on each sheet
+  ctx.strokeStyle='rgba(255,68,68,0.35)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(cx1,cy);ctx.lineTo(cx1-halfW/2,cy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(cx2,cy);ctx.lineTo(cx2+halfW/2,cy);ctx.stroke();
+  // second sheet: draw cut on right side too
+  ctx.beginPath();ctx.moveTo(cx2,cy);ctx.lineTo(cx2-halfW/2,cy);ctx.stroke();
+  ctx.setLineDash([]);
+  // branch point markers
+  ctx.beginPath();ctx.arc(cx1,cy,6,0,Math.PI*2);ctx.fillStyle='rgba(255,68,68,0.9)';ctx.fill();
+  ctx.strokeStyle='#ffffff';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.beginPath();ctx.arc(cx2,cy,6,0,Math.PI*2);ctx.fillStyle='rgba(255,68,68,0.9)';ctx.fill();
+  ctx.strokeStyle='#ffffff';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='rgba(255,100,100,0.9)';ctx.font='10px monospace';ctx.textAlign='left';
+  ctx.fillText('branch pt',cx1+10,cy-3);
+  // animation
+  const t=RSTATE.animT;
+  const zr=0.6*Math.cos(t),zi=0.6*Math.sin(t);
+  const onSheet2=t>Math.PI;
+  const halfLoops=Math.floor(t/Math.PI);
+  // compute f value (continuous analytic continuation)
+  let fzr,fzi;
+  if(!onSheet2){
+    const fz=fd.f1({re:zr,im:zi});fzr=fz.re;fzi=fz.im;
+  } else {
+    const fz=fd.f2({re:zr,im:zi});fzr=fz.re;fzi=fz.im;
+  }
+  // draw orbit trail
+  ctx.beginPath();
+  let first=true;
+  for(let k=0;k<=80;k++){
+    const tt=t-k*0.04;if(tt<0)break;
+    const tr=0.6*Math.cos(tt),ti=0.6*Math.sin(tt);
+    const onS2=tt>Math.PI;
+    const hx=onS2?cx2:cx1;
+    if(first){ctx.moveTo(hx+tr*sc,cy-ti*sc);first=false;}
+    else ctx.lineTo(hx+tr*sc,cy-ti*sc);
+  }
+  ctx.strokeStyle='rgba(255,230,80,0.6)';ctx.lineWidth=2;ctx.stroke();
+  // ghost point (shadow on the "other" sheet)
+  const ghostHx=onSheet2?cx1:cx2;
+  ctx.beginPath();ctx.arc(ghostHx+zr*sc,cy-zi*sc,4,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.stroke();
+  // moving point (gold dot)
+  const hx=onSheet2?cx2:cx1;
+  ctx.beginPath();ctx.arc(hx+zr*sc,cy-zi*sc,7,0,Math.PI*2);
+  ctx.fillStyle='#ffffff';ctx.fill();
+  ctx.strokeStyle='#ffd700';ctx.lineWidth=2.5;ctx.stroke();
+  // transition flash when crossing branch cut
+  const distFromCut=Math.abs(((t%Math.PI)-Math.PI));
+  if(distFromCut<0.3||(t%(Math.PI*2))<0.3){
+    const flashR=Math.max(1,14+6*Math.max(0,1-distFromCut/0.3));
+    ctx.beginPath();ctx.arc(hx+zr*sc,cy-zi*sc,flashR,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,215,0,'+(0.7*Math.max(0,1-distFromCut/0.3))+')';ctx.lineWidth=2;ctx.stroke();
+  }
+  // f(z) color swatch
+  const ang=Math.atan2(fzi,fzr);
+  const hue=((ang/(2*Math.PI))+1)%1;
+  const [cr,cg,cb]=hslToRgb(hue,0.9,0.55);
+  const infoW=110,infoH=82;
+  const infoX=W-infoW-6,infoY=H-infoH-6;
+  ctx.fillStyle='rgba(10,10,30,0.85)';ctx.fillRect(infoX,infoY,infoW,infoH);
+  ctx.strokeStyle='rgba(170,119,255,0.4)';ctx.lineWidth=1;ctx.strokeRect(infoX,infoY,infoW,infoH);
+  // swatch
+  ctx.fillStyle=`rgb(${cr},${cg},${cb})`;ctx.fillRect(infoX+4,infoY+4,16,16);
+  ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.strokeRect(infoX+4,infoY+4,16,16);
+  ctx.fillStyle='#c0c0ea';ctx.font='11px monospace';ctx.textAlign='left';
+  ctx.fillText('f(z) = '+(fzr>=0?'':'-')+Math.abs(fzr).toFixed(2)+(fzi>=0?' + ':' - ')+Math.abs(fzi).toFixed(2)+'i',infoX+24,infoY+16);
+  ctx.fillText('|f| = '+Math.sqrt(fzr*fzr+fzi*fzi).toFixed(3),infoX+4,infoY+34);
+  ctx.fillText('arg = '+(ang/Math.PI).toFixed(2)+'π',infoX+4,infoY+48);
+  ctx.fillText('sheet = '+(onSheet2?'2':'1'),infoX+4,infoY+62);
+  ctx.fillText('loops = '+Math.floor(t/(2*Math.PI)),infoX+4,infoY+76);
+  // z-coordinate label
+  ctx.fillStyle='rgba(255,230,80,0.85)';ctx.font='11px monospace';ctx.textAlign='left';
+  ctx.fillText('z = '+zr.toFixed(2)+(zi>=0?'+':'-')+Math.abs(zi).toFixed(2)+'i',hx+zr*sc+12,cy-zi*sc-10);
+  RSTATE.animT+=0.025*window.animSpeed;
+  if(RSTATE.animT>4*Math.PI){RSTATE.animT=0;}
+  RSTATE.animId=requestAnimationFrame(riemannAnimFrame);
+}
+function toggleRiemannAnim(btn){
+  RSTATE.animating=!RSTATE.animating;
+  btn.classList.toggle('active',RSTATE.animating);
+  btn.textContent=RSTATE.animating?'Pause':'Play';
+  if(RSTATE.animating&&!RSTATE.animId) RSTATE.animId=requestAnimationFrame(riemannAnimFrame);
+  else if(!RSTATE.animating&&RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;renderRiemann();}
+}
+function resetRiemannAnim(){
+  RSTATE.animating=false;RSTATE.animT=0;
+  if(RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;}
+  const btn=document.getElementById('walk-btn');
+  if(btn){btn.textContent='Walk around branch point';btn.classList.remove('active');}
   renderRiemann();
 }
 function walkAroundBranchPoint(){
-  if(RSTATE.animating){RSTATE.animating=false;if(RSTATE.animId)cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;document.getElementById('walk-btn').textContent='Walk around branch point';renderRiemann();return;}
-  RSTATE.animating=true;RSTATE.animT=0;
-  document.getElementById('walk-btn').textContent='Stop animation';
-  const canvas=document.getElementById('canvas-riemann');
-  const fd=RFUNCS[RSTATE.func];
-  const W=canvas.width,H=canvas.height;
-  const view={cx:0,cy:0,scale:Math.min(W,H)/5};
-  // pre-render base
-  const base1=document.createElement('canvas');base1.width=W/2|0;base1.height=H;
-  renderDomainColoring(base1,view,fd.f1);
-  const base2=document.createElement('canvas');base2.width=W-(W/2|0);base2.height=H;
-  renderDomainColoring(base2,view,fd.f2);
-  function frame(){
-    if(!RSTATE.animating)return;
-    const ctx=canvas.getContext('2d');
-    ctx.clearRect(0,0,W,H);
-    ctx.drawImage(base1,0,0);ctx.drawImage(base2,W/2|0,0);
-    ctx.strokeStyle='rgba(170,119,255,0.5)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
-    ctx.fillStyle='rgba(170,119,255,0.85)';ctx.font='bold 13px Segoe UI';ctx.textAlign='center';
-    ctx.fillText('Sheet 1',W/4,22);ctx.fillText('Sheet 2',3*W/4,22);
-    const t=RSTATE.animT;
-    const zr=0.6*Math.cos(t),zi=0.6*Math.sin(t);
-    // which sheet: t < 2π → sheet 1 with continuous arg
-    const onSheet2=t>Math.PI;
-    const halfW=W/2|0;
-    const sc=view.scale;
-    const cx1=halfW/2,cx2=halfW+halfW/2,cy=H/2;
-    // point on sheet 1 (left)
-    const px1=cx1+zr*sc,py1=cy-zi*sc;
-    // compute f value
-    let fzr,fzi;
-    if(!onSheet2){
-      const fz=fd.f1({re:zr,im:zi});fzr=fz.re;fzi=fz.im;
-    } else {
-      const fz=fd.f2({re:zr,im:zi});fzr=fz.re;fzi=fz.im;
-    }
-    // draw orbit trail on appropriate half
-    ctx.beginPath();
-    for(let k=0;k<=60;k++){
-      const tt=t-k*0.05;if(tt<0)break;
-      const tr=0.6*Math.cos(tt),ti=0.6*Math.sin(tt);
-      const onS2=tt>Math.PI;
-      const hx=onS2?cx2:cx1;
-      ctx.lineTo(hx+tr*sc,cy-ti*sc);
-    }
-    ctx.strokeStyle='rgba(255,230,80,0.5)';ctx.lineWidth=1.5;ctx.stroke();
-    // moving point
-    const hx=onSheet2?cx2:cx1;
-    ctx.beginPath();ctx.arc(hx+zr*sc,cy-zi*sc,7,0,Math.PI*2);
-    ctx.fillStyle='#ffffff';ctx.fill();
-    ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.stroke();
-    // branch point
-    ctx.beginPath();ctx.arc(cx1,cy,5,0,Math.PI*2);ctx.fillStyle='rgba(255,68,68,0.9)';ctx.fill();
-    ctx.beginPath();ctx.arc(cx2,cy,5,0,Math.PI*2);ctx.fillStyle='rgba(255,68,68,0.9)';ctx.fill();
-    // f(z) value overlay
-    const ang=Math.atan2(fzi,fzr);
-    const hue=((ang/(2*Math.PI))+1)%1;
-    const [cr,cg,cb]=hslToRgb(hue,0.9,0.55);
-    ctx.fillStyle=`rgb(${cr},${cg},${cb})`;ctx.fillRect(W-90,H-70,80,60);
-    ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.strokeRect(W-90,H-70,80,60);
-    ctx.fillStyle='#c0c0ea';ctx.font='12px monospace';ctx.textAlign='center';
-    ctx.fillText('f(z(t))',W-50,H-55);
-    ctx.fillText('re='+(fzr.toFixed(2)),W-50,H-40);
-    ctx.fillText('im='+(fzi.toFixed(2)),W-50,H-26);
-    ctx.fillText('t='+(t/Math.PI).toFixed(2)+'π',W-50,H-12);
-    RSTATE.animT+=0.025*window.animSpeed;
-    if(RSTATE.animT>4*Math.PI){RSTATE.animT=0;}
-    RSTATE.animId=requestAnimationFrame(frame);
+  if(RSTATE.animating){
+    // pause
+    RSTATE.animating=false;
+    if(RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;}
+    const btn=document.getElementById('walk-btn');
+    if(btn){btn.textContent='Walk around branch point';btn.classList.remove('active');}
+    renderRiemann();
+    return;
   }
-  frame();
+  RSTATE.animating=true;RSTATE.animT=0;
+  const btn=document.getElementById('walk-btn');
+  if(btn){btn.textContent='Stop animation';btn.classList.add('active');}
+  RSTATE.animId=requestAnimationFrame(riemannAnimFrame);
 }
 function initRiemann(){
   const canvas=document.getElementById('canvas-riemann');
   const wrap=document.getElementById('rwrap');
-  canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-  updateRInfo();
+  const dpr=window.devicePixelRatio||1;
+   canvas.width=Math.round(wrap.clientWidth*dpr);canvas.height=Math.round(wrap.clientHeight*dpr);
+   updateRInfo();
   renderRiemann();
+  riemannTutUpdate();
+  // Auto-start walk animation
+  const wb=document.getElementById('walk-btn');
+  if(wb&&!RSTATE.animating){walkAroundBranchPoint();}
+  else if(wb&&RSTATE.animating){wb.textContent='Stop animation';wb.classList.add('active');}
+}
+
+// --- Riemann Guided Tour ---
+const riemannTutSteps=[
+  {title:'Branch Points & Multi-Valuedness',
+   desc:'Some functions cannot be made single-valued on ℂ. <strong>√z</strong> has two values for each z≠0. As you walk around z=0, √z switches to the <em>other</em> branch — this is the essence of a <strong>branch point</strong>. The animation shows this live.',
+   func:'sqrt',view:'both'},
+  {title:'Walking Around the Branch Point',
+   desc:'Watch the white dot orbit z=0 on <strong>Sheet 1</strong> (left). When it crosses the branch cut (the negative real axis, at angle π), it transitions to <strong>Sheet 2</strong> (right). This is <em>analytic continuation</em> — the function is smooth, but you\'ve moved to a different sheet.',
+   func:'sqrt',view:'both'},
+  {title:'The Branch Cut',
+   desc:'Switch to <strong>"Branch cut highlight"</strong> view. The red line is the <strong>branch cut</strong> — an artificial barrier where we declare a discontinuity. The cut can be placed along any ray from the branch point, but the negative real axis is conventional for √z. Crossing the cut forces a sheet transition.',
+   func:'sqrt',view:'cut'},
+  {title:'log z: Infinite Sheets',
+   desc:'For <strong>log z</strong>, every loop around z=0 <em>adds</em> 2πi — there are infinitely many sheets, stacked like a spiral staircase. The animation shows the imaginary part (the argument) increasing continuously. This is why log z is "multi-valued": log(z) = ln|z| + i(arg z + 2πk) for any integer k.',
+   func:'log',view:'both'},
+  {title:'z²ᐟ³: Three Sheets',
+   desc:'For <strong>z²ᐟ³</strong>, the branch point has order 3 — three sheets connected cyclically. Walking around z=0 once takes you to Sheet 2, twice to Sheet 3, and three times returns you to Sheet 1. The monodromy is a 3-cycle.',
+   func:'z23',view:'both'},
+  {title:'z¹ᐟ³: Cube Root',
+   desc:'Similarly, <strong>z¹ᐟ³</strong> has three branches, but the monodromy permutes them differently. One loop sends Sheet 1→2→3→1. The key insight: the <em>number of sheets</em> equals the order of the branch point.',
+   func:'z13',view:'both'},
+  {title:'Sheet 1 vs Sheet 2',
+   desc:'Switch to <strong>"Sheet 2 only"</strong> to see the second branch in isolation. For √z, Sheet 2 is simply −√z — the negation. The two sheets are "glued" along the branch cut. Understanding this gluing is the key to Riemann surface theory.',
+   func:'sqrt',view:'sheet2'},
+  {title:'The Monodromy Theorem',
+   desc:'The <strong>Monodromy Theorem</strong> states: if f can be analytically continued along every path in a simply-connected domain, and if <em>all</em> continuations along homotopic paths agree, then f has a single-valued analytic extension. Branch points exist precisely when this condition fails — when paths that are <em>not</em> homotopic give different values.',
+   func:'sqrt',view:'both'}
+];
+
+let riemannTutStep=-1;
+
+function riemannTutApply(step){
+  RSTATE.func=step.func;
+  RSTATE.view=step.view;
+  document.querySelectorAll('#panel-riemann .func-grid .fbtn').forEach(b=>b.classList.remove('active'));
+  const fbtn=document.getElementById('rf-'+step.func);if(fbtn)fbtn.classList.add('active');
+  document.querySelectorAll('#panel-riemann .btn-row .btn').forEach(b=>b.classList.remove('active'));
+  const vbtn=document.getElementById('rv-'+step.view);if(vbtn)vbtn.classList.add('active');
+  updateRInfo();
+  // Start the walk animation for 'both' steps; stop for other views
+  if(step.view==='both'&&!RSTATE.animating){
+    walkAroundBranchPoint();
+  } else if(step.view!=='both'&&RSTATE.animating){
+    RSTATE.animating=false;
+    if(RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;}
+    const wb=document.getElementById('walk-btn');
+    if(wb){wb.textContent='Walk around branch point';wb.classList.remove('active');}
+    renderRiemann();
+  } else {
+    renderRiemann();
+  }
+}
+
+function riemannTutUpdate(){
+  const total=riemannTutSteps.length;
+  const dotsEl=document.getElementById('riemann-tut-dots');
+  const titleEl=document.getElementById('riemann-tut-title');
+  const descEl=document.getElementById('riemann-tut-desc');
+  const btnEl=document.getElementById('riemann-tut-next-btn');
+
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('span');
+    d.className='tut-dot'+(i<riemannTutStep?' done':'')+(i===riemannTutStep?' curr':'');
+    dotsEl.appendChild(d);
+  }
+
+  if(riemannTutStep<0){
+    titleEl.textContent='Riemann Surfaces';
+    descEl.textContent='Step through multi-valued functions and branch cuts.';
+    btnEl.textContent='Start';
+    return;
+  }
+
+  const step=riemannTutSteps[riemannTutStep];
+  titleEl.textContent='Step '+(riemannTutStep+1)+': '+step.title;
+  descEl.innerHTML=step.desc;
+  btnEl.textContent=riemannTutStep===total-1?'Restart':'Next →';
+
+  riemannTutApply(step);
+}
+
+function riemannTutNext(){
+  if(riemannTutStep<0) riemannTutStep=0;
+  else riemannTutStep++;
+  if(riemannTutStep>=riemannTutSteps.length){riemannTutStep=-1;riemannTutUpdate();return;}
+  riemannTutUpdate();
+}
+
+function riemannTutPrev(){
+  riemannTutStep--;
+  if(riemannTutStep<-1) riemannTutStep=-1;
+  riemannTutUpdate();
+}
+
+function riemannTutReset(){
+  riemannTutStep=-1;
+  riemannTutUpdate();
 }
 
 // ══════════════════════════════════════════════
@@ -1425,7 +2180,8 @@ const S3STATE={
   funcKey:'z2',colorMode:'height',
   zoom:1.0,azimuth:225,elevation:35,
   animating:true,animId:null,
-  dragging:false,lastMX:0,lastMY:0
+  dragging:false,lastMX:0,lastMY:0,
+  fitScale:null,fitOffX:null,fitOffY:null
 };
 
 const S3FUNCS={
@@ -1462,7 +2218,9 @@ function renderSurface3D(){
   const canvas=document.getElementById('canvas-surface3d');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
 
   // Lower resolution during drag for interactive responsiveness
@@ -1490,7 +2248,7 @@ function renderSurface3D(){
   const fre=new Float32Array(V);
   const fim=new Float32Array(V);
 
-  // Single pass: evaluate function, project at unit scale, track bounding box
+  // Single pass: evaluate function, project at unit scale, track bounding box for fit
   let sxMin=1e9,sxMax=-1e9,syMin=1e9,syMax=-1e9;
   let vi=0;
   for(let j=0;j<=N;j++){
@@ -1499,7 +2257,7 @@ function renderSurface3D(){
       const gx=-R+i*step;
       const fz=fd.f({re:gx,im:gy});
       const mag=Math.min(MAX_H,Math.sqrt(fz.re*fz.re+fz.im*fz.im));
-      // Inline projection at unit scale (W/2=0,H/2=0,scale=1)
+      // Inline projection at unit scale (origin-centered)
       const xr=gx*cosT-gy*sinT;
       const yr=gx*sinT+gy*cosT;
       const px=xr;
@@ -1514,11 +2272,19 @@ function renderSurface3D(){
     }
   }
 
-  // Compute fit scale + offset
+  // Compute fit scale + offset — cache so scale stays stable during rotation
   const extW=sxMax-sxMin||1,extH=syMax-syMin||1;
-  const scale=Math.min((W-2*margin)/extW,(H-2*margin)/extH);
-  const offX=W/2-((sxMin+sxMax)*0.5)*scale;
-  const offY=H/2-((syMin+syMax)*0.5)*scale;
+  const needRefit=!S3STATE.fitScale||S3STATE._lastFunc!==S3STATE.funcKey||S3STATE._lastZoom!==S3STATE.zoom;
+  if(needRefit){
+    S3STATE.fitScale=Math.min((W-2*margin)/extW,(H-2*margin)/extH);
+    S3STATE.fitOffX=W/2-((sxMin+sxMax)*0.5)*S3STATE.fitScale;
+    S3STATE.fitOffY=H/2-((syMin+syMax)*0.5)*S3STATE.fitScale;
+    S3STATE._lastFunc=S3STATE.funcKey;
+    S3STATE._lastZoom=S3STATE.zoom;
+  }
+  const scale=S3STATE.fitScale;
+  const offX=S3STATE.fitOffX;
+  const offY=S3STATE.fitOffY;
 
   // Transform all screen coords in place
   for(let k=0;k<V;k++){
@@ -1615,7 +2381,7 @@ function setS3Color(mode,btn){
   renderSurface3D();
 }
 function setS3Zoom(v){
-  S3STATE.zoom=v;
+  S3STATE.zoom=v;S3STATE.fitScale=null;
   document.getElementById('s3-zoom-disp').textContent=v.toFixed(2)+'x';
   renderSurface3D();
 }
@@ -1648,13 +2414,17 @@ function s3AnimLoop(){
 function initSurface3D(){
   const canvas=document.getElementById('canvas-surface3d');
   const wrap=document.getElementById('s3wrap');
-  canvas.width=wrap.clientWidth;
-  canvas.height=wrap.clientHeight;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=Math.round(wrap.clientWidth*dpr);
+  canvas.height=Math.round(wrap.clientHeight*dpr);
+  S3STATE.fitScale=null;
   renderSurface3D();
-  // Start animation if animating state is true
+  s3TutUpdate();
+  // Auto-start rotation animation
+  S3STATE.animating=true;
   const sb=document.getElementById('s3-anim-btn');
-  if(sb){sb.classList.toggle('active',S3STATE.animating);sb.textContent=S3STATE.animating?'Stop rotation':'Animate rotation';}
-  if(S3STATE.animating&&!S3STATE.animId) S3STATE.animId=requestAnimationFrame(s3AnimLoop);
+  if(sb){sb.classList.toggle('active',true);sb.textContent='Stop rotation';}
+  if(!S3STATE.animId) S3STATE.animId=requestAnimationFrame(s3AnimLoop);
 
   // Mouse drag to rotate
   canvas.addEventListener('mousedown',e=>{
@@ -1687,104 +2457,189 @@ function initSurface3D(){
   },{passive:false});
 }
 
+// --- Surface 3D Guided Tour ---
+const s3TutSteps=[
+  {title:'The Modulus Landscape',
+   desc:'The surface shows <strong>|f(z)|</strong> as height above the complex plane. For z², the surface is a smooth paraboloid — |z²| = |z|² grows quadratically away from the origin. Bright regions are high, dark regions are low.',
+   func:'z2',cm:'height',az:225,el:35},
+  {title:'Pole: 1/z',
+   desc:'Switch to <strong>1/z</strong>. The central spike is a <strong>pole</strong> — |f|→∞ as z→0. The height is capped at 3 for visibility, but the real surface shoots to infinity. This is the 3D signature of a pole.',
+   func:'1/z',cm:'height',az:200,el:45},
+  {title:'Essential Singularity: e¹ᐟᶻ',
+   desc:'The function <strong>e¹ᐟᶻ</strong> has an <em>essential singularity</em> at z=0. Unlike a pole, |f| oscillates wildly — approaching 0 along some directions and ∞ along others. The surface is chaotic near the origin, illustrating Picard\'s Great Theorem: in any neighborhood of an essential singularity, f takes <em>every</em> complex value (with at most one exception) infinitely often.',
+   func:'expz',cm:'height',az:210,el:30},
+  {title:'Domain Coloring Mode',
+   desc:'Switch to <strong>Domain color (arg)</strong> mode. Now the surface color encodes arg(f) — the phase — using the same rainbow as domain coloring. Height still shows |f|. Notice how the color smoothly varies on the surface, confirming holomorphic = conformal.',
+   func:'z2',cm:'domain',az:225,el:35},
+  {title:'Multi-Valued: √z',
+   desc:'For <strong>√z</strong>, the surface wraps around at the branch point z=0. The height increases as √|z|, but the <em>phase</em> only covers half the rainbow (−π/2 to π/2) on the principal branch. Switch to domain color to see the phase deficit clearly.',
+   func:'sqrtz',cm:'domain',az:225,el:30},
+  {title:'z³−z: Three Critical Points',
+   desc:'The surface for <strong>z³−z = z(z−1)(z+1)</strong> has three zeros (at z=0, ±1) where the surface dips to zero. Between each pair, there\'s a saddle point. The interplay of zeros and saddle points controls the topology of the surface.',
+   func:'z3z',cm:'height',az:240,el:35},
+  {title:'Conformal Geometry',
+   desc:'Rotate the surface (drag) and observe how the grid lines of the domain remain <em>orthogonal</em> on the surface — this is the hallmark of <strong>conformal mapping</strong>. Holomorphic functions preserve angles; the surface is always a conformal image of the flat plane.',
+   func:'z2',cm:'domain',az:300,el:40}
+];
+
+let s3TutStep=-1;
+
+function s3TutApply(step){
+  S3STATE.funcKey=step.func;
+  S3STATE.colorMode=step.cm;
+  S3STATE.azimuth=step.az;
+  S3STATE.elevation=step.el;
+  document.querySelectorAll('#panel-surface3d .func-grid .fbtn').forEach(b=>b.classList.remove('active'));
+  const fbtn=document.getElementById('s3-'+step.func);if(fbtn)fbtn.classList.add('active');
+  document.querySelectorAll('#panel-surface3d .btn-row .btn').forEach(b=>b.classList.remove('active'));
+  const cmbtn=document.getElementById('s3-cm-'+step.cm);if(cmbtn)cmbtn.classList.add('active');
+  document.getElementById('s3-az-sl').value=step.az;
+  document.getElementById('s3-az-disp').textContent=Math.round(step.az)+'°';
+  document.getElementById('s3-el-sl').value=step.el;
+  document.getElementById('s3-el-disp').textContent=step.el+'°';
+  renderSurface3D();
+}
+
+function s3TutUpdate(){
+  const total=s3TutSteps.length;
+  const dotsEl=document.getElementById('s3-tut-dots');
+  const titleEl=document.getElementById('s3-tut-title');
+  const descEl=document.getElementById('s3-tut-desc');
+  const btnEl=document.getElementById('s3-tut-next-btn');
+
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('span');
+    d.className='tut-dot'+(i<s3TutStep?' done':'')+(i===s3TutStep?' curr':'');
+    dotsEl.appendChild(d);
+  }
+
+  if(s3TutStep<0){
+    titleEl.textContent='3D Surface';
+    descEl.textContent='Explore |f(z)| as a landscape. Step through key surfaces.';
+    btnEl.textContent='Start';
+    return;
+  }
+
+  const step=s3TutSteps[s3TutStep];
+  titleEl.textContent='Step '+(s3TutStep+1)+': '+step.title;
+  descEl.innerHTML=step.desc;
+  btnEl.textContent=s3TutStep===total-1?'Restart':'Next →';
+
+  s3TutApply(step);
+}
+
+function s3TutNext(){
+  if(s3TutStep<0) s3TutStep=0;
+  else s3TutStep++;
+  if(s3TutStep>=s3TutSteps.length){s3TutStep=-1;s3TutUpdate();return;}
+  s3TutUpdate();
+}
+
+function s3TutPrev(){
+  s3TutStep--;
+  if(s3TutStep<-1) s3TutStep=-1;
+  s3TutUpdate();
+}
+
+function s3TutReset(){
+  s3TutStep=-1;
+  s3TutUpdate();
+}
+
 // ══════════════════════════════════════════════
 // TAB SWITCHING + RESIZE + INIT
 // ══════════════════════════════════════════════
 let currentTab='smooth';
 // Cancel all running animations before tab switch to prevent leaks
 function cancelAllAnimations(){
+  // Smooth
+  if(SMOOTH.taylorAnimId){cancelAnimationFrame(SMOOTH.taylorAnimId);SMOOTH.taylorAnimId=null;}
+  SMOOTH.taylorAnimating=false;SMOOTH.taylorN=0;
+  const smb=document.getElementById('smooth-anim-btn');if(smb){smb.textContent='\u25b6 Animate Taylor';smb.classList.remove('active');}
+  smoothTutReset();holoTutReset();
+  const snd=document.getElementById('taylor-n-disp');if(snd)snd.textContent='0';
+  // Holomorphic
+  HVIEW.animating=false;
   if(holoAnimId){cancelAnimationFrame(holoAnimId);holoAnimId=null;
     const hb=document.getElementById('holo-anim-btn');if(hb){hb.textContent='Play';hb.classList.remove('active');}}
-  if(RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;
-    const wb=document.getElementById('walk-btn');if(wb)wb.textContent='Walk around branch point';}
+  // Riemann
+  riemannTutReset();s3TutReset();laurentTutReset();riTutReset();acTutReset();spTutReset();phTutReset();
+  RSTATE.animating=false;RSTATE.animT=0;
+  if(RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;}
+  const wb=document.getElementById('walk-btn');if(wb){wb.textContent='Walk around branch point';wb.classList.remove('active');}
+  // 3D Surface
+  S3STATE.animating=false;
   if(S3STATE.animId){cancelAnimationFrame(S3STATE.animId);S3STATE.animId=null;
     const sb=document.getElementById('s3-anim-btn');if(sb){sb.textContent='Animate rotation';sb.classList.remove('active');}}
-  if(RISTATE.animId){cancelAnimationFrame(RISTATE.animId);RISTATE.animId=null;
-    const rb=document.getElementById('ri-anim-btn');if(rb){rb.textContent='Animate contour';rb.classList.remove('active');}}
-  if(SPSTATE.animId){cancelAnimationFrame(SPSTATE.animId);SPSTATE.animId=null;
-    const spb=document.getElementById('sp-anim-btn');if(spb){spb.textContent='Animate N\u2192\u221e';spb.classList.remove('active');}}
+  // Laurent
+  LSTATE.animating=false;
   if(LSTATE.animId){cancelAnimationFrame(LSTATE.animId);LSTATE.animId=null;
     const lb=document.getElementById('laurent-anim-btn');if(lb){lb.textContent='\u25b6 Cycle N';lb.classList.remove('active');}}
+  // Residue→Real
+  RISTATE.animating=false;
+  if(RISTATE.animId){cancelAnimationFrame(RISTATE.animId);RISTATE.animId=null;
+    const rb=document.getElementById('ri-anim-btn');if(rb){rb.textContent='Animate contour';rb.classList.remove('active');}}
+  // Analytic Continuation
+  ACSTATE.animating=false;
   if(ACSTATE.animId){cancelAnimationFrame(ACSTATE.animId);ACSTATE.animId=null;
     const ab=document.getElementById('ac-anim-btn');if(ab){ab.textContent='\u25b6 Animate';ab.classList.remove('active');}}
+  // Saddle Point
+  SPSTATE.animating=false;
+  if(SPSTATE.animId){cancelAnimationFrame(SPSTATE.animId);SPSTATE.animId=null;
+    const spb=document.getElementById('sp-anim-btn');if(spb){spb.textContent='Animate N\u2192\u221e';spb.classList.remove('active');}}
+  // Physics
+  PHSTATE.animating=false;
   if(PHSTATE.animId){cancelAnimationFrame(PHSTATE.animId);PHSTATE.animId=null;
     const phb=document.getElementById('ph-anim-btn');if(phb){phb.textContent='\u25b6 Animate';phb.classList.remove('active');}}
 }
-function switchTab(name,btn){
-  cancelAllAnimations();
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
-  currentTab=name;
-  setTimeout(()=>{
-    if(name==='smooth')initSmooth();
-    if(name==='holomorphic')initHolomorphic();
-    if(name==='riemann')initRiemann();
-    if(name==='surface3d')initSurface3D();
-    if(name==='laurent')initLaurent();
-    if(name==='residuereal')initRealIntegral();
-    if(name==='continuation')initContinuation();
-    if(name==='saddle')initSaddle();
-    if(name==='physics')initPhysics();
-  },20);
+ function switchTab(name,btn){
+   cancelAllAnimations();
+   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+   btn.classList.add('active');
+   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+   document.getElementById('panel-'+name).classList.add('active');
+   currentTab=name;
+   setTimeout(()=>{
+     if(name==='smooth')initSmooth();
+     if(name==='holomorphic')initHolomorphic();
+     if(name==='riemann')initRiemann();
+     if(name==='surface3d')initSurface3D();
+     if(name==='laurent')initLaurent();
+     if(name==='residuereal')initRealIntegral();
+     if(name==='continuation')initContinuation();
+     if(name==='saddle')initSaddle();
+     if(name==='physics')initPhysics();
+   },50);
 }
 function resizeAll(){
-  if(currentTab==='smooth'){
-    const canvas=document.getElementById('canvas-smooth');
-    const wrap=document.getElementById('panel-smooth').querySelector('.canvas-wrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderSmooth();
+  const dpr=window.devicePixelRatio||1;
+  function resizeCanvas(canvasId,wrapId){
+    const c=document.getElementById(canvasId);
+    const w=document.getElementById(wrapId);
+    if(!c||!w)return;
+    const bw=w.clientWidth,bh=w.clientHeight;
+    if(bw>10&&bh>10){
+      c.width=Math.round(bw*dpr);c.height=Math.round(bh*dpr);
+    }
   }
-  if(currentTab==='holomorphic'&&holoCanvas){
+  // Only resize the active tab — inactive panels have display:none so clientWidth=0
+  if(currentTab==='smooth') { resizeCanvas('canvas-smooth','swrap'); renderSmooth(); }
+  else if(currentTab==='holomorphic'&&holoCanvas){
     const wrap=document.getElementById('hwrap');
-    holoCanvas.width=wrap.clientWidth;holoCanvas.height=wrap.clientHeight;
+    if(wrap.clientWidth>10){holoCanvas.width=Math.round(wrap.clientWidth*dpr);holoCanvas.height=Math.round(wrap.clientHeight*dpr);}
     renderHolomorphic();
   }
-  if(currentTab==='riemann'){
-    const canvas=document.getElementById('canvas-riemann');
-    const wrap=document.getElementById('rwrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderRiemann();
-  }
-  if(currentTab==='surface3d'){
-    const canvas=document.getElementById('canvas-surface3d');
-    const wrap=document.getElementById('s3wrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderSurface3D();
-  }
-  if(currentTab==='laurent'){
-    const canvas=document.getElementById('canvas-laurent');
-    const wrap=document.getElementById('lwrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderLaurent();
-  }
-  if(currentTab==='residuereal'){
-    const canvas=document.getElementById('canvas-residuereal');
-    const wrap=document.getElementById('riwrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderRealIntegral();
-  }
-  if(currentTab==='continuation'){
-    const canvas=document.getElementById('canvas-continuation');
-    const wrap=document.getElementById('acwrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderContinuation();
-  }
-  if(currentTab==='saddle'){
-    const canvas=document.getElementById('canvas-saddle');
-    const wrap=document.getElementById('spwrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderSaddle();
-  }
-  if(currentTab==='physics'){
-    const canvas=document.getElementById('canvas-physics');
-    const wrap=document.getElementById('phwrap');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
-    renderPhysics();
-  }
+  else if(currentTab==='riemann') { resizeCanvas('canvas-riemann','rwrap'); renderRiemann(); }
+  else if(currentTab==='surface3d') { S3STATE.fitScale=null; resizeCanvas('canvas-surface3d','s3wrap'); renderSurface3D(); }
+  else if(currentTab==='laurent') { resizeCanvas('canvas-laurent','lwrap'); renderLaurent(); }
+  else if(currentTab==='residuereal') { resizeCanvas('canvas-residuereal','riwrap'); renderRealIntegral(); }
+  else if(currentTab==='continuation') { resizeCanvas('canvas-continuation','acwrap'); renderContinuation(); }
+  else if(currentTab==='saddle') { resizeCanvas('canvas-saddle','spwrap'); renderSaddle(); }
+  else if(currentTab==='physics') { resizeCanvas('canvas-physics','phwrap'); renderPhysics(); }
 }
-window.addEventListener('resize',resizeAll);
+let _resizeTimer=null;
+window.addEventListener('resize',()=>{clearTimeout(_resizeTimer);_resizeTimer=setTimeout(resizeAll,100);});
 window.addEventListener('load',()=>{
   initSmooth();
   // set initial taylor display
@@ -1862,7 +2717,7 @@ function toggleLaurentAnim(btn){
   else if(LSTATE.animId){cancelAnimationFrame(LSTATE.animId);LSTATE.animId=null;}
 }
 function laurentAnimLoop(){
-  if(!LSTATE.animating)return;
+  if(currentTab!=='laurent'||!LSTATE.animating){LSTATE.animId=null;return;}
   LSTATE.N+=LSTATE.animDir * window.animSpeed;
   if(LSTATE.N>=30){LSTATE.N=30;LSTATE.animDir=-1;}
   if(LSTATE.N<=1){LSTATE.N=1;LSTATE.animDir=1;}
@@ -1894,10 +2749,14 @@ function renderLaurent(){
   const canvas=document.getElementById('canvas-laurent');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   const fd=LFUNCS[LSTATE.func];
-  const scale=Math.min(W,H)*0.22;
+  const leftW=W/2|0;
+  // Scale so the outer annulus radius r2 fits in each half-panel with margin
+  const scale=Math.min(leftW/2,H/2)*0.85/(LSTATE.r2||1);
   const cy=H/2;
 
   if(LSTATE.showCW&&LSTATE.func==='essential'){
@@ -1929,35 +2788,42 @@ function renderLaurent(){
     return;
   }
 
-  const leftW=W/2|0;
-  const imgL=ctx.createImageData(leftW,H);
-  for(let py=0;py<H;py+=2){
-    for(let px=0;px<leftW;px+=2){
-      const re=(px-leftW/2)/scale,im=-(py-cy)/scale;
+  // left half: domain coloring via offscreen canvas
+  const tmpL=document.createElement('canvas');tmpL.width=Math.round(leftW);tmpL.height=Math.round(H);
+  const ctxL=tmpL.getContext('2d');
+  const imgL=ctxL.createImageData(tmpL.width,tmpL.height);
+  for(let py=0;py<tmpL.height;py+=2){
+    for(let px=0;px<tmpL.width;px+=2){
+      const re=(px-tmpL.width/2)/scale,im=-(py-cy)/scale;
       const fz=fd.f({re,im});
       const [rr,gg,bb]=domainColor(fz.re,fz.im);
-      for(let dy=0;dy<2&&py+dy<H;dy++)for(let dx=0;dx<2&&px+dx<leftW;dx++){
-        const i=((py+dy)*leftW+(px+dx))*4;
+      for(let dy=0;dy<2&&py+dy<tmpL.height;dy++)for(let dx=0;dx<2&&px+dx<tmpL.width;dx++){
+        const i=((py+dy)*tmpL.width+(px+dx))*4;
         imgL.data[i]=rr;imgL.data[i+1]=gg;imgL.data[i+2]=bb;imgL.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(imgL,0,0);
+  ctxL.putImageData(imgL,0,0);
+  ctx.drawImage(tmpL,0,0,Math.round(leftW),Math.round(H));
+  // right half: domain coloring via offscreen canvas
   const rightW=W-leftW;
-  const imgR=ctx.createImageData(rightW,H);
-  for(let py=0;py<H;py+=2){
-    for(let px=0;px<rightW;px+=2){
-      const re=(px-rightW/2)/scale,im=-(py-cy)/scale;
+  const tmpR=document.createElement('canvas');tmpR.width=Math.round(rightW);tmpR.height=Math.round(H);
+  const ctxR=tmpR.getContext('2d');
+  const imgR=ctxR.createImageData(tmpR.width,tmpR.height);
+  for(let py=0;py<tmpR.height;py+=2){
+    for(let px=0;px<tmpR.width;px+=2){
+      const re=(px-tmpR.width/2)/scale,im=-(py-cy)/scale;
       const pf=fd.partial||fd.f;
       const fz=pf({re,im},LSTATE.N);
       const [rr,gg,bb]=domainColor(fz.re,fz.im);
-      for(let dy=0;dy<2&&py+dy<H;dy++)for(let dx=0;dx<2&&px+dx<rightW;dx++){
-        const i=((py+dy)*rightW+(px+dx))*4;
+      for(let dy=0;dy<2&&py+dy<tmpR.height;dy++)for(let dx=0;dx<2&&px+dx<tmpR.width;dx++){
+        const i=((py+dy)*tmpR.width+(px+dx))*4;
         imgR.data[i]=rr;imgR.data[i+1]=gg;imgR.data[i+2]=bb;imgR.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(imgR,leftW,0);
+  ctxR.putImageData(imgR,0,0);
+  ctx.drawImage(tmpR,leftW,0,Math.round(rightW),Math.round(H));
   ctx.strokeStyle='rgba(170,119,255,0.6)';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(leftW,0);ctx.lineTo(leftW,H);ctx.stroke();
   const r1px=LSTATE.r1*scale,r2px=LSTATE.r2*scale;
@@ -1981,27 +2847,112 @@ function renderLaurent(){
   ctx.fillText('Exact: '+fd.label,leftW/2,18);
   ctx.fillText('Laurent partial sum N='+LSTATE.N,leftW+rightW/2,18);
   ctx.fillStyle='rgba(0,229,255,0.7)';ctx.font='12px monospace';ctx.textAlign='left';
-  ctx.fillText('r2='+LSTATE.r2.toFixed(1),leftW/2+r2px+3,cy-4);
+  ctx.fillText('r2='+LSTATE.r2.toFixed(1),Math.min(leftW/2+r2px+3,leftW-40),cy-4);
   ctx.fillStyle='rgba(255,80,80,0.7)';
-  ctx.fillText('r1='+LSTATE.r1.toFixed(2),leftW/2+r1px+3,cy+14);
+  ctx.fillText('r1='+LSTATE.r1.toFixed(2),Math.min(leftW/2+r1px+3,leftW-40),cy+14);
+  // Animated overlay when cycling
+  if(LSTATE.animating){
+    const N=Math.round(LSTATE.N);
+    // Pulsing annulus glow
+    const pulse=0.4+0.6*Math.abs(Math.sin(LSTATE.N*0.15));
+    // inner radius glow (red)
+    ctx.save();ctx.beginPath();ctx.rect(0,0,leftW,H);ctx.clip();
+    ctx.beginPath();ctx.arc(leftW/2,cy,r1px,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,68,68,'+(0.5+pulse*0.5)+')';ctx.lineWidth=3+pulse*2;ctx.stroke();
+    ctx.restore();
+    ctx.save();ctx.beginPath();ctx.rect(leftW,0,rightW,H);ctx.clip();
+    ctx.beginPath();ctx.arc(leftW+rightW/2,cy,r1px,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,68,68,'+(0.5+pulse*0.5)+')';ctx.lineWidth=3+pulse*2;ctx.stroke();
+    ctx.restore();
+    // outer radius glow (cyan, dashed)
+    ctx.save();ctx.beginPath();ctx.rect(0,0,leftW,H);ctx.clip();
+    ctx.beginPath();ctx.arc(leftW/2,cy,r2px,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,229,255,'+(0.4+pulse*0.4)+')';ctx.lineWidth=2+pulse*2;ctx.setLineDash([8,4]);ctx.stroke();
+    ctx.restore();
+    ctx.save();ctx.beginPath();ctx.rect(leftW,0,rightW,H);ctx.clip();
+    ctx.beginPath();ctx.arc(leftW+rightW/2,cy,r2px,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,229,255,'+(0.4+pulse*0.4)+')';ctx.lineWidth=2+pulse*2;ctx.setLineDash([8,4]);ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([]);
+    // Large N counter overlay on right panel
+    ctx.fillStyle='rgba(10,10,30,0.75)';ctx.fillRect(leftW+4,4,110,36);
+    ctx.strokeStyle='rgba(255,215,0,0.6)';ctx.lineWidth=1;ctx.strokeRect(leftW+4,4,110,36);
+    ctx.fillStyle='#ffd700';ctx.font='bold 18px monospace';ctx.textAlign='center';
+    ctx.fillText('N = '+N,leftW+59,28);
+    // Convergence note
+    ctx.fillStyle='rgba(0,229,255,0.85)';ctx.font='11px Segoe UI';ctx.textAlign='center';
+    const fd2=LFUNCS[LSTATE.func];
+    ctx.fillText(fd2.type,leftW+rightW/2,H-12);
+  }
 }
 
 function initLaurent(){
   const canvas=document.getElementById('canvas-laurent');
   const wrap=document.getElementById('lwrap');
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  updateLaurentInfo();
+  const dpr=window.devicePixelRatio||1;
+  const bw=wrap.clientWidth,bh=wrap.clientHeight;
+   canvas.width=Math.round(bw*dpr);canvas.height=Math.round(bh*dpr);
+   updateLaurentInfo();
   renderLaurent();
-  // Start animation if animating state is true
+  laurentTutUpdate();
+  // Auto-start N-cycle animation
+  LSTATE.animating=true;
   const lb=document.getElementById('laurent-anim-btn');
-  if(lb){lb.classList.toggle('active',LSTATE.animating);lb.textContent=LSTATE.animating?'Stop N cycle':'▶ Cycle N';}
-  if(LSTATE.animating&&!LSTATE.animId) LSTATE.animId=requestAnimationFrame(laurentAnimLoop);
+  if(lb){lb.classList.toggle('active',true);lb.textContent='Stop N cycle';}
+  if(!LSTATE.animId) LSTATE.animId=requestAnimationFrame(laurentAnimLoop);
 }
+
+// --- Laurent Guided Tour ---
+const laurentTutSteps=[
+  {title:'Simple Pole: 1/z',
+   desc:'The <strong>Laurent series</strong> generalizes the Taylor series to include negative powers of (z−z₀). For 1/z, the series has exactly one negative term: a₋₁/z — the <strong>residue</strong>: Res(1/z,0) = 1.',
+   func:'simplepole',N:6,r1:0.2,r2:2.0},
+  {title:'Order-2 Pole: 1/z²',
+   desc:'A <strong>pole of order 2</strong> has a₋₁/z + a₋₂/z² in its Laurent expansion. The residue is still the coefficient of 1/(z−z₀), but now the function has a stronger divergence. Increasing N shows how the partial sums approximate the full function away from the singularity.',
+   func:'doublepole',N:6,r1:0.2,r2:2.0},
+  {title:'Essential Singularity: e¹ᐟᶻ',
+   desc:'An <strong>essential singularity</strong> has infinitely many negative-power terms — the Laurent series never terminates. The function oscillates wildly near z=0. Enable Casorati-Weierstrass to see how every neighborhood of the singularity maps to a dense subset of ℂ.',
+   func:'essential',N:10,r1:0.05,r2:1.5},
+  {title:'The Annular Convergence Region',
+   desc:'The Laurent series converges in an <strong>annulus</strong> r₁ < |z−z₀| < r₂ — the region between the inner and outer radii. Adjust the sliders to see: inside the inner radius, negative-power terms diverge; outside the outer radius, positive-power terms diverge.',
+   func:'simplepole',N:12,r1:0.3,r2:1.5},
+  {title:'Residue Extraction',
+   desc:'The residue is the coefficient a₋₁ of the Laurent series. For <strong>1/z</strong>, it\'s simply 1. For a general function, you can extract it by: Res(f,z₀) = (1/2πi)∮f(z)dz around z₀. The residue is the only term that contributes to contour integrals.',
+   func:'simplepole',N:6,r1:0.2,r2:2.0},
+  {title:'Mixed: (z+1/z)/2',
+   desc:'This function has <em>both</em> positive and negative powers in its Laurent expansion. It represents the average of z and 1/z — the real part is the Joukowski transform. The inner radius determines where the negative terms become relevant.',
+   func:'mixed',N:8,r1:0.2,r2:2.0}
+];
+
+let laurentTutStep=-1;
+
+function laurentTutApply(step){
+  LSTATE.func=step.func;LSTATE.N=step.N;LSTATE.r1=step.r1;LSTATE.r2=step.r2;
+  document.querySelectorAll('#panel-laurent .func-grid .fbtn').forEach(b=>b.classList.remove('active'));
+  const fbtn=document.getElementById('lf-'+step.func);if(fbtn)fbtn.classList.add('active');
+  document.getElementById('lN-sl').value=step.N;document.getElementById('lN-disp').textContent=step.N;
+  document.getElementById('lr1-sl').value=step.r1;document.getElementById('lr1-disp').textContent=step.r1.toFixed(2);
+  document.getElementById('lr2-sl').value=step.r2;document.getElementById('lr2-disp').textContent=step.r2.toFixed(2);
+  updateLaurentInfo();renderLaurent();
+}
+
+function laurentTutUpdate(){
+  const total=laurentTutSteps.length;
+  const dotsEl=document.getElementById('laurent-tut-dots');
+  const titleEl=document.getElementById('laurent-tut-title');
+  const descEl=document.getElementById('laurent-tut-desc');
+  const btnEl=document.getElementById('laurent-tut-next-btn');
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){const d=document.createElement('span');d.className='tut-dot'+(i<laurentTutStep?' done':'')+(i===laurentTutStep?' curr':'');dotsEl.appendChild(d);}
+  if(laurentTutStep<0){titleEl.textContent='Laurent & Poles';descEl.textContent='Step through singularities and Laurent expansions.';btnEl.textContent='Start';return;}
+  const step=laurentTutSteps[laurentTutStep];
+  titleEl.textContent='Step '+(laurentTutStep+1)+': '+step.title;descEl.innerHTML=step.desc;
+  btnEl.textContent=laurentTutStep===total-1?'Restart':'Next →';
+  laurentTutApply(step);
+}
+function laurentTutNext(){if(laurentTutStep<0)laurentTutStep=0;else laurentTutStep++;if(laurentTutStep>=laurentTutSteps.length){laurentTutStep=-1;laurentTutUpdate();return;}laurentTutUpdate();}
+function laurentTutPrev(){laurentTutStep--;if(laurentTutStep<-1)laurentTutStep=-1;laurentTutUpdate();}
+function laurentTutReset(){laurentTutStep=-1;laurentTutUpdate();}
 
 // ══════════════════════════════════════════════
 // TAB 6: RESIDUE → REAL INTEGRALS
@@ -2107,7 +3058,9 @@ function renderRealIntegral(animT){
   const canvas=document.getElementById('canvas-residuereal');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   const cx=W/2,cy=H*0.6;
   const scale=Math.min(W,H)*0.18;
@@ -2162,24 +3115,67 @@ function renderRealIntegral(animT){
 function initRealIntegral(){
   const canvas=document.getElementById('canvas-residuereal');
   const wrap=document.getElementById('riwrap');
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  updateRIInfo();
+  const dpr=window.devicePixelRatio||1;
+  const bw=wrap.clientWidth,bh=wrap.clientHeight;
+   canvas.width=Math.round(bw*dpr);canvas.height=Math.round(bh*dpr);
+   updateRIInfo();
   renderRealIntegral();
-  // Start animation if animating state is true
+  riTutUpdate();
+  // Auto-start contour animation
+  RISTATE.animating=true;
   const rb=document.getElementById('ri-anim-btn');
-  if(rb){rb.classList.toggle('active',RISTATE.animating);rb.textContent=RISTATE.animating?'Stop animation':'Animate contour';}
-  if(RISTATE.animating&&!RISTATE.animId) RISTATE.animId=requestAnimationFrame(riAnimLoop);
+  if(rb){rb.classList.toggle('active',true);rb.textContent='Stop animation';}
+  if(!RISTATE.animId) RISTATE.animId=requestAnimationFrame(riAnimLoop);
 }
+
+// --- Residue → Real Guided Tour ---
+const riTutSteps=[
+  {title:'∫ dx/(1+x²) = π',
+   desc:'The classic example: ∫₋∞^∞ dx/(1+x²) = π. Close with a semicircle in the upper half-plane. The only enclosed pole is at z=i, with residue 1/(2i). Result: 2πi × 1/(2i) = π. The animation shows the contour and the pole.',
+   which:0},
+  {title:'Closing the Contour',
+   desc:'The <strong>semicircular arc</strong> at infinity contributes nothing to the integral (Jordan\'s lemma). This is because |1/(1+z²)| → 0 fast enough as |z|→∞ in the upper half-plane. The entire integral comes from the residue at z=i.',
+   which:0},
+  {title:'∫ dθ/(2+cosθ) via Residues',
+   desc:'With the substitution z=eⁱᶿ, this becomes a contour integral around the unit circle. The integrand has a pole inside at z=(−1+√3)·something. The animation traces the unit circle and highlights the enclosed pole.',
+   which:1},
+  {title:'Mellin Transform: xˢ⁻¹/(1+x)',
+   desc:'The Mellin transform integral ∫₀^∞ x^(s−1)/(1+x) dx = π/sin(πs) is evaluated using a <strong>keyhole contour</strong> that avoids the branch point at z=0 and the pole at z=−1. Adjust parameter s with the slider.',
+   which:2}
+];
+
+let riTutStep=-1;
+
+function riTutApply(step){
+  RISTATE.which=step.which;
+  document.querySelectorAll('#panel-residuereal .btn-row .btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('ri-btn-'+step.which);if(btn)btn.classList.add('active');
+  document.getElementById('ri-param-block').style.display=step.which===2?'block':'none';
+  updateRIInfo();renderRealIntegral();
+}
+function riTutUpdate(){
+  const total=riTutSteps.length;
+  const dotsEl=document.getElementById('ri-tut-dots');
+  const titleEl=document.getElementById('ri-tut-title');
+  const descEl=document.getElementById('ri-tut-desc');
+  const btnEl=document.getElementById('ri-tut-next-btn');
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){const d=document.createElement('span');d.className='tut-dot'+(i<riTutStep?' done':'')+(i===riTutStep?' curr':'');dotsEl.appendChild(d);}
+  if(riTutStep<0){titleEl.textContent='Residue → Real';descEl.textContent='Step through real integrals via contour methods.';btnEl.textContent='Start';return;}
+  const step=riTutSteps[riTutStep];
+  titleEl.textContent='Step '+(riTutStep+1)+': '+step.title;descEl.innerHTML=step.desc;
+  btnEl.textContent=riTutStep===total-1?'Restart':'Next →';
+  riTutApply(step);
+}
+function riTutNext(){if(riTutStep<0)riTutStep=0;else riTutStep++;if(riTutStep>=riTutSteps.length){riTutStep=-1;riTutUpdate();return;}riTutUpdate();}
+function riTutPrev(){riTutStep--;if(riTutStep<-1)riTutStep=-1;riTutUpdate();}
+function riTutReset(){riTutStep=-1;riTutUpdate();}
 
 // ══════════════════════════════════════════════
 // TAB 7: ANALYTIC CONTINUATION
 // ══════════════════════════════════════════════
 const ACSTATE={demo:'geom',angle:0,reS:0.5,imS:14.13,animating:true,animId:null};
+let acGeomCache=null,acDiskCache=null,acZetaCache=null;
 
 function setACDemo(key,btn){
   ACSTATE.demo=key;
@@ -2204,7 +3200,7 @@ function toggleACAnim(btn){
   else if(ACSTATE.animId){cancelAnimationFrame(ACSTATE.animId);ACSTATE.animId=null;}
 }
 function acAnimLoop(){
-  if(!ACSTATE.animating)return;
+  if(currentTab!=='continuation'||!ACSTATE.animating){ACSTATE.animId=null;return;}
   ACSTATE.angle=(ACSTATE.angle+2*window.animSpeed)%360;
   document.getElementById('ac-angle-disp').textContent=Math.round(ACSTATE.angle)+'°';
   renderContinuation();
@@ -2246,21 +3242,147 @@ function renderContinuation(){
   const canvas=document.getElementById('canvas-continuation');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   if(ACSTATE.demo==='geom')renderACGeom(ctx,W,H);
   else if(ACSTATE.demo==='disks')renderACDisks(ctx,W,H);
   else renderACZeta(ctx,W,H);
+  // Animated overlay when animating
+  if(ACSTATE.animating){
+    if(ACSTATE.demo==='geom'){
+      // Animated series terms: show a point tracing a path that goes from inside convergence out
+      const leftW=W/2|0;
+      const scale=Math.min(W,H)*0.22;
+      const cxL=leftW/2,cxR=leftW+(W-leftW)/2,cy=H/2;
+      const ang=ACSTATE.angle*Math.PI/180;
+      const r=0.75+0.2*Math.sin(ang*0.3);
+      const px=cxL+r*scale*Math.cos(ang),py=cy-r*scale*Math.sin(ang);
+      // Trace path on left (inside disk)
+      ctx.beginPath();
+      for(let k=0;k<=40;k++){
+        const a=ang-k*0.05;const rr=0.75+0.2*Math.sin(a*0.3);
+        const ttx=cxL+rr*scale*Math.cos(a),tty=cy-rr*scale*Math.sin(a);
+        if(k===0)ctx.moveTo(ttx,tty);else ctx.lineTo(ttx,tty);
+      }
+      ctx.strokeStyle='rgba(255,230,80,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+      // Moving point on left
+      ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);
+      ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='rgba(255,230,80,0.9)';ctx.font='11px monospace';ctx.textAlign='left';
+      const zr=(r*Math.cos(ang)).toFixed(2),zi=(r*Math.sin(ang)).toFixed(2);
+      ctx.fillText('z='+zr+(Math.sin(ang)>=0?'+':'')+zi+'i',px+10,py-10);
+      // Same point on right (continued)
+      const rGt1=r>1;
+      if(!rGt1){
+        const rpx=cxR+r*scale*Math.cos(ang),rpy=cy-r*scale*Math.sin(ang);
+        ctx.beginPath();ctx.arc(rpx,rpy,7,0,Math.PI*2);
+        ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#00ff99';ctx.lineWidth=2;ctx.stroke();
+        ctx.fillStyle='rgba(0,255,153,0.9)';ctx.font='11px monospace';
+        ctx.fillText('1/(1-z)',rpx+10,rpy-10);
+      }
+      // Pulsing convergence boundary
+      const pulse=0.4+0.6*Math.abs(Math.sin(ACSTATE.angle*0.05));
+      ctx.beginPath();ctx.arc(leftW/2,cy,scale,0,Math.PI*2);
+      ctx.strokeStyle='rgba(0,229,255,'+(0.4+pulse*0.4)+')';ctx.lineWidth=2+pulse;ctx.stroke();
+      // Animated info box
+      ctx.fillStyle='rgba(10,10,30,0.75)';ctx.fillRect(4,4,160,50);
+      ctx.strokeStyle='rgba(170,119,255,0.5)';ctx.lineWidth=1;ctx.strokeRect(4,4,160,50);
+      ctx.fillStyle='#aa77ff';ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
+      ctx.fillText('Convergence: |z|<1',10,20);
+      ctx.fillStyle=rGt1?'#ff4444':'#00ff99';ctx.font='12px monospace';
+      ctx.fillText('|z|='+r.toFixed(2)+(rGt1?' DIVERGES':' converges'),10,38);
+    } else if(ACSTATE.demo==='disks'){
+      // Continuation path trail
+      const scale=Math.min(W,H)*0.18;
+      const cx=W/2,cy=H/2;
+      const ang=ACSTATE.angle*Math.PI/180;
+      const pathLen=scale*2.5;
+      // Draw the full continuation path
+      ctx.beginPath();
+      for(let k=0;k<=60;k++){
+        const t=k/60;
+        const px=cx+pathLen*t*Math.cos(ang),py=cy-pathLen*t*Math.sin(ang);
+        if(k===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+      }
+      ctx.strokeStyle='rgba(255,230,80,0.6)';ctx.lineWidth=3;ctx.stroke();
+      // Moving point along path
+      const phase=(ACSTATE.angle%100)/100;
+      const px=cx+pathLen*phase*Math.cos(ang),py=cy-pathLen*phase*Math.sin(ang);
+      ctx.beginPath();ctx.arc(px,py,8,0,Math.PI*2);
+      ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#ffd700';ctx.lineWidth=2.5;ctx.stroke();
+      // Highlight active disk
+      const diskR=scale*0.85;
+      const colors=['rgba(170,119,255,0.2)','rgba(0,229,255,0.2)','rgba(255,215,0,0.2)','rgba(0,255,153,0.2)'];
+      for(let k=0;k<4;k++){
+        const t=k/3;
+        const dcx=cx+pathLen*t*Math.cos(ang),dcy=cy-pathLen*t*Math.sin(ang);
+        const dist=Math.sqrt((px-dcx)*(px-dcx)+(py-dcy)*(py-dcy));
+        if(dist<diskR){
+          ctx.beginPath();ctx.arc(dcx,dcy,diskR,0,Math.PI*2);
+          ctx.fillStyle=colors[k];ctx.fill();
+        }
+      }
+      // Info box
+      ctx.fillStyle='rgba(10,10,30,0.75)';ctx.fillRect(4,4,180,36);
+      ctx.strokeStyle='rgba(255,215,0,0.5)';ctx.lineWidth=1;ctx.strokeRect(4,4,180,36);
+      ctx.fillStyle='#ffd700';ctx.font='bold 12px Segoe UI';ctx.textAlign='left';
+      ctx.fillText('Continuation along path angle '+Math.round(ACSTATE.angle)+'°',10,28);
+    } else if(ACSTATE.demo==='zeta'){
+      // Animate the evaluation point moving along a path on the ζ landscape
+      const scale=Math.min(W,H)*0.12;
+      const cx=W*0.45,cy=H/2;
+      const ang=ACSTATE.angle*Math.PI/180;
+      const sre=0.5+1.5*Math.cos(ang*0.3),sim=Math.max(0.5,ACSTATE.imS+5*Math.sin(ang*0.2));
+      ACSTATE.reS=sre;ACSTATE.imS=sim;
+      document.getElementById('ac-res-sl').value=sre;document.getElementById('ac-res-disp').textContent=sre.toFixed(2);
+      document.getElementById('ac-ims-sl').value=sim;document.getElementById('ac-ims-disp').textContent=sim.toFixed(2);
+      const spx=cx+sre*scale,spy=cy-sim*scale;
+      if(spx>0&&spx<W&&spy>0&&spy<H){
+        // Trail
+        ctx.beginPath();
+        let first=true;
+        for(let k=0;k<=40;k++){
+          const tt=ang-k*0.04;
+          const tr=0.5+1.5*Math.cos(tt*0.3),ti=Math.max(0.5,ACSTATE.imS+5*Math.sin(tt*0.2));
+          const ttx=cx+tr*scale,tty=cy-ti*scale;
+          if(ttx<2||ttx>W-2||tty<2||tty>H-2)continue;
+          if(first){ctx.moveTo(ttx,tty);first=false;}else ctx.lineTo(ttx,tty);
+        }
+        ctx.strokeStyle='rgba(255,230,80,0.5)';ctx.lineWidth=1.5;ctx.stroke();
+        // Point
+        ctx.beginPath();ctx.arc(spx,spy,8,0,Math.PI*2);
+        ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#ffd700';ctx.lineWidth=2.5;ctx.stroke();
+        // Value display
+        const zv=zetaApprox(sre,sim);
+        const mag=Math.sqrt(zv.re*zv.re+zv.im*zv.im);
+        ctx.fillStyle='rgba(10,10,30,0.75)';ctx.fillRect(Math.min(spx+12,W-150),Math.max(spy-20,4),140,30);
+        ctx.fillStyle='#ffd700';ctx.font='11px monospace';ctx.textAlign='left';
+        ctx.fillText('ζ('+sre.toFixed(2)+'+'+sim.toFixed(2)+'i)',Math.min(spx+16,W-146),Math.max(spy-6,18));
+        ctx.fillText('|ζ|='+mag.toFixed(3),Math.min(spx+16,W-146),Math.max(spy+8,32));
+      }
+      // Pulsing critical line
+      const pulse=0.3+0.7*Math.abs(Math.sin(ACSTATE.angle*0.05));
+      const critX=cx+0.5*scale;
+      ctx.beginPath();ctx.moveTo(critX,0);ctx.lineTo(critX,H);
+      ctx.strokeStyle='rgba(255,255,100,'+(0.3+pulse*0.4)+')';ctx.lineWidth=1.5+pulse;ctx.setLineDash([5,3]);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
 }
 
 function renderACGeom(ctx,W,H){
   const scale=Math.min(W,H)*0.22;
   const leftW=W/2|0;
   const cy=H/2;
-  const imgL=ctx.createImageData(leftW,H);
-  for(let py=0;py<H;py+=2){
-    for(let px=0;px<leftW;px+=2){
-      const re=(px-leftW/2)/scale,im=-(py-cy)/scale;
+  // left half: domain coloring via offscreen canvas
+  const tmpL=document.createElement('canvas');tmpL.width=Math.round(leftW);tmpL.height=Math.round(H);
+  const ctxL=tmpL.getContext('2d');
+  const imgL=ctxL.createImageData(tmpL.width,tmpL.height);
+  for(let py=0;py<tmpL.height;py+=2){
+    for(let px=0;px<tmpL.width;px+=2){
+      const re=(px-tmpL.width/2)/scale,im=-(py-cy)/scale;
       const r=Math.sqrt(re*re+im*im);
       let rr,gg,bb;
       if(r>=1){rr=8;gg=8;bb=15;}
@@ -2274,30 +3396,35 @@ function renderACGeom(ctx,W,H){
         }
         [rr,gg,bb]=domainColor(sre,sim);
       }
-      for(let dy=0;dy<2&&py+dy<H;dy++)for(let dx=0;dx<2&&px+dx<leftW;dx++){
-        const i=((py+dy)*leftW+(px+dx))*4;
+      for(let dy=0;dy<2&&py+dy<tmpL.height;dy++)for(let dx=0;dx<2&&px+dx<tmpL.width;dx++){
+        const i=((py+dy)*tmpL.width+(px+dx))*4;
         imgL.data[i]=rr;imgL.data[i+1]=gg;imgL.data[i+2]=bb;imgL.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(imgL,0,0);
+  ctxL.putImageData(imgL,0,0);
+  ctx.drawImage(tmpL,0,0,leftW,H);
+  // right half: domain coloring via offscreen canvas
   const rightW=W-leftW;
-  const imgR=ctx.createImageData(rightW,H);
-  for(let py=0;py<H;py+=2){
-    for(let px=0;px<rightW;px+=2){
-      const re=(px-rightW/2)/scale,im=-(py-cy)/scale;
+  const tmpR=document.createElement('canvas');tmpR.width=Math.round(rightW);tmpR.height=Math.round(H);
+  const ctxR=tmpR.getContext('2d');
+  const imgR=ctxR.createImageData(tmpR.width,tmpR.height);
+  for(let py=0;py<tmpR.height;py+=2){
+    for(let px=0;px<tmpR.width;px+=2){
+      const re=(px-tmpR.width/2)/scale,im=-(py-cy)/scale;
       const dre=1-re,dim=-im;
       const d=dre*dre+dim*dim;
       let rr,gg,bb;
       if(d<1e-10){rr=245;gg=245;bb=255;}
       else{const fre=dre/d,fim=-dim/d;[rr,gg,bb]=domainColor(fre,fim);}
-      for(let dy=0;dy<2&&py+dy<H;dy++)for(let dx=0;dx<2&&px+dx<rightW;dx++){
-        const i=((py+dy)*rightW+(px+dx))*4;
+      for(let dy=0;dy<2&&py+dy<tmpR.height;dy++)for(let dx=0;dx<2&&px+dx<tmpR.width;dx++){
+        const i=((py+dy)*tmpR.width+(px+dx))*4;
         imgR.data[i]=rr;imgR.data[i+1]=gg;imgR.data[i+2]=bb;imgR.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(imgR,leftW,0);
+  ctxR.putImageData(imgR,0,0);
+  ctx.drawImage(tmpR,leftW,0,rightW,H);
   ctx.save();ctx.beginPath();ctx.rect(0,0,leftW,H);ctx.clip();
   ctx.beginPath();ctx.arc(leftW/2,cy,scale,0,Math.PI*2);
   ctx.strokeStyle='rgba(0,229,255,0.7)';ctx.lineWidth=2;ctx.stroke();
@@ -2322,21 +3449,25 @@ function renderACGeom(ctx,W,H){
 function renderACDisks(ctx,W,H){
   const scale=Math.min(W,H)*0.18;
   const cx=W/2,cy=H/2;
-  const img=ctx.createImageData(W,H);
-  for(let py=0;py<H;py+=3){
-    for(let px=0;px<W;px+=3){
+  // domain coloring via offscreen canvas
+  const tmp=document.createElement('canvas');tmp.width=Math.round(W);tmp.height=Math.round(H);
+  const tmpCtx=tmp.getContext('2d');
+  const img=tmpCtx.createImageData(tmp.width,tmp.height);
+  for(let py=0;py<tmp.height;py+=3){
+    for(let px=0;px<tmp.width;px+=3){
       const re=(px-cx)/scale,im=-(py-cy)/scale;
       const d=(1-re)*(1-re)+im*im;
       let rr,gg,bb;
       if(d<1e-6){rr=200;gg=200;bb=255;}
       else{const fre=(1-re)/d,fim=im/d;[rr,gg,bb]=domainColor(fre,fim);}
-      for(let dy=0;dy<3&&py+dy<H;dy++)for(let dx=0;dx<3&&px+dx<W;dx++){
-        const i=((py+dy)*W+(px+dx))*4;
+      for(let dy=0;dy<3&&py+dy<tmp.height;dy++)for(let dx=0;dx<3&&px+dx<tmp.width;dx++){
+        const i=((py+dy)*tmp.width+(px+dx))*4;
         img.data[i]=rr*0.35|0;img.data[i+1]=gg*0.35|0;img.data[i+2]=bb*0.35|0;img.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(img,0,0);
+  tmpCtx.putImageData(img,0,0);
+  ctx.drawImage(tmp,0,0,W,H);
   ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
   ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
@@ -2362,9 +3493,12 @@ function renderACDisks(ctx,W,H){
 function renderACZeta(ctx,W,H){
   const scale=Math.min(W,H)*0.12;
   const cx=W*0.45,cy=H/2;
-  const img=ctx.createImageData(W,H);
-  for(let py=0;py<H;py+=3){
-    for(let px=0;px<W;px+=3){
+  // domain coloring via offscreen canvas
+  const tmp=document.createElement('canvas');tmp.width=Math.round(W);tmp.height=Math.round(H);
+  const tmpCtx=tmp.getContext('2d');
+  const img=tmpCtx.createImageData(tmp.width,tmp.height);
+  for(let py=0;py<tmp.height;py+=3){
+    for(let px=0;px<tmp.width;px+=3){
       const sre=(px-cx)/scale,sim=-(py-cy)/scale;
       const d=(sre-1)*(sre-1)+sim*sim;
       let rr,gg,bb;
@@ -2374,13 +3508,14 @@ function renderACZeta(ctx,W,H){
         if(!isFinite(z.re)||!isFinite(z.im)){rr=15;gg=8;bb=20;}
         else [rr,gg,bb]=domainColor(z.re,z.im);
       }
-      for(let dy=0;dy<3&&py+dy<H;dy++)for(let dx=0;dx<3&&px+dx<W;dx++){
-        const i=((py+dy)*W+(px+dx))*4;
+      for(let dy=0;dy<3&&py+dy<tmp.height;dy++)for(let dx=0;dx<3&&px+dx<tmp.width;dx++){
+        const i=((py+dy)*tmp.width+(px+dx))*4;
         img.data[i]=rr;img.data[i+1]=gg;img.data[i+2]=bb;img.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(img,0,0);
+  tmpCtx.putImageData(img,0,0);
+  ctx.drawImage(tmp,0,0,W,H);
   const critX=cx+0.5*scale;
   ctx.beginPath();ctx.moveTo(critX,0);ctx.lineTo(critX,H);
   ctx.strokeStyle='rgba(255,255,100,0.6)';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.stroke();
@@ -2424,18 +3559,67 @@ function renderACZeta(ctx,W,H){
 function initContinuation(){
   const canvas=document.getElementById('canvas-continuation');
   const wrap=document.getElementById('acwrap');
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  renderContinuation();
-  // Start animation if animating state is true
+  const dpr=window.devicePixelRatio||1;
+  const bw=wrap.clientWidth,bh=wrap.clientHeight;
+   canvas.width=Math.round(bw*dpr);canvas.height=Math.round(bh*dpr);
+   renderContinuation();
+  acTutUpdate();
+  // Auto-start animation
+  ACSTATE.animating=true;
   const ab=document.getElementById('ac-anim-btn');
-  if(ab){ab.classList.toggle('active',ACSTATE.animating);ab.textContent=ACSTATE.animating?'Stop':'▶ Animate';}
-  if(ACSTATE.animating&&!ACSTATE.animId) ACSTATE.animId=requestAnimationFrame(acAnimLoop);
+  if(ab){ab.classList.toggle('active',true);ab.textContent='Stop';}
+  if(!ACSTATE.animId) ACSTATE.animId=requestAnimationFrame(acAnimLoop);
 }
+
+// --- Analytic Continuation Guided Tour ---
+const acTutSteps=[
+  {title:'Geometric Series Extension',
+   desc:'The geometric series 1/(1−z) = 1+z+z²+… converges only for |z|<1. But the function 1/(1−z) is defined everywhere except z=1. <strong>Analytic continuation</strong> extends the series beyond its radius of convergence by using the functional equation.',
+   demo:'geom',angle:0},
+  {title:'Overlapping Disks of Convergence',
+   desc:'Each Taylor expansion converges in a disk around its center. If two disks <strong>overlap</strong>, the functions agree on the overlap (by the identity theorem). This lets us "continue" the function from one disk to the next, extending the domain step by step.',
+   demo:'disks',angle:30},
+  {title:'The Path of Continuation',
+   desc:'Move the angle slider to see how the continuation path bends from one disk to the next. The continuation is <strong>path-dependent</strong> for multi-valued functions: going around a branch point yields a different value than going the other way.',
+   demo:'disks',angle:90},
+  {title:'Riemann ζ(s) Function',
+   desc:'The Riemann zeta function ζ(s) is defined by the Dirichlet series for Re(s)>1. Its <strong>analytic continuation</strong> extends it to all s≠1. The critical line Re(s)=1/2 contains the zeros whose distribution encodes the primes. Adjust Re(s) and Im(s) to explore.',
+   demo:'zeta',reS:0.5,imS:14.13},
+  {title:'The Critical Line',
+   desc:'Set Re(s)=1/2, Im(s)≈14.13 (near the first non-trivial zero). The animated point traces the Dirichlet partial sum. When Im(s) hits a zero, ζ(s)=0 — these zeros are the subject of the Riemann Hypothesis.',
+   demo:'zeta',reS:0.5,imS:14.13}
+];
+
+let acTutStep=-1;
+
+function acTutApply(step){
+  ACSTATE.demo=step.demo;
+  document.querySelectorAll('#panel-continuation .sidebar .btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('ac-btn-'+step.demo);if(btn)btn.classList.add('active');
+  document.getElementById('ac-path-block').style.display=(step.demo==='geom'||step.demo==='disks')?'block':'none';
+  document.getElementById('ac-zeta-block').style.display=step.demo==='zeta'?'block':'none';
+  if(step.angle!==undefined){ACSTATE.angle=step.angle;document.getElementById('ac-angle-sl').value=step.angle;document.getElementById('ac-angle-disp').textContent=step.angle+'°';}
+  if(step.reS!==undefined){ACSTATE.reS=step.reS;document.getElementById('ac-res-sl').value=step.reS;document.getElementById('ac-res-disp').textContent=step.reS.toFixed(2);}
+  if(step.imS!==undefined){ACSTATE.imS=step.imS;document.getElementById('ac-ims-sl').value=step.imS;document.getElementById('ac-ims-disp').textContent=step.imS.toFixed(2);}
+  renderContinuation();
+}
+function acTutUpdate(){
+  const total=acTutSteps.length;
+  const dotsEl=document.getElementById('ac-tut-dots');
+  const titleEl=document.getElementById('ac-tut-title');
+  const descEl=document.getElementById('ac-tut-desc');
+  const btnEl=document.getElementById('ac-tut-next-btn');
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){const d=document.createElement('span');d.className='tut-dot'+(i<acTutStep?' done':'')+(i===acTutStep?' curr':'');dotsEl.appendChild(d);}
+  if(acTutStep<0){titleEl.textContent='Analytic Cont.';descEl.textContent='Step through analytic continuation and extension.';btnEl.textContent='Start';return;}
+  const step=acTutSteps[acTutStep];
+  titleEl.textContent='Step '+(acTutStep+1)+': '+step.title;descEl.innerHTML=step.desc;
+  btnEl.textContent=acTutStep===total-1?'Restart':'Next →';
+  acTutApply(step);
+}
+function acTutNext(){if(acTutStep<0)acTutStep=0;else acTutStep++;if(acTutStep>=acTutSteps.length){acTutStep=-1;acTutUpdate();return;}acTutUpdate();}
+function acTutPrev(){acTutStep--;if(acTutStep<-1)acTutStep=-1;acTutUpdate();}
+function acTutReset(){acTutStep=-1;acTutUpdate();}
 
 // ══════════════════════════════════════════════
 // TAB 8: SADDLE POINT METHOD
@@ -2489,7 +3673,9 @@ function renderSaddle(){
   const canvas=document.getElementById('canvas-saddle');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   if(SPSTATE.demo==='gauss')renderSaddleGauss(ctx,W,H);
   else if(SPSTATE.demo==='stirling')renderSaddleStirling(ctx,W,H);
@@ -2502,20 +3688,24 @@ function renderSaddleGauss(ctx,W,H){
   const scale=Math.min(W,H)*0.3;
   const cy=H/2;
   const leftW=W/2|0;
-  const img=ctx.createImageData(leftW,H);
-  for(let py=0;py<H;py+=2){
-    for(let px=0;px<leftW;px+=2){
-      const x=(px-leftW/2)/scale*2,y=-(py-cy)/scale*2;
+  // heat map via offscreen canvas
+  const tmp=document.createElement('canvas');tmp.width=Math.round(leftW);tmp.height=Math.round(H);
+  const tmpCtx=tmp.getContext('2d');
+  const img=tmpCtx.createImageData(tmp.width,tmp.height);
+  for(let py=0;py<tmp.height;py+=2){
+    for(let px=0;px<tmp.width;px+=2){
+      const x=(px-tmp.width/2)/scale*2,y=-(py-cy)/scale*2;
       const refv=-(x*x-y*y)+lam*x;
       const brightness=Math.min(1,Math.exp(refv*N/8-N/8+0.5));
       const r=(brightness*200)|0,g=(brightness*80)|0,b=Math.min(255,(brightness*255+20)|0);
-      for(let dy=0;dy<2&&py+dy<H;dy++)for(let dx=0;dx<2&&px+dx<leftW;dx++){
-        const i=((py+dy)*leftW+(px+dx))*4;
+      for(let dy=0;dy<2&&py+dy<tmp.height;dy++)for(let dx=0;dx<2&&px+dx<tmp.width;dx++){
+        const i=((py+dy)*tmp.width+(px+dx))*4;
         img.data[i]=r;img.data[i+1]=g;img.data[i+2]=b;img.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(img,0,0);
+  tmpCtx.putImageData(img,0,0);
+  ctx.drawImage(tmp,0,0,leftW,H);
   const lscale=scale/2,lax=leftW/2,lay=cy;
   ctx.strokeStyle='rgba(255,255,255,0.18)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(0,lay);ctx.lineTo(leftW,lay);ctx.stroke();
@@ -2649,18 +3839,61 @@ function renderSaddleAiry(ctx,W,H){
 function initSaddle(){
   const canvas=document.getElementById('canvas-saddle');
   const wrap=document.getElementById('spwrap');
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  updateSPInfo();renderSaddle();
-  // Start animation if animating state is true
+  const dpr=window.devicePixelRatio||1;
+  const bw=wrap.clientWidth,bh=wrap.clientHeight;
+   canvas.width=Math.round(bw*dpr);canvas.height=Math.round(bh*dpr);
+   updateSPInfo();renderSaddle();
+  spTutUpdate();
+  // Auto-start animation
+  SPSTATE.animating=true;
   const spb=document.getElementById('sp-anim-btn');
-  if(spb){spb.classList.toggle('active',SPSTATE.animating);spb.textContent=SPSTATE.animating?'Stop animation':'Animate N→∞';}
-  if(SPSTATE.animating&&!SPSTATE.animId) SPSTATE.animId=requestAnimationFrame(spAnimLoop);
+  if(spb){spb.classList.toggle('active',true);spb.textContent='Stop animation';}
+  if(!SPSTATE.animId) SPSTATE.animId=requestAnimationFrame(spAnimLoop);
 }
+
+// --- Saddle Point Guided Tour ---
+const spTutSteps=[
+  {title:'Gaussian Integral',
+   desc:'The simplest saddle-point integral: ∫₋∞^∞ exp(−Nx²) dx = √(π/N). The integrand peaks sharply at x=0 (the <strong>saddle point</strong>). As N increases, the peak narrows and the Gaussian approximation becomes exact.',
+   demo:'gauss',lambda:0,N:5},
+  {title:'Stirling Approximation',
+   desc:'For N! ≈ √(2πN)(N/e)ᴺ, the saddle-point method gives: the integrand e^(N ln z − z) has a saddle at z=N. The N→∞ animation shows how the approximation converges for increasing N.',
+   demo:'stirling',lambda:0,N:10},
+  {title:'Shifting the Saddle (λ)',
+   desc:'The λ parameter shifts the contour through the saddle point. Watch how the contour deforms as you vary λ — the integral stays constant (by Cauchy\'s theorem!) but the evaluation becomes easier or harder depending on the path.',
+   demo:'gauss',lambda:1,N:8},
+  {title:'Airy Function',
+   desc:'The Airy function Ai(x) = (1/π)∫₀^∞ cos(t³/3+xt) dt has a saddle at t²+x=0. For large |x|, the steepest-descent path gives exponential decay for x>0 and oscillatory behavior for x<0.',
+   demo:'airy',lambda:0,N:5}
+];
+
+let spTutStep=-1;
+
+function spTutApply(step){
+  SPSTATE.demo=step.demo;SPSTATE.lambda=step.lambda;SPSTATE.N=step.N;
+  document.querySelectorAll('#panel-saddle .sidebar .btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('sp-btn-'+step.demo);if(btn)btn.classList.add('active');
+  document.getElementById('sp-lambda-sl').value=step.lambda;document.getElementById('sp-lambda-disp').textContent=step.lambda.toFixed(2);
+  document.getElementById('sp-N-sl').value=step.N;document.getElementById('sp-N-disp').textContent=step.N;
+  updateSPInfo();renderSaddle();
+}
+function spTutUpdate(){
+  const total=spTutSteps.length;
+  const dotsEl=document.getElementById('sp-tut-dots');
+  const titleEl=document.getElementById('sp-tut-title');
+  const descEl=document.getElementById('sp-tut-desc');
+  const btnEl=document.getElementById('sp-tut-next-btn');
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){const d=document.createElement('span');d.className='tut-dot'+(i<spTutStep?' done':'')+(i===spTutStep?' curr':'');dotsEl.appendChild(d);}
+  if(spTutStep<0){titleEl.textContent='Saddle Point';descEl.textContent='Step through steepest-descent approximations.';btnEl.textContent='Start';return;}
+  const step=spTutSteps[spTutStep];
+  titleEl.textContent='Step '+(spTutStep+1)+': '+step.title;descEl.innerHTML=step.desc;
+  btnEl.textContent=spTutStep===total-1?'Restart':'Next →';
+  spTutApply(step);
+}
+function spTutNext(){if(spTutStep<0)spTutStep=0;else spTutStep++;if(spTutStep>=spTutSteps.length){spTutStep=-1;spTutUpdate();return;}spTutUpdate();}
+function spTutPrev(){spTutStep--;if(spTutStep<-1)spTutStep=-1;spTutUpdate();}
+function spTutReset(){spTutStep=-1;spTutUpdate();}
 
 // ══════════════════════════════════════════════
 // TAB 9: COMPLEX ANALYSIS IN PHYSICS
@@ -2731,7 +3964,9 @@ function renderPhysics(){
   const canvas=document.getElementById('canvas-physics');
   if(!canvas||canvas.width===0)return;
   const ctx=canvas.getContext('2d');
-  const W=canvas.width,H=canvas.height;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,W,H);
   if(PHSTATE.demo==='kk')renderKK(ctx,W,H);
   else if(PHSTATE.demo==='smatrix')renderSMatrix(ctx,W,H);
@@ -2754,26 +3989,30 @@ function renderKK(ctx,W,H){
   const imRange=w0*2; // vertical range of Im(ω)
   const cy=topH/2;
   const imToY=im=>cy-im/imRange*(topH/2-16);
-  const img=ctx.createImageData(W,topH);
-  for(let py=0;py<topH;py+=3){
-    for(let px=0;px<W;px+=3){
+  // domain coloring via offscreen canvas
+  const tmpTop=document.createElement('canvas');tmpTop.width=Math.round(W);tmpTop.height=Math.round(topH);
+  const ctxT=tmpTop.getContext('2d');
+  const img=ctxT.createImageData(tmpTop.width,tmpTop.height);
+  for(let py=0;py<tmpTop.height;py+=3){
+    for(let px=0;px<tmpTop.width;px+=3){
       const ore=wmin+(wmax-wmin)*Math.max(0,px-mx)/plotW;
       const oim=-(py-cy)/(topH/2-16)*imRange;
       if(px<mx){
-        for(let dy=0;dy<3&&py+dy<topH;dy++)for(let dx=0;dx<3&&px+dx<W;dx++){
-          const i=((py+dy)*W+(px+dx))*4;img.data[i]=5;img.data[i+1]=5;img.data[i+2]=15;img.data[i+3]=255;
+        for(let dy=0;dy<3&&py+dy<tmpTop.height;dy++)for(let dx=0;dx<3&&px+dx<tmpTop.width;dx++){
+          const i=((py+dy)*tmpTop.width+(px+dx))*4;img.data[i]=5;img.data[i+1]=5;img.data[i+2]=15;img.data[i+3]=255;
         }
         continue;
       }
       const eps=lorentzEps(ore,oim);
       const [rr,gg,bb]=domainColor(eps.re,eps.im);
-      for(let dy=0;dy<3&&py+dy<topH;dy++)for(let dx=0;dx<3&&px+dx<W;dx++){
-        const i=((py+dy)*W+(px+dx))*4;
+      for(let dy=0;dy<3&&py+dy<tmpTop.height;dy++)for(let dx=0;dx<3&&px+dx<tmpTop.width;dx++){
+        const i=((py+dy)*tmpTop.width+(px+dx))*4;
         img.data[i]=rr;img.data[i+1]=gg;img.data[i+2]=bb;img.data[i+3]=255;
       }
     }
   }
-  ctx.putImageData(img,0,0);
+  ctxT.putImageData(img,0,0);
+  ctx.drawImage(tmpTop,0,0,W,topH);
   // Real axis
   ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(mx,cy);ctx.lineTo(W,cy);ctx.stroke();
@@ -2999,22 +4238,102 @@ function renderDispersion(ctx,W,H){
 function initPhysics(){
   const canvas=document.getElementById('canvas-physics');
   const wrap=document.getElementById('phwrap');
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  updatePHInfo();renderPhysics();
-  // Start animation if animating state is true
+  const dpr=window.devicePixelRatio||1;
+  const bw=wrap.clientWidth,bh=wrap.clientHeight;
+   canvas.width=Math.round(bw*dpr);canvas.height=Math.round(bh*dpr);
+   updatePHInfo();renderPhysics();
+  phTutUpdate();
+  // Auto-start animation
+  PHSTATE.animating=true;
   const phb=document.getElementById('ph-anim-btn');
-  if(phb){phb.classList.toggle('active',PHSTATE.animating);phb.textContent=PHSTATE.animating?'Stop':'▶ Animate';}
-  if(PHSTATE.animating&&!PHSTATE.animId) PHSTATE.animId=requestAnimationFrame(phAnimLoop);
+  if(phb){phb.classList.toggle('active',true);phb.textContent='Stop';}
+  if(!PHSTATE.animId) PHSTATE.animId=requestAnimationFrame(phAnimLoop);
 }
+
+// --- Physics Guided Tour ---
+const phTutSteps=[
+  {title:'Kramers-Kronig Relations',
+   desc:'Causality demands that the dielectric function ε(ω) is <strong>analytic in the upper half-plane</strong>. The Kramers-Kronig relations connect the real and imaginary parts: ε′(ω) and ε″(ω) are Hilbert transforms of each other. You cannot modify the absorption spectrum without also changing the refractive index.',
+   demo:'kk',omega0:2.0,gamma:0.5},
+  {title:'Resonance Peak',
+   desc:'The Lorentz oscillator ε(ω)=1+ωₚ²/(ω₀²−ω²−iγω) has a resonance peak in ε″(ω) at ω=ω₀. The width is controlled by γ (damping). In the complex plane, the pole is at ω₀−iγ/2. Adjust ω₀ and γ to see how causality constrains both curves.',
+   demo:'kk',omega0:2.0,gamma:0.5},
+  {title:'S-Matrix & Regge Poles',
+   desc:'The <strong>S-matrix</strong> encodes all scattering data. Analyticity in the complex angular momentum plane (Regge theory) implies that scattering amplitudes are meromorphic functions of the Mandelstam variable s. Poles in the complex l-plane (Regge trajectories) correspond to resonances and bound states.',
+   demo:'smatrix',mandelstam:4.0},
+  {title:'Dispersion & Causality',
+   desc:'<strong>Dispersion relations</strong> are the direct consequence of analyticity. The real and imaginary parts of any causal response function are not independent — knowing one determines the other entirely. This is why superluminal group velocities in dispersive media don\'t violate causality: the front velocity never exceeds c.',
+   demo:'dispersion',omega0:2.0,gamma:0.5}
+];
+
+let phTutStep=-1;
+
+function phTutApply(step){
+  PHSTATE.demo=step.demo;
+  document.querySelectorAll('#panel-physics .sidebar .btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('ph-btn-'+step.demo);if(btn)btn.classList.add('active');
+  document.getElementById('ph-kk-controls').style.display=step.demo==='kk'?'block':'none';
+  document.getElementById('ph-smatrix-controls').style.display=step.demo==='smatrix'?'block':'none';
+  document.getElementById('ph-formula-block').style.display=step.demo==='kk'?'block':'none';
+  document.getElementById('ph-smatrix-block').style.display=step.demo==='smatrix'?'block':'none';
+  if(step.omega0!==undefined){PHSTATE.omega0=step.omega0;document.getElementById('ph-w0-sl').value=step.omega0;document.getElementById('ph-w0-disp').textContent=step.omega0.toFixed(1);}
+  if(step.gamma!==undefined){PHSTATE.gamma=step.gamma;document.getElementById('ph-gamma-sl').value=step.gamma;document.getElementById('ph-gamma-disp').textContent=step.gamma.toFixed(1);}
+  if(step.mandelstam!==undefined){PHSTATE.mandelstam=step.mandelstam;document.getElementById('ph-ms-sl').value=step.mandelstam;document.getElementById('ph-ms-disp').textContent=step.mandelstam.toFixed(1);}
+  updatePHInfo();renderPhysics();
+}
+function phTutUpdate(){
+  const total=phTutSteps.length;
+  const dotsEl=document.getElementById('ph-tut-dots');
+  const titleEl=document.getElementById('ph-tut-title');
+  const descEl=document.getElementById('ph-tut-desc');
+  const btnEl=document.getElementById('ph-tut-next-btn');
+  dotsEl.innerHTML='';
+  for(let i=0;i<total;i++){const d=document.createElement('span');d.className='tut-dot'+(i<phTutStep?' done':'')+(i===phTutStep?' curr':'');dotsEl.appendChild(d);}
+  if(phTutStep<0){titleEl.textContent='Physics Apps';descEl.textContent='Step through complex analysis in physics.';btnEl.textContent='Start';return;}
+  const step=phTutSteps[phTutStep];
+  titleEl.textContent='Step '+(phTutStep+1)+': '+step.title;descEl.innerHTML=step.desc;
+  btnEl.textContent=phTutStep===total-1?'Restart':'Next →';
+  phTutApply(step);
+}
+function phTutNext(){if(phTutStep<0)phTutStep=0;else phTutStep++;if(phTutStep>=phTutSteps.length){phTutStep=-1;phTutUpdate();return;}phTutUpdate();}
+function phTutPrev(){phTutStep--;if(phTutStep<-1)phTutStep=-1;phTutUpdate();}
+function phTutReset(){phTutStep=-1;phTutUpdate();}
 
 // ══════════════════════════════════════════════
 // TAB SWITCHING + RESIZE + INIT
 // ══════════════════════════════════════════════
+
+// Pause animations when tab hidden, resume when visible
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    if(SMOOTH.taylorAnimating&&SMOOTH.taylorAnimId){cancelAnimationFrame(SMOOTH.taylorAnimId);SMOOTH.taylorAnimId=null;}
+    if(holoAnimId){cancelAnimationFrame(holoAnimId);holoAnimId=null;}
+    if(RSTATE.animId){cancelAnimationFrame(RSTATE.animId);RSTATE.animId=null;}
+    if(S3STATE.animId){cancelAnimationFrame(S3STATE.animId);S3STATE.animId=null;}
+    if(RISTATE.animId){cancelAnimationFrame(RISTATE.animId);RISTATE.animId=null;}
+    if(LSTATE.animId){cancelAnimationFrame(LSTATE.animId);LSTATE.animId=null;}
+    if(ACSTATE.animId){cancelAnimationFrame(ACSTATE.animId);ACSTATE.animId=null;}
+    if(SPSTATE.animId){cancelAnimationFrame(SPSTATE.animId);SPSTATE.animId=null;}
+    if(PHSTATE.animId){cancelAnimationFrame(PHSTATE.animId);PHSTATE.animId=null;}
+  } else {
+    if(SMOOTH.taylorAnimating&&!SMOOTH.taylorAnimId) SMOOTH.taylorAnimId=requestAnimationFrame(smoothTaylorLoop);
+    if(HVIEW.animating&&!holoAnimId) holoAnimId=requestAnimationFrame(holoFrame);
+    if(RSTATE.animating&&!RSTATE.animId) RSTATE.animId=requestAnimationFrame(riemannAnimFrame);
+    if(S3STATE.animating&&!S3STATE.animId) S3STATE.animId=requestAnimationFrame(s3AnimLoop);
+    if(RISTATE.animating&&!RISTATE.animId) RISTATE.animId=requestAnimationFrame(riAnimLoop);
+    if(LSTATE.animating&&!LSTATE.animId) LSTATE.animId=requestAnimationFrame(laurentAnimLoop);
+    if(ACSTATE.animating&&!ACSTATE.animId) ACSTATE.animId=requestAnimationFrame(acAnimLoop);
+    if(SPSTATE.animating&&!SPSTATE.animId) SPSTATE.animId=requestAnimationFrame(spAnimLoop);
+    if(PHSTATE.animating&&!PHSTATE.animId) PHSTATE.animId=requestAnimationFrame(phAnimLoop);
+  }
+});
+
+// Auto-start paused animations (buttons showing ▶)
+document.querySelectorAll('.btn[id$="-anim-btn"], .btn[id$="AnimBtn"]').forEach(btn => {
+  if (btn.textContent.includes('\u25B6') || btn.textContent.includes('\u25BA')) {
+    btn.click();
+  }
+});
 </script>
 
 <script src="glossary-data.js"></script>
