@@ -57,8 +57,6 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
 .btn{padding:5px 10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);
   border-radius:4px;cursor:pointer;font-size:.73rem;flex:1;text-align:center;transition:.15s;font-family:inherit}
 .btn:hover,.btn.active{border-color:var(--accent);color:var(--accent)}
-.pan-mode .main-area canvas{cursor:grab!important}
-.pan-mode .main-area canvas:active{cursor:grabbing!important}
 .strip{background:var(--bg2);border-top:1px solid var(--border);padding:5px 18px;
   font-size:.7rem;color:var(--dim);flex-shrink:0}
 .proof-btn{display:inline-flex;align-items:center;margin-left:7px;padding:1px 7px;
@@ -118,32 +116,35 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       <div>
         <label>Ω_matter = <span id="OmVal">0.31</span></label>
         <input type="range" id="OmSlider" min="0" max="2" step="0.01" value="0.31"
-          oninput="Om=+this.value;document.getElementById('OmVal').textContent=Om.toFixed(2);solveFriedmann()">
+          oninput="Om=+this.value;document.getElementById('OmVal').textContent=Om.toFixed(2);matchPreset();solveFriedmann()">
       </div>
       <div>
         <label style="margin-top:4px">Ω_radiation = <span id="OrVal">0.00</span></label>
         <input type="range" id="OrSlider" min="0" max="0.5" step="0.01" value="0.0"
-          oninput="Or=+this.value;document.getElementById('OrVal').textContent=Or.toFixed(2);solveFriedmann()">
+          oninput="Or=+this.value;document.getElementById('OrVal').textContent=Or.toFixed(2);matchPreset();solveFriedmann()">
       </div>
       <div>
         <label style="margin-top:4px">Ω_Λ = <span id="OlVal">0.69</span></label>
         <input type="range" id="OlSlider" min="0" max="2" step="0.01" value="0.69"
-          oninput="Ol=+this.value;document.getElementById('OlVal').textContent=Ol.toFixed(2);solveFriedmann()">
+          oninput="Ol=+this.value;document.getElementById('OlVal').textContent=Ol.toFixed(2);matchPreset();solveFriedmann()">
       </div>
       <div class="btn-row" style="margin-top:4px">
-        <button class="btn" onclick="setPreset('observed')">Observed</button>
-        <button class="btn" onclick="setPreset('flatMatter')">Flat Matter</button>
+        <button class="btn active" id="preObs" onclick="setPreset('observed')">Observed</button>
+        <button class="btn" id="preFlat" onclick="setPreset('flatMatter')">Flat Matter</button>
       </div>
       <div class="btn-row">
-        <button class="btn" onclick="setPreset('deSitter')">de Sitter</button>
-        <button class="btn" onclick="setPreset('closed')">Closed</button>
+        <button class="btn" id="preDS" onclick="setPreset('deSitter')">de Sitter</button>
+        <button class="btn" id="preClosed" onclick="setPreset('closed')">Closed</button>
       </div>
       <div class="btn-row">
         <button class="btn" id="friedAnimBtn" onclick="toggleFriedAnim(this)">▶ Animate</button>
-        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
       </div>
       <div class="btn-row">
-        <button class="btn" onclick="resetPan()">Reset View</button>
+        <button class="btn" onclick="setPreset('observed')">Reset View</button>
+      </div>
+      <div style="margin-top:4px">
+        <label>Speed <span id="friedSpeedVal">1.0x</span></label>
+        <input type="range" id="friedSpeedSlider" min="0.1" max="3" step="0.1" value="1" style="width:100%;accent-color:var(--accent)" oninput="window.animSpeed=+this.value;document.getElementById('friedSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
       </div>
       <div class="callout">
         <strong>Friedmann Eq:</strong><br>
@@ -187,21 +188,21 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <button class="btn" id="pd1" onclick="setPenroseMode(1)">de Sitter</button>
         <button class="btn" id="pd2" onclick="setPenroseMode(2)">Minkowski</button>
       </div>
-      <div>
-        <label style="margin-top:6px">Show</label>
-        <select id="penroseShow" onchange="redrawPenrose()">
-          <option value="all">Causal structure</option>
-          <option value="lightray">Light ray</option>
-          <option value="particle">Infalling particle</option>
-        </select>
+      <div style="margin-top:6px">
+        <label style="font-size:.72rem;color:var(--dim)">Show</label>
+        <div style="display:flex;flex-direction:column;gap:2px;margin-top:2px">
+          <label style="font-size:.72rem;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="penShowPhoton" checked style="accent-color:#ffcc00" onchange="redrawPenrose()"> Light ray</label>
+          <label style="font-size:.72rem;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="penShowObserver" checked style="accent-color:#00e5ff" onchange="redrawPenrose()"> Observer</label>
+          <label style="font-size:.72rem;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="penShowLabels" checked style="accent-color:var(--accent)" onchange="redrawPenrose()"> Labels</label>
+        </div>
       </div>
       <div class="btn-row" style="margin-top:4px">
         <button class="btn" id="penroseAnimBtn" onclick="togglePenroseAnim(this)">▶</button>
         <button class="btn" onclick="penroseT=0;redrawPenrose()">Reset</button>
       </div>
-      <div class="btn-row">
-        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
-        <button class="btn" onclick="resetPan()">Reset View</button>
+      <div style="margin-top:4px">
+        <label>Speed <span id="penSpeedVal">1.0x</span></label>
+        <input type="range" id="penSpeedSlider" min="0.1" max="3" step="0.1" value="1" style="width:100%;accent-color:var(--accent)" oninput="window.animSpeed=+this.value;document.getElementById('penSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
       </div>
       <div class="callout">
         <strong>Penrose diagram:</strong> conformal compactification maps infinite spacetime to a finite square. Null lines (light rays) always travel at 45°.
@@ -248,28 +249,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       <div>
         <label>Mass M = <span id="bhMval">10</span> M☉</label>
         <input type="range" id="bhMSlider" min="1" max="100" step="1" value="10"
-          oninput="bhMass=+this.value;document.getElementById('bhMval').textContent=bhMass;updateHawking()">
+          oninput="userDraggingMass=true;bhMass=+this.value;bhMassBase=bhMass;document.getElementById('bhMval').textContent=bhMass;updateHawking()"
+          onchange="userDraggingMass=false">
       </div>
-      <div>
-        <label style="margin-top:6px">View</label>
-        <select id="hawkView" onchange="updateHawking()">
-          <option value="temp">Temperature vs M</option>
-          <option value="evap">Evaporation time</option>
-          <option value="spec">Radiation spectrum</option>
-        </select>
-      </div>
+
       <div class="btn-row" style="margin-top:4px">
         <button class="btn" id="evapBtn" onclick="toggleEvapAnim(this)">▶ Evaporate</button>
         <button class="btn" onclick="resetEvap()">Reset</button>
       </div>
-      <div class="btn-row">
-        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
-        <button class="btn" onclick="resetPan()">Reset View</button>
-      </div>
       <div class="callout">
         <strong>Hawking temperature:</strong><br>
-        $T_H = \frac{\hbar c^3}{8\pi G M k_B}$<br><br>
-        Smaller BH → hotter → faster evaporation. Final burst: $E\sim m_\text{Pl}c^2$.
+        $T_H = \frac{\hbar c^3}{8\pi G M k_B}$<br>
+        Luminosity $L \propto M^{-2}$ — all four views update live with the Evaporate animation.
       </div>
     </div>
 
@@ -571,7 +562,7 @@ function _cancelAllAnims13(){
 }
 
 
-  window.animSpeed=0.1;
+  window.animSpeed=1;
   // Auto-start animations at 0.1x speed (global setting)
 // ── PROOFS ──
 const PROOFS=[
@@ -612,58 +603,30 @@ const PROOFS=[
    <p>This "past hypothesis" for gravity (analogous to Boltzmann's low-entropy initial condition for thermodynamics) is Penrose's preferred explanation for time's arrow — and a central theme of his "Cycles of Time" (CCC) cosmological model.</p>`}
 ];
 
-// ── PAN ──
-const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
-let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
-function togglePan(){
-  panMode=!panMode;
-  document.querySelectorAll('.panBtn').forEach(b=>{
-    b.classList.toggle('active',panMode);
-    b.textContent=panMode?'✋ On':'✋ Pan';
-  });
-  document.body.classList.toggle('pan-mode',panMode);
-}
-function resetPan(){
-  const p=pans[activeTab];if(p){p.x=0;p.y=0;}
-  const fns=[solveFriedmann,redrawPenrose,updateHawking,drawCMB,drawInflation,drawDarkEnergy,drawGW];
-  if(fns[activeTab]) fns[activeTab]();
-}
-function _addPan(canvas,idx,fn){
-  canvas.addEventListener('mousedown',e=>{
-    if(!panMode)return;
-    _panDrag=true;_panTab=idx;
-    _panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;
-    e.preventDefault();
-  },{passive:false});
-  canvas.addEventListener('mousemove',e=>{
-    if(!_panDrag||_panTab!==idx)return;
-    pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;
-    fn();
-  });
-  canvas.addEventListener('mouseup',()=>_panDrag=false);
-  canvas.addEventListener('mouseleave',()=>_panDrag=false);
-}
-
 // ── TAB SWITCHING ──
 let activeTab=0;
 function _cancelAllAnims(){
-  if(penAnimId){clearInterval(penAnimId);penAnimId=null;}
+  if(penAnimId){cancelAnimationFrame(penAnimId);penAnimId=null;}
   pausedPenrose=true;
   const penBtn=document.getElementById('penroseAnimBtn');
   if(penBtn){penBtn.textContent='▶';penBtn.classList.remove('active');}
-  if(evapAnimId!==null){clearInterval(evapAnimId);evapAnimId=null;}
-  pausedEvap=true;
+  if(evapAnimId!==null){cancelAnimationFrame(evapAnimId);evapAnimId=null;}
+  pausedHawkAnim=true;bhMass=bhMassBase;hawkAnimDir=1;
   const evapBtn=document.getElementById('evapBtn');
   if(evapBtn){evapBtn.textContent='▶ Evaporate';evapBtn.classList.remove('active');}
-  inflAnimRunning=false;
-  const inflBtn=document.getElementById('inflAnimBtn');
-  if(inflBtn){inflBtn.textContent='▶ Animate';inflBtn.classList.remove('active');}
+  if(friedAnimId){cancelAnimationFrame(friedAnimId);friedAnimId=null;}
   friedAnimRunning=false;
   const friedBtn=document.getElementById('friedAnimBtn');
   if(friedBtn){friedBtn.textContent='▶ Animate';friedBtn.classList.remove('active');}
+  if(inflAnimId){cancelAnimationFrame(inflAnimId);inflAnimId=null;}
+  inflAnimRunning=false;
+  const inflBtn=document.getElementById('inflAnimBtn');
+  if(inflBtn){inflBtn.textContent='▶ Animate';inflBtn.classList.remove('active');}
+  if(deAnimId){cancelAnimationFrame(deAnimId);deAnimId=null;}
   deAnimRunning=false;
   const deBtn=document.getElementById('deAnimBtn');
   if(deBtn){deBtn.textContent='▶ Animate';deBtn.classList.remove('active');}
+  if(gwAnimId){cancelAnimationFrame(gwAnimId);gwAnimId=null;}
   gwAnimRunning=false;
   const gwBtn=document.getElementById('gwAnimBtn');
   if(gwBtn){gwBtn.textContent='▶ Animate';gwBtn.classList.remove('active');}
@@ -673,63 +636,73 @@ function switchTab(n){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
   document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
   activeTab=n;
-  // Each tab: resize, draw, start animation at 0.1x speed
-  window.animSpeed = 0.1;
+  // Each tab: resize, draw, start animation
   if(n===0){
-    resizeFried();solveFriedmann();
     friedAnimRunning=true;friedAnimT=0;
     const btn=document.getElementById('friedAnimBtn');
     if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
-    friedAnimLoop();
+    const sl=document.getElementById('friedSpeedSlider');
+    if(sl){sl.value=window.animSpeed||1;document.getElementById('friedSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
+    requestAnimationFrame(()=>{resizeFried();solveFriedmann();friedAnimLoop();});
   }
   if(n===1){
-    resizePenrose();redrawPenrose();
-    pausedPenrose=false;
+    pausedPenrose=false;penroseDir=1;
     const btn=document.getElementById('penroseAnimBtn');
     if(btn){btn.textContent='⏸';btn.classList.add('active');}
-    if(penAnimId)clearInterval(penAnimId);
-    penAnimId=setInterval(()=>{
-      if(pausedPenrose){clearInterval(penAnimId);penAnimId=null;return;}
-      penroseT+=0.02 * window.animSpeed;
-      if(penroseT>1)penroseT=0;
+    const sl=document.getElementById('penSpeedSlider');
+    if(sl){sl.value=window.animSpeed||1;document.getElementById('penSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
+    if(penAnimId) cancelAnimationFrame(penAnimId);
+    function penLoop(){
+      if(pausedPenrose){penAnimId=null;return;}
+      penroseT+=0.02*penroseDir*(window.animSpeed||1);
+      if(penroseT>=1){penroseT=1;penroseDir=-1;}
+      if(penroseT<=0){penroseT=0;penroseDir=1;}
       redrawPenrose();
-    },30);
+      penAnimId=requestAnimationFrame(penLoop);
+    }
+    requestAnimationFrame(()=>{resizePenrose();redrawPenrose();penAnimId=requestAnimationFrame(penLoop);});
   }
   if(n===2){
-    resizeHawk();updateHawking();
-    pausedEvap=false;evapMass=bhMass;
+    resizeHawk();
+    pausedHawkAnim=false;bhMass=bhMassBase;hawkAnimDir=1;
     const btn=document.getElementById('evapBtn');
     if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
-    if(evapAnimId!==null){clearInterval(evapAnimId);evapAnimId=null;}
-    const stepFrac=0.003;
-    evapAnimId=setInterval(()=>{
-       if(pausedEvap){clearInterval(evapAnimId);evapAnimId=null;return;}
-      evapMass=bhMass*Math.pow(Math.max(0,1-stepFrac * window.animSpeed * evapMass/bhMass),1/3);
-      if(evapMass<0.001*bhMass){clearInterval(evapAnimId);evapAnimId=null;pausedEvap=true;if(btn){btn.textContent='▶ Evaporate';btn.classList.remove('active');}evapMass=bhMass;}
+    if(evapAnimId) cancelAnimationFrame(evapAnimId);
+    function hawkLoop(){
+      if(pausedHawkAnim){evapAnimId=null;return;}
+      if(!userDraggingMass){
+        const speed=(window.animSpeed||1);
+        if(hawkAnimDir>0){
+          bhMass=Math.max(1,bhMass-bhMass*0.004*speed);
+          if(bhMass<=1){bhMass=1;hawkAnimDir=-1;}
+        }else{
+          bhMass=Math.min(bhMassBase,bhMass+bhMassBase*0.008*speed);
+          if(bhMass>=bhMassBase){bhMass=bhMassBase;hawkAnimDir=1;}
+        }
+      }
       updateHawking();
-    },50);
+      evapAnimId=requestAnimationFrame(hawkLoop);
+    }
+    requestAnimationFrame(()=>{resizeHawk();updateHawking();evapAnimId=requestAnimationFrame(hawkLoop);});
   }
-  if(n===3){resizeCMB();drawCMB();} // CMB has no animation
+  if(n===3){requestAnimationFrame(()=>{resizeCMB();drawCMB();});}
   if(n===4){
-    resizeInfl();drawInflation();
     inflAnimRunning=true;inflT=0;
     const btn=document.getElementById('inflAnimBtn');
     if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
-    inflAnimLoop();
+    requestAnimationFrame(()=>{resizeInfl();drawInflation();inflAnimLoop();});
   }
   if(n===5){
-    resizeDE();drawDarkEnergy();
     deAnimRunning=true;deAnimT=0;
     const btn=document.getElementById('deAnimBtn');
     if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
-    deAnimLoop();
+    requestAnimationFrame(()=>{resizeDE();drawDarkEnergy();deAnimLoop();});
   }
   if(n===6){
-    resizeGW();drawGW();
     gwAnimRunning=true;gwAnimT=0;
     const btn=document.getElementById('gwAnimBtn');
     if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
-    gwAnimLoop();
+    requestAnimationFrame(()=>{resizeGW();drawGW();gwAnimLoop();});
   }
 }
 
@@ -761,10 +734,10 @@ const friedCtx=friedC.getContext('2d');
 let Om=0.31, Or=0.0, Ol=0.69;
 
 const PRESETS={
-  observed:{Om:0.31,Or:0.0,Ol:0.69},
-  flatMatter:{Om:1.0,Or:0.0,Ol:0.0},
-  deSitter:{Om:0.0,Or:0.0,Ol:1.0},
-  closed:{Om:1.5,Or:0.0,Ol:0.0}
+  observed:{Om:0.31,Or:0.0,Ol:0.69,btn:'preObs'},
+  flatMatter:{Om:1.0,Or:0.0,Ol:0.0,btn:'preFlat'},
+  deSitter:{Om:0.0,Or:0.0,Ol:1.0,btn:'preDS'},
+  closed:{Om:1.5,Or:0.0,Ol:0.0,btn:'preClosed'}
 };
 function setPreset(name){
   const p=PRESETS[name];
@@ -775,7 +748,22 @@ function setPreset(name){
   document.getElementById('OmVal').textContent=Om.toFixed(2);
   document.getElementById('OrVal').textContent=Or.toFixed(2);
   document.getElementById('OlVal').textContent=Ol.toFixed(2);
+  highlightPreset(name);
   solveFriedmann();
+}
+function highlightPreset(name){
+  const btnId=name?PRESETS[name].btn:null;
+  ['preObs','preFlat','preDS','preClosed'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle('active',id===btnId);
+  });
+}
+function matchPreset(){
+  let matched=null;
+  for(const [name,p] of Object.entries(PRESETS)){
+    if(Math.abs(Om-p.Om)<0.02&&Math.abs(Or-p.Or)<0.02&&Math.abs(Ol-p.Ol)<0.02){matched=name;break;}
+  }
+  highlightPreset(matched);
 }
 
 function resizeFried(){
@@ -792,7 +780,7 @@ function solveFriedmann(){
   const W=friedC.width, H=friedC.height;
   friedCtx.setTransform(1,0,0,1,0,0);
   friedCtx.fillStyle='#05050f'; friedCtx.fillRect(0,0,W,H);
-  friedCtx.setTransform(1,0,0,1,pans[0].x,pans[0].y);
+  friedCtx.setTransform(1,0,0,1,0,0);
 
   const mx=55, my=25, pw=W-mx-20, ph=H-my-50;
   const tMax=2.5, aMax=3.0;
@@ -1002,6 +990,7 @@ function solveFriedmann(){
   });
 
   friedCtx.setTransform(1,0,0,1,0,0);
+  window._friedmannData=tdata;
   // Update sidebar
   const Otot=Om+Or+Ol;
   document.getElementById('OtotVal').textContent=Otot.toFixed(3);
@@ -1012,8 +1001,10 @@ function solveFriedmann(){
 
   // Animate expansion marker - show time evolution of universe
   if(friedAnimRunning||friedAnimT>0){
-    // Draw animated "now" marker moving along the curve
-    const idx=Math.floor(friedAnimT*(tdata.length-1));
+    // Draw animated "now" marker moving along the curve (ping-pong loop)
+    const rawT=friedAnimT%2;
+    const loopT=rawT>1?2-rawT:rawT;
+    const idx=Math.floor(loopT*(tdata.length-1));
     const [t,a]=tdata[Math.min(idx,tdata.length-1)]||[0,1];
     const x=toX(t), y=toY(Math.min(a,aMax-0.1));
     // Pulsing dot
@@ -1041,55 +1032,22 @@ function solveFriedmann(){
 }
 
 // Friedmann animation
-let friedAnimRunning=false, friedAnimT=0;
+let friedAnimRunning=false, friedAnimT=0, friedAnimId=null;
 function toggleFriedAnim(btn){
   friedAnimRunning=!friedAnimRunning;
   if(btn){btn.textContent=friedAnimRunning?'⏸ Pause':'▶ Animate';btn.classList.toggle('active',friedAnimRunning);}
   if(friedAnimRunning){
     friedAnimT=0;
     friedAnimLoop();
+  }else{
+    if(friedAnimId){cancelAnimationFrame(friedAnimId);friedAnimId=null;}
   }
 }
 function friedAnimLoop(){
   if(!friedAnimRunning) return;
   friedAnimT+=0.012 * window.animSpeed;
-  const a=0.001+2.999*(friedAnimT%2>1?2-friedAnimT%2:friedAnimT%2);
-  const tdata=window._friedmannData||[];
-  const td=tdata.find(([t,a_]) => a_>=a-0.001 && a_<=a+0.001);
-  if(td){
-    const [t]=td;
-    const W=friedC.width,H=friedC.height;
-    const mx=55,my=25,pw=W-mx-20,ph=H-my-50;
-    const toX=t=>mx+t/2.5*pw;
-    const toY=a=>my+ph*(1-a/3);
-    friedCtx.setTransform(1,0,0,1,pans[0].x,pans[0].y);
-    // Redraw only the dot
-    friedCtx.fillStyle='#05050f';
-    friedCtx.fillRect(toX(t)-8,toY(a)-8,16,16);
-    // Redraw curve segment
-    friedCtx.strokeStyle='rgba(204,102,255,0.9)'; friedCtx.lineWidth=2.5;
-    friedCtx.beginPath();
-    const i0=tdata.findIndex(([t_],i)=>tdata[i+1]&&tdata[i+1][0]>=t-0.05);
-    const i1=tdata.findIndex(([t_],i)=>tdata[i-1]&&tdata[i-1][0]<=t+0.05);
-    for(let i=Math.max(0,i0-2);i<=Math.min(tdata.length-1,i1+2);i++){
-      const [t_,a_]=tdata[i];
-      const x=toX(t_),y=toY(a_);
-      if(i===0||i===Math.max(0,i0-2))friedCtx.moveTo(x,y);
-      else friedCtx.lineTo(x,y);
-    }
-    friedCtx.stroke();
-    // Draw dot
-    friedCtx.beginPath(); friedCtx.arc(toX(t),toY(a),6,0,Math.PI*2);
-    friedCtx.fillStyle='#ffcc00';
-    friedCtx.shadowBlur=12; friedCtx.shadowColor='#ffcc00';
-    friedCtx.fill(); friedCtx.shadowBlur=0;
-  }
-  requestAnimationFrame(friedAnimLoop);
-}
-  friedAnimT+=0.008*(window.animSpeed || 1); // Respect global speed
-  if(friedAnimT>1) friedAnimT=0;
   solveFriedmann();
-  requestAnimationFrame(friedAnimLoop);
+  friedAnimId=requestAnimationFrame(friedAnimLoop);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1097,7 +1055,7 @@ function friedAnimLoop(){
 // ═══════════════════════════════════════════════════════════════════
 const penC=document.getElementById('penroseCanvas');
 const penCtx=penC.getContext('2d');
-let penMode=0, penroseT=0;
+let penMode=0, penroseT=0, penroseDir=1;
 let penAnimId=null;
 
 function setPenroseMode(m){
@@ -1121,7 +1079,7 @@ function redrawPenrose(){
   const W=penC.width, H=penC.height;
   penCtx.setTransform(1,0,0,1,0,0);
   penCtx.fillStyle='#05050f'; penCtx.fillRect(0,0,W,H);
-  penCtx.setTransform(1,0,0,1,pans[1].x,pans[1].y);
+  penCtx.setTransform(1,0,0,1,0,0);
 
   const s=Math.min(W,H)*0.82;
   const cx=W/2, cy=H/2;
@@ -1157,41 +1115,46 @@ function redrawPenrose(){
     penCtx.beginPath(); penCtx.moveTo(...toC(0,0)); penCtx.lineTo(...toC(-1,-1)); penCtx.lineTo(...toC(0,-1)); penCtx.closePath(); penCtx.fill();
     penCtx.beginPath(); penCtx.moveTo(...toC(0,0)); penCtx.lineTo(...toC(1,-1)); penCtx.lineTo(...toC(0,-1)); penCtx.closePath(); penCtx.fill();
 
-    // Singularity (top, spacelike)
-    penCtx.strokeStyle='rgba(255,68,119,0.9)'; penCtx.lineWidth=4;
-    penCtx.beginPath(); penCtx.moveTo(...toC(1,-1)); penCtx.lineTo(...toC(1,1)); penCtx.stroke();
-    penCtx.fillStyle='rgba(255,68,119,0.7)'; penCtx.font='12px monospace';
-    const [sx,sy]=toC(1,0);
-    penCtx.fillText('singularity (r=0)',sx-50,sy-8);
+     // Singularity (top, spacelike)
+     penCtx.strokeStyle='rgba(255,68,119,0.9)'; penCtx.lineWidth=4;
+     penCtx.beginPath(); penCtx.moveTo(...toC(1,-1)); penCtx.lineTo(...toC(1,1)); penCtx.stroke();
+     const penShowLabels=document.getElementById('penShowLabels').checked;
+     if(penShowLabels){
+       penCtx.fillStyle='rgba(255,68,119,0.7)'; penCtx.font='12px monospace';
+       const [sx,sy]=toC(1,0);
+       penCtx.fillText('singularity (r=0)',sx-50,sy-8);
+     }
 
-    // Event horizon (null lines from origin at 45°)
-    penCtx.strokeStyle='rgba(255,204,0,0.8)'; penCtx.lineWidth=2.5;
-    penCtx.beginPath(); penCtx.moveTo(...toC(-1,0)); penCtx.lineTo(...toC(1,0)); penCtx.stroke(); // X axis
-    penCtx.beginPath(); penCtx.moveTo(...toC(0,-1)); penCtx.lineTo(...toC(0,1)); penCtx.stroke(); // T axis (event horizons)
-    penCtx.fillStyle='rgba(255,204,0,0.7)'; penCtx.font='12px monospace';
-    const [hx,hy]=toC(0.5,0.5);
-    penCtx.fillText('event horizon',hx-10,hy-8);
+     // Event horizon (null lines from origin at 45°)
+     penCtx.strokeStyle='rgba(255,204,0,0.8)'; penCtx.lineWidth=2.5;
+     penCtx.beginPath(); penCtx.moveTo(...toC(-1,0)); penCtx.lineTo(...toC(1,0)); penCtx.stroke();
+     penCtx.beginPath(); penCtx.moveTo(...toC(0,-1)); penCtx.lineTo(...toC(0,1)); penCtx.stroke();
+     if(penShowLabels){
+       penCtx.fillStyle='rgba(255,204,0,0.7)'; penCtx.font='12px monospace';
+       const [hx,hy]=toC(0.5,0.5);
+       penCtx.fillText('event horizon',hx-10,hy-8);
+     }
 
     // Boundary (null infinity I+, I-, spacelike i+, i-, i0)
     penCtx.strokeStyle='rgba(51,255,204,0.4)'; penCtx.lineWidth=1.5;
     penCtx.beginPath(); penCtx.moveTo(...toC(-1,0)); penCtx.lineTo(...toC(0,1)); penCtx.lineTo(...toC(1,0)); penCtx.stroke(); // right side (I+)
     penCtx.beginPath(); penCtx.moveTo(...toC(-1,0)); penCtx.lineTo(...toC(0,-1)); penCtx.lineTo(...toC(1,0)); penCtx.stroke(); // bottom
-    // Label corners
-    [[[0,1],'i⁺'],[[0,-1],'i⁻'],[[-1,0],'i⁰']].forEach(([[T,X],lbl])=>{
-      const [px,py]=toC(T,X);
-      penCtx.fillStyle='rgba(51,255,204,0.6)'; penCtx.font='12px monospace';
-      penCtx.fillText(lbl,px+3,py-3);
-    });
-    // I+ and I- labels
-    const [ipx,ipy]=toC(0.55,1.0); penCtx.fillStyle='rgba(51,255,204,0.4)'; penCtx.fillText('ℐ⁺',ipx-5,ipy+10);
-    const [imx,imy]=toC(-0.55,1.0); penCtx.fillText('ℐ⁻',imx-5,imy-5);
-
-    // Region labels
-    penCtx.fillStyle='rgba(0,150,255,0.5)'; penCtx.font='12px monospace';
-    penCtx.fillText('I',cx+dx*0.6,cy);
-    penCtx.fillStyle='rgba(50,200,50,0.5)'; penCtx.fillText('II',cx,cy-dy*0.55);
-    penCtx.fillStyle='rgba(200,0,160,0.5)'; penCtx.fillText('III',cx,cy+dy*0.5);
-    penCtx.fillStyle='rgba(100,0,180,0.5)'; penCtx.fillText('IV',cx-dx*0.6,cy);
+     // Label corners
+     if(penShowLabels){
+       [[[0,1],'i⁺'],[[0,-1],'i⁻'],[[-1,0],'i⁰']].forEach(([[T,X],lbl])=>{
+         const [px,py]=toC(T,X);
+         penCtx.fillStyle='rgba(51,255,204,0.6)'; penCtx.font='12px monospace';
+         penCtx.fillText(lbl,px+3,py-3);
+       });
+       const [ipx,ipy]=toC(0.55,1.0); penCtx.fillStyle='rgba(51,255,204,0.4)'; penCtx.fillText('ℐ⁺',ipx-5,ipy+10);
+       const [imx,imy]=toC(-0.55,1.0); penCtx.fillText('ℐ⁻',imx-5,imy-5);
+       // Region labels
+       penCtx.fillStyle='rgba(0,150,255,0.5)'; penCtx.font='12px monospace';
+       penCtx.fillText('I',cx+dx*0.6,cy);
+       penCtx.fillStyle='rgba(50,200,50,0.5)'; penCtx.fillText('II',cx,cy-dy*0.55);
+       penCtx.fillStyle='rgba(200,0,160,0.5)'; penCtx.fillText('III',cx,cy+dy*0.5);
+       penCtx.fillStyle='rgba(100,0,180,0.5)'; penCtx.fillText('IV',cx-dx*0.6,cy);
+     }
 
   } else if(penMode===1){
     // de Sitter space: diamond with cosmological horizon
@@ -1202,19 +1165,21 @@ function redrawPenrose(){
     penCtx.strokeStyle='rgba(204,102,255,0.7)'; penCtx.lineWidth=3;
     penCtx.beginPath(); penCtx.moveTo(...toC(1,-1)); penCtx.lineTo(...toC(1,1)); penCtx.stroke();
     penCtx.beginPath(); penCtx.moveTo(...toC(-1,-1)); penCtx.lineTo(...toC(-1,1)); penCtx.stroke();
-    penCtx.fillStyle='rgba(204,102,255,0.7)'; penCtx.font='12px monospace';
-    penCtx.fillText('ℐ⁺ (spacelike!)',cx-40,cy-dy*0.85);
-    penCtx.fillText('ℐ⁻ (spacelike)',cx-40,cy+dy*0.85);
+     penCtx.fillStyle='rgba(204,102,255,0.7)'; penCtx.font='12px monospace';
+     if(penShowLabels){
+       penCtx.fillText('ℐ⁺ (spacelike!)',cx-40,cy-dy*0.85);
+       penCtx.fillText('ℐ⁻ (spacelike)',cx-40,cy+dy*0.85);
+     }
 
-    // Cosmological horizons
+     // Cosmological horizons
     penCtx.strokeStyle='rgba(255,204,0,0.6)'; penCtx.lineWidth=2;
     penCtx.beginPath(); penCtx.moveTo(...toC(-1,-1)); penCtx.lineTo(...toC(1,1)); penCtx.stroke();
     penCtx.beginPath(); penCtx.moveTo(...toC(-1,1)); penCtx.lineTo(...toC(1,-1)); penCtx.stroke();
-    penCtx.fillStyle='rgba(255,204,0,0.5)'; penCtx.font='12px monospace';
-    penCtx.fillText('cosm. horizon',cx+10,cy-20);
+     penCtx.fillStyle='rgba(255,204,0,0.5)'; penCtx.font='12px monospace';
+     if(penShowLabels) penCtx.fillText('cosm. horizon',cx+10,cy-20);
 
-    penCtx.fillStyle='rgba(255,255,255,0.4)'; penCtx.font='12px monospace';
-    penCtx.fillText('de Sitter Space',cx-50,cy);
+     penCtx.fillStyle='rgba(255,255,255,0.4)'; penCtx.font='12px monospace';
+     if(penShowLabels) penCtx.fillText('de Sitter Space',cx-50,cy);
 
   } else {
     // Minkowski
@@ -1236,98 +1201,107 @@ function redrawPenrose(){
       penCtx.stroke();
     }
 
-    [[[0,1],'i⁺'],[[0,-1],'i⁻'],[[1,0],'i⁰ (r→∞)'],[[0.5,0.5],'ℐ⁺'],[[-0.5,0.5],'ℐ⁺'],[[-0.5,-0.5],'ℐ⁻'],[[0.5,-0.5],'ℐ⁻']].forEach(([[T,X],lbl])=>{
-      const [px,py]=toC(T,X);
-      penCtx.fillStyle='rgba(51,255,204,0.6)'; penCtx.font='12px monospace';
-      penCtx.fillText(lbl,px+3,py-3);
-    });
-    penCtx.fillStyle='rgba(255,255,255,0.4)'; penCtx.font='12px monospace';
-    penCtx.fillText('Minkowski Space',cx-50,cy);
+     if(penShowLabels){
+       [[[0,1],'i⁺'],[[0,-1],'i⁻'],[[1,0],'i⁰ (r→∞)'],[[0.5,0.5],'ℐ⁺'],[[-0.5,0.5],'ℐ⁺'],[[-0.5,-0.5],'ℐ⁻'],[[0.5,-0.5],'ℐ⁻']].forEach(([[T,X],lbl])=>{
+         const [px,py]=toC(T,X);
+         penCtx.fillStyle='rgba(51,255,204,0.6)'; penCtx.font='12px monospace';
+         penCtx.fillText(lbl,px+3,py-3);
+       });
+       penCtx.fillStyle='rgba(255,255,255,0.4)'; penCtx.font='12px monospace';
+       penCtx.fillText('Minkowski Space',cx-50,cy);
+     }
   }
 
-  // Animate infalling particle - always show when animating
-  const showEl=document.getElementById('penroseShow').value;
-  const t=penroseT;
+   const showPhoton=document.getElementById('penShowPhoton').checked;
+   const showObserver=document.getElementById('penShowObserver').checked;
+   const showLabels=document.getElementById('penShowLabels').checked;
 
-  // Always animate something meaningful - draw cosmic story
-  if(penroseT>0||pausedPenrose===false){
-    // Animation time from 0 to 1
-    const animPhase=pausedPenrose?penroseT:penroseT;
+   // Use a default midpoint if animation hasn't progressed yet
+   const animPhase=penroseT>0.001?penroseT:0.5;
 
-    if(penMode===0){
-      // Schwarzschild: show particle falling into black hole
-      // Light ray (yellow) - always show
-      const T0=-0.8+animPhase*1.8, X0=1.0-animPhase*1.8;
-      if(T0>=-1&&X0>=-1&&X0<=1){
-        penCtx.beginPath(); penCtx.arc(...toC(T0,X0),6,0,Math.PI*2);
-        penCtx.fillStyle='#ffcc00'; penCtx.shadowBlur=12; penCtx.shadowColor='#ffcc00';
-        penCtx.fill(); penCtx.shadowBlur=0;
-        // Trail
-        penCtx.strokeStyle='rgba(255,204,0,0.4)'; penCtx.lineWidth=1.5;
-        penCtx.beginPath();
-        for(let i=0;i<10;i++){
-          const ti=-0.8+animPhase*1.8*(1-i*0.1);
-          const xi=1.0-animPhase*1.8*(1-i*0.1);
-          if(xi<=1&&xi>=-1) penCtx.lineTo(...toC(ti,xi));
-        }
-        penCtx.stroke();
-        penCtx.fillStyle='rgba(255,204,0,0.8)'; penCtx.font='11px monospace';
-        penCtx.fillText('photon',...toC(T0,X0+0.12));
-      }
-      // Timelike particle (cyan) - infalling observer
-      if(showEl==='all'||showEl==='particle'){
-        const Tt=-0.7+animPhase*1.4, Xt=0.9-animPhase*0.9;
-        if(Tt>=-0.7&&Xt>=0){
-          penCtx.beginPath(); penCtx.arc(...toC(Tt,Math.max(0.01,Xt)),6,0,Math.PI*2);
-          penCtx.fillStyle='#00e5ff'; penCtx.shadowBlur=12; penCtx.shadowColor='#00e5ff';
-          penCtx.fill(); penCtx.shadowBlur=0;
-          penCtx.fillStyle='rgba(0,229,255,0.8)'; penCtx.font='11px monospace';
-          penCtx.fillText('observer',...toC(Tt-0.1,Math.max(0.01,Xt)+0.12));
-        }
-      }
-    } else if(penMode===1){
-      // de Sitter: show cosmological horizon expanding
-      const phase=animPhase*2*Math.PI;
-      const rH=0.3+0.25*Math.sin(phase);
-      penCtx.strokeStyle='rgba(255,204,0,0.8)'; penCtx.lineWidth=2;
-      penCtx.beginPath(); penCtx.arc(...toC(0,0),rH*s/2,0,Math.PI*2);
-      penCtx.stroke();
-      penCtx.fillStyle='rgba(255,204,0,0.7)'; penCtx.font='12px monospace';
-      penCtx.fillText('H⁻¹ (cosmological horizon)',cx-s*0.25,cy+s*0.45);
-      // Show expanding universe
-      const rInner=rH*s/4;
-      penCtx.fillStyle='rgba(204,102,255,0.3)';
-      penCtx.beginPath(); penCtx.arc(...toC(0,0),rInner,0,Math.PI*2);
-      penCtx.fill();
-      penCtx.fillStyle='rgba(204,102,255,0.8)';
-      penCtx.fillText('observable universe',cx-s*0.18,cy-s*0.1);
-    } else if(penMode===2){
-      // Minkowski: show light cone animation
-      const lightCone=animPhase*0.8;
-      penCtx.strokeStyle='rgba(255,204,0,0.6)'; penCtx.lineWidth=2;
-      // Future light cone
-      penCtx.beginPath();
-      penCtx.moveTo(...toC(0,0));
-      penCtx.lineTo(...toC(lightCone,lightCone));
-      penCtx.stroke();
-      penCtx.beginPath();
-      penCtx.moveTo(...toC(0,0));
-      penCtx.lineTo(...toC(-lightCone,lightCone));
-      penCtx.stroke();
-      // Past light cone
-      penCtx.strokeStyle='rgba(0,229,255,0.6)';
-      penCtx.beginPath();
-      penCtx.moveTo(...toC(0,0));
-      penCtx.lineTo(...toC(lightCone,-lightCone));
-      penCtx.stroke();
-      penCtx.beginPath();
-      penCtx.moveTo(...toC(0,0));
-      penCtx.lineTo(...toC(-lightCone,-lightCone));
-      penCtx.stroke();
-      penCtx.fillStyle='rgba(255,255,255,0.7)'; penCtx.font='12px monospace';
-      penCtx.fillText('light cones',cx-30,cy);
-    }
-  }
+   if(penMode===0){
+     // Schwarzschild: show particle falling into black hole
+     if(showPhoton){
+       const T0=-0.8+animPhase*1.8, X0=1.0-animPhase*1.8;
+       if(T0>=-1&&X0>=-1&&X0<=1){
+         penCtx.beginPath(); penCtx.arc(...toC(T0,X0),6,0,Math.PI*2);
+         penCtx.fillStyle='#ffcc00'; penCtx.shadowBlur=12; penCtx.shadowColor='#ffcc00';
+         penCtx.fill(); penCtx.shadowBlur=0;
+         penCtx.strokeStyle='rgba(255,204,0,0.4)'; penCtx.lineWidth=1.5;
+         penCtx.beginPath();
+         for(let i=0;i<10;i++){
+           const ti=-0.8+animPhase*1.8*(1-i*0.1);
+           const xi=1.0-animPhase*1.8*(1-i*0.1);
+           if(xi<=1&&xi>=-1) penCtx.lineTo(...toC(ti,xi));
+         }
+         penCtx.stroke();
+         if(showLabels){
+           penCtx.fillStyle='rgba(255,204,0,0.8)'; penCtx.font='11px monospace';
+           penCtx.fillText('photon',...toC(T0,X0+0.12));
+         }
+       }
+     }
+     if(showObserver){
+       const Tt=-0.7+animPhase*1.4, Xt=0.9-animPhase*0.9;
+       if(Tt>=-0.7&&Xt>=0){
+         penCtx.beginPath(); penCtx.arc(...toC(Tt,Math.max(0.01,Xt)),6,0,Math.PI*2);
+         penCtx.fillStyle='#00e5ff'; penCtx.shadowBlur=12; penCtx.shadowColor='#00e5ff';
+         penCtx.fill(); penCtx.shadowBlur=0;
+         if(showLabels){
+           penCtx.fillStyle='rgba(0,229,255,0.8)'; penCtx.font='11px monospace';
+           penCtx.fillText('observer',...toC(Tt-0.1,Math.max(0.01,Xt)+0.12));
+         }
+       }
+     }
+   } else if(penMode===1){
+     const phase=animPhase*2*Math.PI;
+     const rH=0.3+0.25*Math.sin(phase);
+     if(showPhoton){
+       penCtx.strokeStyle='rgba(255,204,0,0.8)'; penCtx.lineWidth=2;
+       penCtx.beginPath(); penCtx.arc(...toC(0,0),rH*s/2,0,Math.PI*2);
+       penCtx.stroke();
+     }
+     if(showLabels){
+       penCtx.fillStyle='rgba(255,204,0,0.7)'; penCtx.font='12px monospace';
+       penCtx.fillText('H⁻¹ (cosmological horizon)',cx-s*0.25,cy+s*0.45);
+     }
+     const rInner=rH*s/4;
+     penCtx.fillStyle='rgba(204,102,255,0.3)';
+     penCtx.beginPath(); penCtx.arc(...toC(0,0),rInner,0,Math.PI*2);
+     penCtx.fill();
+     if(showLabels){
+       penCtx.fillStyle='rgba(204,102,255,0.8)';
+       penCtx.fillText('observable universe',cx-s*0.18,cy-s*0.1);
+     }
+   } else if(penMode===2){
+     const lightCone=animPhase*0.8;
+     if(showPhoton){
+       penCtx.strokeStyle='rgba(255,204,0,0.6)'; penCtx.lineWidth=2;
+       penCtx.beginPath();
+       penCtx.moveTo(...toC(0,0));
+       penCtx.lineTo(...toC(lightCone,lightCone));
+       penCtx.stroke();
+       penCtx.beginPath();
+       penCtx.moveTo(...toC(0,0));
+       penCtx.lineTo(...toC(-lightCone,lightCone));
+       penCtx.stroke();
+     }
+     if(showObserver){
+       penCtx.strokeStyle='rgba(0,229,255,0.6)';
+       penCtx.beginPath();
+       penCtx.moveTo(...toC(0,0));
+       penCtx.lineTo(...toC(lightCone,-lightCone));
+       penCtx.stroke();
+       penCtx.beginPath();
+       penCtx.moveTo(...toC(0,0));
+       penCtx.lineTo(...toC(-lightCone,-lightCone));
+       penCtx.stroke();
+     }
+     if(showLabels){
+       penCtx.fillStyle='rgba(255,255,255,0.7)'; penCtx.font='12px monospace';
+       penCtx.fillText('light cones',cx-30,cy);
+     }
+   }
   penCtx.setTransform(1,0,0,1,0,0);
 }
 
@@ -1336,15 +1310,18 @@ function togglePenroseAnim(btn){
   pausedPenrose=!pausedPenrose;
   if(btn){btn.textContent=pausedPenrose?'▶':'⏸';btn.classList.toggle('active',!pausedPenrose);}
   if(!pausedPenrose){
-    if(penAnimId) clearInterval(penAnimId);
-    penAnimId=setInterval(()=>{
-      if(pausedPenrose){clearInterval(penAnimId);penAnimId=null;return;}
-      penroseT+=0.02 * (window.animSpeed || 1); // Respect global speed
-      if(penroseT>1){penroseT=0;}
+    if(penAnimId) cancelAnimationFrame(penAnimId);
+    function penLoop(){
+      if(pausedPenrose){penAnimId=null;return;}
+      penroseT+=0.02*penroseDir*(window.animSpeed||1);
+      if(penroseT>=1){penroseT=1;penroseDir=-1;}
+      if(penroseT<=0){penroseT=0;penroseDir=1;}
       redrawPenrose();
-    },30);
+      penAnimId=requestAnimationFrame(penLoop);
+    }
+    penAnimId=requestAnimationFrame(penLoop);
   }else{
-    if(penAnimId){clearInterval(penAnimId);penAnimId=null;}
+    if(penAnimId){cancelAnimationFrame(penAnimId);penAnimId=null;}
   }
 }
 
@@ -1353,8 +1330,10 @@ function togglePenroseAnim(btn){
 // ═══════════════════════════════════════════════════════════════════
 const hawkC=document.getElementById('hawkCanvas');
 const hawkCtx=hawkC.getContext('2d');
-let bhMass=10;
-let evapAnimId=null, evapMass=10;
+let bhMass=10, bhMassBase=10;
+let evapAnimId=null;
+let pausedHawkAnim=true, hawkAnimDir=1;
+let userDraggingMass=false;
 
 // Physical constants (in SI for display, but normalized for plots)
 const G=6.674e-11, hbar=1.055e-34, c=3e8, kB=1.38e-23, Msun=2e30;
@@ -1377,185 +1356,223 @@ function resizeHawk(){
 }
 
 function updateHawking(){
-  const view=document.getElementById('hawkView').value;
   const W=hawkC.width, H=hawkC.height;
   hawkCtx.setTransform(1,0,0,1,0,0);
   hawkCtx.fillStyle='#05050f'; hawkCtx.fillRect(0,0,W,H);
-  hawkCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
+  hawkCtx.setTransform(1,0,0,1,0,0);
 
-  const mx=70, my=30, pw=W-mx-20, ph=H-my-50;
+  const halfW=Math.floor(W/2), halfH=Math.floor(H/2);
+  const gap=6;
+  const q=[
+    {ox:gap/2,      oy:gap/2,        w:halfW-gap/2,  h:halfH-gap/2},
+    {ox:halfW+gap/2,oy:gap/2,        w:halfW-gap/2,  h:halfH-gap/2},
+    {ox:gap/2,      oy:halfH+gap/2,  w:halfW-gap/2,  h:halfH-gap/2},
+    {ox:halfW+gap/2,oy:halfH+gap/2,  w:halfW-gap/2,  h:halfH-gap/2}
+  ];
 
-  if(view==='temp'){
-    // T_H vs M (log-log)
-    const MMin=1e-15, MMax=1e10; // solar masses
-    const TMin=1e-10, TMax=1e30; // Kelvin
+  const titles=['Temperature vs Mass','Radiation Spectrum','Evaporation Time','Luminosity vs Mass'];
+  const titleClrs=['rgba(204,102,255,0.9)','rgba(255,68,119,0.9)','rgba(204,102,255,0.9)','rgba(0,229,255,0.9)'];
+  titles.forEach((t,i)=>{
+    hawkCtx.fillStyle=titleClrs[i]; hawkCtx.font='bold 11px monospace';
+    hawkCtx.fillText(t,q[i].ox+4,q[i].oy+14);
+  });
+
+  // ── Q0: Temperature vs M (log-log) ──
+  (()=>{
+    const o=q[0], mx=o.ox+42, my=o.oy+22, pw=o.w-52, ph=o.h-34;
+    const MMin=1e-15, MMax=1e10, TMin=1e-10, TMax=1e30;
     const toX=M=>mx+Math.log10(M/MMin)/Math.log10(MMax/MMin)*pw;
     const toY=T=>my+ph*(1-Math.log10(T/TMin)/Math.log10(TMax/TMin));
-
+    hawkCtx.save(); hawkCtx.beginPath(); hawkCtx.rect(o.ox,o.oy,o.w,o.h); hawkCtx.clip();
     hawkCtx.strokeStyle='#1a1a38'; hawkCtx.lineWidth=0.5;
-    for(let e=-15;e<=10;e+=5){
-      const x=toX(Math.pow(10,e));
-      hawkCtx.beginPath(); hawkCtx.moveTo(x,my); hawkCtx.lineTo(x,my+ph); hawkCtx.stroke();
-    }
-    hawkCtx.strokeStyle='#2a2a55'; hawkCtx.lineWidth=1.5;
-    hawkCtx.beginPath(); hawkCtx.moveTo(mx,my+ph); hawkCtx.lineTo(mx+pw,my+ph); hawkCtx.stroke();
-    hawkCtx.beginPath(); hawkCtx.moveTo(mx,my); hawkCtx.lineTo(mx,my+ph); hawkCtx.stroke();
-    hawkCtx.fillStyle='#55558a'; hawkCtx.font='12px monospace';
-    hawkCtx.fillText('log₁₀(M/M☉)',mx+pw/2-40,H-8);
-    hawkCtx.fillText('T_H (K)',mx-55,my+8);
-
-    hawkCtx.strokeStyle='rgba(204,102,255,0.85)'; hawkCtx.lineWidth=2.5;
+    for(let e=-15;e<=10;e+=5){const x=toX(Math.pow(10,e));hawkCtx.beginPath();hawkCtx.moveTo(x,my);hawkCtx.lineTo(x,my+ph);hawkCtx.stroke();}
+    hawkCtx.strokeStyle='#2a2a55'; hawkCtx.lineWidth=1;
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my+ph);hawkCtx.lineTo(mx+pw,my+ph);hawkCtx.stroke();
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my);hawkCtx.lineTo(mx,my+ph);hawkCtx.stroke();
+    hawkCtx.fillStyle='#55558a'; hawkCtx.font='10px monospace';
+    hawkCtx.fillText('M/M☉',mx+pw/2-15,my+ph+12);
+    hawkCtx.fillText('T_H(K)',o.ox+2,my+8);
+    hawkCtx.strokeStyle='rgba(204,102,255,0.85)'; hawkCtx.lineWidth=2;
     hawkCtx.beginPath();
     for(let logM=-15;logM<=10;logM+=0.1){
-      const M=Math.pow(10,logM);
-      const T=T_H_norm(M);
+      const M=Math.pow(10,logM); const T=T_H_norm(M);
       if(T<TMin||T>TMax) continue;
       const x=toX(M), y=toY(T);
       logM===-15?hawkCtx.moveTo(x,y):hawkCtx.lineTo(x,y);
     }
     hawkCtx.stroke();
-
-    // Current BH - use evapMass if animating, else bhMass
-    const currentMass=pausedEvap?bhMass:evapMass;
-    const T=T_H_norm(currentMass);
+    const T=T_H_norm(bhMass);
     if(T>TMin&&T<TMax){
-      hawkCtx.beginPath(); hawkCtx.arc(toX(currentMass),toY(T),6,0,Math.PI*2);
-      hawkCtx.fillStyle='#ffcc00'; hawkCtx.shadowBlur=12; hawkCtx.shadowColor='#ffcc00'; hawkCtx.fill(); hawkCtx.shadowBlur=0;
-      // Show mass label
-      hawkCtx.fillStyle='#ffcc00'; hawkCtx.font='11px monospace';
-      hawkCtx.fillText('M='+currentMass.toFixed(1)+' M☉',toX(currentMass)+8,toY(T)-4);
+      hawkCtx.beginPath();hawkCtx.arc(toX(Math.max(bhMass,MMin)),toY(T),5,0,Math.PI*2);
+      hawkCtx.fillStyle='#ffcc00';hawkCtx.shadowBlur=10;hawkCtx.shadowColor='#ffcc00';hawkCtx.fill();hawkCtx.shadowBlur=0;
+      hawkCtx.fillStyle='#ffcc00';hawkCtx.font='10px monospace';
+      hawkCtx.fillText('M='+bhMass.toFixed(1),toX(Math.max(bhMass,MMin))+8,toY(T)-4);
     }
-
-    // Notable masses
-    [[1,'1 M☉'],[1e8,'10⁸ M☉ (SMBH)']].forEach(([M,lbl])=>{
-      const x=toX(M); const T2=T_H_norm(M);
-      hawkCtx.fillStyle='#33445a'; hawkCtx.font='12px monospace';
-      hawkCtx.fillText(lbl,x+2,my+20);
+    [[1,'1 M☉'],[1e8,'10⁸ M☉']].forEach(([M,lbl])=>{
+      hawkCtx.fillStyle='#33445a';hawkCtx.font='10px monospace';
+      hawkCtx.fillText(lbl,toX(M)+2,my+16);
     });
+    hawkCtx.restore();
+  })();
 
-    // Axis ticks
-    for(let e=-10;e<=30;e+=5){
-      hawkCtx.fillStyle='#33445a'; hawkCtx.font='12px monospace';
-      const y=toY(Math.pow(10,e));
-      if(y>my&&y<my+ph) hawkCtx.fillText('10^'+e,2,y+3);
-    }
-    for(let e=-15;e<=10;e+=5){
-      hawkCtx.fillStyle='#33445a'; hawkCtx.font='12px monospace';
-      const x=toX(Math.pow(10,e));
-      if(x>mx&&x<mx+pw) hawkCtx.fillText(e,x-4,my+ph+14);
-    }
-
-  } else if(view==='spec'){
-    // Planck spectrum at T_H - use evapMass if animating, else bhMass
-    const currentMass=pausedEvap?bhMass:evapMass;
-    const T=T_H_norm(currentMass);
+  // ── Q1: Radiation Spectrum ──
+  (()=>{
+    const o=q[1], mx=o.ox+42, my=o.oy+22, pw=o.w-52, ph=o.h-34;
+    const T=T_H_norm(Math.max(bhMass,0.01));
     const hc2=2*hbar*c*c;
     const kBT=kB*T;
     const nuPeak=3*kBT/hbar;
     const nuMax=8*nuPeak;
     const toX=nu=>mx+nu/nuMax*pw;
-    const planck=nu=>hc2*nu*nu*nu/(Math.exp(hbar*nu/kBT)-1);
+    const planck=nu=>hc2*nu*nu*nu/(Math.exp(Math.min(hbar*nu/kBT,700))-1);
     const vals=[];
-    for(let i=1;i<=300;i++){ const nu=i/300*nuMax; vals.push(planck(nu)); }
+    for(let i=1;i<=300;i++){const nu=i/300*nuMax;vals.push(planck(nu));}
     const maxB=Math.max(...vals);
     const toY=B=>my+ph*(1-B/maxB);
-
-    hawkCtx.strokeStyle='#1a1a38'; hawkCtx.lineWidth=0.5;
-    hawkCtx.beginPath(); hawkCtx.moveTo(mx,my+ph); hawkCtx.lineTo(mx+pw,my+ph); hawkCtx.stroke();
-    hawkCtx.fillStyle='#55558a'; hawkCtx.font='12px monospace';
-    hawkCtx.fillText('Frequency ν',mx+pw/2-30,H-8);
-    hawkCtx.fillText('B_ν',mx-24,my+8);
-
-    hawkCtx.strokeStyle='rgba(255,68,119,0.85)'; hawkCtx.lineWidth=2.5;
+    hawkCtx.save();hawkCtx.beginPath();hawkCtx.rect(o.ox,o.oy,o.w,o.h);hawkCtx.clip();
+    hawkCtx.strokeStyle='#1a1a38';hawkCtx.lineWidth=0.5;
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my+ph);hawkCtx.lineTo(mx+pw,my+ph);hawkCtx.stroke();
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my);hawkCtx.lineTo(mx,my+ph);hawkCtx.stroke();
+    hawkCtx.fillStyle='#55558a';hawkCtx.font='10px monospace';
+    hawkCtx.fillText('ν',mx+pw/2-5,my+ph+12);
+    hawkCtx.fillText('B_ν',o.ox+4,my+8);
+    hawkCtx.strokeStyle='rgba(255,68,119,0.85)';hawkCtx.lineWidth=2;
     hawkCtx.beginPath();
-    vals.forEach((B,i)=>{
-      const nu=(i+1)/300*nuMax;
-      const x=toX(nu), y=toY(B);
-      i===0?hawkCtx.moveTo(x,y):hawkCtx.lineTo(x,y);
-    });
+    vals.forEach((B,i)=>{const nu=(i+1)/300*nuMax;const x=toX(nu),y=toY(B);i===0?hawkCtx.moveTo(x,y):hawkCtx.lineTo(x,y);});
     hawkCtx.stroke();
-
-    // Fill under curve
     hawkCtx.fillStyle='rgba(204,102,255,0.08)';
-    hawkCtx.beginPath(); hawkCtx.moveTo(toX(0),toY(0));
-    vals.forEach((B,i)=>{ const nu=(i+1)/300*nuMax; hawkCtx.lineTo(toX(nu),toY(B)); });
-    hawkCtx.lineTo(toX(nuMax),toY(0)); hawkCtx.closePath(); hawkCtx.fill();
+    hawkCtx.beginPath();hawkCtx.moveTo(toX(0),toY(0));
+    vals.forEach((B,i)=>{const nu=(i+1)/300*nuMax;hawkCtx.lineTo(toX(nu),toY(B));});
+    hawkCtx.lineTo(toX(nuMax),toY(0));hawkCtx.closePath();hawkCtx.fill();
+    hawkCtx.fillStyle='rgba(255,204,0,0.6)';hawkCtx.font='10px monospace';
+    hawkCtx.fillText('T='+T.toExponential(1)+'K',mx+4,my+ph-8);
+    hawkCtx.fillText('Wien: ν_peak=2.82kT/h',mx+4,my+ph-20);
+    hawkCtx.restore();
+  })();
 
-    hawkCtx.fillStyle='rgba(255,204,0,0.6)'; hawkCtx.font='12px monospace';
-    hawkCtx.fillText('Peak: Wien\'s law  ν_peak = 2.82 k_B T/h',mx+4,my+16);
-    hawkCtx.fillText(`T = ${T.toExponential(2)} K`,mx+4,my+30);
-
-  } else {
-    // Evaporation: M(t) as BH shrinks
-    const t_tot=t_evap_norm(bhMass);
+  // ── Q2: Evaporation Time ──
+  (()=>{
+    const o=q[2], mx=o.ox+42, my=o.oy+22, pw=o.w-52, ph=o.h-34;
+    const t_tot=t_evap_norm(bhMassBase);
     const toX=t=>mx+t/t_tot*pw;
-    const toY=m=>my+ph*(1-m/bhMass);
-
-    hawkCtx.strokeStyle='#1a1a38'; hawkCtx.lineWidth=0.5;
-    hawkCtx.beginPath(); hawkCtx.moveTo(mx,my+ph); hawkCtx.lineTo(mx+pw,my+ph); hawkCtx.stroke();
-    hawkCtx.fillStyle='#55558a'; hawkCtx.font='12px monospace';
-    hawkCtx.fillText('Time (frac. of t_evap)',mx+pw/2-60,H-8);
-    hawkCtx.fillText('M(t)/M₀',mx-55,my+8);
-
-    // M(t) = M0 * (1 - t/t_evap)^(1/3)
-    hawkCtx.strokeStyle='rgba(204,102,255,0.9)'; hawkCtx.lineWidth=2.5;
+    const toY=m=>my+ph*(1-m/bhMassBase);
+    hawkCtx.save();hawkCtx.beginPath();hawkCtx.rect(o.ox,o.oy,o.w,o.h);hawkCtx.clip();
+    hawkCtx.strokeStyle='#2a2a55';hawkCtx.lineWidth=1;
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my+ph);hawkCtx.lineTo(mx+pw,my+ph);hawkCtx.stroke();
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my);hawkCtx.lineTo(mx,my+ph);hawkCtx.stroke();
+    hawkCtx.fillStyle='#55558a';hawkCtx.font='10px monospace';
+    hawkCtx.fillText('t/t_evap',mx+pw/2-20,my+ph+12);
+    hawkCtx.fillText('M/M₀',o.ox+4,my+8);
+    hawkCtx.strokeStyle='rgba(204,102,255,0.9)';hawkCtx.lineWidth=2;
     hawkCtx.beginPath();
     for(let t=0;t<=t_tot;t+=t_tot/300){
-      const f=1-t/t_tot;
-      if(f<0) break;
-      const M=bhMass*Math.pow(f,1/3);
+      const f=1-t/t_tot; if(f<0) break;
+      const M=bhMassBase*Math.pow(f,1/3);
       const x=toX(t), y=toY(M);
       t===0?hawkCtx.moveTo(x,y):hawkCtx.lineTo(x,y);
     }
     hawkCtx.stroke();
+    // Animated dot on evaporation curve
+    const curT=(1-Math.pow(Math.max(bhMass,0.001)/bhMassBase,3))*t_tot;
+    const curM=bhMass;
+    hawkCtx.beginPath();hawkCtx.arc(toX(curT),toY(curM),5,0,Math.PI*2);
+    hawkCtx.fillStyle='#ff4477';hawkCtx.shadowBlur=10;hawkCtx.shadowColor='#ff4477';hawkCtx.fill();hawkCtx.shadowBlur=0;
+    hawkCtx.fillStyle='#ff4477';hawkCtx.font='10px monospace';
+    hawkCtx.fillText('M='+curM.toFixed(2),toX(curT)+6,toY(curM)-4);
+    const yrs=t_tot/(3.156e7);
+    hawkCtx.fillStyle='rgba(204,102,255,0.5)';hawkCtx.font='10px monospace';
+    hawkCtx.fillText('t_evap≈'+yrs.toExponential(1)+'yr',mx+4,my+12);
+    hawkCtx.restore();
+  })();
 
-    // Evaporation animation dot
-    if(evapAnimId!==null){
-      const curM=evapMass;
-      const curT=(1-Math.pow(curM/bhMass,3))*t_tot;
-      hawkCtx.beginPath(); hawkCtx.arc(toX(curT),toY(curM),7,0,Math.PI*2);
-      hawkCtx.fillStyle='#ff4477'; hawkCtx.shadowBlur=14; hawkCtx.shadowColor='#ff4477'; hawkCtx.fill(); hawkCtx.shadowBlur=0;
+  // ── Q3: Luminosity vs M (log-log) ──
+  (()=>{
+    const o=q[3], mx=o.ox+42, my=o.oy+22, pw=o.w-52, ph=o.h-34;
+    const MMin=1e-15, MMax=1e10;
+    const LMin=1e-30, LMax=1e60;
+    const toX=M=>mx+Math.log10(M/MMin)/Math.log10(MMax/MMin)*pw;
+    const toY=L=>my+ph*(1-Math.log10(L/LMin)/Math.log10(LMax/LMin));
+    hawkCtx.save();hawkCtx.beginPath();hawkCtx.rect(o.ox,o.oy,o.w,o.h);hawkCtx.clip();
+    hawkCtx.strokeStyle='#1a1a38';hawkCtx.lineWidth=0.5;
+    for(let e=-15;e<=10;e+=5){const x=toX(Math.pow(10,e));hawkCtx.beginPath();hawkCtx.moveTo(x,my);hawkCtx.lineTo(x,my+ph);hawkCtx.stroke();}
+    hawkCtx.strokeStyle='#2a2a55';hawkCtx.lineWidth=1;
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my+ph);hawkCtx.lineTo(mx+pw,my+ph);hawkCtx.stroke();
+    hawkCtx.beginPath();hawkCtx.moveTo(mx,my);hawkCtx.lineTo(mx,my+ph);hawkCtx.stroke();
+    hawkCtx.fillStyle='#55558a';hawkCtx.font='10px monospace';
+    hawkCtx.fillText('M/M☉',mx+pw/2-15,my+ph+12);
+    hawkCtx.fillText('L(W)',o.ox+4,my+8);
+    hawkCtx.strokeStyle='rgba(0,229,255,0.85)';hawkCtx.lineWidth=2;
+    hawkCtx.beginPath();
+    for(let logM=-15;logM<=10;logM+=0.1){
+      const M=Math.pow(10,logM); const L=L_H_norm(M);
+      if(L<LMin||L>LMax) continue;
+      const x=toX(M), y=toY(L);
+      logM===-15?hawkCtx.moveTo(x,y):hawkCtx.lineTo(x,y);
     }
+    hawkCtx.stroke();
+    const Lcur=L_H_norm(Math.max(bhMass,0.01));
+    if(Lcur>LMin&&Lcur<LMax){
+      hawkCtx.beginPath();hawkCtx.arc(toX(Math.max(bhMass,MMin)),toY(Lcur),5,0,Math.PI*2);
+      hawkCtx.fillStyle='#ffcc00';hawkCtx.shadowBlur=10;hawkCtx.shadowColor='#ffcc00';hawkCtx.fill();hawkCtx.shadowBlur=0;
+      hawkCtx.fillStyle='#ffcc00';hawkCtx.font='10px monospace';
+      hawkCtx.fillText('M='+bhMass.toFixed(1),toX(Math.max(bhMass,MMin))+8,toY(Lcur)-4);
+    }
+    hawkCtx.fillStyle='#33445a';hawkCtx.font='10px monospace';
+    hawkCtx.fillText('L∝1/M²',mx+4,my+ph-8);
+    hawkCtx.restore();
+  })();
 
-    hawkCtx.fillStyle='rgba(204,102,255,0.5)'; hawkCtx.font='12px monospace';
-    const yrs=t_tot/(3.156e7); // seconds to years
-    hawkCtx.fillText(`t_evap ≈ ${yrs.toExponential(2)} yr`,mx+4,my+18);
+  // Quadrant divider lines
+  hawkCtx.strokeStyle='#1c1c44';hawkCtx.lineWidth=1;
+  hawkCtx.beginPath();hawkCtx.moveTo(halfW,gap/2);hawkCtx.lineTo(halfW,H-gap/2);hawkCtx.stroke();
+  hawkCtx.beginPath();hawkCtx.moveTo(gap/2,halfH);hawkCtx.lineTo(W-gap/2,halfH);hawkCtx.stroke();
+
+  // Sync slider + label with current bhMass
+  if(!userDraggingMass){
+    document.getElementById('bhMSlider').value=Math.round(bhMass);
   }
-
-  // Update sidebar
-  document.getElementById('hwM').textContent=bhMass+' M☉';
+  document.getElementById('bhMval').textContent=bhMass.toFixed(1);
+  // Update right sidebar
+  document.getElementById('hwM').textContent=bhMass.toFixed(1)+' M☉';
   const rs=2*G*bhMass*Msun/(c*c);
   document.getElementById('hwRs').textContent=rs.toExponential(2)+' m';
-  document.getElementById('hwT').textContent=T_H_norm(bhMass).toExponential(3)+' K';
-  document.getElementById('hwL').textContent=L_H_norm(bhMass).toExponential(3)+' W';
-  const te=t_evap_norm(bhMass);
+  document.getElementById('hwT').textContent=T_H_norm(Math.max(bhMass,0.01)).toExponential(3)+' K';
+  document.getElementById('hwL').textContent=L_H_norm(Math.max(bhMass,0.01)).toExponential(3)+' W';
+  const te=t_evap_norm(Math.max(bhMass,0.01));
   const yr=te/(3.156e7);
   document.getElementById('hwTe').textContent=yr.toExponential(2)+' yr';
 }
 
-let pausedEvap=true;
+let pausedHawkAnim=true;
 function toggleEvapAnim(btn){
-  pausedEvap=!pausedEvap;
-  if(btn){btn.textContent=pausedEvap?'▶ Evaporate':'⏸ Pause';btn.classList.toggle('active',!pausedEvap);}
-  if(!pausedEvap){
-    if(evapAnimId!==null){clearInterval(evapAnimId);evapAnimId=null;}
-    evapMass=bhMass;
-    const stepFrac=0.003;
-    const btnRef=btn;
-    evapAnimId=setInterval(()=>{
-      if(pausedEvap){clearInterval(evapAnimId);evapAnimId=null;return;}
-      evapMass=bhMass*Math.pow(Math.max(0,1-stepFrac*evapMass/bhMass),1/3);
-      if(evapMass<0.001*bhMass){clearInterval(evapAnimId);evapAnimId=null;pausedEvap=true;if(btnRef){btnRef.textContent='▶ Evaporate';btnRef.classList.remove('active');}evapMass=bhMass;}
+  pausedHawkAnim=!pausedHawkAnim;
+  if(btn){btn.textContent=pausedHawkAnim?'▶ Evaporate':'⏸ Pause';btn.classList.toggle('active',!pausedHawkAnim);}
+  if(!pausedHawkAnim){
+    if(evapAnimId) cancelAnimationFrame(evapAnimId);
+    function hawkLoop(){
+      if(pausedHawkAnim){evapAnimId=null;return;}
+      if(!userDraggingMass){
+        const speed=(window.animSpeed||1);
+        if(hawkAnimDir>0){
+          bhMass=Math.max(1,bhMass-bhMass*0.004*speed);
+          if(bhMass<=1){bhMass=1;hawkAnimDir=-1;}
+        }else{
+          bhMass=Math.min(bhMassBase,bhMass+bhMassBase*0.008*speed);
+          if(bhMass>=bhMassBase){bhMass=bhMassBase;hawkAnimDir=1;}
+        }
+      }
       updateHawking();
-    },50);
+      evapAnimId=requestAnimationFrame(hawkLoop);
+    }
+    evapAnimId=requestAnimationFrame(hawkLoop);
   }else{
-    if(evapAnimId!==null){clearInterval(evapAnimId);evapAnimId=null;}
+    if(evapAnimId){cancelAnimationFrame(evapAnimId);evapAnimId=null;}
   }
 }
 function resetEvap(){
-  if(evapAnimId!==null){clearInterval(evapAnimId);evapAnimId=null;}
-  evapMass=bhMass;
-  pausedEvap=true;
+  if(evapAnimId){cancelAnimationFrame(evapAnimId);evapAnimId=null;}
+  bhMass=bhMassBase;hawkAnimDir=1;
+  pausedHawkAnim=true;
   const btn=document.getElementById('evapBtn');
   if(btn){btn.textContent='▶ Evaporate';btn.classList.remove('active');}
   updateHawking();
@@ -1779,6 +1796,7 @@ function drawCMBMap(W,H){
 const inflC=document.getElementById('inflCanvas');
 const inflCtx=inflC.getContext('2d');
 let infPhi0=15;
+let infLambda=3;
 let inflT=0, inflAnimId=null, inflAnimRunning=false;
 
 function resizeInfl(){
@@ -1794,6 +1812,7 @@ function toggleInflAnim(){
   const btn=document.getElementById('inflAnimBtn');
   if(btn){btn.textContent=inflAnimRunning?'⏸ Pause':'▶ Animate';btn.classList.toggle('active',inflAnimRunning);}
   if(inflAnimRunning) inflAnimLoop();
+  else if(inflAnimId){cancelAnimationFrame(inflAnimId);inflAnimId=null;}
 }
 function inflAnimLoop(){
   if(!inflAnimRunning) return;
@@ -1809,12 +1828,7 @@ function inflAnimLoop(){
   document.getElementById('inflEta').textContent=eta.toFixed(4);
   document.getElementById('inflDphi').textContent=(dphiH/phi).toFixed(5);
   drawInflation();
-  requestAnimationFrame(inflAnimLoop);
-}
-  inflT+=0.012 * (window.animSpeed || 1); // Respect global speed
-  if(inflT>1){ inflT=0; } // loop
-  drawInflation();
-  requestAnimationFrame(inflAnimLoop);
+  inflAnimId=requestAnimationFrame(inflAnimLoop);
 }
 
 function drawInflation(){
@@ -2514,6 +2528,8 @@ function toggleDEAnim(btn){
   if(deAnimRunning){
     deAnimT=0;
     deAnimLoop();
+  }else{
+    if(deAnimId){cancelAnimationFrame(deAnimId);deAnimId=null;}
   }
 }
 function deAnimLoop(){
@@ -2525,12 +2541,7 @@ function deAnimLoop(){
   document.getElementById('deWnow').textContent=w.toFixed(2);
   document.getElementById('deAccel').textContent=accel>0?'+':'-';
   drawDarkEnergy();
-  requestAnimationFrame(deAnimLoop);
-}
-  deAnimT+=0.01 * (window.animSpeed || 1); // Respect global speed
-  if(deAnimT>1) deAnimT=0;
-  drawDarkEnergy();
-  requestAnimationFrame(deAnimLoop);
+  deAnimId=requestAnimationFrame(deAnimLoop);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2752,11 +2763,12 @@ function drawGW(){
 }
 
 // GW animation
-let gwAnimRunning=false, gwAnimT=0;
+let gwAnimRunning=false, gwAnimT=0, gwAnimId=null;
 function toggleGWAnim(btn){
   gwAnimRunning=!gwAnimRunning;
   if(btn){btn.textContent=gwAnimRunning?'⏸ Pause':'▶ Animate';btn.classList.toggle('active',gwAnimRunning);}
   if(gwAnimRunning) gwAnimLoop();
+  else{if(gwAnimId){cancelAnimationFrame(gwAnimId);gwAnimId=null;}}
 }
 function gwAnimLoop(){
   if(!gwAnimRunning) return;
@@ -2764,12 +2776,7 @@ function gwAnimLoop(){
   const f=Math.pow(10,-3+4*(gwAnimT%2>1?2-gwAnimT%2:gwAnimT%2));
   const amp=0.5+0.5*Math.sin(gwAnimT*5);
   drawGW();
-  requestAnimationFrame(gwAnimLoop);
-}
-  gwAnimT+=0.015 * (window.animSpeed || 1); // Respect global speed
-  if(gwAnimT>1) gwAnimT=0;
-  drawGW();
-  requestAnimationFrame(gwAnimLoop);
+  gwAnimId=requestAnimationFrame(gwAnimLoop);
 }
 
 // ── RESIZE & INIT ──
@@ -2788,14 +2795,7 @@ window.addEventListener('resize',resizeAll);
 
 
 setTimeout(()=>{
-  resizeAll();
-  solveFriedmann();
-  redrawPenrose();
-  updateHawking();
-  drawCMB();
-  drawInflation();
-  drawDarkEnergy();
-  drawGW();
+  switchTab(0);
 },120);
 </script>
 

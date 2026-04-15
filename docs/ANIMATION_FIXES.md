@@ -64,6 +64,7 @@ This document details the systematic audit and fixes applied to animation contro
 | 60_penrose_singularity | Penrose Singularity | Yes | No issues found |
 | 62_adscft | AdS/CFT | No | Yes: btzAnimating, rgAnimating |
 | 63_qec | Quantum Error Correction | No | Yes: blochAnimating |
+| 13_cosmology | Friedmann, Penrose, Hawking, CMB, Inflation, DE, GW | Yes | Yes: clearInterval→cancelAnimationFrame, added hawkAnimDir, userDraggingMass guard, requestAnimationFrame deferred first-frame |
 
 ---
 
@@ -113,6 +114,8 @@ function switchTab(tabId) {
 2. **SwitchTab functions** explicitly set running=false before initializing new tab
 3. **Button initial state** is "▶ Animate/Play" without `.active` class
 4. **Running flags** are only toggled by user-initiated start/stop actions
+5. **Slider sync** — animation-driven sliders use `userDraggingMass` flag to prevent clobbering during user drag; `onchange` clears the flag
+6. **Deferred first-frame** — `requestAnimationFrame(()=>{resize();draw();startAnim();})` prevents race condition where panel hasn't laid out yet and canvas dimensions are 0
 
 ---
 
@@ -150,6 +153,7 @@ All modules 04-63 were audited. The following files received fixes:
 - 60_penrose_singularity.html
 - 62_adscft.html
 - 63_qec.html
+- 13_cosmology.html
 
 ---
 

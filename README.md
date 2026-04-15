@@ -15,7 +15,14 @@ node server.js   # starts Express (OS picks port, printed to console)
 
 ## Recent Progress (April 2026)
 
-Major interactive improvements to modules 05, 06, 07, 08, and 09:
+Major interactive improvements to modules 05, 06, 07, 08, 09, and 13:
+
+### 13_cosmology.html — Cosmology & Quantum Gravity
+Complete overhaul of Tab 1 (Penrose Diagram) and Tab 2 (Hawking Radiation), plus animation lifecycle fixes across all 7 tabs:
+
+- **Penrose Diagram**: Replaced single dropdown with 3 independent checkboxes (Light ray, Observer, Labels); checkbox state now correctly toggles visualization elements including static diagram labels (singularity, horizon, region names, i∞, ℐ±); default midpoint rendering when animation not started so elements are always visible; ping-pong animation via `requestAnimationFrame` (replaced `setInterval`)
+- **Hawking Radiation**: Split single-view layout into 4 simultaneous quadrants (Temperature vs Mass, Radiation Spectrum, Evaporation Time, Luminosity vs Mass); removed View dropdown; all quadrants update live during evaporation animation; single `bhMass` variable drives slider + sidebar + all quadrant dots in sync; `bhMassBase` stores user's initial mass for animation loop; `userDraggingMass` flag prevents animation from clobbering slider thumb during drag; evaporation animates `bhMass` downward and restores upward in a loop
+- **All tabs**: Deferred first-frame rendering via `requestAnimationFrame` wrapper to prevent race condition (canvas dimensions 0 when panel not yet laid out); `cancelAnimationFrame` replaces `clearInterval` throughout; proper animation cleanup in `_cancelAllAnims()`
 
 ### 06_complex_calculus.html — Complex Calculus & Riemann Surfaces
 Complete overhaul of all 9 tabs with guided tours, animation lifecycle, and DPR-safe rendering:
