@@ -93,6 +93,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
 .proof-num{font-size:.65rem;color:var(--dim);font-family:monospace;min-width:20px}
 .proof-name{font-size:.78rem;color:var(--text);flex:1}
 .proof-arrow{font-size:.7rem;color:var(--dim)}
+.tour-overlay{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.55);opacity:0;transition:opacity .3s;pointer-events:none}
+.tour-overlay.open{opacity:1;pointer-events:auto}
+.tour-tip{position:absolute;z-index:5001;background:#121240;border:1.5px solid var(--accent);border-radius:10px;
+  padding:14px 18px;max-width:320px;color:var(--text);font-size:.82rem;line-height:1.55;
+  box-shadow:0 8px 36px rgba(0,0,0,.7);transform:translateY(8px);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
+.tour-tip.show{transform:translateY(0);opacity:1;pointer-events:auto}
+.tour-tip h3{font-size:.9rem;color:var(--accent);margin:0 0 6px}
+.tour-tip p{margin:0}
+.tour-tip .tour-nav{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+.tour-tip .tour-nav button{padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.72rem;font-family:inherit}
+.tour-tip .tour-next{background:var(--accent);color:#000;border:none;font-weight:600}
+.tour-tip .tour-skip{background:transparent;border:1px solid var(--border);color:var(--dim)}
 </style>
 </head>
 <body>
@@ -103,12 +115,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
     <h1>Dirac Equation &amp; Antiparticles</h1>
     <span class="sub">Road to Reality · Ch. 24</span>
   </div>
-  <div class="tabs" data-role="tab-bar">
-    <button class="tab active" onclick="switchTab(0)">Dirac Sea</button>
-    <button class="tab" onclick="switchTab(1)">Zitterbewegung</button>
-    <button class="tab" onclick="switchTab(2)">H Atom</button>
-    <button class="tab" onclick="switchTab(3)">Chirality &amp; Helicity</button>
-    <button class="tab" onclick="switchTab(4)">CPT Symmetry</button>
+  <div class="tabs" role="tablist" data-role="tab-bar">
+    <button class="tab active" role="tab" aria-selected="true" onclick="switchTab(0)">Dirac Sea</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(1)">Zitterbewegung</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(2)">H Atom</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(3)">Chirality &amp; Helicity</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(4)">CPT Symmetry</button>
     <button class="proof-btn" onclick="openProof(null)">Proofs &#9658;</button>
   </div>
 </header>
@@ -116,7 +128,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
 <div class="content">
 
   <!-- TAB 0: DIRAC SEA -->
-  <div class="panel active" id="panel0">
+  <div class="panel active" role="tabpanel" id="panel0">
     <div class="sidebar" data-role="sidebar">
       <div class="section-lbl">Scenario</div>
       <div class="btn-row">
@@ -133,7 +145,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
           oninput="Eph=+this.value;document.getElementById('Ephval').textContent=Eph.toFixed(1);redrawSea()">
       </div>
       <div class="btn-row">
-        <button class="btn pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="btn" id="seaPauseBtn" onclick="toggleSeaPause()">⏸ Pause</button>
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
         <button class="btn" onclick="resetPan()">Reset</button>
       </div>
@@ -146,7 +158,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
     </div>
 
     <div class="main-area">
-      <canvas id="seaCanvas"></canvas>
+      <canvas aria-label="Dirac Equation and Antiparticles | Road to Reality — panel 1" id="seaCanvas"></canvas>
     </div>
 
     <div class="sidebar right" data-role="sidebar">
@@ -177,7 +189,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
 
 
   <!-- TAB 1: ZITTERBEWEGUNG -->
-  <div class="panel" data-role="panel" id="panel1">
+  <div class="panel" role="tabpanel" data-role="panel" id="panel1">
     <div class="sidebar" data-role="sidebar">
       <div class="section-lbl">Wavepacket</div>
       <div>
@@ -200,7 +212,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <button class="btn" id="zbView1" onclick="setZBView(1)">Spectrum</button>
       </div>
       <div class="btn-row" style="margin-top:4px">
-        <button class="btn pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="btn" id="zbPauseBtn" onclick="toggleZBPause()">⏸ Pause</button>
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
         <button class="btn" onclick="resetPan()">Reset</button>
       </div>
@@ -210,7 +222,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         Amplitude &sim; &hbar;/2mc (Compton &lambda;)
       </div>
     </div>
-    <div class="main-area"><canvas id="zbCanvas"></canvas></div>
+    <div class="main-area"><canvas aria-label="Dirac Equation and Antiparticles | Road to Reality — panel 2" id="zbCanvas"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="section-lbl">Live Values</div>
       <div class="eq-block">
@@ -234,7 +246,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
   </div>
 
   <!-- TAB 2: HYDROGEN FINE STRUCTURE -->
-  <div class="panel" data-role="panel" id="panel2">
+  <div class="panel" role="tabpanel" data-role="panel" id="panel2">
     <div class="sidebar" data-role="sidebar">
       <div class="section-lbl">Parameters</div>
       <div>
@@ -252,17 +264,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <button class="btn" id="hView1" onclick="setHView(1)">Compare</button>
       </div>
       <div class="btn-row" style="margin-top:4px">
-        <button class="btn pauseBtn" onclick="togglePause()">⏸ Pause</button>
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
         <button class="btn" onclick="resetPan()">Reset</button>
       </div>
-      <div style="margin-top:6px">
-        <label>Zoom = <span id="hZoomVal">1.00</span>x</label>
-        <input type="range" id="hZoomSlider" min="0.3" max="3" step="0.05" value="1"
-          oninput="hZoom=+this.value;document.getElementById('hZoomVal').textContent=hZoom.toFixed(2);redrawHatom()">
-      </div>
       <div class="btn-row" style="margin-top:4px">
-        <button class="btn" onclick="hZoomFit()">⬚ Zoom Fit</button>
+        <button class="btn active" id="hAnimBtn" onclick="toggleHAnim()">⏸ Sweep Z</button>
+        <button class="btn" onclick="resetHAtom()">Reset</button>
       </div>
       <div class="callout" style="font-size:.72rem;margin-top:4px">
         <strong>Dirac levels:</strong><br>
@@ -273,7 +280,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <strong>Fine structure:</strong> levels split by j (not l). Vary Z to see relativistic corrections grow as (&alpha;Z)&sup4;.
       </div>
     </div>
-    <div class="main-area"><canvas id="hCanvas"></canvas></div>
+    <div class="main-area"><canvas aria-label="Dirac Equation and Antiparticles | Road to Reality — panel 3" id="hCanvas"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="section-lbl">Level Info</div>
       <div class="eq-block">
@@ -297,7 +304,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
   </div>
 
   <!-- TAB 3: CHIRALITY & HELICITY -->
-  <div class="panel" data-role="panel" id="panel3">
+  <div class="panel" role="tabpanel" data-role="panel" id="panel3">
     <div class="sidebar" data-role="sidebar">
       <div class="section-lbl">Parameters</div>
       <div>
@@ -320,7 +327,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <button class="btn" id="chMode2" onclick="setChiralMode(2)">Standard Model</button>
       </div>
       <div class="btn-row">
-        <button class="btn pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="btn" id="chPauseBtn" onclick="toggleChPause()">⏸ Pause</button>
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
         <button class="btn" onclick="resetPan()">Reset</button>
       </div>
@@ -330,10 +337,10 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         Chirality: Lorentz-invariant.<br>Helicity: frame-dependent (massive).
       </div>
     </div>
-    <div class="main-area"><canvas id="chiralCanvas"></canvas></div>
+    <div class="main-area"><canvas aria-label="Dirac Equation and Antiparticles | Road to Reality — panel 4" id="chiralCanvas"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="section-lbl">Chiral Mixing</div>
-      <canvas id="chiralBarCanvas" width="190" height="120"
+      <canvas aria-label="Dirac Equation and Antiparticles | Road to Reality — panel 5" id="chiralBarCanvas" width="190" height="120"
         style="border:1px solid var(--border);border-radius:4px"></canvas>
       <div class="eq-block" style="margin-top:6px">
         <div class="vrow"><span class="vlbl">|&psi;_L|&sup2;</span><span id="chiLval" style="color:#ff4477">&mdash;</span></div>
@@ -348,7 +355,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
   </div>
 
   <!-- TAB 4: CPT SYMMETRY -->
-  <div class="panel" data-role="panel" id="panel4">
+  <div class="panel" role="tabpanel" data-role="panel" id="panel4">
     <div class="sidebar" data-role="sidebar">
       <div class="section-lbl">Symmetry Operation</div>
       <div class="btn-row">
@@ -364,17 +371,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <button class="btn" id="cpt5" onclick="setCPT(5)">CPT</button>
       </div>
       <div class="btn-row" style="margin-top:4px">
-        <button class="btn pauseBtn" onclick="togglePause()">⏸ Pause</button>
+        <button class="btn" id="cptPauseBtn" onclick="toggleCPTPause()">⏸ Pause</button>
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
         <button class="btn" onclick="resetPan()">Reset</button>
-      </div>
-      <div style="margin-top:6px">
-        <label>Zoom = <span id="cptZoomVal">1.00</span>x</label>
-        <input type="range" id="cptZoomSlider" min="0.3" max="3" step="0.05" value="1"
-          oninput="cptZoom=+this.value;document.getElementById('cptZoomVal').textContent=cptZoom.toFixed(2);redrawCPT()">
-      </div>
-      <div class="btn-row" style="margin-top:4px">
-        <button class="btn" onclick="cptZoomFit()">⬚ Zoom Fit</button>
       </div>
       <div id="cptDesc" class="callout" style="margin-top:6px;font-size:.74rem;line-height:1.6">
         Original process shown.
@@ -383,7 +382,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         QED: C, P, T each exact. Weak: violates P (maximal), CP (small). CPT: exact in all local Lorentz-invariant QFTs.
       </div>
     </div>
-    <div class="main-area"><canvas id="cptCanvas"></canvas></div>
+    <div class="main-area"><canvas aria-label="Dirac Equation and Antiparticles | Road to Reality — panel 6" id="cptCanvas"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="section-lbl">Transformation Table</div>
       <div class="eq-block" style="font-size:.71rem">
@@ -413,7 +412,17 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
 
 </div>
 
-<div class="strip">Dirac equation: 4-component spinor &middot; predicts antiparticles + spin-&frac12; + g=2 &middot; ZB at 2mc&sup2;/&hbar; &middot; Dirac H-atom fine structure (j-splitting) &middot; CPT exact in local QFT</div>
+<div class="strip" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+  <span>Dirac equation: 4-component spinor &middot; predicts antiparticles + spin-&frac12; + g=2 &middot; ZB at 2mc&sup2;/&hbar; &middot; Dirac H-atom fine structure (j-splitting) &middot; CPT exact in local QFT</span>
+  <span style="margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0">
+    <label style="font-size:.68rem;color:var(--dim);margin:0">Speed</label>
+    <input type="range" id="speedSlider" min="0.02" max="3" step="0.02" value="1"
+      style="width:80px;accent-color:var(--accent);margin:0"
+      oninput="window.animSpeed=+this.value;sessionStorage.setItem('ktour-speed',this.value);document.getElementById('speedVal').textContent=this.value">
+    <span id="speedVal" style="font-size:.66rem;color:var(--dim);min-width:26px">1</span>
+  </span>
+  <button class="btn" style="padding:2px 8px;font-size:.64rem;flex-shrink:0" onclick="startTour()">Tour</button>
+</div>
 
 <!-- PROOF PANEL -->
 <div id="proof-panel">
@@ -440,17 +449,18 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
   <div id="pp-body-proof" class="pp-body" style="display:none"></div>
 </div>
 
+<div class="tour-overlay" id="tourOverlay"></div>
+<div class="tour-tip" id="tourTip">
+  <h3 id="tourTitle"></h3>
+  <p id="tourBody"></p>
+  <div class="tour-nav">
+    <button class="tour-skip" onclick="endTour()">Skip</button>
+    <button class="tour-next" id="tourNextBtn" onclick="nextTourStep()">Next ▸</button>
+  </div>
+</div>
+
 <script>
-function _cancelAllAnims11(){
-  // Cancel all animation frames
-  for(let i=0;i<10;i++){
-    let id=requestAnimationFrame(()=>{});
-    cancelAnimationFrame(id);
-  }
-}
-
-
-  window.animSpeed=0.1;
+  window.animSpeed=1;
 // ── PROOFS ──
 const PROOFS=[
   {title:"Dirac's Factorization of Klein-Gordon",sub:"How the Dirac equation was derived",ref:"Road to Reality §24.2",
@@ -507,19 +517,9 @@ function resetPan(){
   const p=pans[activeTab];p.x=0;p.y=0;
   if(activeTab===0) redrawSea();
   if(activeTab===1) drawZB();
-  if(activeTab===2){
-    hZoom=1;
-    document.getElementById('hZoomSlider').value=1;
-    document.getElementById('hZoomVal').textContent='1.00';
-    redrawHatom();
-  }
+  if(activeTab===2) redrawHatom();
   if(activeTab===3) redrawChiral();
-  if(activeTab===4){
-    cptZoom=1;
-    document.getElementById('cptZoomSlider').value=1;
-    document.getElementById('cptZoomVal').textContent='1.00';
-    redrawCPT();
-  }
+  if(activeTab===4) redrawCPT();
 }
 function _addPan(canvas,idx,fn){
   canvas.addEventListener('mousedown',e=>{
@@ -539,15 +539,30 @@ function _addPan(canvas,idx,fn){
 
 // ── TAB SWITCHING ──
 let activeTab=0;
+function cancelAllAnimations(){
+  if(seaAnimId){clearInterval(seaAnimId);seaAnimId=null;}
+  zbRunning=false;
+  hAnimRunning=false;
+  const hBtn=document.getElementById('hAnimBtn');
+  if(hBtn){hBtn.textContent='▶ Sweep Z';hBtn.classList.remove('active');}
+  chiralRunning=false;
+  cptRunning=false;
+  seaPaused=false;zbPaused=false;hPaused=false;chPaused=false;cptPaused=false;
+  _setPauseBtn('seaPauseBtn',false);
+  _setPauseBtn('zbPauseBtn',false);
+  _setPauseBtn('chPauseBtn',false);
+  _setPauseBtn('cptPauseBtn',false);
+}
 function switchTab(n){
+  cancelAllAnimations();
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
   document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
   activeTab=n;
-  if(n===0){resizeSea();redrawSea();}
-  if(n===1){resizeZB();startZBLoop();}
-  if(n===2){resizeHatom();startHAtomLoop();}
-  if(n===3){resizeChiral();startChiralLoop();}
-  if(n===4){resizeCPT();startCPTLoop();}
+  if(n===0){resizeSea();if(seaScenario>0) setScenario(seaScenario);else redrawSea();}
+  if(n===1){startZBLoop();}
+  if(n===2){resizeHatom();hAnimRunning=true;const btn=document.getElementById('hAnimBtn');if(btn){btn.textContent='⏸ Sweep Z';btn.classList.add('active');}hAtomLoop();}
+  if(n===3){startChiralLoop();}
+  if(n===4){startCPTLoop();}
 }
 
 function openProof(idx){
@@ -577,25 +592,36 @@ const seaC=document.getElementById('seaCanvas');
 const seaCtx=seaC.getContext('2d');
 let seaScenario=0, Eph=3.0;
 let seaAnim=0, seaAnimId=null;
-let isPaused=false;
+let seaPaused=false, zbPaused=false, hPaused=false, chPaused=false, cptPaused=false;
 
-function togglePause(){
-  isPaused=!isPaused;
-  window.isPaused=isPaused; // sync with global rAF pause
-  document.querySelectorAll('.pauseBtn').forEach(b=>{
-    b.textContent=isPaused?'▶ Resume':'⏸ Pause';
-    b.classList.toggle('active',isPaused);
-  });
-  // If unpausing Dirac Sea scenario, restart its interval
-  if(!isPaused && seaScenario>0 && seaAnim<1){
+function _setPauseBtn(id, paused){
+  const b=document.getElementById(id);
+  if(b){b.textContent=paused?'▶ Resume':'⏸ Pause';b.classList.toggle('active',paused);}
+}
+function toggleSeaPause(){
+  seaPaused=!seaPaused;
+  _setPauseBtn('seaPauseBtn',seaPaused);
+  if(!seaPaused && seaScenario>0 && seaAnim<1){
     if(seaAnimId) clearInterval(seaAnimId);
     seaAnimId=setInterval(()=>{
-      if(isPaused) return;
+      if(seaPaused) return;
       seaAnim+=0.015*(window.animSpeed||1);
       if(seaAnim>1){if(seaScenario===3){seaAnim=0;}else{seaAnim=1;clearInterval(seaAnimId);}}
       redrawSea();
     },16);
   }
+}
+function toggleZBPause(){
+  zbPaused=!zbPaused;
+  _setPauseBtn('zbPauseBtn',zbPaused);
+}
+function toggleChPause(){
+  chPaused=!chPaused;
+  _setPauseBtn('chPauseBtn',chPaused);
+}
+function toggleCPTPause(){
+  cptPaused=!cptPaused;
+  _setPauseBtn('cptPauseBtn',cptPaused);
 }
 
 function setScenario(n){
@@ -604,22 +630,13 @@ function setScenario(n){
   seaAnim=0;
   if(seaAnimId) clearInterval(seaAnimId);
   if(n>0){
-    seaAnimId=setInterval(()=>{if(isPaused)return;seaAnim+=0.015*(window.animSpeed||1);if(seaAnim>1){if(n===3){seaAnim=0;}else{seaAnim=1;clearInterval(seaAnimId);}}redrawSea();},16);
+    seaAnimId=setInterval(()=>{if(seaPaused)return;seaAnim+=0.015*(window.animSpeed||1);if(seaAnim>1){if(n===3){seaAnim=0;}else{seaAnim=1;clearInterval(seaAnimId);}}redrawSea();},16);
   }
   redrawSea();
 }
 
 function resizeSea(){
-  const p=document.getElementById('panel0');
-  const r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  const rect = seaC.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  seaC.width = rect.width * dpr;
-  seaC.height = rect.height * dpr;
-  const ctx = seaC.getContext('2d');
-  ctx.scale(dpr, dpr);
+  window.resizeCanvas(seaC);
 }
 
 function redrawSea(){
@@ -796,16 +813,7 @@ function setZBView(v){
 }
 
 function resizeZB(){
-  const p=document.getElementById('panel1');
-  const r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  const rect = zbC.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  zbC.width = rect.width * dpr;
-  zbC.height = rect.height * dpr;
-  const ctx = zbC.getContext('2d');
-  ctx.scale(dpr, dpr);
+  window.resizeCanvas(zbC);
 }
 
 function drawZB(){
@@ -958,7 +966,7 @@ function drawZB(){
 
 function zbLoop(){
   if(activeTab!==1){zbRunning=false;return;}
-  if(!isPaused) zbT+=0.025*(window.animSpeed||1);drawZB();
+  if(!zbPaused) zbT+=0.025*(window.animSpeed||1);drawZB();
   requestAnimationFrame(zbLoop);
 }
 function startZBLoop(){
@@ -971,7 +979,7 @@ function startZBLoop(){
 // ═══════════════════════════════════════════════════════════════════
 const hC=document.getElementById('hCanvas');
 const hCtx=hC.getContext('2d');
-let hZ=1,hNmax=4,hView=0,hZoom=1;
+let hZ=1,hNmax=4,hView=0;
 let hAnimRunning=false, hAnimT=0;
 const ALPHA=1/137.036;
 
@@ -982,16 +990,7 @@ function setHView(v){
   redrawHatom();
 }
 function resizeHatom(){
-  const p=document.getElementById('panel2');
-  const r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  const rect = hCanvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  hCanvas.width = rect.width * dpr;
-  hCanvas.height = rect.height * dpr;
-  const ctx = hCanvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+  window.resizeCanvas(hC);
 }
 function diracE(n,j,Z){
   const az=ALPHA*Z, jh=j+0.5;
@@ -1023,13 +1022,9 @@ function redrawHatom(){
   if(!W||!H) return;
   hCtx.setTransform(1,0,0,1,0,0);
   hCtx.fillStyle='#05050f'; hCtx.fillRect(0,0,W,H);
-  // Apply zoom around center
-  const cx=W/2, cy=H/2;
-  hCtx.translate(cx,cy);
-  hCtx.scale(hZoom,hZoom);
-  hCtx.translate(-cx+pans[2].x,-cy+pans[2].y);
+  hCtx.setTransform(1,0,0,1,pans[2].x,pans[2].y);
 
-  const S=Math.min(W,H)/hZoom;
+  const S=Math.min(W,H);
   const f1=Math.max(11,S*0.022)|0;
   const f2=Math.max(13,S*0.026)|0;
   const f3=Math.max(15,S*0.032)|0;
@@ -1169,28 +1164,43 @@ function redrawHatom(){
 }
 
 function hAtomLoop(){
-  if(activeTab!==2){hAnimRunning=false;return;}
-  if(!isPaused) hAnimT+=0.012*(window.animSpeed||1);
-  // Sweep Z: oscillate between 1 and 92 using a triangle wave
+  if(activeTab!==2||!hAnimRunning){hAnimRunning=false;return;}
+  if(!hPaused) hAnimT+=0.012*(window.animSpeed||1);
   const cycle=hAnimT%(2*Math.PI);
-  const frac=(Math.sin(cycle)+1)/2; // 0→1→0
+  const frac=(Math.sin(cycle)+1)/2;
   hZ=Math.round(1+frac*91);
   document.getElementById('hZSlider').value=hZ;
   document.getElementById('hZval').textContent=hZ;
   redrawHatom();
   requestAnimationFrame(hAtomLoop);
 }
+function toggleHAnim(){
+  hAnimRunning=!hAnimRunning;
+  const btn=document.getElementById('hAnimBtn');
+  if(hAnimRunning){
+    btn.textContent='⏸ Sweep Z';btn.classList.add('active');
+    hAtomLoop();
+  } else {
+    btn.textContent='▶ Sweep Z';btn.classList.remove('active');
+  }
+}
+function resetHAtom(){
+  hZ=1;hAnimT=0;pans[2].x=0;pans[2].y=0;
+  document.getElementById('hZSlider').value=1;
+  document.getElementById('hZval').textContent='1';
+  if(!hAnimRunning){
+    hAnimRunning=true;
+    const btn=document.getElementById('hAnimBtn');
+    btn.textContent='⏸ Sweep Z';btn.classList.add('active');
+    hAtomLoop();
+  }
+  redrawHatom();
+}
 function startHAtomLoop(){
   resizeHatom();
   if(!hAnimRunning){hAnimRunning=true;hAtomLoop();}
 }
-function hZoomFit(){
-  hZoom=1;
-  pans[2].x=0; pans[2].y=0;
-  document.getElementById('hZoomSlider').value=1;
-  document.getElementById('hZoomVal').textContent='1.00';
-  redrawHatom();
-}
+
 
 // ═══════════════════════════════════════════════════════════════════
 // TAB 3: CHIRALITY & HELICITY
@@ -1207,17 +1217,8 @@ function setChiralMode(m){
 }
 
 function resizeChiral(){
-  const p=document.getElementById('panel3');
-  const r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  const rect = chiralCanvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  chiralCanvas.width = rect.width * dpr;
-  chiralCanvas.height = rect.height * dpr;
-  const ctx = chiralCanvas.getContext('2d');
-  ctx.scale(dpr, dpr);
-  chiralBarCanvas.width=190; chiralBarCanvas.height=120;
+  window.resizeCanvas(chiC);
+  window.resizeCanvas(document.getElementById('chiralBarCanvas'));
 }
 
 function redrawChiral(){
@@ -1431,7 +1432,7 @@ function redrawChiral(){
 
 function chiralLoop(){
   if(activeTab!==3){chiralRunning=false;return;}
-  if(!isPaused) chiralAnimT+=0.04*(window.animSpeed||1);
+  if(!chPaused) chiralAnimT+=0.04*(window.animSpeed||1);
   redrawChiral();
   requestAnimationFrame(chiralLoop);
 }
@@ -1445,7 +1446,7 @@ function startChiralLoop(){
 // ═══════════════════════════════════════════════════════════════════
 const cptC=document.getElementById('cptCanvas');
 const cptCtx=cptC.getContext('2d');
-let cptState=0,cptRunning=false,cptAnimT=0,cptZoom=1;
+let cptState=0,cptRunning=false,cptAnimT=0;
 
 const CPT_DESCS=[
   {op:'Original',txt:'Original: electron (q=-e) spin up, moving right, time forward. Compton scattering: e\u207b + \u03b3 \u2192 e\u207b + \u03b3. QED conserves C, P, T individually.'},
@@ -1469,16 +1470,7 @@ function setCPT(n){
 }
 
 function resizeCPT(){
-  const p=document.getElementById('panel4');
-  const r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  const rect = cptCanvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  cptCanvas.width = rect.width * dpr;
-  cptCanvas.height = rect.height * dpr;
-  const ctx = cptCanvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+  window.resizeCanvas(cptC);
 }
 
 function drawArrowCPT(x1,y1,x2,y2,col,lw){
@@ -1528,13 +1520,9 @@ function redrawCPT(){
   if(!W||!H) return;
   cptCtx.setTransform(1,0,0,1,0,0);
   cptCtx.fillStyle='#05050f';cptCtx.fillRect(0,0,W,H);
-  // Apply zoom around center
-  const cx=W/2, cy=H/2;
-  cptCtx.translate(cx,cy);
-  cptCtx.scale(cptZoom,cptZoom);
-  cptCtx.translate(-cx+pans[4].x,-cy+pans[4].y);
+  cptCtx.setTransform(1,0,0,1,pans[4].x,pans[4].y);
 
-  const S=Math.min(W,H)/cptZoom; _cptS=S;
+  const S=Math.min(W,H); _cptS=S;
   const f1=Math.max(12,S*0.024)|0;
   const f2=Math.max(14,S*0.028)|0;
   const f3=Math.max(16,S*0.034)|0;
@@ -1635,7 +1623,7 @@ function redrawCPT(){
 
 function cptLoop(){
   if(activeTab!==4){cptRunning=false;return;}
-  if(!isPaused) cptAnimT+=0.04*(window.animSpeed||1);
+  if(!cptPaused) cptAnimT+=0.04*(window.animSpeed||1);
   redrawCPT();
   requestAnimationFrame(cptLoop);
 }
@@ -1643,15 +1631,47 @@ function startCPTLoop(){
   resizeCPT();
   if(!cptRunning){cptRunning=true;cptLoop();}
 }
-function cptZoomFit(){
-  cptZoom=1;
-  pans[4].x=0; pans[4].y=0;
-  document.getElementById('cptZoomSlider').value=1;
-  document.getElementById('cptZoomVal').textContent='1.00';
-  redrawCPT();
-}
+
 
 // ── RESIZE & INIT ──
+
+// ── GUIDED TOUR ──
+const TOUR_STEPS=[
+  {tab:0,title:'Dirac Sea',body:'The negative-energy sea is fully occupied (Pauli exclusion). A hole in the sea is a positron — same mass, opposite charge. Select "Pair Create" or "Annihilate" to watch the process unfold.',target:'.tabs'},
+  {tab:1,title:'Zitterbewegung',body:'A free Dirac electron trembles due to interference between +E and −E components. The frequency is ω_zb = 2mc²/ℏ ≈ 10²¹ Hz. In the "Spectrum" view, see the +E and −E wavepacket overlap that drives ZB.',target:'.tabs'},
+  {tab:2,title:'Hydrogen Fine Structure',body:'Dirac levels split by total angular momentum j (not l separately). Compare Schrödinger vs Pauli+SO vs Dirac (exact) in "Compare" view. Increase Z to see relativistic corrections grow as (αZ)⁴.',target:'.tabs'},
+  {tab:3,title:'Chirality & Helicity',body:'Chirality (L/R projection via γ⁵) is Lorentz-invariant; helicity (spin·p) is frame-dependent for massive particles. Mass couples ψ_L ↔ ψ_R. In the SM, only ψ_L couples to W± — maximal parity violation.',target:'.tabs'},
+  {tab:4,title:'CPT Symmetry',body:'Apply C (charge), P (parity), and T (time reversal) individually or combined. QED conserves all; the weak force violates P maximally, CP slightly. CPT is exact in every local Lorentz-invariant QFT — the strongest symmetry we know.',target:'.tabs'}
+];
+let tourIdx=-1;
+function startTour(){
+  tourIdx=0;showTourStep();
+}
+function showTourStep(){
+  if(tourIdx<0||tourIdx>=TOUR_STEPS.length){endTour();return;}
+  const step=TOUR_STEPS[tourIdx];
+  switchTab(step.tab);
+  document.getElementById('tourTitle').textContent=step.title;
+  document.getElementById('tourBody').textContent=step.body;
+  document.getElementById('tourNextBtn').textContent=tourIdx===TOUR_STEPS.length-1?'Done ✓':'Next ▸';
+  document.getElementById('tourOverlay').classList.add('open');
+  const tip=document.getElementById('tourTip');
+  tip.style.top='80px';tip.style.left='50%';tip.style.transform='translateX(-50%)';
+  setTimeout(()=>tip.classList.add('show'),50);
+}
+function nextTourStep(){
+  tourIdx++;
+  if(tourIdx>=TOUR_STEPS.length){endTour();return;}
+  const tip=document.getElementById('tourTip');
+  tip.classList.remove('show');
+  setTimeout(showTourStep,200);
+}
+function endTour(){
+  tourIdx=-1;
+  document.getElementById('tourOverlay').classList.remove('open');
+  document.getElementById('tourTip').classList.remove('show');
+}
+
 function resizeAll(){
   resizeSea();resizeZB();resizeHatom();resizeChiral();resizeCPT();
   if(activeTab===0) redrawSea();
@@ -1673,6 +1693,8 @@ setTimeout(()=>{
   _addPan(hC,2,redrawHatom);
   _addPan(chiC,3,redrawChiral);
   _addPan(cptC,4,redrawCPT);
+  const sp=sessionStorage.getItem('ktour-speed');
+  if(sp){window.animSpeed=parseFloat(sp);const sl=document.getElementById('speedSlider');if(sl){sl.value=sp;document.getElementById('speedVal').textContent=sp;}}
 },120);
 </script>
 

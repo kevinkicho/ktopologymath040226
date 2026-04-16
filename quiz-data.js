@@ -294,7 +294,7 @@ const QUIZ_DATA = {
     ans: 1, exp: "In LQC, quantum geometry effects create an effective repulsive pressure at Planck density (~10⁹⁶ kg/m³), replacing the classical singularity with a bounce." }
 ],
 
-"25_string_theory": [
+"61_string_theory": [
   { q: "In string theory, fundamental particles are replaced by:",
     opts: ["Point masses with spin","One-dimensional vibrating strings","Two-dimensional membranes exclusively","Loops of quantized flux"],
     ans: 1, exp: "The basic objects in string theory are 1D strings (open or closed); different vibrational modes correspond to different particles — one mode gives the graviton." },
@@ -760,6 +760,36 @@ const QUIZ_DATA = {
   { q: "The singularity in the Penrose diagram of a Schwarzschild black hole appears as:",
     opts: ["A vertical timelike line (a place in space)","A point at the centre","A spacelike horizontal line at the top — the future boundary hit by all causal curves inside the horizon","A diagonal null surface"],
     ans: 2, exp: "In Kruskal-Szekeres/Penrose coordinates, r=0 is a spacelike hypersurface — it lies to the future of all interior points. The singularity is not a place but a time: every future-directed causal curve inside the event horizon unavoidably reaches it." }
+],
+
+"62_adscft": [
+  { q: "The AdS/CFT correspondence relates a gravitational theory in anti-de Sitter space to:",
+    opts: ["A free field theory in flat space","A conformal field theory on the boundary of AdS","A supersymmetric theory in de Sitter space","A topological field theory in 2D"],
+    ans: 1, exp: "Maldacena's conjecture states that type IIB string theory on AdS₅×S⁵ is dual to N=4 Super Yang-Mills on the 4D boundary. The bulk gravity theory and the boundary CFT encode the same physics." },
+  { q: "In the AdS/CFT dictionary, the radial coordinate z in AdS corresponds to:",
+    opts: ["Time in the boundary theory","The energy scale (RG flow) of the boundary CFT","A spatial dimension on the boundary","A compactification modulus"],
+    ans: 1, exp: "Moving toward the AdS boundary (z→0) corresponds to UV physics of the CFT; moving into the bulk (z→∞) maps to IR. This is the bulk-boundary dictionary key: z ↔ energy scale." },
+  { q: "The Ryu-Takayanagi formula relates boundary entanglement entropy to:",
+    opts: ["The volume of a bulk region","The area of a minimal surface in the bulk anchored to the boundary subregion","The action of a bulk Wilson line","The number of bulk gravitons"],
+    ans: 1, exp: "S(ρ_A) = Area(γ_A)/(4G_N), where γ_A is the minimal-area surface in the bulk whose boundary matches the boundary region A. This geometric formula transforms entanglement into geometry." },
+  { q: "The BTZ black hole in 2+1D AdS is dual to a thermal state in the boundary CFT because:",
+    opts: ["It has Hawking radiation","It can be constructed by identifying points in AdS₃ (quotient), producing a boundary CFT at finite temperature","It violates the null energy condition","It has no horizon"],
+    ans: 1, exp: "The BTZ metric comes from a discrete identification of AdS₃ points, which induces periodic boundary conditions in Euclidean time on the CFT side — precisely a thermal state at the Hawking temperature." }
+],
+
+"63_qec": [
+  { q: "The [[n,k,d]] notation for a quantum error-correcting code describes:",
+    opts: ["n physical qubits encoding k logical qubits with distance d","n logical qubits protected by k physical qubits at distance d","n errors corrected in k steps with depth d","n gates, k measurements, d circuit depth"],
+    ans: 0, exp: "An [[n,k,d]] stabilizer code encodes k logical qubits into n physical qubits. The distance d is the minimum weight of a logical operator — the code corrects up to ⌊(d-1)/2⌋ errors." },
+  { q: "The Shor [[9,1,3]] code protects against:",
+    opts: ["Any single-qubit error (bit-flip or phase-flip)","Only bit-flip errors","Only phase-flip errors","Any two-qubit error"],
+    ans: 0, exp: "Shor's code concatenates a 3-qubit bit-flip code with a 3-qubit phase-flip code. It detects and corrects any single-qubit X or Z error (and hence any single-qubit Pauli, since Y=iXZ)." },
+  { q: "The surface (toric) code's key advantage for fault-tolerant quantum computing is:",
+    opts: ["It requires no ancilla qubits","It has a high threshold (~1%) and needs only nearest-neighbor interactions in 2D","It achieves the quantum capacity bound","It corrects arbitrary errors without measurement"],
+    ans: 1, exp: "The surface code's error threshold around 1% is the highest known for any code, and its stabilizer measurements involve only local (nearest-neighbor) 4-body plaquette and star operators on a 2D lattice — making it the leading candidate for scalable FTQC." },
+  { q: "A stabilizer code's code space is the simultaneous +1 eigenspace of all stabilizer generators. If the stabilizer group has (n-k) independent generators, the code space has dimension:",
+    opts: ["2ⁿ","2ᵏ","2ⁿ⁻ᵏ","n - k"],
+    ans: 1, exp: "Each independent stabilizer cuts the Hilbert space dimension in half. Starting from dimension 2ⁿ, applying (n-k) generators yields 2ⁿ / 2ⁿ⁻ᵏ = 2ᵏ — encoding k logical qubits." }
 ]
 
 }; // end QUIZ_DATA

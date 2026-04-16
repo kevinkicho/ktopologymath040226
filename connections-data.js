@@ -146,7 +146,7 @@ window.MODULE_CONNECTIONS = {
     { target: '31_instantons',   label: 'Topological bundle invariants' },
     { target: '33_cohomology',   label: 'Characteristic classes' },
     { target: '41_homotopy',     label: 'Classifying spaces & homotopy' },
-    { target: '25_string_theory', label: 'Compactification geometry' },
+    { target: '61_string_theory', label: 'Compactification geometry' },
     { target: '52_category_theory', label: 'Functorial bundle constructions' }
   ],
 
@@ -208,11 +208,11 @@ window.MODULE_CONNECTIONS = {
     { target: '19_general_relativity', label: 'Quantization of GR' },
     { target: '28_ccc_or',       label: 'Alternative quantum gravity' },
     { target: '41_homotopy',     label: 'Spin networks & topology' },
-    { target: '25_string_theory', label: 'Competing quantum gravity approaches' },
+    { target: '61_string_theory', label: 'Competing quantum gravity approaches' },
     { target: '60_penrose_singularity', label: 'Singularity resolution via LQG' }
   ],
 
-  '25_string_theory': [
+  '61_string_theory': [
     { target: '24_loop_quantum_gravity', label: 'Alternative quantum gravity' },
     { target: '43_conformal_field_theory', label: 'Worldsheet CFT' },
     { target: '17_fiber_bundles', label: 'Calabi-Yau compactification' },
@@ -327,7 +327,7 @@ window.MODULE_CONNECTIONS = {
     { target: '11_dirac',        label: 'Dirac field quantization' },
     { target: '22_path_integrals', label: 'Path integral quantization' },
     { target: '38_standard_model', label: 'SM as a QFT' },
-    { target: '25_string_theory', label: 'String-derived field theories' },
+    { target: '61_string_theory', label: 'String-derived field theories' },
     { target: '56_muon_g2',      label: 'Higher-order loop calculations' }
   ],
 
@@ -340,7 +340,7 @@ window.MODULE_CONNECTIONS = {
     { target: '33_cohomology',   label: 'Algebraic topology duality' },
     { target: '17_fiber_bundles', label: 'Classifying spaces' },
     { target: '48_topological_matter', label: 'Topological classification' },
-    { target: '25_string_theory', label: 'String topology' },
+    { target: '61_string_theory', label: 'String topology' },
     { target: '24_loop_quantum_gravity', label: 'Spin network topology' },
     { target: '52_category_theory', label: 'Higher category theory' }
   ],
@@ -356,7 +356,7 @@ window.MODULE_CONNECTIONS = {
     { target: '06_complex_calculus', label: 'Conformal maps in 2D' },
     { target: '36_riemann_surfaces', label: 'CFT on higher-genus surfaces' },
     { target: '23_twistor_theory', label: 'Conformal geometry bridge' },
-    { target: '25_string_theory', label: 'Worldsheet CFT' },
+    { target: '61_string_theory', label: 'Worldsheet CFT' },
     { target: '44_twistors',     label: 'Conformal symmetry & amplitudes' },
     { target: '62_adscft',       label: 'CFT side of AdS/CFT' }
   ],
@@ -477,7 +477,7 @@ window.MODULE_CONNECTIONS = {
 
   '62_adscft': [
     { target: '43_conformal_field_theory', label: 'CFT dual of bulk gravity' },
-    { target: '25_string_theory', label: 'String theory origin of duality' },
+    { target: '61_string_theory', label: 'String theory origin of duality' },
     { target: '35_black_holes',  label: 'Black hole information via holography' },
     { target: '19_general_relativity', label: 'Anti-de Sitter spacetime' }
   ],

@@ -14,11 +14,14 @@
 const { test } = require('@playwright/test');
 const fs   = require('fs');
 const path = require('path');
+const os   = require('os');
 
 const ROOT    = path.join(__dirname, '..');
 const modules = fs.readdirSync(ROOT)
   .filter(f => /^\d{2}_.*\.html$/.test(f))
   .sort();
+
+const ISSUES_DIR = path.join(__dirname, '..', 'test-results', 'audit-issues');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -123,28 +126,58 @@ async function auditPage(page, url) {
 
 // ── Tests (one per module) ────────────────────────────────────────────────────
 
-const ALL_ISSUES = [];
+// Ensure a fresh issues directory for this run. The first test to reach this
+// line does the cleanup; subsequent tests see an already-empty (or populated)
+// directory. We use a sentinel file to avoid double-cleanup across workers.
+const _sentinel = path.join(ISSUES_DIR, '.running');
+fs.mkdirSync(ISSUES_DIR, { recursive: true });
+if (!fs.existsSync(_sentinel)) {
+  // Clean stale files from a previous run
+  fs.readdirSync(ISSUES_DIR).forEach(f => {
+    if (f !== '.running') try { fs.unlinkSync(path.join(ISSUES_DIR, f)); } catch {}
+  });
+  fs.writeFileSync(_sentinel, Date.now().toString());
+}
 
 for (const mod of modules) {
   test(mod, async ({ page }) => {
-    // Allow extra time for modules with expensive domain-coloring pixel loops
     test.setTimeout(mod === '36_riemann_surfaces.html' ? 60000 : 30000);
     const issues = await auditPage(page, `http://localhost:4271/${mod}`);
-    ALL_ISSUES.push({ mod, issues });
 
     if (issues.length) {
       console.log(`\n  ${mod} — ${issues.length} issue(s):`);
       issues.forEach(i => console.log(`    • ${i}`));
     }
+
+    // Write results to a per-module file so the summary can read them
+    // regardless of which worker process this test ran in.
+    fs.mkdirSync(ISSUES_DIR, { recursive: true });
+    fs.writeFileSync(
+      path.join(ISSUES_DIR, mod.replace(/[^\w.-]/g, '_') + '.json'),
+      JSON.stringify({ mod, issues })
+    );
   });
 }
 
 // ── Summary ───────────────────────────────────────────────────────────────────
 test('=== AUDIT SUMMARY ===', async () => {
   test.setTimeout(5000);
+
+  // Collect results from all worker-written files
+  const allIssues = [];
+  if (fs.existsSync(ISSUES_DIR)) {
+    const files = fs.readdirSync(ISSUES_DIR).filter(f => f.endsWith('.json'));
+    for (const f of files) {
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(ISSUES_DIR, f), 'utf8'));
+        allIssues.push(data);
+      } catch {}
+    }
+  }
+
   const byType = {};
   let total = 0;
-  ALL_ISSUES.forEach(({ mod, issues }) => {
+  allIssues.forEach(({ mod, issues }) => {
     total += issues.length;
     issues.forEach(i => {
       const type = (i.match(/^\[([^\]]+)\]/) || ['','other'])[1];
@@ -162,4 +195,7 @@ test('=== AUDIT SUMMARY ===', async () => {
     items.forEach(i => console.log('    ' + i.slice(0, 110)));
   });
   console.log('\n══════════════════════════════════════════════\n');
+
+  // Clean up temp files
+  try { fs.rmSync(ISSUES_DIR, { recursive: true, force: true }); } catch {}
 });

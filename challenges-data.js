@@ -474,7 +474,7 @@ window.MODULE_CHALLENGES = {
     }
   ],
 
-  '25_string_theory': [
+  '61_string_theory': [
     {
       id: 'high-vibration',
       title: 'Excite a high vibration mode',

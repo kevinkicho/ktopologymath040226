@@ -844,6 +844,121 @@ window.KTOUR_DATA = {
         "body": "In supersymmetric extensions of the Standard Model the three coupling curves meet precisely at a single point near $10^{15}\\,\\text{GeV}$, providing one of the strongest indirect hints for physics beyond the standard model.",
         "duration": 8000
       }
+    ],
+    "3": [
+      {
+        "title": "Color Flux Tubes",
+        "body": "The Yang-Mills view shows a quark (red) and anti-quark (anti-red) held at a separation $r$. Color field lines are squeezed into a narrow flux tube of constant tension $\\sigma \\approx 1$ GeV/fm, unlike the spreading $1/r^2$ field in QED.",
+        "duration": 9000
+      },
+      {
+        "title": "Linear Confinement",
+        "body": "The potential energy grows as $V(r) = -\\frac{4\\alpha_s}{3r} + \\sigma r$. At large separation the linear term dominates, so pulling quarks apart costs energy proportional to distance — they can never be isolated.",
+        "duration": 9000
+      },
+      {
+        "title": "Drag the Separation Slider",
+        "body": "Move the quark separation slider and watch the flux tube narrow and the energy $V(r) \\approx \\sigma r$ climb. This is why only color-neutral hadrons exist in nature.",
+        "duration": 8000
+      },
+      {
+        "title": "Running $\\alpha_s$",
+        "body": "Switch to Running $\\alpha_s$ to see the strong coupling decrease at high energy — asymptotic freedom. Experimental data points (yellow dots) confirm the one-loop prediction. Below $\\Lambda_{QCD}$ the coupling diverges — confinement takes over.",
+        "duration": 9000
+      }
+    ],
+    "4": [
+      {
+        "title": "Instanton Field Profile",
+        "body": "The BPST instanton is a self-dual field configuration $F_{\\mu\\nu} = \\tilde{F}_{\\mu\\nu}$ with topological charge $Q=1$. The colored heatmap shows $|F|^2 \\propto \\rho^4/(x^2+\\rho^2)^4$ centered on the instanton core.",
+        "duration": 9000
+      },
+      {
+        "title": "Size Parameter $\\rho$",
+        "body": "Drag the $\\rho$ slider to change the instanton size. Larger $\\rho$ spreads the field over a wider region; smaller $\\rho$ concentrates it. The dashed circle tracks the size parameter. The action $S = 8\\pi^2/g^2$ is size-independent (the Bogomolny bound).",
+        "duration": 10000
+      },
+      {
+        "title": "Vacuum Tunneling",
+        "body": "Switch to Vacuum Tunneling to see the periodic potential $V(n)$ over Chern-Simons winding number $n$. The instanton (orange arrow) tunnels the vacuum from $|0\\rangle$ to $|1\\rangle$, shifting the $\\theta$-angle.",
+        "duration": 9000
+      },
+      {
+        "title": "The $\\theta$-Vacuum",
+        "body": "The true vacuum is $|\\theta\\rangle = \\sum_n e^{in\\theta}|n\\rangle$, a superposition over all winding sectors. The strong CP problem asks why $\\theta < 10^{-10}$ — the Peccei-Quinn axion is the leading explanation.",
+        "duration": 9000
+      }
+    ],
+    "5": [
+      {
+        "title": "The Mexican Hat Potential",
+        "body": "The Higgs potential $V(\\phi) = -\\mu^2|\\phi|^2 + \\lambda|\\phi|^4$ has a maximum at $\\phi=0$ when $\\mu^2 > 0$ and two minima at $\\phi = \\pm v$ where $v = \\sqrt{\\mu^2/2\\lambda}$. Drag $\\mu^2$ from negative to positive to watch the hat form.",
+        "duration": 10000
+      },
+      {
+        "title": "Spontaneous Symmetry Breaking",
+        "body": "When $\\mu^2 > 0$ the field must choose one of the two minima, breaking the $U(1)$ symmetry. The red dots mark the chosen vacua. The gauge bosons $W^\\pm$ and $Z$ acquire mass $M_W = gv/2$ by absorbing the Goldstone modes.",
+        "duration": 10000
+      },
+      {
+        "title": "Field Rolling Mode",
+        "body": "Switch to Field Rolling to see the top-down view. The golden ring is the minimum and the red dot traces the field rolling around it. The Goldstone direction (tangent) is massless; the radial (Higgs) direction is massive.",
+        "duration": 9000
+      },
+      {
+        "title": "The Higgs Boson at 125 GeV",
+        "body": "Radial excitations about the vev correspond to the physical Higgs boson $h$, discovered at the LHC in 2012 with $M_h \\approx 125$ GeV. Its mass $M_h = \\sqrt{2\\mu^2}$ depends on the self-coupling $\\lambda$.",
+        "duration": 8000
+      }
+    ],
+    "6": [
+      {
+        "title": "The ABJ Triangle Anomaly",
+        "body": "The triangle diagram couples three gauge currents via a fermion loop. The axial current $j^\\mu_5$ is classically conserved, but the loop integral diverges and shifts the conservation law: $\\partial_\\mu j^\\mu_5 = \\frac{g^2}{16\\pi^2} F\\tilde{F}$.",
+        "duration": 10000
+      },
+      {
+        "title": "Anomaly Cancellation",
+        "body": "Switch to SM Cancellation: leptons contribute $\\sum Y^3 = -6$ while quarks contribute $+N_c \\cdot 2$. The total cancels exactly when $N_c = 3$ — the Standard Model is anomaly-free only with three quark colors.",
+        "duration": 10000
+      },
+      {
+        "title": "Slide the Color Count",
+        "body": "Move the $N_c$ slider away from 3 and watch the Total bar turn red — the anomaly no longer cancels, meaning the gauge theory is inconsistent. This is one of the deepest consistency checks in particle physics.",
+        "duration": 9000
+      }
+    ],
+    "7": [
+      {
+        "title": "Wilson's Lattice Gauge Theory",
+        "body": "Kenneth Wilson (1974) put gauge fields on a discrete spacetime lattice. Link variables $U_\\mu(x) = e^{iagA_\\mu(x)} \\in U(1)$ live on edges between sites. This preserves exact gauge invariance at any lattice spacing.",
+        "duration": 10000
+      },
+      {
+        "title": "Plaquettes and Field Strength",
+        "body": "Each colored square (plaquette) is the product $U_\\square = U_\\mu U_\\nu U_\\mu^\\dagger U_\\nu^\\dagger$ around an elementary loop. Blue = ordered (small field strength, $\\cos U_\\square \\approx 1$), red = disordered (strong fluctuations).",
+        "duration": 10000
+      },
+      {
+        "title": "Adjust the Coupling $\\beta$",
+        "body": "Slide $\\beta = 2N/g^2$ and watch the lattice thermalize: low $\\beta$ (strong coupling) gives a disordered red lattice; high $\\beta$ (weak coupling) gives an ordered blue lattice approaching the continuum limit.",
+        "duration": 10000
+      },
+      {
+        "title": "Wilson Loops and Confinement",
+        "body": "The yellow rectangle is a $3 \\times 3$ Wilson loop $W(C) = \\prod_{(x,\\mu) \\in C} U_\\mu(x)$. Its expectation value $\\langle W(C)\\rangle \\sim e^{-\\sigma A}$ (area law) signals confinement: the string tension $\\sigma$ is nonzero at strong coupling.",
+        "duration": 10000
+      },
+      {
+        "title": "Animate: Monte Carlo Evolution",
+        "body": "Press Animate to watch Metropolis Monte Carlo evolve the lattice. At each frame, random link proposals are accepted or rejected with probability $\\min(1, e^{-\\beta \\Delta S})$. The lattice thermalizes to the equilibrium $e^{-S[U]}$ distribution.",
+        "duration": 9000
+      },
+      {
+        "title": "String Tension Phase Diagram",
+        "body": "Switch to String Tension to see $\\sigma(\\beta)$. At small $\\beta$ (strong coupling), $\\sigma > 0$ — confined phase with area law. At large $\\beta$ the string tension vanishes — deconfined phase. The dotted line marks the deconfinement transition at $\\beta_c$.",
+        "duration": 10000
+      }
     ]
   },
   "13_cosmology.html": {
@@ -1880,7 +1995,7 @@ window.KTOUR_DATA = {
       }
     ]
   },
-  "25_string_theory.html": {
+  "61_string_theory.html": {
     "0": [
       {
         "title": "Strings & Worldsheets",

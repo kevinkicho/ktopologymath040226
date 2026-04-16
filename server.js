@@ -13,13 +13,21 @@ const BLOCKED_FILES = new Set([
   '.gitignore',
 ]);
 
+let compression = null;
+try { compression = require('compression'); } catch(e) {}
+
 app.use((req, res, next) => {
   const base = path.basename(req.path);
   if (BLOCKED_FILES.has(base) || BLOCKED.test(req.path)) {
     return res.status(404).end();
   }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   next();
 });
+
+if (compression) app.use(compression());
 
 app.use(express.static(path.join(__dirname)));
 

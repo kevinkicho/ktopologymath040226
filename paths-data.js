@@ -103,7 +103,7 @@ window.LEARNING_PATHS = [
     color: '#ff44ff',
     description: 'Penrose tilings, CCC, spinor calculus, instantons, Riemann zeta, string theory, AdS/CFT, quantum error correction, and 21st-century experiments.',
     modules: [
-      '02_penrose_tiling', '25_string_theory', '28_ccc_or',
+      '02_penrose_tiling', '61_string_theory', '28_ccc_or',
       '30_spinor_calculus', '31_instantons', '34_riemann_zeta',
       '47_quantum_optics', '48_topological_matter', '49_quantum_networks',
       '50_semiconductor_quantum', '51_photonics_fiber', '53_attosecond',

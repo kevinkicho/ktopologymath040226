@@ -27,7 +27,7 @@ const HTML_FILES = [
   '23_twistor_theory.html',
   '24_loop_quantum_gravity.html',
   '25_higgs_field.html',
-  '25_string_theory.html',
+  '61_string_theory.html',
   '26_number_systems.html',
   '27_visual_calculus.html',
   '28_ccc_or.html',

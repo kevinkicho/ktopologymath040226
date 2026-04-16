@@ -11,7 +11,7 @@ Build a Playwright test suite for all 52 HTML visualization files, then iterativ
 - Per-file median load time
 
 ## Constraints
-- All 53 files (52 numbered + 1 duplicate `25_string_theory.html`) must pass
+- All 53 files (53 numbered modules including `61_string_theory.html`) must pass
 - Tests must actually load pages in a real browser (Chromium headless)
 - The Express server must be running on port 4271 during the test run
 - Changes to HTML/JS source files are allowed only if they genuinely improve render time

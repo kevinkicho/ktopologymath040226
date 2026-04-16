@@ -36,7 +36,7 @@
       { id: '22_path_integrals', title: 'Path Integrals', tags: 'Feynman, Action, Wick Rotation, sum over histories' },
       { id: '23_twistor_theory', title: 'Twistor Theory', tags: 'Null Rays, Penrose, CP3, complex projective' },
       { id: '24_loop_quantum_gravity', title: 'Loop Quantum Gravity', tags: 'Spin Networks, Discrete Space, Bounce, Planck scale' },
-      { id: '25_string_theory', title: 'String Theory', tags: 'Strings, Compactification, T-Duality, extra dimensions' },
+      { id: '61_string_theory', title: 'String Theory', tags: 'Strings, Compactification, T-Duality, extra dimensions' },
       { id: '25_higgs_field', title: 'Higgs Field', tags: 'Symmetry Breaking, Higgs Boson, LHC, mass generation' },
       { id: '26_number_systems', title: 'Number Systems', tags: 'p-adic, Surreal Numbers, Hensel Lemma, completions' },
       { id: '27_visual_calculus', title: 'Visual Calculus', tags: 'Derivatives, Integrals, Taylor Series, limits' },

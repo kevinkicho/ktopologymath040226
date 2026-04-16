@@ -27,7 +27,7 @@ window.MODULE_DIFFICULTY = {
   '22_path_integrals': 3,
   '23_twistor_theory': 3,
   '24_loop_quantum_gravity': 3,
-  '25_string_theory': 3,
+  '61_string_theory': 3,
   '25_higgs_field': 2,
   '26_number_systems': 2,
   '27_visual_calculus': 1,

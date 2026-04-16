@@ -3,7 +3,7 @@
 // Each module manages its own animations independently.
 
 // ── Global animation speed (0.1–3.0). Set by speed sliders; read by rAF scaler.
-window.animSpeed = parseFloat(sessionStorage.getItem('ktour-speed') || '0.1');
+window.animSpeed = parseFloat(sessionStorage.getItem('ktour-speed') || '1');
 window.isPaused = false;
 
 // ── Pause animations when browser tab is hidden, resume when visible ──────────
@@ -88,7 +88,7 @@ document.addEventListener('visibilitychange', function() {
     '19_general_relativity.html','20_thermodynamics.html',
     '21_quantum_measurement.html','22_path_integrals.html',
     '23_twistor_theory.html','24_loop_quantum_gravity.html',
-    '25_higgs_field.html','25_string_theory.html','26_number_systems.html',
+    '25_higgs_field.html','61_string_theory.html','26_number_systems.html',
     '27_visual_calculus.html','28_ccc_or.html','29_symplectic.html',
     '30_spinor_calculus.html','31_instantons.html','32_representation_theory.html',
     '33_cohomology.html','34_riemann_zeta.html','35_black_holes.html',
