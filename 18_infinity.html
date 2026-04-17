@@ -78,10 +78,9 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <div class="sep"></div>
     <label>Steps shown <span class="val" id="v_steps">20</span></label>
     <input type="range" id="bijSteps" min="5" max="50" step="5" value="20" oninput="drawCantor()">
-    <label>Anim speed <span class="val" id="v_animspd">3</span></label>
-    <input type="range" id="animSpd" min="1" max="10" step="1" value="3" oninput="document.getElementById('v_animspd').textContent=this.value">
     <div class="sep"></div>
     <button id="bijAnimBtn" class="btn" onclick="animBij()">▶ Animate</button>
+    <button class="btn" onclick="resetBij()">Reset</button>
     <div class="sep"></div>
     <div class="info-box" id="bijInfo" style="font-size:.7rem;line-height:1.65">
       Select a bijection above
@@ -115,6 +114,7 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <div class="sep"></div>
     <button onclick="genTable()">↻ New random table</button>
     <button id="diagAnimBtn" class="btn" onclick="animDiag()">▶ Animate diagonal</button>
+    <button class="btn" onclick="resetDiag()">Reset</button>
     <div class="sep"></div>
     <div class="info-box" style="font-size:.7rem;line-height:1.65">
       <b>Construction:</b><br>
@@ -152,6 +152,7 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <button onclick="setGView(2)" id="gvBtn2">Halting problem</button>
     <div class="sep"></div>
     <button id="godelAnimBtn" class="btn" onclick="animGodel()">▶ Animate</button>
+    <button class="btn" onclick="resetGodel()">Reset</button>
     <div class="sep"></div>
     <button class="panBtn" onclick="togglePan()">✋ Pan</button>
     <button onclick="resetPan()">Reset View</button>
@@ -184,6 +185,7 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <button onclick="diagRealView=1;drawDiagReals()">Power set argument</button>
     <div class="sep"></div>
     <button id="diagRealAnimBtn" class="btn" onclick="animDiagReals()">▶ Animate diagonal</button>
+    <button class="btn" onclick="resetDiagReals()">Reset</button>
     <button onclick="genDiagReals()">↻ New random list</button>
     <div class="sep"></div>
     <div class="info-box" style="font-size:.68rem;line-height:1.6;color:#ffcc88;font-style:italic">
@@ -228,6 +230,7 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <button onclick="cardView=2;drawCardinal()">CH & forcing</button>
     <div class="sep"></div>
     <button id="cardAnimBtn" class="btn" onclick="animCardinal()">▶ Animate</button>
+    <button class="btn" onclick="resetCardinal()">Reset</button>
     <div class="sep"></div>
     <div class="info-box" style="font-size:.68rem;line-height:1.65">
       <b>Gödel 1940:</b> CH consistent with ZFC (universe L).<br><br>
@@ -265,6 +268,7 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <button onclick="ordView=2;drawOrdinal()">ε₀ fixed point</button>
     <div class="sep"></div>
     <button id="ordAnimBtn" class="btn" onclick="animOrdinal()">▶ Animate</button>
+    <button class="btn" onclick="resetOrdinal()">Reset</button>
     <div class="sep"></div>
     <div class="info-box" style="font-size:.69rem;line-height:1.65">
       <b>ε₀:</b> smallest ordinal s.t.<br>
@@ -303,6 +307,7 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <button onclick="lcView=2;drawLargeCard()">Measurable & V≠L</button>
     <div class="sep"></div>
     <button id="lcAnimBtn" class="btn" onclick="animLargeCard()">▶ Animate</button>
+    <button class="btn" onclick="resetLargeCard()">Reset</button>
     <div class="sep"></div>
     <div class="info-box" style="font-size:.69rem;line-height:1.65">
       <b>Scott 1961:</b> A measurable cardinal implies $V\neq L$ — the constructible universe is too small.<br><br>
@@ -344,6 +349,7 @@ button.active{background:rgba(170,187,255,0.3);box-shadow:0 0 14px #aabbff66}
     <button onclick="physView=3;drawPhysics()">Holographic principle</button>
     <div class="sep"></div>
     <button id="physAnimBtn" class="btn" onclick="animPhysics()">▶ Animate</button>
+    <button class="btn" onclick="resetPhysics()">Reset</button>
     <div class="sep"></div>
     <div class="info-box" style="font-size:.69rem;line-height:1.65">
       <b>Bekenstein bound:</b><br>
@@ -506,6 +512,7 @@ const BIJ_DESCS=[
   '|(0,1)| = |ℝ|: bijection via tan(π(x−½)), a homeomorphism'
 ];
 function setBij(i){bijIdx=i;['bBtn0','bBtn1','bBtn2','bBtn3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));document.getElementById('bijInfo').textContent=BIJ_DESCS[i];drawCantor();}
+function resetBij(){clearTimeout(bijAnimId);bijAnimId=null;bijStep=0;const btn=document.getElementById('bijAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawCantor();}
 function animBij(){
   const btn=document.getElementById('bijAnimBtn');
   if(bijAnimId){clearTimeout(bijAnimId);bijAnimId=null;bijStep=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawCantor();return;}
@@ -515,8 +522,7 @@ function animBij(){
   function frame(){
     bijStep++;drawCantor();
     if(bijStep<parseInt(document.getElementById('bijSteps').value)){
-      const spd=parseInt(document.getElementById('animSpd').value);
-      const delay=Math.round(550/spd); // speed 3 ≈ 183ms/step, speed 10 ≈ 55ms/step
+      const delay=Math.round(400/(window.animSpeed||1));
       bijAnimId=setTimeout(frame,delay);
     }else{bijAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');}
   }
@@ -668,13 +674,14 @@ function genTable(){
   diagStep=0;
   drawDiag();
 }
+function resetDiag(){cancelAnimationFrame(diagAnimId);diagAnimId=null;diagStep=0;const btn=document.getElementById('diagAnimBtn');if(btn){btn.textContent='▶ Animate diagonal';btn.classList.remove('active');}drawDiag();}
 function animDiag(){
   const btn=document.getElementById('diagAnimBtn');
   if(diagAnimId){cancelAnimationFrame(diagAnimId);diagAnimId=null;diagStep=0;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');drawDiag();return;}
   btn.textContent='⏸ Pause';
   btn.classList.add('active');
   diagStep=0;
-  function frame(){diagStep=Math.min(diagStep+1,DIM);drawDiag();if(diagStep<DIM)diagAnimId=requestAnimationFrame(()=>setTimeout(frame,80));else{diagAnimId=null;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');}}
+  function frame(){diagStep=Math.min(diagStep+1,DIM);drawDiag();if(diagStep<DIM)diagAnimId=requestAnimationFrame(()=>setTimeout(frame,Math.round(300/(window.animSpeed||1))));else{diagAnimId=null;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');}}
   frame();
 }
 function drawDiag(){
@@ -740,6 +747,7 @@ function drawDiag(){
 // ── TAB 2: GÖDEL ──
 let gView=0, godelAnimId=null, godelT=0;
 function setGView(i){gView=i;['gvBtn0','gvBtn1','gvBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawGodel();}
+function resetGodel(){if(godelAnimId){cancelAnimationFrame(godelAnimId);godelAnimId=null;}godelT=0;gView=0;['gvBtn0','gvBtn1','gvBtn2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===0));const btn=document.getElementById('godelAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawGodel();}
 function animGodel(){
   const btn=document.getElementById('godelAnimBtn');
   if(godelAnimId){cancelAnimationFrame(godelAnimId);godelAnimId=null;godelT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawGodel();return;}
@@ -931,6 +939,7 @@ function updateDiagRealInfo(){
   txt+='\n\nd differs from row n at position n.';
   el.textContent=txt;
 }
+function resetDiagReals(){if(diagRealAnimId){cancelAnimationFrame(diagRealAnimId);diagRealAnimId=null;}diagRealStep=0;diagRealView=0;const btn=document.getElementById('diagRealAnimBtn');if(btn){btn.textContent='▶ Animate diagonal';btn.classList.remove('active');}updateDiagRealInfo();drawDiagReals();}
 function animDiagReals(){
   const btn=document.getElementById('diagRealAnimBtn');
   if(diagRealAnimId){cancelAnimationFrame(diagRealAnimId);diagRealAnimId=null;diagRealStep=0;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');drawDiagReals();return;}
@@ -941,7 +950,7 @@ function animDiagReals(){
     diagRealStep=Math.min(diagRealStep+1,DR_DIGITS);
     updateDiagRealInfo();
     drawDiagReals();
-    if(diagRealStep<DR_DIGITS)diagRealAnimId=requestAnimationFrame(()=>setTimeout(frame,120));
+    if(diagRealStep<DR_DIGITS)diagRealAnimId=requestAnimationFrame(()=>setTimeout(frame,Math.round(300/(window.animSpeed||1))));
     else{diagRealAnimId=null;btn.textContent='▶ Animate diagonal';btn.classList.remove('active');}
   }
   frame();
@@ -1153,6 +1162,7 @@ function subscript(n){const map={'0':'₀','1':'₁','2':'₂','3':'₃','4':'�
 
 // ── TAB 4: CARDINAL ARITHMETIC & CH ──
 let cardView=0, cardAnimId=null, cardT=0;
+function resetCardinal(){if(cardAnimId){cancelAnimationFrame(cardAnimId);cardAnimId=null;}cardT=0;cardView=0;const btn=document.getElementById('cardAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawCardinal();}
 function animCardinal(){
   const btn=document.getElementById('cardAnimBtn');
   if(cardAnimId){cancelAnimationFrame(cardAnimId);cardAnimId=null;cardT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawCardinal();return;}
@@ -1350,6 +1360,7 @@ function drawCardinal(){
 
 // ── TAB 5: ORDINAL NUMBERS ──
 let ordView=0, ordAnimId=null, ordT=0;
+function resetOrdinal(){if(ordAnimId){cancelAnimationFrame(ordAnimId);ordAnimId=null;}ordT=0;ordView=0;const btn=document.getElementById('ordAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawOrdinal();}
 function animOrdinal(){
   const btn=document.getElementById('ordAnimBtn');
   if(ordAnimId){cancelAnimationFrame(ordAnimId);ordAnimId=null;ordT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawOrdinal();return;}
@@ -1527,6 +1538,7 @@ function drawOrdinal(){
 
 // ── TAB 6: LARGE CARDINALS ──
 let lcView=0, lcAnimId=null, lcT=0;
+function resetLargeCard(){if(lcAnimId){cancelAnimationFrame(lcAnimId);lcAnimId=null;}lcT=0;lcView=0;const btn=document.getElementById('lcAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawLargeCard();}
 function animLargeCard(){
   const btn=document.getElementById('lcAnimBtn');
   if(lcAnimId){cancelAnimationFrame(lcAnimId);lcAnimId=null;lcT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawLargeCard();return;}
@@ -1701,6 +1713,7 @@ function drawLargeCard(){
 
 // ── TAB 7: INFINITY IN PHYSICS ──
 let physView=0, physAnimId=null, physT=0;
+function resetPhysics(){if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;}physT=0;physView=0;const btn=document.getElementById('physAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawPhysics();}
 function animPhysics(){
   const btn=document.getElementById('physAnimBtn');
   if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;physT=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawPhysics();return;}
@@ -2013,6 +2026,7 @@ _addPan(godelC,2,drawGodel);
 setBij(0);genTable();setGView(0);
 genDiagReals();
 window.addEventListener('resize',()=>redrawTab());
+switchTab(0);
 </script>
 
 <script src="glossary-data.js"></script>

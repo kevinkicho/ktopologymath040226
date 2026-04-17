@@ -89,6 +89,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p1Paused=!p1Paused;this.textContent=p1Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="_resetTab(1)">Reset</button>
       </div>
       <div class="callout" style="margin-top:10px">NIF 2022 achieved the first ever $Q>1$ — 3.15 MJ out from 2.05 MJ in. The ignition region is shaded above the contour.</div>
     </div>
@@ -105,6 +106,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar" data-role="sidebar">
       <div class="btn-row">
         <button class="btn" onclick="imp2Paused=!imp2Paused;this.textContent=imp2Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="_resetTab(2)">Reset</button>
       </div>
       <div style="margin-top:8px">
         <label style="display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--dim);cursor:pointer">
@@ -132,6 +134,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p3Paused=!p3Paused;this.textContent=p3Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="_resetTab(3)">Reset</button>
       </div>
       <div class="callout" style="margin-top:10px">Each point is an NIF implosion shot. The Dec 2022 shot (gold) crossed Q=1 for the first time.</div>
     </div>
@@ -209,6 +212,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p5Paused=!p5Paused;this.textContent=p5Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="_resetTab(5)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px">
         <strong>H-mode</strong> (high confinement) discovered at ASDEX 1982. L-H transition doubles energy confinement time $\tau_E$.
@@ -244,7 +248,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar" data-role="sidebar">
       <div class="btn-row">
         <button class="btn" onclick="icf6Paused=!icf6Paused;this.textContent=icf6Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
-        <button class="btn" onclick="icf6T=0">↺ Reset</button>
+        <button class="btn" onclick="_resetTab(6)">↺ Reset</button>
       </div>
       <div style="margin-top:8px">
         <label>Laser energy (MJ): <span class="val-disp" id="p6LaserVal">2.05</span></label>
@@ -294,6 +298,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p7Paused=!p7Paused;this.textContent=p7Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="_resetTab(7)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px">
         <strong>Critical threshold:</strong> ITG turbulence activates for $R/L_T \gtrsim 4$–6. Below threshold: near-neoclassical transport. Above: strongly anomalous.
@@ -328,6 +333,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p8Paused=!p8Paused;this.textContent=p8Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="_resetTab(8)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px">
         <strong>Deuterium</strong>: 33 g per cubic metre of seawater — essentially unlimited. <strong>Tritium</strong>: bred from $^6$Li blanket, self-sufficient cycle.
@@ -360,6 +366,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 <script>
 let _stops = [];
 let currentTab = 1;
+
+function _cancelAllAnims(){
+  _stops.forEach(s => s && s.stop && s.stop());
+  _stops = [];
+}
+
 window.fusionReaction = 'DT';
 window.showRT = false;
 window.imp2Paused = false;
@@ -384,11 +396,23 @@ window.p7Mode = 'turb';
 window.p8View = 'plant';
 
 function switchTab(n){
-  _stops.forEach(s => s && s.stop && s.stop());
-  _stops = [];
+  _cancelAllAnims();
   currentTab = n;
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
   document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
+  if(n===1) _stops.push(initTab1());
+  if(n===2) _stops.push(initTab2());
+  if(n===3) _stops.push(initTab3());
+  if(n===4) _stops.push(initTab4());
+  if(n===5) _stops.push(initTab5());
+  if(n===6) _stops.push(initTab6());
+  if(n===7) _stops.push(initTab7());
+  if(n===8) _stops.push(initTab8());
+}
+
+function _resetTab(n){
+  _cancelAllAnims();
+  if(n===6) window.icf6T=0;
   if(n===1) _stops.push(initTab1());
   if(n===2) _stops.push(initTab2());
   if(n===3) _stops.push(initTab3());
@@ -566,7 +590,7 @@ function initTab2() {
     ctx.fillText(`Compression: ${(phase*100).toFixed(0)}%  R: ${(Rnow/R0*100).toFixed(0)}% R₀`, 12, H-14);
 
     if(!window.imp2Paused) t2+=(window.animSpeed || 1);
-    raf2=requestAnimationFrame(draw);
+    if(!window.imp2Paused) raf2=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf2);}};
@@ -1071,7 +1095,7 @@ function initTab5() {
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
     drawFluxSurfaces(ctx,W,H);
     if(!window.p5Paused) t5+=(window.animSpeed || 1);
-    raf5=requestAnimationFrame(draw);
+    if(!window.p5Paused) raf5=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf5);}};
@@ -1270,7 +1294,7 @@ function initTab6() {
     ctx.fillStyle='#c0c0ea'; ctx.font='bold 12px monospace';
     ctx.fillText('NIF Yield vs Laser Energy', rightX+pad.l+5, pad.t-10);
 
-    raf6=requestAnimationFrame(draw);
+    if(!window.icf6Paused) raf6=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf6);}};
@@ -1665,7 +1689,7 @@ function initTab8() {
 }
 
 switchTab(1);
-window.addEventListener('resize', () => { _stops.forEach(s=>s&&s.stop&&s.stop()); _stops=[]; switchTab(currentTab); });
+window.addEventListener('resize', () => { _cancelAllAnims(); switchTab(currentTab); });
 
 window.animSpeed=1;
 </script>

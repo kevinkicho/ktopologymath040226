@@ -106,6 +106,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <button class="btn" onclick="resetSurfView()">Reset View</button>
       </div>
       <div class="btn-row">
+        <button class="btn" onclick="resetSurfAnim()">Reset Anim</button>
+      </div>
+      <div class="btn-row">
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
         <button class="btn" onclick="resetPan()">Reset Pan</button>
       </div>
@@ -162,6 +165,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       <div class="btn-row">
         <button class="btn" id="geoAnimBtn" onclick="toggleGeoAnim(this)">▶</button>
         <button class="btn" onclick="resetGeoView()">Reset View</button>
+        <button class="btn" onclick="resetGeoAnim()">Reset Anim</button>
       </div>
       <div class="btn-row">
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
@@ -212,7 +216,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       </div>
       <div class="btn-row" style="margin-top:4px">
         <button class="btn" id="gbAnimBtn" onclick="toggleGBAnim(this)">▶</button>
-        <button class="btn" onclick="drawGB()">Redraw</button>
+        <button class="btn" onclick="resetGBAnim()">Reset</button>
       </div>
       <div class="btn-row">
         <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
@@ -243,7 +247,6 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       </div>
     </div>
   </div>
-</div>
 
   <!-- TAB 3: RIEMANN CURVATURE TENSOR -->
   <div class="panel" role="tabpanel" data-role="panel" id="panel3">
@@ -514,7 +517,6 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       </div>
     </div>
   </div>
-
 </div>
 <div class="strip">Drag surface to rotate · Gaussian curvature K = κ₁κ₂ · geodesics = "straight lines" on curved surfaces · Gauss-Bonnet links geometry to topology</div>
 
@@ -591,42 +593,41 @@ function _addPan(canvas,idx,fn){
   canvas.addEventListener('mouseleave',()=>_panDrag=false);
 }
 
-function _cancelAllAnims14(){
-  if(surfAnimId){cancelAnimationFrame(surfAnimId);surfAnimId=null;}
-  pausedSurf=true;
+function autoStartAnimations(){
+  pausedSurf=false;
+  pausedGeo=false;
+  pausedGB=false;
+  riemannPlaying=true;
+  pausedExp=false;
+  curvAnimRunning=true;
+  connPlaying=true;
+  pausedSF=false;
   const surfBtn=document.getElementById('surfAnimBtn');
-  if(surfBtn){surfBtn.textContent='▶';surfBtn.classList.remove('active');}
-  if(geoAnimId){cancelAnimationFrame(geoAnimId);geoAnimId=null;}
-  pausedGeo=true;
+  if(surfBtn){surfBtn.textContent='⏸';surfBtn.classList.add('active');}
   const geoBtn=document.getElementById('geoAnimBtn');
-  if(geoBtn){geoBtn.textContent='▶';geoBtn.classList.remove('active');}
-  if(gbAnimId){cancelAnimationFrame(gbAnimId);gbAnimId=null;}
-  pausedGB=true;
+  if(geoBtn){geoBtn.textContent='⏸';geoBtn.classList.add('active');}
   const gbBtn=document.getElementById('gbAnimBtn');
-  if(gbBtn){gbBtn.textContent='▶';gbBtn.classList.remove('active');}
-  if(riemannAnimId){cancelAnimationFrame(riemannAnimId);riemannAnimId=null;}
-  riemannPlaying=false;
+  if(gbBtn){gbBtn.textContent='⏸';gbBtn.classList.add('active');}
   const riemannBtn=document.getElementById('riemannPlayBtn');
-  if(riemannBtn){riemannBtn.textContent='▶ Animate';riemannBtn.classList.remove('active');}
-  if(expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
-  pausedExp=true;
+  if(riemannBtn){riemannBtn.textContent='⏸ Pause';riemannBtn.classList.add('active');}
   const expBtn=document.getElementById('expAnimBtn');
-  if(expBtn){expBtn.textContent='▶';expBtn.classList.remove('active');}
-  if(connAnimId){cancelAnimationFrame(connAnimId);connAnimId=null;}
-  connPlaying=false;
-  const connBtn=document.getElementById('connPlayBtn');
-  if(connBtn){connBtn.textContent='▶ Animate';connBtn.classList.remove('active');}
-  if(sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
-  pausedSF=true;
-  const sfBtn=document.getElementById('sfAnimBtn');
-  if(sfBtn){sfBtn.textContent='▶';sfBtn.classList.remove('active');}
-  curvAnimRunning=false;
-  if(curvAnimId){cancelAnimationFrame(curvAnimId);curvAnimId=null;}
+  if(expBtn){expBtn.textContent='⏸';expBtn.classList.add('active');}
   const curvBtn=document.getElementById('curvAnimBtn');
-  if(curvBtn){curvBtn.textContent='▶ Animate';curvBtn.classList.remove('active');}
+  if(curvBtn){curvBtn.textContent='⏸ Pause';curvBtn.classList.add('active');}
+  const connBtn=document.getElementById('connPlayBtn');
+  if(connBtn){connBtn.textContent='⏸ Pause';connBtn.classList.add('active');}
+  const sfBtn=document.getElementById('sfAnimBtn');
+  if(sfBtn){sfBtn.textContent='⏸';sfBtn.classList.add('active');}
 }
 function switchTab(n){
-  _cancelAllAnims14();
+  if(n!==0 && surfAnimId){cancelAnimationFrame(surfAnimId);surfAnimId=null;}
+  if(n!==1 && geoAnimId){cancelAnimationFrame(geoAnimId);geoAnimId=null;}
+  if(n!==2 && gbAnimId){cancelAnimationFrame(gbAnimId);gbAnimId=null;}
+  if(n!==3 && riemannAnimId){cancelAnimationFrame(riemannAnimId);riemannAnimId=null;}
+  if(n!==4 && expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
+  if(n!==5 && curvAnimId){cancelAnimationFrame(curvAnimId);curvAnimId=null;}
+  if(n!==6 && connAnimId){cancelAnimationFrame(connAnimId);connAnimId=null;}
+  if(n!==7 && sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
   document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
   activeTab=n;
@@ -634,14 +635,14 @@ function switchTab(n){
   const sliders=['surfSpeedSlider','geoSpeedSlider','gbSpeedSlider','riemannSpeedSlider','expSpeedSlider','curvAnimSpeed','connSpeedSlider','sfSpeedSlider'];
   const vals=['surfSpeedVal','geoSpeedVal','gbSpeedVal','riemannSpeedVal','expSpeedVal','curvSpeedVal','connSpeedVal','sfSpeedVal'];
   if(sliders[n]){const s=document.getElementById(sliders[n]);if(s){s.value=sp;if(vals[n])document.getElementById(vals[n]).textContent=sp.toFixed(1)+'x';}}
-   if(n===0){requestAnimationFrame(()=>{resizeSurf();drawSurface();toggleSurfAnim();});}
-  if(n===1){requestAnimationFrame(()=>{resizeGeo();drawGeodesics();toggleGeoAnim(document.getElementById('geoAnimBtn'));});}
-  if(n===2){requestAnimationFrame(()=>{resizeGB();drawGB();toggleGBAnim(document.getElementById('gbAnimBtn'));});}
-  if(n===3){requestAnimationFrame(()=>{resizeRiemann();drawRiemann();toggleRiemannAnim();});}
-  if(n===4){requestAnimationFrame(()=>{resizeExpMap();drawExpMap();toggleExpAnim(document.getElementById('expAnimBtn'));});}
-   if(n===5){requestAnimationFrame(()=>{resizeCurvatures();drawCurvatures();toggleCurvAnim(document.getElementById('curvAnimBtn'));});}
-  if(n===6){requestAnimationFrame(()=>{resizeConnection();drawConnection();toggleConnAnim();});}
-  if(n===7){requestAnimationFrame(()=>{resizeSpaceForms();drawSpaceForms();toggleSFAnim(document.getElementById('sfAnimBtn'));});}
+  if(n===0){requestAnimationFrame(()=>{resizeSurf();drawSurface();pausedSurf=false;const ab=document.getElementById('surfAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!surfAnimId)surfAnimId=requestAnimationFrame(surfLoop);});}
+  if(n===1){requestAnimationFrame(()=>{resizeGeo();drawGeodesics();if(!pausedGeo&&!geoAnimId)geoAnimId=requestAnimationFrame(geoLoop);});}
+  if(n===2){requestAnimationFrame(()=>{resizeGB();drawGB();pausedGB=false;const ab=document.getElementById('gbAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!gbAnimId)gbAnimId=requestAnimationFrame(gbLoop);});}
+  if(n===3){requestAnimationFrame(()=>{resizeRiemann();drawRiemann();if(riemannPlaying&&!riemannAnimId)riemannAnimId=requestAnimationFrame(_riemannLoop);});}
+  if(n===4){requestAnimationFrame(()=>{resizeExpMap();drawExpMap();if(!pausedExp&&!expAnimId)expAnimId=requestAnimationFrame(expLoop);});}
+  if(n===5){requestAnimationFrame(()=>{resizeCurvatures();drawCurvatures();if(curvAnimRunning&&!curvAnimId)curvAnimId=requestAnimationFrame(curvAnimLoop);});}
+  if(n===6){requestAnimationFrame(()=>{resizeConnection();drawConnection();if(connPlaying&&!connAnimId)connAnimId=requestAnimationFrame(_connLoop);});}
+  if(n===7){requestAnimationFrame(()=>{resizeSpaceForms();drawSpaceForms();if(!pausedSF&&!sfAnimId)sfAnimId=requestAnimationFrame(sfLoop);});}
 }
 function openProof(idx){
   document.getElementById('proof-panel').classList.add('open');
@@ -766,23 +767,30 @@ surfC.addEventListener('mousedown',e=>{if(panMode)return;surfDragging=true;surfD
 surfC.addEventListener('mousemove',e=>{if(!surfDragging||panMode)return;surfRotX=surfDragRX+(e.clientY-surfDragSY)*0.006;surfRotY=surfDragRY+(e.clientX-surfDragSX)*0.006;drawSurface();});
 surfC.addEventListener('mouseup',()=>surfDragging=false);surfC.addEventListener('mouseleave',()=>surfDragging=false);
 
+function surfLoop(){
+  if(pausedSurf||surfDragging){surfAnimId=null;return;}
+  if(!panMode){
+    surfRotY+=0.008*(window.animSpeed||1);
+    drawSurface();
+  }
+  surfAnimId=requestAnimationFrame(surfLoop);
+}
 function toggleSurfAnim(btn){
   pausedSurf=!pausedSurf;
   if(btn){btn.textContent=pausedSurf?'▶':'⏸';btn.classList.toggle('active',!pausedSurf);}
   if(!pausedSurf){
-    if(surfAnimId)cancelAnimationFrame(surfAnimId);
-    function surfLoop(){
-      if(pausedSurf||surfDragging){surfAnimId=null;return;}
-      if(!panMode){
-        surfRotY+=0.008*(window.animSpeed||1);
-        drawSurface();
-      }
-      surfAnimId=requestAnimationFrame(surfLoop);
-    }
-    surfAnimId=requestAnimationFrame(surfLoop);
+    if(!surfAnimId) surfAnimId=requestAnimationFrame(surfLoop);
   }else{
     if(surfAnimId){cancelAnimationFrame(surfAnimId);surfAnimId=null;}
   }
+}
+function resetSurfAnim(){
+  pausedSurf=true;
+  if(surfAnimId){cancelAnimationFrame(surfAnimId);surfAnimId=null;}
+  surfRotY=0.3;
+  const btn=document.getElementById('surfAnimBtn');
+  if(btn){btn.textContent='▶';btn.classList.remove('active');}
+  drawSurface();
 }
 
 // ═══ TAB 1: GEODESICS ═══
@@ -928,23 +936,30 @@ function drawGeodesics(){
 }
 
 let pausedGeo=false,geoDir=1;
+function geoLoop(){
+  if(pausedGeo){geoAnimId=null;return;}
+  geoT+=0.01*geoDir*(window.animSpeed||1);
+  if(geoT>=1){geoT=1;geoDir=-1;}
+  if(geoT<=0){geoT=0;geoDir=1;}
+  drawGeodesics();
+  geoAnimId=requestAnimationFrame(geoLoop);
+}
 function toggleGeoAnim(btn){
   pausedGeo=!pausedGeo;
   if(btn){btn.textContent=pausedGeo?'▶':'⏸';btn.classList.toggle('active',!pausedGeo);}
   if(!pausedGeo){
-    if(geoAnimId)cancelAnimationFrame(geoAnimId);
-    function geoLoop(){
-      if(pausedGeo){geoAnimId=null;return;}
-      geoT+=0.01*geoDir*(window.animSpeed||1);
-      if(geoT>=1){geoT=1;geoDir=-1;}
-      if(geoT<=0){geoT=0;geoDir=1;}
-      drawGeodesics();
-      geoAnimId=requestAnimationFrame(geoLoop);
-    }
-    geoAnimId=requestAnimationFrame(geoLoop);
+    if(!geoAnimId) geoAnimId=requestAnimationFrame(geoLoop);
   }else{
     if(geoAnimId){cancelAnimationFrame(geoAnimId);geoAnimId=null;}
   }
+}
+function resetGeoAnim(){
+  pausedGeo=true;
+  if(geoAnimId){cancelAnimationFrame(geoAnimId);geoAnimId=null;}
+  geoT=0;geoDir=1;
+  const btn=document.getElementById('geoAnimBtn');
+  if(btn){btn.textContent='▶';btn.classList.remove('active');}
+  drawGeodesics();
 }
 
 geoC.addEventListener('mousedown',e=>{if(panMode)return;geoDragging=true;geoDragSX=e.clientX;geoDragSY=e.clientY;geoDragRX=geoRotX;geoDragRY=geoRotY;});
@@ -1072,26 +1087,36 @@ function drawGB(){
 }
 
 let pausedGB=false,gbAnimDir=1;
+function gbLoop(){
+  if(pausedGB){gbAnimId=null;return;}
+  gbT+=0.012*gbAnimDir*(window.animSpeed||1);
+  if(gbT>=1){gbT=1;gbAnimDir=-1;}
+  if(gbT<=0){gbT=0;gbAnimDir=1;}
+  gbTriSize=0.1+1.3*gbT;
+  document.getElementById('gbSize').value=gbTriSize;
+  document.getElementById('gbSizeVal').textContent=gbTriSize.toFixed(2);
+  drawGB();
+  gbAnimId=requestAnimationFrame(gbLoop);
+}
 function toggleGBAnim(btn){
   pausedGB=!pausedGB;
   if(btn){btn.textContent=pausedGB?'▶':'⏸';btn.classList.toggle('active',!pausedGB);}
   if(!pausedGB){
-    if(gbAnimId)cancelAnimationFrame(gbAnimId);
-    function gbLoop(){
-      if(pausedGB){gbAnimId=null;return;}
-      gbT+=0.012*gbAnimDir*(window.animSpeed||1);
-      if(gbT>=1){gbT=1;gbAnimDir=-1;}
-      if(gbT<=0){gbT=0;gbAnimDir=1;}
-      gbTriSize=0.1+1.3*gbT;
-      document.getElementById('gbSize').value=gbTriSize;
-      document.getElementById('gbSizeVal').textContent=gbTriSize.toFixed(2);
-      drawGB();
-      gbAnimId=requestAnimationFrame(gbLoop);
-    }
-    gbAnimId=requestAnimationFrame(gbLoop);
+    if(!gbAnimId) gbAnimId=requestAnimationFrame(gbLoop);
   }else{
     if(gbAnimId){cancelAnimationFrame(gbAnimId);gbAnimId=null;}
   }
+}
+
+function resetGBAnim(){
+  pausedGB=true;
+  if(gbAnimId){cancelAnimationFrame(gbAnimId);gbAnimId=null;}
+  gbT=0;gbAnimDir=1;gbTriSize=0.6;
+  document.getElementById('gbSize').value=0.6;
+  document.getElementById('gbSizeVal').textContent='0.60';
+  const btn=document.getElementById('gbAnimBtn');
+  if(btn){btn.textContent='▶';btn.classList.remove('active');}
+  drawGB();
 }
 
 gbC.addEventListener('mousedown',e=>{if(panMode)return;gbDragging=true;gbDragSX=e.clientX;gbDragSY=e.clientY;gbDragRX=gbRotX;gbDragRY=gbRotY;});
@@ -1115,7 +1140,7 @@ function toggleRiemannAnim(){
   riemannPlaying=!riemannPlaying;
   const btn=document.getElementById('riemannPlayBtn');
   if(btn){btn.textContent=riemannPlaying?'⏸ Pause':'▶ Animate';btn.classList.toggle('active',riemannPlaying);}
-  if(riemannPlaying) _riemannLoop();
+  if(riemannPlaying){if(!riemannAnimId) _riemannLoop();}
 }
 function resetRiemann(){
   riemannPlaying=false;
@@ -1126,12 +1151,7 @@ function resetRiemann(){
   drawRiemann();
 }
 function _riemannLoop(){
-  if(!riemannPlaying||activeTab!==3){
-    riemannPlaying=false;
-    const btn=document.getElementById('riemannPlayBtn');
-    if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}
-    return;
-  }
+  if(!riemannPlaying){riemannAnimId=null;return;}
   riemannT=(riemannT+0.012 * window.animSpeed)%(Math.PI*2);
   drawRiemann();
   riemannAnimId=requestAnimationFrame(_riemannLoop);
@@ -1290,6 +1310,17 @@ function setExpMode(m){
   drawExpMap();
 }
 let pausedExp=false, expT=0, expDir=1;
+function expLoop(){
+  if(pausedExp){expAnimId=null;return;}
+  expT+=0.02*expDir*(window.animSpeed||1);
+  if(expT>=Math.PI+0.1){expT=Math.PI+0.1;expDir=-1;}
+  if(expT<=0){expT=0;expDir=1;}
+  expArcLen=Math.min(Math.PI,expT);
+  document.getElementById('expArc').value=expArcLen;
+  document.getElementById('expArcVal').textContent=expArcLen.toFixed(2);
+  drawExpMap();
+  expAnimId=requestAnimationFrame(expLoop);
+}
 function resetExpMap(){
   pausedExp=true;
   if(expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
@@ -1304,19 +1335,7 @@ function toggleExpAnim(btn){
   pausedExp=!pausedExp;
   if(btn){btn.textContent=pausedExp?'▶':'⏸';btn.classList.toggle('active',!pausedExp);}
   if(!pausedExp){
-    if(expAnimId)cancelAnimationFrame(expAnimId);
-    const step=()=>{
-      if(pausedExp){expAnimId=null;return;}
-      expT+=0.02*expDir*(window.animSpeed||1);
-      if(expT>=Math.PI+0.1){expT=Math.PI+0.1;expDir=-1;}
-      if(expT<=0){expT=0;expDir=1;}
-      expArcLen=Math.min(Math.PI,expT);
-      document.getElementById('expArc').value=expArcLen;
-      document.getElementById('expArcVal').textContent=expArcLen.toFixed(2);
-      drawExpMap();
-      expAnimId=requestAnimationFrame(step);
-    };
-    expAnimId=requestAnimationFrame(step);
+    if(!expAnimId) expAnimId=requestAnimationFrame(expLoop);
   }else{
     if(expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
   }
@@ -1500,11 +1519,11 @@ function _hyperboloidPt(u,v){
 function toggleCurvAnim(btn){
   curvAnimRunning=!curvAnimRunning;
   if(btn){btn.textContent=curvAnimRunning?'⏸ Pause':'▶ Animate';btn.classList.toggle('active',curvAnimRunning);}
-  if(curvAnimRunning) curvAnimLoop();
+  if(curvAnimRunning){if(!curvAnimId) curvAnimLoop();}
   else{if(curvAnimId){cancelAnimationFrame(curvAnimId);curvAnimId=null;}}
 }
 function curvAnimLoop(){
-  if(!curvAnimRunning||activeTab!==5){curvAnimRunning=false;curvAnimId=null;const btn=document.getElementById('curvAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}return;}
+  if(!curvAnimRunning){curvAnimId=null;return;}
   curvRotY+=0.012*(window.animSpeed||1);
   drawCurvatures();
   curvAnimId=requestAnimationFrame(curvAnimLoop);
@@ -1613,7 +1632,7 @@ function toggleConnAnim(){
   connPlaying=!connPlaying;
   const btn=document.getElementById('connPlayBtn');
   if(btn){btn.textContent=connPlaying?'⏸ Pause':'▶ Animate';btn.classList.toggle('active',connPlaying);}
-  if(connPlaying) _connLoop();
+  if(connPlaying){if(!connAnimId) _connLoop();}
 }
 function resetConnection(){
   connPlaying=false;
@@ -1624,12 +1643,7 @@ function resetConnection(){
   drawConnection();
 }
 function _connLoop(){
-  if(!connPlaying||activeTab!==6){
-    connPlaying=false;
-    const btn=document.getElementById('connPlayBtn');
-    if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}
-    return;
-  }
+  if(!connPlaying){connAnimId=null;return;}
   const speed=(window.animSpeed||1)*0.008;
   connT+=speed*connDir;
   if(connT>=1){connT=1;connDir=-1;}
@@ -1799,23 +1813,22 @@ function setSFViz(v){
   drawSpaceForms();
 }
 let pausedSF=false, sfS=0.05, sfDir=1;
+function sfLoop(){
+  if(pausedSF){sfAnimId=null;return;}
+  sfS+=0.015*sfDir*(window.animSpeed||1);
+  if(sfS>=0.95){sfS=0.95;sfDir=-1;}
+  if(sfS<=0.05){sfS=0.05;sfDir=1;}
+  sfTriSize=sfS;
+  document.getElementById('sfSize').value=sfS;
+  document.getElementById('sfSizeVal').textContent=sfS.toFixed(2);
+  drawSpaceForms();
+  sfAnimId=requestAnimationFrame(sfLoop);
+}
 function toggleSFAnim(btn){
   pausedSF=!pausedSF;
   if(btn){btn.textContent=pausedSF?'▶':'⏸';btn.classList.toggle('active',!pausedSF);}
   if(!pausedSF){
-    if(sfAnimId)cancelAnimationFrame(sfAnimId);
-    const step=()=>{
-      if(pausedSF){sfAnimId=null;return;}
-      sfS+=0.015*sfDir*(window.animSpeed||1);
-      if(sfS>=0.95){sfS=0.95;sfDir=-1;}
-      if(sfS<=0.05){sfS=0.05;sfDir=1;}
-      sfTriSize=sfS;
-      document.getElementById('sfSize').value=sfS;
-      document.getElementById('sfSizeVal').textContent=sfS.toFixed(2);
-      drawSpaceForms();
-      sfAnimId=requestAnimationFrame(step);
-    };
-    sfAnimId=requestAnimationFrame(step);
+    if(!sfAnimId) sfAnimId=requestAnimationFrame(sfLoop);
   }else{
     if(sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
   }
@@ -1992,7 +2005,8 @@ setTimeout(()=>{
   _addPan(curvC,5,drawCurvatures);
   _addPan(connC,6,drawConnection);
   _addPan(sfC,7,drawSpaceForms);
-  drawSurface();drawGeodesics();drawGB();
+  autoStartAnimations();
+  switchTab(0);
 },120);
 </script>
 
