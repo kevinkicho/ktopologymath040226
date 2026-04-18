@@ -134,6 +134,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
       <input type="range" id="slMass" min="0.1" max="3" step="0.05" value="1" style="width:90px" oninput="fieldMass=+this.value;document.getElementById('vMass').textContent=this.value">
       <span class="val" id="vMass">1.0</span>
       <button id="btnAnimF" class="animBtn" onclick="toggleFieldAnim()" style="margin-left:auto">▶ Animate</button>
+      <button onclick="resetTab0()">&#8635; Reset</button>
       <span style="font-size:.72rem;color:var(--dim);margin-left:8px">speed:</span>
       <input type="range" id="slSpeed" min="0.1" max="1" step="0.1" value="0.5" style="width:80px" oninput="qftSpeed=+this.value;document.getElementById('vSpeed').textContent=this.value">
       <span class="val" id="vSpeed">0.5</span>
@@ -189,6 +190,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
     <canvas aria-label="39 · Quantum Field Theory — panel 2" id="cv1"></canvas>
     <div class="ctrl-row" data-role="sidebar">
       <button id="btnAnimPI" class="animBtn" onclick="togglePIAnim()" style="margin-left:auto">▶ Animate</button>
+      <button onclick="resetTab1()">&#8635; Reset</button>
       <span style="font-size:.72rem;color:var(--dim)">ħ:</span>
       <input type="range" id="slHbar" min="0.02" max="2" step="0.02" value="0.5" style="width:110px" oninput="hbar=+this.value;document.getElementById('vHbar').textContent=this.value.padEnd(4,'0')">
       <span class="val" id="vHbar">0.50</span>
@@ -238,6 +240,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
       <canvas aria-label="39 · Quantum Field Theory — panel 3" id="cv2a"></canvas>
       <div class="ctrl-row" data-role="sidebar">
         <button id="btnAnimRG" class="animBtn" onclick="toggleRGAnim()" style="margin-right:6px">▶ Animate</button>
+        <button onclick="resetTab2()">&#8635; Reset</button>
         <span style="font-size:.72rem;color:var(--dim)">UV cutoff Λ:</span>
         <input type="range" id="slLambda" min="1" max="100" step="0.5" value="10" style="width:110px" oninput="uvCutoff=+this.value;document.getElementById('vLambda').textContent=this.value">
         <span class="val" id="vLambda">10</span>
@@ -307,6 +310,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
     <canvas aria-label="39 · Quantum Field Theory — panel 6" id="cv3"></canvas>
     <div class="ctrl-row" data-role="sidebar">
       <button id="btnAnimFock" class="animBtn" onclick="toggleFockAnim()">▶ Animate</button>
+      <button onclick="resetTab3()">&#8635; Reset</button>
       <button id="btnFockVac" class="active-btn" onclick="fockSetState('vac')">|0⟩ Vacuum</button>
       <button id="btnFock1" onclick="fockSetState('one')">|1,0,0⟩ One particle</button>
       <button id="btnFock2" onclick="fockSetState('two')">|2,1,0⟩ Two modes</button>
@@ -479,6 +483,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
         oninput="cwHbar=+this.value;document.getElementById('vCWhbar').textContent=this.value">
       <span class="val" id="vCWhbar">1.00</span>
       <button id="btnCWAnim" onclick="cwToggle()" style="margin-left:auto">▶ Play</button>
+      <button onclick="resetTab6()">&#8635; Reset</button>
       <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
       <input type="range" id="globalSpeed7" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
       <span id="globalSpeedVal7" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
@@ -523,6 +528,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
       <button id="btnAnomPi0" onclick="anomSetMode('pi0')">π⁰→γγ decay</button>
       <button id="btnAnomTHooft" onclick="anomSetMode('thooft')">'t Hooft matching</button>
       <button id="btnAnomAnim" onclick="anomToggle()" style="margin-left:auto">▶ Play</button>
+      <button onclick="resetTab7()">&#8635; Reset</button>
       <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
       <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
       <span id="globalSpeedVal8" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
@@ -586,6 +592,13 @@ function switchTab(i) {
 
 function _cancelAllAnims39(){
   if(fieldAnimId){cancelAnimationFrame(fieldAnimId);fieldAnimId=null;}
+  if(piAnimId){cancelAnimationFrame(piAnimId);piAnimId=null;}
+  if(rgAnimId){cancelAnimationFrame(rgAnimId);rgAnimId=null;}
+  if(fockAnimId){cancelAnimationFrame(fockAnimId);fockAnimId=null;}
+  if(rgfAnimId){cancelAnimationFrame(rgfAnimId);rgfAnimId=null;}
+  if(lszAnimId){cancelAnimationFrame(lszAnimId);lszAnimId=null;}
+  if(cwAnimId){cancelAnimationFrame(cwAnimId);cwAnimId=null;}
+  if(anomAnimId){cancelAnimationFrame(anomAnimId);anomAnimId=null;}
   fieldRunning=false; piRunning=false; rgRunning=false; fockRunning=false;
   rgfRunning=false; lszRunning=false; cwRunning=false; anomRunning=false;
   const btns = ['btnAnimF','btnAnimPI','btnAnimRG','btnAnimFock','btnRGFRun','btnLSZAuto','btnCWAnim','btnAnomAnim'];
@@ -593,6 +606,60 @@ function _cancelAllAnims39(){
     const b = document.getElementById(id);
     if(b){ b.textContent='▶ Animate'; b.classList.remove('active-btn'); }
   });
+}
+function resetTab0(){
+  if(fieldAnimId){cancelAnimationFrame(fieldAnimId);fieldAnimId=null;}
+  fieldRunning=false;fieldMass=1.0;qftSpeed=0.5;
+  document.getElementById('btnAnimF').textContent='\u25b6 Animate';document.getElementById('btnAnimF').classList.remove('active-btn');
+  document.getElementById('btnVac').classList.add('active-btn');document.getElementById('btnOne').classList.remove('active-btn');document.getElementById('btnTwo').classList.remove('active-btn');
+  document.getElementById('slMass').value=1;document.getElementById('vMass').textContent='1.0';
+  document.getElementById('slSpeed').value=0.5;document.getElementById('vSpeed').textContent='0.5';
+  const cv0=document.getElementById('cv0');if(cv0)initField();startFieldAnim();
+}
+function resetTab1(){
+  if(piAnimId){cancelAnimationFrame(piAnimId);piAnimId=null;}
+  piRunning=false;piT=0;hbar=0.5;piMode='lorentz';
+  document.getElementById('btnAnimPI').textContent='\u25b6 Animate';document.getElementById('btnAnimPI').classList.remove('active-btn');
+  document.getElementById('slHbar').value=0.5;document.getElementById('vHbar').textContent='0.50';
+  document.getElementById('btnLor').classList.add('active-btn');document.getElementById('btnEuc').classList.remove('active-btn');
+  startPIAnim();
+}
+function resetTab2(){
+  if(rgAnimId){cancelAnimationFrame(rgAnimId);rgAnimId=null;}
+  rgRunning=false;uvCutoff=10;muScale=0.5;
+  document.getElementById('btnAnimRG').textContent='\u25b6 Animate';document.getElementById('btnAnimRG').classList.remove('active-btn');
+  document.getElementById('slLambda').value=10;document.getElementById('vLambda').textContent='10';
+  drawFeynman();drawRGPlot();drawWilson();
+  startRGAnim();
+}
+function resetTab3(){
+  if(fockAnimId){cancelAnimationFrame(fockAnimId);fockAnimId=null;}
+  fockRunning=false;fockT=0;fockOccupations=[0,0,0,0,0];fockFermOccupations=[0,0,0,0,0];fockTargetMode=0;
+  document.getElementById('btnAnimFock').textContent='\u25b6 Animate';document.getElementById('btnAnimFock').classList.remove('active-btn');
+  document.getElementById('btnFockVac').classList.add('active-btn');
+  document.getElementById('btnFock1').classList.remove('active-btn');
+  document.getElementById('btnFock2').classList.remove('active-btn');
+  document.getElementById('btnFockFerm').classList.remove('active-btn');
+  document.getElementById('slFockMode').value=0;document.getElementById('vFockMode').textContent='0';
+  startFockAnim();
+}
+function resetTab6(){
+  if(cwAnimId){cancelAnimationFrame(cwAnimId);cwAnimId=null;}
+  cwRunning=false;cwT=0;cwMu2=0.5;cwLambda=0.5;cwHbar=1.0;
+  document.getElementById('btnCWAnim').textContent='\u25b6 Play';document.getElementById('btnCWAnim').classList.remove('active-btn');
+  document.getElementById('slCWmu2').value=0.5;document.getElementById('vCWmu2').textContent='0.50';
+  document.getElementById('slCWlam').value=0.5;document.getElementById('vCWlam').textContent='0.50';
+  document.getElementById('slCWhbar').value=1;document.getElementById('vCWhbar').textContent='1.00';
+  startCWAnim();
+}
+function resetTab7(){
+  if(anomAnimId){cancelAnimationFrame(anomAnimId);anomAnimId=null;}
+  anomRunning=false;anomT=0;anomMode='triangle';
+  document.getElementById('btnAnomAnim').textContent='\u25b6 Play';document.getElementById('btnAnomAnim').classList.remove('active-btn');
+  document.getElementById('btnAnomTri').classList.add('active-btn');
+  document.getElementById('btnAnomPi0').classList.remove('active-btn');
+  document.getElementById('btnAnomTHooft').classList.remove('active-btn');
+  startAnomAnim();
 }
 
 function initCanvas(cv) {
@@ -612,6 +679,13 @@ let fieldMass = 1.0;
 let casimirD = 60;
 let fieldRunning = false;
 let fieldAnimId = null;
+let piAnimId = null;
+let rgAnimId = null;
+let fockAnimId = null;
+let rgfAnimId = null;
+let lszAnimId = null;
+let cwAnimId = null;
+let anomAnimId = null;
 let fieldT = 0;
 let casimirZoom = 3;
 
@@ -1114,15 +1188,15 @@ function startPIAnim() {
   piRunning = true;
   let piAccum = 0;
   function loop() {
-    if (!piRunning) return;
+    if (!piRunning){piAnimId=null;return;}
     piAccum += qftSpeed;
     const steps = Math.floor(piAccum);
     piAccum -= steps;
     for (let _s = 0; _s < steps; _s++) piT += (window.animSpeed || 1);
     if (activeTab === 1) drawPI();
-    requestAnimationFrame(loop);
+    piAnimId=requestAnimationFrame(loop);
   }
-  loop();
+  piAnimId=requestAnimationFrame(loop);
 }
 
 function togglePIAnim() {
@@ -1459,7 +1533,7 @@ function startRGAnim() {
   rgRunning = true;
   let rgAccum = 0;
   function loop() {
-    if (!rgRunning) return;
+    if (!rgRunning){rgAnimId=null;return;}
     rgAccum += qftSpeed;
     const steps = Math.floor(rgAccum);
     rgAccum -= steps;
@@ -1469,9 +1543,9 @@ function startRGAnim() {
       drawRGPlot();
       drawWilson();
     }
-    requestAnimationFrame(loop);
+    rgAnimId=requestAnimationFrame(loop);
   }
-  loop();
+  rgAnimId=requestAnimationFrame(loop);
 }
 
 function toggleRGAnim() {
@@ -1711,12 +1785,12 @@ function drawFock() {
 function startFockAnim() {
   fockRunning = true;
   function loop() {
-    if (!fockRunning) return;
+    if (!fockRunning){fockAnimId=null;return;}
     fockT += (window.animSpeed || 1);
     if (activeTab === 3) drawFock();
-    requestAnimationFrame(loop);
+    fockAnimId=requestAnimationFrame(loop);
   }
-  loop();
+  fockAnimId=requestAnimationFrame(loop);
 }
 
 function toggleFockAnim() {
@@ -1957,13 +2031,13 @@ function rgfAdvance() {
 function startRGFAnim() {
   rgfRunning = true;
   function loop() {
-    if (!rgfRunning) return;
+    if (!rgfRunning){rgfAnimId=null;return;}
     rgfT += (window.animSpeed || 1);
     rgfAdvance();
     if (activeTab === 4) drawRGF();
-    requestAnimationFrame(loop);
+    rgfAnimId=requestAnimationFrame(loop);
   }
-  loop();
+  rgfAnimId=requestAnimationFrame(loop);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2172,15 +2246,15 @@ function drawLSZ() {
 function startLSZAnim() {
   lszRunning = true;
   function loop() {
-    if (!lszRunning) return;
+    if (!lszRunning){lszAnimId=null;return;}
     lszT++;
     if (lszAutoOn && lszT % 180 === 0) {
       lszNextStep();
     }
     if (activeTab === 5) drawLSZ();
-    requestAnimationFrame(loop);
+    lszAnimId=requestAnimationFrame(loop);
   }
-  loop();
+  lszAnimId=requestAnimationFrame(loop);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2374,12 +2448,12 @@ function drawCW() {
 function startCWAnim() {
   cwRunning = true;
   function loop() {
-    if (!cwRunning) return;
+    if (!cwRunning){cwAnimId=null;return;}
     cwT += (window.animSpeed || 1);
     if (activeTab === 6) drawCW();
-    requestAnimationFrame(loop);
+    cwAnimId=requestAnimationFrame(loop);
   }
-  loop();
+  cwAnimId=requestAnimationFrame(loop);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2677,12 +2751,12 @@ function drawAnom() {
 function startAnomAnim() {
   anomRunning = true;
   function loop() {
-    if (!anomRunning) return;
+    if (!anomRunning){anomAnimId=null;return;}
     anomT += (window.animSpeed || 1);
     if (activeTab === 7) drawAnom();
-    requestAnimationFrame(loop);
+    anomAnimId=requestAnimationFrame(loop);
   }
-  loop();
+  anomAnimId=requestAnimationFrame(loop);
 }
 
 // ═══════════════════════════════════════════════════════════════

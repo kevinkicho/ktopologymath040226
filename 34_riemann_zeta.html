@@ -156,6 +156,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
       <input type="range" id="globalSpeed2" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
       <span id="globalSpeedVal2" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
       <button id="btnA1" class="animBtn" onclick="toggleAnim1()">▶ Animate</button>
+      <button onclick="resetTab1()">&#8635; Reset</button>
       <label>t min</label>
       <input type="range" id="tmin" min="0" max="55" value="0" step="1" oninput="onTChange()">
       <span id="tminV">0</span>
@@ -199,6 +200,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
         <button onclick="view2a.zoom*=1.3;draw2a(eulerAStep||50)">＋</button>
         <button onclick="view2a.zoom=Math.max(0.2,view2a.zoom/1.3);draw2a(eulerAStep||50)">－</button>
         <button onclick="view2a={zoom:1,panX:0,panY:0};draw2a(eulerAStep||50)">Fit</button>
+        <button onclick="resetTab2()">&#8635; Reset</button>
         <span id="elabel" style="color:var(--accent)">s = 2 &nbsp; (π²/6 ≈ 1.6449)</span>
       </div>
     </div>
@@ -240,6 +242,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
       <label>Zoom</label>
       <input type="range" id="csZoom" min="1" max="8" value="3" step="0.5" oninput="drawCritStrip()">
       <button onclick="drawCritStrip()">Refresh</button>
+      <button onclick="resetTab3()">&#8635; Reset</button>
     </div>
     <div class="info-box">
       Critical strip 0 &lt; Re(s) &lt; 1. Color = arg ζ(s) (phase), brightness encodes |ζ(s)|.
@@ -276,6 +279,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
       <label>x max</label>
       <input type="range" id="efX" min="50" max="300" value="100" step="10" oninput="drawExplicit()">
       <span id="efXv">100</span>
+      <button onclick="resetTab4()">&#8635; Reset</button>
     </div>
     <div class="info-box">
       Explicit formula: π(x) = Li(x) &minus; Σ<sub>ρ</sub> Li(x<sup>ρ</sup>) &minus; log2 + &#8747;<sub>x</sub><sup>∞</sup> dt/(t(t²&minus;1)log t).
@@ -312,6 +316,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
       <input type="range" id="gueN" min="50" max="1000" value="200" step="50" oninput="drawGUE()">
       <span id="gueNv">200</span>
       <button onclick="drawGUE()">Refresh</button>
+      <button onclick="resetTab5()">&#8635; Reset</button>
     </div>
     <div class="info-box">
       Montgomery's pair correlation conjecture (1973): the spacing distribution of Riemann zeros matches
@@ -348,6 +353,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
       <input type="range" id="feT" min="0" max="40" value="0" step="0.2" oninput="drawFuncEq()">
       <span id="feTv">0</span>
       <button onclick="drawFuncEq()">Redraw</button>
+      <button onclick="resetTab6()">&#8635; Reset</button>
     </div>
     <div class="info-box">
       Functional equation: ζ(s) = 2<sup>s</sup>π<sup>s−1</sup>sin(πs/2)Γ(1−s)ζ(1−s).
@@ -388,6 +394,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
       <button onclick="setPhysMode(0)" id="bPhy0" class="on">Casimir</button>
       <button onclick="setPhysMode(1)" id="bPhy1">String / −1/12</button>
       <button onclick="setPhysMode(2)" id="bPhy2">Hilbert–Pólya</button>
+      <button onclick="resetTab7()">&#8635; Reset</button>
     </div>
     <div class="info-box">
       The Riemann zeta function appears throughout theoretical physics: Casimir effect (ζ(−3)=1/120),
@@ -521,6 +528,7 @@ function _cancelAllAnims34(){
     .forEach(id=>{if(id)cancelAnimationFrame(id);});
   if(efAnimId){clearTimeout(efAnimId);cancelAnimationFrame(efAnimId);} // efAnimId is setTimeout-wrapped rAF
   if(gueAnimId){clearTimeout(gueAnimId);cancelAnimationFrame(gueAnimId);} // gueAnimId is setTimeout-wrapped rAF
+  autoPanRunning=false;
   autoPanRaf=anim1Id=csAnimId=efAnimId=gueAnimId=feAnimId=physAnimId=null;
   // Reset button states
   const btns = ['btnPan0','btnA1','btnEA','btnCS','btnEF','btnGUE','btnFE','btnPhy'];
@@ -528,6 +536,62 @@ function _cancelAllAnims34(){
     const b = document.getElementById(id);
     if(b){ b.textContent='▶ Animate'; b.classList.remove('on'); }
   });
+}
+function resetTab1(){
+  if(anim1Id){cancelAnimationFrame(anim1Id);anim1Id=null;}
+  anim1Ph=0;
+  const btn=document.getElementById('btnA1');if(btn){btn.textContent='\u25b6 Animate';btn.classList.remove('on');}
+  document.getElementById('tmin').value=0;document.getElementById('tminV').textContent='0';
+  document.getElementById('tmax').value=50;document.getElementById('tmaxV').textContent='50';
+  draw1();
+}
+function resetTab2(){
+  if(eulerAId){cancelAnimationFrame(eulerAId);eulerAId=null;}
+  eulerS={r:2,i:0};eulerAStep=0;eulerLbl='s = 2   (\u03c0\u00b2/6 \u2248 1.6449)';
+  view2a={zoom:1,panX:0,panY:0};
+  const btn=document.getElementById('btnEA');if(btn){btn.textContent='\u25b6 Animate';btn.classList.remove('on');}
+  document.getElementById('elabel').textContent=eulerLbl;
+  document.getElementById('xmax').value=100;document.getElementById('xmaxV').textContent='100';
+  document.getElementById('nzeros').value=0;document.getElementById('nzerosV').textContent='0';
+  showLi=true;showGa=true;showEx=false;
+  document.getElementById('bLi').classList.add('on');
+  document.getElementById('bGa').classList.add('on');
+  document.getElementById('bEx').classList.remove('on');
+  draw2a(50);draw2b();
+}
+function resetTab3(){
+  if(csAnimId){cancelAnimationFrame(csAnimId);csAnimId=null;}csAnimRunning=false;csAnimPh=0;
+  const btn=document.getElementById('btnCS');if(btn){btn.textContent='\u25b6 Animate';btn.classList.remove('on');}
+  document.getElementById('csT').value=14;document.getElementById('csTv').textContent='14.0';
+  document.getElementById('csZoom').value=3;
+  drawCritStrip();
+}
+function resetTab4(){
+  if(efAnimId){clearTimeout(efAnimId);efAnimId=null;}efAnimRunning=false;
+  const btn=document.getElementById('btnEF');if(btn){btn.textContent='\u25b6 Animate';btn.classList.remove('on');}
+  document.getElementById('efN').value=0;document.getElementById('efNv').textContent='0';
+  document.getElementById('efX').value=100;document.getElementById('efXv').textContent='100';
+  drawExplicit();
+}
+function resetTab5(){
+  if(gueAnimId){clearTimeout(gueAnimId);gueAnimId=null;}gueAnimRunning=false;
+  const btn=document.getElementById('btnGUE');if(btn){btn.textContent='\u25b6 Animate';btn.classList.remove('on');}
+  document.getElementById('gueN').value=200;document.getElementById('gueNv').textContent='200';
+  drawGUE();
+}
+function resetTab6(){
+  if(feAnimId){cancelAnimationFrame(feAnimId);feAnimId=null;}feAnimRunning=false;
+  const btn=document.getElementById('btnFE');if(btn){btn.textContent='\u25b6 Animate';btn.classList.remove('on');}
+  document.getElementById('feT').value=0;document.getElementById('feTv').textContent='0';
+  drawFuncEq();
+}
+function resetTab7(){
+  if(physAnimId){cancelAnimationFrame(physAnimId);physAnimId=null;}physAnimRunning=false;physAnimPh=0;physMode=0;
+  const btn=document.getElementById('btnPhy');if(btn){btn.textContent='\u25b6 Animate';btn.classList.remove('on');}
+  document.getElementById('bPhy0').classList.add('on');
+  document.getElementById('bPhy1').classList.remove('on');
+  document.getElementById('bPhy2').classList.remove('on');
+  drawPhys();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2564,6 +2628,22 @@ window.addEventListener('resize',()=>{
 
 // Init speed controls
 window.animSpeed=1;
+
+window._kanim = {
+  start: function() {
+    var idx = [...document.querySelectorAll('.tab')].findIndex(t=>t.classList.contains('active'));
+    if (idx === 0) toggleAutoPan();
+    else if (idx === 1) toggleAnim1();
+    else if (idx === 2) toggleEulerAnim();
+    else if (idx === 3) toggleCritAnim();
+    else if (idx === 4) toggleExplicitAnim();
+    else if (idx === 5) toggleGUEAnim();
+    else if (idx === 6) toggleFuncEqAnim();
+    else if (idx === 7) togglePhysAnim();
+  },
+  stop: function() { _cancelAllAnims34(); }
+};
+
 switchTab(0);
 </script>
 

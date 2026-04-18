@@ -482,13 +482,21 @@ button.on{border-color:var(--accent);color:var(--accent);background:#200010}
 // Utilities
 // ─────────────────────────────────────────────────────────────
 function _cancelAllAnims45(){
+  if(eprRafId){cancelAnimationFrame(eprRafId);eprRafId=null;}
   exp2.running=false;
+  if(exp2RafId){cancelAnimationFrame(exp2RafId);exp2RafId=null;}
   ghzAnim.running=false;
+  if(ghzRafId){cancelAnimationFrame(ghzRafId);ghzRafId=null;}
   chshGame.animRunning=false;
+  if(chshRafId){cancelAnimationFrame(chshRafId);chshRafId=null;}
   loopholeAnim.running=false;
+  if(loopholeRafId){cancelAnimationFrame(loopholeRafId);loopholeRafId=null;}
   ghzNL.animRunning=false;
+  if(ghzNLRafId){cancelAnimationFrame(ghzNLRafId);ghzNLRafId=null;}
   steeringAnim.running=false;
+  if(steerRafId){cancelAnimationFrame(steerRafId);steerRafId=null;}
   diQKD.animRunning=false;
+  if(diRafId){cancelAnimationFrame(diRafId);diRafId=null;}
   const btns=[
     ['btnRunExp','\u25b6 Run Experiment'],
     ['btnGHZAnim','\u25b6 Animate'],
@@ -518,6 +526,7 @@ function switchTab(i){
   resizeAll();
   syncSpeedControl45(i);
   // Re-draw tabs whose canvases were invisible (zero-size) on initial load
+  if(i===0){drawEPR();}
   if(i===1){drawBell();}
   if(i===2){drawExp2();}
   if(i===3){drawGHZ();}
@@ -559,6 +568,7 @@ let epr={
   aliceResult:null, bobResult:null,
   flash:0
 };
+let eprRafId=null;
 
 function updateAngle0(){
   epr.aliceAngle=+document.getElementById('aliceAngle').value;
@@ -723,7 +733,7 @@ function drawEPR(){
     document.getElementById('bobResult').textContent='—';
   }
 
-  requestAnimationFrame(drawEPR);
+   eprRafId=requestAnimationFrame(drawEPR);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -930,6 +940,7 @@ let exp2={
   dataPoints:[],
   switchState:[0,0], switchTimer:0
 };
+let exp2RafId=null;
 const aspectAngles=[0,22.5,45,67.5,90];
 const aspectQM=aspectAngles.map(a=>-Math.cos(a*Math.PI/180));
 const aspectData=[-1.0,-0.707,0.0,0.707,1.0].map((v,i)=>v+0.03*(Math.random()-.5));
@@ -965,7 +976,7 @@ function animExp2(){
     }
   }
   drawExp2();
-  requestAnimationFrame(animExp2);
+  exp2RafId=requestAnimationFrame(animExp2);
 }
 
 function drawExp2(){
@@ -1356,6 +1367,7 @@ function drawGHZ(){
 // GHZ Animation (slow, ~0.3× speed)
 // ─────────────────────────────────────────────────────────────
 let ghzAnim={running:false, t:0, phase:'idle', particleT:0};
+let ghzRafId=null;
 const GHZ_ANIM_SPEED=0.3;
 
 function toggleGHZAnim(){
@@ -1483,7 +1495,7 @@ function animGHZ(){
   ctx.fillStyle='#8888aa';ctx.font='12px Segoe UI';ctx.textAlign='left';
   ctx.fillText('|GHZ⟩ = (1/√2)(|000⟩ + |111⟩)',14,H-12);
 
-  requestAnimationFrame(animGHZ);
+  ghzRafId=requestAnimationFrame(animGHZ);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1496,6 +1508,7 @@ let chshGame={
   history:[], // {x,y,a,b,win,qmWin}
   plotData:[] // {angle, winPct}
 };
+let chshRafId=null;
 
 function setCHSHTsirelson(){
   document.getElementById('chshGameAngle').value=22;
@@ -1568,7 +1581,7 @@ function animCHSHGame(){
     runCHSHRound();
   }
   drawCHSHGame();
-  requestAnimationFrame(animCHSHGame);
+  chshRafId=requestAnimationFrame(animCHSHGame);
 }
 
 function drawCHSHGame(){
@@ -1794,6 +1807,7 @@ const loopholeExps=[
 ];
 
 let loopholeAnim={running:false,t:0,revealIdx:0};
+let loopholeRafId=null;
 
 function toggleLoopholeAnim(){
   loopholeAnim.running=!loopholeAnim.running;
@@ -1810,7 +1824,7 @@ function animLoopholes(){
     loopholeAnim.revealIdx++;loopholeAnim.t=0;
   }
   drawLoopholes();
-  if(loopholeAnim.revealIdx<loopholeExps.length)requestAnimationFrame(animLoopholes);
+  if(loopholeAnim.revealIdx<loopholeExps.length)loopholeRafId=requestAnimationFrame(animLoopholes);
   else{loopholeAnim.running=false;document.getElementById('btnLoopholeAnim').classList.remove('on');document.getElementById('btnLoopholeAnim').textContent='\u25b6 Animate';}
 }
 
@@ -1937,6 +1951,7 @@ let ghzNL={
   animRunning:false,animT:0,animPhase:'idle',
   showCircuit:false
 };
+let ghzNLRafId=null;
 
 function runGHZNLRound(){
   // Three-party GHZ game
@@ -2012,7 +2027,7 @@ function animGHZNL(){
     ghzNL.animT=0;
   }
   drawGHZNL();
-  requestAnimationFrame(animGHZNL);
+  ghzNLRafId=requestAnimationFrame(animGHZNL);
 }
 
 function drawGHZNL(){
@@ -2210,6 +2225,7 @@ function drawGHZCircuit(ctx,W,H){
 // TAB 7 — QUANTUM STEERING & CONTEXTUALITY
 // ─────────────────────────────────────────────────────────────
 let steeringAnim={running:false,t:0};
+let steerRafId=null;
 
 function toggleSteerAnim(){
   steeringAnim.running=!steeringAnim.running;
@@ -2222,7 +2238,7 @@ function animSteering(){
   if(!steeringAnim.running)return;
   steeringAnim.t+=0.016*(window.animSpeed || 1);
   drawSteering();
-  requestAnimationFrame(animSteering);
+  steerRafId=requestAnimationFrame(animSteering);
 }
 
 function drawSteering(){
@@ -2502,6 +2518,7 @@ let diQKD={
   keyBits:0, pairs:0, errorRate:0.03,
   sVal:0
 };
+let diRafId=null;
 
 function toggleDIAnim(){
   diQKD.animRunning=!diQKD.animRunning;
@@ -2540,7 +2557,7 @@ function animDIQKD(){
     diQKD.animT=0;
   }
   drawDIQKD();
-  requestAnimationFrame(animDIQKD);
+  diRafId=requestAnimationFrame(animDIQKD);
 }
 
 function drawDIQKD(){

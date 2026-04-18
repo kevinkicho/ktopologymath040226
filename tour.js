@@ -102,7 +102,22 @@
     var btn = document.getElementById('ktour-btn');
     if (btn) btn.textContent = '⏹ Tour';
     // Ensure animation is running while the tour plays
-    if (window._kanim) window._kanim.start();
+    if (window._kanim) {
+      window._kanim.start();
+    } else {
+      // Fallback: find and click any paused Animate/Play button on the active tab
+      var pane = document.querySelector('.pane.active, .panel.active, [role="tabpanel"][style*="display"]');
+      if (pane) {
+        var btns = pane.querySelectorAll('button, .btn');
+        for (var bi = 0; bi < btns.length; bi++) {
+          var txt = (btns[bi].textContent || '').trim();
+          if (txt === '▶ Animate' || txt === '▶ Play' || txt === 'Play' || txt === 'Animate') {
+            btns[bi].click();
+            break;
+          }
+        }
+      }
+    }
     showStep();
   }
 

@@ -800,6 +800,7 @@ function start1(){
   if(anim1) return;
   let last=null;
   function frame(ts){
+    if(!anim1Running){anim1=null;return;}
     if(!last)last=ts;
     const dt=(ts-last)/1000;last=ts;
     t1+=dt*0.5*ligoSpeed;
@@ -975,6 +976,7 @@ function start2(){
   document.getElementById('btn2spec').classList.toggle('on',showSpec);
   let last=null;
   function frame(ts){
+    if(!anim2Running){anim2=null;return;}
     if(!last)last=ts;
     const dt=(ts-last)/1000;last=ts;
     if(play2) t2=(t2+dt*0.25)%0.6;
@@ -1151,6 +1153,7 @@ function toggle3Anim(){
   document.getElementById('btn3anim').classList.toggle('on',animating3);
   document.getElementById('btn3anim').textContent=animating3?'\u23f8 Pause':'\u25b6 Animate';
   if(animating3){animProg3=0;anim3EventIdx=0;anim3PauseClock=0;anim3FlashClock=0;}
+  else { if(anim3){cancelAnimationFrame(anim3);anim3=null;} }
 }
 function toggle3EM(){showEM=!showEM;document.getElementById('btn3em').classList.toggle('on',showEM);}
 function toggle3Loc(){showLoc=!showLoc;document.getElementById('btn3loc').classList.toggle('on',showLoc);}
@@ -1159,28 +1162,28 @@ function start3(){
   if(anim3) return;
   let last=null;
   function frame(ts){
+    if(!animating3){anim3=null;return;}
     if(!last)last=ts;
     const dt=(ts-last)/1000;last=ts;
-    if(animating3){
-      const filter=document.getElementById('filter3').value;
-      const filtered=events.filter(e=>filter==='all'||e.type===filter);
-      const sorted=[...filtered].sort((a,b)=>a.year-b.year);
-      const total=sorted.length;
-      if(anim3EventIdx<total){
-        anim3PauseClock+=dt;
-        anim3FlashClock+=dt;
-        if(anim3PauseClock>=0.5){
-          anim3PauseClock=0;
-          anim3FlashClock=0;
-          anim3EventIdx++;
-        }
-        animProg3=anim3EventIdx/total;
-      } else {
-        animating3=false;
-        animProg3=1;
-        document.getElementById('btn3anim').classList.remove('on');
-        document.getElementById('btn3anim').textContent='\u25b6 Animate';
+    const filter=document.getElementById('filter3').value;
+    const filtered=events.filter(e=>filter==='all'||e.type===filter);
+    const sorted=[...filtered].sort((a,b)=>a.year-b.year);
+    const total=sorted.length;
+    if(anim3EventIdx<total){
+      anim3PauseClock+=dt;
+      anim3FlashClock+=dt;
+      if(anim3PauseClock>=0.5){
+        anim3PauseClock=0;
+        anim3FlashClock=0;
+        anim3EventIdx++;
       }
+      animProg3=anim3EventIdx/total;
+    } else {
+      animating3=false;
+      animProg3=1;
+      document.getElementById('btn3anim').classList.remove('on');
+      document.getElementById('btn3anim').textContent='\u25b6 Animate';
+      anim3=null;return;
     }
     draw3(ts);
     anim3=requestAnimationFrame(frame);
@@ -1374,36 +1377,35 @@ document.getElementById('c3').addEventListener('click',function(e){
 // ─── Animate aliases (picked up by auto-start.js /animate/i) ───────────────
 let anim1Running=false;
 function animate1(){
-  // Toggle GW on, ensure loop is running, mark button active
   if(!anim1Running){
     anim1Running=true;
     if(!gwOn1) toggle1GW();
     document.getElementById('btn1animate').classList.add('on');
     document.getElementById('btn1animate').textContent='⏸ Pause';
+    start1();
   } else {
     anim1Running=false;
     if(gwOn1) toggle1GW();
     document.getElementById('btn1animate').classList.remove('on');
     document.getElementById('btn1animate').textContent='▶ Animate';
+    if(anim1){cancelAnimationFrame(anim1);anim1=null;}
   }
-  // Always ensure the draw loop is spinning
-  start1();
 }
 
 let anim2Running=false;
 function animate2(){
-  // Toggle play2 on/off and sync button label
   anim2Running=!anim2Running;
   if(anim2Running){
     if(!play2) toggle2Play();
     document.getElementById('btn2animate').classList.add('on');
     document.getElementById('btn2animate').textContent='⏸ Pause';
+    start2();
   } else {
     if(play2) toggle2Play();
     document.getElementById('btn2animate').classList.remove('on');
     document.getElementById('btn2animate').textContent='▶ Animate';
+    if(anim2){cancelAnimationFrame(anim2);anim2=null;}
   }
-  start2();
 }
 
 // ─── init ──────────────────────────────────────────────────────────────────
@@ -1448,6 +1450,7 @@ function start4(){
     if(!last4) last4=ts;
     const dt=(ts-last4)/1000; last4=ts;
     if(!paused4) step4(dt*(window.animSpeed || 1));
+    if(paused4){anim4=null;return;}
     anim4=requestAnimationFrame(frame);
   }
   anim4=requestAnimationFrame(frame);
@@ -1681,6 +1684,7 @@ function start5(){
     const dt=(ts-last5)/1000; last5=ts;
     if(!paused5) t5+=dt*(window.animSpeed || 1)*0.7;
     draw5();
+    if(paused5){anim5=null;return;}
     anim5=requestAnimationFrame(frame);
   }
   anim5=requestAnimationFrame(frame);
@@ -1891,7 +1895,7 @@ const pulsars6=(()=>{
   return pts;
 })();
 
-function toggle6(){paused6=!paused6;document.getElementById('btn6pp').textContent=paused6?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn6pp').classList.toggle('on',!paused6);}
+function toggle6(){paused6=!paused6;document.getElementById('btn6pp').textContent=paused6?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn6pp').classList.toggle('on',!paused6);if(!paused6)start6();}
 function toggle6HD(){showHD6=!showHD6;document.getElementById('btn6hd').classList.toggle('on',showHD6);}
 function toggle6Res(){showRes6=!showRes6;document.getElementById('btn6res').classList.toggle('on',showRes6);}
 function draw6update(){
@@ -1907,6 +1911,7 @@ function start6(){
     const dt=(ts-last6)/1000; last6=ts;
     if(!paused6) t6+=dt*(window.animSpeed || 1)*0.4;
     draw6();
+    if(paused6){anim6=null;return;}
     anim6=requestAnimationFrame(frame);
   }
   anim6=requestAnimationFrame(frame);
@@ -2056,7 +2061,7 @@ function draw6(){
 // ══════════════════════════════════════════════════════════════════
 let anim7=null, t7=0, paused7=false, showTDI7=false, showSrc7=false, showCurve7=true;
 
-function toggle7(){paused7=!paused7;document.getElementById('btn7pp').textContent=paused7?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn7pp').classList.toggle('on',!paused7);}
+function toggle7(){paused7=!paused7;document.getElementById('btn7pp').textContent=paused7?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn7pp').classList.toggle('on',!paused7);if(!paused7)start7();}
 function toggle7TDI(){showTDI7=!showTDI7;document.getElementById('btn7tdi').classList.toggle('on',showTDI7);}
 function toggle7Src(){showSrc7=!showSrc7;document.getElementById('btn7src').classList.toggle('on',showSrc7);}
 function toggle7Curve(){showCurve7=!showCurve7;document.getElementById('btn7curve').classList.toggle('on',showCurve7);}
@@ -2075,6 +2080,7 @@ function start7(){
     const dt=(ts-last7)/1000; last7=ts;
     if(!paused7) t7+=dt*(window.animSpeed || 1)*0.15;
     draw7();
+    if(paused7){anim7=null;return;}
     anim7=requestAnimationFrame(frame);
   }
   anim7=requestAnimationFrame(frame);
@@ -2286,7 +2292,7 @@ function draw7(){
 // ══════════════════════════════════════════════════════════════════
 let anim8=null, t8=0, paused8=false, showTidal8=false, showKN8=true, showGRB8=false;
 
-function toggle8(){paused8=!paused8;document.getElementById('btn8pp').textContent=paused8?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn8pp').classList.toggle('on',!paused8);}
+function toggle8(){paused8=!paused8;document.getElementById('btn8pp').textContent=paused8?'\u25b6 Play':'\u23f8 Pause';document.getElementById('btn8pp').classList.toggle('on',!paused8);if(!paused8)start8();}
 function toggle8Tidal(){showTidal8=!showTidal8;document.getElementById('btn8tidal').classList.toggle('on',showTidal8);}
 function toggle8KN(){showKN8=!showKN8;document.getElementById('btn8kn').classList.toggle('on',showKN8);}
 function toggle8GRB(){showGRB8=!showGRB8;document.getElementById('btn8grb').classList.toggle('on',showGRB8);}
@@ -2305,6 +2311,7 @@ function start8(){
     if(!paused8) t8+=dt*(window.animSpeed || 1)*0.5;
     if(t8>40) t8=0;
     draw8();
+    if(paused8){anim8=null;return;}
     anim8=requestAnimationFrame(frame);
   }
   anim8=requestAnimationFrame(frame);

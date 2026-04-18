@@ -678,7 +678,7 @@ function initCanvas0() {
 
 function loop0() {
   if (playing0 && pend) {
-    const dt = 0.008;
+    const dt = 0.008 * (window.animSpeed || 1);
     const stepsPerFrame = 4;
     for (let i = 0; i < stepsPerFrame; i++) {
       pend = rk4(pend, dt, pendDeriv);
@@ -881,7 +881,7 @@ function drawPoincare() {
 function loop1() {
   if (poincPlaying) {
     // advance each orbit's draw index
-    let advance = 8;
+    let advance = 8 * (window.animSpeed || 1);
     orbits.forEach(o => {
       o.drawIdx = Math.min(o.pts.length, o.drawIdx + advance);
     });
@@ -1233,9 +1233,10 @@ function drawAttractor() {
 }
 
 function loop2() {
+  const sp2 = window.animSpeed || 1;
   if (attrPlaying) {
     if (attractorType === 'lorenz') {
-      const dt = 0.005;
+      const dt = 0.005 * sp2;
       for (let i = 0; i < 80; i++) {
         const prev = [...lorenzState];
         lorenzState = rk4(lorenzState, dt, lorenzDeriv);
@@ -1255,7 +1256,7 @@ function loop2() {
       }
       document.getElementById('attrPts').textContent = attrPoints.length;
     } else if (attractorType === 'rossler') {
-      const dt = 0.006;
+      const dt = 0.006 * sp2;
       for (let i = 0; i < 80; i++) {
         rosslerState = rk4(rosslerState, dt, rosslerDeriv);
         const [px, py] = project3d(rosslerState[0], rosslerState[1], rosslerState[2] - 5, W2, H2);
@@ -1275,10 +1276,10 @@ function loop2() {
       document.getElementById('attrPts').textContent = attrPoints.length;
     } else if (attractorType === 'henon') {
       // progressive animation: advance henonDrawIdx
-      henonDrawIdx = Math.min(henonPts.length, henonDrawIdx + 150);
+      henonDrawIdx = Math.min(henonPts.length, henonDrawIdx + Math.round(150 * sp2));
     } else if (attractorType === 'logistic') {
       // progressive reveal: advance logisticRevealR
-      const revealStep = (logZoomR1 - logZoomR0) / 180;
+      const revealStep = (logZoomR1 - logZoomR0) / 180 * sp2;
       logisticRevealR = Math.min(logZoomR1, logisticRevealR + revealStep);
     }
   }
@@ -1493,7 +1494,7 @@ function drawLyap3Bot() {
 
 function loop3() {
   if (lyap3Playing) {
-    const stepsPerFrame = 30;
+    const stepsPerFrame = 30 * (window.animSpeed || 1);
     for (let i = 0; i < stepsPerFrame; i++) {
       const xNew = lyap3r * lyap3x * (1 - lyap3x);
       const xpNew = lyap3r * lyap3xp * (1 - lyap3xp);
@@ -1902,18 +1903,21 @@ function drawStdMap() {
   }
 }
 
+function togglePlay5() {
+  playing5 = !playing5;
+  const btn = document.getElementById('btnPlay5');
+  btn.textContent = playing5 ? '⏸ Pause' : '▶ Animate';
+  btn.classList.toggle('act', playing5);
+  if (playing5 && !kamRaf) {
+    loop5();
+  }
+}
+
 function loop5() {
   if (playing5) {
     drawStdMap();
   }
   kamRaf = requestAnimationFrame(loop5);
-}
-
-function togglePlay6() {
-  playing6 = !playing6;
-  const btn = document.getElementById('btnPlay6');
-  btn.textContent = playing6 ? '⏸ Pause' : '▶ Animate';
-  btn.classList.toggle('act', playing6);
 }
 
 function scheduleLoop5() {

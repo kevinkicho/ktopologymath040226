@@ -92,6 +92,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
       <button id="btnGlobalAdS" onclick="toggleGlobalAdS()">Global AdS₃</button>
       <label>L=<span id="lVal">1.00</span></label>
       <input type="range" id="slL" min="0.5" max="2" step="0.01" value="1" oninput="onLChange(this.value)">
+      <button onclick="resetTab0_62()">&#8635; Reset</button>
     </div>
     <div class="info-box" id="info0box">Click on boundary to place first endpoint</div>
   </div>
@@ -121,6 +122,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
       <label>Δ=<span id="deltaVal">2.0</span></label>
       <input type="range" id="slDelta" min="1.0" max="4.0" step="0.05" value="2.0" oninput="onDeltaChange(this.value)">
       <button id="btnSource1" onclick="toggleSource1()">Source On</button>
+      <button onclick="resetTab1_62()">&#8635; Reset</button>
     </div>
     <div class="info-box" id="info1box">m²L²=<span class="val" id="massVal">0.00</span> &nbsp;|&nbsp; Δ=<span class="val" id="deltaDisp">2.00</span></div>
   </div>
@@ -150,6 +152,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
       <input type="range" id="speed2" min="0" max="1" step="0.01" value="1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
       <button id="btnEWedge" onclick="toggleEWedge()">Entanglement Wedge</button>
       <button id="btnPageCurve" onclick="togglePageCurve()">Page Curve</button>
+      <button onclick="resetTab2_62()">&#8635; Reset</button>
     </div>
     <div class="info-box" id="info2box">S = c/3 · <span class="val" id="rtEntropy">0.000</span></div>
   </div>
@@ -180,6 +183,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
       <label>M=<span id="massDisp">1.00</span></label>
       <input type="range" id="slMass" min="0.1" max="5" step="0.05" value="1" oninput="onMassChange(this.value)">
       <button id="btnBTZAnim" onclick="toggleBTZAnim()">Animate</button>
+      <button onclick="resetTab3_62()">&#8635; Reset</button>
     </div>
     <div class="info-box" id="info3box">r₊=<span class="val" id="rPlusVal">1.00</span> &nbsp;|&nbsp; T_H=<span class="val" id="tHawkVal">0.159</span> &nbsp;|&nbsp; S=<span class="val" id="sbhVal">1.571</span></div>
   </div>
@@ -240,6 +244,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
       <input type="range" id="speed5" min="0" max="1" step="0.01" value="1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
       <button id="btnMERAView" onclick="toggleMERAView()">HaPPY Code View</button>
       <button onclick="clearHighlight5()">Clear Highlight</button>
+      <button onclick="resetTab5_62()">&#8635; Reset</button>
     </div>
     <div class="info-box" id="info5box">Click a tensor node to highlight its causal cone</div>
   </div>
@@ -273,6 +278,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
       <label>λ=<span id="lambdaVal">1.0</span></label>
       <input type="range" id="slLambda" min="0.1" max="10" step="0.1" value="1.0" oninput="onLambdaChange(this.value)">
       <button id="btnNonPlanar" onclick="toggleNonPlanar()">Non-Planar</button>
+      <button onclick="resetTab6_62()">&#8635; Reset</button>
     </div>
     <div class="info-box" id="info6box">1/N²=<span class="val" id="invN2Val">0.111</span> &nbsp;|&nbsp; λ=g²N=<span class="val" id="thooftVal">3.0</span></div>
   </div>
@@ -302,6 +308,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
       <input type="range" id="speed7" min="0" max="1" step="0.01" value="1" oninput="window.animSpeed=parseFloat(this.value);this.nextElementSibling.textContent=this.value;">
       <label>T/Tc=<span id="t7Val">1.00</span></label>
       <input type="range" id="slT7" min="0.01" max="2" step="0.01" value="1.0" oninput="onT7Change(this.value)">
+      <button onclick="resetTab7_62()">&#8635; Reset</button>
     </div>
     <div class="info-box" id="info7box">η/s=<span class="val" id="etaSVal">0.080</span> &nbsp;|&nbsp; |ψ|=<span class="val" id="psiVal">0.000</span></div>
   </div>
@@ -338,11 +345,13 @@ function adsAnimLoop(){
     const drawFns={0:drawTab0,1:drawTab1,2:drawTab2,5:drawTab5,6:drawTab6,7:drawTab7};
     if(drawFns[adsCurTab])drawFns[adsCurTab]();
   }
+  if(adsPaused){adsRafId=null;return;}
   adsRafId=requestAnimationFrame(adsAnimLoop);
 }
 function toggleAdsPause(btn){
   adsPaused=!adsPaused;
-  btn.textContent=adsPaused?'▶':'⏸';
+  btn.textContent=adsPaused?'\u25b6':'\u23f8';
+  if(!adsPaused&&!adsRafId)adsRafId=requestAnimationFrame(adsAnimLoop);
 }
 
 function stopAll(){
@@ -991,7 +1000,7 @@ function drawTab3(t){
 }
 
 function animBTZ(){
-  if(!btzAnimating)return;
+  if(!btzAnimating){btzRafId=null;return;}
   btzT3+=0.016*(window.animSpeed || 1);
   btzQuanta.forEach(q=>{q.y+=q.vy;q.life-=0.01;});
   btzQuanta=btzQuanta.filter(q=>q.life>0);
@@ -1147,6 +1156,93 @@ function resetRG(){
   rgAnimating=false;
   document.getElementById('btnRGFlow').classList.remove('active-btn');
   drawTab4();
+}
+
+function resetTab0_62(){
+  stopAll();
+  geodesics0=[]; globalAdS0=false; clickAngle0=null; adsL0=1.0;
+  document.getElementById('slL').value=1;
+  document.getElementById('lVal').textContent='1.00';
+  document.getElementById('globalSpeed').value=1;
+  document.getElementById('globalSpeedVal').textContent='1.0x';
+  window.animSpeed=1;
+  document.getElementById('btnGlobalAdS').classList.remove('active-btn');
+  document.getElementById('info0box').textContent='Click on boundary to place first endpoint';
+  startTab(0);
+}
+
+function resetTab1_62(){
+  stopAll();
+  delta1=2.0; source1On=false;
+  document.getElementById('slDelta').value='2.0';
+  document.getElementById('deltaVal').textContent='2.0';
+  document.getElementById('speed1').value=1;
+  document.getElementById('speed1Val').textContent='1.00';
+  window.animSpeed=1;
+  document.getElementById('btnSource1').classList.remove('active-btn');
+  document.getElementById('btnSource1').textContent='Source On';
+  startTab(1);
+}
+
+function resetTab2_62(){
+  stopAll();
+  rt_t1=Math.PI*0.7; rt_t2=Math.PI*1.4; showEWedge=false; showPageCurve=false; draggingRT=0;
+  document.getElementById('speed2').value=1;
+  document.getElementById('speed2Val').textContent='1.00';
+  window.animSpeed=1;
+  document.getElementById('btnEWedge').classList.remove('active-btn');
+  document.getElementById('btnPageCurve').classList.remove('active-btn');
+  startTab(2);
+}
+
+function resetTab3_62(){
+  stopAll();
+  btzMass=1.0; btzQuanta=[]; btzT3=0; btzAnimating=false;
+  document.getElementById('slMass').value='1';
+  document.getElementById('massDisp').textContent='1.00';
+  document.getElementById('speed3').value=1;
+  document.getElementById('speed3Val').textContent='1.00';
+  window.animSpeed=1;
+  document.getElementById('btnBTZAnim').textContent='Animate';
+  document.getElementById('btnBTZAnim').classList.remove('active-btn');
+  startTab(3);
+}
+
+function resetTab5_62(){
+  stopAll();
+  meraView=false; highlightNode=-1;
+  document.getElementById('speed5').value=1;
+  document.getElementById('speed5Val').textContent='1.00';
+  window.animSpeed=1;
+  document.getElementById('btnMERAView').textContent='HaPPY Code View';
+  document.getElementById('btnMERAView').classList.remove('active-btn');
+  document.getElementById('info5box').textContent='Click a tensor node to highlight its causal cone';
+  startTab(5);
+}
+
+function resetTab6_62(){
+  stopAll();
+  n6=3; lambda6=1.0; showNonPlanar=true;
+  document.getElementById('slN').value='3';
+  document.getElementById('nVal').textContent='3';
+  document.getElementById('slLambda').value='1.0';
+  document.getElementById('lambdaVal').textContent='1.0';
+  document.getElementById('speed6').value=1;
+  document.getElementById('speed6Val').textContent='1.00';
+  window.animSpeed=1;
+  document.getElementById('btnNonPlanar').classList.add('active-btn');
+  startTab(6);
+}
+
+function resetTab7_62(){
+  stopAll();
+  t7=1.0;
+  document.getElementById('slT7').value='1.0';
+  document.getElementById('t7Val').textContent='1.00';
+  document.getElementById('speed7').value=1;
+  document.getElementById('speed7Val').textContent='1.00';
+  window.animSpeed=1;
+  startTab(7);
 }
 
 // ============================================================

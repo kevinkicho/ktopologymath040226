@@ -128,6 +128,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
       <button onclick="presetQuadrupole()">Quadrupole</button>
       <button onclick="presetCapacitor()">Capacitor</button>
       <button onclick="clearCharges()">Clear</button>
+      <button onclick="resetTab0()">&#8635; Reset</button>
       <span style="width:6px"></span>
       <button id="btnEfield" class="active-btn" onclick="toggleFieldMode('E')">Show E field</button>
       <button id="btnBfield" onclick="toggleFieldMode('B')">Show B field</button>
@@ -196,6 +197,8 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
         <span class="vval" id="polVal">0°</span>
         &nbsp;
         <button id="btnCircPol" onclick="toggleCircPol()">Circular Polarization</button>
+        &nbsp;
+        <button onclick="resetTab1()">&#8635; Reset</button>
       </div>
     </div>
     <div class="tab1-side">
@@ -257,6 +260,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
         <button id="btnCoulomb" class="active-btn" onclick="setGauge('coulomb')">Coulomb gauge ∇·A=0</button>
         <button id="btnLorenz" onclick="setGauge('lorenz')">Lorenz gauge ∂_μA^μ=0</button>
         <button onclick="resetParticle()">Reset Particle</button>
+        <button onclick="resetTab2()">&#8635; Reset</button>
       </div>
     </div>
     <div class="tab2-side">
@@ -314,6 +318,8 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
         <button id="btnFormGauge" onclick="setFormMode('gauge')">Gauge: A→A+dχ</button>
         <button id="btnFormHodge" onclick="setFormMode('hodge')">Hodge ★F duality</button>
         <button id="btnFormSource" onclick="setFormMode('source')">Source: d★F = ★J</button>
+        &nbsp;
+        <button onclick="resetTab3()">&#8635; Reset</button>
       </div>
     </div>
     <div class="pane-side">
@@ -364,6 +370,8 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
         <label style="display:inline;margin-right:4px">Speed β:</label>
         <input type="range" id="betaSlider" min="0.05" max="0.9" step="0.01" value="0.3" style="width:90px">
         <span class="vval" id="betaVal">0.30</span>
+        &nbsp;
+        <button onclick="resetTab4()">&#8635; Reset</button>
       </div>
     </div>
     <div class="pane-side">
@@ -412,6 +420,8 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
         <label style="display:inline;margin-right:4px">Phase α(x):</label>
         <input type="range" id="phaseSlider" min="0" max="6.28" step="0.05" value="1" style="width:90px">
         <span class="vval" id="phaseVal">1.00</span>
+        &nbsp;
+        <button onclick="resetTab5()">&#8635; Reset</button>
       </div>
     </div>
     <div class="pane-side">
@@ -462,6 +472,8 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
         <label style="display:inline;margin-right:4px" id="optSliderLabel">n₂:</label>
         <input type="range" id="optSlider" min="1.0" max="2.5" step="0.01" value="1.5" style="width:90px">
         <span class="vval" id="optSliderVal">1.50</span>
+        &nbsp;
+        <button onclick="resetTab6()">&#8635; Reset</button>
       </div>
     </div>
     <div class="pane-side">
@@ -511,6 +523,8 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;margin-bo
         &nbsp;
         <button id="btnCasimirModes" class="active-btn" onclick="setCasimirMode('modes')">Mode spectrum</button>
         <button id="btnCasimirForce" onclick="setCasimirMode('force')">Force vs d</button>
+        &nbsp;
+        <button onclick="resetTab7()">&#8635; Reset</button>
       </div>
     </div>
     <div class="pane-side">
@@ -586,6 +600,125 @@ function _cancelAllAnims37() {
     const b = document.getElementById(id);
     if(b){ b.textContent='▶ Animate'; b.classList.remove('active-btn'); }
   });
+}
+
+// =====================================================================
+//  RESET FUNCTIONS
+// =====================================================================
+function resetTab0() {
+  charges = []; wires = [];
+  fieldMode = 'E'; showGauss = false; gaussPos = null; mousePos0 = {x:0,y:0};
+  document.getElementById('btnEfield').classList.add('active-btn');
+  document.getElementById('btnBfield').classList.remove('active-btn');
+  document.getElementById('btnGauss').classList.remove('active-btn');
+  document.getElementById('fluxLabel').textContent = '';
+  const gs = document.getElementById('globalSpeed1'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  presetDipole();
+}
+
+function resetTab1() {
+  if (raf1) { cancelAnimationFrame(raf1); raf1 = null; }
+  t1 = 0; circPol = false; animRunning1 = true;
+  document.getElementById('freqSlider').value = 1;
+  document.getElementById('freqVal').textContent = '1.0';
+  document.getElementById('ampSlider').value = 1;
+  document.getElementById('ampVal').textContent = '1.0';
+  document.getElementById('polSlider').value = 0;
+  document.getElementById('polVal').textContent = '0\u00B0';
+  document.getElementById('btnCircPol').classList.remove('active-btn');
+  updateSpectrum(1.0);
+  const gs = document.getElementById('globalSpeed2'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  const btn = document.getElementById('btnAnim1');
+  btn.textContent = '\u23F8 Pause'; btn.classList.add('active-btn');
+  if (activeTab === 1) animTab1();
+}
+
+function resetTab2() {
+  if (raf2) { cancelAnimationFrame(raf2); raf2 = null; }
+  t2 = 0; currentGauge = 'coulomb'; animRunning2 = true;
+  document.getElementById('eFieldSlider').value = 0;
+  document.getElementById('eFieldVal').textContent = '0.0';
+  document.getElementById('bFieldSlider').value = 1;
+  document.getElementById('bFieldVal').textContent = '1.0';
+  setGauge('coulomb');
+  resetParticle();
+  const gs = document.getElementById('globalSpeed3'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  const btn = document.getElementById('btnAnim2');
+  btn.textContent = '\u23F8 Pause'; btn.classList.add('active-btn');
+  if (activeTab === 2) animTab2();
+}
+
+function resetTab3() {
+  if (raf3) { cancelAnimationFrame(raf3); raf3 = null; }
+  t3 = 0; formMode = 'em'; animRunning3 = true;
+  setFormMode('em');
+  const gs = document.getElementById('globalSpeed4'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  const btn = document.getElementById('btnAnim3');
+  btn.textContent = '\u23F8 Pause'; btn.classList.add('active-btn');
+  if (activeTab === 3) animTab3();
+}
+
+function resetTab4() {
+  if (raf4) { cancelAnimationFrame(raf4); raf4 = null; }
+  t4 = 0; trajMode = 'circular'; animRunning4 = true;
+  wavefronts4.length = 0; lastWaveT = -1;
+  document.getElementById('betaSlider').value = 0.3;
+  document.getElementById('betaVal').textContent = '0.30';
+  setTraj('circular');
+  const gs = document.getElementById('globalSpeed5'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  const btn = document.getElementById('btnAnim4');
+  btn.textContent = '\u23F8 Pause'; btn.classList.add('active-btn');
+  if (activeTab === 4) animTab4();
+}
+
+function resetTab5() {
+  if (raf5) { cancelAnimationFrame(raf5); raf5 = null; }
+  t5 = 0; u1Mode = 'global'; animRunning5 = true;
+  document.getElementById('phaseSlider').value = 1;
+  document.getElementById('phaseVal').textContent = '1.00';
+  setU1Mode('global');
+  const gs = document.getElementById('globalSpeed6'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  const btn = document.getElementById('btnAnim5');
+  btn.textContent = '\u23F8 Pause'; btn.classList.add('active-btn');
+  if (activeTab === 5) animTab5();
+}
+
+function resetTab6() {
+  if (raf6) { cancelAnimationFrame(raf6); raf6 = null; }
+  t6 = 0; optMode = 'snell'; animRunning6 = true;
+  setOptMode('snell');
+  const gs = document.getElementById('globalSpeed7'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  const btn = document.getElementById('btnAnim6');
+  btn.textContent = '\u23F8 Pause'; btn.classList.add('active-btn');
+  if (activeTab === 6) animTab6();
+}
+
+function resetTab7() {
+  if (raf7) { cancelAnimationFrame(raf7); raf7 = null; }
+  t7 = 0; casimirMode = 'modes'; animRunning7 = true;
+  document.getElementById('casimirSlider').value = 1.5;
+  document.getElementById('casimirVal').textContent = '1.50';
+  setCasimirMode('modes');
+  const gs = document.getElementById('globalSpeed8'); gs.value = 1;
+  gs.nextElementSibling.textContent = '1.00';
+  window.animSpeed = 1;
+  const btn = document.getElementById('btnAnim7');
+  btn.textContent = '\u23F8 Pause'; btn.classList.add('active-btn');
+  if (activeTab === 7) animTab7();
 }
 
 // =====================================================================

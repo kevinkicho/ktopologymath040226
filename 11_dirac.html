@@ -541,11 +541,15 @@ function _addPan(canvas,idx,fn){
 let activeTab=0;
 function cancelAllAnimations(){
   if(seaAnimId){clearInterval(seaAnimId);seaAnimId=null;}
+  if(zbRafId){cancelAnimationFrame(zbRafId);zbRafId=null;}
   zbRunning=false;
+  if(hAtomRafId){cancelAnimationFrame(hAtomRafId);hAtomRafId=null;}
   hAnimRunning=false;
   const hBtn=document.getElementById('hAnimBtn');
   if(hBtn){hBtn.textContent='▶ Sweep Z';hBtn.classList.remove('active');}
+  if(chiralRafId){cancelAnimationFrame(chiralRafId);chiralRafId=null;}
   chiralRunning=false;
+  if(cptRafId){cancelAnimationFrame(cptRafId);cptRafId=null;}
   cptRunning=false;
   seaPaused=false;zbPaused=false;hPaused=false;chPaused=false;cptPaused=false;
   _setPauseBtn('seaPauseBtn',false);
@@ -804,7 +808,7 @@ function redrawSea(){
 const zbC=document.getElementById('zbCanvas');
 const zbCtx=zbC.getContext('2d');
 let zbMom=1.0, zbMass=1.0, zbSig=1.0, zbView=0;
-let zbT=0, zbRunning=false;
+let zbT=0, zbRunning=false, zbRafId=null;
 
 function setZBView(v){
   zbView=v;
@@ -965,9 +969,9 @@ function drawZB(){
 }
 
 function zbLoop(){
-  if(activeTab!==1){zbRunning=false;return;}
+  if(activeTab!==1||!zbRunning){zbRunning=false;return;}
   if(!zbPaused) zbT+=0.025*(window.animSpeed||1);drawZB();
-  requestAnimationFrame(zbLoop);
+  zbRafId=requestAnimationFrame(zbLoop);
 }
 function startZBLoop(){
   resizeZB();
@@ -980,7 +984,7 @@ function startZBLoop(){
 const hC=document.getElementById('hCanvas');
 const hCtx=hC.getContext('2d');
 let hZ=1,hNmax=4,hView=0;
-let hAnimRunning=false, hAnimT=0;
+let hAnimRunning=false, hAtomRafId=null, hAnimT=0;
 const ALPHA=1/137.036;
 
 function setHView(v){
@@ -1172,7 +1176,7 @@ function hAtomLoop(){
   document.getElementById('hZSlider').value=hZ;
   document.getElementById('hZval').textContent=hZ;
   redrawHatom();
-  requestAnimationFrame(hAtomLoop);
+  hAtomRafId=requestAnimationFrame(hAtomLoop);
 }
 function toggleHAnim(){
   hAnimRunning=!hAnimRunning;
@@ -1208,7 +1212,7 @@ function startHAtomLoop(){
 const chiC=document.getElementById('chiralCanvas');
 const chiCtx=chiC.getContext('2d');
 let chiralMass=1.0, chiralMom=2.0, chiralMode=0;
-let chiralAnimT=0, chiralRunning=false;
+let chiralAnimT=0, chiralRunning=false, chiralRafId=null;
 
 function setChiralMode(m){
   chiralMode=m;
@@ -1431,10 +1435,10 @@ function redrawChiral(){
 }
 
 function chiralLoop(){
-  if(activeTab!==3){chiralRunning=false;return;}
+  if(activeTab!==3||!chiralRunning){chiralRunning=false;return;}
   if(!chPaused) chiralAnimT+=0.04*(window.animSpeed||1);
   redrawChiral();
-  requestAnimationFrame(chiralLoop);
+  chiralRafId=requestAnimationFrame(chiralLoop);
 }
 function startChiralLoop(){
   resizeChiral();
@@ -1446,7 +1450,7 @@ function startChiralLoop(){
 // ═══════════════════════════════════════════════════════════════════
 const cptC=document.getElementById('cptCanvas');
 const cptCtx=cptC.getContext('2d');
-let cptState=0,cptRunning=false,cptAnimT=0;
+let cptState=0,cptRunning=false,cptAnimT=0,cptRafId=null;
 
 const CPT_DESCS=[
   {op:'Original',txt:'Original: electron (q=-e) spin up, moving right, time forward. Compton scattering: e\u207b + \u03b3 \u2192 e\u207b + \u03b3. QED conserves C, P, T individually.'},
@@ -1622,10 +1626,10 @@ function redrawCPT(){
 }
 
 function cptLoop(){
-  if(activeTab!==4){cptRunning=false;return;}
+  if(activeTab!==4||!cptRunning){cptRunning=false;return;}
   if(!cptPaused) cptAnimT+=0.04*(window.animSpeed||1);
   redrawCPT();
-  requestAnimationFrame(cptLoop);
+  cptRafId=requestAnimationFrame(cptLoop);
 }
 function startCPTLoop(){
   resizeCPT();
