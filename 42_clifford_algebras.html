@@ -62,8 +62,7 @@ input[type=range]{accent-color:var(--accent);cursor:pointer}
 /* ── TAB 2 ── */
 #pane2.active{display:flex;flex-direction:row}
 .t2-left{display:flex;flex-direction:column;flex:1;padding:12px;gap:8px;overflow:hidden}
-.t2-canvases{display:flex;flex-direction:row;gap:8px;flex:1;min-height:0}
-#c2a,#c2b{display:block;flex:1;min-width:0;border-radius:6px;border:1px solid var(--border)}
+.t2-left canvas{border-radius:6px;border:1px solid var(--border)}
 .t2-controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 
 /* ── TAB 3 — MULTIPLICATION TABLE ── */
@@ -217,7 +216,7 @@ input[type=range]{accent-color:var(--accent);cursor:pointer}
 ═══════════════════════════════════════════════════════════════════ -->
 <div class="pane" role="tabpanel" data-role="panel" id="pane2">
   <div class="t2-left">
-    <div class="t2-canvases">
+    <div class="split-view split-h" style="flex:1;min-height:0">
       <canvas aria-label="42 · Clifford Algebras and Geometric Algebra — panel 3" id="c2a"></canvas>
       <canvas aria-label="42 · Clifford Algebras and Geometric Algebra — panel 4" id="c2b"></canvas>
     </div>
@@ -525,10 +524,12 @@ function switchTab(n){
   currentTab = n;
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
   document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('active',i===n));
+  var pane=document.getElementById('pane'+n);
+  if(pane) resizeAllCanvases(pane);
   syncSpeedControl42(n);
-  if(n===0){resizeAll();setAnim0(true);}
-  if(n===1){resizeC1();toggleAnim1();}
-  if(n===2){resizeC2();toggleAnim2();}
+  if(n===0){setAnim0(true);}
+  if(n===1){toggleAnim1();}
+  if(n===2){toggleAnim2();}
   if(n===3){drawTab3();toggleAnim3();}
   if(n===4){drawTab4();toggleAnim4();}
   if(n===5){drawTab5();toggleAnim5();}
@@ -828,9 +829,6 @@ function showNodeDetail(node){
   });
 }
 
-function resizeAll(){
-  drawTab0();
-}
 
 /* ═══════════════════════════════════════════════
    TAB 1 — GEOMETRIC PRODUCT VISUALIZER
@@ -1037,10 +1035,6 @@ c1.addEventListener('mousemove',e=>{
   if(!anim1) drawTab1();
 });
 c1.addEventListener('mouseup',()=>dragging=null);
-
-function resizeC1(){
-  drawTab1();
-}
 
 /* ═══════════════════════════════════════════════
    TAB 2 — SPACETIME ALGEBRA & SPINORS
@@ -1300,10 +1294,6 @@ function drawTab2(){
   drawSTA(W2a,H2a);
   drawSpinor(W2b,H2b);
   if(anim2) anim2frame=requestAnimationFrame(drawTab2);
-}
-
-function resizeC2(){
-  drawTab2();
 }
 
 /* ═══════════════════════════════════════════════
@@ -1895,9 +1885,11 @@ window.addEventListener('load',()=>{
   for(var i=0;i<8;i++){syncSpeedControl42(i);}
 });
 window.addEventListener('resize',()=>{
-  if(currentTab===0) resizeAll();
-  else if(currentTab===1) resizeC1();
-  else if(currentTab===2) resizeC2();
+  var pane=document.querySelector('.pane.active');
+  if(pane) resizeAllCanvases(pane);
+  if(currentTab===0) drawTab0();
+  else if(currentTab===1) drawTab1();
+  else if(currentTab===2) drawTab2();
   else if(currentTab===3) drawTab3();
   else if(currentTab===4) drawTab4();
   else if(currentTab===5) drawTab5();

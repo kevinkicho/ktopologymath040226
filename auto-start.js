@@ -47,6 +47,41 @@ window.resizeCanvas = function (canvas) {
   if (canvas.onresize) canvas.onresize();
 };
 
+// ── Split-view layout system ──────────────────────────────────────────────────
+(function () {
+  var style = document.createElement('style');
+  style.id = 'split-view-css';
+  style.textContent =
+    '.split-view{display:flex;gap:4px;min-height:0;min-width:0}' +
+    '.split-v{flex-direction:column}' +
+    '.split-h{flex-direction:row}' +
+    '.split-view>.split-25{flex:0 0 25%;min-height:0;min-width:0}' +
+    '.split-view>.split-33{flex:0 0 33.333%;min-height:0;min-width:0}' +
+    '.split-view>.split-50{flex:1 1 0;min-height:0;min-width:0}' +
+    '.split-view>.split-66{flex:0 0 66.666%;min-height:0;min-width:0}' +
+    '.split-view>canvas{flex:1 1 0;min-height:0;min-width:0}';
+  document.head.appendChild(style);
+})();
+
+window.resizeAllCanvases = function (container) {
+  if (!container) container = document;
+  var dpr = window.devicePixelRatio || 1;
+  var sel = typeof container.querySelectorAll === 'function' ? container : document;
+  sel.querySelectorAll('canvas').forEach(function (c) {
+    if (!c.parentElement) return;
+    var rect = c.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return;
+    var newW = Math.floor(rect.width * dpr);
+    var newH = Math.floor(rect.height * dpr);
+    if (c.width === newW && c.height === newH) return;
+    c.style.width = rect.width + 'px';
+    c.style.height = rect.height + 'px';
+    c.width = newW;
+    c.height = newH;
+    if (c.onresize) c.onresize();
+  });
+};
+
 // ── Pause animations when tab is hidden, resume when visible ─────────────────
 document.addEventListener('visibilitychange', function() {
   window.isPaused = document.hidden;

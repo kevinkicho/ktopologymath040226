@@ -3095,6 +3095,28 @@ function renderRealIntegral(animT){
     ctx.fillText('real axis \u2192 integral',cx-R+4,cy-8);
     ctx.fillStyle='rgba(0,229,255,0.75)';
     ctx.fillText('arc \u2192 0 (Jordan)',cx+4,cy-R*0.65);
+  } else if(RISTATE.which===2){
+    const R=scale*2.2,eps=scale*0.12;
+    if(animT!==undefined){
+      const segs=5,segT=2*Math.PI/segs;
+      const localT=((animT%segT)/segT);
+      const segI=Math.floor((animT%(2*Math.PI))/segT);
+      let mpx,mpy;
+      if(segI===0){
+        mpx=cx+eps+(R-eps)*localT;mpy=cy-1.5;
+      } else if(segI===1){
+        const a=-Math.PI/2+localT*Math.PI;mpx=cx+R*Math.cos(a);mpy=cy+R*Math.sin(a);
+      } else if(segI===2){
+        mpx=cx+R-(R-eps)*localT;mpy=cy+1.5;
+      } else if(segI===3){
+        const a=Math.PI/2-localT*Math.PI;mpx=cx+eps*Math.cos(a);mpy=cy+eps*Math.sin(a);
+      } else {
+        const a0=-Math.PI/2+0.04,a1=Math.PI/2-0.04;
+        const a=a0+localT*(a1-a0);mpx=cx+R*Math.cos(a);mpy=cy+R*Math.sin(a);
+      }
+      ctx.beginPath();ctx.arc(mpx,mpy,8,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();
+      ctx.strokeStyle='#00e5ff';ctx.lineWidth=2;ctx.stroke();
+    }
   }
   const labels=['\u222b dx/(1+x\u00b2) = 2\u03c0i\u00d7Res(f,i) = \u03c0',
                 '\u222b d\u03b8/(2+cos\u03b8) = 2\u03c0/\u221a3',
@@ -3175,10 +3197,11 @@ function setACDemo(key,btn){
   document.getElementById('ac-path-block').style.display=(key==='geom'||key==='disks')?'block':'none';
   document.getElementById('ac-zeta-block').style.display=key==='zeta'?'block':'none';
   if(ACSTATE.animId){cancelAnimationFrame(ACSTATE.animId);ACSTATE.animId=null;}
-  ACSTATE.animating=false;
+  ACSTATE.animating=true;
   const btnAnim=document.getElementById('ac-anim-btn');
-  if(btnAnim){btnAnim.textContent='▶ Animate';btnAnim.classList.remove('active');}
+  if(btnAnim){btnAnim.textContent='Stop';btnAnim.classList.add('active');}
   renderContinuation();
+  ACSTATE.animId=requestAnimationFrame(acAnimLoop);
 }
 function setACAngle(v){ACSTATE.angle=v;document.getElementById('ac-angle-disp').textContent=v+'\u00b0';renderContinuation();}
 function setACReS(v){ACSTATE.reS=v;document.getElementById('ac-res-disp').textContent=v.toFixed(2);renderContinuation();}

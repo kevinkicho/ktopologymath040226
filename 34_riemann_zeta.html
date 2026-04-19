@@ -64,10 +64,7 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
 .zeros-list{overflow-y:auto;flex:1;padding:6px 12px;line-height:2.1;font-size:.74rem}
 .zeros-note{padding:8px 12px;border-top:1px solid var(--border);
             font-size:.71rem;color:var(--dim);line-height:1.65}
-/* Tab 2 vertical split */
-.t2-section{display:flex;flex-direction:column;overflow:hidden;padding:10px 12px;gap:6px}
-.t2-top{flex:0 0 46%;border-bottom:1px solid var(--border)}
-.t2-bot{flex:1;min-height:0}
+/* Tab 2 vertical split — now handled by .split-view.split-v */
 #main{display:flex;flex-direction:column;flex:1;overflow:hidden}
 /* Progress overlay */
 .prog-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -186,10 +183,10 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
 
 <!-- ── TAB 2 ── -->
 <div class="pane" role="tabpanel" data-role="panel" id="pane2">
-  <!-- Euler product (top) -->
-  <div class="canvas-area" style="padding:0;gap:0">
-    <div class="t2-section t2-top">
-      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 3" id="c2a"></canvas>
+  <div class="canvas-area split-view split-v" style="padding:0;gap:0">
+    <!-- Euler product (top) -->
+    <div class="split-50" style="border-bottom:1px solid var(--border);display:flex;overflow:hidden">
+      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 3" id="c2a" style="flex:1;min-height:0"></canvas>
       <div class="controls" data-role="sidebar" style="flex-shrink:0">
         <span style="font-size:.75rem;color:var(--dim)">ζ(s) = ∏<sub>p</sub> 1/(1−p<sup>−s</sup>)</span>
         <button onclick="setES(2,0,'π²/6 ≈ 1.6449')">s=2</button>
@@ -205,8 +202,8 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
       </div>
     </div>
     <!-- Prime distribution (bottom) -->
-    <div class="t2-section t2-bot">
-      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 4" id="c2b"></canvas>
+    <div class="split-50" style="display:flex;overflow:hidden">
+      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 4" id="c2b" style="flex:1;min-height:0"></canvas>
       <div class="controls" data-role="sidebar" style="flex-shrink:0">
         <label>x max</label>
         <input type="range" id="xmax" min="50" max="500" value="100" step="10" oninput="draw2b()">
@@ -266,8 +263,10 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
 <!-- ── TAB 4 — EXPLICIT FORMULA ── -->
 <div class="pane" role="tabpanel" data-role="panel" id="pane4">
   <div class="canvas-area">
-    <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 6" id="c4a" style="flex:0 0 55%"></canvas>
-    <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 7" id="c4b" style="flex:1;min-height:0"></canvas>
+    <div class="split-view split-h" style="flex:1;min-height:0">
+      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 6" id="c4a" style="flex:0 0 55%"></canvas>
+      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 7" id="c4b" style="flex:1;min-height:0"></canvas>
+    </div>
     <div class="controls" data-role="sidebar">
       <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
       <input type="range" id="globalSpeed4" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
@@ -342,8 +341,10 @@ button.on{border-color:var(--accent);color:var(--accent);background:#0a1830}
 <!-- ── TAB 6 — FUNCTIONAL EQUATION ── -->
 <div class="pane" role="tabpanel" data-role="panel" id="pane6">
   <div class="canvas-area">
-    <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 9" id="c6a" style="flex:0 0 52%"></canvas>
-    <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 10" id="c6b" style="flex:1;min-height:0"></canvas>
+    <div class="split-view split-h" style="flex:1;min-height:0">
+      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 9" id="c6a" style="flex:0 0 52%"></canvas>
+      <canvas aria-label="34 · Riemann Zeta Function and the Prime Frontier — panel 10" id="c6b" style="flex:1;min-height:0"></canvas>
+    </div>
     <div class="controls" data-role="sidebar">
       <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
       <input type="range" id="globalSpeed6" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
@@ -504,10 +505,11 @@ const PRIMES=sieve(600);
 //  TAB SWITCHING
 // ═══════════════════════════════════════════════════════════
 function switchTab(i){
-  // Cancel any in-progress domain-coloring computation and other animations
   _cancelAllAnims34();
   document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
   document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
+  var pane=document.getElementById('pane'+i);
+  if(pane) resizeAllCanvases(pane);
   if(i===0){recompute();toggleAutoPan();}
   if(i===1){draw1();toggleAnim1();}
   if(i===2){draw2a();draw2b();toggleEulerAnim();}
@@ -931,7 +933,7 @@ function drawOverlay0(){
 // ═══════════════════════════════════════════════════════════
 const c1=document.getElementById('c1');
 const ctx1=c1.getContext('2d');
-let anim1Id=null, anim1Ph=0;
+let anim1Id=null, anim1Ph=0, _zNow=Date.now();
 
 // θ(t) via Stirling approximation
 function theta(t){
@@ -1131,7 +1133,6 @@ function toggleAnim1(){
     btn.textContent='▶ Animate';btn.classList.remove('on');return;
   }
   btn.textContent='⏸ Pause';btn.classList.add('on');
-  let _zNow=Date.now();
   function frame(ts){_zNow=ts||Date.now();anim1Ph+=0.0008*(window.animSpeed || 1);draw1();anim1Id=requestAnimationFrame(frame);}
   anim1Id=requestAnimationFrame(frame);
 }
