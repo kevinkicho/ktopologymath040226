@@ -83,7 +83,7 @@
         id: m.id,
         title: m.title,
         text: (m.title + ' ' + m.tags).toLowerCase(),
-        url: '/' + m.id + '.html'
+        url: m.id + '.html'
       });
     });
 
@@ -99,7 +99,7 @@
               id: moduleId,
               title: step.title,
               text: (step.title + ' ' + step.body).toLowerCase(),
-              url: '/' + filename + '#tab=' + tabIdx
+              url: filename + '#tab=' + tabIdx
             });
           });
         });
@@ -115,7 +115,7 @@
             id: moduleId,
             title: ch.title,
             text: (ch.title + ' ' + ch.hint).toLowerCase(),
-            url: '/' + moduleId + '.html'
+            url: moduleId + '.html'
           });
         });
       });

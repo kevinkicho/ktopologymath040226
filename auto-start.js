@@ -159,7 +159,7 @@ document.addEventListener('visibilitychange', function() {
 
     function makeLink(file, dir) {
       const a = document.createElement('a');
-      a.href = '/' + file;
+      a.href = file;
       a.style.cssText =
         'color:#55558a;text-decoration:none;display:flex;align-items:center;' +
         'gap:6px;padding:6px 10px;border-radius:4px;transition:.15s;' +
@@ -178,7 +178,7 @@ document.addEventListener('visibilitychange', function() {
     }
 
     const homeLink = document.createElement('a');
-    homeLink.href = '/';
+    homeLink.href = 'index.html';
     homeLink.style.cssText =
       'color:#33334a;text-decoration:none;font-size:.65rem;letter-spacing:.06em;' +
       'text-transform:uppercase;padding:4px 8px;border-radius:3px;transition:.15s;flex-shrink:0;';
@@ -207,7 +207,7 @@ document.addEventListener('visibilitychange', function() {
       if (modIdx === -1) return;
       var pp = window.firebaseProgress.getPathProgress(pathId);
       homeLink.textContent = path.title + ' ' + pp.completed + '/' + pp.total;
-      homeLink.href = '/paths.html';
+      homeLink.href = 'paths.html';
       homeLink.style.color = path.color;
       homeLink.style.fontSize = '.66rem';
       homeLink.style.fontWeight = '600';

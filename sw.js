@@ -1,31 +1,33 @@
-var CACHE_NAME = 'kmath-v3.4';
+var CACHE_NAME = 'kmath-v3.5';
+
+var BASE = self.location.pathname.replace(/\/sw\.js$/, '/');
 
 var PRECACHE = [
-  '/',
-  '/index.html',
-  '/paths.html',
-  '/graph.html',
-  '/graph3d.html',
-  '/glossary.html',
-  '/analytics.html',
-  '/auto-start.js',
-  '/paths-data.js',
-  '/challenges-data.js',
-  '/connections-data.js',
-  '/difficulty-data.js',
-  '/glossary-data.js',
-  '/glossary-tooltip.js',
-  '/quiz-data.js',
-  '/search-data.js',
-  '/tour-data.js',
-  '/tour.js',
-  '/firebase-progress.js',
-  '/icon.svg',
-  '/sw.js',
-  '/manifest.json'
+  BASE,
+  BASE + 'index.html',
+  BASE + 'paths.html',
+  BASE + 'graph.html',
+  BASE + 'graph3d.html',
+  BASE + 'glossary.html',
+  BASE + 'analytics.html',
+  BASE + 'auto-start.js',
+  BASE + 'paths-data.js',
+  BASE + 'challenges-data.js',
+  BASE + 'connections-data.js',
+  BASE + 'difficulty-data.js',
+  BASE + 'glossary-data.js',
+  BASE + 'glossary-tooltip.js',
+  BASE + 'quiz-data.js',
+  BASE + 'search-data.js',
+  BASE + 'tour-data.js',
+  BASE + 'tour.js',
+  BASE + 'firebase-progress.js',
+  BASE + 'icon.svg',
+  BASE + 'sw.js',
+  BASE + 'manifest.json'
 ];
 
-var MODULE_RE = /^\/\d{2}_.*\.html$/;
+var MODULE_RE = /\d{2}_.*\.html$/;
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
