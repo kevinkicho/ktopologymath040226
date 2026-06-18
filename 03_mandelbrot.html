@@ -992,13 +992,15 @@ function setPreset(name){
 function initCanvas(){
   const c=document.getElementById('cm');
   if (c) window.resizeCanvas(c);
+  const base=Math.min(c.width/2,c.height)*0.35;
+  if(!S.mScale||S.mScale===0){ S.mScale=base; S.jScale=base; }
 }
 
 window.addEventListener('load',()=>{
   initCanvas();
   Object.values(PAL_STOPS).forEach((_,i)=>buildPal(Object.keys(PAL_STOPS)[i]));
   initInteraction();
-  render(1);
+  scheduleRender(true);
   autoStartAnimations();
 });
 
@@ -1488,10 +1490,10 @@ window.addEventListener('load',()=>{
   new ResizeObserver(()=>{
     const c=document.getElementById('cm'), wrap=document.getElementById('cwrap');
     if(!c||!wrap) return;
-    const w=wrap.offsetWidth, h=wrap.offsetHeight;
-    if(w===c.width && h===c.height) return; // no change
-    c.width=w; c.height=h;
-    const base=Math.min(w/2,h)*0.35;
+    const oldW=c.width, oldH=c.height;
+    window.resizeCanvas(c);
+    if(c.width===oldW&&c.height===oldH) return;
+    const base=Math.min(c.width/2,c.height)*0.35;
     if(!S.mScale||S.mScale===0){ S.mScale=base; S.jScale=base; }
     scheduleRender(false);
   }).observe(document.getElementById('cwrap'));
