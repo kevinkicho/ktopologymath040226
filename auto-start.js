@@ -37,6 +37,7 @@ document.addEventListener('visibilitychange', function() {
 
 // ── Standardized resizeCanvas ─────────────────────────────────────────────────
 window.resizeCanvas = function (canvas) {
+  if(!canvas || !canvas.parentElement) return;
   const rect = canvas.parentElement.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   // Constrain CSS size first to prevent parent from expanding due to large canvas.width

@@ -970,103 +970,104 @@ function drawAB(){
 
 // ── TAB 4: SU(2) YANG-MILLS INSTANTON ──
 let ymAnimId=null, ymTime=0;
-function animYM(){
-  const btn=document.getElementById('ymAnimBtn');
-  if(ymAnimId){cancelAnimationFrame(ymAnimId);ymAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}
-  btn.textContent='⏸ Pause';
-  btn.classList.add('active');
-  function frame(){if(activeTab!==4){ymAnimId=null;btn.textContent='▶ Animate';btn.classList.remove('active');return;}ymTime=(ymTime+0.018 * window.animSpeed)%(2*Math.PI);document.getElementById('ymAng').value=ymTime;document.getElementById('v_ymAng').textContent=ymTime.toFixed(2);drawYM();ymAnimId=requestAnimationFrame(frame);}
-  frame();
-}
-function resetYM(){if(ymAnimId){cancelAnimationFrame(ymAnimId);ymAnimId=null;}ymTime=0;const btn=document.getElementById('ymAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}document.getElementById('ymAng').value=0;document.getElementById('v_ymAng').textContent='0.00';drawYM();}
-function hslToRgb(h,s,l){
-  let r,g,b;
-  if(s===0){r=g=b=l;}else{
-    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+let ymFieldCanvas=null, ymFieldCtx=null; // offscreen cache
+let ymFieldKey='';
+// Precomputed color LUT for BPST density → RGBA
+const ymColorLUT=new Uint8Array(256*4);
+(function buildYMLUT(){
+  for(let i=0;i<256;i++){
+    const t=i/255;
+    const hue=(1-t)*240;
+    const s=0.9,l=0.1+0.5*t;
     const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;
-    r=hue2rgb(p,q,h+1/3);g=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+    const hue2rgb=(p,q,t2)=>{let tt=t2;if(tt<0)tt+=1;if(tt>1)tt-=1;if(tt<1/6)return p+(q-p)*6*tt;if(tt<1/2)return q;if(tt<2/3)return p+(q-p)*(2/3-tt)*6;return p;};
+    ymColorLUT[i*4]=Math.round(hue2rgb(p,q,hue/360+1/3)*255);
+    ymColorLUT[i*4+1]=Math.round(hue2rgb(p,q,hue/360)*255);
+    ymColorLUT[i*4+2]=Math.round(hue2rgb(p,q,hue/360-1/3)*255);
+    ymColorLUT[i*4+3]=Math.round(200*t+20);
   }
-  return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+})();
+function renderYMField(W,H,rho,sliceZ,ang){
+  if(!ymFieldCanvas||ymFieldCanvas.width!==W||ymFieldCanvas.height!==H){
+    ymFieldCanvas=document.createElement('canvas');
+    ymFieldCanvas.width=W;ymFieldCanvas.height=H;
+    ymFieldCtx=ymFieldCanvas.getContext('2d');
+  }
+  const scale=Math.min(W,H)*0.32,cx=W/2,cy=H/2;
+  const imageData=ymFieldCtx.createImageData(W,H);
+  const rho2=rho*rho,rho4=rho2*rho2,sliceZ2=sliceZ*sliceZ;
+  const data=imageData.data;
+  for(let ix=0;ix<W;ix++){
+    for(let iy=0;iy<H;iy++){
+      const wx=(ix-cx)/scale,wy=(cy-iy)/scale;
+      const r2=wx*wx+wy*wy+sliceZ2;
+      const denom=r2+rho2;
+      const density=96*rho4/(denom*denom*denom*denom);
+      const t=Math.min(1,density*rho4*0.8);
+      const idx2=Math.floor(t*255)*4;
+      const pi=(iy*W+ix)*4;
+      data[pi]=ymColorLUT[idx2];data[pi+1]=ymColorLUT[idx2+1];
+      data[pi+2]=ymColorLUT[idx2+2];data[pi+3]=ymColorLUT[idx2+3];
+    }
+  }
+  ymFieldCtx.putImageData(imageData,0,0);
+  // Connection 1-form arrows
+  const arrowGrid=18;
+  for(let ix=0;ix<arrowGrid;ix++){
+    for(let iy=0;iy<arrowGrid;iy++){
+      const wx=(ix/(arrowGrid-1)-0.5)*7,wy=(iy/(arrowGrid-1)-0.5)*7;
+      const r2=wx*wx+wy*wy+sliceZ2+0.01;
+      const Amag=2*rho2/(r2*(r2+rho2))*0.15;
+      const ax=-wy/Math.sqrt(r2)*Amag,ay=wx/Math.sqrt(r2)*Amag;
+      if(Math.sqrt(ax*ax+ay*ay)<0.002)continue;
+      const sx=cx+wx*scale,sy=cy-wy*scale;
+      const ex2=sx+ax*scale,ey2=sy-ay*scale;
+      const alpha2=Math.min(0.7,Amag*8);
+      ymFieldCtx.strokeStyle='rgba(255,200,100,'+alpha2+')';ymFieldCtx.lineWidth=1.2;
+      ymFieldCtx.beginPath();ymFieldCtx.moveTo(sx,sy);ymFieldCtx.lineTo(ex2,ey2);ymFieldCtx.stroke();
+    }
+  }
 }
 function drawYM(){
   resizeCanvas(ymC);
-  const W=ymC.width, H=ymC.height;
-  if(!W||!H) return;
+  const W=ymC.width,H=ymC.height;
+  if(!W||!H)return;
   ymCtx.setTransform(1,0,0,1,0,0);
-  ymCtx.fillStyle='#06060f'; ymCtx.fillRect(0,0,W,H);
   const rho=parseFloat(document.getElementById('ymRho').value);
   const sliceZ=parseFloat(document.getElementById('ymZ').value);
   const ang=parseFloat(document.getElementById('ymAng').value);
   document.getElementById('v_rho').textContent=rho.toFixed(2);
   document.getElementById('v_ymZ').textContent=sliceZ.toFixed(2);
   document.getElementById('v_ymAng').textContent=ang.toFixed(2);
-  const cx=W/2, cy=H/2, scale=Math.min(W,H)*0.32;
-  // BPST instanton curvature density Tr(F^2) = 96 rho^4 / (r^2+rho^2)^4
-  const imageData=ymCtx.createImageData(W,H);
-  for(let ix=0;ix<W;ix++){
-    for(let iy=0;iy<H;iy++){
-      const wx=(ix-cx)/scale, wy=(cy-iy)/scale;
-      const rx2=wx*Math.cos(ang)-wy*Math.sin(ang);
-      const ry2=wx*Math.sin(ang)+wy*Math.cos(ang);
-      const r2=rx2*rx2+ry2*ry2+sliceZ*sliceZ;
-      const rho4=rho*rho*rho*rho;
-      const denom=r2+rho*rho;
-      const density=96*rho4/(denom*denom*denom*denom);
-      const t=Math.min(1,density*rho4*0.8);
-      const hue=(1-t)*240;
-      const [rv,gv,bv]=hslToRgb(hue/360,0.9,0.1+0.5*t);
-      const idx=(iy*W+ix)*4;
-      imageData.data[idx]=rv; imageData.data[idx+1]=gv; imageData.data[idx+2]=bv;
-      imageData.data[idx+3]=Math.floor(200*t+20);
-    }
-  }
-  ymCtx.putImageData(imageData,0,0);
-  // Connection 1-form arrows
-  const arrowGrid=18;
-  for(let ix=0;ix<arrowGrid;ix++){
-    for(let iy=0;iy<arrowGrid;iy++){
-      const wx=(ix/(arrowGrid-1)-0.5)*7;
-      const wy=(iy/(arrowGrid-1)-0.5)*7;
-      const r2=wx*wx+wy*wy+sliceZ*sliceZ+0.01;
-      const rho2=rho*rho;
-      const Amag=2*rho2/(r2*(r2+rho2))*0.15;
-      const ax=-wy/Math.sqrt(r2)*Amag, ay=wx/Math.sqrt(r2)*Amag;
-      if(Math.sqrt(ax*ax+ay*ay)<0.002)continue;
-      const sx=cx+wx*scale, sy=cy-wy*scale;
-      const ex2=sx+ax*scale, ey2=sy-ay*scale;
-      const alpha2=Math.min(0.7,Amag*8);
-      ymCtx.strokeStyle='rgba(255,200,100,'+alpha2+')'; ymCtx.lineWidth=1.2;
-      ymCtx.beginPath(); ymCtx.moveTo(sx,sy); ymCtx.lineTo(ex2,ey2); ymCtx.stroke();
-    }
-  }
+  const key=W+'|'+H+'|'+rho+'|'+sliceZ;
+  if(key!==ymFieldKey){renderYMField(W,H,rho,sliceZ,ang);ymFieldKey=key;}
+  ymCtx.drawImage(ymFieldCanvas,0,0);
   // SU(2)=S³ fiber inset diagram
-  const fiberX=W-90, fiberY=90, fiberR=50;
-  ymCtx.strokeStyle='rgba(150,100,255,0.4)'; ymCtx.lineWidth=1;
+  const fiberX=W-90,fiberY=90,fiberR=50;
+  ymCtx.strokeStyle='rgba(150,100,255,0.4)';ymCtx.lineWidth=1;
   for(let k=0;k<5;k++){ymCtx.beginPath();ymCtx.arc(fiberX,fiberY,fiberR*(k+1)/5,0,2*Math.PI);ymCtx.stroke();}
   const fibAng=ang*2;
   ymCtx.beginPath();
   ymCtx.arc(fiberX+fiberR*0.7*Math.cos(fibAng),fiberY+fiberR*0.7*Math.sin(fibAng),5,0,2*Math.PI);
-  ymCtx.fillStyle='rgba(255,100,200,0.9)'; ymCtx.fill();
-  ymCtx.fillStyle='rgba(150,100,255,0.7)'; ymCtx.font='12px Share Tech Mono';
+  ymCtx.fillStyle='rgba(255,100,200,0.9)';ymCtx.fill();
+  ymCtx.fillStyle='rgba(150,100,255,0.7)';ymCtx.font='12px Share Tech Mono';
   ymCtx.fillText('SU(2)=S3',fiberX-26,fiberY+fiberR+14);
   ymCtx.fillText('fiber',fiberX-12,fiberY+fiberR+25);
-  // Update info via textContent
-  document.getElementById('ymInfo').textContent='BPST instanton k=1 | rho='+rho.toFixed(2)+' | peak density: '+(96/(rho*rho*rho*rho)).toFixed(2)+' | integral Tr(F^F) = 8pi^2 | BPS bound: S >= 8pi^2/g^2';
+  document.getElementById('ymInfo').textContent='BPST instanton k=1 | rho='+rho.toFixed(2)+' | peak density: '+(96/(rho4?rho4:1)).toFixed(2)+' | integral Tr(F^F) = 8pi^2 | BPS bound: S >= 8pi^2/g^2';
   // Color bar
   ymCtx.setTransform(1,0,0,1,0,0);
-  const cbX=W-24, cbY=H*0.2, cbH=H*0.6;
+  const cbX=W-24,cbY=H*0.2,cbH=H*0.6;
   for(let i=0;i<cbH;i++){
-    const t2=1-i/cbH;
-    const [rv2,gv2,bv2]=hslToRgb((1-t2)*240/360,0.9,0.1+0.5*t2);
-    ymCtx.fillStyle='rgb('+rv2+','+gv2+','+bv2+')';
+    const t2=1-i/cbH,idx2=Math.floor(t2*255)*4;
+    ymCtx.fillStyle='rgb('+ymColorLUT[idx2]+','+ymColorLUT[idx2+1]+','+ymColorLUT[idx2+2]+')';
     ymCtx.fillRect(cbX,cbY+i,14,1);
   }
-  ymCtx.strokeStyle='rgba(255,255,255,0.3)'; ymCtx.strokeRect(cbX,cbY,14,cbH);
-  ymCtx.fillStyle='rgba(255,255,255,0.5)'; ymCtx.font='12px Share Tech Mono';
-  ymCtx.fillText('hi',cbX-2,cbY-4); ymCtx.fillText('lo',cbX-2,cbY+cbH+10);
-  ymCtx.fillStyle='rgba(255,85,204,0.8)'; ymCtx.font='13px Share Tech Mono';
+  ymCtx.strokeStyle='rgba(255,255,255,0.3)';ymCtx.strokeRect(cbX,cbY,14,cbH);
+  ymCtx.fillStyle='rgba(255,255,255,0.5)';ymCtx.font='12px Share Tech Mono';
+  ymCtx.fillText('hi',cbX-2,cbY-4);ymCtx.fillText('lo',cbX-2,cbY+cbH+10);
+  ymCtx.fillStyle='rgba(255,85,204,0.8)';ymCtx.font='13px Share Tech Mono';
   ymCtx.fillText('SU(2) Yang-Mills — BPST Instanton (k=1)',16,24);
-  ymCtx.fillStyle='rgba(255,200,100,0.55)'; ymCtx.font='12px Share Tech Mono';
+  ymCtx.fillStyle='rgba(255,200,100,0.55)';ymCtx.font='12px Share Tech Mono';
   ymCtx.fillText('Color: Tr(F^F) density. Yellow arrows: connection A. Upper right: SU(2)=S3 fiber.',16,42);
 }
 

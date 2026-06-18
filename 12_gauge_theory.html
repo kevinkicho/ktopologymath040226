@@ -701,15 +701,8 @@ function _addPan(canvas,idx,fn){
 }
 
 // ── TAB SWITCHING ──
-// Animation RAF handles — all declared here so _cancelAllAnims can reference them
-let gaugeAnimRAF=null;
-let feynAnimRAF=null;
-let runAnimRAF=null;
-let ymAnimRAF=null;
-let instAnimRAF=null;
-let ewAnimRAF=null;
-let anomAnimRAF=null;
-let latAnimRAF=null;
+// Animation RAF handles — all in one object so _cancelAllAnims can reference current values
+const RAF={gauge:null,feyn:null,run:null,ym:null,inst:null,ew:null,anom:null,lat:null};
 let activeTab=0;
 function _cancelAllAnims(){
   _latMCRunning=false;
@@ -717,19 +710,11 @@ function _cancelAllAnims(){
   _tourActive=false;
   const tourBtn=document.getElementById('tour-btn');
   if(tourBtn){tourBtn.textContent='▶ Play Tour';tourBtn.classList.remove('active');}
-  const anims=[
-    [gaugeAnimRAF,'gaugeAnimBtn',v=>{gaugeAnimRAF=v}],
-    [feynAnimRAF,'feynAnimBtn',v=>{feynAnimRAF=v}],
-    [runAnimRAF,'runAnimBtn',v=>{runAnimRAF=v}],
-    [ymAnimRAF,'ymAnimBtn',v=>{ymAnimRAF=v}],
-    [instAnimRAF,'instAnimBtn',v=>{instAnimRAF=v}],
-    [ewAnimRAF,'ewAnimBtn',v=>{ewAnimRAF=v}],
-    [anomAnimRAF,'anomAnimBtn',v=>{anomAnimRAF=v}],
-    [latAnimRAF,'latAnimBtn',v=>{latAnimRAF=v}],
-  ];
-  anims.forEach(([raf,id,setFn])=>{
-    if(raf){cancelAnimationFrame(raf);setFn(null);}
-    const b=document.getElementById(id);
+  const names=['gauge','feyn','run','ym','inst','ew','anom','lat'];
+  const btnIds=['gaugeAnimBtn','feynAnimBtn','runAnimBtn','ymAnimBtn','instAnimBtn','ewAnimBtn','anomAnimBtn','latAnimBtn'];
+  names.forEach((n,i)=>{
+    if(RAF[n]){cancelAnimationFrame(RAF[n]);RAF[n]=null;}
+    const b=document.getElementById(btnIds[i]);
     if(b){b.textContent='\u25b6 Animate';b.classList.remove('active');}
   });
 }
@@ -996,9 +981,9 @@ function redrawGauge(){
 
 function animateGauge(){
   const btn=document.getElementById('gaugeAnimBtn');
-  if(gaugeAnimRAF){
-    cancelAnimationFrame(gaugeAnimRAF);
-    gaugeAnimRAF=null;
+  if(RAF.gauge){
+    cancelAnimationFrame(RAF.gauge);
+    RAF.gauge=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     return;
@@ -1013,9 +998,9 @@ function animateGauge(){
     document.getElementById('phaseSlider').value=gaugePhase/Math.PI;
     document.getElementById('phaseVal').textContent=(gaugePhase/Math.PI).toFixed(2);
     redrawGauge();
-    gaugeAnimRAF=requestAnimationFrame(step);
+    RAF.gauge=requestAnimationFrame(step);
   }
-  gaugeAnimRAF=requestAnimationFrame(step);
+  RAF.gauge=requestAnimationFrame(step);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1376,9 +1361,9 @@ function _initFeynPhases(segs){
 
 function animateFeyn(){
   const btn=document.getElementById('feynAnimBtn');
-  if(feynAnimRAF){
-    cancelAnimationFrame(feynAnimRAF);
-    feynAnimRAF=null;
+  if(RAF.feyn){
+    cancelAnimationFrame(RAF.feyn);
+    RAF.feyn=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     return;
@@ -1410,9 +1395,9 @@ function animateFeyn(){
       feynCtx.shadowBlur=0;
     });
     feynCtx.restore();
-    feynAnimRAF=requestAnimationFrame(step);
+    RAF.feyn=requestAnimationFrame(step);
   }
-  feynAnimRAF=requestAnimationFrame(step);
+  RAF.feyn=requestAnimationFrame(step);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1421,9 +1406,9 @@ function animateFeyn(){
 
 function animateRun(){
   const btn=document.getElementById('runAnimBtn');
-  if(runAnimRAF){
-    cancelAnimationFrame(runAnimRAF);
-    runAnimRAF=null;
+  if(RAF.run){
+    cancelAnimationFrame(RAF.run);
+    RAF.run=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     return;
@@ -1499,9 +1484,9 @@ function animateRun(){
     runCtx.fillText('10^'+logMu.toFixed(1)+' GeV', scanX+5, my+12);
 
     runCtx.restore();
-    runAnimRAF=requestAnimationFrame(step);
+    RAF.run=requestAnimationFrame(step);
   }
-  runAnimRAF=requestAnimationFrame(step);
+  RAF.run=requestAnimationFrame(step);
 }
 
 // ── RESIZE & INIT ──
@@ -1698,9 +1683,9 @@ function _drawYMRunning(W,H){
 
 function animateYM(){
   const btn=document.getElementById('ymAnimBtn');
-  if(ymAnimRAF){
-    cancelAnimationFrame(ymAnimRAF);
-    ymAnimRAF=null;
+  if(RAF.ym){
+    cancelAnimationFrame(RAF.ym);
+    RAF.ym=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     return;
@@ -1719,9 +1704,9 @@ function animateYM(){
       document.getElementById('ymSepVal').textContent=ymSep.toFixed(1);
     }
     redrawYM();
-    ymAnimRAF=requestAnimationFrame(step);
+    RAF.ym=requestAnimationFrame(step);
   }
-  ymAnimRAF=requestAnimationFrame(step);
+  RAF.ym=requestAnimationFrame(step);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1893,9 +1878,9 @@ function _drawInstTunneling(W,H){
 
 function animateInst(){
   const btn=document.getElementById('instAnimBtn');
-  if(instAnimRAF){
-    cancelAnimationFrame(instAnimRAF);
-    instAnimRAF=null;
+  if(RAF.inst){
+    cancelAnimationFrame(RAF.inst);
+    RAF.inst=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     return;
@@ -1913,9 +1898,9 @@ function animateInst(){
       document.getElementById('instRhoVal').textContent=instRho.toFixed(1);
     }
     redrawInst();
-    instAnimRAF=requestAnimationFrame(step);
+    RAF.inst=requestAnimationFrame(step);
   }
-  instAnimRAF=requestAnimationFrame(step);
+  RAF.inst=requestAnimationFrame(step);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2091,9 +2076,9 @@ function _drawFieldRolling(W,H){
 
 function animateEW(){
   const btn=document.getElementById('ewAnimBtn');
-  if(ewAnimRAF){
-    cancelAnimationFrame(ewAnimRAF);
-    ewAnimRAF=null;
+  if(RAF.ew){
+    cancelAnimationFrame(RAF.ew);
+    RAF.ew=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     return;
@@ -2112,9 +2097,9 @@ function animateEW(){
       document.getElementById('ewMu2Val').textContent=ewMu2.toFixed(2);
     }
     redrawEW();
-    ewAnimRAF=requestAnimationFrame(step);
+    RAF.ew=requestAnimationFrame(step);
   }
-  ewAnimRAF=requestAnimationFrame(step);
+  RAF.ew=requestAnimationFrame(step);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2288,9 +2273,9 @@ function _drawAnomalyCancel(W,H){
 
 function animateAnom(){
   const btn=document.getElementById('anomAnimBtn');
-  if(anomAnimRAF){
-    cancelAnimationFrame(anomAnimRAF);
-    anomAnimRAF=null;
+  if(RAF.anom){
+    cancelAnimationFrame(RAF.anom);
+    RAF.anom=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     return;
@@ -2302,9 +2287,9 @@ function animateAnom(){
     if(!startT) startT=t;
     _anomT=((t-startT)*0.003*(window.animSpeed || 1))%1;
     redrawAnom();
-    anomAnimRAF=requestAnimationFrame(step);
+    RAF.anom=requestAnimationFrame(step);
   }
-  anomAnimRAF=requestAnimationFrame(step);
+  RAF.anom=requestAnimationFrame(step);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2535,9 +2520,9 @@ initLat();
 let _latMCRunning=false;
 function animateLat(){
   const btn=document.getElementById('latAnimBtn');
-  if(latAnimRAF){
-    cancelAnimationFrame(latAnimRAF);
-    latAnimRAF=null;
+  if(RAF.lat){
+    cancelAnimationFrame(RAF.lat);
+    RAF.lat=null;
     btn.textContent='\u25b6 Animate';
     btn.classList.remove('active');
     _latMCRunning=false;
@@ -2560,9 +2545,9 @@ function animateLat(){
     }
     redrawLat();
     document.getElementById('latSweepVal').textContent=sweeps;
-    latAnimRAF=requestAnimationFrame(step);
+    RAF.lat=requestAnimationFrame(step);
   }
-  latAnimRAF=requestAnimationFrame(step);
+  RAF.lat=requestAnimationFrame(step);
 }
 
 </script>
