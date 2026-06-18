@@ -191,14 +191,14 @@ canvas#c3d{position:fixed;top:46px;left:0;right:0;bottom:0;
   var nodes = RAW_NODES.map(function(n, i) {
     // Initialize in a sphere by group
     var gi = Object.keys(GROUPS).indexOf(n.group);
-    var ga = (gi / 7) * Math.PI * 2;
-    var spread = 2.5;
+    var ga = (gi / 7) * Math.PI * 2 + i * 0.5;
+    var spread = 3;
     return {
       id: n.id, label: n.label, file: n.file, group: n.group, tags: n.tags,
       color: GROUPS[n.group].color,
-      x: Math.cos(ga) * spread + (Math.random() - 0.5) * 2,
-      y: (Math.random() - 0.5) * 4,
-      z: Math.sin(ga) * spread + (Math.random() - 0.5) * 2,
+      x: Math.cos(ga) * spread + (Math.random() - 0.5) * 0.5,
+      y: Math.sin(ga) * spread * 0.6 + (Math.random() - 0.5) * 0.5,
+      z: Math.sin(ga * 0.5) * spread * 0.4 + (Math.random() - 0.5) * 0.5,
       vx: 0, vy: 0, vz: 0
     };
   });
@@ -206,31 +206,36 @@ canvas#c3d{position:fixed;top:46px;left:0;right:0;bottom:0;
   nodes.forEach(function(n) { nodeMap[n.id] = n; });
 
   // Force-directed simulation (run offline)
-  for (var iter = 0; iter < 200; iter++) {
+  for (var iter = 0; iter < 300; iter++) {
+    var fr = 4.0 / (1 + iter * 0.01);
     // Repulsion
     for (var i = 0; i < N; i++) {
       for (var j = i + 1; j < N; j++) {
         var dx = nodes[i].x - nodes[j].x;
         var dy = nodes[i].y - nodes[j].y;
         var dz = nodes[i].z - nodes[j].z;
-        var d2 = dx*dx + dy*dy + dz*dz + 0.01;
-        var f = 2.0 / d2;
+        var d2 = dx*dx + dy*dy + dz*dz + 0.1;
+        var f = fr / d2;
         nodes[i].vx += dx * f; nodes[i].vy += dy * f; nodes[i].vz += dz * f;
         nodes[j].vx -= dx * f; nodes[j].vy -= dy * f; nodes[j].vz -= dz * f;
       }
     }
-    // Attraction (edges)
+    // Attraction (edges) — spring length 2
     EDGES.forEach(function(e) {
       var a = nodeMap[e[0]], b = nodeMap[e[1]];
       if (!a || !b) return;
       var dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z;
       var d = Math.sqrt(dx*dx + dy*dy + dz*dz) + 0.01;
-      var f = (d - 1.5) * 0.04;
+      var f = (d - 2) * 0.03;
       a.vx += dx/d*f; a.vy += dy/d*f; a.vz += dz/d*f;
       b.vx -= dx/d*f; b.vy -= dy/d*f; b.vz -= dz/d*f;
     });
+    // Gravity towards center
+    nodes.forEach(function(n) {
+      n.vx -= n.x * 0.005; n.vy -= n.y * 0.005; n.vz -= n.z * 0.005;
+    });
     // Apply velocity with damping
-    var damp = 0.85;
+    var damp = 0.90;
     nodes.forEach(function(n) {
       n.x += n.vx; n.y += n.vy; n.z += n.vz;
       n.vx *= damp; n.vy *= damp; n.vz *= damp;
@@ -266,7 +271,7 @@ canvas#c3d{position:fixed;top:46px;left:0;right:0;bottom:0;
   function draw() {
     ctx.clearRect(0, 0, W, H);
 
-    if (autoRotate) rotY += 0.003;
+    if (autoRotate) rotY += 0.0008;
 
     // Sort nodes by depth for proper occlusion
     var projected = nodes.map(function(n) {
@@ -275,28 +280,44 @@ canvas#c3d{position:fixed;top:46px;left:0;right:0;bottom:0;
     }).sort(function(a, b) { return b.z - a.z; });
 
     // Draw edges
-    ctx.globalAlpha = 0.15;
-    ctx.strokeStyle = '#334';
-    ctx.lineWidth = 0.5;
-    EDGES.forEach(function(e) {
-      var a = nodeMap[e[0]], b = nodeMap[e[1]];
-      if (!a || !b) return;
-      var pa = project(a.x, a.y, a.z);
-      var pb = project(b.x, b.y, b.z);
-      ctx.beginPath(); ctx.moveTo(pa.px, pa.py); ctx.lineTo(pb.px, pb.py); ctx.stroke();
+    projected.forEach(function(p1) {
+      projected.forEach(function(p2) {
+        var linked = EDGES.some(function(e) {
+          return (e[0] === p1.node.id && e[1] === p2.node.id) || (e[1] === p1.node.id && e[0] === p2.node.id);
+        });
+        if (!linked) return;
+        var dz = p1.z - p2.z;
+        var depthAlpha = Math.max(0.08, 0.35 - Math.abs(dz) * 0.04);
+        ctx.strokeStyle = 'rgba(100,160,255,' + depthAlpha + ')';
+        ctx.lineWidth = Math.max(0.5, 1.5 - Math.abs(dz) * 0.1);
+        ctx.beginPath(); ctx.moveTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py); ctx.stroke();
+      });
     });
-    ctx.globalAlpha = 1;
 
     // Draw nodes
     projected.forEach(function(p) {
-      var r = Math.max(3, p.s * 0.08);
+      var r = Math.max(5, p.s * 0.12);
       var isHov = hovNode === p.node;
       var isSel = selNode === p.node;
+      var depthAlpha = Math.max(0.4, 1 - (p.z + 5) * 0.06);
+      var col = p.node.color;
 
-      ctx.beginPath(); ctx.arc(p.px, p.py, r, 0, Math.PI * 2);
-      ctx.fillStyle = p.node.color;
-      ctx.globalAlpha = Math.max(0.3, 1 - (p.z + 5) * 0.08);
+      // Glow
+      var grad = ctx.createRadialGradient(p.px, p.py, 0, p.px, p.py, r * 3);
+      grad.addColorStop(0, col + '44');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(p.px, p.py, r * 3, 0, Math.PI * 2);
       ctx.fill();
+
+      // Node circle
+      ctx.beginPath(); ctx.arc(p.px, p.py, r, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.globalAlpha = depthAlpha;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
 
       if (isHov || isSel) {
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
