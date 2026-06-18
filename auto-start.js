@@ -37,15 +37,19 @@ document.addEventListener('visibilitychange', function() {
 
 // ── Standardized resizeCanvas ─────────────────────────────────────────────────
 window.resizeCanvas = function (canvas) {
-  if(!canvas || !canvas.parentElement) return;
+  if(!canvas || !canvas.parentElement) return null;
   const rect = canvas.parentElement.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  // Constrain CSS size first to prevent parent from expanding due to large canvas.width
   canvas.style.width = rect.width + 'px';
   canvas.style.height = rect.height + 'px';
-  canvas.width = Math.floor(rect.width * dpr);
-  canvas.height = Math.floor(rect.height * dpr);
+  const W = Math.floor(rect.width * dpr);
+  const H = Math.floor(rect.height * dpr);
+  canvas.width = W;
+  canvas.height = H;
   if (canvas.onresize) canvas.onresize();
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [rect.width, rect.height, ctx];
 };
 
 // ── Split-view layout system ──────────────────────────────────────────────────
