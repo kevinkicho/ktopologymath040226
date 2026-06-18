@@ -1238,6 +1238,7 @@ function draw2() {
 // ============================================================
 // TAB 3 — CMB HAWKING POINTS
 // ============================================================
+let hpCacheKey='', hpFieldCanvas=null, hpFieldCtx=null;
 function draw3() {
   const cv = document.getElementById('c3');
   if (!cv) return;
@@ -1256,88 +1257,126 @@ function draw3() {
   document.getElementById('hpAmpVal').textContent = amp + '\u00D7';
   document.getElementById('hpNVal').textContent = nRings;
 
-  ctx.fillStyle = '#05050f';
-  ctx.fillRect(0, 0, W, H);
-
-  // Draw simulated CMB sky (circular disc)
-  const cx = W * 0.5, cy = H * 0.5;
-  const discR = Math.min(W, H) * 0.42;
-
-  // CMB background — seeded Gaussian noise on canvas
-  const seed = 42;
-  function pseudoRand(x, y) {
-    const v = Math.sin(x * 127.1 + y * 311.7 + seed) * 43758.5453;
-    return v - Math.floor(v);
-  }
-
-  // Draw pixel-level CMB
-  const imgData = ctx.createImageData(Math.ceil(W), Math.ceil(H));
-  const pixels = imgData.data;
-
-  // Hawking point centers (in disc-relative coords)
-  const hpCenters = [];
-  for (let k = 0; k < nRings; k++) {
-    const angle = (k / nRings) * Math.PI * 2 + 0.4;
-    const dist = discR * (0.25 + 0.3 * ((k * 0.618) % 1));
-    hpCenters.push({
-      x: cx + dist * Math.cos(angle),
-      y: cy + dist * Math.sin(angle),
-      r: discR * (ringR / 180),
-      idx: k
-    });
-  }
-
-  for (let py = 0; py < H; py++) {
-    for (let px = 0; px < W; px++) {
-      const dx = px - cx, dy = py - cy;
-      const dist2 = dx * dx + dy * dy;
-      if (dist2 > discR * discR) {
-        // Outside disc: dark
+  // Compute static field key
+  const key = W + '|' + H + '|' + ringR + '|' + amp + '|' + nRings;
+  if (hpCacheKey !== key) {
+    hpCacheKey = key;
+    if (!hpFieldCanvas || hpFieldCanvas.width !== W || hpFieldCanvas.height !== H) {
+      hpFieldCanvas = document.createElement('canvas');
+      hpFieldCanvas.width = W; hpFieldCanvas.height = H;
+      hpFieldCtx = hpFieldCanvas.getContext('2d');
+    }
+    const cx = W * 0.5, cy = H * 0.5, discR = Math.min(W, H) * 0.42;
+    const seed = 42;
+    function pseudoRand(x, y) {
+      const v = Math.sin(x * 127.1 + y * 311.7 + seed) * 43758.5453;
+      return v - Math.floor(v);
+    }
+    const imgData = hpFieldCtx.createImageData(W, H);
+    const pixels = imgData.data;
+    const hpCenters = [];
+    for (let k = 0; k < nRings; k++) {
+      const angle = (k / nRings) * Math.PI * 2 + 0.4;
+      const dist = discR * (0.25 + 0.3 * ((k * 0.618) % 1));
+      hpCenters.push({
+        x: cx + dist * Math.cos(angle),
+        y: cy + dist * Math.sin(angle),
+        r: discR * (ringR / 180),
+        idx: k
+      });
+    }
+    for (let py = 0; py < H; py++) {
+      for (let px = 0; px < W; px++) {
+        const dx = px - cx, dy = py - cy, dist2 = dx * dx + dy * dy;
         const idx = (py * W + px) * 4;
-        pixels[idx] = 5; pixels[idx + 1] = 5; pixels[idx + 2] = 15; pixels[idx + 3] = 255;
-        continue;
-      }
-
-      // Base CMB variance (Gaussian fluctuations)
-      let temp = 0;
-      for (let oct = 0; oct < 4; oct++) {
-        const sc = Math.pow(2, oct);
-        temp += (pseudoRand(px * sc * 0.02, py * sc * 0.02) - 0.5) / sc;
-      }
-      temp *= 0.5; // normalize
-
-      // Hawking point rings: low-variance annuli
-      let ringEffect = 0;
-      for (const hp of hpCenters) {
-        const rdx = px - hp.x, rdy = py - hp.y;
-        const rDist = Math.sqrt(rdx * rdx + rdy * rdy);
-        const ringWidth = discR * 0.06;
-        const delta = rDist - hp.r;
-        if (Math.abs(delta) < ringWidth) {
-          // Low variance inside annulus
-          const profile = 1 - Math.abs(delta) / ringWidth;
-          ringEffect -= amp * 0.1 * profile * Math.abs(temp);
+        if (dist2 > discR * discR) {
+          pixels[idx] = 5; pixels[idx + 1] = 5; pixels[idx + 2] = 15; pixels[idx + 3] = 255;
+          continue;
         }
-        // Small bright spot at center of each Hawking point
-        if (rDist < discR * 0.03) {
-          ringEffect += amp * 0.08 * (1 - rDist / (discR * 0.03));
+        let temp = 0;
+        for (let oct = 0; oct < 4; oct++) {
+          const sc = Math.pow(2, oct);
+          temp += (pseudoRand(px * sc * 0.02, py * sc * 0.02) - 0.5) / sc;
         }
-      }
-      temp += ringEffect;
-
-      // Animation: ripple emanating from Hawking centers
-      if (animIds[3]) {
+        temp *= 0.5;
+        let ringEffect = 0;
         for (const hp of hpCenters) {
-          const rdx = px - hp.x, rdy = py - hp.y;
-          const rDist = Math.sqrt(rdx * rdx + rdy * rdy);
-          const wave = 0.04 * Math.sin(rDist * 0.12 - t * 3 + hp.idx * 1.5) * Math.exp(-rDist / (discR * 0.6));
-          temp += wave;
+          const rdx = px - hp.x, rdy = py - hp.y, rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+          const ringWidth = discR * 0.06;
+          const delta = rDist - hp.r;
+          if (Math.abs(delta) < ringWidth) {
+            const profile = 1 - Math.abs(delta) / ringWidth;
+            ringEffect -= amp * 0.1 * profile * Math.abs(temp);
+          }
+          if (rDist < discR * 0.03) {
+            ringEffect += amp * 0.08 * (1 - rDist / (discR * 0.03));
+          }
+        }
+        temp += ringEffect;
+        const tNorm = temp * 2 + 0.5;
+        const clamp = v => Math.max(0, Math.min(255, v));
+        const r = clamp(tNorm > 0.5 ? (tNorm - 0.5) * 2 * 200 + 55 : 55);
+        const g = clamp(tNorm > 0.5 ? 200 - (tNorm - 0.5) * 200 : tNorm * 2 * 180 + 20);
+        const b = clamp(tNorm > 0.5 ? 55 + (tNorm - 0.5) * 200 : tNorm * 2 * 200 + 55);
+        pixels[idx] = r; pixels[idx + 1] = g; pixels[idx + 2] = b; pixels[idx + 3] = 255;
+      }
+    }
+    hpFieldCtx.putImageData(imgData, 0, 0);
+  }
+
+  // Blit cached field
+  ctx.drawImage(hpFieldCanvas, 0, 0);
+
+  // Animated ripples (drawn on top)
+  const cx = W * 0.5, cy = H * 0.5, discR = Math.min(W, H) * 0.42;
+  if (animIds[3]) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, discR, 0, Math.PI * 2); ctx.clip();
+    for (let py = 0; py < H; py += 4) {
+      for (let px = 0; px < W; px += 4) {
+        const dx = px - cx, dy = py - cy, dist2 = dx * dx + dy * dy;
+        if (dist2 > discR * discR) continue;
+        let waveSum = 0;
+        const hpCenters = [];
+        for (let k = 0; k < nRings; k++) {
+          const angle = (k / nRings) * Math.PI * 2 + 0.4;
+          const dist = discR * (0.25 + 0.3 * ((k * 0.618) % 1));
+          hpCenters.push({ x: cx + dist * Math.cos(angle), y: cy + dist * Math.sin(angle), idx: k });
+        }
+        for (const hp of hpCenters) {
+          const rdx = px - hp.x, rdy = py - hp.y, rDist = Math.sqrt(rdx * rdx + rdy * rdy);
+          waveSum += 0.04 * Math.sin(rDist * 0.12 - t * 3 + hp.idx * 1.5) * Math.exp(-rDist / (discR * 0.6));
+        }
+        const alpha = Math.abs(waveSum) * 60;
+        if (alpha > 1) {
+          ctx.fillStyle = 'rgba(100,200,255,' + (alpha / 255) + ')';
+          ctx.fillRect(px, py, 4, 4);
         }
       }
+    }
+    ctx.restore();
+  }
 
-      // Map temperature to color (CMB color scheme: blue=cold, red=hot)
-      const clamp = v => Math.max(0, Math.min(255, v));
-      const tNorm = temp * 2 + 0.5; // 0..1
+  // Animated ring overlay
+  if (animIds[3]) {
+    ctx.strokeStyle = 'rgba(100,200,255,0.15)'; ctx.lineWidth = 1; ctx.setLineDash([3, 5]);
+    for (let k = 0; k < nRings; k++) {
+      const angle = (k / nRings) * Math.PI * 2 + 0.4;
+      const dist = discR * (0.25 + 0.3 * ((k * 0.618) % 1));
+      const hx = cx + dist * Math.cos(angle), hy = cy + dist * Math.sin(angle);
+      const pulse = 0.5 + 0.5 * Math.sin(t * 2 + k * 1.2);
+      ctx.globalAlpha = 0.1 + 0.15 * pulse;
+      ctx.beginPath(); ctx.arc(hx, hy, discR * (ringR / 180), 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+
+  // Disc outline
+  ctx.strokeStyle = '#1a1a40'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, discR, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#88aaff'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('' + nRings + ' Hawking point' + (nRings !== 1 ? 's' : ''), cx, cy + discR + 20);
+}
       let r, g, b;
       if (tNorm < 0.25) {
         r = 0; g = 0; b = clamp(180 + tNorm * 300);

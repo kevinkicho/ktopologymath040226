@@ -552,8 +552,8 @@ function draw6(){if(tab6Inited)drawEWPrecision();}
 function draw7(){if(tab7Inited)drawVacStability();}
 function draw8(){if(tab8Inited)drawGoldstone();}
 function _cancelAllAnims25(){
-  [mechAutoId,goldAnimId,vevAnimId,ssbAnimId,lhcAnimId].forEach(id=>{if(id)cancelAnimationFrame(id);});
-  mechAutoId=goldAnimId=vevAnimId=ssbAnimId=lhcAnimId=null;
+  [mechAutoId,goldAnimId,vevAnimId,ssbAnimId,lhcAnimId,yukawaAnimId,ewpAnimId,vacAnimId].forEach(id=>{if(id)cancelAnimationFrame(id);});
+  mechAutoId=goldAnimId=vevAnimId=ssbAnimId=lhcAnimId=yukawaAnimId=ewpAnimId=vacAnimId=null;
   vevAnimRunning=false;ssbRunning=false;mechAutoRunning=false;lhcAnimRunning=false;goldAnimRunning=false;
   const bv=document.getElementById('btnAnimVEV');if(bv){bv.textContent='Animate Phase Transition';bv.classList.remove('active-btn');}
   const br=document.getElementById('btnRoll');if(br){br.textContent='Roll Ball';br.classList.remove('active-btn');}
@@ -569,6 +569,7 @@ function switchTab(i){
   document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
   syncSpeedControl25();
   currentTab=i;
+  setTimeout(()=>{
   if(i===0) initTab0();
   if(i===1) initTab1();
   if(i===2) initTab2();
@@ -583,7 +584,11 @@ function switchTab(i){
   if(i===1) toggleRoll();
   if(i===3) toggleMechAuto();
   if(i===4) toggleLHCAnim();
+  if(i===5) startYukawaAnim();
+  if(i===6) startEWPAnim();
+  if(i===7) startVacAnim();
   if(i===8) toggleGoldAnim();
+  },10);
 }
 
 function resetTab25(n){
@@ -1957,6 +1962,12 @@ const SM_FERMIONS = [
 ];
 const VEV = 246; // GeV
 let yukBarRects = []; // for click detection
+let yukawaT=0, yukawaAnimId=null;
+function startYukawaAnim(){
+  if(yukawaAnimId)return;
+  function loop(){yukawaT+=0.5*(window.animSpeed||1);drawYukawa();yukawaAnimId=requestAnimationFrame(loop);}
+  yukawaAnimId=requestAnimationFrame(loop);
+}
 
 function initTab5(){
   if(tab5Inited) return;
@@ -1988,6 +1999,7 @@ function onYukawaClick(evt){
 }
 
 function drawYukawa(){
+  const t=yukawaT;
   const cv = document.getElementById('cv5');
   if(!cv || !cv.clientWidth) return;
   const {ctx,W,H} = setupCanvas(cv);
@@ -2066,8 +2078,9 @@ function drawYukawa(){
       ctx.shadowBlur = 12;
     }
 
+    const pulseAlpha = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(t + i * 0.8));
     const barGrad = ctx.createLinearGradient(xStart,0,xEnd,0);
-    barGrad.addColorStop(0, f.col+'cc');
+    barGrad.addColorStop(0, f.col+Math.round(pulseAlpha*255).toString(16).padStart(2,'0'));
     barGrad.addColorStop(1, f.col+'44');
     ctx.fillStyle = barGrad;
     ctx.beginPath();
@@ -2153,6 +2166,12 @@ function drawYukawa(){
 let tab6Inited = false;
 let mHEW = 125;
 let bsmS = 0, bsmT = 0;
+let ewpT=0, ewpAnimId=null;
+function startEWPAnim(){
+  if(ewpAnimId)return;
+  function loop(){ewpT+=0.3*(window.animSpeed||1);drawEWPrecision();ewpAnimId=requestAnimationFrame(loop);}
+  ewpAnimId=requestAnimationFrame(loop);
+}
 
 function initTab6(){
   if(tab6Inited) return;
@@ -2175,6 +2194,7 @@ function onBSMChange(){
 }
 
 function drawEWPrecision(){
+  const t=ewpT;
   const cv = document.getElementById('cv6');
   if(!cv || !cv.clientWidth) return;
   const {ctx,W,H} = setupCanvas(cv);
@@ -2311,6 +2331,12 @@ function drawEWPrecision(){
 let tab7Inited = false;
 let mtop = 173.0, mHVac = 125.0;
 let vacView = 'rge';
+let vacT=0, vacAnimId=null;
+function startVacAnim(){
+  if(vacAnimId)return;
+  function loop(){vacT+=0.3*(window.animSpeed||1);drawVacStability();vacAnimId=requestAnimationFrame(loop);}
+  vacAnimId=requestAnimationFrame(loop);
+}
 
 function initTab7(){
   if(tab7Inited) return;
@@ -2351,6 +2377,7 @@ function lambdaRGE(logMuOverMZ, mt, mh){
 }
 
 function drawVacStability(){
+  const t=vacT;
   const cv = document.getElementById('cv7');
   if(!cv || !cv.clientWidth) return;
   const {ctx,W,H} = setupCanvas(cv);
