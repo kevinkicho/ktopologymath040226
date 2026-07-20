@@ -70,6 +70,8 @@ body{padding-bottom:38px}
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(4)">Partition Z</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(5)">Free Propagator</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(6)">Feynman Diagrams</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(7)">WKB Approximation</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(8)">Effective Action</button>
 </div>
 
 <!-- TAB 0 -->
@@ -215,6 +217,48 @@ body{padding-bottom:38px}
   </div>
 </div>
 
+<!-- TAB 7: WKB APPROXIMATION -->
+<div class="tab-panel" data-role="panel" id="tab7">
+  <div class="canvas-wrap"><canvas aria-label="22 — Path Integrals and Quantum Fields — panel 8" id="c7"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>Energy E:</label><input type="range" id="wkbE" min="1" max="100" value="40"><span class="val-display" id="wkbEv">0.40</span></div>
+    <div class="ctrl-group"><label>Barrier V₀:</label><input type="range" id="wkbV0" min="10" max="100" value="60"><span class="val-display" id="wkbV0v">0.60</span></div>
+    <div class="ctrl-group"><label>ħ:</label><input type="range" id="wkbHbar" min="1" max="100" value="20"><span class="val-display" id="wkbHbarv">0.20</span></div>
+    <button id="animBtn7" onclick="toggleAnim7()">▶ Animate</button>
+    <button onclick="resetTab22(7)">Reset</button>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom7" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal7').textContent=(+this.value).toFixed(1);zooms[7]=window.zoomX;draw7()"></div>
+    <span class="val-display" id="zoomVal7">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal8').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal8">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>Tunneling T: <span id="wkbT">—</span></div>
+    <div>Connection: <span id="wkbConn">—</span></div>
+    <div>$\psi(x) \approx \frac{C}{\sqrt{p(x)}} e^{\pm \frac{i}{\hbar}\int p\,dx}$</div>
+  </div>
+</div>
+
+<!-- TAB 8: EFFECTIVE ACTION -->
+<div class="tab-panel" data-role="panel" id="tab8">
+  <div class="canvas-wrap"><canvas aria-label="22 — Path Integrals and Quantum Fields — panel 9" id="c8"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>Coupling λ:</label><input type="range" id="effLam" min="1" max="100" value="30"><span class="val-display" id="effLamv">0.30</span></div>
+    <div class="ctrl-group"><label>Mass m:</label><input type="range" id="effMass" min="1" max="100" value="20"><span class="val-display" id="effMassv">0.20</span></div>
+    <div class="ctrl-group"><label>Loop strength:</label><input type="range" id="effLoop" min="0" max="100" value="30"><span class="val-display" id="effLoopv">0.30</span></div>
+    <button id="animBtn8" onclick="toggleAnim8()">▶ Animate</button>
+    <button onclick="resetTab22(8)">Reset</button>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom8" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal8').textContent=(+this.value).toFixed(1);zooms[8]=window.zoomX;draw8()"></div>
+    <span class="val-display" id="zoomVal8">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed9" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal9').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal9">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>V_eff min: <span id="effMin">—</span></div>
+    <div>SSB: <span id="effSsb">—</span></div>
+    <div>$V_{\rm eff}(\phi) = V_{\rm cl}(\phi) + \frac{\hbar}{2}\int\frac{d^4k}{(2\pi)^4}\ln\!\big(k^2+V''_{\rm cl}\big)$</div>
+  </div>
+</div>
+
 <!-- Proof panel -->
 <div id="proofPanel">
   <div class="proof-header">
@@ -234,6 +278,8 @@ body{padding-bottom:38px}
   <button onclick="showProof(7)">Thermal Z</button>
   <button onclick="showProof(8)">Free Propagator</button>
   <button onclick="showProof(9)">φ⁴ Diagrams</button>
+  <button onclick="showProof(10)">WKB</button>
+  <button onclick="showProof(11)">Effective Action</button>
 </div>
 
 <script>
@@ -296,7 +342,24 @@ Action: $S = S_0 + \\lambda S_{\\rm int}$ where $S_0 = \\int\\frac{1}{2}(\\parti
 Perturbative expansion of $Z$:
 $$Z \\approx \\sum_{n=0}^\\infty \\frac{(-\\lambda)^n}{n!}\\langle S_{\\rm int}^n\\rangle_0$$
 Order $\\lambda^0$: vacuum bubble (just 1). Order $\\lambda^1$: tadpole diagram (figure with one loop, symmetry factor $S=8$). Order $\\lambda^2$: figure-8 diagram ($S=16$ ) and double-tadpole ($S=4$). Symmetry factors count equivalent Wick contractions. The free propagator:
-$$\\Delta(x-y) = \\int\\frac{d^4p}{(2\\pi)^4}\\frac{e^{ip(x-y)}}{p^2+m^2}$$`
+$$\\Delta(x-y) = \\int\\frac{d^4p}{(2\\pi)^4}\\frac{e^{ip(x-y)}}{p^2+m^2}$$`,
+
+  `<b>WKB Approximation</b><br><br>
+The Wentzel-Kramers-Brillouin (WKB) semiclassical approximation assumes the wavefunction varies slowly compared to the potential. Write $\\psi(x) = e^{iS(x)/\\hbar}$ and expand $S$ in powers of $\\hbar$:<br><br>
+$$\\psi(x) \\approx \\frac{C}{\\sqrt{p(x)}} e^{\\pm \\frac{i}{\\hbar}\\int p\\,dx}, \\quad p(x) = \\sqrt{2m(E-V(x))}$$
+In classically forbidden regions ($E < V$), $p \\to i|p|$ and the wavefunction becomes exponential:
+$$\\psi(x) \\approx \\frac{C}{\\sqrt{|p(x)|}} e^{-\\frac{1}{\\hbar}\\int |p|\\,dx}$$
+Connection formulas at turning points match the oscillatory and exponential solutions:
+$$\\frac{1}{\\sqrt{p}}\\cos\\!\\left(\\frac{1}{\\hbar}\\int_x^{x_2}p\\,dx - \\frac{\\pi}{4}\\right) \\leftrightarrow \\frac{1}{2\\sqrt{|p|}}e^{-\\frac{1}{\\hbar}\\int_{x_1}^x|p|\\,dx}$$
+Tunneling probability through a barrier:
+$$T \\approx e^{-2\\gamma}, \\quad \\gamma = \\frac{1}{\\hbar}\\int_{x_1}^{x_2}\\sqrt{2m(V(x)-E)}\\,dx$$`,
+
+  `<b>Effective Action &amp; Coleman-Weinberg Potential</b><br><br>
+The 1-loop effective potential sums quantum fluctuations around a constant background field $\\phi$:<br><br>
+$$V_{\\rm eff}(\\phi) = V_{\\rm cl}(\\phi) + \\frac{\\hbar}{2}\\int\\frac{d^4k}{(2\\pi)^4}\\ln\\!\\left(1 + \\frac{V''_{\\rm cl}(\\phi)}{k^2}\\right)$$
+After renormalization (Coleman-Weinberg):
+$$V_{\\rm eff}(\\phi) = V_{\\rm cl}(\\phi) + \\frac{\\hbar}{64\\pi^2}\\big(V''_{\\rm cl}(\\phi)\\big)^2\\ln\\!\\left(\\frac{V''_{\\rm cl}(\\phi)}{\\mu^2}\\right)$$
+For $V_{\\rm cl} = \\frac{1}{2}m^2\\phi^2 + \\frac{\\lambda}{4!}\\phi^4$, the quantum correction can induce spontaneous symmetry breaking (SSB) even when $m^2 > 0$ — radiative symmetry breaking. The minimum shifts from $\\phi=0$ to $\\phi \\neq 0$ when loop corrections are strong enough. This is the Coleman-Weinberg mechanism for dynamical symmetry breaking.`
 ];
 
 function showProof(i){
@@ -322,6 +385,8 @@ function _cancelAllAnims22(){
   if(animId4){cancelAnimationFrame(animId4);animId4=null;const b=document.getElementById('animBtn4');if(b){b.classList.remove('active-btn');b.textContent='Animate';}}
   if(animId5){cancelAnimationFrame(animId5);animId5=null;const b=document.getElementById('animBtn5');if(b){b.classList.remove('active-btn');b.textContent='Animate';}}
   if(animId6){cancelAnimationFrame(animId6);animId6=null;const b=document.getElementById('animBtn6');if(b){b.classList.remove('active-btn');b.textContent='Animate';}}
+  if(animId7){cancelAnimationFrame(animId7);animId7=null;const b=document.getElementById('animBtn7');if(b){b.classList.remove('active-btn');b.textContent='Animate';}}
+  if(animId8){cancelAnimationFrame(animId8);animId8=null;const b=document.getElementById('animBtn8');if(b){b.classList.remove('active-btn');b.textContent='Animate';}}
 }
 function syncSpeedControl22(){
   var zoomSlider=document.getElementById('zoom'+activeTab);
@@ -342,11 +407,13 @@ function switchTab(i){
   else if(i===4)toggleAnim4();
   else if(i===5)toggleAnim5();
   else if(i===6)toggleAnim6();
+  else if(i===7)toggleAnim7();
+  else if(i===8)toggleAnim8();
 }
 
 // ── PAN / ZOOM ───────────────────────────────────────────────────────────────
-const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
-const zooms=[1,1,1,1,1,1,1];
+const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+const zooms=[1,1,1,1,1,1,1,1,1];
 function resetView(idx){ pans[idx]={x:0,y:0}; zooms[idx]=1; if(drawFns[idx]) drawFns[idx](); }
 
 function resetTab22(n){
@@ -399,6 +466,20 @@ function resetTab22(n){
     document.getElementById('lambda6').value=30;document.getElementById('lambda6v').textContent='0.30';
     document.getElementById('zoom6').value=1;document.getElementById('zoomVal6').textContent='1.0';zooms[6]=1;
     draw6();
+  } else if(n===7){
+    animOffset7=0;
+    document.getElementById('wkbE').value=40;document.getElementById('wkbEv').textContent='0.40';
+    document.getElementById('wkbV0').value=60;document.getElementById('wkbV0v').textContent='0.60';
+    document.getElementById('wkbHbar').value=20;document.getElementById('wkbHbarv').textContent='0.20';
+    document.getElementById('zoom7').value=1;document.getElementById('zoomVal7').textContent='1.0';zooms[7]=1;
+    draw7();
+  } else if(n===8){
+    animOffset8=0;
+    document.getElementById('effLam').value=30;document.getElementById('effLamv').textContent='0.30';
+    document.getElementById('effMass').value=20;document.getElementById('effMassv').textContent='0.20';
+    document.getElementById('effLoop').value=30;document.getElementById('effLoopv').textContent='0.30';
+    document.getElementById('zoom8').value=1;document.getElementById('zoomVal8').textContent='1.0';zooms[8]=1;
+    draw8();
   }
 }
 
@@ -1513,6 +1594,341 @@ function draw6(){
   }
 }
 
+// ── TAB 7: WKB APPROXIMATION ─────────────────────────────────────────────────
+const c7=document.getElementById('c7');
+const ctx7=c7.getContext('2d');
+let animId7=null, animOffset7=0;
+
+function toggleAnim7(){
+  const btn=document.getElementById('animBtn7');
+  if(animId7){ cancelAnimationFrame(animId7); animId7=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim7(); }
+}
+function stepAnim7(){ animOffset7+=0.012*(window.animSpeed || 1); draw7(); animId7=requestAnimationFrame(stepAnim7); }
+
+function draw7(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c7.offsetWidth, H=c7.offsetHeight;
+  if(!W||!H)return;
+  c7.width=W*dpr; c7.height=H*dpr;
+  ctx7.setTransform(dpr,0,0,dpr,0,0);
+  ctx7.clearRect(0,0,W,H);
+  ctx7.fillStyle='#05050f'; ctx7.fillRect(0,0,W,H);
+
+  const E=parseFloat(document.getElementById('wkbE').value)/100;
+  document.getElementById('wkbEv').textContent=E.toFixed(2);
+  const V0=parseFloat(document.getElementById('wkbV0').value)/100;
+  document.getElementById('wkbV0v').textContent=V0.toFixed(2);
+  const hb=parseFloat(document.getElementById('wkbHbar').value)/100;
+  document.getElementById('wkbHbarv').textContent=hb.toFixed(2);
+  const t=animOffset7;
+
+  const margin=60;
+  const pW=W-2*margin, pH=H-2*margin;
+  const xMin=-5, xMax=5;
+  const xToC=(x)=> margin + (x-xMin)/(xMax-xMin)*pW;
+  const V=(x)=> V0*Math.exp(-x*x*0.3) + 0.05*x*x;
+  const Vmax=Math.max(V(0),E)+0.15;
+  const vToC=(v)=> margin+pH - (v/Vmax)*pH;
+
+  // Axes
+  ctx7.strokeStyle='#1c1c44'; ctx7.lineWidth=1;
+  ctx7.beginPath(); ctx7.moveTo(margin,margin); ctx7.lineTo(margin,margin+pH); ctx7.stroke();
+  ctx7.beginPath(); ctx7.moveTo(margin,margin+pH); ctx7.lineTo(W-margin,margin+pH); ctx7.stroke();
+  ctx7.fillStyle='#55558a'; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
+  ctx7.fillText('V(x) and WKB wavefunction',W/2,margin-8);
+  ctx7.fillText('x',W-margin,margin+pH+16);
+  ctx7.save(); ctx7.translate(14,margin+pH/2); ctx7.rotate(-Math.PI/2); ctx7.fillText('V, ψ',0,0); ctx7.restore();
+
+  // Potential
+  ctx7.strokeStyle='#ffdd44'; ctx7.lineWidth=2;
+  ctx7.beginPath(); let f7=true;
+  for(let xi=xMin;xi<=xMax;xi+=0.02){
+    const vv=V(xi);
+    const cx2=xToC(xi), cy2=vToC(vv);
+    if(f7){ ctx7.moveTo(cx2,cy2); f7=false; } else ctx7.lineTo(cx2,cy2);
+  }
+  ctx7.stroke();
+
+  // Energy line
+  const eY=vToC(E);
+  ctx7.strokeStyle='#44ddff'; ctx7.lineWidth=1.5; ctx7.setLineDash([6,4]);
+  ctx7.beginPath(); ctx7.moveTo(margin,eY); ctx7.lineTo(W-margin,eY); ctx7.stroke();
+  ctx7.setLineDash([]);
+  ctx7.fillStyle='#44ddff'; ctx7.font='12px sans-serif'; ctx7.textAlign='left';
+  ctx7.fillText('E',W-margin-20,eY-6);
+
+  // Find turning points where V(x)=E
+  const tps=[];
+  for(let xi=xMin;xi<=xMax;xi+=0.01){
+    if(Math.abs(V(xi)-E)<0.01||(xi>xMin&&(V(xi-0.01)-E)*(V(xi)-E)<0)){
+      if(tps.length===0||Math.abs(xi-tps[tps.length-1])>0.3) tps.push(xi);
+    }
+  }
+  // Ensure exactly 2 turning points
+  while(tps.length<2){ tps.push(0); }
+  const tpL=tps[0], tpR=tps[tps.length-1];
+
+  // Mark turning points
+  tps.forEach(xp=>{
+    const cx2=xToC(xp);
+    ctx7.fillStyle='#ff4488';
+    ctx7.beginPath(); ctx7.arc(cx2,eY,5,0,2*Math.PI); ctx7.fill();
+    ctx7.fillStyle='#ff4488'; ctx7.font='11px sans-serif'; ctx7.textAlign='center';
+    ctx7.fillText('TP',cx2,eY+16);
+  });
+
+  // WKB wavefunction
+  // ψ(x) ≈ C/√|p(x)| * exp(±i/ħ ∫ p dx) in allowed region
+  // ψ(x) ≈ C/√|p(x)| * exp(-1/ħ ∫ |p| dx) in forbidden region
+  // p(x) = √(2m(E-V(x))) with m=1
+  const pFn=(x)=> Math.sqrt(Math.max(0, 2*(E-V(x))));
+  const kFn=(x)=> Math.sqrt(Math.max(0, 2*(V(x)-E)));
+
+  // Compute ∫ p dx from left turning point
+  const nInt=200;
+  const dxInt=(xMax-xMin)/nInt;
+  let phaseInt=0;
+  const phaseArr=[];
+  for(let i=0;i<=nInt;i++){
+    const xi=xMin+i*dxInt;
+    if(xi<tpL){
+      phaseInt+=kFn(xi)*dxInt;
+    } else if(xi<tpR){
+      phaseInt+=pFn(xi)*dxInt;
+    } else {
+      phaseInt+=kFn(xi)*dxInt;
+    }
+    phaseArr.push(phaseInt);
+  }
+
+  // Draw WKB wavefunction
+  const ampScale=0.35*pH;
+  const wkbPhase=t*3;
+  ctx7.lineWidth=1.5;
+  for(let i=0;i<=nInt;i++){
+    const xi=xMin+i*dxInt;
+    const cx2=xToC(xi);
+    const pVal=pFn(xi);
+    const kVal=kFn(xi);
+    let psi;
+    if(xi<tpL){
+      // Left forbidden: exponential decay
+      const expArg=-phaseArr[i]/hb;
+      psi=ampScale*Math.exp(Math.min(expArg,0))/Math.sqrt(kVal+0.01);
+      ctx7.strokeStyle='rgba(255,68,136,0.7)';
+    } else if(xi<tpR){
+      // Allowed: oscillatory
+      const phase=phaseArr[i]/hb+wkbPhase;
+      psi=ampScale*Math.cos(phase)/Math.sqrt(pVal+0.01);
+      ctx7.strokeStyle='rgba(68,221,255,0.8)';
+    } else {
+      // Right forbidden: exponential decay
+      const expArg=-phaseArr[i]/hb;
+      psi=ampScale*Math.exp(Math.min(expArg,0))/Math.sqrt(kVal+0.01);
+      ctx7.strokeStyle='rgba(255,68,136,0.7)';
+    }
+    const py=eY-psi;
+    if(i===0) ctx7.beginPath();
+    if(i===0) ctx7.moveTo(cx2,py);
+    else ctx7.lineTo(cx2,py);
+  }
+  ctx7.stroke();
+
+  // Envelope ±C/√p
+  ctx7.strokeStyle='rgba(255,221,68,0.25)'; ctx7.lineWidth=1; ctx7.setLineDash([3,3]);
+  ctx7.beginPath(); f7=true;
+  for(let i=0;i<=nInt;i++){
+    const xi=xMin+i*dxInt;
+    const cx2=xToC(xi);
+    const pVal=pFn(xi);
+    const kVal=kFn(xi);
+    const env=ampScale/Math.sqrt(Math.max(pVal,kVal,0.01));
+    if(f7){ ctx7.moveTo(cx2,eY-env); f7=false; } else ctx7.lineTo(cx2,eY-env);
+  }
+  ctx7.stroke();
+  ctx7.beginPath(); f7=true;
+  for(let i=0;i<=nInt;i++){
+    const xi=xMin+i*dxInt;
+    const cx2=xToC(xi);
+    const pVal=pFn(xi);
+    const kVal=kFn(xi);
+    const env=ampScale/Math.sqrt(Math.max(pVal,kVal,0.01));
+    if(f7){ ctx7.moveTo(cx2,eY+env); f7=false; } else ctx7.lineTo(cx2,eY+env);
+  }
+  ctx7.stroke();
+  ctx7.setLineDash([]);
+
+  // Connection formula annotation
+  const connX=W*0.5, connY=margin+pH+30;
+  ctx7.fillStyle='#ffdd44'; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
+  ctx7.fillText('Connection: 1/√p cos(∫p dx/ħ − π/4) ↔ 1/√|p| exp(−∫|p| dx/ħ)', connX, connY);
+
+  // Tunneling probability
+  const tunnelInt=phaseArr[nInt]-phaseArr[0];
+  const T=Math.exp(-2*tunnelInt/hb);
+  document.getElementById('wkbT').textContent=T.toExponential(3);
+  document.getElementById('wkbConn').textContent=`∫p dx = ${tunnelInt.toFixed(2)}`;
+
+  // Tunneling bar
+  const barX=margin, barY=connY+18, barW=pW, barH=10;
+  ctx7.fillStyle='#111'; ctx7.fillRect(barX,barY,barW,barH);
+  ctx7.fillStyle='#ff8844'; ctx7.fillRect(barX,barY,barW*Math.min(T,1),barH);
+  ctx7.fillStyle='#aaa'; ctx7.font='11px sans-serif'; ctx7.textAlign='left';
+  ctx7.fillText(`Tunneling probability T = exp(-2∫|p|dx/ħ) = ${T.toExponential(3)}`, barX, barY+barH+14);
+
+  // Region labels
+  ctx7.fillStyle='rgba(68,221,255,0.3)'; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
+  ctx7.fillText('Classically Allowed (oscillatory)', (xToC(tpL)+xToC(tpR))/2, eY-ampScale-12);
+  ctx7.fillStyle='rgba(255,68,136,0.3)';
+  ctx7.fillText('Forbidden (exponential)', (margin+xToC(tpL))/2, eY-ampScale-12);
+  ctx7.fillText('Forbidden (exponential)', (xToC(tpR)+W-margin)/2, eY-ampScale-12);
+}
+
+// ── TAB 8: EFFECTIVE ACTION & COLEMAN-WEINBERG ───────────────────────────────
+const c8=document.getElementById('c8');
+const ctx8=c8.getContext('2d');
+let animId8=null, animOffset8=0;
+
+function toggleAnim8(){
+  const btn=document.getElementById('animBtn8');
+  if(animId8){ cancelAnimationFrame(animId8); animId8=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim8(); }
+}
+function stepAnim8(){ animOffset8+=0.015*(window.animSpeed || 1); draw8(); animId8=requestAnimationFrame(stepAnim8); }
+
+function draw8(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c8.offsetWidth, H=c8.offsetHeight;
+  if(!W||!H)return;
+  c8.width=W*dpr; c8.height=H*dpr;
+  ctx8.setTransform(dpr,0,0,dpr,0,0);
+  ctx8.clearRect(0,0,W,H);
+  ctx8.fillStyle='#05050f'; ctx8.fillRect(0,0,W,H);
+
+  const lam=parseFloat(document.getElementById('effLam').value)/100;
+  document.getElementById('effLamv').textContent=lam.toFixed(2);
+  const mass=parseFloat(document.getElementById('effMass').value)/100;
+  document.getElementById('effMassv').textContent=mass.toFixed(2);
+  const loopStr=parseFloat(document.getElementById('effLoop').value)/100;
+  document.getElementById('effLoopv').textContent=loopStr.toFixed(2);
+  const t=animOffset8;
+
+  const margin=60;
+  const pW=W-2*margin, pH=H-2*margin;
+  const phiMin=-3, phiMax=3;
+  const phiToC=(p)=> margin + (p-phiMin)/(phiMax-phiMin)*pW;
+
+  // Classical potential V_cl(φ) = ½m²φ² + λ/4! φ⁴
+  const Vcl=(p)=> 0.5*mass*mass*p*p + (lam/24)*p*p*p*p;
+  // V_eff(φ) = V_cl + (ħ/2)∫d⁴k/(2π)⁴ ln(k² + V''_cl)
+  // Coleman-Weinberg: V_eff = V_cl + (ħ/64π²) (V''_cl)² ln(V''_cl/μ²)
+  // Simplified: V_eff = V_cl + loopStr * (V''_cl)² * ln(1 + V''_cl)
+  const Vpp=(p)=> mass*mass + (lam/2)*p*p;
+  const Veff=(p)=>{
+    const vcl=Vcl(p);
+    const vpp=Vpp(p);
+    const cw=loopStr * vpp*vpp * Math.log(1 + Math.abs(vpp) + 0.01);
+    return vcl + cw;
+  };
+
+  // Find range
+  let vMax=0;
+  for(let p=phiMin;p<=phiMax;p+=0.02){
+    vMax=Math.max(vMax, Veff(p), Vcl(p));
+  }
+  vMax=Math.max(vMax,0.1);
+  const vToC=(v)=> margin+pH - (v/vMax)*pH;
+
+  // Axes
+  ctx8.strokeStyle='#1c1c44'; ctx8.lineWidth=1;
+  ctx8.beginPath(); ctx8.moveTo(margin,margin); ctx8.lineTo(margin,margin+pH); ctx8.stroke();
+  ctx8.beginPath(); ctx8.moveTo(margin,margin+pH); ctx8.lineTo(W-margin,margin+pH); ctx8.stroke();
+  ctx8.fillStyle='#55558a'; ctx8.font='12px sans-serif'; ctx8.textAlign='center';
+  ctx8.fillText('Coleman-Weinberg Effective Potential V_eff(φ)',W/2,margin-8);
+  ctx8.fillText('φ',W-margin,margin+pH+16);
+  ctx8.save(); ctx8.translate(14,margin+pH/2); ctx8.rotate(-Math.PI/2); ctx8.fillText('V(φ)',0,0); ctx8.restore();
+
+  // Grid
+  ctx8.strokeStyle='#1c1c3a'; ctx8.lineWidth=1; ctx8.setLineDash([2,4]);
+  for(let frac=0.25;frac<=0.75;frac+=0.25){
+    const y=margin+pH*frac;
+    ctx8.beginPath(); ctx8.moveTo(margin,y); ctx8.lineTo(W-margin,y); ctx8.stroke();
+  }
+  ctx8.setLineDash([]);
+
+  // Classical potential (dashed)
+  ctx8.strokeStyle='rgba(255,221,68,0.4)'; ctx8.lineWidth=1.5; ctx8.setLineDash([6,4]);
+  ctx8.beginPath(); let f8=true;
+  for(let p=phiMin;p<=phiMax;p+=0.02){
+    const vv=Vcl(p);
+    const cx2=phiToC(p), cy2=vToC(vv);
+    if(f8){ ctx8.moveTo(cx2,cy2); f8=false; } else ctx8.lineTo(cx2,cy2);
+  }
+  ctx8.stroke();
+  ctx8.setLineDash([]);
+
+  // Effective potential (solid)
+  ctx8.strokeStyle='#ffdd44'; ctx8.lineWidth=2.5;
+  ctx8.beginPath(); f8=true;
+  for(let p=phiMin;p<=phiMax;p+=0.02){
+    const vv=Veff(p);
+    const cx2=phiToC(p), cy2=vToC(vv);
+    if(f8){ ctx8.moveTo(cx2,cy2); f8=false; } else ctx8.lineTo(cx2,cy2);
+  }
+  ctx8.stroke();
+
+  // Find minimum of V_eff
+  let minVal=Infinity, minPhi=0;
+  for(let p=phiMin;p<=phiMax;p+=0.01){
+    const vv=Veff(p);
+    if(vv<minVal){ minVal=vv; minPhi=p; }
+  }
+  document.getElementById('effMin').textContent=`φ=${minPhi.toFixed(2)}, V=${minVal.toFixed(3)}`;
+
+  // SSB detection
+  const ssb=Math.abs(minPhi)>0.1;
+  document.getElementById('effSsb').textContent=ssb?'YES (φ ≠ 0)':'No (φ = 0)';
+
+  // Mark minimum
+  const minX=phiToC(minPhi), minY=vToC(minVal);
+  ctx8.fillStyle=ssb?'#ff4488':'#44ddff';
+  ctx8.beginPath(); ctx8.arc(minX,minY,6,0,2*Math.PI); ctx8.fill();
+  ctx8.fillStyle=ssb?'#ff4488':'#44ddff'; ctx8.font='12px sans-serif'; ctx8.textAlign='center';
+  ctx8.fillText(ssb?'SSB minimum':'Minimum', minX, minY-14);
+
+  // Animated loop correction visualization
+  const loopX=W*0.15, loopY=margin+pH*0.25;
+  const loopR2=25*(0.8+0.2*Math.sin(t*2));
+  ctx8.strokeStyle='rgba(221,136,255,0.5)'; ctx8.lineWidth=1.5;
+  ctx8.beginPath(); ctx8.arc(loopX,loopY,loopR2,0,2*Math.PI); ctx8.stroke();
+  // Rotating dot on loop
+  const dotAngle=t*3;
+  ctx8.fillStyle='#dd88ff';
+  ctx8.beginPath(); ctx8.arc(loopX+loopR2*Math.cos(dotAngle), loopY+loopR2*Math.sin(dotAngle), 3,0,2*Math.PI); ctx8.fill();
+  ctx8.fillStyle='#dd88ff'; ctx8.font='11px sans-serif'; ctx8.textAlign='center';
+  ctx8.fillText('1-loop correction', loopX, loopY+loopR2+16);
+
+  // Legend
+  const legX=W*0.65, legY=margin+10;
+  ctx8.fillStyle='rgba(255,221,68,0.4)'; ctx8.font='12px sans-serif'; ctx8.textAlign='left';
+  ctx8.fillText('— V_cl(φ) (classical)', legX, legY);
+  ctx8.fillStyle='#ffdd44';
+  ctx8.fillText('— V_eff(φ) (quantum)', legX, legY+16);
+
+  // Formula display
+  ctx8.fillStyle='#55558a'; ctx8.font='12px sans-serif'; ctx8.textAlign='center';
+  ctx8.fillText('V_eff(φ) = ½m²φ² + λ/24 φ⁴ + (ħ/64π²)(V'')² ln(V''/μ²)', W/2, margin+pH+30);
+
+  // Quantum correction bar
+  const barX2=margin, barY2=margin+pH+40, barW2=pW, barH2=8;
+  const qCorr=loopStr*0.5;
+  ctx8.fillStyle='#111'; ctx8.fillRect(barX2,barY2,barW2,barH2);
+  ctx8.fillStyle='#dd88ff'; ctx8.fillRect(barX2,barY2,barW2*Math.min(qCorr,1),barH2);
+  ctx8.fillStyle='#aaa'; ctx8.font='11px sans-serif'; ctx8.textAlign='left';
+  ctx8.fillText(`Quantum correction strength: ${qCorr.toFixed(2)}  (loop coupling × mass²)`, barX2, barY2+barH2+12);
+}
+
 // ── INIT ─────────────────────────────────────────────────────────────────────
 ['hbar0','nPaths'].forEach(id=>{
   document.getElementById(id).addEventListener('input',draw0);
@@ -1524,6 +1940,8 @@ function draw6(){
 ['beta4','omega4','nLevels4'].forEach(id=>document.getElementById(id).addEventListener('input',draw4));
 ['mass5','time5','hbar5'].forEach(id=>document.getElementById(id).addEventListener('input',draw5));
 ['lambda6'].forEach(id=>document.getElementById(id).addEventListener('input',draw6));
+['wkbE','wkbV0','wkbHbar'].forEach(id=>document.getElementById(id).addEventListener('input',draw7));
+['effLam','effMass','effLoop'].forEach(id=>document.getElementById(id).addEventListener('input',draw8));
 
 addZoom(c0,0,draw0); addPan(c0,0,draw0);
 addZoom(c1,1,draw1); addPan(c1,1,draw1);
@@ -1532,9 +1950,12 @@ addZoom(c3,3,draw3); addPan(c3,3,draw3);
 addZoom(c4,4,draw4); addPan(c4,4,draw4);
 addZoom(c5,5,draw5); addPan(c5,5,draw5);
 addZoom(c6,6,draw6); addPan(c6,6,draw6);
+addZoom(c7,7,draw7); addPan(c7,7,draw7);
+addZoom(c8,8,draw8); addPan(c8,8,draw8);
 
 drawFns[0]=draw0; drawFns[1]=draw1; drawFns[2]=draw2;
 drawFns[3]=draw3; drawFns[4]=draw4; drawFns[5]=draw5; drawFns[6]=draw6;
+drawFns[7]=draw7; drawFns[8]=draw8;
 
 window.animSpeed=1;
 window.zoomX=1;
