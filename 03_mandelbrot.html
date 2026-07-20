@@ -150,6 +150,28 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 .dm-stat:last-child{border-bottom:none}
 .dm-stat .k{color:var(--dim)} .dm-stat .v{color:var(--gold)}
 .kanim-sidebar-ctrl { display: none !important; }
+
+/* ── Full-width panel layout for new fractal tabs ── */
+.dm-panel.fractal-panel.active{display:flex;flex-direction:column;grid-column:span 3;gap:0;height:100%}
+.dm-panel.fractal-panel{display:none}
+.fp-main{display:flex;flex:1;min-height:0;overflow:hidden}
+.fp-sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:10px;width:200px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.fp-sidebar.right{border-right:none;border-left:1px solid var(--border);width:240px}
+.fp-canvas-wrap{flex:1;overflow:hidden;position:relative;cursor:crosshair;background:#000;min-width:0}
+.fp-canvas-wrap canvas{display:block;width:100%;height:100%}
+.fp-strip{background:var(--bg2);border-top:1px solid var(--border);padding:5px 14px;font-size:.7rem;color:var(--dim);display:flex;align-items:center;gap:14px;flex-shrink:0}
+.fp-section-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:4px}
+.fp-eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:7px 9px;margin-bottom:6px}
+.fp-eq-title{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:4px}
+.fp-vrow{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #1a1a38;font-family:'Courier New',monospace;font-size:.72rem}
+.fp-vrow:last-child{border-bottom:none}
+.fp-vlbl{color:var(--dim)}
+.fp-callout{background:rgba(255,68,255,.06);border:1px solid rgba(255,68,255,.25);border-radius:5px;padding:7px 9px;font-size:.73rem;line-height:1.5}
+.fp-callout strong{color:var(--pink)}
+.fp-btn{padding:4px 7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);border-radius:4px;cursor:pointer;font-size:.7rem;text-align:center;transition:.15s}
+.fp-btn:hover,.fp-btn.active{border-color:var(--pink);color:var(--pink)}
+.fp-btn-row{display:flex;gap:3px;flex-wrap:wrap}
+.fp-coord-bar{position:absolute;bottom:0;left:0;width:100%;background:rgba(5,5,15,.7);padding:2px 8px;font-size:.65rem;font-family:monospace;color:var(--dim);display:flex;gap:14px;z-index:10;pointer-events:none}
 </style>
 </head>
 <body>
@@ -287,6 +309,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="dm-tab" onclick="dmTab(2,this)">External Rays</div>
     <div class="dm-tab" onclick="dmTab(3,this)">Feigenbaum</div>
     <div class="dm-tab" onclick="dmTab(4,this)">Physics Links</div>
+    <div class="dm-tab" onclick="dmTab(5,this)">Buddhabrot</div>
+    <div class="dm-tab" onclick="dmTab(6,this)">Newton Fractal</div>
+    <div class="dm-tab" onclick="dmTab(7,this)">Burning Ship</div>
   </div>
 
   <div class="dm-panels">
@@ -569,6 +594,285 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
             suggesting a deep uniformisation principle connecting number theory,
             geometry, and iteration.
         </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PANEL 5: BUDDHABROT & NEBULABROT
+    ════════════════════════════════════════════════════════ -->
+    <div class="dm-panel fractal-panel" id="dmp-5">
+      <div class="fp-main">
+        <div class="fp-sidebar">
+          <div>
+            <div class="fp-section-lbl">Iterations</div>
+            <input type="range" id="bb-iter-sl" min="50" max="2000" value="500" oninput="bbSetIter(+this.value)">
+            <div class="val-disp" id="bb-iter-disp">500</div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Samples (×1000)</div>
+            <input type="range" id="bb-samp-sl" min="50" max="2000" value="300" step="10" oninput="bbSetSamples(+this.value)">
+            <div class="val-disp" id="bb-samp-disp">300k</div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Color Palette</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn active" onclick="bbSetPal('fire',this)">Fire</button>
+              <button class="fp-btn" onclick="bbSetPal('ice',this)">Ice</button>
+              <button class="fp-btn" onclick="bbSetPal('neon',this)">Neon</button>
+              <button class="fp-btn" onclick="bbSetPal('gold',this)">Gold</button>
+            </div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Mode</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn active" onclick="bbSetMode('buddha',this)">Buddhabrot</button>
+              <button class="fp-btn" onclick="bbSetMode('nebula',this)">Nebulabrot</button>
+            </div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Animation</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn" id="bb-anim-btn" onclick="bbToggleAnim(this)">▶ Animate</button>
+              <button class="fp-btn" onclick="bbReset()">↺ Reset</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+              <span style="font-size:.65rem;color:var(--dim)">Speed:</span>
+              <input type="range" id="bb-speed-sl" min="1" max="20" value="5" style="flex:1;accent-color:var(--pink)" oninput="bbSpeed=this.value/10;this.nextElementSibling.textContent=(this.value/10).toFixed(1)+'×'">
+              <span style="font-size:.7rem;font-family:monospace;color:var(--pink);min-width:2.2em">0.5×</span>
+            </div>
+          </div>
+          <div class="fp-callout" style="margin-top:auto">
+            <strong>Buddhabrot:</strong> Traces the <em>path</em> of orbits that escape, creating a probability density map. The glowing "Buddha" shape emerges from the statistics of millions of orbits.
+          </div>
+        </div>
+
+        <div class="fp-canvas-wrap" id="bb-cwrap">
+          <canvas aria-label="Mandelbrot and Julia Sets | Road to Reality — panel 6" id="bb-c"></canvas>
+          <div class="fp-coord-bar" id="bb-coord">Rendering…</div>
+        </div>
+
+        <div class="fp-sidebar right">
+          <div class="fp-section-lbl">Live Readouts</div>
+          <div class="fp-eq-block">
+            <div class="fp-vrow"><span class="fp-vlbl">Orbits traced</span><span id="bb-orbits" style="color:var(--gold)">0</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Hit count</span><span id="bb-hits" style="color:var(--pink)">0</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Max density</span><span id="bb-maxden" style="color:var(--cyan)">0</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Render time</span><span id="bb-rtime" style="color:var(--green)">—</span></div>
+          </div>
+          <div class="fp-eq-block">
+            <div class="fp-eq-title">Buddhabrot Density</div>
+            <div style="font-size:.72rem;line-height:1.6">
+              $\rho(x,y) = \sum_{\text{orbits}} \sum_{n} \delta(x - x_n, y - y_n)$<br>
+              <span style="color:var(--dim);font-size:.68rem">Sum over all orbit points of escaping trajectories.</span>
+            </div>
+          </div>
+          <div class="fp-eq-block">
+            <div class="fp-eq-title">Nebulabrot (RGB)</div>
+            <div style="font-size:.72rem;line-height:1.6">
+              R: shallow orbits (iter &lt; N/3)<br>
+              G: mid orbits (N/3 &lt; iter &lt; 2N/3)<br>
+              B: deep orbits (iter &gt; 2N/3)<br>
+              <span style="color:var(--dim);font-size:.68rem">Each channel is a separate Buddhabrot at different depth.</span>
+            </div>
+          </div>
+          <div class="fp-callout">
+            <strong>Penrose §7.3:</strong> The escape-time structure of the Mandelbrot iteration creates a probability distribution that reveals the statistical geometry of complex dynamics.
+          </div>
+        </div>
+      </div>
+      <div class="fp-strip">
+        <span class="bookref">📖 Road to Reality §7.3 – 7.5</span>
+        <span>Buddhabrot: the hidden glow of escaping orbits — probability density of the Mandelbrot iteration.</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PANEL 6: NEWTON FRACTAL BASINS
+    ════════════════════════════════════════════════════════ -->
+    <div class="dm-panel fractal-panel" id="dmp-6">
+      <div class="fp-main">
+        <div class="fp-sidebar">
+          <div>
+            <div class="fp-section-lbl">Polynomial</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn active" onclick="nfSetPoly('z3-1',this)">z³ − 1</button>
+              <button class="fp-btn" onclick="nfSetPoly('z4-1',this)">z⁴ − 1</button>
+              <button class="fp-btn" onclick="nfSetPoly('z5-1',this)">z⁵ − 1</button>
+              <button class="fp-btn" onclick="nfSetPoly('z3+1',this)">z³ + 1</button>
+            </div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Max Iterations</div>
+            <input type="range" id="nf-iter-sl" min="10" max="200" value="50" oninput="nfSetIter(+this.value)">
+            <div class="val-disp" id="nf-iter-disp">50</div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Color Scheme</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn active" onclick="nfSetPal('root',this)">Root</button>
+              <button class="fp-btn" onclick="nfSetPal('pastel',this)">Pastel</button>
+              <button class="fp-btn" onclick="nfSetPal('neon',this)">Neon</button>
+            </div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Show Convergence</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn active" id="nf-conv-btn" onclick="nfToggleConv(this)">Paths</button>
+              <button class="fp-btn" id="nf-roots-btn" onclick="nfToggleRoots(this)">Roots</button>
+            </div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Animation</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn" id="nf-anim-btn" onclick="nfToggleAnim(this)">▶ Animate</button>
+              <button class="fp-btn" onclick="nfReset()">↺ Reset</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+              <span style="font-size:.65rem;color:var(--dim)">Speed:</span>
+              <input type="range" id="nf-speed-sl" min="1" max="20" value="5" style="flex:1;accent-color:var(--pink)" oninput="nfSpeed=this.value/10;this.nextElementSibling.textContent=(this.value/10).toFixed(1)+'×'">
+              <span style="font-size:.7rem;font-family:monospace;color:var(--pink);min-width:2.2em">0.5×</span>
+            </div>
+          </div>
+          <div class="fp-callout" style="margin-top:auto">
+            <strong>Newton's method:</strong> $z_{n+1} = z_n - f(z_n)/f'(z_n)$. Each root's basin of attraction is colored distinctly. The fractal boundary between basins has infinite complexity.
+          </div>
+        </div>
+
+        <div class="fp-canvas-wrap" id="nf-cwrap">
+          <canvas aria-label="Mandelbrot and Julia Sets | Road to Reality — panel 7" id="nf-c"></canvas>
+          <div class="fp-coord-bar" id="nf-coord">Hover for coordinates</div>
+        </div>
+
+        <div class="fp-sidebar right">
+          <div class="fp-section-lbl">Live Readouts</div>
+          <div class="fp-eq-block">
+            <div class="fp-vrow"><span class="fp-vlbl">Roots found</span><span id="nf-nroots" style="color:var(--gold)">3</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Converged</span><span id="nf-converged" style="color:var(--green)">—</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Hover root</span><span id="nf-hover-root" style="color:var(--cyan)">—</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Iterations</span><span id="nf-hover-iter" style="color:var(--pink)">—</span></div>
+          </div>
+          <div class="fp-eq-block">
+            <div class="fp-eq-title">Newton Iteration</div>
+            <div style="font-size:.72rem;line-height:1.6">
+              $z_{n+1} = z_n - \frac{f(z_n)}{f'(z_n)}$<br><br>
+              <span style="color:var(--dim);font-size:.68rem">
+              For $f(z)=z^d-1$:<br>
+              $z_{n+1} = \frac{(d-1)z_n^d + 1}{d\,z_n^{d-1}}$
+              </span>
+            </div>
+          </div>
+          <div class="fp-eq-block">
+            <div class="fp-eq-title">Basin Boundaries</div>
+            <div style="font-size:.72rem;line-height:1.6">
+              The Julia set of the Newton map $N_f(z) = z - f/f'$ is the boundary between basins. It has Hausdorff dimension ≈ 1.5 for $z^3-1$.
+            </div>
+          </div>
+          <div class="fp-callout">
+            <strong>Penrose §7.5:</strong> Newton's method in the complex plane reveals the fractal nature of root-finding — the boundaries between basins are Julia sets of rational maps.
+          </div>
+        </div>
+      </div>
+      <div class="fp-strip">
+        <span class="bookref">📖 Road to Reality §7.5</span>
+        <span>Newton fractals: the fractal boundaries between basins of attraction for complex root-finding.</span>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PANEL 7: BURNING SHIP & MULTIBROT
+    ════════════════════════════════════════════════════════ -->
+    <div class="dm-panel fractal-panel" id="dmp-7">
+      <div class="fp-main">
+        <div class="fp-sidebar">
+          <div>
+            <div class="fp-section-lbl">Fractal Type</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn active" onclick="bsSetType('ship',this)">Burning Ship</button>
+              <button class="fp-btn" onclick="bsSetType('multibrot',this)">Multibrot</button>
+            </div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Exponent (Multibrot)</div>
+            <input type="range" id="bs-exp-sl" min="20" max="80" value="40" oninput="bsSetExp(+this.value)">
+            <div class="val-disp" id="bs-exp-disp">d = 4.0</div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Max Iterations</div>
+            <input type="range" id="bs-iter-sl" min="30" max="500" value="120" oninput="bsSetIter(+this.value)">
+            <div class="val-disp" id="bs-iter-disp">120</div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Bailout Radius</div>
+            <input type="range" id="bs-bail-sl" min="10" max="100" value="40" oninput="bsSetBail(+this.value)">
+            <div class="val-disp" id="bs-bail-disp">4.0</div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Color Scheme</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn active" onclick="bsSetPal('fire',this)">Fire</button>
+              <button class="fp-btn" onclick="bsSetPal('neon',this)">Neon</button>
+              <button class="fp-btn" onclick="bsSetPal('ice',this)">Ice</button>
+              <button class="fp-btn" onclick="bsSetPal('gold',this)">Gold</button>
+            </div>
+          </div>
+          <div>
+            <div class="fp-section-lbl">Animation</div>
+            <div class="fp-btn-row">
+              <button class="fp-btn" id="bs-anim-btn" onclick="bsToggleAnim(this)">▶ Animate</button>
+              <button class="fp-btn" onclick="bsReset()">↺ Reset</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:4px">
+              <span style="font-size:.65rem;color:var(--dim)">Speed:</span>
+              <input type="range" id="bs-speed-sl" min="1" max="20" value="5" style="flex:1;accent-color:var(--pink)" oninput="bsSpeed=this.value/10;this.nextElementSibling.textContent=(this.value/10).toFixed(1)+'×'">
+              <span style="font-size:.7rem;font-family:monospace;color:var(--pink);min-width:2.2em">0.5×</span>
+            </div>
+          </div>
+          <div class="fp-callout" style="margin-top:auto">
+            <strong>Burning Ship:</strong> $z_{n+1} = (|\text{Re}(z_n)| + i|\text{Im}(z_n)|)^2 + c$ — the absolute values create the ship-like "wake" pattern. <strong>Multibrot:</strong> $z_{n+1} = z_n^d + c$ for non-integer $d$.
+          </div>
+        </div>
+
+        <div class="fp-canvas-wrap" id="bs-cwrap">
+          <canvas aria-label="Mandelbrot and Julia Sets | Road to Reality — panel 8" id="bs-c"></canvas>
+          <div class="fp-coord-bar" id="bs-coord">Hover for coordinates</div>
+        </div>
+
+        <div class="fp-sidebar right">
+          <div class="fp-section-lbl">Live Readouts</div>
+          <div class="fp-eq-block">
+            <div class="fp-vrow"><span class="fp-vlbl">Type</span><span id="bs-type" style="color:var(--gold)">Burning Ship</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Exponent</span><span id="bs-exp-val" style="color:var(--pink)">2.0</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Bailout</span><span id="bs-bail-val" style="color:var(--cyan)">4.0</span></div>
+            <div class="fp-vrow"><span class="fp-vlbl">Max iter</span><span id="bs-iter-val" style="color:var(--green)">120</span></div>
+          </div>
+          <div class="fp-eq-block">
+            <div class="fp-eq-title">Burning Ship Iteration</div>
+            <div style="font-size:.72rem;line-height:1.6">
+              $x_{n+1} = (x_n^2 - y_n^2) + c_x$<br>
+              $y_{n+1} = (2|x_n y_n|) + c_y$<br>
+              <span style="color:var(--dim);font-size:.68rem">where $x_n = |\text{Re}(z_n)|$, $y_n = |\text{Im}(z_n)|$</span>
+            </div>
+          </div>
+          <div class="fp-eq-block">
+            <div class="fp-eq-title">Multibrot</div>
+            <div style="font-size:.72rem;line-height:1.6">
+              $z_{n+1} = z_n^d + c$<br>
+              <span style="color:var(--dim);font-size:.68rem">
+              For $d=2$: standard Mandelbrot.<br>
+              For $d=3$: cubic Mandelbrot (3-fold symmetry).<br>
+              For $d=4$: quartic (4-fold symmetry).<br>
+              Non-integer $d$ produces spiral morphing.
+              </span>
+            </div>
+          </div>
+          <div class="fp-callout">
+            <strong>Penrose §7.3–7.4:</strong> The Burning Ship and Multibrot sets generalize the quadratic iteration, revealing how symmetry and topology change with the exponent.
+          </div>
+        </div>
+      </div>
+      <div class="fp-strip">
+        <span class="bookref">📖 Road to Reality §7.3 – 7.4</span>
+        <span>Burning Ship &amp; Multibrot: generalizations of the Mandelbrot iteration with new symmetries and fractal structures.</span>
       </div>
     </div>
 
@@ -1079,6 +1383,9 @@ function dmToggle(){
       if(tabIdx===1){ runBoxCount(); }
       if(tabIdx===2){ rayDraw(); }
       if(tabIdx===3){ renderBifurc(); bifurcInitClick(); }
+      if(tabIdx===5){ bbInit(); }
+      if(tabIdx===6){ nfInit(); }
+      if(tabIdx===7){ bsInit(); }
     });
   }
 }
@@ -1104,6 +1411,10 @@ function dmTab(idx, el){
     if(idx===1) runBoxCount();
     if(idx===2) rayDraw();
     if(idx===3){ renderBifurc(); bifurcInitClick(); }
+    if(idx===4){ /* Physics Links — no canvas */ }
+    if(idx===5){ bbInit(); }
+    if(idx===6){ nfInit(); }
+    if(idx===7){ bsInit(); }
   });
 }
 
@@ -1473,7 +1784,498 @@ function bifurcInitClick(){
   });
 }
 
-// ─── RE-DRAW ON C CHANGE ────────────────────────────────
+// ─── PANEL 5: BUDDHABROT & NEBULABROT ────────────────────
+const BB = {
+  iter:500, samples:300000, mode:'buddha', pal:'fire',
+  anim:false, raf:null, speed:0.5, acc:0,
+  data:null, W:0, H:0, scale:0, cx:0, cy:0,
+  orbitsTraced:0, hitCount:0, maxDen:0,
+  initDone:false, renderTimer:null,
+};
+const BB_PALS = {
+  fire:   [[0,0,0],[20,0,0],[80,5,0],[200,40,0],[255,120,20],[255,200,80],[255,255,200]],
+  ice:    [[0,0,10],[0,10,50],[0,40,120],[20,100,200],[100,180,255],[200,230,255],[240,250,255]],
+  neon:   [[5,0,15],[30,0,80],[0,60,160],[0,160,100],[120,220,60],[220,200,20],[255,255,255]],
+  gold:   [[10,5,0],[40,20,0],[100,60,5],[180,130,20],[230,200,50],[255,240,150],[255,255,220]],
+};
+function bbBuildPal(mode){
+  const stops=BB_PALS[mode], N=256, t=new Uint8Array(N*3);
+  const n=stops.length-1;
+  for(let i=0;i<N;i++){
+    const fi=i/(N-1)*n, lo=Math.floor(fi), hi=Math.min(lo+1,n), f=fi-lo;
+    t[i*3]=stops[lo][0]+(stops[hi][0]-stops[lo][0])*f;
+    t[i*3+1]=stops[lo][1]+(stops[hi][1]-stops[lo][1])*f;
+    t[i*3+2]=stops[lo][2]+(stops[hi][2]-stops[lo][2])*f;
+  }
+  return t;
+}
+function bbSizeCanvas(){
+  const c=document.getElementById('bb-c');
+  if(!c||!c.parentElement) return;
+  const rect=c.parentElement.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  c.style.width=rect.width+'px'; c.style.height=rect.height+'px';
+  BB.W=Math.floor(rect.width*dpr); BB.H=Math.floor(rect.height*dpr);
+  c.width=BB.W; c.height=BB.H;
+  BB.scale=Math.min(BB.W,BB.H)*0.22;
+  BB.cx=-0.5; BB.cy=0;
+}
+function bbRender(){
+  const c=document.getElementById('bb-c');
+  if(!c||!c.width) return;
+  const ctx=c.getContext('2d');
+  const W=BB.W, H=BB.H;
+  if(!BB.data||BB.data.length!==W*H){
+    BB.data=new Float64Array(W*H);
+  }
+  const data=BB.data;
+  const maxIter=BB.iter, samples=BB.samples;
+  const scale=BB.scale, cx=BB.cx, cy=BB.cy;
+  data.fill(0);
+  let orbits=0, hits=0;
+  const t0=performance.now();
+  for(let s=0;s<samples;s++){
+    const re=(Math.random()*4-2.5), im=(Math.random()*2.6-1.3);
+    let zr=0, zi=0, iter=0;
+    const orbit=[];
+    while(iter<maxIter){
+      const nr=zr*zr-zi*zi+re, ni=2*zr*zi+im;
+      zr=nr; zi=ni; iter++;
+      if(zr*zr+zi*zi>4) break;
+      orbit.push({re:zr,im:zi});
+    }
+    if(iter<maxIter){
+      orbits++;
+      for(let k=0;k<orbit.length;k++){
+        const px=Math.floor((orbit[k].re-cx)*scale+W/2);
+        const py=Math.floor(H/2-(orbit[k].im-cy)*scale);
+        if(px>=0&&px<W&&py>=0&&py<H){
+          data[py*W+px]++; hits++;
+        }
+      }
+    }
+  }
+  const t1=performance.now();
+  let maxDen=0;
+  for(let i=0;i<data.length;i++){if(data[i]>maxDen)maxDen=data[i];}
+  BB.orbitsTraced=orbits; BB.hitCount=hits; BB.maxDen=maxDen;
+  // Render
+  const pal=bbBuildPal(BB.pal);
+  const imgd=ctx.createImageData(W,H);
+  const d=imgd.data;
+  if(BB.mode==='buddha'){
+    const logMax=Math.log(Math.max(1,maxDen));
+    for(let i=0;i<W*H;i++){
+      const v=data[i];
+      if(v>0){
+        const t=Math.log(v+1)/logMax;
+        const pi=Math.floor(t*255)*3;
+        d[i*4]=pal[pi]; d[i*4+1]=pal[pi+1]; d[i*4+2]=pal[pi+2];
+      } else { d[i*4]=0; d[i*4+1]=0; d[i*4+2]=0; }
+      d[i*4+3]=255;
+    }
+  } else {
+    // Nebulabrot: RGB channels at different depths
+    const third=Math.floor(maxIter/3);
+    const logMaxR=Math.log(Math.max(1,maxDen));
+    const logMaxG=Math.log(Math.max(1,maxDen));
+    const logMaxB=Math.log(Math.max(1,maxDen));
+    // Recompute with channel separation
+    const rData=new Float64Array(W*H);
+    const gData=new Float64Array(W*H);
+    const bData=new Float64Array(W*H);
+    for(let s=0;s<samples;s++){
+      const re=(Math.random()*4-2.5), im=(Math.random()*2.6-1.3);
+      let zr=0, zi=0, iter=0;
+      const orbit=[];
+      while(iter<maxIter){
+        const nr=zr*zr-zi*zi+re, ni=2*zr*zi+im;
+        zr=nr; zi=ni; iter++;
+        if(zr*zr+zi*zi>4) break;
+        orbit.push({re:zr,im:zi,iter:iter});
+      }
+      if(iter<maxIter){
+        for(let k=0;k<orbit.length;k++){
+          const px=Math.floor((orbit[k].re-cx)*scale+W/2);
+          const py=Math.floor(H/2-(orbit[k].im-cy)*scale);
+          if(px>=0&&px<W&&py>=0&&py<H){
+            const idx=py*W+px;
+            if(orbit[k].iter<third) rData[idx]++;
+            else if(orbit[k].iter<2*third) gData[idx]++;
+            else bData[idx]++;
+          }
+        }
+      }
+    }
+    let maxR=0,maxG=0,maxB=0;
+    for(let i=0;i<W*H;i++){if(rData[i]>maxR)maxR=rData[i];if(gData[i]>maxG)maxG=gData[i];if(bData[i]>maxB)maxB=bData[i];}
+    const lR=Math.log(Math.max(1,maxR)), lG=Math.log(Math.max(1,maxG)), lB=Math.log(Math.max(1,maxB));
+    for(let i=0;i<W*H;i++){
+      const r=rData[i]>0?Math.log(rData[i]+1)/lR:0;
+      const g=gData[i]>0?Math.log(gData[i]+1)/lG:0;
+      const b=bData[i]>0?Math.log(bData[i]+1)/lB:0;
+      d[i*4]=Math.floor(r*255); d[i*4+1]=Math.floor(g*255); d[i*4+2]=Math.floor(b*255);
+      d[i*4+3]=255;
+    }
+  }
+  ctx.putImageData(imgd,0,0);
+  document.getElementById('bb-orbits').textContent=orbits.toLocaleString();
+  document.getElementById('bb-hits').textContent=hits.toLocaleString();
+  document.getElementById('bb-maxden').textContent=maxDen.toLocaleString();
+  document.getElementById('bb-rtime').textContent=(t1-t0).toFixed(0)+'ms';
+  document.getElementById('bb-coord').textContent=`${orbits.toLocaleString()} orbits · ${hits.toLocaleString()} hits · max ${maxDen.toLocaleString()}`;
+}
+function bbSetIter(v){BB.iter=v;document.getElementById('bb-iter-disp').textContent=v;bbSchedule();}
+function bbSetSamples(v){BB.samples=v*1000;document.getElementById('bb-samp-disp').textContent=v+'k';bbSchedule();}
+function bbSetPal(mode,btn){
+  BB.pal=mode;
+  document.querySelectorAll('#dmp-5 .fp-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  bbSchedule();
+}
+function bbSetMode(mode,btn){
+  BB.mode=mode;
+  document.querySelectorAll('#dmp-5 .fp-btn-row:first-child .fp-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  bbSchedule();
+}
+function bbSchedule(){clearTimeout(BB.renderTimer);BB.renderTimer=setTimeout(bbRender,100);}
+function bbToggleAnim(btn){
+  BB.anim=!BB.anim;
+  btn.textContent=BB.anim?'⏸ Pause':'▶ Animate';
+  if(BB.anim)bbAnimLoop();
+}
+function bbAnimLoop(){
+  if(!BB.anim)return;
+  BB.acc+=BB.speed;
+  if(BB.acc>=1){bbRender();BB.acc=0;}
+  BB.raf=requestAnimationFrame(bbAnimLoop);
+}
+function bbReset(){BB.anim=false;cancelAnimationFrame(BB.raf);document.getElementById('bb-anim-btn').textContent='▶ Animate';bbRender();}
+function bbInit(){
+  if(BB.initDone)return;
+  BB.initDone=true;
+  bbSizeCanvas();
+  bbRender();
+}
+
+// ─── PANEL 6: NEWTON FRACTAL ─────────────────────────────
+const NF = {
+  poly:'z3-1', iter:50, pal:'root',
+  showConv:true, showRoots:true,
+  anim:false, raf:null, speed:0.5, acc:0,
+  W:0, H:0, scale:0, cx:0, cy:0,
+  roots:[], initDone:false, renderTimer:null,
+};
+// Build complex arithmetic and polynomial functions
+(function(){
+  const j=function(x,y){return {re:x,im:y};};
+  const add=(a,b)=>({re:a.re+b.re,im:a.im+b.im});
+  const sub=(a,b)=>({re:a.re-b.re,im:a.im-b.im});
+  const mul=(a,b)=>({re:a.re*b.re-a.im*b.im,im:a.re*b.im+a.im*b.re});
+  const div=(a,b)=>{const d=b.re*b.re+b.im*b.im;return{re:(a.re*b.re+a.im*b.im)/d,im:(a.im*b.re-a.re*b.im)/d};};
+  const pow=(a,n)=>{let r={re:1,im:0},b=a;while(n>0){if(n&1)r=mul(r,b);b=mul(b,b);n>>=1;}return r;};
+  const conj=(a)=>({re:a.re,im:-a.im});
+  const mag2=(a)=>a.re*a.re+a.im*a.im;
+  NF._add=add;NF._sub=sub;NF._mul=mul;NF._div=div;NF._pow=pow;NF._mag2=mag2;
+  // Build actual functions
+  NF._polyFns={
+    'z3-1':{f:(z)=>sub(pow(z,3),{re:1,im:0}), df:(z)=>mul({re:3,im:0},pow(z,2))},
+    'z4-1':{f:(z)=>sub(pow(z,4),{re:1,im:0}), df:(z)=>mul({re:4,im:0},pow(z,3))},
+    'z5-1':{f:(z)=>sub(pow(z,5),{re:1,im:0}), df:(z)=>mul({re:5,im:0},pow(z,4))},
+    'z3+1':{f:(z)=>add(pow(z,3),{re:1,im:0}), df:(z)=>mul({re:3,im:0},pow(z,2))},
+  };
+  NF._roots={
+    'z3-1':[{re:1,im:0},{re:-0.5,im:0.8660254037844386},{re:-0.5,im:-0.8660254037844386}],
+    'z4-1':[{re:1,im:0},{re:-1,im:0},{re:0,im:1},{re:0,im:-1}],
+    'z5-1':[{re:1,im:0},{re:0.3090169943749474,im:0.9510565162951535},{re:-0.8090169943749474,im:0.5877852522924731},{re:-0.8090169943749474,im:-0.5877852522924731},{re:0.3090169943749474,im:-0.9510565162951535}],
+    'z3+1':[{re:-1,im:0},{re:0.5,im:0.8660254037844386},{re:0.5,im:-0.8660254037844386}],
+  };
+})();
+const NF_COLORS = {
+  root:  [[255,50,50],[50,255,50],[50,50,255],[255,255,50],[255,50,255],[50,255,255],[200,200,200]],
+  pastel:[[255,150,150],[150,255,150],[150,150,255],[255,255,150],[255,150,255],[150,255,255],[220,220,220]],
+  neon:  [[255,0,80],[0,255,120],[0,100,255],[255,255,0],[255,0,255],[0,255,255],[200,200,255]],
+};
+function nfBuildPal(mode,n){
+  const stops=NF_COLORS[mode]||NF_COLORS.root;
+  const N=256, t=new Uint8Array(N*3);
+  const ns=stops.length-1;
+  for(let i=0;i<N;i++){
+    const fi=i/(N-1)*ns, lo=Math.floor(fi), hi=Math.min(lo+1,ns), f=fi-lo;
+    t[i*3]=stops[lo][0]+(stops[hi][0]-stops[lo][0])*f;
+    t[i*3+1]=stops[lo][1]+(stops[hi][1]-stops[lo][1])*f;
+    t[i*3+2]=stops[lo][2]+(stops[hi][2]-stops[lo][2])*f;
+  }
+  return t;
+}
+function nfSizeCanvas(){
+  const c=document.getElementById('nf-c');
+  if(!c||!c.parentElement) return;
+  const rect=c.parentElement.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  c.style.width=rect.width+'px'; c.style.height=rect.height+'px';
+  NF.W=Math.floor(rect.width*dpr); NF.H=Math.floor(rect.height*dpr);
+  c.width=NF.W; c.height=NF.H;
+  NF.scale=Math.min(NF.W,NF.H)*0.3;
+  NF.cx=0; NF.cy=0;
+}
+function nfNewtonStep(z,fn){
+  const f=fn.f(z), df=fn.df(z);
+  const d=NF._mag2(df);
+  if(d<1e-30) return z;
+  const step=NF._div(f,df);
+  return NF._sub(z,step);
+}
+function nfFindRoot(z,fn,roots,maxIter){
+  for(let i=0;i<maxIter;i++){
+    z=nfNewtonStep(z,fn);
+  }
+  let minDist=Infinity, best=-1;
+  for(let r=0;r<roots.length;r++){
+    const d=NF._mag2(NF._sub(z,roots[r]));
+    if(d<minDist){minDist=d;best=r;}
+  }
+  return {root:best,dist:minDist,point:z};
+}
+function nfRender(){
+  const c=document.getElementById('nf-c');
+  if(!c||!c.width) return;
+  const ctx=c.getContext('2d');
+  const W=NF.W, H=NF.H, scale=NF.scale, cx=NF.cx, cy=NF.cy;
+  const fn=NF._polyFns[NF.poly];
+  const roots=NF._roots[NF.poly];
+  const maxIter=NF.iter;
+  const pal=nfBuildPal(NF.pal);
+  const imgd=ctx.createImageData(W,H);
+  const d=imgd.data;
+  const nRoots=roots.length;
+  for(let py=0;py<H;py++){
+    for(let px=0;px<W;px++){
+      const wx=cx+(px-W/2)/scale;
+      const wy=cy-(py-H/2)/scale;
+      let z={re:wx,im:wy};
+      let iter=0;
+      for(;iter<maxIter;iter++){
+        const f=fn.f(z), df=fn.df(z);
+        const d2=NF._mag2(df);
+        if(d2<1e-30) break;
+        const step=NF._div(f,df);
+        z=NF._sub(z,step);
+        if(NF._mag2(NF._sub(z,roots[0]))<1e-6||
+           NF._mag2(NF._sub(z,roots[1]))<1e-6||
+           (nRoots>2&&NF._mag2(NF._sub(z,roots[2]))<1e-6)||
+           (nRoots>3&&NF._mag2(NF._sub(z,roots[3]))<1e-6)||
+           (nRoots>4&&NF._mag2(NF._sub(z,roots[4]))<1e-6)) break;
+      }
+      let minDist=Infinity, best=0;
+      for(let r=0;r<nRoots;r++){
+        const d2=NF._mag2(NF._sub(z,roots[r]));
+        if(d2<minDist){minDist=d2;best=r;}
+      }
+      const i4=(py*W+px)*4;
+      if(iter<maxIter){
+        const t=iter/maxIter;
+        const ri=best*36+Math.floor(t*20);
+        d[i4]=Math.min(255,roots[best].re*50+128+ri);
+        d[i4+1]=Math.min(255,roots[best].im*50+128+ri);
+        d[i4+2]=Math.min(255,ri);
+      } else {
+        d[i4]=0; d[i4+1]=0; d[i4+2]=0;
+      }
+      d[i4+3]=255;
+    }
+  }
+  ctx.putImageData(imgd,0,0);
+  document.getElementById('nf-nroots').textContent=nRoots;
+}
+function nfSetPoly(poly,btn){
+  NF.poly=poly;
+  document.querySelectorAll('#dmp-6 .fp-btn-row:first-child .fp-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  nfSchedule();
+}
+function nfSetIter(v){NF.iter=v;document.getElementById('nf-iter-disp').textContent=v;nfSchedule();}
+function nfSetPal(mode,btn){
+  NF.pal=mode;
+  document.querySelectorAll('#dmp-6 .fp-btn-row:nth-child(2) .fp-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  nfSchedule();
+}
+function nfToggleConv(btn){
+  NF.showConv=!NF.showConv;
+  btn.classList.toggle('active',NF.showConv);
+  nfSchedule();
+}
+function nfToggleRoots(btn){
+  NF.showRoots=!NF.showRoots;
+  btn.classList.toggle('active',NF.showRoots);
+  nfSchedule();
+}
+function nfSchedule(){clearTimeout(NF.renderTimer);NF.renderTimer=setTimeout(nfRender,100);}
+function nfToggleAnim(btn){
+  NF.anim=!NF.anim;
+  btn.textContent=NF.anim?'⏸ Pause':'▶ Animate';
+  if(NF.anim)nfAnimLoop();
+}
+function nfAnimLoop(){
+  if(!NF.anim)return;
+  NF.acc+=NF.speed;
+  if(NF.acc>=1){nfRender();NF.acc=0;}
+  NF.raf=requestAnimationFrame(nfAnimLoop);
+}
+function nfReset(){NF.anim=false;cancelAnimationFrame(NF.raf);document.getElementById('nf-anim-btn').textContent='▶ Animate';nfRender();}
+function nfInit(){
+  if(NF.initDone)return;
+  NF.initDone=true;
+  nfSizeCanvas();
+  nfRender();
+}
+
+// ─── PANEL 7: BURNING SHIP & MULTIBROT ──────────────────
+const BS = {
+  type:'ship', exp:4.0, iter:120, bail:4.0, pal:'fire',
+  anim:false, raf:null, speed:0.5, acc:0,
+  W:0, H:0, scale:0, cx:-0.5, cy:0,
+  initDone:false, renderTimer:null, morphPhase:0,
+};
+const BS_PALS = {
+  fire: [[0,0,0],[20,0,0],[80,5,0],[200,40,0],[255,120,20],[255,200,80],[255,255,200]],
+  neon: [[5,0,15],[30,0,80],[0,60,160],[0,160,100],[120,220,60],[220,200,20],[255,255,255]],
+  ice:  [[0,0,10],[0,10,50],[0,40,120],[20,100,200],[100,180,255],[200,230,255],[240,250,255]],
+  gold: [[10,5,0],[40,20,0],[100,60,5],[180,130,20],[230,200,50],[255,240,150],[255,255,220]],
+};
+function bsBuildPal(mode){
+  const stops=BS_PALS[mode], N=1024, t=new Uint8Array(N*3);
+  const n=stops.length-1;
+  for(let i=0;i<N;i++){
+    const fi=i/(N-1)*n, lo=Math.floor(fi), hi=Math.min(lo+1,n), f=fi-lo;
+    t[i*3]=stops[lo][0]+(stops[hi][0]-stops[lo][0])*f;
+    t[i*3+1]=stops[lo][1]+(stops[hi][1]-stops[lo][1])*f;
+    t[i*3+2]=stops[lo][2]+(stops[hi][2]-stops[lo][2])*f;
+  }
+  return t;
+}
+function bsSizeCanvas(){
+  const c=document.getElementById('bs-c');
+  if(!c||!c.parentElement) return;
+  const rect=c.parentElement.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  c.style.width=rect.width+'px'; c.style.height=rect.height+'px';
+  BS.W=Math.floor(rect.width*dpr); BS.H=Math.floor(rect.height*dpr);
+  c.width=BS.W; c.height=BS.H;
+  BS.scale=Math.min(BS.W,BS.H)*0.22;
+  BS.cx=-0.5; BS.cy=0;
+}
+function bsRender(){
+  const c=document.getElementById('bs-c');
+  if(!c||!c.width) return;
+  const ctx=c.getContext('2d');
+  const W=BS.W, H=BS.H, scale=BS.scale, cx=BS.cx, cy=BS.cy;
+  const maxIter=BS.iter, bail=BS.bail, pal=bsBuildPal(BS.pal), N=1023;
+  const imgd=ctx.createImageData(W,H);
+  const d=imgd.data;
+  if(BS.type==='ship'){
+    for(let py=0;py<H;py++){
+      const wy=cy+(py-H/2)/scale;
+      for(let px=0;px<W;px++){
+        const wx=cx+(px-W/2)/scale;
+        let x=0, y=0, iter=0;
+        while(iter<maxIter && x*x+y*y<bail*bail){
+          const x2=x*x, y2=y*y;
+          const nx=x2-y2+wx;
+          const ny=2*Math.abs(x*y)+wy;
+          x=nx; y=ny; iter++;
+        }
+        const i4=(py*W+px)*4;
+        if(iter===maxIter){d[i4]=0;d[i4+1]=0;d[i4+2]=0;}
+        else{
+          const smooth=iter+1-Math.log2(0.5*Math.log2(x*x+y*y));
+          const t=((smooth/maxIter)*5)%1;
+          const pi=Math.floor(t*N)*3;
+          d[i4]=pal[pi]; d[i4+1]=pal[pi+1]; d[i4+2]=pal[pi+2];
+        }
+        d[i4+3]=255;
+      }
+    }
+  } else {
+    const exp=BS.exp;
+    for(let py=0;py<H;py++){
+      const wy=cy+(py-H/2)/scale;
+      for(let px=0;px<W;px++){
+        const wx=cx+(px-W/2)/scale;
+        let zr=0, zi=0, iter=0;
+        while(iter<maxIter && zr*zr+zi*zi<bail*bail){
+          const r=Math.sqrt(zr*zr+zi*zi);
+          const theta=Math.atan2(zi,zr);
+          const rn=Math.pow(r,exp);
+          zr=rn*Math.cos(exp*theta)+wx;
+          zi=rn*Math.sin(exp*theta)+wy;
+          iter++;
+        }
+        const i4=(py*W+px)*4;
+        if(iter===maxIter){d[i4]=0;d[i4+1]=0;d[i4+2]=0;}
+        else{
+          const smooth=iter+1-Math.log2(0.5*Math.log2(zr*zr+zi*zi));
+          const t=((smooth/maxIter)*5)%1;
+          const pi=Math.floor(t*N)*3;
+          d[i4]=pal[pi]; d[i4+1]=pal[pi+1]; d[i4+2]=pal[pi+2];
+        }
+        d[i4+3]=255;
+      }
+    }
+  }
+  ctx.putImageData(imgd,0,0);
+  document.getElementById('bs-type').textContent=BS.type==='ship'?'Burning Ship':'Multibrot';
+  document.getElementById('bs-exp-val').textContent=BS.type==='ship'?'2.0':BS.exp.toFixed(1);
+  document.getElementById('bs-bail-val').textContent=BS.bail.toFixed(1);
+  document.getElementById('bs-iter-val').textContent=BS.iter;
+}
+function bsSetType(type,btn){
+  BS.type=type;
+  document.querySelectorAll('#dmp-7 .fp-btn-row:first-child .fp-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  bsSchedule();
+}
+function bsSetExp(v){BS.exp=0.5+v/20;document.getElementById('bs-exp-disp').textContent='d = '+BS.exp.toFixed(1);bsSchedule();}
+function bsSetIter(v){BS.iter=v;document.getElementById('bs-iter-disp').textContent=v;bsSchedule();}
+function bsSetBail(v){BS.bail=0.5+v/20;document.getElementById('bs-bail-disp').textContent=BS.bail.toFixed(1);bsSchedule();}
+function bsSetPal(mode,btn){
+  BS.pal=mode;
+  document.querySelectorAll('#dmp-7 .fp-btn-row:nth-child(4) .fp-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  bsSchedule();
+}
+function bsSchedule(){clearTimeout(BS.renderTimer);BS.renderTimer=setTimeout(bsRender,100);}
+function bsToggleAnim(btn){
+  BS.anim=!BS.anim;
+  btn.textContent=BS.anim?'⏸ Pause':'▶ Animate';
+  if(BS.anim)bsAnimLoop();
+}
+function bsAnimLoop(){
+  if(!BS.anim)return;
+  BS.acc+=BS.speed;
+  if(BS.acc>=1){
+    if(BS.type==='multibrot'){
+      // Morph exponent
+      BS.morphPhase+=0.02;
+      const e=2+3*Math.sin(BS.morphPhase);
+      BS.exp=Math.max(0.5,e);
+      document.getElementById('bs-exp-sl').value=Math.round((BS.exp-0.5)*20);
+      document.getElementById('bs-exp-disp').textContent='d = '+BS.exp.toFixed(1);
+    }
+    bsRender();
+    BS.acc=0;
+  }
+  BS.raf=requestAnimationFrame(bsAnimLoop);
+}
+function bsReset(){BS.anim=false;cancelAnimationFrame(BS.raf);document.getElementById('bs-anim-btn').textContent='▶ Animate';BS.morphPhase=0;bsRender();}
+function bsInit(){
+  if(BS.initDone)return;
+  BS.initDone=true;
+  bsSizeCanvas();
+  bsRender();
+}
 const _schedOrig = scheduleRender;
 window.scheduleRender = function(fast){
   _schedOrig(fast);
