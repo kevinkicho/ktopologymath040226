@@ -62,6 +62,15 @@ body{padding-bottom:38px}
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(3)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(3)}">U(1) Gauge / A-B</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(4)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(4)}">SU(2) Yang-Mills</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(5)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(5)}">Chern Classes</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(6)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(6)}">Principal G-Bundles</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(7)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(7)}">Associated Vector Bundles</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(8)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(8)}">Curvature & Holonomy</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(9)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(9)}">Characteristic Classes</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(10)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(10)}">Clutching Construction</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(11)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(11)}">Classifying Spaces</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(12)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(12)}">Ehresmann Connection</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(13)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(13)}">Gauge Theory</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(14)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(14)}">Reduction of Structure Group</div>
 </div>
 
 <!-- TAB 0: MÖBIUS -->
@@ -307,6 +316,407 @@ body{padding-bottom:38px}
   </div>
 </div>
 
+<!-- TAB 6: PRINCIPAL G-BUNDLES -->
+<div id="panel6" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Principal $G$-bundle: $P \to M$ with free transitive right $G$-action. Local trivialization $P|_U \cong U \times G$. Transition functions $g_{ij}: U_i\cap U_j \to G$ satisfy cocycle condition.</div>
+    <div class="sep"></div>
+    <label>Structure group <span class="val" id="v_pgbG">SU(2)</span></label>
+    <select id="pgbGroup" onchange="drawPGB()" style="width:100%;background:rgba(255,85,204,0.1);border:1px solid rgba(255,85,204,0.35);color:#ff55cc;padding:5px;border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:.78rem">
+      <option value="0">U(1) — circle</option>
+      <option value="1" selected>SU(2) — 3-sphere</option>
+      <option value="2">Z/2 — discrete</option>
+    </select>
+    <label>Trivialization patches <span class="val" id="v_pgbPatches">3</span></label>
+    <input type="range" id="pgbPatches" min="2" max="6" step="1" value="3" oninput="drawPGB()">
+    <label>View Rx <span class="val" id="v_pgbRx">0.40</span></label>
+    <input type="range" id="pgbRx" min="-1.5" max="1.5" step="0.05" value="0.4" oninput="drawPGB()">
+    <label>View Ry <span class="val" id="v_pgbRy">0.50</span></label>
+    <input type="range" id="pgbRy" min="-3.14" max="3.14" step="0.05" value="0.5" oninput="drawPGB()">
+    <div class="sep"></div>
+    <button id="pgbAnimBtn" class="btn" onclick="animPGB()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed6">1.0x</span></label>
+    <input type="range" id="speed6" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed6').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="pgbInfo" style="font-size:.72rem;line-height:1.65">Transition: g_ij = id on overlaps</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetPGB()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 7" id="pgbC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Principal bundle axioms:</b><br>
+      $\pi: P \to M$ surjective submersion<br>
+      Right action $R_g: P\to P$ free & transitive on fibers<br>
+      Local triviality: $\phi_i: \pi^{-1}(U_i) \to U_i \times G$<br><br>
+      <b>Transition functions:</b><br>
+      $g_{ij}(m) = \phi_i \circ \phi_j^{-1}(m,g)$<br>
+      Cocycle: $g_{ik} = g_{ij}g_{jk}$ on $U_i\cap U_j\cap U_k$<br><br>
+      <b>Associated bundle:</b><br>
+      $E = P \times_G F$ where $G$ acts on $F$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: ASSOCIATED VECTOR BUNDLES -->
+<div id="panel7" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Associated vector bundle $E = P \times_G V$ where $V$ is a representation space of $G$. Sections are $G$-equivariant maps $P \to V$.</div>
+    <div class="sep"></div>
+    <label>Fiber dimension <span class="val" id="v_avbDim">2</span></label>
+    <input type="range" id="avbDim" min="1" max="4" step="1" value="2" oninput="drawAVB()">
+    <label>Section mode</label>
+    <button onclick="setAVBSection(0)" id="avbS0" class="active">Constant</button>
+    <button onclick="setAVBSection(1)" id="avbS1">Linear</button>
+    <button onclick="setAVBSection(2)" id="avbS2">Oscillating</button>
+    <label>View Rx <span class="val" id="v_avbRx">0.30</span></label>
+    <input type="range" id="avbRx" min="-1.5" max="1.5" step="0.05" value="0.3" oninput="drawAVB()">
+    <label>View Ry <span class="val" id="v_avbRy">0.40</span></label>
+    <input type="range" id="avbRy" min="-3.14" max="3.14" step="0.05" value="0.4" oninput="drawAVB()">
+    <div class="sep"></div>
+    <button id="avbAnimBtn" class="btn" onclick="animAVB()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed7">1.0x</span></label>
+    <input type="range" id="speed7" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed7').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="avbInfo" style="font-size:.72rem;line-height:1.65">Frame bundle: GL(n)-principal bundle</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetAVB()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 8" id="avbC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Associated bundle construction:</b><br>
+      $E = P \times_G V = (P \times V)/\sim$<br>
+      $(p,v) \sim (pg^{-1}, gv)$<br><br>
+      <b>Sections:</b> $\Gamma(E) \cong C^\infty_G(P, V)$<br>
+      Equivariant: $s(pg) = g^{-1}s(p)$<br><br>
+      <b>Examples:</b><br>
+      Tangent bundle $TM$ (frame rep)<br>
+      Tensor bundle $T^r_s M$<br>
+      Spinor bundle (spin rep)
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: CURVATURE & HOLONOMY (advanced) -->
+<div id="panel8" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Curvature 2-form $\Omega = d\omega + \frac{1}{2}[\omega,\omega]$. Ambrose-Singer: holonomy Lie algebra = $\mathfrak{hol}_p = \{\Omega_p(X,Y) : X,Y \in T_pP\}$.</div>
+    <div class="sep"></div>
+    <label>Holonomy group</label>
+    <button onclick="setHolGroup(0)" id="holG0" class="active">U(1) — abelian</button>
+    <button onclick="setHolGroup(1)" id="holG1">SU(2) — non-abelian</button>
+    <label>Loop radius <span class="val" id="v_holR">0.60</span></label>
+    <input type="range" id="holR" min="0.2" max="1.2" step="0.05" value="0.6" oninput="drawHol()">
+    <label>Curvature strength <span class="val" id="v_holK">1.00</span></label>
+    <input type="range" id="holK" min="0" max="2" step="0.05" value="1" oninput="drawHol()">
+    <label>View Rx <span class="val" id="v_holRx">0.30</span></label>
+    <input type="range" id="holRx" min="-1.5" max="1.5" step="0.05" value="0.3" oninput="drawHol()">
+    <label>View Ry <span class="val" id="v_holRy">0.50</span></label>
+    <input type="range" id="holRy" min="-3.14" max="3.14" step="0.05" value="0.5" oninput="drawHol()">
+    <div class="sep"></div>
+    <button id="holAnimBtn" class="btn" onclick="animHol()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed8">1.0x</span></label>
+    <input type="range" id="speed8" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed8').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="holInfo" style="font-size:.72rem;line-height:1.65">Ambrose-Singer: holonomy generated by curvature</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetHol()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 9" id="holC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Curvature 2-form:</b><br>
+      $\Omega = d\omega + \frac{1}{2}[\omega,\omega]$<br>
+      $= d\omega + \omega \wedge \omega$<br><br>
+      <b>Bianchi identity:</b><br>
+      $D\Omega = d\Omega + [\omega,\Omega] = 0$<br><br>
+      <b>Ambrose-Singer (1953):</b><br>
+      $\mathfrak{hol}_p = \{\Omega_q(X,Y) : X,Y \in H_q\}$<br>
+      Holonomy group = Lie group generated by curvature evaluated at all points reachable by horizontal paths.<br><br>
+      <b>Restricted holonomy:</b><br>
+      $\text{Hol}_0(p)$ = contractible loops<br>
+      $\text{Hol}(p)/\text{Hol}_0(p) \cong \pi_1(M)$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: CHARACTERISTIC CLASSES (advanced) -->
+<div id="panel9" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Chern classes $c_k \in H^{2k}(M;\mathbb{Z})$, Pontryagin $p_k \in H^{4k}(M;\mathbb{Z})$, Euler class $e \in H^n(M;\mathbb{Z})$, Stiefel-Whitney $w_k \in H^k(M;\mathbb{Z}/2)$.</div>
+    <div class="sep"></div>
+    <label>Class type</label>
+    <button onclick="setCharClass(0)" id="cc0" class="active">Chern c₁</button>
+    <button onclick="setCharClass(1)" id="cc1">Chern c₂</button>
+    <button onclick="setCharClass(2)" id="cc2">Pontryagin p₁</button>
+    <button onclick="setCharClass(3)" id="cc3">Euler e</button>
+    <label>Manifold dimension <span class="val" id="v_ccDim">2</span></label>
+    <input type="range" id="ccDim" min="2" max="6" step="2" value="2" oninput="drawCC()">
+    <label>Topological charge <span class="val" id="v_ccQ">1</span></label>
+    <input type="range" id="ccQ" min="-3" max="3" step="1" value="1" oninput="drawCC()">
+    <div class="sep"></div>
+    <button id="ccAnimBtn" class="btn" onclick="animCC()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed9">1.0x</span></label>
+    <input type="range" id="speed9" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed9').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="ccInfo" style="font-size:.72rem;line-height:1.65">Chern-Weil: c_k = [tr(F^k)]</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetCC()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 10" id="ccC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Chern class (complex bundle):</b><br>
+      $c(E) = \det(I + \frac{iF}{2\pi})$<br>
+      $c_1 = \frac{i}{2\pi}\text{tr}(F)$<br>
+      $c_2 = \frac{1}{8\pi^2}[\text{tr}(F\wedge F) - \text{tr}(F)^2]$<br><br>
+      <b>Pontryagin class (real bundle):</b><br>
+      $p_k(E) = (-1)^k c_{2k}(E\otimes\mathbb{C})$<br>
+      $p_1 = -\frac{1}{8\pi^2}\text{tr}(F\wedge F)$<br><br>
+      <b>Euler class:</b><br>
+      $e(TM) = \text{Pfaff}(\frac{F}{2\pi})$<br>
+      $\int_M e(TM) = \chi(M)$<br><br>
+      <b>Stiefel-Whitney:</b><br>
+      $w_1$ = orientability<br>
+      $w_2$ = spin structure
+    </div>
+  </div>
+</div>
+
+<!-- TAB 10: CLUTCHING CONSTRUCTION -->
+<div id="panel10" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Clutching construction: build bundles over $S^n$ by gluing two trivial bundles $D^n_+ \times F$ and $D^n_- \times F$ along the equator $S^{n-1}$ via a clutching function $f: S^{n-1} \to G$.</div>
+    <div class="sep"></div>
+    <label>Base sphere dim <span class="val" id="v_clDim">1</span></label>
+    <input type="range" id="clDim" min="1" max="3" step="1" value="1" oninput="drawClutch()">
+    <label>Clutching winding <span class="val" id="v_clWind">1</span></label>
+    <input type="range" id="clWind" min="-3" max="3" step="1" value="1" oninput="drawClutch()">
+    <label>View Rx <span class="val" id="v_clRx">0.20</span></label>
+    <input type="range" id="clRx" min="-1.5" max="1.5" step="0.05" value="0.2" oninput="drawClutch()">
+    <label>View Ry <span class="val" id="v_clRy">0.30</span></label>
+    <input type="range" id="clRy" min="-3.14" max="3.14" step="0.05" value="0.3" oninput="drawClutch()">
+    <div class="sep"></div>
+    <button id="clAnimBtn" class="btn" onclick="animClutch()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed10">1.0x</span></label>
+    <input type="range" id="speed10" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed10').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="clInfo" style="font-size:.72rem;line-height:1.65">Bundles over S^n classified by π_{n-1}(G)</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetClutch()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 11" id="clC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Clutching construction:</b><br>
+      $E = (D^n_+ \times F) \cup_f (D^n_- \times F)$<br>
+      $(x,v) \sim (x, f(x)v)$ for $x \in S^{n-1}$<br><br>
+      <b>Classification:</b><br>
+      $\text{Vect}_k(S^n) \cong \pi_{n-1}(GL(k,\mathbb{R}))$<br>
+      $\text{Vect}_k^\mathbb{C}(S^n) \cong \pi_{n-1}(GL(k,\mathbb{C}))$<br><br>
+      <b>Examples:</b><br>
+      $S^1$: $\pi_0(GL(1)) = \mathbb{Z}/2$ (Möbius vs cylinder)<br>
+      $S^2$: $\pi_1(GL(1,\mathbb{C})) = \mathbb{Z}$ (Hopf)<br>
+      $S^4$: $\pi_3(SU(2)) = \mathbb{Z}$ (instantons)
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: CLASSIFYING SPACES -->
+<div id="panel11" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Classifying space $BG$: universal bundle $EG \to BG$ with contractible total space $EG$. Every $G$-bundle over $M$ is pulled back from $EG$ via a classifying map $f: M \to BG$.</div>
+    <div class="sep"></div>
+    <label>Group type</label>
+    <button onclick="setClassGroup(0)" id="csG0" class="active">U(1) ≅ S¹</button>
+    <button onclick="setClassGroup(1)" id="csG1">SU(2) ≅ S³</button>
+    <button onclick="setClassGroup(2)" id="csG2">ℤ/2</button>
+    <label>Base dim (Grassmannian) <span class="val" id="v_csGr">2</span></label>
+    <input type="range" id="csGr" min="1" max="4" step="1" value="2" oninput="drawCS()">
+    <label>View Rx <span class="val" id="v_csRx">0.30</span></label>
+    <input type="range" id="csRx" min="-1.5" max="1.5" step="0.05" value="0.3" oninput="drawCS()">
+    <label>View Ry <span class="val" id="v_csRy">0.40</span></label>
+    <input type="range" id="csRy" min="-3.14" max="3.14" step="0.05" value="0.4" oninput="drawCS()">
+    <div class="sep"></div>
+    <button id="csAnimBtn" class="btn" onclick="animCS()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed11">1.0x</span></label>
+    <input type="range" id="speed11" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed11').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="csInfo" style="font-size:.72rem;line-height:1.65">BG = Gr(k,∞) for G = O(k)</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetCS()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 12" id="csC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Classifying space:</b><br>
+      $EG$ = contractible space with free $G$-action<br>
+      $BG = EG/G$<br>
+      $G \to EG \to BG$ is universal bundle<br><br>
+      <b>Classification theorem:</b><br>
+      $\text{Prin}_G(M) \cong [M, BG]$<br>
+      Homotopy classes of maps $M \to BG$<br><br>
+      <b>Examples:</b><br>
+      $BU(1) = \mathbb{CP}^\infty$<br>
+      $B\mathbb{Z}/2 = \mathbb{RP}^\infty$<br>
+      $BSO(k) = \text{Gr}^+_k(\mathbb{R}^\infty)$<br><br>
+      <b>Milnor construction:</b><br>
+      $EG = G * G * G * \cdots$ (infinite join)
+    </div>
+  </div>
+</div>
+
+<!-- TAB 12: EHRESMANN CONNECTION -->
+<div id="panel12" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Ehresmann connection: horizontal distribution $H \subset TP$ such that $TP = H \oplus V$ (vertical = ker $d\pi$), $H$ is $G$-equivariant. Connection 1-form $\omega: TP \to \mathfrak{g}$.</div>
+    <div class="sep"></div>
+    <label>Horizontal/vertical split</label>
+    <button onclick="setEhrSplit(0)" id="ehrS0" class="active">Flat (H=V)</button>
+    <button onclick="setEhrSplit(1)" id="ehrS1">Curved</button>
+    <button onclick="setEhrSplit(2)" id="ehrS2">Twisted</button>
+    <label>Path progress <span class="val" id="v_ehrT">0.00</span></label>
+    <input type="range" id="ehrT" min="0" max="1" step="0.01" value="0" oninput="drawEhr()">
+    <label>View Rx <span class="val" id="v_ehrRx">0.30</span></label>
+    <input type="range" id="ehrRx" min="-1.5" max="1.5" step="0.05" value="0.3" oninput="drawEhr()">
+    <label>View Ry <span class="val" id="v_ehrRy">0.40</span></label>
+    <input type="range" id="ehrRy" min="-3.14" max="3.14" step="0.05" value="0.4" oninput="drawEhr()">
+    <div class="sep"></div>
+    <button id="ehrAnimBtn" class="btn" onclick="animEhr()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed12">1.0x</span></label>
+    <input type="range" id="speed12" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed12').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="ehrInfo" style="font-size:.72rem;line-height:1.65">Horizontal lift of γ: unique H-path covering γ</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetEhr()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 13" id="ehrC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Ehresmann connection:</b><br>
+      $TP = H \oplus V$ (horizontal ⊕ vertical)<br>
+      $V_p = \ker(d\pi_p) \cong \mathfrak{g}$<br>
+      $H_{pg} = (R_g)_* H_p$ (equivariance)<br><br>
+      <b>Connection 1-form:</b><br>
+      $\omega: TP \to \mathfrak{g}$<br>
+      $\omega(X^\\#) = X$ for fundamental vector fields<br>
+      $\omega(H) = 0$<br>
+      $R_g^*\omega = \text{Ad}_{g^{-1}} \circ \omega$<br><br>
+      <b>Parallel transport:</b><br>
+      For $\gamma: [0,1] \to M$, unique horizontal lift $\tilde\gamma$ with $\tilde\gamma(0)=p$<br>
+      $\text{PT}_\gamma(p) = \tilde\gamma(1)$
+    </div>
+  </div>
+</div>
+
+<!-- TAB 13: GAUGE THEORY -->
+<div id="panel13" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Gauge theory: connection $A$ on principal $G$-bundle. Gauge transformation $g: P \to G$ equivariant. Field strength $F = dA + A\wedge A$. Instantons = self-dual connections on $S^4$.</div>
+    <div class="sep"></div>
+    <label>Gauge group</label>
+    <button onclick="setGaugeGroup(0)" id="gg0" class="active">U(1)</button>
+    <button onclick="setGaugeGroup(1)" id="gg1">SU(2)</button>
+    <button onclick="setGaugeGroup(2)" id="gg2">SU(3)</button>
+    <label>Instanton number <span class="val" id="v_gtK">1</span></label>
+    <input type="range" id="gtK" min="0" max="3" step="1" value="1" oninput="drawGT()">
+    <label>Gauge transformation angle <span class="val" id="v_gtGauge">0.00</span></label>
+    <input type="range" id="gtGauge" min="0" max="6.28" step="0.05" value="0" oninput="drawGT()">
+    <label>View Rx <span class="val" id="v_gtRx">0.30</span></label>
+    <input type="range" id="gtRx" min="-1.5" max="1.5" step="0.05" value="0.3" oninput="drawGT()">
+    <label>View Ry <span class="val" id="v_gtRy">0.40</span></label>
+    <input type="range" id="gtRy" min="-3.14" max="3.14" step="0.05" value="0.4" oninput="drawGT()">
+    <div class="sep"></div>
+    <button id="gtAnimBtn" class="btn" onclick="animGT()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed13">1.0x</span></label>
+    <input type="range" id="speed13" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed13').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="gtInfo" style="font-size:.72rem;line-height:1.65">Moduli space M_k of instantons: dim = 4k</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetGT()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 14" id="gtC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Gauge transformation:</b><br>
+      $A \mapsto gAg^{-1} + g\,dg^{-1}$<br>
+      $F \mapsto gFg^{-1}$<br>
+      $\mathcal{G} = \text{Aut}(P)$ (gauge group)<br><br>
+      <b>Yang-Mills functional:</b><br>
+      $S_{YM}(A) = \frac{1}{2}\int_M \text{tr}(F\wedge\star F)$<br><br>
+      <b>Instanton moduli space:</b><br>
+      $\mathcal{M}_k = \{A : F = \star F\}/\mathcal{G}$<br>
+      $\dim \mathcal{M}_k = 4k$ for $SU(2)$ on $S^4$<br><br>
+      <b>ADHM construction:</b><br>
+      All instantons via linear algebra data<br>
+      Atiyah-Drinfeld-Hitchin-Manin 1978
+    </div>
+  </div>
+</div>
+
+<!-- TAB 14: REDUCTION OF STRUCTURE GROUP -->
+<div id="panel14" class="workspace" data-role="panel" style="display:none">
+  <div class="sidebar" data-role="sidebar">
+    <div class="info-box">Reduction of structure group: given $P \to M$ with group $G$, a reduction to $H \subset G$ is a subbundle $Q \subset P$ with structure group $H$. $G$-structures: reduction of frame bundle to $G \subset GL(n)$.</div>
+    <div class="sep"></div>
+    <label>Reduction type</label>
+    <button onclick="setRedType(0)" id="redT0" class="active">GL(n) → O(n)</button>
+    <button onclick="setRedType(1)" id="redT1">O(n) → SO(n)</button>
+    <button onclick="setRedType(2)" id="redT2">SO(2n) → U(n)</button>
+    <button onclick="setRedType(3)" id="redT3">U(n) → SU(n)</button>
+    <label>Integrability <span class="val" id="v_redInt">0.50</span></label>
+    <input type="range" id="redInt" min="0" max="1" step="0.05" value="0.5" oninput="drawRed()">
+    <label>View Rx <span class="val" id="v_redRx">0.30</span></label>
+    <input type="range" id="redRx" min="-1.5" max="1.5" step="0.05" value="0.3" oninput="drawRed()">
+    <label>View Ry <span class="val" id="v_redRy">0.40</span></label>
+    <input type="range" id="redRy" min="-3.14" max="3.14" step="0.05" value="0.4" oninput="drawRed()">
+    <div class="sep"></div>
+    <button id="redAnimBtn" class="btn" onclick="animRed()">▶ Animate</button>
+    <label>Speed <span class="val" id="v_speed14">1.0x</span></label>
+    <input type="range" id="speed14" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('v_speed14').textContent=(+this.value).toFixed(1)+'x'">
+    <div class="sep"></div>
+    <div class="info-box" id="redInfo" style="font-size:.72rem;line-height:1.65">G-structure: reduction of frame bundle to G</div>
+    <div class="sep"></div>
+    <button class="panBtn" onclick="togglePan()">✋ Pan</button>
+    <button onclick="resetRed()">Reset</button>
+    <button onclick="resetPan()">Reset View</button>
+  </div>
+  <div class="main-area"><canvas aria-label="17 · Fiber Bundles — panel 15" id="redC"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="info-box" style="font-size:.7rem;line-height:1.75">
+      <b>Reduction of structure group:</b><br>
+      $Q \subset P$ principal $H$-bundle<br>
+      $Q \times_H G \cong P$<br><br>
+      <b>G-structures:</b><br>
+      $GL(n) \to O(n)$: Riemannian metric<br>
+      $O(n) \to SO(n)$: orientation<br>
+      $SO(2n) \to U(n)$: almost complex<br>
+      $U(n) \to SU(n)$: volume form<br><br>
+      <b>Integrability:</b><br>
+      Almost complex → complex (Newlander-Nirenberg)<br>
+      Almost symplectic → symplectic (closed)<br>
+      Torsion of G-structure = obstruction
+    </div>
+  </div>
+</div>
+
 <div class="proof-panel" id="proofPanel">
   <div class="proof-header" onclick="toggleProof()">
     <span style="color:#ff55cc;font-size:1.1rem">▲</span>
@@ -414,7 +824,7 @@ relating the analytical index of a Dirac operator to topological invariants.`}
 ];
 
 let activeTab=0;
-const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
 let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
 
 function togglePan(){
@@ -448,11 +858,38 @@ function _cancelAllAnims17(){
   if(chAnimId){cancelAnimationFrame(chAnimId);chAnimId=null;}
   const chBtn=document.getElementById('chAnimBtn');
   if(chBtn){chBtn.textContent='▶ Animate';chBtn.classList.remove('active');}
+  if(pgbAnimId){cancelAnimationFrame(pgbAnimId);pgbAnimId=null;}
+  const pgbBtn=document.getElementById('pgbAnimBtn');
+  if(pgbBtn){pgbBtn.textContent='▶ Animate';pgbBtn.classList.remove('active');}
+  if(avbAnimId){cancelAnimationFrame(avbAnimId);avbAnimId=null;}
+  const avbBtn=document.getElementById('avbAnimBtn');
+  if(avbBtn){avbBtn.textContent='▶ Animate';avbBtn.classList.remove('active');}
+  if(holAnimId){cancelAnimationFrame(holAnimId);holAnimId=null;}
+  const holBtn=document.getElementById('holAnimBtn');
+  if(holBtn){holBtn.textContent='▶ Animate';holBtn.classList.remove('active');}
+  if(ccAnimId){cancelAnimationFrame(ccAnimId);ccAnimId=null;}
+  const ccBtn=document.getElementById('ccAnimBtn');
+  if(ccBtn){ccBtn.textContent='▶ Animate';ccBtn.classList.remove('active');}
+  if(clAnimId){cancelAnimationFrame(clAnimId);clAnimId=null;}
+  const clBtn=document.getElementById('clAnimBtn');
+  if(clBtn){clBtn.textContent='▶ Animate';clBtn.classList.remove('active');}
+  if(csAnimId){cancelAnimationFrame(csAnimId);csAnimId=null;}
+  const csBtn=document.getElementById('csAnimBtn');
+  if(csBtn){csBtn.textContent='▶ Animate';csBtn.classList.remove('active');}
+  if(ehrAnimId){cancelAnimationFrame(ehrAnimId);ehrAnimId=null;}
+  const ehrBtn=document.getElementById('ehrAnimBtn');
+  if(ehrBtn){ehrBtn.textContent='▶ Animate';ehrBtn.classList.remove('active');}
+  if(gtAnimId){cancelAnimationFrame(gtAnimId);gtAnimId=null;}
+  const gtBtn=document.getElementById('gtAnimBtn');
+  if(gtBtn){gtBtn.textContent='▶ Animate';gtBtn.classList.remove('active');}
+  if(redAnimId){cancelAnimationFrame(redAnimId);redAnimId=null;}
+  const redBtn=document.getElementById('redAnimBtn');
+  if(redBtn){redBtn.textContent='▶ Animate';redBtn.classList.remove('active');}
 }
 function switchTab(t){
   _cancelAllAnims17();
   activeTab=t;
-  ['panel0','panel1','panel2','panel3','panel4','panel5'].forEach((id,i)=>document.getElementById(id).style.display=i===t?'flex':'none');
+  ['panel0','panel1','panel2','panel3','panel4','panel5','panel6','panel7','panel8','panel9','panel10','panel11','panel12','panel13','panel14'].forEach((id,i)=>document.getElementById(id).style.display=i===t?'flex':'none');
   document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===t));
   var sl=document.getElementById('speed'+t);
   if(sl){sl.value=window.animSpeed||1;var vd=document.getElementById('v_speed'+t);if(vd)vd.textContent=(window.animSpeed||1).toFixed(1)+'x';}
@@ -464,6 +901,15 @@ function switchTab(t){
   if(t===3)animAB();
   if(t===4)animYM();
   if(t===5)animChern();
+  if(t===6)animPGB();
+  if(t===7)animAVB();
+  if(t===8)animHol();
+  if(t===9)animCC();
+  if(t===10)animClutch();
+  if(t===11)animCS();
+  if(t===12)animEhr();
+  if(t===13)animGT();
+  if(t===14)animRed();
 }
 function redrawTab(){
   if(activeTab===0)drawMobius();
@@ -472,6 +918,15 @@ function redrawTab(){
   else if(activeTab===3)drawAB();
   else if(activeTab===4)drawYM();
   else if(activeTab===5)drawChern();
+  else if(activeTab===6)drawPGB();
+  else if(activeTab===7)drawAVB();
+  else if(activeTab===8)drawHol();
+  else if(activeTab===9)drawCC();
+  else if(activeTab===10)drawClutch();
+  else if(activeTab===11)drawCS();
+  else if(activeTab===12)drawEhr();
+  else if(activeTab===13)drawGT();
+  else if(activeTab===14)drawRed();
 }
 
 const mobC=document.getElementById('mobC');
@@ -480,12 +935,30 @@ const connC=document.getElementById('connC');
 const abC=document.getElementById('abC');
 const ymC=document.getElementById('ymC');
 const chernC=document.getElementById('chernC');
+const pgbC=document.getElementById('pgbC');
+const avbC=document.getElementById('avbC');
+const holC=document.getElementById('holC');
+const ccC=document.getElementById('ccC');
+const clC=document.getElementById('clC');
+const csC=document.getElementById('csC');
+const ehrC=document.getElementById('ehrC');
+const gtC=document.getElementById('gtC');
+const redC=document.getElementById('redC');
 const mCtx=mobC.getContext('2d');
 const hCtx=hopfC.getContext('2d');
 const cCtx=connC.getContext('2d');
 const abCtx=abC.getContext('2d');
 const ymCtx=ymC.getContext('2d');
 const chCtx=chernC.getContext('2d');
+const pgbCtx=pgbC.getContext('2d');
+const avbCtx=avbC.getContext('2d');
+const holCtx=holC.getContext('2d');
+const ccCtx=ccC.getContext('2d');
+const clCtx=clC.getContext('2d');
+const csCtx=csC.getContext('2d');
+const ehrCtx=ehrC.getContext('2d');
+const gtCtx=gtC.getContext('2d');
+const redCtx=redC.getContext('2d');
 
 function resizeCanvas(c){
   const r=c.getBoundingClientRect();
@@ -1166,6 +1639,735 @@ function drawChern(){
   chCtx.fillText('Left: U(1) bundle over S1, fiber hands show n-fold winding. Right: Chern-Weil diagram.',16,42);
 }
 
+// ── TAB 6: PRINCIPAL G-BUNDLES ──
+let pgbAnimId=null, pgbTime=0;
+function animPGB(){
+  const btn=document.getElementById('pgbAnimBtn');
+  if(pgbAnimId){cancelAnimationFrame(pgbAnimId);pgbAnimId=null;pgbTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawPGB();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  pgbTime=0;
+  function frame(){pgbTime=(pgbTime+0.01*window.animSpeed)%(2*Math.PI);drawPGB();pgbAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetPGB(){if(pgbAnimId){cancelAnimationFrame(pgbAnimId);pgbAnimId=null;}pgbTime=0;const btn=document.getElementById('pgbAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawPGB();}
+function drawPGB(){
+  resizeCanvas(pgbC);
+  const W=pgbC.width,H=pgbC.height;
+  pgbCtx.setTransform(1,0,0,1,0,0);
+  pgbCtx.fillStyle='#06060f';pgbCtx.fillRect(0,0,W,H);
+  pgbCtx.setTransform(1,0,0,1,pans[6].x,pans[6].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('pgbRx').value);
+  const ry=parseFloat(document.getElementById('pgbRy').value)+pgbTime;
+  const nPatches=parseInt(document.getElementById('pgbPatches').value);
+  const gIdx=parseInt(document.getElementById('pgbGroup').value);
+  document.getElementById('v_pgbPatches').textContent=nPatches;
+  document.getElementById('v_pgbRx').textContent=rx.toFixed(2);
+  document.getElementById('v_pgbRy').textContent=ry.toFixed(2);
+  const gNames=['U(1)','SU(2)','Z/2'];
+  document.getElementById('v_pgbG').textContent=gNames[gIdx];
+  // Draw base manifold (circle)
+  const baseR=scale*0.5;
+  pgbCtx.strokeStyle='rgba(255,85,204,0.6)';pgbCtx.lineWidth=2;
+  pgbCtx.beginPath();pgbCtx.arc(cx,cy,baseR,0,2*Math.PI);pgbCtx.stroke();
+  pgbCtx.fillStyle='rgba(255,85,204,0.5)';pgbCtx.font='12px Share Tech Mono';
+  pgbCtx.fillText('M (base)',cx-30,cy+baseR+18);
+  // Draw patches as arcs
+  const patchColors=['rgba(100,200,255,0.2)','rgba(255,200,100,0.2)','rgba(100,255,150,0.2)','rgba(255,150,255,0.2)','rgba(200,100,255,0.2)','rgba(255,100,100,0.2)'];
+  for(let pi=0;pi<nPatches;pi++){
+    const a0=pi/nPatches*2*Math.PI-Math.PI/2;
+    const a1=(pi+1)/nPatches*2*Math.PI-Math.PI/2;
+    pgbCtx.beginPath();
+    pgbCtx.moveTo(cx,cy);
+    pgbCtx.arc(cx,cy,baseR*1.3,a0,a1);
+    pgbCtx.closePath();
+    pgbCtx.fillStyle=patchColors[pi%patchColors.length];
+    pgbCtx.fill();
+    pgbCtx.strokeStyle='rgba(255,255,255,0.15)';pgbCtx.lineWidth=0.5;
+    pgbCtx.stroke();
+    // Label patch
+    const midA=(a0+a1)/2;
+    pgbCtx.fillStyle='rgba(255,255,255,0.4)';pgbCtx.font='10px Share Tech Mono';
+    pgbCtx.fillText('U_'+pi,cx+baseR*1.5*Math.cos(midA)-8,cy+baseR*1.5*Math.sin(midA)+4);
+  }
+  // Draw fiber over each patch
+  for(let pi=0;pi<nPatches;pi++){
+    const a0=pi/nPatches*2*Math.PI-Math.PI/2;
+    const a1=(pi+1)/nPatches*2*Math.PI-Math.PI/2;
+    const midA=(a0+a1)/2;
+    const fx=cx+baseR*Math.cos(midA),fy=cy+baseR*Math.sin(midA);
+    // Fiber = circle or sphere depending on group
+    const fiberR=baseR*0.2;
+    if(gIdx===0){
+      // U(1): circle fiber
+      pgbCtx.strokeStyle='rgba(0,200,255,0.4)';pgbCtx.lineWidth=1;
+      pgbCtx.beginPath();pgbCtx.arc(fx,fy,fiberR,0,2*Math.PI);pgbCtx.stroke();
+      const phase=midA*3+pgbTime;
+      pgbCtx.strokeStyle='rgba(0,200,255,0.8)';pgbCtx.lineWidth=2;
+      pgbCtx.beginPath();pgbCtx.moveTo(fx,fy);pgbCtx.lineTo(fx+fiberR*Math.cos(phase),fy+fiberR*Math.sin(phase));pgbCtx.stroke();
+    }else if(gIdx===1){
+      // SU(2): 3-sphere represented as circle with internal structure
+      pgbCtx.strokeStyle='rgba(200,100,255,0.4)';pgbCtx.lineWidth=1;
+      pgbCtx.beginPath();pgbCtx.arc(fx,fy,fiberR,0,2*Math.PI);pgbCtx.stroke();
+      pgbCtx.beginPath();pgbCtx.arc(fx,fy,fiberR*0.6,0,2*Math.PI);pgbCtx.stroke();
+      const phase=midA*2+pgbTime;
+      pgbCtx.fillStyle='rgba(200,100,255,0.7)';
+      pgbCtx.beginPath();pgbCtx.arc(fx+fiberR*0.8*Math.cos(phase),fy+fiberR*0.8*Math.sin(phase),3,0,2*Math.PI);pgbCtx.fill();
+    }else{
+      // Z/2: two discrete points
+      const phase=Math.floor(midA*2+pgbTime)%2;
+      pgbCtx.fillStyle='rgba(255,200,100,0.7)';
+      pgbCtx.beginPath();pgbCtx.arc(fx-fiberR*0.5,fy,3,0,2*Math.PI);pgbCtx.fill();
+      pgbCtx.beginPath();pgbCtx.arc(fx+fiberR*0.5,fy,3,0,2*Math.PI);pgbCtx.fill();
+    }
+  }
+  // Transition function info
+  const infoEl=document.getElementById('pgbInfo');
+  infoEl.innerHTML='Group: '+gNames[gIdx]+' | Patches: '+nPatches+' | Cocycle condition: g_ik = g_ij g_jk on triple overlaps';
+  pgbCtx.setTransform(1,0,0,1,0,0);
+  pgbCtx.fillStyle='rgba(255,85,204,0.8)';pgbCtx.font='13px Share Tech Mono';
+  pgbCtx.fillText('Principal G-Bundles — local trivialization with '+nPatches+' patches',16,24);
+  pgbCtx.fillStyle='rgba(200,200,255,0.5)';pgbCtx.font='12px Share Tech Mono';
+  pgbCtx.fillText('Colored sectors = trivialization patches U_i. Fibers shown over each patch center.',16,42);
+}
+
+// ── TAB 7: ASSOCIATED VECTOR BUNDLES ──
+let avbAnimId=null, avbTime=0, avbSection=0;
+function setAVBSection(i){avbSection=i;['avbS0','avbS1','avbS2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawAVB();}
+function animAVB(){
+  const btn=document.getElementById('avbAnimBtn');
+  if(avbAnimId){cancelAnimationFrame(avbAnimId);avbAnimId=null;avbTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawAVB();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  avbTime=0;
+  function frame(){avbTime=(avbTime+0.008*window.animSpeed)%(2*Math.PI);drawAVB();avbAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetAVB(){if(avbAnimId){cancelAnimationFrame(avbAnimId);avbAnimId=null;}avbTime=0;const btn=document.getElementById('avbAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawAVB();}
+function drawAVB(){
+  resizeCanvas(avbC);
+  const W=avbC.width,H=avbC.height;
+  avbCtx.setTransform(1,0,0,1,0,0);
+  avbCtx.fillStyle='#06060f';avbCtx.fillRect(0,0,W,H);
+  avbCtx.setTransform(1,0,0,1,pans[7].x,pans[7].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.28;
+  const rx=parseFloat(document.getElementById('avbRx').value);
+  const ry=parseFloat(document.getElementById('avbRy').value)+avbTime;
+  const dim=parseInt(document.getElementById('avbDim').value);
+  document.getElementById('v_avbDim').textContent=dim;
+  document.getElementById('v_avbRx').textContent=rx.toFixed(2);
+  document.getElementById('v_avbRy').textContent=ry.toFixed(2);
+  // Draw base S1
+  const baseR=scale*0.5;
+  avbCtx.strokeStyle='rgba(255,85,204,0.5)';avbCtx.lineWidth=2;
+  avbCtx.beginPath();avbCtx.arc(cx,cy,baseR,0,2*Math.PI);avbCtx.stroke();
+  avbCtx.fillStyle='rgba(255,85,204,0.4)';avbCtx.font='12px Share Tech Mono';
+  avbCtx.fillText('M (base)',cx-28,cy+baseR+18);
+  // Draw fiber vectors at sample points
+  const nPts=16;
+  for(let i=0;i<nPts;i++){
+    const a=i/nPts*2*Math.PI;
+    const bx=cx+baseR*Math.cos(a),by=cy+baseR*Math.sin(a);
+    // Section value
+    let sVal;
+    if(avbSection===0) sVal=1;
+    else if(avbSection===1) sVal=Math.cos(a);
+    else sVal=Math.sin(a*3+avbTime);
+    // Draw fiber as line in direction of section value
+    const fiberLen=baseR*0.25*dim;
+    const ex=bx+fiberLen*Math.cos(a)*sVal,ey=by+fiberLen*Math.sin(a)*sVal;
+    avbCtx.strokeStyle='rgba(0,200,255,0.5)';avbCtx.lineWidth=1;
+    avbCtx.beginPath();avbCtx.moveTo(bx,by);avbCtx.lineTo(ex,ey);avbCtx.stroke();
+    // Draw fiber dimension indicator
+    for(let d=0;d<dim;d++){
+      const ang=a+d*Math.PI*2/dim+avbTime*0.3;
+      const dx=bx+baseR*0.15*Math.cos(ang),dy=by+baseR*0.15*Math.sin(ang);
+      avbCtx.fillStyle='rgba(255,200,100,0.5)';
+      avbCtx.beginPath();avbCtx.arc(dx,dy,2,0,2*Math.PI);avbCtx.fill();
+    }
+  }
+  const infoEl=document.getElementById('avbInfo');
+  const secNames=['Constant','Linear','Oscillating'];
+  infoEl.innerHTML='Section: '+secNames[avbSection]+' | Fiber dim = '+dim+' | Frame bundle: GL('+dim+')-principal bundle over M';
+  avbCtx.setTransform(1,0,0,1,0,0);
+  avbCtx.fillStyle='rgba(255,85,204,0.8)';avbCtx.font='13px Share Tech Mono';
+  avbCtx.fillText('Associated Vector Bundle — sections of E = P ×_G V',16,24);
+  avbCtx.fillStyle='rgba(200,200,255,0.5)';avbCtx.font='12px Share Tech Mono';
+  avbCtx.fillText('Vectors = section values. Dots = fiber dimension. Section mode: '+secNames[avbSection],16,42);
+}
+
+// ── TAB 8: CURVATURE & HOLONOMY (advanced) ──
+let holAnimId=null, holTime=0, holGroup=0;
+function setHolGroup(i){holGroup=i;['holG0','holG1'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawHol();}
+function animHol(){
+  const btn=document.getElementById('holAnimBtn');
+  if(holAnimId){cancelAnimationFrame(holAnimId);holAnimId=null;holTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawHol();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  holTime=0;
+  function frame(){holTime=(holTime+0.01*window.animSpeed)%1;drawHol();holAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetHol(){if(holAnimId){cancelAnimationFrame(holAnimId);holAnimId=null;}holTime=0;const btn=document.getElementById('holAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawHol();}
+function drawHol(){
+  resizeCanvas(holC);
+  const W=holC.width,H=holC.height;
+  holCtx.setTransform(1,0,0,1,0,0);
+  holCtx.fillStyle='#06060f';holCtx.fillRect(0,0,W,H);
+  holCtx.setTransform(1,0,0,1,pans[8].x,pans[8].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('holRx').value);
+  const ry=parseFloat(document.getElementById('holRy').value);
+  const loopR=parseFloat(document.getElementById('holR').value);
+  const curvK=parseFloat(document.getElementById('holK').value);
+  document.getElementById('v_holR').textContent=loopR.toFixed(2);
+  document.getElementById('v_holK').textContent=curvK.toFixed(2);
+  document.getElementById('v_holRx').textContent=rx.toFixed(2);
+  document.getElementById('v_holRy').textContent=ry.toFixed(2);
+  // Draw base manifold as a disk
+  holCtx.strokeStyle='rgba(255,85,204,0.3)';holCtx.lineWidth=1;
+  holCtx.beginPath();holCtx.arc(cx,cy,scale*0.6,0,2*Math.PI);holCtx.stroke();
+  // Draw loop on base
+  const loopPath=[];
+  for(let i=0;i<=64;i++){
+    const a=i/64*2*Math.PI;
+    const lx=loopR*Math.cos(a),ly=loopR*Math.sin(a);
+    const rp=rot3D([lx,ly,0],rx,ry);
+    loopPath.push(rp);
+  }
+  holCtx.beginPath();
+  loopPath.forEach((p,i)=>{
+    const pr=proj(p);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    if(i===0)holCtx.moveTo(px,py);else holCtx.lineTo(px,py);
+  });
+  holCtx.strokeStyle='rgba(255,200,100,0.8)';holCtx.lineWidth=2;holCtx.stroke();
+  // Draw curvature 2-form as area shading inside loop
+  const Nc=40;
+  for(let i=0;i<Nc;i++){for(let j=0;j<Nc;j++){
+    const u=(i/Nc-0.5)*2*loopR,v=(j/Nc-0.5)*2*loopR;
+    if(u*u+v*v>loopR*loopR)continue;
+    const curvVal=curvK*Math.exp(-(u*u+v*v)*0.5);
+    const alpha=Math.min(0.6,Math.abs(curvVal)*0.3);
+    const rp=rot3D([u,v,0],rx,ry);
+    const pr=proj(rp);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    holCtx.fillStyle=curvVal>=0?'rgba(255,100,100,'+alpha+')':'rgba(100,100,255,'+alpha+')';
+    holCtx.fillRect(px-2,py-2,4,4);
+  }}
+  // Draw holonomy as parallel transport around loop
+  const nSteps=40;
+  const progress=holTime;
+  const holonomyAngle=curvK*2*Math.PI*loopR*loopR;
+  for(let i=0;i<=Math.floor(nSteps*progress);i++){
+    const a=i/nSteps*2*Math.PI;
+    const accAngle=i/nSteps*holonomyAngle;
+    const tx=-Math.sin(a),ty=Math.cos(a);
+    const vx=tx*Math.cos(accAngle)-ty*Math.sin(accAngle);
+    const vy=tx*Math.sin(accAngle)+ty*Math.cos(accAngle);
+    const baseP=[loopR*Math.cos(a),loopR*Math.sin(a),0];
+    const tipP=[baseP[0]+vx*0.2,baseP[1]+vy*0.2,0.1];
+    const bp=rot3D(baseP,rx,ry),tp=rot3D(tipP,rx,ry);
+    const bpr=proj(bp),tpr=proj(tp);
+    const frac=i/nSteps;
+    holCtx.strokeStyle='hsl('+(280+frac*120)+',90%,65%)';holCtx.lineWidth=2;
+    holCtx.beginPath();
+    holCtx.moveTo(cx+bpr.x*scale,cy-bpr.y*scale);
+    holCtx.lineTo(cx+tpr.x*scale,cy-tpr.y*scale);
+    holCtx.stroke();
+  }
+  // Show start/end arrows
+  if(progress>=0.98||holTime===0){
+    const baseS=[loopR,0,0],tipS=[loopR+0.25,0,0.1];
+    const bS=rot3D(baseS,rx,ry),tS=rot3D(tipS,rx,ry);
+    const bSp=proj(bS),tSp=proj(tS);
+    holCtx.strokeStyle='#ffffff';holCtx.lineWidth=3;
+    holCtx.beginPath();holCtx.moveTo(cx+bSp.x*scale,cy-bSp.y*scale);holCtx.lineTo(cx+tSp.x*scale,cy-tSp.y*scale);holCtx.stroke();
+    const vxE=Math.cos(holonomyAngle),vyE=Math.sin(holonomyAngle);
+    const tipE=[loopR+vxE*0.25,vyE*0.25,0.1];
+    const tE=rot3D(tipE,rx,ry);const tEp=proj(tE);
+    holCtx.strokeStyle='#00ffcc';holCtx.lineWidth=3;
+    holCtx.beginPath();holCtx.moveTo(cx+bSp.x*scale,cy-bSp.y*scale);holCtx.lineTo(cx+tEp.x*scale,cy-tEp.y*scale);holCtx.stroke();
+  }
+  const infoEl=document.getElementById('holInfo');
+  infoEl.innerHTML='Holonomy angle: '+(holonomyAngle*180/Math.PI).toFixed(1)+'° | Group: '+(holGroup===0?'U(1) abelian':'SU(2) non-abelian')+' | Ambrose-Singer: hol = exp(∫_Σ F)';
+  holCtx.setTransform(1,0,0,1,0,0);
+  holCtx.fillStyle='rgba(255,85,204,0.8)';holCtx.font='13px Share Tech Mono';
+  holCtx.fillText('Curvature & Holonomy — Ambrose-Singer Theorem',16,24);
+  holCtx.fillStyle='rgba(200,200,255,0.5)';holCtx.font='12px Share Tech Mono';
+  holCtx.fillText('Red/blue = curvature 2-form. Vectors show parallel transport. White→cyan = holonomy.',16,42);
+}
+
+// ── TAB 9: CHARACTERISTIC CLASSES (advanced) ──
+let ccAnimId=null, ccTime=0, ccType=0;
+function setCharClass(i){ccType=i;['cc0','cc1','cc2','cc3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawCC();}
+function animCC(){
+  const btn=document.getElementById('ccAnimBtn');
+  if(ccAnimId){cancelAnimationFrame(ccAnimId);ccAnimId=null;ccTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawCC();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  ccTime=0;
+  function frame(){ccTime=(ccTime+0.01*window.animSpeed)%(2*Math.PI);drawCC();ccAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetCC(){if(ccAnimId){cancelAnimationFrame(ccAnimId);ccAnimId=null;}ccTime=0;const btn=document.getElementById('ccAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawCC();}
+function drawCC(){
+  resizeCanvas(ccC);
+  const W=ccC.width,H=ccC.height;
+  ccCtx.setTransform(1,0,0,1,0,0);
+  ccCtx.fillStyle='#06060f';ccCtx.fillRect(0,0,W,H);
+  const dim=parseInt(document.getElementById('ccDim').value);
+  const charge=parseInt(document.getElementById('ccQ').value);
+  document.getElementById('v_ccDim').textContent=dim;
+  document.getElementById('v_ccQ').textContent=charge;
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const classNames=['Chern c₁','Chern c₂','Pontryagin p₁','Euler e'];
+  const classInfo=['c₁ = i/2π tr(F) ∈ H²(M;ℤ)','c₂ = 1/8π²[tr(F∧F)-tr(F)²] ∈ H⁴(M;ℤ)','p₁ = -1/8π² tr(F∧F) ∈ H⁴(M;ℤ)','e(TM) = Pf(F/2π), ∫ e = χ(M)'];
+  // Draw manifold as a surface
+  const Ns=30;
+  for(let i=0;i<Ns;i++){for(let j=0;j<Ns;j++){
+    const u0=i/Ns*2*Math.PI,u1=(i+1)/Ns*2*Math.PI;
+    const v0=j/Ns*Math.PI,v1=(j+1)/Ns*Math.PI;
+    const R=1.2;
+    const sph=(u,v)=>[R*Math.sin(v)*Math.cos(u),R*Math.cos(v),R*Math.sin(v)*Math.sin(u)];
+    const pts=[sph(u0,v0),sph(u1,v0),sph(u1,v1),sph(u0,v1)];
+    const rpts=pts.map(p=>rot3D(p,0.3,0.5+ccTime*0.1));
+    const z=rpts.reduce((s,p)=>s+p[2],0)/4;
+    const hue=280+charge*20+i/Ns*60;
+    ccCtx.beginPath();
+    rpts.forEach((p,pi)=>{
+      const pr=proj(p);
+      const px=cx+pr.x*scale,py=cy-pr.y*scale;
+      if(pi===0)ccCtx.moveTo(px,py);else ccCtx.lineTo(px,py);
+    });
+    ccCtx.closePath();
+    ccCtx.fillStyle='hsla('+hue+',70%,'+(40+10*charge)+'%,0.5)';ccCtx.fill();
+    ccCtx.strokeStyle='rgba(255,255,255,0.1)';ccCtx.lineWidth=0.3;ccCtx.stroke();
+  }}
+  // Draw characteristic class as a form on the surface
+  const infoEl=document.getElementById('ccInfo');
+  infoEl.innerHTML=classNames[ccType]+': '+classInfo[ccType]+' | Charge q = '+charge+' | ∫ c_k = '+charge;
+  ccCtx.setTransform(1,0,0,1,0,0);
+  ccCtx.fillStyle='rgba(255,85,204,0.8)';ccCtx.font='13px Share Tech Mono';
+  ccCtx.fillText('Characteristic Classes — '+classNames[ccType]+' on M^'+dim,16,24);
+  ccCtx.fillStyle='rgba(200,200,255,0.5)';ccCtx.font='12px Share Tech Mono';
+  ccCtx.fillText('Color encodes topological charge q='+charge+'. Chern-Weil: cohomology class independent of connection.',16,42);
+}
+
+// ── TAB 10: CLUTCHING CONSTRUCTION ──
+let clAnimId=null, clTime=0;
+function animClutch(){
+  const btn=document.getElementById('clAnimBtn');
+  if(clAnimId){cancelAnimationFrame(clAnimId);clAnimId=null;clTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawClutch();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  clTime=0;
+  function frame(){clTime=(clTime+0.008*window.animSpeed)%1;drawClutch();clAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetClutch(){if(clAnimId){cancelAnimationFrame(clAnimId);clAnimId=null;}clTime=0;const btn=document.getElementById('clAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawClutch();}
+function drawClutch(){
+  resizeCanvas(clC);
+  const W=clC.width,H=clC.height;
+  clCtx.setTransform(1,0,0,1,0,0);
+  clCtx.fillStyle='#06060f';clCtx.fillRect(0,0,W,H);
+  clCtx.setTransform(1,0,0,1,pans[10].x,pans[10].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('clRx').value);
+  const ry=parseFloat(document.getElementById('clRy').value)+clTime*0.5;
+  const dim=parseInt(document.getElementById('clDim').value);
+  const wind=parseInt(document.getElementById('clWind').value);
+  document.getElementById('v_clDim').textContent=dim;
+  document.getElementById('v_clWind').textContent=wind;
+  document.getElementById('v_clRx').textContent=rx.toFixed(2);
+  document.getElementById('v_clRy').textContent=ry.toFixed(2);
+  // Draw two hemispheres
+  const R=1.2;
+  const Ns=24;
+  // Northern hemisphere
+  for(let i=0;i<Ns;i++){for(let j=0;j<Ns/2;j++){
+    const u0=i/Ns*2*Math.PI,u1=(i+1)/Ns*2*Math.PI;
+    const v0=j/(Ns/2)*Math.PI/2,v1=(j+1)/(Ns/2)*Math.PI/2;
+    const sph=(u,v)=>[R*Math.sin(v)*Math.cos(u),R*Math.cos(v),R*Math.sin(v)*Math.sin(u)];
+    const pts=[sph(u0,v0),sph(u1,v0),sph(u1,v1),sph(u0,v1)];
+    const rpts=pts.map(p=>rot3D(p,rx,ry));
+    const z=rpts.reduce((s,p)=>s+p[2],0)/4;
+    clCtx.beginPath();
+    rpts.forEach((p,pi)=>{
+      const pr=proj(p);
+      const px=cx+pr.x*scale,py=cy-pr.y*scale;
+      if(pi===0)clCtx.moveTo(px,py);else clCtx.lineTo(px,py);
+    });
+    clCtx.closePath();
+    clCtx.fillStyle='rgba(100,200,255,0.3)';clCtx.fill();
+    clCtx.strokeStyle='rgba(255,255,255,0.08)';clCtx.lineWidth=0.3;clCtx.stroke();
+  }}
+  // Southern hemisphere
+  for(let i=0;i<Ns;i++){for(let j=0;j<Ns/2;j++){
+    const u0=i/Ns*2*Math.PI,u1=(i+1)/Ns*2*Math.PI;
+    const v0=Math.PI/2+j/(Ns/2)*Math.PI/2,v1=Math.PI/2+(j+1)/(Ns/2)*Math.PI/2;
+    const sph=(u,v)=>[R*Math.sin(v)*Math.cos(u),R*Math.cos(v),R*Math.sin(v)*Math.sin(u)];
+    const pts=[sph(u0,v0),sph(u1,v0),sph(u1,v1),sph(u0,v1)];
+    const rpts=pts.map(p=>rot3D(p,rx,ry));
+    const z=rpts.reduce((s,p)=>s+p[2],0)/4;
+    clCtx.beginPath();
+    rpts.forEach((p,pi)=>{
+      const pr=proj(p);
+      const px=cx+pr.x*scale,py=cy-pr.y*scale;
+      if(pi===0)clCtx.moveTo(px,py);else clCtx.lineTo(px,py);
+    });
+    clCtx.closePath();
+    clCtx.fillStyle='rgba(255,200,100,0.3)';clCtx.fill();
+    clCtx.strokeStyle='rgba(255,255,255,0.08)';clCtx.lineWidth=0.3;clCtx.stroke();
+  }}
+  // Draw equator with clutching arrows
+  const Ne=24;
+  for(let i=0;i<Ne;i++){
+    const a=i/Ne*2*Math.PI;
+    const p=[R*Math.sin(Math.PI/2)*Math.cos(a),R*Math.cos(Math.PI/2),R*Math.sin(Math.PI/2)*Math.sin(a)];
+    const rp=rot3D(p,rx,ry);
+    const pr=proj(rp);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    // Clutching twist
+    const twistAngle=wind*a+clTime*2*Math.PI;
+    const arrowLen=12;
+    const ex=px+arrowLen*Math.cos(twistAngle),ey=py+arrowLen*Math.sin(twistAngle);
+    clCtx.strokeStyle='rgba(255,100,255,0.7)';clCtx.lineWidth=1.5;
+    clCtx.beginPath();clCtx.moveTo(px,py);clCtx.lineTo(ex,ey);clCtx.stroke();
+  }
+  const infoEl=document.getElementById('clInfo');
+  infoEl.innerHTML='Clutching: D_+ × F ∪_f D_- × F | f: S^'+(dim-1)+' → G | winding = '+wind+' | π_'+(dim-1)+'(G) classifies bundles over S^'+dim;
+  clCtx.setTransform(1,0,0,1,0,0);
+  clCtx.fillStyle='rgba(255,85,204,0.8)';clCtx.font='13px Share Tech Mono';
+  clCtx.fillText('Clutching Construction — bundles over S^'+dim+' via clutching function',16,24);
+  clCtx.fillStyle='rgba(200,200,255,0.5)';clCtx.font='12px Share Tech Mono';
+  clCtx.fillText('Blue = D_+ (north), Yellow = D_- (south). Magenta arrows = clutching f: S^'+(dim-1)+' → G.',16,42);
+}
+
+// ── TAB 11: CLASSIFYING SPACES ──
+let csAnimId=null, csTime=0, csGroup=0;
+function setClassGroup(i){csGroup=i;['csG0','csG1','csG2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawCS();}
+function animCS(){
+  const btn=document.getElementById('csAnimBtn');
+  if(csAnimId){cancelAnimationFrame(csAnimId);csAnimId=null;csTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawCS();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  csTime=0;
+  function frame(){csTime=(csTime+0.01*window.animSpeed)%(2*Math.PI);drawCS();csAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetCS(){if(csAnimId){cancelAnimationFrame(csAnimId);csAnimId=null;}csTime=0;const btn=document.getElementById('csAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawCS();}
+function drawCS(){
+  resizeCanvas(csC);
+  const W=csC.width,H=csC.height;
+  csCtx.setTransform(1,0,0,1,0,0);
+  csCtx.fillStyle='#06060f';csCtx.fillRect(0,0,W,H);
+  csCtx.setTransform(1,0,0,1,pans[11].x,pans[11].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('csRx').value);
+  const ry=parseFloat(document.getElementById('csRy').value)+csTime;
+  const gr=parseInt(document.getElementById('csGr').value);
+  document.getElementById('v_csGr').textContent=gr;
+  document.getElementById('v_csRx').textContent=rx.toFixed(2);
+  document.getElementById('v_csRy').textContent=ry.toFixed(2);
+  const groupNames=['U(1)','SU(2)','Z/2'];
+  const bgNames=['BU(1) = CP^∞','BSU(2) = HP^∞','B(Z/2) = RP^∞'];
+  // Draw Grassmannian as nested planes
+  for(let k=0;k<gr;k++){
+    const r=scale*(0.3+k*0.2);
+    csCtx.strokeStyle='rgba(100,200,255,'+(0.2+k*0.1)+')';csCtx.lineWidth=1;
+    csCtx.beginPath();csCtx.arc(cx,cy,r,0,2*Math.PI);csCtx.stroke();
+    // Draw k-planes as lines through origin
+    for(let i=0;i<4;i++){
+      const a=i/4*Math.PI+csTime*0.2;
+      csCtx.strokeStyle='rgba(255,200,100,'+(0.15+k*0.08)+')';csCtx.lineWidth=0.5;
+      csCtx.beginPath();csCtx.moveTo(cx-r*Math.cos(a),cy-r*Math.sin(a));
+      csCtx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));csCtx.stroke();
+    }
+  }
+  // Draw universal bundle EG → BG
+  const egR=scale*0.5;
+  csCtx.strokeStyle='rgba(255,85,204,0.5)';csCtx.lineWidth=2;
+  csCtx.beginPath();csCtx.arc(cx,cy,egR,0,2*Math.PI);csCtx.stroke();
+  csCtx.fillStyle='rgba(255,85,204,0.4)';csCtx.font='12px Share Tech Mono';
+  csCtx.fillText('BG = '+bgNames[csGroup],cx-50,cy+egR+20);
+  // Draw classifying map from M to BG
+  const mapX=cx+egR*1.8,mapY=cy-egR*0.5;
+  csCtx.strokeStyle='rgba(255,200,100,0.4)';csCtx.lineWidth=1;csCtx.setLineDash([4,3]);
+  csCtx.beginPath();csCtx.moveTo(cx+egR*0.7,cy-egR*0.3);csCtx.lineTo(mapX,mapY);csCtx.stroke();
+  csCtx.setLineDash([]);
+  csCtx.fillStyle='rgba(255,200,100,0.5)';csCtx.font='11px Share Tech Mono';
+  csCtx.fillText('f: M → BG',mapX-20,mapY-8);
+  // M as a small circle
+  csCtx.strokeStyle='rgba(255,200,100,0.6)';csCtx.lineWidth=1.5;
+  csCtx.beginPath();csCtx.arc(mapX,mapY,12,0,2*Math.PI);csCtx.stroke();
+  csCtx.fillStyle='rgba(255,200,100,0.5)';csCtx.font='10px Share Tech Mono';
+  csCtx.fillText('M',mapX-5,mapY+3);
+  const infoEl=document.getElementById('csInfo');
+  infoEl.innerHTML='Group: '+groupNames[csGroup]+' | '+bgNames[csGroup]+' | Prin_G(M) ≅ [M, BG] | dim Gr = '+gr;
+  csCtx.setTransform(1,0,0,1,0,0);
+  csCtx.fillStyle='rgba(255,85,204,0.8)';csCtx.font='13px Share Tech Mono';
+  csCtx.fillText('Classifying Spaces — '+bgNames[csGroup],16,24);
+  csCtx.fillStyle='rgba(200,200,255,0.5)';csCtx.font='12px Share Tech Mono';
+  csCtx.fillText('Nested circles = Grassmannian Gr(k,∞). Arrow: classifying map f: M → BG.',16,42);
+}
+
+// ── TAB 12: EHRESMANN CONNECTION ──
+let ehrAnimId=null, ehrTime=0, ehrSplit=0;
+function setEhrSplit(i){ehrSplit=i;['ehrS0','ehrS1','ehrS2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawEhr();}
+function animEhr(){
+  const btn=document.getElementById('ehrAnimBtn');
+  if(ehrAnimId){cancelAnimationFrame(ehrAnimId);ehrAnimId=null;ehrTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawEhr();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  ehrTime=0;
+  function frame(){ehrTime=(ehrTime+0.008*window.animSpeed)%1;drawEhr();ehrAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetEhr(){if(ehrAnimId){cancelAnimationFrame(ehrAnimId);ehrAnimId=null;}ehrTime=0;const btn=document.getElementById('ehrAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawEhr();}
+function drawEhr(){
+  resizeCanvas(ehrC);
+  const W=ehrC.width,H=ehrC.height;
+  ehrCtx.setTransform(1,0,0,1,0,0);
+  ehrCtx.fillStyle='#06060f';ehrCtx.fillRect(0,0,W,H);
+  ehrCtx.setTransform(1,0,0,1,pans[12].x,pans[12].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('ehrRx').value);
+  const ry=parseFloat(document.getElementById('ehrRy').value);
+  const progress=parseFloat(document.getElementById('ehrT').value)||ehrTime;
+  document.getElementById('v_ehrT').textContent=progress.toFixed(2);
+  document.getElementById('v_ehrRx').textContent=rx.toFixed(2);
+  document.getElementById('v_ehrRy').textContent=ry.toFixed(2);
+  // Draw total space P as a cylinder (base × fiber)
+  const R=1.0, fiberR=0.4;
+  // Vertical fibers
+  for(let i=0;i<12;i++){
+    const a=i/12*2*Math.PI;
+    const bx=R*Math.cos(a),bz=R*Math.sin(a);
+    const top=rot3D([bx,1.2,bz],rx,ry),bot=rot3D([bx,-1.2,bz],rx,ry);
+    const tpr=proj(top),bpr=proj(bot);
+    ehrCtx.strokeStyle='rgba(150,100,255,0.2)';ehrCtx.lineWidth=0.5;
+    ehrCtx.beginPath();ehrCtx.moveTo(cx+tpr.x*scale,cy-tpr.y*scale);ehrCtx.lineTo(cx+bpr.x*scale,cy-bpr.y*scale);ehrCtx.stroke();
+  }
+  // Horizontal distribution H: draw small line segments
+  const splitNames=['Flat (H=V)','Curved','Twisted'];
+  for(let i=0;i<20;i++){
+    const a=i/20*2*Math.PI;
+    const bx=R*Math.cos(a),bz=R*Math.sin(a);
+    for(let j=-3;j<=3;j++){
+      const y=j*0.3;
+      const p=[bx,y,bz];
+      const rp=rot3D(p,rx,ry);
+      const pr=proj(rp);
+      const px=cx+pr.x*scale,py=cy-pr.y*scale;
+      // Horizontal direction depends on split type
+      let hx,hy,hz;
+      if(ehrSplit===0){hx=-Math.sin(a);hy=0;hz=Math.cos(a);}
+      else if(ehrSplit===1){hx=-Math.sin(a);hy=0.3*Math.cos(a*2);hz=Math.cos(a);}
+      else{hx=-Math.sin(a);hy=0.5*Math.sin(a*3);hz=Math.cos(a);}
+      const hLen=0.15;
+      const tip=[p[0]+hx*hLen,p[1]+hy*hLen,p[2]+hz*hLen];
+      const rtip=rot3D(tip,rx,ry);
+      const tpr2=proj(rtip);
+      const tpx=cx+tpr2.x*scale,tpy=cy-tpr2.y*scale;
+      ehrCtx.strokeStyle='rgba(0,255,200,0.4)';ehrCtx.lineWidth=1;
+      ehrCtx.beginPath();ehrCtx.moveTo(px,py);ehrCtx.lineTo(tpx,tpy);ehrCtx.stroke();
+    }
+  }
+  // Draw base manifold M as a curve
+  const basePts=[];
+  for(let i=0;i<=40;i++){
+    const a=i/40*2*Math.PI;
+    const p=rot3D([R*Math.cos(a),0,R*Math.sin(a)],rx,ry);
+    basePts.push(p);
+  }
+  ehrCtx.beginPath();
+  basePts.forEach((p,i)=>{
+    const pr=proj(p);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    if(i===0)ehrCtx.moveTo(px,py);else ehrCtx.lineTo(px,py);
+  });
+  ehrCtx.strokeStyle='rgba(255,85,204,0.6)';ehrCtx.lineWidth=2;ehrCtx.stroke();
+  // Draw horizontal lift of a path
+  const nLift=40;
+  const liftPts=[];
+  for(let i=0;i<=nLift;i++){
+    const a=i/nLift*2*Math.PI*progress;
+    const bx=R*Math.cos(a),bz=R*Math.sin(a);
+    // Vertical offset from horizontal lift
+    let liftY=0;
+    if(ehrSplit===1) liftY=0.3*Math.sin(a*2);
+    else if(ehrSplit===2) liftY=0.5*Math.sin(a*3);
+    const p=rot3D([bx,liftY,bz],rx,ry);
+    liftPts.push(p);
+  }
+  ehrCtx.beginPath();
+  liftPts.forEach((p,i)=>{
+    const pr=proj(p);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    if(i===0)ehrCtx.moveTo(px,py);else ehrCtx.lineTo(px,py);
+  });
+  ehrCtx.strokeStyle='rgba(255,200,100,0.9)';ehrCtx.lineWidth=2.5;ehrCtx.stroke();
+  const infoEl=document.getElementById('ehrInfo');
+  infoEl.innerHTML='Split: '+splitNames[ehrSplit]+' | TP = H ⊕ V | Horizontal lift of γ: unique H-path | ω(H)=0, ω(X^#)=X';
+  ehrCtx.setTransform(1,0,0,1,0,0);
+  ehrCtx.fillStyle='rgba(255,85,204,0.8)';ehrCtx.font='13px Share Tech Mono';
+  ehrCtx.fillText('Ehresmann Connection — horizontal distribution H ⊂ TP',16,24);
+  ehrCtx.fillStyle='rgba(200,200,255,0.5)';ehrCtx.font='12px Share Tech Mono';
+  ehrCtx.fillText('Cyan segments = horizontal subspaces. Yellow path = horizontal lift of base curve.',16,42);
+}
+
+// ── TAB 13: GAUGE THEORY ──
+let gtAnimId=null, gtTime=0, gtGroup=0;
+function setGaugeGroup(i){gtGroup=i;['gg0','gg1','gg2'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawGT();}
+function animGT(){
+  const btn=document.getElementById('gtAnimBtn');
+  if(gtAnimId){cancelAnimationFrame(gtAnimId);gtAnimId=null;gtTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawGT();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  gtTime=0;
+  function frame(){gtTime=(gtTime+0.01*window.animSpeed)%(2*Math.PI);drawGT();gtAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetGT(){if(gtAnimId){cancelAnimationFrame(gtAnimId);gtAnimId=null;}gtTime=0;const btn=document.getElementById('gtAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawGT();}
+function drawGT(){
+  resizeCanvas(gtC);
+  const W=gtC.width,H=gtC.height;
+  gtCtx.setTransform(1,0,0,1,0,0);
+  gtCtx.fillStyle='#06060f';gtCtx.fillRect(0,0,W,H);
+  gtCtx.setTransform(1,0,0,1,pans[13].x,pans[13].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('gtRx').value);
+  const ry=parseFloat(document.getElementById('gtRy').value)+gtTime*0.2;
+  const k=parseInt(document.getElementById('gtK').value);
+  const gaugeAng=parseFloat(document.getElementById('gtGauge').value);
+  document.getElementById('v_gtK').textContent=k;
+  document.getElementById('v_gtGauge').textContent=gaugeAng.toFixed(2);
+  document.getElementById('v_gtRx').textContent=rx.toFixed(2);
+  document.getElementById('v_gtRy').textContent=ry.toFixed(2);
+  const groupNames=['U(1)','SU(2)','SU(3)'];
+  // Draw S^4 base as two spheres
+  const R=1.0;
+  const Ns=20;
+  for(let i=0;i<Ns;i++){for(let j=0;j<Ns;j++){
+    const u0=i/Ns*Math.PI,u1=(i+1)/Ns*Math.PI;
+    const v0=j/Ns*2*Math.PI,v1=(j+1)/Ns*2*Math.PI;
+    const sph=(u,v)=>[R*Math.sin(u)*Math.cos(v),R*Math.cos(u),R*Math.sin(u)*Math.sin(v)];
+    const pts=[sph(u0,v0),sph(u1,v0),sph(u1,v1),sph(u0,v1)];
+    const rpts=pts.map(p=>rot3D(p,rx,ry));
+    const z=rpts.reduce((s,p)=>s+p[2],0)/4;
+    gtCtx.beginPath();
+    rpts.forEach((p,pi)=>{
+      const pr=proj(p);
+      const px=cx+pr.x*scale,py=cy-pr.y*scale;
+      if(pi===0)gtCtx.moveTo(px,py);else gtCtx.lineTo(px,py);
+    });
+    gtCtx.closePath();
+    gtCtx.fillStyle='rgba(100,30,160,0.4)';gtCtx.fill();
+    gtCtx.strokeStyle='rgba(255,255,255,0.06)';gtCtx.lineWidth=0.3;gtCtx.stroke();
+  }}
+  // Draw field strength as arrows on the sphere
+  for(let i=0;i<30;i++){
+    const a=i/30*2*Math.PI;
+    const b=Math.PI/4+Math.sin(a*2)*0.3;
+    const p=[R*Math.sin(b)*Math.cos(a),R*Math.cos(b),R*Math.sin(b)*Math.sin(a)];
+    const rp=rot3D(p,rx,ry);
+    const pr=proj(rp);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    // Field direction (azimuthal with instanton twist)
+    const fAng=a*k+gaugeAng+gtTime;
+    const fLen=8;
+    const ex=px+fLen*Math.cos(fAng),ey=py+fLen*Math.sin(fAng);
+    gtCtx.strokeStyle='rgba(255,200,100,0.5)';gtCtx.lineWidth=1;
+    gtCtx.beginPath();gtCtx.moveTo(px,py);gtCtx.lineTo(ex,ey);gtCtx.stroke();
+  }
+  // Draw gauge transformation indicator
+  const gx=cx+scale*1.5,gy=cy-scale*0.8;
+  gtCtx.strokeStyle='rgba(255,85,204,0.4)';gtCtx.lineWidth=1;
+  gtCtx.beginPath();gtCtx.arc(gx,gy,20,0,2*Math.PI);gtCtx.stroke();
+  gtCtx.strokeStyle='rgba(255,85,204,0.7)';gtCtx.lineWidth=2;
+  gtCtx.beginPath();gtCtx.moveTo(gx,gy);gtCtx.lineTo(gx+20*Math.cos(gaugeAng),gy+20*Math.sin(gaugeAng));gtCtx.stroke();
+  gtCtx.fillStyle='rgba(255,85,204,0.5)';gtCtx.font='11px Share Tech Mono';
+  gtCtx.fillText('g ∈ G',gx-12,gy+32);
+  const infoEl=document.getElementById('gtInfo');
+  infoEl.innerHTML='Gauge group: '+groupNames[gtGroup]+' | Instanton number k='+k+' | dim M_k = '+4*k+' | A → gAg⁻¹ + g dg⁻¹';
+  gtCtx.setTransform(1,0,0,1,0,0);
+  gtCtx.fillStyle='rgba(255,85,204,0.8)';gtCtx.font='13px Share Tech Mono';
+  gtCtx.fillText('Gauge Theory — '+groupNames[gtGroup]+' instantons on S^4 (k='+k+')',16,24);
+  gtCtx.fillStyle='rgba(200,200,255,0.5)';gtCtx.font='12px Share Tech Mono';
+  gtCtx.fillText('Arrows = field strength F. Right: gauge transformation g. Moduli space dim = 4k.',16,42);
+}
+
+// ── TAB 14: REDUCTION OF STRUCTURE GROUP ──
+let redAnimId=null, redTime=0, redType=0;
+function setRedType(i){redType=i;['redT0','redT1','redT2','redT3'].forEach((id,j)=>document.getElementById(id).classList.toggle('active',j===i));drawRed();}
+function animRed(){
+  const btn=document.getElementById('redAnimBtn');
+  if(redAnimId){cancelAnimationFrame(redAnimId);redAnimId=null;redTime=0;btn.textContent='▶ Animate';btn.classList.remove('active');drawRed();return;}
+  btn.textContent='⏸ Pause';
+  btn.classList.add('active');
+  redTime=0;
+  function frame(){redTime=(redTime+0.01*window.animSpeed)%(2*Math.PI);drawRed();redAnimId=requestAnimationFrame(frame);}
+  frame();
+}
+function resetRed(){if(redAnimId){cancelAnimationFrame(redAnimId);redAnimId=null;}redTime=0;const btn=document.getElementById('redAnimBtn');if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}drawRed();}
+function drawRed(){
+  resizeCanvas(redC);
+  const W=redC.width,H=redC.height;
+  redCtx.setTransform(1,0,0,1,0,0);
+  redCtx.fillStyle='#06060f';redCtx.fillRect(0,0,W,H);
+  redCtx.setTransform(1,0,0,1,pans[14].x,pans[14].y);
+  const cx=W/2,cy=H/2,scale=Math.min(W,H)*0.3;
+  const rx=parseFloat(document.getElementById('redRx').value);
+  const ry=parseFloat(document.getElementById('redRy').value)+redTime*0.3;
+  const integ=parseFloat(document.getElementById('redInt').value);
+  document.getElementById('v_redInt').textContent=integ.toFixed(2);
+  document.getElementById('v_redRx').textContent=rx.toFixed(2);
+  document.getElementById('v_redRy').textContent=ry.toFixed(2);
+  const redNames=['GL(n) → O(n)','O(n) → SO(n)','SO(2n) → U(n)','U(n) → SU(n)'];
+  const redDesc=['Riemannian metric','Orientation','Almost complex structure','Volume form'];
+  // Draw frame bundle as a set of frames (axes) at each point
+  const nPts=12;
+  for(let i=0;i<nPts;i++){
+    const a=i/nPts*2*Math.PI;
+    const bx=scale*0.5*Math.cos(a),bz=scale*0.5*Math.sin(a);
+    const p=rot3D([bx/scale,0,bz/scale],rx,ry);
+    const pr=proj(p);
+    const px=cx+pr.x*scale,py=cy-pr.y*scale;
+    // Draw frame axes
+    const frameScale=0.12*scale;
+    for(let axis=0;axis<2;axis++){
+      const ang=a+axis*Math.PI/2+redTime*0.1;
+      const ex=px+frameScale*Math.cos(ang),ey=py+frameScale*Math.sin(ang);
+      // Reduction: show which frames are allowed
+      const allowed=integ>0.5||(axis===0);
+      redCtx.strokeStyle=allowed?'rgba(0,200,255,0.6)':'rgba(255,100,100,0.2)';
+      redCtx.lineWidth=allowed?2:0.5;
+      redCtx.beginPath();redCtx.moveTo(px,py);redCtx.lineTo(ex,ey);redCtx.stroke();
+    }
+  }
+  // Draw the reduction as a subbundle
+  redCtx.strokeStyle='rgba(255,85,204,0.5)';redCtx.lineWidth=1.5;
+  redCtx.beginPath();redCtx.arc(cx,cy,scale*0.5,0,2*Math.PI);redCtx.stroke();
+  redCtx.fillStyle='rgba(255,85,204,0.4)';redCtx.font='12px Share Tech Mono';
+  redCtx.fillText('Frame bundle F(M)',cx-45,cy+scale*0.5+18);
+  // Draw reduced subbundle
+  const subR=scale*0.3;
+  redCtx.strokeStyle='rgba(0,255,200,0.5)';redCtx.lineWidth=1.5;redCtx.setLineDash([4,3]);
+  redCtx.beginPath();redCtx.arc(cx,cy,subR,0,2*Math.PI);redCtx.stroke();
+  redCtx.setLineDash([]);
+  redCtx.fillStyle='rgba(0,255,200,0.4)';redCtx.font='12px Share Tech Mono';
+  redCtx.fillText('Q ⊂ P (H-reduction)',cx-50,cy+subR+18);
+  const infoEl=document.getElementById('redInfo');
+  infoEl.innerHTML='Reduction: '+redNames[redType]+' | '+redDesc[redType]+' | Integrability: '+(integ>0.7?'Integrable':integ>0.3?'Partially integrable':'Non-integrable')+' | Torsion = obstruction';
+  redCtx.setTransform(1,0,0,1,0,0);
+  redCtx.fillStyle='rgba(255,85,204,0.8)';redCtx.font='13px Share Tech Mono';
+  redCtx.fillText('Reduction of Structure Group — '+redNames[redType],16,24);
+  redCtx.fillStyle='rgba(200,200,255,0.5)';redCtx.font='12px Share Tech Mono';
+  redCtx.fillText('Blue axes = allowed frames (H ⊂ G). Red dashed = excluded. Inner circle = reduced subbundle Q.',16,42);
+}
+
 // ── PROOF PANEL ──
 let proofOpen=false;
 function toggleProof(){proofOpen=!proofOpen;document.getElementById('proofPanel').classList.toggle('open',proofOpen);document.querySelector('.proof-header span').textContent=proofOpen?'▼':'▲';}
@@ -1186,6 +2388,15 @@ _addPan(connC,2,drawConn);
 _addPan(abC,3,drawAB);
 _addPan(ymC,4,drawYM);
 _addPan(chernC,5,drawChern);
+_addPan(pgbC,6,drawPGB);
+_addPan(avbC,7,drawAVB);
+_addPan(holC,8,drawHol);
+_addPan(ccC,9,drawCC);
+_addPan(clC,10,drawClutch);
+_addPan(csC,11,drawCS);
+_addPan(ehrC,12,drawEhr);
+_addPan(gtC,13,drawGT);
+_addPan(redC,14,drawRed);
 
 updateMobius();
 drawHopf();
@@ -1193,6 +2404,15 @@ setCurv(0);
 drawAB();
 drawYM();
 drawChern();
+drawPGB();
+drawAVB();
+drawHol();
+drawCC();
+drawClutch();
+drawCS();
+drawEhr();
+drawGT();
+drawRed();
 
 window.addEventListener('resize',()=>redrawTab());
 
