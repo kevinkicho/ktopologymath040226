@@ -19,8 +19,13 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);bo
 .back{font-size:.75rem;color:var(--dim);text-decoration:none;transition:.15s}.back:hover{color:var(--accent)}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px rgba(255,153,68,.35);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto}
-.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab{padding:7px 12px;border:1px solid transparent;border-bottom:none;background:transparent;color:var(--dim);font-size:.75rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
+.callout-blue{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);border-radius:5px;padding:8px 10px;font-size:.72rem;line-height:1.55}
+.callout-blue strong{color:#00e5ff}
+.callout-green{background:rgba(0,255,100,.05);border:1px solid rgba(0,255,100,.2);border-radius:5px;padding:8px 10px;font-size:.72rem;line-height:1.55}
+.callout-green strong{color:#00ff88}
 .tab:hover{color:var(--text);background:var(--bg2)}.tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
 .content{flex:1;display:flex;overflow:hidden}
 .panel{display:none;flex:1;overflow:hidden}.panel.active{display:flex}
@@ -76,6 +81,13 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(5)">Curvatures</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(6)">Connection</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(7)">Space Forms</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(8)">Cartan Frames</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(9)">Jacobi Fields</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(10)">Holonomy</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(11)">MC Flow</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(12)">Comparison</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(13)">Sectional K</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(14)">Char. Classes</button>
     <button class="proof-btn" onclick="openProof(null)">Proofs ▸</button>
   </div>
 </header>
@@ -139,7 +151,10 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <div style="font-size:.72rem;color:var(--dim);line-height:1.5">Drag the surface to explore it from any angle. Colors show Gaussian curvature $K=\kappa_1\kappa_2$.</div>
       </div>
       <div class="callout" style="font-size:.7rem">
-        <strong>Theorema Egregium</strong> (Gauss): $K$ depends only on the <em>intrinsic</em> metric — a being living on the surface can measure it without reference to the embedding space.
+        <strong>Theorema Egregium</strong> (Gauss): $K$ is a rational expression in $E,F,G$ and first derivatives only — intrinsic. Modern form: $K=\langle R(\partial_u,\partial_v)\partial_v,\partial_u\rangle/\|\partial_u\wedge\partial_v\|^2$.
+      </div>
+      <div class="callout-blue" style="font-size:.68rem;margin-top:4px">
+        <strong>Frontier:</strong> prescribed curvature ($K$ given) remains subtle (Kazdan–Warner); discrete $K$ on polyhedral surfaces (Regge) links to numerical GR.
       </div>
     </div>
   </div>
@@ -517,8 +532,264 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       </div>
     </div>
   </div>
+
+  <!-- TAB 8: CARTAN MOVING FRAMES -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel8">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Cartan structure</div>
+      <div class="eq-block">
+        <div class="eq-title">Structure equations (SO(n))</div>
+        <div style="font-size:.72rem;line-height:1.55">
+          $d\theta^i = -\omega^i{}_j\wedge\theta^j$<br>
+          $\Omega^i{}_j = d\omega^i{}_j + \omega^i{}_k\wedge\omega^k{}_j$
+        </div>
+      </div>
+      <label>Frame speed <span id="cartSpeedVal">1.0x</span></label>
+      <input type="range" id="cartSpeedSlider" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('cartSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      <label>Curvature scale ρ <span id="cartRhoVal">1.0</span></label>
+      <input type="range" id="cartRho" min="0.2" max="2.5" step="0.1" value="1" oninput="cartRho=+this.value;document.getElementById('cartRhoVal').textContent=(+this.value).toFixed(1)">
+      <div class="btn-row">
+        <button class="btn" id="cartPauseBtn" onclick="toggleCartPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Moving frame:</strong> orthonormal coframe $\theta^i$ dual to $e_i$, connection 1-form $\omega\in\mathfrak{so}(n)$, curvature 2-form $\Omega$. Cartan’s method recovers the Riemann tensor without Christoffel index soup.
+      </div>
+      <div class="callout-blue" style="margin-top:4px">
+        <strong>Frontier:</strong> Cartan geometry unifies Klein geometries; used in teleparallel GR and gauge gravity.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Cartan moving frames" id="cartCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Readout</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">|Ω|</span><span id="cartOmVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">torsion</span><span id="cartTorVal" style="color:#88ff44">0 (Levi-Civita)</span></div>
+      </div>
+      <div class="callout" style="font-size:.68rem">
+        Animation: coframe rotates while $\Omega$ (gold 2-plane) pulses with Gaussian curvature of the model surface. Levi-Civita $\Rightarrow$ vanishing torsion $T^i=d\theta^i+\omega^i{}_j\wedge\theta^j=0$.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 9: JACOBI FIELDS -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel9">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Jacobi equation</div>
+      <div class="eq-block">
+        <div class="eq-title">Geodesic deviation</div>
+        <div style="font-size:.72rem;line-height:1.55">
+          $\frac{D^2 J}{dt^2}+R(J,\dot\gamma)\dot\gamma=0$
+        </div>
+      </div>
+      <label>Sectional K <span id="jacKVal">+1.0</span></label>
+      <input type="range" id="jacK" min="-2" max="2" step="0.1" value="1" oninput="jacK=+this.value;document.getElementById('jacKVal').textContent=(jacK>=0?'+':'')+jacK.toFixed(1)">
+      <label>Speed <span id="jacSpeedVal">1.0x</span></label>
+      <input type="range" id="jacSpeedSlider" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('jacSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      <div class="btn-row">
+        <button class="btn" id="jacPauseBtn" onclick="toggleJacPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Conjugate point:</strong> first $t_*>0$ with $J(t_*)=0$ (nontrivial). On $S^n$ of $K=1$, antipode $t=\pi$ is conjugate — geodesics refocus.
+      </div>
+      <div class="callout-green" style="margin-top:4px">
+        <strong>Frontier:</strong> index form / Morse theory on $\Omega(p,q)$; comparison via Rauch.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Jacobi fields and conjugate points" id="jacCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">|J|(t)</span><span id="jacJVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">conjugate?</span><span id="jacConjVal" style="color:#ff6688">—</span></div>
+      </div>
+      <div class="callout" style="font-size:.68rem">
+        $K>0$: oscillatory $J\sim\sin(\sqrt{K}\,t)$.<br>
+        $K=0$: linear growth.<br>
+        $K&lt;0$: hyperbolic $J\sim\sinh(\sqrt{|K|}\,t)$.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 10: HOLONOMY / AMBROSE–SINGER -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel10">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Holonomy</div>
+      <div class="eq-block">
+        <div class="eq-title">Ambrose–Singer</div>
+        <div style="font-size:.7rem;line-height:1.5">
+          $\mathrm{Lie}(\mathrm{Hol}_p)=\mathrm{span}\{R_q(X,Y)\}$ transported to $p$
+        </div>
+      </div>
+      <label>Loop radius r <span id="holRVal">0.6</span></label>
+      <input type="range" id="holR" min="0.2" max="1.2" step="0.05" value="0.6" oninput="holR=+this.value;document.getElementById('holRVal').textContent=(+this.value).toFixed(2)">
+      <label>K enclosed <span id="holKVal">1.0</span></label>
+      <input type="range" id="holK" min="-1.5" max="2" step="0.1" value="1" oninput="holK=+this.value;document.getElementById('holKVal').textContent=(+this.value).toFixed(1)">
+      <label>Speed <span id="holSpeedVal">1.0x</span></label>
+      <input type="range" id="holSpeedSlider" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('holSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      <div class="btn-row">
+        <button class="btn" id="holPauseBtn" onclick="toggleHolPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        Parallel transport around a loop $C=\partial\Sigma$ rotates $V$ by $\Delta\phi=\iint_\Sigma K\,dA$ (2D). Animation: vector rides the loop; deficit equals enclosed curvature.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Holonomy and Ambrose-Singer" id="holCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">Δφ</span><span id="holDphiVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">∬ K dA</span><span id="holAreaVal" style="color:#88ff44">—</span></div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Frontier:</strong> restricted holonomy groups classify Riemannian geometries (Berger list); special holonomy $G_2$, $\mathrm{Spin}(7)$ in M-theory compactifications.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 11: MEAN CURVATURE FLOW -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel11">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Mean curvature flow</div>
+      <div class="eq-block">
+        <div class="eq-title">Evolution</div>
+        <div style="font-size:.72rem">$\partial_t X = H\,\nu$ &nbsp;(or $-H\nu$)</div>
+      </div>
+      <label>Initial shape</label>
+      <select id="mcfShape" onchange="mcfReset()">
+        <option value="ellipse">Ellipse</option>
+        <option value="star">Perturbed circle</option>
+        <option value="dumbbell">Dumbbell (neck)</option>
+      </select>
+      <label>Speed <span id="mcfSpeedVal">1.0x</span></label>
+      <input type="range" id="mcfSpeedSlider" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('mcfSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      <div class="btn-row">
+        <button class="btn" id="mcfPauseBtn" onclick="toggleMcfPause()">⏸ Pause</button>
+        <button class="btn" onclick="mcfReset()">Reset</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        Convex curves in $\mathbb{R}^2$ shrink to round points (Gage–Hamilton–Grayson). Necks can pinch — model for singularities in geometric flows (Huisken, Colding–Minicozzi).
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Mean curvature flow" id="mcfCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">⟨H⟩</span><span id="mcfHVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">length</span><span id="mcfLVal" style="color:#88ff44">—</span></div>
+      </div>
+      <div class="callout-green" style="font-size:.68rem">
+        <strong>Frontier:</strong> Ricci flow (Hamilton–Perelman) is the metric analogue; MCF is the hypersurface analogue used in general relativity (inverse mean curvature flow → Geroch mass).
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 12: COMPARISON THEOREMS -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel12">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Rauch / Toponogov</div>
+      <div class="eq-block">
+        <div class="eq-title">Jacobi comparison</div>
+        <div style="font-size:.7rem;line-height:1.5">
+          If $K\ge \kappa$ then $|J|(t)\le |J_\kappa|(t)$ before first conjugate of model.
+        </div>
+      </div>
+      <label>K_min (lower bound) <span id="cmpKVal">0.5</span></label>
+      <input type="range" id="cmpK" min="-1" max="2" step="0.1" value="0.5" oninput="cmpK=+this.value;document.getElementById('cmpKVal').textContent=(+this.value).toFixed(1)">
+      <label>Speed <span id="cmpSpeedVal">1.0x</span></label>
+      <input type="range" id="cmpSpeedSlider" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('cmpSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      <div class="btn-row">
+        <button class="btn" id="cmpPauseBtn" onclick="toggleCmpPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        Model spaces $M_\kappa$ of constant $K=\kappa$ bound real geometry: triangle hinges (Toponogov), volume (Bishop–Gromov), diameter (Bonnet–Myers if $K\ge\kappa>0$).
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Comparison theorems" id="cmpCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="callout" style="font-size:.68rem">
+        Gold = model $J_\kappa$; cyan = manifold estimate. Animation sweeps $t$ and shows conjugate barrier of the model.
+      </div>
+      <div class="callout-blue" style="font-size:.68rem;margin-top:6px">
+        <strong>Frontier:</strong> synthetic curvature (Lott–Villani / Sturm CD$(K,N)$) extends comparison to metric-measure spaces.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 13: SECTIONAL CURVATURE -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel13">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Sectional vs Ricci vs scalar</div>
+      <div class="eq-block">
+        <div class="eq-title">Definitions</div>
+        <div style="font-size:.68rem;line-height:1.55">
+          $K(\sigma)=\langle R(u,v)v,u\rangle/\|u\wedge v\|^2$<br>
+          $\mathrm{Ric}(u,u)=\sum_i K(u,e_i)$<br>
+          $R=\mathrm{tr}\,\mathrm{Ric}$
+        </div>
+      </div>
+      <label>Plane angle α <span id="secAVal">0.5</span> rad</label>
+      <input type="range" id="secA" min="0" max="6.28" step="0.05" value="0.5" oninput="secA=+this.value;document.getElementById('secAVal').textContent=(+this.value).toFixed(2)">
+      <label>Speed <span id="secSpeedVal">1.0x</span></label>
+      <input type="range" id="secSpeedSlider" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('secSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      <div class="btn-row">
+        <button class="btn" id="secPauseBtn" onclick="toggleSecPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        Sectional $K(\sigma)$ is the Gaussian curvature of the surface spanned by plane $\sigma\subset T_pM$. Ricci averages planes containing a vector; scalar averages all.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Sectional curvature decomposition" id="secCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">K(σ)</span><span id="secKVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">Ric sample</span><span id="secRicVal" style="color:#88ff44">—</span></div>
+        <div class="vrow"><span class="vlbl">R scalar</span><span id="secScVal" style="color:#ffcc00">—</span></div>
+      </div>
+      <div class="callout-green" style="font-size:.68rem">
+        Einstein metrics: $\mathrm{Ric}=\lambda g$. GR uses Ricci; tidal forces need full Riemann / Weyl (see modules 19, 35).
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 14: CHARACTERISTIC CLASSES (TOY) -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel14">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Chern–Weil (toy U(1))</div>
+      <div class="eq-block">
+        <div class="eq-title">First Chern class</div>
+        <div style="font-size:.72rem">$c_1 = \frac{i}{2\pi}\mathrm{tr}\,\Omega = \frac{F}{2\pi}$</div>
+      </div>
+      <label>Monopole charge n <span id="chNVal">1</span></label>
+      <input type="range" id="chN" min="0" max="3" step="1" value="1" oninput="chN=+this.value;document.getElementById('chNVal').textContent=chN">
+      <label>Speed <span id="chSpeedVal">1.0x</span></label>
+      <input type="range" id="chSpeedSlider" min="0.1" max="3" step="0.1" value="1" oninput="window.animSpeed=+this.value;document.getElementById('chSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      <div class="btn-row">
+        <button class="btn" id="chPauseBtn" onclick="toggleChPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        Closed characteristic forms represent de Rham classes independent of connection. Here: Dirac monopole on $S^2$ with $\int_{S^2}c_1=n\in\mathbb{Z}$.
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Hand-off:</strong> full principal bundles / classifying spaces → module 17. Here only the curvature 2-form integral.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Characteristic classes toy" id="chCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">∫ c₁</span><span id="chIntVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">flux</span><span id="chFluxVal" style="color:#88ff44">—</span></div>
+      </div>
+      <div class="callout" style="font-size:.68rem">
+        Animation: Berry-like phase of a U(1) connection on $S^2$; gold arrows show parallel transport; flux quantizes.
+      </div>
+    </div>
+  </div>
 </div>
-<div class="strip">Drag surface to rotate · Gaussian curvature K = κ₁κ₂ · geodesics = "straight lines" on curved surfaces · Gauss-Bonnet links geometry to topology</div>
+<div class="strip">Intrinsic geometry · Cartan structure · Jacobi / comparison · holonomy · MCF · Chern–Weil toy (see 17 for bundles)</div>
 
 <div id="proof-panel">
   <div class="pp-head">
@@ -578,19 +849,82 @@ const PROOFS=[
 ];
 
 let activeTab=0;
-const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+const NUM_TABS=15;
+const pans=Array.from({length:NUM_TABS},()=>({x:0,y:0}));
 let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+const DRAW_FNS=[]; // filled after draw* defs
 function togglePan(){
   panMode=!panMode;
   document.querySelectorAll('.panBtn').forEach(b=>{b.classList.toggle('active',panMode);b.textContent=panMode?'✋ On':'✋ Pan';});
   document.body.classList.toggle('pan-mode',panMode);
 }
-function resetPan(){const p=pans[activeTab];p.x=0;p.y=0;[drawSurface,drawGeodesics,drawGB,drawRiemann,drawExpMap,drawCurvatures,drawConnection,drawSpaceForms][activeTab]();}
+function resetPan(){
+  const p=pans[activeTab];p.x=0;p.y=0;
+  const fns=[drawSurface,drawGeodesics,drawGB,drawRiemann,drawExpMap,drawCurvatures,drawConnection,drawSpaceForms,drawCartan,drawJacobi,drawHolonomy,drawMCF,drawCompare,drawSectional,drawChar];
+  if(fns[activeTab]) fns[activeTab]();
+}
 function _addPan(canvas,idx,fn){
+  if(!canvas) return;
   canvas.addEventListener('mousedown',e=>{if(!panMode)return;_panDrag=true;_panTab=idx;_panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;e.preventDefault();},{passive:false});
   canvas.addEventListener('mousemove',e=>{if(!_panDrag||_panTab!==idx)return;pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;fn();});
   canvas.addEventListener('mouseup',()=>_panDrag=false);
   canvas.addEventListener('mouseleave',()=>_panDrag=false);
+}
+function _resizeMainCanvas(canvas, panelId){
+  if(!canvas) return;
+  const p=document.getElementById(panelId);
+  if(!p) return;
+  const ma=p.querySelector('.main-area');
+  const r=(ma||p).getBoundingClientRect();
+  let w=Math.floor(r.width), h=Math.floor(r.height);
+  if(!ma){
+    let sw=0; p.querySelectorAll('.sidebar').forEach(s=>sw+=s.offsetWidth);
+    w=Math.floor(r.width-sw); h=Math.floor(r.height);
+  }
+  w=Math.max(1,w); h=Math.max(1,h);
+  if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+}
+function _setPauseBtn(id, paused){
+  const b=document.getElementById(id);
+  if(b){b.textContent=paused?'▶ Resume':'⏸ Pause';b.classList.toggle('active',!!paused);}
+}
+// Shared canvas layout (viewport fit, no overflow)
+function _gLayout(W,H){
+  const padL=Math.max(40,Math.min(58,W*0.055));
+  const padR=Math.max(16,Math.min(32,W*0.03));
+  const padT=Math.max(26,Math.min(40,H*0.055));
+  const padB=Math.max(26,Math.min(42,H*0.06));
+  const f1=Math.max(11,Math.min(14,Math.min(W,H)*0.018))|0;
+  const f2=Math.max(13,Math.min(17,Math.min(W,H)*0.022))|0;
+  return {padL,padR,padT,padB,x:padL,y:padT,w:Math.max(40,W-padL-padR),h:Math.max(40,H-padT-padB),f1,f2,W,H};
+}
+function _gFit(ctx,text,maxW,font){
+  ctx.font=font; if(ctx.measureText(text).width<=maxW) return text;
+  let s=text; while(s.length>3&&ctx.measureText(s+'\u2026').width>maxW) s=s.slice(0,-1); return s+'\u2026';
+}
+function _gTitle(ctx,L,title){ ctx.fillStyle='rgba(255,153,68,0.92)'; ctx.font='bold '+L.f2+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,title,L.w,ctx.font),L.x,L.y-8); }
+function _gFooter(ctx,L,text){ ctx.fillStyle='rgba(160,160,200,0.55)'; ctx.font=L.f1+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,text,L.w,ctx.font),L.x,L.H-10); }
+function _gClip(ctx,L){ ctx.save(); ctx.beginPath(); ctx.rect(L.x,L.y,L.w,L.h); ctx.clip(); }
+function _gClampY(y,L){ return Math.max(L.y+1,Math.min(L.y+L.h-1,y)); }
+
+function _cancelAllAnims14(){
+  if(surfAnimId){cancelAnimationFrame(surfAnimId);surfAnimId=null;}
+  if(geoAnimId){cancelAnimationFrame(geoAnimId);geoAnimId=null;}
+  if(gbAnimId){cancelAnimationFrame(gbAnimId);gbAnimId=null;}
+  if(riemannAnimId){cancelAnimationFrame(riemannAnimId);riemannAnimId=null;}
+  if(expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
+  if(curvAnimId){cancelAnimationFrame(curvAnimId);curvAnimId=null;}
+  if(connAnimId){cancelAnimationFrame(connAnimId);connAnimId=null;}
+  if(sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
+  if(cartAnimId){cancelAnimationFrame(cartAnimId);cartAnimId=null;}
+  if(jacAnimId){cancelAnimationFrame(jacAnimId);jacAnimId=null;}
+  if(holAnimId){cancelAnimationFrame(holAnimId);holAnimId=null;}
+  if(mcfAnimId){cancelAnimationFrame(mcfAnimId);mcfAnimId=null;}
+  if(cmpAnimId){cancelAnimationFrame(cmpAnimId);cmpAnimId=null;}
+  if(secAnimId){cancelAnimationFrame(secAnimId);secAnimId=null;}
+  if(chAnimId){cancelAnimationFrame(chAnimId);chAnimId=null;}
+  cartRunning=jacRunning=holRunning=mcfRunning=cmpRunning=secRunning=chRunning=false;
 }
 
 function autoStartAnimations(){
@@ -602,6 +936,7 @@ function autoStartAnimations(){
   curvAnimRunning=true;
   connPlaying=true;
   pausedSF=false;
+  cartPaused=jacPaused=holPaused=mcfPaused=cmpPaused=secPaused=chPaused=false;
   const surfBtn=document.getElementById('surfAnimBtn');
   if(surfBtn){surfBtn.textContent='⏸';surfBtn.classList.add('active');}
   const geoBtn=document.getElementById('geoAnimBtn');
@@ -618,31 +953,39 @@ function autoStartAnimations(){
   if(connBtn){connBtn.textContent='⏸ Pause';connBtn.classList.add('active');}
   const sfBtn=document.getElementById('sfAnimBtn');
   if(sfBtn){sfBtn.textContent='⏸';sfBtn.classList.add('active');}
+  ['cartPauseBtn','jacPauseBtn','holPauseBtn','mcfPauseBtn','cmpPauseBtn','secPauseBtn','chPauseBtn'].forEach(id=>_setPauseBtn(id,false));
 }
 function switchTab(n){
-  if(n!==0 && surfAnimId){cancelAnimationFrame(surfAnimId);surfAnimId=null;}
-  if(n!==1 && geoAnimId){cancelAnimationFrame(geoAnimId);geoAnimId=null;}
-  if(n!==2 && gbAnimId){cancelAnimationFrame(gbAnimId);gbAnimId=null;}
-  if(n!==3 && riemannAnimId){cancelAnimationFrame(riemannAnimId);riemannAnimId=null;}
-  if(n!==4 && expAnimId){cancelAnimationFrame(expAnimId);expAnimId=null;}
-  if(n!==5 && curvAnimId){cancelAnimationFrame(curvAnimId);curvAnimId=null;}
-  if(n!==6 && connAnimId){cancelAnimationFrame(connAnimId);connAnimId=null;}
-  if(n!==7 && sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  _cancelAllAnims14();
+  document.querySelectorAll('.tab').forEach((t,i)=>{ if(t.classList.contains('tab')) { /* all .tab */ }});
+  const tabs=document.querySelectorAll('.tabs > .tab');
+  tabs.forEach((t,i)=>{ t.classList.toggle('active',i===n); t.setAttribute('aria-selected', i===n?'true':'false'); });
   document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
   activeTab=n;
   const sp=window.animSpeed||1;
-  const sliders=['surfSpeedSlider','geoSpeedSlider','gbSpeedSlider','riemannSpeedSlider','expSpeedSlider','curvAnimSpeed','connSpeedSlider','sfSpeedSlider'];
-  const vals=['surfSpeedVal','geoSpeedVal','gbSpeedVal','riemannSpeedVal','expSpeedVal','curvSpeedVal','connSpeedVal','sfSpeedVal'];
-  if(sliders[n]){const s=document.getElementById(sliders[n]);if(s){s.value=sp;if(vals[n])document.getElementById(vals[n]).textContent=sp.toFixed(1)+'x';}}
-  if(n===0){requestAnimationFrame(()=>{resizeSurf();drawSurface();pausedSurf=false;const ab=document.getElementById('surfAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!surfAnimId)surfAnimId=requestAnimationFrame(surfLoop);});}
-  if(n===1){requestAnimationFrame(()=>{resizeGeo();drawGeodesics();if(!pausedGeo&&!geoAnimId)geoAnimId=requestAnimationFrame(geoLoop);});}
-  if(n===2){requestAnimationFrame(()=>{resizeGB();drawGB();pausedGB=false;const ab=document.getElementById('gbAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!gbAnimId)gbAnimId=requestAnimationFrame(gbLoop);});}
-  if(n===3){requestAnimationFrame(()=>{resizeRiemann();drawRiemann();if(riemannPlaying&&!riemannAnimId)riemannAnimId=requestAnimationFrame(_riemannLoop);});}
-  if(n===4){requestAnimationFrame(()=>{resizeExpMap();drawExpMap();if(!pausedExp&&!expAnimId)expAnimId=requestAnimationFrame(expLoop);});}
-  if(n===5){requestAnimationFrame(()=>{resizeCurvatures();drawCurvatures();if(curvAnimRunning&&!curvAnimId)curvAnimId=requestAnimationFrame(curvAnimLoop);});}
-  if(n===6){requestAnimationFrame(()=>{resizeConnection();drawConnection();if(connPlaying&&!connAnimId)connAnimId=requestAnimationFrame(_connLoop);});}
-  if(n===7){requestAnimationFrame(()=>{resizeSpaceForms();drawSpaceForms();if(!pausedSF&&!sfAnimId)sfAnimId=requestAnimationFrame(sfLoop);});}
+  const sliders=['surfSpeedSlider','geoSpeedSlider','gbSpeedSlider','riemannSpeedSlider','expSpeedSlider','curvAnimSpeed','connSpeedSlider','sfSpeedSlider','cartSpeedSlider','jacSpeedSlider','holSpeedSlider','mcfSpeedSlider','cmpSpeedSlider','secSpeedSlider','chSpeedSlider'];
+  const vals=['surfSpeedVal','geoSpeedVal','gbSpeedVal','riemannSpeedVal','expSpeedVal','curvSpeedVal','connSpeedVal','sfSpeedVal','cartSpeedVal','jacSpeedVal','holSpeedVal','mcfSpeedVal','cmpSpeedVal','secSpeedVal','chSpeedVal'];
+  if(sliders[n]){const s=document.getElementById(sliders[n]);if(s){s.value=sp;const v=document.getElementById(vals[n]);if(v)v.textContent=sp.toFixed(1)+'x';}}
+  const startFns=[
+    ()=>{resizeSurf();drawSurface();pausedSurf=false;const ab=document.getElementById('surfAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!surfAnimId)surfAnimId=requestAnimationFrame(surfLoop);},
+    ()=>{resizeGeo();drawGeodesics();pausedGeo=false;const ab=document.getElementById('geoAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!geoAnimId)geoAnimId=requestAnimationFrame(geoLoop);},
+    ()=>{resizeGB();drawGB();pausedGB=false;const ab=document.getElementById('gbAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!gbAnimId)gbAnimId=requestAnimationFrame(gbLoop);},
+    ()=>{resizeRiemann();drawRiemann();riemannPlaying=true;const ab=document.getElementById('riemannPlayBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!riemannAnimId)riemannAnimId=requestAnimationFrame(_riemannLoop);},
+    ()=>{resizeExpMap();drawExpMap();pausedExp=false;const ab=document.getElementById('expAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!expAnimId)expAnimId=requestAnimationFrame(expLoop);},
+    ()=>{resizeCurvatures();drawCurvatures();curvAnimRunning=true;const ab=document.getElementById('curvAnimBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!curvAnimId)curvAnimId=requestAnimationFrame(curvAnimLoop);},
+    ()=>{resizeConnection();drawConnection();connPlaying=true;const ab=document.getElementById('connPlayBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!connAnimId)connAnimId=requestAnimationFrame(_connLoop);},
+    ()=>{resizeSpaceForms();drawSpaceForms();pausedSF=false;const ab=document.getElementById('sfAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!sfAnimId)sfAnimId=requestAnimationFrame(sfLoop);},
+    ()=>{startCartLoop();},
+    ()=>{startJacLoop();},
+    ()=>{startHolLoop();},
+    ()=>{startMcfLoop();},
+    ()=>{startCmpLoop();},
+    ()=>{startSecLoop();},
+    ()=>{startChLoop();}
+  ];
+  const tabN=n;
+  const raf=window.requestAnimationFrame||(cb=>setTimeout(cb,16));
+  raf(()=>{ raf(()=>{ if(activeTab!==tabN) return; if(startFns[tabN]) startFns[tabN](); }); });
 }
 function openProof(idx){
   document.getElementById('proof-panel').classList.add('open');
@@ -662,11 +1005,7 @@ let surfN=30, surfColorMode='K', surfWire=false;
 let surfRotX=0.45, surfRotY=0.3, surfDragSX,surfDragSY,surfDragRX,surfDragRY,surfDragging=false;
 let surfAnimId=null, pausedSurf=false;
 
-function resizeSurf(){
-  const p=document.getElementById('panel0'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  surfC.width=r.width-sw;surfC.height=r.height;
-}
+function resizeSurf(){ _resizeMainCanvas(surfC,'panel0'); }
 function resetSurfView(){surfRotX=0.45;surfRotY=0.3;buildSurfMesh();drawSurface();}
 function setColorMode(m){surfColorMode=m;document.getElementById('colorK').classList.toggle('active',m==='K');document.getElementById('colorN').classList.toggle('active',m==='normal');drawSurface();}
 function toggleWire(){surfWire=!surfWire;document.getElementById('wireBtn').classList.toggle('active',surfWire);drawSurface();}
@@ -800,11 +1139,7 @@ let geoAngle=30,geoMode='geo';
 let geoRotX=0.4,geoRotY=0.3,geoDragSX,geoDragSY,geoDragRX,geoDragRY,geoDragging=false;
 let geoT=0,geoAnimId=null;
 
-function resizeGeo(){
-  const p=document.getElementById('panel1'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  geoC.width=r.width-sw;geoC.height=r.height;
-}
+function resizeGeo(){ _resizeMainCanvas(geoC,'panel1'); }
 function resetGeoView(){geoRotX=0.4;geoRotY=0.3;drawGeodesics();}
 function setGeoMode(m){geoMode=m;document.getElementById('geoModeGeo').classList.toggle('active',m==='geo');document.getElementById('geoModePar').classList.toggle('active',m==='parallel');drawGeodesics();}
 
@@ -972,11 +1307,7 @@ const gbCtx=gbC.getContext('2d');
 let gbSurface='sphere',gbTriSize=0.6,gbT=0,gbAnimId=null;
 let gbRotX=0.35,gbRotY=0.3,gbDragSX,gbDragSY,gbDragRX,gbDragRY,gbDragging=false;
 
-function resizeGB(){
-  const p=document.getElementById('panel2'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  gbC.width=r.width-sw;gbC.height=r.height;
-}
+function resizeGB(){ _resizeMainCanvas(gbC,'panel2'); }
 function setGBSurf(s){
   gbSurface=s;
   ['sphere','torus','double'].forEach(n=>document.getElementById('gb'+(['sphere','torus','double'].indexOf(n))).classList.toggle('active',n===s));
@@ -1130,11 +1461,7 @@ const riemannC=document.getElementById('riemannCanvas');
 const riemannCtx=riemannC.getContext('2d');
 let riemannDelta=0.5,riemannK=1.0,riemannT=0,riemannAnimId=null,riemannPlaying=true;
 
-function resizeRiemann(){
-  const p=document.getElementById('panel3'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  riemannC.width=Math.max(1,r.width-sw);riemannC.height=Math.max(1,r.height);
-}
+function resizeRiemann(){ _resizeMainCanvas(riemannC,'panel3'); }
 
 function toggleRiemannAnim(){
   riemannPlaying=!riemannPlaying;
@@ -1298,11 +1625,7 @@ let expBaseLat=45,expDirection=30,expArcLen=1.0,expMode='geodesic';
 let expRotX=0.4,expRotY=0.3,expAnimId=null;
 let expDragSX,expDragSY,expDragRX,expDragRY,expDragging=false;
 
-function resizeExpMap(){
-  const p=document.getElementById('panel4'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  expMapC.width=Math.max(1,r.width-sw);expMapC.height=Math.max(1,r.height);
-}
+function resizeExpMap(){ _resizeMainCanvas(expMapC,'panel4'); }
 function setExpMode(m){
   expMode=m;
   document.getElementById('expModeGeo').classList.toggle('active',m==='geodesic');
@@ -1487,11 +1810,7 @@ let curvSurface='sphere',curvMode='sectional';
 let curvAnimRunning=false,curvAnimId=null;
 let curvRotX=0.45,curvRotY=0.3,curvDragSX,curvDragSY,curvDragRX,curvDragRY,curvDragging=false;
 
-function resizeCurvatures(){
-  const p=document.getElementById('panel5'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  curvC.width=Math.max(1,r.width-sw);curvC.height=Math.max(1,r.height);
-}
+function resizeCurvatures(){ _resizeMainCanvas(curvC,'panel5'); }
 function setCurvSurface(s){
   curvSurface=s;
   ['sphere','torus','hyperboloid'].forEach(n=>document.getElementById('curv'+n.charAt(0).toUpperCase()+n.slice(1)).classList.toggle('active',n===s));
@@ -1615,11 +1934,7 @@ const connCtx=connC.getContext('2d');
 let connPath='meridian',connT=0,connPlaying=true,connAnimId=null,connDir=1;
 let connRotX=0.4,connRotY=0.3,connDragSX,connDragSY,connDragRX,connDragRY,connDragging=false;
 
-function resizeConnection(){
-  const p=document.getElementById('panel6'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  connC.width=Math.max(1,r.width-sw);connC.height=Math.max(1,r.height);
-}
+function resizeConnection(){ _resizeMainCanvas(connC,'panel6'); }
 function setConnPath(path){
   connPath=path;connT=0;
   document.getElementById('connMerid').classList.toggle('active',path==='meridian');
@@ -1796,11 +2111,7 @@ const sfC=document.getElementById('sfCanvas');
 const sfCtx=sfC.getContext('2d');
 let sfMode='all',sfViz='triangle',sfTriSize=0.5,sfAnimId=null;
 
-function resizeSpaceForms(){
-  const p=document.getElementById('panel7'),r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');let sw=0;sbs.forEach(s=>sw+=s.offsetWidth);
-  sfC.width=Math.max(1,r.width-sw);sfC.height=Math.max(1,r.height);
-}
+function resizeSpaceForms(){ _resizeMainCanvas(sfC,'panel7'); }
 function setSFMode(m){
   sfMode=m;
   ['all','sphere','flat','hyp'].forEach(n=>document.getElementById('sf'+n.charAt(0).toUpperCase()+n.slice(1)).classList.toggle('active',n===m));
@@ -1979,16 +2290,561 @@ function drawSpaceForms(){
   document.getElementById('sfAngleHyp').textContent=hypAngle+'°  (< 180°)';
 }
 
+// ═══ TAB 8: CARTAN FRAMES ═══
+const cartC=document.getElementById('cartCanvas');
+const cartCtx=cartC.getContext('2d');
+let cartT=0, cartRunning=false, cartPaused=false, cartAnimId=null, cartRho=1;
+function toggleCartPause(){ cartPaused=!cartPaused; _setPauseBtn('cartPauseBtn',cartPaused); }
+function resizeCart(){ _resizeMainCanvas(cartC,'panel8'); }
+function drawCartan(){
+  if(activeTab!==8) return;
+  const W=cartC.width,H=cartC.height; if(!W||!H) return;
+  cartCtx.setTransform(1,0,0,1,0,0); cartCtx.fillStyle='#05050f'; cartCtx.fillRect(0,0,W,H);
+  cartCtx.setTransform(1,0,0,1,pans[8].x,pans[8].y);
+  const L=_gLayout(W,H); const phase=cartT;
+  _gTitle(cartCtx,L,'Cartan coframe θ^i  ·  connection ω  ·  curvature Ω');
+  const cx=L.x+L.w*0.5, cy=L.y+L.h*0.48;
+  const R=Math.min(L.w,L.h)*0.28*cartRho;
+  // Surface disc with curvature coloring
+  _gClip(cartCtx,L);
+  const grd=cartCtx.createRadialGradient(cx,cy,0,cx,cy,R);
+  grd.addColorStop(0,'rgba(255,153,68,0.25)'); grd.addColorStop(1,'rgba(20,20,50,0.2)');
+  cartCtx.fillStyle=grd; cartCtx.beginPath(); cartCtx.arc(cx,cy,R,0,Math.PI*2); cartCtx.fill();
+  cartCtx.strokeStyle='rgba(255,153,68,0.5)'; cartCtx.lineWidth=1.5; cartCtx.stroke();
+  // Orthonormal frame rotating
+  const a=phase*0.7;
+  const e1x=Math.cos(a), e1y=Math.sin(a), e2x=-Math.sin(a), e2y=Math.cos(a);
+  const arm=R*0.55;
+  function arrow(dx,dy,col,lab){
+    cartCtx.strokeStyle=col; cartCtx.fillStyle=col; cartCtx.lineWidth=2.5;
+    cartCtx.beginPath(); cartCtx.moveTo(cx,cy); cartCtx.lineTo(cx+dx*arm,cy+dy*arm); cartCtx.stroke();
+    const tx=cx+dx*arm, ty=cy+dy*arm;
+    cartCtx.beginPath(); cartCtx.moveTo(tx,ty); cartCtx.lineTo(tx-dx*10-dy*5,ty-dy*10+dx*5); cartCtx.lineTo(tx-dx*10+dy*5,ty-dy*10-dx*5); cartCtx.fill();
+    cartCtx.font=L.f1+'px monospace'; cartCtx.fillText(lab, tx+6, ty-4);
+  }
+  arrow(e1x,e1y,'rgba(0,229,255,0.95)','e₁');
+  arrow(e2x,e2y,'rgba(136,255,68,0.95)','e₂');
+  // Curvature 2-form Ω as rotating gold parallelogram
+  const om=cartRho*cartRho;
+  const s=0.22*R*(0.7+0.3*Math.sin(phase*2));
+  cartCtx.fillStyle='rgba(255,204,0,0.22)';
+  cartCtx.beginPath();
+  cartCtx.moveTo(cx,cy);
+  cartCtx.lineTo(cx+e1x*s*2,cy+e1y*s*2);
+  cartCtx.lineTo(cx+(e1x+e2x)*s*2,cy+(e1y+e2y)*s*2);
+  cartCtx.lineTo(cx+e2x*s*2,cy+e2y*s*2);
+  cartCtx.closePath(); cartCtx.fill();
+  cartCtx.strokeStyle='rgba(255,204,0,0.85)'; cartCtx.lineWidth=1.5; cartCtx.stroke();
+  cartCtx.font=L.f1+'px monospace'; cartCtx.fillStyle='rgba(255,204,0,0.9)';
+  cartCtx.fillText('Ω', cx+(e1x+e2x)*s*1.2, cy+(e1y+e2y)*s*1.2);
+  // Connection form ω as dashed circle tick
+  cartCtx.strokeStyle='rgba(255,100,180,0.7)'; cartCtx.setLineDash([4,3]); cartCtx.lineDashOffset=-phase*20;
+  cartCtx.beginPath(); cartCtx.arc(cx,cy,R*0.75,a,a+1.2); cartCtx.stroke(); cartCtx.setLineDash([]);
+  cartCtx.restore();
+  const omEl=document.getElementById('cartOmVal'); if(omEl) omEl.textContent=om.toFixed(2)+' (∝ ρ²)';
+  _gFooter(cartCtx,L,'dθ = −ω∧θ   ·   Ω = dω + ω∧ω   ·   Levi-Civita T=0');
+  cartCtx.setTransform(1,0,0,1,0,0);
+}
+function cartLoop(){
+  if(activeTab!==8||!cartRunning){cartRunning=false;cartAnimId=null;return;}
+  if(!cartPaused) cartT+=0.03*(window.animSpeed||1);
+  drawCartan();
+  cartAnimId=requestAnimationFrame(cartLoop);
+}
+function startCartLoop(){
+  resizeCart(); cartRunning=true; cartPaused=false; _setPauseBtn('cartPauseBtn',false);
+  if(cartAnimId){cancelAnimationFrame(cartAnimId);cartAnimId=null;}
+  cartLoop();
+}
+
+// ═══ TAB 9: JACOBI FIELDS ═══
+const jacC=document.getElementById('jacCanvas');
+const jacCtx=jacC.getContext('2d');
+let jacT=0, jacRunning=false, jacPaused=false, jacAnimId=null, jacK=1;
+function toggleJacPause(){ jacPaused=!jacPaused; _setPauseBtn('jacPauseBtn',jacPaused); }
+function resizeJac(){ _resizeMainCanvas(jacC,'panel9'); }
+function jacobiAmp(K,t){
+  if(Math.abs(K)<1e-6) return t;
+  if(K>0){ const s=Math.sqrt(K); return Math.sin(s*t)/s; }
+  const s=Math.sqrt(-K); return Math.sinh(s*t)/s;
+}
+function drawJacobi(){
+  if(activeTab!==9) return;
+  const W=jacC.width,H=jacC.height; if(!W||!H) return;
+  jacCtx.setTransform(1,0,0,1,0,0); jacCtx.fillStyle='#05050f'; jacCtx.fillRect(0,0,W,H);
+  jacCtx.setTransform(1,0,0,1,pans[9].x,pans[9].y);
+  const L=_gLayout(W,H); const phase=jacT;
+  _gTitle(jacCtx,L,'Jacobi field J(t)  ·  geodesic deviation');
+  // axes
+  jacCtx.strokeStyle='#2a2a55'; jacCtx.lineWidth=1.5;
+  jacCtx.beginPath(); jacCtx.moveTo(L.x,L.y); jacCtx.lineTo(L.x,L.y+L.h); jacCtx.stroke();
+  jacCtx.beginPath(); jacCtx.moveTo(L.x,L.y+L.h); jacCtx.lineTo(L.x+L.w,L.y+L.h); jacCtx.stroke();
+  const tMax=Math.PI*1.6;
+  // sample max |J| for scale
+  let jMax=0.01;
+  for(let i=0;i<=80;i++){ jMax=Math.max(jMax, Math.abs(jacobiAmp(jacK, i/80*tMax))); }
+  const yMap=j=>_gClampY(L.y+L.h*0.5 - (j/jMax)*(L.h*0.42), L);
+  _gClip(jacCtx,L);
+  // family of nearby geodesics (visual tubes)
+  for(let g=-3;g<=3;g++){
+    if(g===0) continue;
+    jacCtx.strokeStyle='rgba(0,229,255,'+(0.15+0.08*Math.abs(g))+')'; jacCtx.lineWidth=1;
+    jacCtx.beginPath();
+    for(let i=0;i<=120;i++){
+      const t=i/120*tMax;
+      const J=jacobiAmp(jacK,t)*g*0.22;
+      const x=L.x+(t/tMax)*L.w;
+      const y=yMap(J);
+      i===0?jacCtx.moveTo(x,y):jacCtx.lineTo(x,y);
+    }
+    jacCtx.stroke();
+  }
+  // central geodesic
+  jacCtx.strokeStyle='rgba(255,255,255,0.35)'; jacCtx.lineWidth=1.5;
+  jacCtx.beginPath(); jacCtx.moveTo(L.x,L.y+L.h*0.5); jacCtx.lineTo(L.x+L.w,L.y+L.h*0.5); jacCtx.stroke();
+  // J(t) curve
+  jacCtx.strokeStyle='rgba(255,153,68,0.95)'; jacCtx.lineWidth=2.5;
+  jacCtx.beginPath();
+  for(let i=0;i<=160;i++){
+    const t=i/160*tMax;
+    const J=jacobiAmp(jacK,t);
+    const x=L.x+(t/tMax)*L.w;
+    const y=yMap(J);
+    i===0?jacCtx.moveTo(x,y):jacCtx.lineTo(x,y);
+  }
+  jacCtx.stroke();
+  // moving marker
+  const tM=((phase*0.35)%tMax+tMax)%tMax;
+  const JM=jacobiAmp(jacK,tM);
+  const xm=L.x+(tM/tMax)*L.w, ym=yMap(JM);
+  jacCtx.fillStyle='rgba(255,204,0,0.95)'; jacCtx.beginPath(); jacCtx.arc(xm,ym,4,0,Math.PI*2); jacCtx.fill();
+  // conjugate markers for K>0
+  if(jacK>0){
+    const tc=Math.PI/Math.sqrt(jacK);
+    if(tc<tMax){
+      const xc=L.x+(tc/tMax)*L.w;
+      jacCtx.strokeStyle='rgba(255,68,136,0.85)'; jacCtx.setLineDash([4,3]);
+      jacCtx.beginPath(); jacCtx.moveTo(xc,L.y); jacCtx.lineTo(xc,L.y+L.h); jacCtx.stroke();
+      jacCtx.setLineDash([]);
+      jacCtx.fillStyle='rgba(255,68,136,0.9)'; jacCtx.font=L.f1+'px monospace';
+      jacCtx.fillText('conj', Math.min(xc+4,L.x+L.w-30), L.y+L.f1+4);
+    }
+  }
+  jacCtx.restore();
+  const jEl=document.getElementById('jacJVal'); if(jEl) jEl.textContent=JM.toFixed(3);
+  const cEl=document.getElementById('jacConjVal');
+  if(cEl){
+    if(jacK<=0) cEl.textContent='none (K≤0 model)';
+    else { const tc=Math.PI/Math.sqrt(jacK); cEl.textContent=tM>=tc?'passed t=π/√K':'t_*=π/√K ≈ '+tc.toFixed(2); }
+  }
+  _gFooter(jacCtx,L,'J̈ + K J = 0   ·   marker t='+tM.toFixed(2));
+  jacCtx.setTransform(1,0,0,1,0,0);
+}
+function jacLoop(){
+  if(activeTab!==9||!jacRunning){jacRunning=false;jacAnimId=null;return;}
+  if(!jacPaused) jacT+=0.03*(window.animSpeed||1);
+  drawJacobi();
+  jacAnimId=requestAnimationFrame(jacLoop);
+}
+function startJacLoop(){
+  resizeJac(); jacRunning=true; jacPaused=false; _setPauseBtn('jacPauseBtn',false);
+  if(jacAnimId){cancelAnimationFrame(jacAnimId);jacAnimId=null;}
+  jacLoop();
+}
+
+// ═══ TAB 10: HOLONOMY ═══
+const holC=document.getElementById('holCanvas');
+const holCtx=holC.getContext('2d');
+let holT=0, holRunning=false, holPaused=false, holAnimId=null, holR=0.6, holK=1;
+function toggleHolPause(){ holPaused=!holPaused; _setPauseBtn('holPauseBtn',holPaused); }
+function resizeHol(){ _resizeMainCanvas(holC,'panel10'); }
+function drawHolonomy(){
+  if(activeTab!==10) return;
+  const W=holC.width,H=holC.height; if(!W||!H) return;
+  holCtx.setTransform(1,0,0,1,0,0); holCtx.fillStyle='#05050f'; holCtx.fillRect(0,0,W,H);
+  holCtx.setTransform(1,0,0,1,pans[10].x,pans[10].y);
+  const L=_gLayout(W,H); const phase=holT;
+  _gTitle(holCtx,L,'Holonomy around loop  ·  Ambrose–Singer');
+  const cx=L.x+L.w*0.5, cy=L.y+L.h*0.48;
+  const R=Math.min(L.w,L.h)*0.32*holR;
+  const area=Math.PI*R*R; // visual area prop.
+  const dphi=holK*(Math.PI*holR*holR); // ∬K dA ~ K π r² in model units
+  _gClip(holCtx,L);
+  // disk
+  holCtx.fillStyle='rgba(255,153,68,'+(0.08+0.06*Math.max(0,holK))+')';
+  holCtx.beginPath(); holCtx.arc(cx,cy,R,0,Math.PI*2); holCtx.fill();
+  holCtx.strokeStyle='rgba(0,229,255,0.85)'; holCtx.lineWidth=2.5;
+  holCtx.beginPath(); holCtx.arc(cx,cy,R,0,Math.PI*2); holCtx.stroke();
+  // particle on loop
+  const th=phase*0.9;
+  const px=cx+R*Math.cos(th), py=cy+R*Math.sin(th);
+  holCtx.fillStyle='#fff'; holCtx.beginPath(); holCtx.arc(px,py,5,0,Math.PI*2); holCtx.fill();
+  // transported vector: starts radial, accumulates rotation proportional to arc * K
+  const frac=((th%(Math.PI*2))+Math.PI*2)%(Math.PI*2)/(Math.PI*2);
+  const rot=dphi*frac;
+  const vx=Math.cos(th+rot)*R*0.35, vy=Math.sin(th+rot)*R*0.35;
+  holCtx.strokeStyle='rgba(255,204,0,0.95)'; holCtx.lineWidth=2.5;
+  holCtx.beginPath(); holCtx.moveTo(px,py); holCtx.lineTo(px+vx,py+vy); holCtx.stroke();
+  // initial reference
+  holCtx.strokeStyle='rgba(136,255,68,0.5)'; holCtx.setLineDash([3,3]);
+  holCtx.beginPath(); holCtx.moveTo(cx+R,cy); holCtx.lineTo(cx+R+R*0.35,cy); holCtx.stroke();
+  holCtx.setLineDash([]);
+  // deficit arc at base point
+  holCtx.strokeStyle='rgba(255,68,136,0.9)'; holCtx.lineWidth=2;
+  holCtx.beginPath(); holCtx.arc(cx+R,cy,18,0,dphi*(holK>=0?1:-1), holK<0); holCtx.stroke();
+  holCtx.restore();
+  const dEl=document.getElementById('holDphiVal'); if(dEl) dEl.textContent=(dphi*180/Math.PI).toFixed(1)+'°';
+  const aEl=document.getElementById('holAreaVal'); if(aEl) aEl.textContent='K·πr² ≈ '+(holK*Math.PI*holR*holR).toFixed(3);
+  _gFooter(holCtx,L,'Δφ = ∬_Σ K dA   ·   gold = parallel V   ·   progress '+(frac*100).toFixed(0)+'%');
+  holCtx.setTransform(1,0,0,1,0,0);
+}
+function holLoop(){
+  if(activeTab!==10||!holRunning){holRunning=false;holAnimId=null;return;}
+  if(!holPaused) holT+=0.03*(window.animSpeed||1);
+  drawHolonomy();
+  holAnimId=requestAnimationFrame(holLoop);
+}
+function startHolLoop(){
+  resizeHol(); holRunning=true; holPaused=false; _setPauseBtn('holPauseBtn',false);
+  if(holAnimId){cancelAnimationFrame(holAnimId);holAnimId=null;}
+  holLoop();
+}
+
+// ═══ TAB 11: MEAN CURVATURE FLOW ═══
+const mcfC=document.getElementById('mcfCanvas');
+const mcfCtx=mcfC.getContext('2d');
+let mcfT=0, mcfRunning=false, mcfPaused=false, mcfAnimId=null;
+let mcfPts=[];
+function toggleMcfPause(){ mcfPaused=!mcfPaused; _setPauseBtn('mcfPauseBtn',mcfPaused); }
+function resizeMcf(){ _resizeMainCanvas(mcfC,'panel11'); }
+function mcfInitShape(){
+  const shape=(document.getElementById('mcfShape')||{}).value||'ellipse';
+  const N=96; mcfPts=[];
+  for(let i=0;i<N;i++){
+    const t=i/N*Math.PI*2;
+    let x,y;
+    if(shape==='ellipse'){ x=1.4*Math.cos(t); y=0.75*Math.sin(t); }
+    else if(shape==='star'){ const r=1+0.28*Math.cos(5*t); x=r*Math.cos(t); y=r*Math.sin(t); }
+    else { // dumbbell-like
+      const r=0.85+0.45*Math.cos(2*t); x=1.15*r*Math.cos(t); y=0.7*r*Math.sin(t);
+    }
+    mcfPts.push({x,y});
+  }
+}
+function mcfReset(){ mcfInitShape(); mcfT=0; drawMCF(); }
+function mcfStep(dt){
+  const N=mcfPts.length; if(N<4) return;
+  const next=[];
+  for(let i=0;i<N;i++){
+    const p0=mcfPts[(i-1+N)%N], p1=mcfPts[i], p2=mcfPts[(i+1)%N];
+    const dx1=p1.x-p0.x, dy1=p1.y-p0.y, dx2=p2.x-p1.x, dy2=p2.y-p1.y;
+    // discrete curvature ~ turning / edge length
+    const a1=Math.atan2(dy1,dx1), a2=Math.atan2(dy2,dx2);
+    let d=a2-a1; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+    const len=Math.hypot(dx1,dy1)+1e-6;
+    const H=d/len;
+    // inward normal (left of tangent)
+    const tx=dx1/len, ty=dy1/len;
+    const nx=-ty, ny=tx;
+    // MCF: move along -H n for shrinking convex (sign convention)
+    const speed=0.35*dt;
+    next.push({x:p1.x - speed*H*nx*8, y:p1.y - speed*H*ny*8});
+  }
+  // mild reparameterization / smoothing
+  for(let i=0;i<N;i++){
+    const a=next[(i-1+N)%N], b=next[i], c=next[(i+1)%N];
+    mcfPts[i]={x:0.15*a.x+0.7*b.x+0.15*c.x, y:0.15*a.y+0.7*b.y+0.15*c.y};
+  }
+}
+function drawMCF(){
+  if(activeTab!==11) return;
+  const W=mcfC.width,H=mcfC.height; if(!W||!H) return;
+  if(!mcfPts.length) mcfInitShape();
+  mcfCtx.setTransform(1,0,0,1,0,0); mcfCtx.fillStyle='#05050f'; mcfCtx.fillRect(0,0,W,H);
+  mcfCtx.setTransform(1,0,0,1,pans[11].x,pans[11].y);
+  const L=_gLayout(W,H);
+  _gTitle(mcfCtx,L,'Mean curvature flow  ∂_t X = −H ν');
+  const cx=L.x+L.w/2, cy=L.y+L.h/2;
+  const sc=Math.min(L.w,L.h)*0.28;
+  _gClip(mcfCtx,L);
+  // grid
+  mcfCtx.strokeStyle='rgba(40,40,80,0.5)'; mcfCtx.lineWidth=1;
+  mcfCtx.beginPath(); mcfCtx.moveTo(L.x,cy); mcfCtx.lineTo(L.x+L.w,cy); mcfCtx.moveTo(cx,L.y); mcfCtx.lineTo(cx,L.y+L.h); mcfCtx.stroke();
+  // curve
+  mcfCtx.strokeStyle='rgba(0,229,255,0.95)'; mcfCtx.lineWidth=2.5;
+  mcfCtx.beginPath();
+  mcfPts.forEach((p,i)=>{
+    const x=cx+p.x*sc, y=cy+p.y*sc;
+    i===0?mcfCtx.moveTo(x,y):mcfCtx.lineTo(x,y);
+  });
+  mcfCtx.closePath(); mcfCtx.stroke();
+  mcfCtx.fillStyle='rgba(0,229,255,0.08)'; mcfCtx.fill();
+  // H glyphs on samples
+  let Hsum=0, len=0;
+  const N=mcfPts.length;
+  for(let i=0;i<N;i+=Math.max(1,(N/16)|0)){
+    const p0=mcfPts[(i-1+N)%N], p1=mcfPts[i], p2=mcfPts[(i+1)%N];
+    const dx1=p1.x-p0.x, dy1=p1.y-p0.y, dx2=p2.x-p1.x, dy2=p2.y-p1.y;
+    const a1=Math.atan2(dy1,dx1), a2=Math.atan2(dy2,dx2);
+    let d=a2-a1; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+    const el=Math.hypot(dx1,dy1)+1e-6;
+    const H=d/el; Hsum+=Math.abs(H); len+=el;
+    const nx=-(dy1/el), ny=dx1/el;
+    mcfCtx.strokeStyle='rgba(255,153,68,0.7)'; mcfCtx.lineWidth=1.5;
+    mcfCtx.beginPath();
+    mcfCtx.moveTo(cx+p1.x*sc, cy+p1.y*sc);
+    mcfCtx.lineTo(cx+(p1.x+nx*H*0.15)*sc, cy+(p1.y+ny*H*0.15)*sc);
+    mcfCtx.stroke();
+  }
+  mcfCtx.restore();
+  const hEl=document.getElementById('mcfHVal'); if(hEl) hEl.textContent=(Hsum/16).toFixed(3);
+  const lEl=document.getElementById('mcfLVal'); if(lEl) lEl.textContent=len.toFixed(3);
+  _gFooter(mcfCtx,L,'orange sticks ∝ discrete H   ·   convex curves → round points (GHG)');
+  mcfCtx.setTransform(1,0,0,1,0,0);
+}
+function mcfLoop(){
+  if(activeTab!==11||!mcfRunning){mcfRunning=false;mcfAnimId=null;return;}
+  if(!mcfPaused){
+    mcfT+=0.03*(window.animSpeed||1);
+    mcfStep(0.02*(window.animSpeed||1));
+  }
+  drawMCF();
+  mcfAnimId=requestAnimationFrame(mcfLoop);
+}
+function startMcfLoop(){
+  resizeMcf(); if(!mcfPts.length) mcfInitShape();
+  mcfRunning=true; mcfPaused=false; _setPauseBtn('mcfPauseBtn',false);
+  if(mcfAnimId){cancelAnimationFrame(mcfAnimId);mcfAnimId=null;}
+  mcfLoop();
+}
+
+// ═══ TAB 12: COMPARISON ═══
+const cmpC=document.getElementById('cmpCanvas');
+const cmpCtx=cmpC.getContext('2d');
+let cmpT=0, cmpRunning=false, cmpPaused=false, cmpAnimId=null, cmpK=0.5;
+function toggleCmpPause(){ cmpPaused=!cmpPaused; _setPauseBtn('cmpPauseBtn',cmpPaused); }
+function resizeCmp(){ _resizeMainCanvas(cmpC,'panel12'); }
+function drawCompare(){
+  if(activeTab!==12) return;
+  const W=cmpC.width,H=cmpC.height; if(!W||!H) return;
+  cmpCtx.setTransform(1,0,0,1,0,0); cmpCtx.fillStyle='#05050f'; cmpCtx.fillRect(0,0,W,H);
+  cmpCtx.setTransform(1,0,0,1,pans[12].x,pans[12].y);
+  const L=_gLayout(W,H); const phase=cmpT;
+  _gTitle(cmpCtx,L,'Rauch comparison  ·  model space M_κ');
+  const tMax=Math.PI*1.4;
+  let jMax=0.01;
+  for(let i=0;i<=60;i++){
+    const t=i/60*tMax;
+    jMax=Math.max(jMax, Math.abs(jacobiAmp(cmpK,t)), Math.abs(jacobiAmp(cmpK+0.6,t)));
+  }
+  const yMap=j=>_gClampY(L.y+L.h*0.55-(j/jMax)*(L.h*0.45),L);
+  cmpCtx.strokeStyle='#2a2a55'; cmpCtx.lineWidth=1.5;
+  cmpCtx.beginPath(); cmpCtx.moveTo(L.x,L.y); cmpCtx.lineTo(L.x,L.y+L.h); cmpCtx.stroke();
+  cmpCtx.beginPath(); cmpCtx.moveTo(L.x,L.y+L.h); cmpCtx.lineTo(L.x+L.w,L.y+L.h); cmpCtx.stroke();
+  _gClip(cmpCtx,L);
+  // model κ = cmpK (gold)
+  cmpCtx.strokeStyle='rgba(255,204,0,0.95)'; cmpCtx.lineWidth=2.5;
+  cmpCtx.beginPath();
+  for(let i=0;i<=140;i++){
+    const t=i/140*tMax, J=jacobiAmp(cmpK,t);
+    const x=L.x+(t/tMax)*L.w, y=yMap(Math.abs(J));
+    i===0?cmpCtx.moveTo(x,y):cmpCtx.lineTo(x,y);
+  }
+  cmpCtx.stroke();
+  // "manifold" with K ≥ κ → smaller |J| (cyan): use higher K
+  const Kman=cmpK+0.8;
+  cmpCtx.strokeStyle='rgba(0,229,255,0.9)'; cmpCtx.lineWidth=2.2; cmpCtx.setLineDash([5,3]);
+  cmpCtx.lineDashOffset=-phase*12;
+  cmpCtx.beginPath();
+  for(let i=0;i<=140;i++){
+    const t=i/140*tMax, J=jacobiAmp(Kman,t);
+    const x=L.x+(t/tMax)*L.w, y=yMap(Math.abs(J));
+    i===0?cmpCtx.moveTo(x,y):cmpCtx.lineTo(x,y);
+  }
+  cmpCtx.stroke(); cmpCtx.setLineDash([]);
+  // sweep marker
+  const tM=((phase*0.3)%tMax);
+  const xM=L.x+(tM/tMax)*L.w;
+  cmpCtx.strokeStyle='rgba(255,100,150,0.7)'; cmpCtx.beginPath(); cmpCtx.moveTo(xM,L.y); cmpCtx.lineTo(xM,L.y+L.h); cmpCtx.stroke();
+  cmpCtx.restore();
+  cmpCtx.fillStyle='rgba(255,204,0,0.9)'; cmpCtx.font=L.f1+'px monospace';
+  cmpCtx.fillText('model |J_κ|', L.x+6, L.y+L.f1+4);
+  cmpCtx.fillStyle='rgba(0,229,255,0.9)';
+  cmpCtx.fillText('manifold K≥κ  |J|≤|J_κ|', L.x+6, L.y+L.f1*2+10);
+  _gFooter(cmpCtx,L,'Bishop–Gromov / Bonnet–Myers follow from same comparison philosophy');
+  cmpCtx.setTransform(1,0,0,1,0,0);
+}
+function cmpLoop(){
+  if(activeTab!==12||!cmpRunning){cmpRunning=false;cmpAnimId=null;return;}
+  if(!cmpPaused) cmpT+=0.03*(window.animSpeed||1);
+  drawCompare();
+  cmpAnimId=requestAnimationFrame(cmpLoop);
+}
+function startCmpLoop(){
+  resizeCmp(); cmpRunning=true; cmpPaused=false; _setPauseBtn('cmpPauseBtn',false);
+  if(cmpAnimId){cancelAnimationFrame(cmpAnimId);cmpAnimId=null;}
+  cmpLoop();
+}
+
+// ═══ TAB 13: SECTIONAL ═══
+const secC=document.getElementById('secCanvas');
+const secCtx=secC.getContext('2d');
+let secT=0, secRunning=false, secPaused=false, secAnimId=null, secA=0.5;
+function toggleSecPause(){ secPaused=!secPaused; _setPauseBtn('secPauseBtn',secPaused); }
+function resizeSec(){ _resizeMainCanvas(secC,'panel13'); }
+// Toy anisotropic metric on R^3: sectional curvatures vary by plane
+function toySectional(alpha){
+  // K(σ) oscillates with plane orientation — pedagogical ellipsoid of curvatures
+  return 0.6+0.5*Math.cos(2*alpha)+0.2*Math.sin(3*alpha);
+}
+function drawSectional(){
+  if(activeTab!==13) return;
+  const W=secC.width,H=secC.height; if(!W||!H) return;
+  secCtx.setTransform(1,0,0,1,0,0); secCtx.fillStyle='#05050f'; secCtx.fillRect(0,0,W,H);
+  secCtx.setTransform(1,0,0,1,pans[13].x,pans[13].y);
+  const L=_gLayout(W,H); const phase=secT;
+  _gTitle(secCtx,L,'Sectional K(σ) on unit sphere in T_pM');
+  const cx=L.x+L.w*0.38, cy=L.y+L.h*0.5;
+  const R=Math.min(L.w*0.28, L.h*0.38);
+  const alpha=secA+phase*0.25;
+  _gClip(secCtx,L);
+  // sphere of directions
+  secCtx.strokeStyle='rgba(100,100,160,0.6)'; secCtx.lineWidth=1.5;
+  secCtx.beginPath(); secCtx.arc(cx,cy,R,0,Math.PI*2); secCtx.stroke();
+  // great circles
+  for(let k=0;k<4;k++){
+    const a=k*Math.PI/4;
+    secCtx.beginPath();
+    for(let i=0;i<=40;i++){
+      const t=i/40*Math.PI*2;
+      const x=cx+R*Math.cos(t)*Math.cos(a);
+      const y=cy+R*Math.sin(t);
+      i===0?secCtx.moveTo(x,y):secCtx.lineTo(x,y);
+    }
+    secCtx.strokeStyle='rgba(60,60,100,0.45)'; secCtx.stroke();
+  }
+  // plane σ as disc slice
+  const Ks=toySectional(alpha);
+  secCtx.fillStyle='rgba(255,153,68,'+(0.15+0.2*Math.max(0,Ks))+')';
+  secCtx.beginPath();
+  secCtx.ellipse(cx,cy,R*0.95,R*0.35,alpha,0,Math.PI*2);
+  secCtx.fill();
+  secCtx.strokeStyle='rgba(255,153,68,0.95)'; secCtx.lineWidth=2; secCtx.stroke();
+  // basis u,v
+  secCtx.strokeStyle='rgba(0,229,255,0.9)'; secCtx.lineWidth=2;
+  secCtx.beginPath(); secCtx.moveTo(cx,cy); secCtx.lineTo(cx+R*Math.cos(alpha),cy+R*0.35*Math.sin(alpha)); secCtx.stroke();
+  secCtx.strokeStyle='rgba(136,255,68,0.9)';
+  secCtx.beginPath(); secCtx.moveTo(cx,cy); secCtx.lineTo(cx-R*0.35*Math.sin(alpha),cy+R*Math.cos(alpha)*0.5); secCtx.stroke();
+  // Ricci / scalar bars on right
+  const barX=L.x+L.w*0.68, barW=L.w*0.26;
+  const samples=[0,1,2,3,4,5].map(i=>toySectional(alpha+i));
+  const ric=samples.reduce((a,b)=>a+b,0)/samples.length;
+  const sc=ric*1.2; // toy
+  function bar(y,val,col,lab){
+    const h=Math.min(L.h*0.12, Math.abs(val)*40);
+    secCtx.fillStyle=col;
+    secCtx.fillRect(barX, y-h, barW*Math.min(1,Math.abs(val)/1.5), h);
+    secCtx.fillStyle='rgba(200,200,230,0.85)'; secCtx.font=L.f1+'px monospace';
+    secCtx.fillText(lab+'='+val.toFixed(2), barX, y+L.f1+2);
+  }
+  bar(L.y+L.h*0.3, Ks, 'rgba(255,153,68,0.85)', 'K(σ)');
+  bar(L.y+L.h*0.55, ric, 'rgba(0,229,255,0.85)', 'Ric');
+  bar(L.y+L.h*0.8, sc, 'rgba(255,204,0,0.85)', 'R');
+  secCtx.restore();
+  const kEl=document.getElementById('secKVal'); if(kEl) kEl.textContent=Ks.toFixed(3);
+  const rEl=document.getElementById('secRicVal'); if(rEl) rEl.textContent=ric.toFixed(3);
+  const sEl=document.getElementById('secScVal'); if(sEl) sEl.textContent=sc.toFixed(3);
+  _gFooter(secCtx,L,'plane σ rotates in T_p   ·   bars = averages over planes');
+  secCtx.setTransform(1,0,0,1,0,0);
+}
+function secLoop(){
+  if(activeTab!==13||!secRunning){secRunning=false;secAnimId=null;return;}
+  if(!secPaused) secT+=0.03*(window.animSpeed||1);
+  drawSectional();
+  secAnimId=requestAnimationFrame(secLoop);
+}
+function startSecLoop(){
+  resizeSec(); secRunning=true; secPaused=false; _setPauseBtn('secPauseBtn',false);
+  if(secAnimId){cancelAnimationFrame(secAnimId);secAnimId=null;}
+  secLoop();
+}
+
+// ═══ TAB 14: CHAR CLASSES ═══
+const chC=document.getElementById('chCanvas');
+const chCtx=chC.getContext('2d');
+let chT=0, chRunning=false, chPaused=false, chAnimId=null, chN=1;
+function toggleChPause(){ chPaused=!chPaused; _setPauseBtn('chPauseBtn',chPaused); }
+function resizeCh(){ _resizeMainCanvas(chC,'panel14'); }
+function drawChar(){
+  if(activeTab!==14) return;
+  const W=chC.width,H=chC.height; if(!W||!H) return;
+  chCtx.setTransform(1,0,0,1,0,0); chCtx.fillStyle='#05050f'; chCtx.fillRect(0,0,W,H);
+  chCtx.setTransform(1,0,0,1,pans[14].x,pans[14].y);
+  const L=_gLayout(W,H); const phase=chT;
+  _gTitle(chCtx,L,'U(1) monopole on S²  ·  c₁ = F/2π');
+  const cx=L.x+L.w*0.5, cy=L.y+L.h*0.48;
+  const R=Math.min(L.w,L.h)*0.34;
+  _gClip(chCtx,L);
+  // sphere
+  chCtx.strokeStyle='rgba(100,120,180,0.7)'; chCtx.lineWidth=1.5;
+  chCtx.beginPath(); chCtx.arc(cx,cy,R,0,Math.PI*2); chCtx.stroke();
+  // latitude lines + field strength coloring
+  for(let j=1;j<6;j++){
+    const u=j/6;
+    const ry=R*Math.sin(u*Math.PI);
+    const yy=cy-R*Math.cos(u*Math.PI);
+    const dens=chN*Math.sin(u*Math.PI); // flux density ~ sinθ for monopole
+    chCtx.strokeStyle='rgba(255,153,68,'+(0.25+0.35*Math.abs(dens)/Math.max(1,chN))+')';
+    chCtx.lineWidth=1+Math.abs(dens);
+    chCtx.beginPath(); chCtx.ellipse(cx,yy,R*Math.sin(u*Math.PI), ry*0.22, 0, 0, Math.PI*2); chCtx.stroke();
+  }
+  // parallel transport of phase around a latitude
+  const lat=0.35+0.15*Math.sin(phase*0.5);
+  const ry=R*Math.sin(lat*Math.PI);
+  const yy=cy-R*Math.cos(lat*Math.PI);
+  const th=phase*1.1;
+  const px=cx+ry*Math.cos(th), py=yy+ry*0.22*Math.sin(th);
+  // Berry phase accumulation ~ n * solid angle
+  const solid=2*Math.PI*(1-Math.cos(lat*Math.PI))*chN; // rough
+  const phi=th*chN*(1-Math.cos(lat*Math.PI));
+  chCtx.strokeStyle='rgba(0,229,255,0.9)'; chCtx.lineWidth=2;
+  chCtx.beginPath(); chCtx.ellipse(cx,yy,ry,ry*0.22,0,0,Math.PI*2); chCtx.stroke();
+  chCtx.fillStyle='#fff'; chCtx.beginPath(); chCtx.arc(px,py,4,0,Math.PI*2); chCtx.fill();
+  const vx=12*Math.cos(phi), vy=12*Math.sin(phi);
+  chCtx.strokeStyle='rgba(255,204,0,0.95)'; chCtx.lineWidth=2.5;
+  chCtx.beginPath(); chCtx.moveTo(px,py); chCtx.lineTo(px+vx,py+vy); chCtx.stroke();
+  // north pole flux glyph
+  chCtx.fillStyle='rgba(255,68,136,0.9)';
+  chCtx.beginPath(); chCtx.arc(cx,cy-R,6,0,Math.PI*2); chCtx.fill();
+  chCtx.font=L.f1+'px monospace'; chCtx.fillText('n='+chN, cx+10, cy-R+4);
+  chCtx.restore();
+  const intEl=document.getElementById('chIntVal'); if(intEl) intEl.textContent=String(chN)+' ∈ ℤ';
+  const flEl=document.getElementById('chFluxVal'); if(flEl) flEl.textContent='2π n = '+(2*Math.PI*chN).toFixed(2);
+  _gFooter(chCtx,L,'∫_{S²} c₁ = n   ·   gold arrow = U(1) phase after transport');
+  chCtx.setTransform(1,0,0,1,0,0);
+}
+function chLoop(){
+  if(activeTab!==14||!chRunning){chRunning=false;chAnimId=null;return;}
+  if(!chPaused) chT+=0.03*(window.animSpeed||1);
+  drawChar();
+  chAnimId=requestAnimationFrame(chLoop);
+}
+function startChLoop(){
+  resizeCh(); chRunning=true; chPaused=false; _setPauseBtn('chPauseBtn',false);
+  if(chAnimId){cancelAnimationFrame(chAnimId);chAnimId=null;}
+  chLoop();
+}
+
+// Wire slider live vars for new tabs
+[['cartRho',v=>{cartRho=v}],['jacK',v=>{jacK=v}],['holR',v=>{holR=v}],['holK',v=>{holK=v}],['cmpK',v=>{cmpK=v}],['secA',v=>{secA=v}],['chN',v=>{chN=v}]].forEach(([id,fn])=>{
+  const el=document.getElementById(id); if(el) el.addEventListener('input',e=>fn(+e.target.value));
+});
+
 function resizeAll(){
   resizeSurf();resizeGeo();resizeGB();resizeRiemann();resizeExpMap();resizeCurvatures();resizeConnection();resizeSpaceForms();
-  if(activeTab===0)drawSurface();
-  if(activeTab===1)drawGeodesics();
-  if(activeTab===2)drawGB();
-  if(activeTab===3)drawRiemann();
-  if(activeTab===4)drawExpMap();
-  if(activeTab===5)drawCurvatures();
-  if(activeTab===6)drawConnection();
-  if(activeTab===7)drawSpaceForms();
+  resizeCart();resizeJac();resizeHol();resizeMcf();resizeCmp();resizeSec();resizeCh();
+  const draws=[drawSurface,drawGeodesics,drawGB,drawRiemann,drawExpMap,drawCurvatures,drawConnection,drawSpaceForms,drawCartan,drawJacobi,drawHolonomy,drawMCF,drawCompare,drawSectional,drawChar];
+  if(draws[activeTab]) draws[activeTab]();
 }
 window.addEventListener('resize',resizeAll);
 
@@ -2005,6 +2861,13 @@ setTimeout(()=>{
   _addPan(curvC,5,drawCurvatures);
   _addPan(connC,6,drawConnection);
   _addPan(sfC,7,drawSpaceForms);
+  _addPan(cartC,8,drawCartan);
+  _addPan(jacC,9,drawJacobi);
+  _addPan(holC,10,drawHolonomy);
+  _addPan(mcfC,11,drawMCF);
+  _addPan(cmpC,12,drawCompare);
+  _addPan(secC,13,drawSectional);
+  _addPan(chC,14,drawChar);
   autoStartAnimations();
   switchTab(0);
 },120);
