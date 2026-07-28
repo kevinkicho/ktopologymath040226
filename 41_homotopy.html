@@ -27,8 +27,8 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 
 .badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px;font-family:'Orbitron',sans-serif}
 .title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em;font-family:'Orbitron',sans-serif;text-shadow:0 0 18px #ff884466}
 .title-block p{font-size:.8rem;color:var(--dim);margin-top:2px}
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px;flex-shrink:0}
-.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s;font-family:'Share Tech Mono',monospace}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 12px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%}
+.tab{padding:10px 12px;cursor:pointer;font-size:.78rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s;font-family:'Share Tech Mono',monospace;white-space:nowrap;flex-shrink:0}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab:hover:not(.active){color:var(--text)}
 .pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden;min-height:0}
@@ -74,7 +74,7 @@ button.loop-disabled{opacity:0.5;pointer-events:none}
   <span class="badge">Ch. 12–16</span>
   <div class="title-block">
     <h1>Algebraic Topology &amp; Homotopy</h1>
-    <p>Fundamental group, covering spaces, knot theory, and the shape of space</p>
+    <p>πₙ, covers, CW, van Kampen, fibrations, Whitehead, spectral sequences, MCG, TDA</p>
   </div>
 </header>
 
@@ -88,6 +88,12 @@ button.loop-disabled{opacity:0.5;pointer-events:none}
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(6)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(6)}">Bott Periodicity</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(7)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(7)}">Homology Groups</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(8)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(8)}">Hurewicz Theorem</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(9)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(9)}">Seifert–van Kampen</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(10)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(10)}">Fibration LES</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(11)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(11)}">Whitehead Theorem</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(12)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(12)}">Spectral Sequences</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(13)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(13)}">Mapping Class Groups</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(14)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(14)}">Persistent Homology</div>
 </div>
 
 <!-- ===================== TAB 0 ===================== -->
@@ -446,6 +452,230 @@ button.loop-disabled{opacity:0.5;pointer-events:none}
   </div>
 </div>
 
+<!-- ===================== TAB 9 — SEIFERT–VAN KAMPEN ===================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane9">
+  <div class="canvas-col">
+    <canvas aria-label="41 · Seifert–van Kampen theorem" id="c9"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim9" class="animBtn" onclick="toggleAnim9()">▶ Animate</button>
+      <button onclick="setSvK('wedge')" class="act" id="svk_wedge">Wedge S¹∨S¹</button>
+      <button onclick="setSvK('torus')" id="svk_torus">Torus Pushout</button>
+      <button onclick="setSvK('rp2')" id="svk_rp2">RP² = D²∪_2 S¹</button>
+      <button onclick="setSvK('amalg')" id="svk_amalg">Amalgamation</button>
+      <button onclick="resetTab41(9)">Reset</button>
+      <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal9">0.10x</span>
+    </div>
+    <div class="info-box" id="svkInfo">Seifert–van Kampen: $\pi_1(X)\cong\pi_1(A)*_{\pi_1(A\cap B)}\pi_1(B)$ when $X=A\cup B$ with $A,B,A\cap B$ path-connected open sets.</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Seifert–van Kampen</h3>
+    <ul class="eq-list">
+      <li><span class="lbl">$X=A\cup B$</span> open cover, $A\cap B$ path-conn.</li>
+      <li><span class="lbl">$\pi_1(X)\cong\pi_1(A)*_{\pi_1(U)}\pi_1(B)$</span></li>
+      <li><span class="lbl">Pushout in Grp</span> — free product with amalgamation</li>
+      <li><span class="lbl">$S^1\vee S^1$</span>: $\pi_1=F_2=\langle a,b\rangle$</li>
+      <li><span class="lbl">$T^2$</span>: $\langle a,b\mid [a,b]\rangle\cong\mathbb{Z}^2$</li>
+      <li><span class="lbl">$\mathbb{R}P^2$</span>: $\langle a\mid a^2\rangle\cong\mathbb{Z}/2$</li>
+    </ul>
+    <div class="note">
+      <strong style="color:var(--text)">Statement:</strong> Given open path-connected $A,B\subset X$ with $X=A\cup B$ and $U=A\cap B$ path-connected, the inclusions induce a pushout square in groups, so $\pi_1(X)$ is the amalgamated free product of $\pi_1(A)$ and $\pi_1(B)$ over $\pi_1(U)$.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">CW presentation:</strong> Attaching an $n$-cell along $f:S^{n-1}\to X$ for $n\ge 2$ kills $[\tilde f]\in\pi_{n-1}$ (relative). For $n=2$, van Kampen / cellular $\pi_1$ adds the relation given by the attaching word.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Frontier:</strong> Higher van Kampen theorems (Brown–Loday, Ellis–Steiner) use cat$^n$-groups / crossed modules for $\pi_n$. Colimits of spaces do not always yield colimits of $\pi_*$ beyond dimension 1 without extra structure.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 10 — FIBRATION LES ===================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane10">
+  <div class="canvas-col">
+    <canvas aria-label="41 · Fibration long exact sequence of homotopy" id="c10"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim10" class="animBtn" onclick="toggleAnim10()">▶ Animate</button>
+      <button onclick="setFibLES('hopf')" class="act" id="fib_hopf">Hopf S¹→S³→S²</button>
+      <button onclick="setFibLES('path')" id="fib_path">Path Fibration</button>
+      <button onclick="setFibLES('sphere')" id="fib_sphere">Sphere Bundle</button>
+      <button onclick="setFibLES('lesanim')" id="fib_lesanim">LES Chase</button>
+      <button onclick="resetTab41(10)">Reset</button>
+      <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal10">0.10x</span>
+    </div>
+    <div class="info-box" id="fibInfo">Fibration $F\hookrightarrow E\xrightarrow{p}B$ yields long exact $\cdots\to\pi_n(F)\to\pi_n(E)\to\pi_n(B)\xrightarrow{\partial}\pi_{n-1}(F)\to\cdots$.</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Fibration Homotopy LES</h3>
+    <ul class="eq-list">
+      <li><span class="lbl">$F\to E\to B$</span> Serre/Hurewicz fibration</li>
+      <li><span class="lbl">$\partial:\pi_n(B)\to\pi_{n-1}(F)$</span> connecting map</li>
+      <li><span class="lbl">Exactness</span> at every term of the LES</li>
+      <li><span class="lbl">Hopf:</span> $\pi_n(S^3)\cong\pi_n(S^2)$ for $n\ge 3$</li>
+      <li><span class="lbl">$\Omega B\to PB\to B$</span> path fibration</li>
+      <li><span class="lbl">$\pi_n(B)\cong\pi_{n-1}(\Omega B)$</span></li>
+    </ul>
+    <div class="note">
+      <strong style="color:var(--text)">Connecting homomorphism:</strong> Represent $\alpha\in\pi_n(B)$ by $f:(D^n,\partial D^n)\to(B,b_0)$. Lift to $\tilde f:D^n\to E$ with $\tilde f|_{\partial}=?$ landing in $F$; restrict gives $\partial\alpha\in\pi_{n-1}(F)$.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Hopf calculation:</strong> From $S^1\to S^3\to S^2$, exactness and $\pi_k(S^1)=0$ for $k\ge 2$ force $\pi_n(S^3)\xrightarrow{\cong}\pi_n(S^2)$ for $n\ge 3$, and $\partial:\pi_2(S^2)\to\pi_1(S^1)$ is $\mathbb{Z}\xrightarrow{\cong}\mathbb{Z}$.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Frontier:</strong> Quasi-fibrations (Dold–Thom), fiber sequences in $\infty$-categories, and Blakers–Massey excision control how far the LES remains exact after replacements.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 11 — WHITEHEAD THEOREM ===================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane11">
+  <div class="canvas-col">
+    <canvas aria-label="41 · Whitehead theorem and weak equivalences" id="c11"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim11" class="animBtn" onclick="toggleAnim11()">▶ Animate</button>
+      <button onclick="setWhitehead('weak')" class="act" id="wh_weak">Weak Equivalence</button>
+      <button onclick="setWhitehead('cw')" id="wh_cw">CW Approximation</button>
+      <button onclick="setWhitehead('thm')" id="wh_thm">Whitehead Thm</button>
+      <button onclick="setWhitehead('counter')" id="wh_counter">Counterexample</button>
+      <button onclick="resetTab41(11)">Reset</button>
+      <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal11">0.10x</span>
+    </div>
+    <div class="info-box" id="whInfo">Weak homotopy equivalence: $f$ induces isomorphisms on all $\pi_n$. Whitehead: for CW complexes, weak $\Rightarrow$ homotopy equivalence.</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Whitehead &amp; Weak Equivalences</h3>
+    <ul class="eq-list">
+      <li><span class="lbl">Weak eq:</span> $f_*:\pi_n(X)\xrightarrow{\cong}\pi_n(Y)$ $\forall n$</li>
+      <li><span class="lbl">Whitehead thm:</span> CW + weak $\Rightarrow$ $f$ homotopy eq</li>
+      <li><span class="lbl">CW approx:</span> $\Gamma X\to X$ weak eq, $\Gamma X$ CW</li>
+      <li><span class="lbl">Model cat:</span> Quillen structure on Top / sSet</li>
+      <li><span class="lbl">Not iff:</span> non-CW spaces can fail converse</li>
+      <li><span class="lbl">$H_*$ isos</span> do not imply weak eq (Hurewicz gap)</li>
+    </ul>
+    <div class="note">
+      <strong style="color:var(--text)">Whitehead (1949):</strong> If $X,Y$ are connected CW complexes and $f:X\to Y$ induces isomorphisms on all $\pi_n$, then $f$ is a homotopy equivalence (has a homotopy inverse).
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">CW approximation:</strong> Every space $X$ admits a CW complex $\Gamma X$ and a weak equivalence $\gamma:\Gamma X\to X$. Homotopy theory of spaces is essentially that of CW complexes up to weak equivalence (Quillen model structure).
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Frontier:</strong> In $\infty$-categories, weak equivalences become equivalences in the localization. Cellular approximation, Postnikov towers, and obstruction theory refine when maps lift up to homotopy.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 12 — SPECTRAL SEQUENCES LITE ===================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane12">
+  <div class="canvas-col">
+    <canvas aria-label="41 · Spectral sequences of spaces lite" id="c12"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim12" class="animBtn" onclick="toggleAnim12()">▶ Animate</button>
+      <button onclick="setSSeq('serre')" class="act" id="ss_serre">Serre SS Page</button>
+      <button onclick="setSSeq('hopf')" id="ss_hopf">Hopf Fibration SS</button>
+      <button onclick="setSSeq('diff')" id="ss_diff">Differentials $d_r$</button>
+      <button onclick="setSSeq('conv')" id="ss_conv">Convergence</button>
+      <button onclick="resetTab41(12)">Reset</button>
+      <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal12">0.10x</span>
+    </div>
+    <div class="info-box" id="ssInfo">Serre spectral sequence: $E^2_{p,q}=H_p(B;H_q(F))\Rightarrow H_{p+q}(E)$ for a Serre fibration $F\to E\to B$ (orientable local coeffs).</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Spectral Sequences (Spaces)</h3>
+    <ul class="eq-list">
+      <li><span class="lbl">$E^r_{p,q}$</span> pages with $d_r:E^r_{p,q}\to E^r_{p-r,q+r-1}$</li>
+      <li><span class="lbl">$E^{r+1}=H(E^r,d_r)$</span></li>
+      <li><span class="lbl">Serre:</span> $E^2=H_*(B;H_*(F))\Rightarrow H_*(E)$</li>
+      <li><span class="lbl">Atiyah–Hirzebruch</span> for generalized cohomology</li>
+      <li><span class="lbl">ADAMS SS</span> for stable stems (frontier)</li>
+      <li><span class="lbl">Convergence</span> to associated graded of filtration</li>
+    </ul>
+    <div class="note">
+      <strong style="color:var(--text)">Serre SS intuition:</strong> Filter total space by preimages of skeleta of the base. The $E^2$ page packages base homology with fiber homology coefficients; differentials encode twisting and attaching.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Hopf example:</strong> For $S^1\to S^3\to S^2$, only a few $E^2$ slots are nonzero; $d_2$ kills the fiber class against the base fundamental class, recovering $H_*(S^3)$.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Frontier:</strong> Adams, ANSS, motivic SS, and synthetic spectra compute stable homotopy groups. This tab stays "lite" — full machine computations live in research software (e.g. Ext charts).
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 13 — MAPPING CLASS GROUPS ===================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane13">
+  <div class="canvas-col">
+    <canvas aria-label="41 · Mapping class groups lite" id="c13"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim13" class="animBtn" onclick="toggleAnim13()">▶ Animate</button>
+      <button onclick="setMCG('torus')" class="act" id="mcg_torus">MCG(T²)=SL₂ℤ</button>
+      <button onclick="setMCG('dehn')" id="mcg_dehn">Dehn Twist</button>
+      <button onclick="setMCG('genus2')" id="mcg_genus2">Σ₂ Generators</button>
+      <button onclick="setMCG('pants')" id="mcg_pants">Pants Decomp</button>
+      <button onclick="resetTab41(13)">Reset</button>
+      <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal13">0.10x</span>
+    </div>
+    <div class="info-box" id="mcgInfo">Mapping class group $\mathrm{Mod}(S)=\pi_0\mathrm{Homeo}^+(S)$: isotopy classes of orientation-preserving homeomorphisms of surface $S$.</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Mapping Class Groups</h3>
+    <ul class="eq-list">
+      <li><span class="lbl">$\mathrm{Mod}(S_g)=\pi_0\mathrm{Diff}^+(S_g)$</span></li>
+      <li><span class="lbl">$\mathrm{Mod}(T^2)\cong\mathrm{SL}(2,\mathbb{Z})$</span></li>
+      <li><span class="lbl">Dehn twist $\tau_c$</span> about simple closed curve $c$</li>
+      <li><span class="lbl">Lickorish–Humphries</span> finite Dehn generators</li>
+      <li><span class="lbl">Action on $H_1$</span> via symplectic rep $\Psi$</li>
+      <li><span class="lbl">Torelli</span> $\mathcal{I}_g=\ker\Psi$</li>
+    </ul>
+    <div class="note">
+      <strong style="color:var(--text)">Dehn twist:</strong> Cut along simple closed curve $c$, rotate one side by $2\pi$, reglue. Generates (with enough curves) the full mapping class group of an orientable surface.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Torus:</strong> $\mathrm{Mod}(T^2)\cong\mathrm{SL}(2,\mathbb{Z})$ acts on $H_1(T^2)=\mathbb{Z}^2$ by linear automorphisms of determinant 1. Farey tessellation encodes the curve complex of $T^2$.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Frontier:</strong> Curve complex hyperbolicity (Masur–Minsky), Nielsen–Thurston classification, Mirzakhani volumes of $\mathcal{M}_g$, and TQFT representations of mapping class groups.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 14 — PERSISTENT HOMOLOGY / TDA ===================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane14">
+  <div class="canvas-col">
+    <canvas aria-label="41 · Persistent homology and TDA lite" id="c14"></canvas>
+    <div class="controls" data-role="sidebar">
+      <button id="btnAnim14" class="animBtn" onclick="toggleAnim14()">▶ Animate</button>
+      <button onclick="setTDA('cloud')" class="act" id="tda_cloud">Point Cloud</button>
+      <button onclick="setTDA('rips')" id="tda_rips">Vietoris–Rips</button>
+      <button onclick="setTDA('barcode')" id="tda_barcode">Barcode</button>
+      <button onclick="setTDA('diagram')" id="tda_diagram">Persistence Diagram</button>
+      <button onclick="resetTab41(14)">Reset</button>
+      <label>ε:</label><input type="range" id="slEps" min="1" max="100" value="35" oninput="document.getElementById('epsVal').textContent=(this.value/100).toFixed(2);draw14()">
+      <span id="epsVal">0.35</span>
+      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal14">0.10x</span>
+    </div>
+    <div class="info-box" id="tdaInfo">Persistent homology tracks births/deaths of homology classes across a filtration — stable shape descriptors for data (TDA).</div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Persistent Homology / TDA</h3>
+    <ul class="eq-list">
+      <li><span class="lbl">Filtration</span> $K_{\varepsilon}\subset K_{\varepsilon'}$ for $\varepsilon\le\varepsilon'$</li>
+      <li><span class="lbl">Vietoris–Rips</span> $R_\varepsilon(X)$: cliques on $\varepsilon$-graph</li>
+      <li><span class="lbl">Barcode</span> intervals $[b,d)$ of feature lifetime</li>
+      <li><span class="lbl">PD</span> points $(b,d)$ in birth–death plane</li>
+      <li><span class="lbl">Stability</span> bottleneck distance $\le$ Gromov–Hausdorff</li>
+      <li><span class="lbl">$\mathrm{PH}_k$</span> module over $\mathbb{k}[t]$ (structure thm)</li>
+    </ul>
+    <div class="note">
+      <strong style="color:var(--text)">Pipeline:</strong> Point cloud $\to$ nested complexes (Rips/Čech/alpha) $\to$ chain complexes $\to$ persistent homology barcodes. Long bars = robust features; short bars = noise.
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Stability theorem:</strong> The bottleneck distance between persistence diagrams is bounded by the Gromov–Hausdorff distance of the underlying metric spaces (Cohen–Steiner–Edelsbrunner–Harer).
+    </div>
+    <div class="note" style="margin-top:6px">
+      <strong style="color:var(--text)">Frontier:</strong> Multiparameter persistence (no complete discrete invariant), sheaf TDA, persistent Laplacians, and ML on persistence images / landscapes.
+    </div>
+  </div>
+</div>
+
 <script>
 // ================================================================
 // UTILITIES
@@ -464,15 +694,24 @@ function switchTab(i) {
   document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
   document.querySelectorAll('.pane').forEach((p, j) => p.classList.toggle('active', j === i));
   syncSpeedControl41(i);
-  if (i === 0) { setTimeout(()=>{draw0();toggleAnim0();}, 30); }
-  if (i === 1) { setTimeout(()=>{draw1();toggleAnim1();}, 30); }
-  if (i === 2) { setTimeout(()=>{draw2();toggleAnim2();}, 30); }
-  if (i === 3) { setTimeout(()=>{draw3();toggleAnim3();}, 30); }
-  if (i === 4) { setTimeout(()=>{draw4();toggleAnim4();}, 30); }
-  if (i === 5) { setTimeout(()=>{draw5();toggleAnim5();}, 30); }
-  if (i === 6) { setTimeout(()=>{draw6();toggleAnim6();}, 30); }
-  if (i === 7) { setTimeout(()=>{draw7();toggleAnim7();}, 30); }
-  if (i === 8) { setTimeout(()=>{draw8();toggleAnim8();}, 30); }
+  const starters = [
+    ()=>{draw0();toggleAnim0();},
+    ()=>{draw1();toggleAnim1();},
+    ()=>{draw2();toggleAnim2();},
+    ()=>{draw3();toggleAnim3();},
+    ()=>{draw4();toggleAnim4();},
+    ()=>{draw5();toggleAnim5();},
+    ()=>{draw6();toggleAnim6();},
+    ()=>{draw7();toggleAnim7();},
+    ()=>{draw8();toggleAnim8();},
+    ()=>{draw9();toggleAnim9();},
+    ()=>{draw10();toggleAnim10();},
+    ()=>{draw11();toggleAnim11();},
+    ()=>{draw12();toggleAnim12();},
+    ()=>{draw13();toggleAnim13();},
+    ()=>{draw14();toggleAnim14();},
+  ];
+  if (starters[i]) setTimeout(starters[i], 30);
 }
 
 function _cancelAllAnims41() {
@@ -485,7 +724,13 @@ function _cancelAllAnims41() {
   if(anim6){cancelAnimationFrame(anim6);anim6=null;}
   if(anim7){cancelAnimationFrame(anim7);anim7=null;}
   if(anim8){cancelAnimationFrame(anim8);anim8=null;}
-  const btns = ['btnAnim0','btnAnim1','btnAnim2','btnAnim3','btnAnim4','btnAnim5','btnAnim6','btnAnim7','btnAnim8'];
+  if(anim9){cancelAnimationFrame(anim9);anim9=null;}
+  if(anim10){cancelAnimationFrame(anim10);anim10=null;}
+  if(anim11){cancelAnimationFrame(anim11);anim11=null;}
+  if(anim12){cancelAnimationFrame(anim12);anim12=null;}
+  if(anim13){cancelAnimationFrame(anim13);anim13=null;}
+  if(anim14){cancelAnimationFrame(anim14);anim14=null;}
+  const btns = ['btnAnim0','btnAnim1','btnAnim2','btnAnim3','btnAnim4','btnAnim5','btnAnim6','btnAnim7','btnAnim8','btnAnim9','btnAnim10','btnAnim11','btnAnim12','btnAnim13','btnAnim14'];
   btns.forEach(id => {
     const b = document.getElementById(id);
     if(b){ b.textContent='▶ Animate'; b.classList.remove('active'); }
@@ -511,6 +756,12 @@ function resetTab41(n){
   else if(n===6){ t6=0; setBott('unitary'); toggleAnim6(); }
   else if(n===7){ t7=0; setHomology('tetrahedron'); draw7(); }
   else if(n===8){ t8=0; setHurewicz('torus'); draw8(); }
+  else if(n===9){ t9=0; setSvK('wedge'); draw9(); }
+  else if(n===10){ t10=0; setFibLES('hopf'); draw10(); }
+  else if(n===11){ t11=0; setWhitehead('weak'); draw11(); }
+  else if(n===12){ t12=0; setSSeq('serre'); draw12(); }
+  else if(n===13){ t13=0; setMCG('torus'); draw13(); }
+  else if(n===14){ t14=0; const se=document.getElementById('slEps'); if(se){se.value=35;document.getElementById('epsVal').textContent='0.35';} setTDA('cloud'); draw14(); }
 }
 
 // ================================================================
@@ -3046,13 +3297,1040 @@ function drawHurRP2(ctx, W, H) {
 }
 
 // ================================================================
+// TAB 9 — SEIFERT–VAN KAMPEN
+// ================================================================
+let anim9 = null, t9 = 0;
+let svkMode = 'wedge';
+
+function setSvK(m) {
+  svkMode = m;
+  ['svk_wedge','svk_torus','svk_rp2','svk_amalg'].forEach(id => document.getElementById(id)?.classList.remove('act'));
+  document.getElementById('svk_'+m)?.classList.add('act');
+  const infos = {
+    wedge: 'Wedge $S^1\\vee S^1$: take $A,B$ as open neighborhoods of each circle overlapping in a contractible $U$. Then $\\pi_1=\\pi_1(A)*\\pi_1(B)=F_2$.',
+    torus: 'Torus CW: 1-skeleton is $S^1\\vee S^1$ with $\\pi_1=F_2$; attaching the 2-cell along $aba^{-1}b^{-1}$ kills the commutator $\\Rightarrow\\pi_1\\cong\\mathbb{Z}^2$.',
+    rp2: '$\\mathbb{R}P^2$: attach $D^2$ to $S^1$ by degree-2 map. Van Kampen / cellular: $\\langle a\\mid a^2\\rangle\\cong\\mathbb{Z}/2$.',
+    amalg: 'Amalgamation $\\pi_1(A)*_{\\pi_1(U)}\\pi_1(B)$: generators of $A$ and $B$, relations of each, plus $i_*(u)=j_*(u)$ for $u\\in\\pi_1(U)$.'
+  };
+  const el = document.getElementById('svkInfo');
+  if (el) { el.textContent = infos[m]; if (window.renderMathInElement) renderMathInElement(el); }
+  draw9();
+}
+
+function toggleAnim9() {
+  const btn = document.getElementById('btnAnim9');
+  if (anim9) { cancelAnimationFrame(anim9); anim9 = null; if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');} return; }
+  anim9 = requestAnimationFrame(step9);
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
+}
+function step9() { t9 += 0.018*(window.animSpeed||1); draw9(); anim9 = requestAnimationFrame(step9); }
+
+function draw9() {
+  const cv = document.getElementById('c9'); if (!cv) return;
+  const [ctx, W, H] = dprCanvas(cv);
+  ctx.clearRect(0, 0, W, H);
+  if (svkMode === 'wedge') drawSvKWedge(ctx, W, H);
+  else if (svkMode === 'torus') drawSvKTorus(ctx, W, H);
+  else if (svkMode === 'rp2') drawSvKRP2(ctx, W, H);
+  else drawSvKAmalg(ctx, W, H);
+}
+
+function drawSvKWedge(ctx, W, H) {
+  const cx = W*0.5, cy = H*0.42, r = Math.min(W,H)*0.16;
+  // A and B disks overlapping at basepoint
+  ctx.beginPath(); ctx.arc(cx - r*0.9, cy, r*1.35, 0, 2*Math.PI);
+  ctx.fillStyle = 'rgba(68,170,255,0.12)'; ctx.fill();
+  ctx.strokeStyle = '#44aaff'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx + r*0.9, cy, r*1.35, 0, 2*Math.PI);
+  ctx.fillStyle = 'rgba(255,136,68,0.12)'; ctx.fill();
+  ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Two loops of wedge
+  const ph = t9;
+  for (let k = 0; k < 2; k++) {
+    const ox = cx + (k===0 ? -r*0.95 : r*0.95);
+    const col = k===0 ? '#44aaff' : '#ff8844';
+    ctx.beginPath();
+    for (let i = 0; i <= 80; i++) {
+      const th = 2*Math.PI*i/80 + ph*(k===0?1:-1)*0.4;
+      const x = ox + r*0.55*Math.cos(th), y = cy + r*0.55*Math.sin(th);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.stroke();
+    // moving point
+    const th = ph*(k===0?1.2:-1.2);
+    const px = ox + r*0.55*Math.cos(th), py = cy + r*0.55*Math.sin(th);
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, 2*Math.PI); ctx.fillStyle = col; ctx.fill();
+    ctx.fillStyle = col; ctx.font = '13px Share Tech Mono';
+    ctx.fillText(k===0 ? 'a ∈ π₁(A)' : 'b ∈ π₁(B)', ox - 28, cy + r*1.05);
+  }
+  // basepoint
+  ctx.beginPath(); ctx.arc(cx, cy, 6, 0, 2*Math.PI);
+  ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.fillStyle = '#c0c0ea'; ctx.font = '12px Share Tech Mono';
+  ctx.fillText('x₀ ∈ U = A∩B ≃ ∗', cx - 55, cy - r*1.55);
+  // free product
+  ctx.fillStyle = '#ffcc44'; ctx.font = '14px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('π₁(A∪B) ≅ ⟨a⟩ * ⟨b⟩ = F₂', W/2 - 110, H*0.82);
+  ctx.fillStyle = '#44ffaa'; ctx.font = '12px Share Tech Mono';
+  ctx.fillText('no amalgamation relations (U contractible)', W/2 - 130, H*0.90);
+}
+
+function drawSvKTorus(ctx, W, H) {
+  const cx = W*0.35, cy = H*0.45, R = Math.min(W,H)*0.16, r = R*0.45;
+  // torus silhouette
+  ctx.beginPath(); ctx.ellipse(cx, cy, R*1.4, R*0.85, 0, 0, 2*Math.PI);
+  ctx.strokeStyle = '#44aaff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(cx, cy, R*0.55, R*0.32, 0, 0, 2*Math.PI);
+  ctx.strokeStyle = '#1c1c44'; ctx.lineWidth = 2; ctx.stroke();
+  // meridians a,b
+  const ph = t9;
+  ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  for (let i=0;i<=60;i++){ const th=2*Math.PI*i/60; const x=cx+(R*0.95+r*0.3*Math.cos(th+ph))*Math.cos(th); const y=cy+(R*0.55+r*0.2*Math.cos(th+ph))*Math.sin(th)*0.7; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.stroke();
+  ctx.strokeStyle = '#44ffaa'; ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  for (let i=0;i<=60;i++){ const th=2*Math.PI*i/60+ph*0.5; const x=cx+R*0.7*Math.cos(th); const y=cy+R*0.4*Math.sin(th); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.stroke();
+  ctx.fillStyle = '#ff8844'; ctx.font = '13px Share Tech Mono'; ctx.fillText('a', cx+R*1.2, cy-10);
+  ctx.fillStyle = '#44ffaa'; ctx.fillText('b', cx-10, cy-R*0.7);
+  // pushout diagram right
+  const rx = W*0.72, ry = H*0.38;
+  ctx.fillStyle = '#c0c0ea'; ctx.font = '12px Share Tech Mono';
+  ctx.fillText('1-skeleton S¹∨S¹', rx-50, ry-50);
+  ctx.fillText('π₁ = F₂ = ⟨a,b⟩', rx-50, ry-32);
+  ctx.strokeStyle = 'rgba(255,200,100,0.7)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(rx, ry-15); ctx.lineTo(rx, ry+35); ctx.stroke();
+  drawArrow(ctx, rx, ry+30, rx, ry+40, 'rgba(255,200,100,0.7)');
+  ctx.fillStyle = '#ffcc44'; ctx.fillText('attach 2-cell along [a,b]', rx-70, ry+60);
+  ctx.fillStyle = '#44ffaa'; ctx.font = '13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('π₁(T²) ≅ ℤ²', rx-40, ry+90);
+  ctx.fillStyle = '#ff8844'; ctx.font = '12px Share Tech Mono';
+  ctx.fillText('relation aba⁻¹b⁻¹ = 1', rx-55, H*0.88);
+  // animated word
+  const words = ['a','b','a⁻¹','b⁻¹','= e'];
+  const wi = Math.floor(t9*1.5) % words.length;
+  ctx.fillStyle = '#fff'; ctx.font = '16px Share Tech Mono';
+  ctx.fillText('word: '+words.slice(0,wi+1).join(' '), W*0.08, H*0.92);
+}
+
+function drawSvKRP2(ctx, W, H) {
+  const cx = W*0.35, cy = H*0.45, r = Math.min(W,H)*0.22;
+  // disk
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2*Math.PI);
+  ctx.fillStyle = 'rgba(100,180,255,0.1)'; ctx.fill();
+  ctx.strokeStyle = '#44aaff'; ctx.lineWidth = 2; ctx.stroke();
+  // boundary with antipodal arrows (degree 2 attaching)
+  for (let i=0;i<8;i++){
+    const th = Math.PI*i/4 + t9*0.2;
+    const x1 = cx+r*Math.cos(th), y1 = cy+r*Math.sin(th);
+    const x2 = cx+r*Math.cos(th+Math.PI), y2 = cy+r*Math.sin(th+Math.PI);
+    ctx.strokeStyle = 'rgba(255,136,68,0.45)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  }
+  // moving point on boundary twice around maps once on RP1
+  const th = t9;
+  const px = cx + r*Math.cos(th), py = cy + r*Math.sin(th);
+  ctx.beginPath(); ctx.arc(px,py,6,0,2*Math.PI); ctx.fillStyle='#ff8844'; ctx.fill();
+  ctx.fillStyle='#ff8844'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('∂D² → S¹ deg 2', cx-40, cy+r+24);
+  // right panel presentation
+  ctx.fillStyle='#ffcc44'; ctx.font='14px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('⟨ a  |  a² = 1 ⟩', W*0.62, H*0.35);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('π₁(RP²) ≅ ℤ/2', W*0.62, H*0.45);
+  ctx.fillText('generator: RP¹ ⊂ RP²', W*0.62, H*0.55);
+  ctx.fillText('2-cell kills a²', W*0.62, H*0.65);
+  // order-2 pulse
+  const pulse = 0.5+0.5*Math.sin(t9*3);
+  ctx.beginPath(); ctx.arc(W*0.72, H*0.78, 12+6*pulse, 0, 2*Math.PI);
+  ctx.strokeStyle = `rgba(255,136,68,${0.4+0.4*pulse})`; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#ff8844'; ctx.fillText('a · a = e', W*0.66, H*0.90);
+}
+
+function drawSvKAmalg(ctx, W, H) {
+  // Pushout square animation
+  const nodes = [
+    {x:W*0.25,y:H*0.28,l:'π₁(U)',c:'#44ffaa'},
+    {x:W*0.55,y:H*0.28,l:'π₁(A)',c:'#44aaff'},
+    {x:W*0.25,y:H*0.58,l:'π₁(B)',c:'#ff8844'},
+    {x:W*0.55,y:H*0.58,l:'π₁(X)',c:'#ffcc44'},
+  ];
+  // edges
+  const edges = [[0,1],[0,2],[1,3],[2,3]];
+  edges.forEach(([i,j], ei) => {
+    const a=nodes[i], b=nodes[j];
+    const prog = (Math.sin(t9*1.2 + ei)+1)/2;
+    ctx.strokeStyle = `rgba(192,192,234,${0.35+0.45*prog})`; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    drawArrow(ctx, a.x+(b.x-a.x)*0.7, a.y+(b.y-a.y)*0.7, a.x+(b.x-a.x)*0.85, a.y+(b.y-a.y)*0.85, 'rgba(192,192,234,0.7)');
+  });
+  nodes.forEach((n,i) => {
+    const pulse = 4*Math.sin(t9*2+i);
+    ctx.beginPath(); ctx.arc(n.x, n.y, 28+pulse*0.3, 0, 2*Math.PI);
+    ctx.fillStyle = 'rgba(11,11,30,0.9)'; ctx.fill();
+    ctx.strokeStyle = n.c; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle = n.c; ctx.font='13px Share Tech Mono';
+    ctx.fillText(n.l, n.x-22, n.y+4);
+  });
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('i_*', W*0.38, H*0.24);
+  ctx.fillText('j_*', W*0.14, H*0.44);
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('π₁(X) ≅ π₁(A) *_{π₁(U)} π₁(B)', W*0.22, H*0.82);
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('universal cocone: maps from A,B agreeing on U', W*0.18, H*0.92);
+}
+
+// ================================================================
+// TAB 10 — FIBRATION LES
+// ================================================================
+let anim10 = null, t10 = 0;
+let fibMode = 'hopf';
+
+function setFibLES(m) {
+  fibMode = m;
+  ['fib_hopf','fib_path','fib_sphere','fib_lesanim'].forEach(id => document.getElementById(id)?.classList.remove('act'));
+  document.getElementById('fib_'+m)?.classList.add('act');
+  const infos = {
+    hopf: 'Hopf fibration $S^1\\hookrightarrow S^3\\to S^2$: LES gives $\\pi_n(S^3)\\cong\\pi_n(S^2)$ for $n\\ge 3$ and $\\partial:\\pi_2(S^2)\\xrightarrow{\\cong}\\pi_1(S^1)$.',
+    path: 'Path fibration $\\Omega B\\to PB\\to B$: $PB$ contractible $\\Rightarrow\\pi_n(B)\\cong\\pi_{n-1}(\\Omega B)$. Loop-space shifts homotopy degree.',
+    sphere: 'Unit sphere bundle $S^{n-1}\\to S(\\mathbb{R}^n)\\to\\{*\\}$ is trivial; nontrivial sphere bundles (e.g. tangent $S^{n-1}\\to T^1S^n\\to S^n$) feed LES computations.',
+    lesanim: 'LES chase: exactness means $\\mathrm{im}(f_i)=\\ker(f_{i+1})$. Animated token walks the sequence of groups.'
+  };
+  const el = document.getElementById('fibInfo');
+  if (el) { el.textContent = infos[m]; if (window.renderMathInElement) renderMathInElement(el); }
+  draw10();
+}
+
+function toggleAnim10() {
+  const btn = document.getElementById('btnAnim10');
+  if (anim10) { cancelAnimationFrame(anim10); anim10 = null; if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');} return; }
+  anim10 = requestAnimationFrame(step10);
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
+}
+function step10() { t10 += 0.018*(window.animSpeed||1); draw10(); anim10 = requestAnimationFrame(step10); }
+
+function draw10() {
+  const cv = document.getElementById('c10'); if (!cv) return;
+  const [ctx, W, H] = dprCanvas(cv);
+  ctx.clearRect(0, 0, W, H);
+  if (fibMode === 'hopf') drawFibHopf(ctx, W, H);
+  else if (fibMode === 'path') drawFibPath(ctx, W, H);
+  else if (fibMode === 'sphere') drawFibSphere(ctx, W, H);
+  else drawFibLESchase(ctx, W, H);
+}
+
+function drawFibHopf(ctx, W, H) {
+  // Three spaces F, E, B
+  const ys = H*0.38;
+  const items = [
+    {x:W*0.18,l:'F=S¹',r:Math.min(W,H)*0.08,c:'#44ffaa'},
+    {x:W*0.50,l:'E=S³',r:Math.min(W,H)*0.12,c:'#44aaff'},
+    {x:W*0.82,l:'B=S²',r:Math.min(W,H)*0.10,c:'#ff8844'},
+  ];
+  // arrows F->E->B
+  ctx.strokeStyle='rgba(192,192,234,0.5)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(items[0].x+items[0].r+8,ys); ctx.lineTo(items[1].x-items[1].r-8,ys); ctx.stroke();
+  drawArrow(ctx, items[1].x-items[1].r-20, ys, items[1].x-items[1].r-8, ys, 'rgba(192,192,234,0.7)');
+  ctx.beginPath(); ctx.moveTo(items[1].x+items[1].r+8,ys); ctx.lineTo(items[2].x-items[2].r-8,ys); ctx.stroke();
+  drawArrow(ctx, items[2].x-items[2].r-20, ys, items[2].x-items[2].r-8, ys, 'rgba(192,192,234,0.7)');
+  ctx.fillStyle='#c0c0ea'; ctx.font='11px Share Tech Mono';
+  ctx.fillText('i', (items[0].x+items[1].x)/2, ys-10);
+  ctx.fillText('p', (items[1].x+items[2].x)/2, ys-10);
+  items.forEach((it,k) => {
+    const grd = ctx.createRadialGradient(it.x-it.r*0.3,ys-it.r*0.3,it.r*0.1,it.x,ys,it.r);
+    grd.addColorStop(0, it.c+'99'); grd.addColorStop(1, 'rgba(5,5,15,0.2)');
+    ctx.beginPath(); ctx.arc(it.x,ys,it.r,0,2*Math.PI); ctx.fillStyle=grd; ctx.fill();
+    ctx.strokeStyle=it.c; ctx.lineWidth=2; ctx.stroke();
+    // fiber circles on E
+    if (k===1) {
+      for (let j=0;j<5;j++){
+        const a = t10*0.4 + j*1.1;
+        ctx.beginPath(); ctx.ellipse(it.x+it.r*0.35*Math.cos(a), ys+it.r*0.25*Math.sin(a), it.r*0.35, it.r*0.18, a, 0, 2*Math.PI);
+        ctx.strokeStyle='rgba(68,255,170,0.55)'; ctx.lineWidth=1.2; ctx.stroke();
+      }
+    }
+    if (k===0) {
+      const th=t10*1.5;
+      ctx.beginPath(); ctx.arc(it.x+it.r*0.55*Math.cos(th), ys+it.r*0.55*Math.sin(th), 4, 0, 2*Math.PI);
+      ctx.fillStyle='#fff'; ctx.fill();
+    }
+    ctx.fillStyle=it.c; ctx.font='13px Share Tech Mono';
+    ctx.fillText(it.l, it.x-18, ys+it.r+18);
+  });
+  // LES snippet
+  ctx.fillStyle='#ffcc44'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('… → πₙ(S¹) → πₙ(S³) → πₙ(S²) → πₙ₋₁(S¹) → …', W*0.12, H*0.72);
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('n≥3:  0 → πₙ(S³) ≅ πₙ(S²) → 0', W*0.22, H*0.84);
+  ctx.fillStyle='#ff8844';
+  ctx.fillText('∂: π₂(S²)=ℤ  →≅  π₁(S¹)=ℤ', W*0.25, H*0.94);
+}
+
+function drawFibPath(ctx, W, H) {
+  const cx = W*0.5, cy = H*0.42;
+  // base B as circle
+  ctx.beginPath(); ctx.arc(cx, cy, Math.min(W,H)*0.2, 0, 2*Math.PI);
+  ctx.strokeStyle='#ff8844'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#ff8844'; ctx.font='13px Share Tech Mono'; ctx.fillText('B', cx+Math.min(W,H)*0.22, cy);
+  // path lifting animation
+  const th = t10*0.8;
+  const bx = cx + Math.min(W,H)*0.2*Math.cos(th), by = cy + Math.min(W,H)*0.2*Math.sin(th);
+  ctx.beginPath(); ctx.arc(bx,by,6,0,2*Math.PI); ctx.fillStyle='#ff8844'; ctx.fill();
+  // path space fiber Omega B as vertical loops
+  const fx = W*0.18, fy = H*0.42;
+  for (let k=0;k<3;k++){
+    ctx.strokeStyle=`rgba(68,255,170,${0.4+0.2*k})`; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for (let i=0;i<=50;i++){
+      const u=i/50, x=fx+(k-1)*28+12*Math.sin(u*2*Math.PI* (k+1) + t10), y=fy-40+u*80;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('ΩB = loops', fx-30, fy+60);
+  ctx.fillStyle='#44aaff'; ctx.fillText('PB ≃ ∗ (contractible)', W*0.55, H*0.18);
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('πₙ(B) ≅ πₙ₋₁(ΩB)', W*0.32, H*0.82);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('LES of ΩB → PB → B + π_*(PB)=0', W*0.25, H*0.92);
+}
+
+function drawFibSphere(ctx, W, H) {
+  const cx=W*0.5, cy=H*0.4, R=Math.min(W,H)*0.22;
+  // base sphere
+  const grd=ctx.createRadialGradient(cx-R*0.3,cy-R*0.3,R*0.1,cx,cy,R);
+  grd.addColorStop(0,'rgba(255,136,68,0.4)'); grd.addColorStop(1,'rgba(40,20,10,0.3)');
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,2*Math.PI); ctx.fillStyle=grd; ctx.fill();
+  ctx.strokeStyle='#ff8844'; ctx.lineWidth=2; ctx.stroke();
+  // fiber spheres along equator
+  for (let i=0;i<8;i++){
+    const a = i*Math.PI/4 + t10*0.3;
+    const x = cx + R*0.85*Math.cos(a), y = cy + R*0.45*Math.sin(a);
+    const fr = R*0.12;
+    ctx.beginPath(); ctx.arc(x,y,fr,0,2*Math.PI);
+    ctx.strokeStyle='rgba(68,170,255,0.8)'; ctx.lineWidth=1.2; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x,y,fr,fr*0.4,a,0,2*Math.PI);
+    ctx.strokeStyle='rgba(68,255,170,0.5)'; ctx.stroke();
+  }
+  ctx.fillStyle='#ff8844'; ctx.font='12px Share Tech Mono'; ctx.fillText('B = Sⁿ', cx-20, cy+R+20);
+  ctx.fillStyle='#44aaff'; ctx.fillText('fibers Sⁿ⁻¹', cx+R*0.6, cy-R*0.7);
+  ctx.fillStyle='#ffcc44'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('LES: …→πₖ(Sⁿ⁻¹)→πₖ(E)→πₖ(Sⁿ)→πₖ₋₁(Sⁿ⁻¹)→…', W*0.12, H*0.82);
+  ctx.fillStyle='#44ffaa'; ctx.fillText('e.g. Hopf / tangent sphere bundle of Sⁿ', W*0.22, H*0.92);
+}
+
+function drawFibLESchase(ctx, W, H) {
+  const labels = ['πₙ(F)','πₙ(E)','πₙ(B)','πₙ₋₁(F)','πₙ₋₁(E)','πₙ₋₁(B)'];
+  const n = labels.length;
+  const y = H*0.4;
+  const x0 = W*0.08, span = W*0.84;
+  labels.forEach((lab,i) => {
+    const x = x0 + span*i/(n-1);
+    ctx.beginPath(); ctx.arc(x,y,22,0,2*Math.PI);
+    ctx.fillStyle='rgba(11,11,30,0.95)'; ctx.fill();
+    ctx.strokeStyle = i%3===0?'#44ffaa':(i%3===1?'#44aaff':'#ff8844');
+    ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#c0c0ea'; ctx.font='10px Share Tech Mono';
+    ctx.fillText(lab, x-16, y+4);
+    if (i<n-1) {
+      const x2 = x0 + span*(i+1)/(n-1);
+      ctx.strokeStyle='rgba(192,192,234,0.4)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(x+24,y); ctx.lineTo(x2-24,y); ctx.stroke();
+      drawArrow(ctx, x2-32, y, x2-24, y, 'rgba(192,192,234,0.6)');
+    }
+  });
+  // token
+  const ti = (t10*0.7 % n);
+  const i0 = Math.floor(ti), i1 = (i0+1)%n, f = ti-i0;
+  const xa = x0 + span*i0/(n-1), xb = x0 + span*i1/(n-1);
+  const tx = xa + (xb-xa)*f, ty = y - 40 - 10*Math.sin(t10*3);
+  ctx.beginPath(); ctx.arc(tx,ty,8,0,2*Math.PI); ctx.fillStyle='#ffcc44'; ctx.fill();
+  ctx.fillStyle='#ffcc44'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('class α', tx-18, ty-12);
+  // exactness caption
+  ctx.fillStyle='#44ffaa'; ctx.font='13px Share Tech Mono';
+  ctx.fillText('exact: im(prev) = ker(next)  at every node', W*0.2, H*0.72);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('∂ connecting map shifts degree by −1 into the fiber', W*0.18, H*0.86);
+}
+
+// ================================================================
+// TAB 11 — WHITEHEAD
+// ================================================================
+let anim11 = null, t11 = 0;
+let whMode = 'weak';
+
+function setWhitehead(m) {
+  whMode = m;
+  ['wh_weak','wh_cw','wh_thm','wh_counter'].forEach(id => document.getElementById(id)?.classList.remove('act'));
+  document.getElementById('wh_'+m)?.classList.add('act');
+  const infos = {
+    weak: 'Weak homotopy equivalence: $f:X\\to Y$ with $f_*:\\pi_n(X,x)\\xrightarrow{\\cong}\\pi_n(Y,f(x))$ for all $n\\ge 0$ (all basepoints in each path-component).',
+    cw: 'CW approximation: functorial (or objectwise) $\\gamma:\\Gamma X\\to X$ weak equivalence with $\\Gamma X$ a CW complex — replace any space by a CW one up to weak eq.',
+    thm: 'Whitehead theorem: if $X,Y$ are connected CW complexes and $f$ is a weak equivalence, then $f$ is a homotopy equivalence.',
+    counter: 'Without CW: there exist weak equivalences that are not homotopy equivalences (e.g. certain non-CW spaces / Warsaw circle pathologies vs. nice replacements).'
+  };
+  const el = document.getElementById('whInfo');
+  if (el) { el.textContent = infos[m]; if (window.renderMathInElement) renderMathInElement(el); }
+  draw11();
+}
+
+function toggleAnim11() {
+  const btn = document.getElementById('btnAnim11');
+  if (anim11) { cancelAnimationFrame(anim11); anim11 = null; if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');} return; }
+  anim11 = requestAnimationFrame(step11);
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
+}
+function step11() { t11 += 0.018*(window.animSpeed||1); draw11(); anim11 = requestAnimationFrame(step11); }
+
+function draw11() {
+  const cv = document.getElementById('c11'); if (!cv) return;
+  const [ctx, W, H] = dprCanvas(cv);
+  ctx.clearRect(0, 0, W, H);
+  if (whMode === 'weak') drawWhWeak(ctx, W, H);
+  else if (whMode === 'cw') drawWhCW(ctx, W, H);
+  else if (whMode === 'thm') drawWhThm(ctx, W, H);
+  else drawWhCounter(ctx, W, H);
+}
+
+function drawWhWeak(ctx, W, H) {
+  // X --f--> Y with pi_n isos
+  const x1=W*0.28, x2=W*0.72, cy=H*0.4, r=Math.min(W,H)*0.14;
+  [[x1,'X','#44aaff'],[x2,'Y','#ff8844']].forEach(([x,l,c])=>{
+    ctx.beginPath(); ctx.arc(x,cy,r,0,2*Math.PI);
+    ctx.fillStyle=c+'22'; ctx.fill(); ctx.strokeStyle=c; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=c; ctx.font='16px Orbitron,Share Tech Mono,monospace'; ctx.fillText(l, x-8, cy+5);
+  });
+  // f arrow
+  ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x1+r+8,cy); ctx.lineTo(x2-r-8,cy); ctx.stroke();
+  drawArrow(ctx, x2-r-20, cy, x2-r-8, cy, '#ffcc44');
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Share Tech Mono'; ctx.fillText('f', (x1+x2)/2-4, cy-12);
+  // pi_n rows
+  for (let n=0;n<5;n++){
+    const y = H*0.62 + n*18;
+    const flash = (Math.floor(t11*2)+n)%5===0;
+    ctx.fillStyle = flash ? '#44ffaa' : '#c0c0ea';
+    ctx.font='12px Share Tech Mono';
+    ctx.fillText(`f₊: π_${n}(X)  ≅  π_${n}(Y)`, W*0.32, y);
+  }
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Share Tech Mono';
+  ctx.fillText('weak homotopy equivalence', W*0.30, H*0.18);
+}
+
+function drawWhCW(ctx, W, H) {
+  // cellular build-up of Gamma X
+  const cx=W*0.35, cy=H*0.45;
+  const stages = 4;
+  const stage = Math.floor(t11*0.5) % stages;
+  for (let s=0;s<=stage;s++){
+    const alpha = 0.3+0.15*s;
+    if (s===0){
+      ctx.beginPath(); ctx.arc(cx,cy,6,0,2*Math.PI); ctx.fillStyle='#fff'; ctx.fill();
+      ctx.fillStyle='#c0c0ea'; ctx.font='11px Share Tech Mono'; ctx.fillText('0-cells', cx-20, cy+24);
+    } else if (s===1){
+      ctx.strokeStyle=`rgba(68,170,255,${alpha+0.4})`; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(cx,cy,40,0,2*Math.PI); ctx.stroke();
+      ctx.fillStyle='#44aaff'; ctx.fillText('1-cells', cx-20, cy-50);
+    } else if (s===2){
+      ctx.fillStyle=`rgba(255,136,68,${0.15+0.1*Math.sin(t11)})`;
+      ctx.beginPath(); ctx.arc(cx,cy,70,0,2*Math.PI); ctx.fill();
+      ctx.strokeStyle='#ff8844'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='#ff8844'; ctx.fillText('2-cells', cx-20, cy+90);
+    } else {
+      ctx.strokeStyle='rgba(68,255,170,0.5)'; ctx.lineWidth=1;
+      for(let i=0;i<6;i++){ const a=i*Math.PI/3+t11*0.2; ctx.beginPath(); ctx.arc(cx+90*Math.cos(a),cy+50*Math.sin(a),18,0,2*Math.PI); ctx.stroke(); }
+      ctx.fillStyle='#44ffaa'; ctx.fillText('higher cells…', cx-30, H*0.88);
+    }
+  }
+  // map to X
+  ctx.strokeStyle='#ffcc44'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(W*0.52, H*0.45); ctx.lineTo(W*0.68, H*0.45); ctx.stroke();
+  drawArrow(ctx, W*0.64, H*0.45, W*0.68, H*0.45, '#ffcc44');
+  ctx.fillStyle='#ffcc44'; ctx.font='12px Share Tech Mono'; ctx.fillText('γ weak eq', W*0.54, H*0.40);
+  ctx.beginPath(); ctx.ellipse(W*0.82, H*0.45, 50, 60, 0, 0, 2*Math.PI);
+  ctx.strokeStyle='#ff8844'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#ff8844'; ctx.font='14px Share Tech Mono'; ctx.fillText('X', W*0.80, H*0.46);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('ΓX  →  X', W*0.58, H*0.20);
+  ctx.fillStyle='#44ffaa'; ctx.fillText('ΓX is CW; γ induces π₊ isos', W*0.55, H*0.92);
+}
+
+function drawWhThm(ctx, W, H) {
+  ctx.fillStyle='#ffcc44'; ctx.font='14px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Whitehead Theorem', W*0.32, H*0.14);
+  // premises boxes
+  const boxes = [
+    {x:W*0.15,y:H*0.28,w:W*0.28,h:H*0.18,t:'X, Y connected\nCW complexes',c:'#44aaff'},
+    {x:W*0.55,y:H*0.28,w:W*0.28,h:H*0.18,t:'f induces\nπₙ isos ∀n',c:'#44ffaa'},
+  ];
+  boxes.forEach((b,i) => {
+    const pulse = 0.05*Math.sin(t11*2+i);
+    ctx.strokeStyle=b.c; ctx.lineWidth=2;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle=b.c+'18'; ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle=b.c; ctx.font='13px Share Tech Mono';
+    b.t.split('\n').forEach((line,j)=>ctx.fillText(line, b.x+12, b.y+35+j*20+pulse*10));
+  });
+  // arrow down
+  ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(W*0.5, H*0.50); ctx.lineTo(W*0.5, H*0.62); ctx.stroke();
+  drawArrow(ctx, W*0.5, H*0.58, W*0.5, H*0.62, '#ffcc44');
+  ctx.strokeStyle='#ff8844'; ctx.lineWidth=2;
+  ctx.strokeRect(W*0.22, H*0.66, W*0.56, H*0.16);
+  ctx.fillStyle='rgba(255,136,68,0.1)'; ctx.fillRect(W*0.22, H*0.66, W*0.56, H*0.16);
+  ctx.fillStyle='#ff8844'; ctx.font='14px Share Tech Mono';
+  ctx.fillText('⇒  f is a homotopy equivalence', W*0.28, H*0.75);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('∃ g: Y→X with gf ≃ id_X, fg ≃ id_Y', W*0.28, H*0.88);
+}
+
+function drawWhCounter(ctx, W, H) {
+  // schematic: wild space vs CW
+  ctx.fillStyle='#ff8844'; ctx.font='13px Share Tech Mono';
+  ctx.fillText('non-CW / pathological X', W*0.08, H*0.18);
+  // Warsaw-like zig zag
+  ctx.strokeStyle='#ff8844'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  for (let i=0;i<80;i++){
+    const x = W*0.08 + i*(W*0.35)/80;
+    const y = H*0.4 + (i>10 ? 30*Math.sin(1/(0.02+(i/80)))*Math.sin(t11*0.5) : 20*Math.sin(i*0.4));
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.fillStyle='#c0c0ea'; ctx.font='11px Share Tech Mono';
+  ctx.fillText('e.g. closed topologist\'s sine curve', W*0.08, H*0.62);
+  // CW replacement
+  ctx.strokeStyle='#44aaff'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(W*0.72, H*0.4, 50, 0, 2*Math.PI); ctx.stroke();
+  ctx.fillStyle='#44aaff'; ctx.font='13px Share Tech Mono';
+  ctx.fillText('ΓX (CW)', W*0.66, H*0.42);
+  ctx.strokeStyle='#ffcc44'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(W*0.48, H*0.4); ctx.lineTo(W*0.60, H*0.4); ctx.stroke();
+  drawArrow(ctx, W*0.56, H*0.4, W*0.60, H*0.4, '#ffcc44');
+  ctx.fillStyle='#ffcc44'; ctx.fillText('weak eq', W*0.50, H*0.34);
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('weak ⇏ homotopy eq without CW hypothesis', W*0.18, H*0.82);
+  ctx.fillStyle='#c0c0ea';
+  ctx.fillText('Work in CW / model-categorical localization instead', W*0.18, H*0.92);
+}
+
+// ================================================================
+// TAB 12 — SPECTRAL SEQUENCES LITE
+// ================================================================
+let anim12 = null, t12 = 0;
+let ssMode = 'serre';
+
+function setSSeq(m) {
+  ssMode = m;
+  ['ss_serre','ss_hopf','ss_diff','ss_conv'].forEach(id => document.getElementById(id)?.classList.remove('act'));
+  document.getElementById('ss_'+m)?.classList.add('act');
+  const infos = {
+    serre: 'Serre spectral sequence of $F\\to E\\to B$: $E^2_{p,q}=H_p(B;H_q(F))\\Rightarrow H_{p+q}(E)$ (local coefficients if $\\pi_1B$ acts).',
+    hopf: 'Hopf $S^1\\to S^3\\to S^2$: sparse $E^2$; $d_2$ differential kills fiber generator vs base, yielding $H_*(S^3)$.',
+    diff: 'Differential $d_r:E^r_{p,q}\\to E^r_{p-r,q+r-1}$ has bidegree $(-r,r-1)$. Each page is homology of the previous.',
+    conv: 'Convergence: $E^\\infty_{p,q}$ is the associated graded of a filtration on $H_{p+q}(E)$. Extensions may remain.'
+  };
+  const el = document.getElementById('ssInfo');
+  if (el) { el.textContent = infos[m]; if (window.renderMathInElement) renderMathInElement(el); }
+  draw12();
+}
+
+function toggleAnim12() {
+  const btn = document.getElementById('btnAnim12');
+  if (anim12) { cancelAnimationFrame(anim12); anim12 = null; if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');} return; }
+  anim12 = requestAnimationFrame(step12);
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
+}
+function step12() { t12 += 0.018*(window.animSpeed||1); draw12(); anim12 = requestAnimationFrame(step12); }
+
+function drawSSGrid(ctx, W, H, highlight) {
+  const ox = W*0.14, oy = H*0.75, cell = Math.min(W,H)*0.09;
+  const P=5, Q=4;
+  // axes
+  ctx.strokeStyle='rgba(192,192,234,0.35)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox+cell*(P+0.5), oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy-cell*(Q+0.5)); ctx.stroke();
+  ctx.fillStyle='#55558a'; ctx.font='11px Share Tech Mono';
+  ctx.fillText('p', ox+cell*(P+0.3), oy+14);
+  ctx.fillText('q', ox-14, oy-cell*(Q+0.2));
+  for (let p=0;p<=P;p++) for (let q=0;q<=Q;q++){
+    const x=ox+p*cell, y=oy-q*cell;
+    ctx.strokeStyle='rgba(28,28,68,0.8)'; ctx.strokeRect(x, y-cell, cell, cell);
+    const key = p+','+q;
+    if (highlight && highlight[key]) {
+      const h = highlight[key];
+      ctx.fillStyle = h.bg || 'rgba(255,136,68,0.25)';
+      ctx.fillRect(x+2, y-cell+2, cell-4, cell-4);
+      ctx.fillStyle = h.fg || '#ff8844';
+      ctx.font='11px Share Tech Mono';
+      ctx.fillText(h.t, x+6, y-cell/2+4);
+    }
+  }
+  return {ox, oy, cell};
+}
+
+function draw12() {
+  const cv = document.getElementById('c12'); if (!cv) return;
+  const [ctx, W, H] = dprCanvas(cv);
+  ctx.clearRect(0, 0, W, H);
+  if (ssMode === 'serre') drawSSSerre(ctx, W, H);
+  else if (ssMode === 'hopf') drawSSHopf(ctx, W, H);
+  else if (ssMode === 'diff') drawSSDiff(ctx, W, H);
+  else drawSSConv(ctx, W, H);
+}
+
+function drawSSSerre(ctx, W, H) {
+  const page = Math.floor(t12*0.4)%3 + 2;
+  ctx.fillStyle='#ffcc44'; ctx.font='14px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('E'+page+' page  (Serre SS)', W*0.28, H*0.12);
+  const hl = {
+    '0,0':{t:'ℤ',fg:'#44ffaa',bg:'rgba(68,255,170,0.15)'},
+    '2,0':{t:'ℤ',fg:'#44aaff',bg:'rgba(68,170,255,0.15)'},
+    '0,1':{t:'H₁F',fg:'#ff8844',bg:'rgba(255,136,68,0.15)'},
+    '2,1':{t:'…',fg:'#c0c0ea',bg:'rgba(100,100,140,0.12)'},
+    '1,0':{t:'0',fg:'#55558a',bg:'rgba(20,20,40,0.2)'},
+  };
+  drawSSGrid(ctx, W, H, hl);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('E²_{p,q} = H_p(B; H_q(F))  ⇒  H_{p+q}(E)', W*0.18, H*0.92);
+}
+
+function drawSSHopf(ctx, W, H) {
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Hopf fibration spectral sequence', W*0.22, H*0.12);
+  const hl = {
+    '0,0':{t:'ℤ',fg:'#44ffaa',bg:'rgba(68,255,170,0.2)'},
+    '0,1':{t:'ℤ',fg:'#44ffaa',bg:'rgba(68,255,170,0.2)'},
+    '2,0':{t:'ℤ',fg:'#ff8844',bg:'rgba(255,136,68,0.2)'},
+    '2,1':{t:'ℤ',fg:'#ff8844',bg:'rgba(255,136,68,0.2)'},
+  };
+  const g = drawSSGrid(ctx, W, H, hl);
+  // d2 arrow from (2,0) to (0,1)
+  const x1 = g.ox+2*g.cell+g.cell*0.5, y1 = g.oy-0*g.cell-g.cell*0.5;
+  const x2 = g.ox+0*g.cell+g.cell*0.5, y2 = g.oy-1*g.cell-g.cell*0.5;
+  const flash = 0.5+0.5*Math.sin(t12*3);
+  ctx.strokeStyle=`rgba(255,200,100,${0.4+0.5*flash})`; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  drawArrow(ctx, x2+10, y2+6, x2, y2, `rgba(255,200,100,${0.5+0.5*flash})`);
+  ctx.fillStyle='#ffcc44'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('d₂', (x1+x2)/2+8, (y1+y2)/2);
+  ctx.fillStyle='#44ffaa'; ctx.fillText('d₂ iso ⇒ E³ sparse ⇒ H_*(S³)', W*0.2, H*0.92);
+}
+
+function drawSSDiff(ctx, W, H) {
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  const r = 2 + Math.floor(t12*0.5)%3;
+  ctx.fillText('Differential d_r  (r = '+r+')', W*0.30, H*0.12);
+  const g = drawSSGrid(ctx, W, H, {
+    '3,1':{t:'E',fg:'#44aaff',bg:'rgba(68,170,255,0.25)'},
+    '1,2':{t:'dᵣ',fg:'#ff8844',bg:'rgba(255,136,68,0.25)'},
+  });
+  // animate arrow of bidegree (-r, r-1)
+  const p=3,q=1;
+  const x1=g.ox+p*g.cell+g.cell/2, y1=g.oy-q*g.cell-g.cell/2;
+  const x2=g.ox+(p-r)*g.cell+g.cell/2, y2=g.oy-(q+r-1)*g.cell-g.cell/2;
+  ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  drawArrow(ctx, x2+(x1-x2)*0.15, y2+(y1-y2)*0.15, x2, y2, '#ffcc44');
+  // moving kernel/image dots
+  const f = (Math.sin(t12*2)+1)/2;
+  const mx=x1+(x2-x1)*f, my=y1+(y2-y1)*f;
+  ctx.beginPath(); ctx.arc(mx,my,5,0,2*Math.PI); ctx.fillStyle='#fff'; ctx.fill();
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('d_r : E^r_{p,q} → E^r_{p−r, q+r−1}', W*0.2, H*0.92);
+}
+
+function drawSSConv(ctx, W, H) {
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Convergence → associated graded', W*0.24, H*0.12);
+  // filtration layers
+  const n = 5;
+  for (let i=0;i<n;i++){
+    const y = H*0.25 + i*H*0.1;
+    const w = W*0.5 + i*20;
+    const alpha = 0.15 + 0.1*Math.sin(t12+i);
+    ctx.fillStyle=`rgba(68,170,255,${alpha})`;
+    ctx.fillRect(W*0.15, y, w, H*0.08);
+    ctx.strokeStyle='#44aaff'; ctx.strokeRect(W*0.15, y, w, H*0.08);
+    ctx.fillStyle='#c0c0ea'; ctx.font='11px Share Tech Mono';
+    ctx.fillText('F_'+i+' H_*', W*0.17, y+H*0.05);
+    ctx.fillStyle='#ff8844';
+    ctx.fillText('E^∞_{i,*} ≅ F_i / F_{i-1}', W*0.55, y+H*0.05);
+  }
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('extensions: 0 → F_{i-1} → F_i → E^∞ → 0 may be nontrivial', W*0.12, H*0.92);
+}
+
+// ================================================================
+// TAB 13 — MAPPING CLASS GROUPS
+// ================================================================
+let anim13 = null, t13 = 0;
+let mcgMode = 'torus';
+
+function setMCG(m) {
+  mcgMode = m;
+  ['mcg_torus','mcg_dehn','mcg_genus2','mcg_pants'].forEach(id => document.getElementById(id)?.classList.remove('act'));
+  document.getElementById('mcg_'+m)?.classList.add('act');
+  const infos = {
+    torus: '$\\mathrm{Mod}(T^2)\\cong\\mathrm{SL}(2,\\mathbb{Z})$ acts on $H_1(T^2)=\\mathbb{Z}^2$. Generators $S,T$ with $(ST)^3=S^2=-I$ in $PSL$.',
+    dehn: 'Dehn twist $\\tau_c$: cut along simple closed curve $c$, rotate $2\\pi$, reglue. $\\tau_c$ acts as a transvection on $H_1$ when $c$ is non-separating.',
+    genus2: 'Genus-2 surface $\\Sigma_2$: Lickorish–Humphries Dehn twists on a finite set of curves generate $\\mathrm{Mod}(\\Sigma_2)$.',
+    pants: 'Pants decomposition: maximal set of disjoint essential curves; Fenchel–Nielsen coordinates on Teichmüller space $\\mathcal{T}_g$.'
+  };
+  const el = document.getElementById('mcgInfo');
+  if (el) { el.textContent = infos[m]; if (window.renderMathInElement) renderMathInElement(el); }
+  draw13();
+}
+
+function toggleAnim13() {
+  const btn = document.getElementById('btnAnim13');
+  if (anim13) { cancelAnimationFrame(anim13); anim13 = null; if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');} return; }
+  anim13 = requestAnimationFrame(step13);
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
+}
+function step13() { t13 += 0.018*(window.animSpeed||1); draw13(); anim13 = requestAnimationFrame(step13); }
+
+function draw13() {
+  const cv = document.getElementById('c13'); if (!cv) return;
+  const [ctx, W, H] = dprCanvas(cv);
+  ctx.clearRect(0, 0, W, H);
+  if (mcgMode === 'torus') drawMCGTorus(ctx, W, H);
+  else if (mcgMode === 'dehn') drawMCGDehn(ctx, W, H);
+  else if (mcgMode === 'genus2') drawMCGGenus2(ctx, W, H);
+  else drawMCGPants(ctx, W, H);
+}
+
+function drawMCGTorus(ctx, W, H) {
+  const cx=W*0.32, cy=H*0.42, R=Math.min(W,H)*0.18;
+  ctx.beginPath(); ctx.ellipse(cx,cy,R*1.5,R*0.9,0,0,2*Math.PI);
+  ctx.strokeStyle='#44aaff'; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(cx,cy,R*0.55,R*0.32,0,0,2*Math.PI);
+  ctx.strokeStyle='#1c1c44'; ctx.lineWidth=2; ctx.stroke();
+  // lattice action animation
+  const a = Math.floor(t13*0.4)%4;
+  const mats = ['[1 1; 0 1] T','[0 -1; 1 0] S','[1 0; 1 1]','[-1 0; 0 -1]'];
+  // curves
+  ctx.strokeStyle='#ff8844'; ctx.lineWidth=2;
+  ctx.beginPath();
+  for(let i=0;i<=50;i++){ const th=2*Math.PI*i/50; const x=cx+R*1.2*Math.cos(th); const y=cy+R*0.55*Math.sin(th); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.stroke();
+  ctx.strokeStyle='#44ffaa'; ctx.lineWidth=2;
+  const shear = 0.3*Math.sin(t13);
+  ctx.beginPath();
+  for(let i=0;i<=50;i++){ const u=i/50; const x=cx-R*0.9+u*R*1.8; const y=cy+R*0.7*Math.sin(u*Math.PI*2+t13)+shear*R*(u-0.5); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+  ctx.stroke();
+  ctx.fillStyle='#ff8844'; ctx.font='12px Share Tech Mono'; ctx.fillText('α', cx+R*1.3, cy);
+  ctx.fillStyle='#44ffaa'; ctx.fillText('β', cx, cy-R*0.95);
+  // SL2Z panel
+  ctx.fillStyle='#ffcc44'; ctx.font='14px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Mod(T²) ≅ SL(2,ℤ)', W*0.58, H*0.28);
+  ctx.fillStyle='#c0c0ea'; ctx.font='13px Share Tech Mono';
+  ctx.fillText('current: '+mats[a], W*0.58, H*0.40);
+  ctx.fillText('acts on H₁ = ℤ²', W*0.58, H*0.52);
+  ctx.fillStyle='#44ffaa'; ctx.fillText('Ψ: Mod → Sp(2g,ℤ)=SL(2,ℤ)', W*0.55, H*0.88);
+}
+
+function drawMCGDehn(ctx, W, H) {
+  const cx=W*0.5, cy=H*0.42, rx=Math.min(W,H)*0.32, ry=Math.min(W,H)*0.18;
+  // annulus
+  ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,2*Math.PI);
+  ctx.strokeStyle='#44aaff'; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(cx,cy,rx*0.45,ry*0.45,0,0,2*Math.PI);
+  ctx.strokeStyle='#44aaff'; ctx.lineWidth=1.5; ctx.stroke();
+  // curve c
+  ctx.strokeStyle='#ff8844'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.ellipse(cx,cy,rx*0.72,ry*0.72,0,0,2*Math.PI); ctx.stroke();
+  ctx.fillStyle='#ff8844'; ctx.font='12px Share Tech Mono'; ctx.fillText('c', cx+rx*0.78, cy);
+  // twisting rays
+  const twist = t13*0.8;
+  for (let i=0;i<12;i++){
+    const a0 = i*Math.PI/6;
+    const a1 = a0 + twist * (0.3+0.2*Math.sin(i));
+    const r0=rx*0.45, r1=rx;
+    ctx.strokeStyle=`rgba(68,255,170,${0.35+0.05*i})`; ctx.lineWidth=1.2;
+    ctx.beginPath();
+    ctx.moveTo(cx+r0*Math.cos(a0)*1, cy+ry*0.45*Math.sin(a0));
+    ctx.lineTo(cx+r1*Math.cos(a1), cy+ry*Math.sin(a1));
+    ctx.stroke();
+  }
+  ctx.fillStyle='#ffcc44'; ctx.font='14px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Dehn twist τ_c', W*0.38, H*0.14);
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('cut → rotate 2π → reglue', W*0.34, H*0.82);
+  ctx.fillStyle='#c0c0ea'; ctx.fillText('τ_c ∈ Mod(S); generates with enough curves', W*0.24, H*0.92);
+}
+
+function drawMCGGenus2(ctx, W, H) {
+  // double torus silhouette
+  const y=H*0.42;
+  [[W*0.35],[W*0.58]].forEach(([cx],ki)=>{
+    const R=Math.min(W,H)*0.12;
+    ctx.beginPath(); ctx.ellipse(cx,y,R*1.3,R*0.85,0,0,2*Math.PI);
+    ctx.strokeStyle='#44aaff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx,y,R*0.4,R*0.25,0,0,2*Math.PI);
+    ctx.fillStyle='#05050f'; ctx.fill(); ctx.strokeStyle='#1c1c44'; ctx.stroke();
+  });
+  // connecting neck
+  ctx.strokeStyle='#44aaff'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(W*0.35+Math.min(W,H)*0.14,y-20); ctx.quadraticCurveTo(W*0.465,y-35,W*0.58-Math.min(W,H)*0.14,y-20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W*0.35+Math.min(W,H)*0.14,y+20); ctx.quadraticCurveTo(W*0.465,y+35,W*0.58-Math.min(W,H)*0.14,y+20); ctx.stroke();
+  // LH curves flashing
+  const cols=['#ff8844','#44ffaa','#ffcc44','#44aaff','#ff66aa'];
+  for(let i=0;i<5;i++){
+    const active = Math.floor(t13*1.2)%5===i;
+    ctx.strokeStyle=cols[i]; ctx.lineWidth=active?3:1.2; ctx.globalAlpha=active?1:0.45;
+    const cx = W*0.28+i*W*0.1;
+    ctx.beginPath(); ctx.ellipse(cx, y+(i%2?15:-15), 28, 12, i*0.3, 0, 2*Math.PI); ctx.stroke();
+    ctx.fillStyle=cols[i]; ctx.font='11px Share Tech Mono';
+    ctx.fillText('c'+(i+1), cx-8, y+(i%2?40:-40));
+  }
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Σ₂  —  Humphries generators', W*0.28, H*0.14);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('⟨τ_{c₁},…,τ_{c₅}⟩ = Mod(Σ₂)  (Humphries)', W*0.22, H*0.88);
+}
+
+function drawMCGPants(ctx, W, H) {
+  // three-holed sphere (pair of pants)
+  const cx=W*0.5, cy=H*0.42;
+  ctx.strokeStyle='#44aaff'; ctx.lineWidth=2;
+  // outer
+  ctx.beginPath(); ctx.ellipse(cx,cy,Math.min(W,H)*0.28,Math.min(W,H)*0.22,0,0,2*Math.PI); ctx.stroke();
+  // three cuffs
+  const cuffs=[[cx,cy-Math.min(W,H)*0.08,0.1],[cx-Math.min(W,H)*0.12,cy+Math.min(W,H)*0.08,0.09],[cx+Math.min(W,H)*0.12,cy+Math.min(W,H)*0.08,0.09]];
+  cuffs.forEach((c,i)=>{
+    const pulse=1+0.08*Math.sin(t13*2+i);
+    ctx.beginPath(); ctx.ellipse(c[0],c[1],Math.min(W,H)*c[2]*pulse,Math.min(W,H)*c[2]*0.55*pulse,0,0,2*Math.PI);
+    ctx.strokeStyle=['#ff8844','#44ffaa','#ffcc44'][i]; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=['#ff8844','#44ffaa','#ffcc44'][i]; ctx.font='11px Share Tech Mono';
+    ctx.fillText('γ'+(i+1), c[0]-8, c[1]+Math.min(W,H)*c[2]+14);
+  });
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Pair of pants', W*0.38, H*0.12);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('Pants decomp of Σ_g: 3g−3 curves', W*0.28, H*0.82);
+  ctx.fillStyle='#44ffaa'; ctx.fillText('Fenchel–Nielsen: lengths ℓ_i + twists τ_i', W*0.26, H*0.92);
+}
+
+// ================================================================
+// TAB 14 — PERSISTENT HOMOLOGY / TDA
+// ================================================================
+let anim14 = null, t14 = 0;
+let tdaMode = 'cloud';
+const tdaPts = (() => {
+  // two noisy circles
+  const pts = [];
+  for (let i=0;i<24;i++){
+    const a=2*Math.PI*i/24;
+    pts.push({x:0.32+0.14*Math.cos(a), y:0.48+0.16*Math.sin(a)});
+    pts.push({x:0.68+0.13*Math.cos(a+0.2), y:0.48+0.15*Math.sin(a+0.2)});
+  }
+  // few noise points
+  pts.push({x:0.5,y:0.22},{x:0.5,y:0.78},{x:0.15,y:0.3},{x:0.85,y:0.7});
+  return pts;
+})();
+
+function setTDA(m) {
+  tdaMode = m;
+  ['tda_cloud','tda_rips','tda_barcode','tda_diagram'].forEach(id => document.getElementById(id)?.classList.remove('act'));
+  document.getElementById('tda_'+m)?.classList.add('act');
+  const infos = {
+    cloud: 'Point cloud sampled from two circles + noise. TDA recovers two robust $H_1$ features (loops) and many short-lived noise bars.',
+    rips: 'Vietoris–Rips $R_\\varepsilon$: simplex on a set if all pairwise distances $\\le\\varepsilon$. Nested as $\\varepsilon$ grows — a filtration.',
+    barcode: 'Barcode: each interval $[b,d)$ is a homology class born at scale $b$, dying at $d$. Long bars = signal.',
+    diagram: 'Persistence diagram: points $(b,d)$ above the diagonal. Bottleneck distance stable under perturbations of the data.'
+  };
+  const el = document.getElementById('tdaInfo');
+  if (el) { el.textContent = infos[m]; if (window.renderMathInElement) renderMathInElement(el); }
+  draw14();
+}
+
+function toggleAnim14() {
+  const btn = document.getElementById('btnAnim14');
+  if (anim14) { cancelAnimationFrame(anim14); anim14 = null; if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');} return; }
+  anim14 = requestAnimationFrame(step14);
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
+}
+function step14() { t14 += 0.018*(window.animSpeed||1); draw14(); anim14 = requestAnimationFrame(step14); }
+
+function tdaEps() {
+  const el = document.getElementById('slEps');
+  const base = el ? (+el.value)/100 : 0.35;
+  // gentle breathing when animating rips/cloud
+  return base + 0.04*Math.sin(t14*0.8);
+}
+
+function draw14() {
+  const cv = document.getElementById('c14'); if (!cv) return;
+  const [ctx, W, H] = dprCanvas(cv);
+  ctx.clearRect(0, 0, W, H);
+  if (tdaMode === 'cloud') drawTDACloud(ctx, W, H);
+  else if (tdaMode === 'rips') drawTDARips(ctx, W, H);
+  else if (tdaMode === 'barcode') drawTDABarcode(ctx, W, H);
+  else drawTDADiagram(ctx, W, H);
+}
+
+function mapTDA(p, W, H) {
+  return {x: p.x*W, y: p.y*H*0.85 + H*0.05};
+}
+
+function drawTDACloud(ctx, W, H) {
+  const eps = tdaEps();
+  // faint rips edges at current eps
+  for (let i=0;i<tdaPts.length;i++) for (let j=i+1;j<tdaPts.length;j++){
+    const a=mapTDA(tdaPts[i],W,H), b=mapTDA(tdaPts[j],W,H);
+    const d=Math.hypot(tdaPts[i].x-tdaPts[j].x, tdaPts[i].y-tdaPts[j].y);
+    if (d < eps*0.55) {
+      ctx.strokeStyle='rgba(68,170,255,0.25)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    }
+  }
+  tdaPts.forEach((p,i) => {
+    const q=mapTDA(p,W,H);
+    const pulse=3+1.5*Math.sin(t14*2+i*0.3);
+    ctx.beginPath(); ctx.arc(q.x,q.y,pulse,0,2*Math.PI);
+    ctx.fillStyle = i<48 ? '#44aaff' : '#ff8844';
+    ctx.fill();
+  });
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Point cloud  (2 loops + noise)', W*0.22, H*0.96);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('ε ≈ '+eps.toFixed(2)+'  |  blue = signal samples, orange = noise', W*0.18, H*0.08);
+}
+
+function drawTDARips(ctx, W, H) {
+  const eps = tdaEps();
+  // balls
+  tdaPts.forEach(p => {
+    const q=mapTDA(p,W,H);
+    const r = eps*0.28*Math.min(W,H);
+    ctx.beginPath(); ctx.arc(q.x,q.y,r,0,2*Math.PI);
+    ctx.fillStyle='rgba(68,170,255,0.06)'; ctx.fill();
+    ctx.strokeStyle='rgba(68,170,255,0.2)'; ctx.lineWidth=1; ctx.stroke();
+  });
+  // edges + triangles
+  for (let i=0;i<tdaPts.length;i++) for (let j=i+1;j<tdaPts.length;j++){
+    const d=Math.hypot(tdaPts[i].x-tdaPts[j].x, tdaPts[i].y-tdaPts[j].y);
+    if (d > eps*0.55) continue;
+    const a=mapTDA(tdaPts[i],W,H), b=mapTDA(tdaPts[j],W,H);
+    ctx.strokeStyle='rgba(68,255,170,0.45)'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  }
+  // a few triangles
+  for (let i=0;i<tdaPts.length;i++) for (let j=i+1;j<tdaPts.length;j++) for (let k=j+1;k<tdaPts.length;k++){
+    const dij=Math.hypot(tdaPts[i].x-tdaPts[j].x,tdaPts[i].y-tdaPts[j].y);
+    const dik=Math.hypot(tdaPts[i].x-tdaPts[k].x,tdaPts[i].y-tdaPts[k].y);
+    const djk=Math.hypot(tdaPts[j].x-tdaPts[k].x,tdaPts[j].y-tdaPts[k].y);
+    const thr=eps*0.55;
+    if (dij<thr && dik<thr && djk<thr) {
+      const a=mapTDA(tdaPts[i],W,H), b=mapTDA(tdaPts[j],W,H), c=mapTDA(tdaPts[k],W,H);
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.lineTo(c.x,c.y); ctx.closePath();
+      ctx.fillStyle='rgba(255,136,68,0.08)'; ctx.fill();
+    }
+  }
+  tdaPts.forEach(p=>{ const q=mapTDA(p,W,H); ctx.beginPath(); ctx.arc(q.x,q.y,3,0,2*Math.PI); ctx.fillStyle='#fff'; ctx.fill(); });
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Share Tech Mono';
+  ctx.fillText('Vietoris–Rips R_ε   ε='+eps.toFixed(2), W*0.28, H*0.08);
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('edges: diam≤ε   filled: 2-simplices (triangles)', W*0.22, H*0.96);
+}
+
+function drawTDABarcode(ctx, W, H) {
+  // synthetic barcode from two loops + noise
+  const bars = [
+    {b:0.02,d:0.95,k:0,l:'H₀ component A'},
+    {b:0.02,d:0.92,k:0,l:'H₀ component B'},
+    {b:0.05,d:0.18,k:0,l:'H₀ noise'},
+    {b:0.12,d:0.78,k:1,l:'H₁ loop 1'},
+    {b:0.15,d:0.74,k:1,l:'H₁ loop 2'},
+    {b:0.22,d:0.30,k:1,l:'H₁ noise'},
+    {b:0.28,d:0.34,k:1,l:'H₁ noise'},
+    {b:0.40,d:0.48,k:1,l:'H₁ noise'},
+  ];
+  const x0=W*0.12, x1=W*0.88, y0=H*0.18;
+  const scale = (x1-x0);
+  // scanner line
+  const scan = 0.05 + 0.9*((Math.sin(t14*0.5)+1)/2);
+  ctx.strokeStyle='rgba(255,200,100,0.5)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x0+scan*scale, H*0.12); ctx.lineTo(x0+scan*scale, H*0.92); ctx.stroke();
+  ctx.fillStyle='#ffcc44'; ctx.font='11px Share Tech Mono'; ctx.fillText('ε', x0+scan*scale+4, H*0.14);
+  bars.forEach((bar,i) => {
+    const y = y0 + i*28;
+    const xa = x0 + bar.b*scale, xb = x0 + bar.d*scale;
+    const col = bar.k===0 ? '#44aaff' : '#ff8844';
+    const alive = scan >= bar.b && scan < bar.d;
+    ctx.strokeStyle = col; ctx.lineWidth = alive ? 5 : 3;
+    ctx.globalAlpha = alive ? 1 : 0.45;
+    ctx.beginPath(); ctx.moveTo(xa,y); ctx.lineTo(xb,y); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(xa,y,4,0,2*Math.PI); ctx.fillStyle=col; ctx.fill();
+    if (bar.d < 0.99) { ctx.beginPath(); ctx.arc(xb,y,4,0,2*Math.PI); ctx.fillStyle='#55558a'; ctx.fill(); }
+    ctx.fillStyle='#c0c0ea'; ctx.font='11px Share Tech Mono';
+    ctx.fillText(bar.l, xb+8, y+4);
+  });
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Persistence barcode', W*0.32, H*0.08);
+  ctx.fillStyle='#44ffaa'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('long H₁ bars = two circles; short bars = noise', W*0.2, H*0.96);
+}
+
+function drawTDADiagram(ctx, W, H) {
+  const ox=W*0.18, oy=H*0.78, S=Math.min(W,H)*0.55;
+  // axes
+  ctx.strokeStyle='rgba(192,192,234,0.4)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+S,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox,oy-S); ctx.stroke();
+  // diagonal
+  ctx.strokeStyle='rgba(85,85,138,0.6)'; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+S,oy-S); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#55558a'; ctx.font='11px Share Tech Mono';
+  ctx.fillText('birth', ox+S-20, oy+16);
+  ctx.fillText('death', ox-30, oy-S+8);
+  const pts = [
+    {b:0.12,d:0.78,k:1},{b:0.15,d:0.74,k:1},
+    {b:0.22,d:0.30,k:1},{b:0.28,d:0.34,k:1},{b:0.40,d:0.48,k:1},
+    {b:0.02,d:0.95,k:0},{b:0.02,d:0.92,k:0},{b:0.05,d:0.18,k:0},
+  ];
+  pts.forEach((p,i) => {
+    const x=ox+p.b*S, y=oy-p.d*S;
+    const pulse = 5+2*Math.sin(t14*2+i);
+    ctx.beginPath(); ctx.arc(x,y,pulse,0,2*Math.PI);
+    ctx.fillStyle = p.k===0 ? 'rgba(68,170,255,0.85)' : 'rgba(255,136,68,0.85)';
+    ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+  });
+  // bottleneck ball on a point
+  const hi = pts[0];
+  const hx=ox+hi.b*S, hy=oy-hi.d*S;
+  const br = 12+4*Math.sin(t14*3);
+  ctx.strokeStyle='rgba(255,200,100,0.6)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(hx,hy,br,0,2*Math.PI); ctx.stroke();
+  ctx.fillStyle='#ffcc44'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('bottleneck ball', hx+16, hy);
+  ctx.fillStyle='#ffcc44'; ctx.font='13px Orbitron,Share Tech Mono,monospace';
+  ctx.fillText('Persistence diagram', W*0.32, H*0.08);
+  ctx.fillStyle='#c0c0ea'; ctx.font='12px Share Tech Mono';
+  ctx.fillText('orange H₁ · blue H₀ · diagonal = zero persistence', W*0.18, H*0.96);
+}
+
+// ================================================================
 // INIT
 // ================================================================
 window.animSpeed=1;
 window.addEventListener('load', () => {
   draw0(); draw1(); draw2(); draw3(); draw4(); draw5(); draw6(); draw7(); draw8();
-  for(var i=0;i<9;i++){syncSpeedControl41(i);}
-  window.addEventListener('resize', () => { draw0(); draw1(); draw2(); draw3(); draw4(); draw5(); draw6(); draw7(); draw8(); });
+  draw9(); draw10(); draw11(); draw12(); draw13(); draw14();
+  for(var i=0;i<15;i++){syncSpeedControl41(i);}
+  window.addEventListener('resize', () => {
+    draw0(); draw1(); draw2(); draw3(); draw4(); draw5(); draw6(); draw7(); draw8();
+    draw9(); draw10(); draw11(); draw12(); draw13(); draw14();
+  });
 });
 switchTab(0);
 </script>

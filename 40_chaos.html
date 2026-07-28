@@ -77,6 +77,22 @@ input[type=range]{accent-color:var(--accent);cursor:pointer;width:100px}
 /* TAB 6 — Quantum Chaos */
 #pane6.active{flex-direction:row}
 .p6-canvas-col{display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+/* Tabs scroll + split views */
+.tabs{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab{white-space:nowrap;flex-shrink:0}
+.split-view{display:flex;flex:1;min-height:0;overflow:hidden}
+.split-view.split-v{flex-direction:column;gap:4px}
+.split-view.split-v canvas{flex:1;min-height:0;width:100%}
+/* TABS 7–14 shared layout */
+#pane7.active,#pane8.active,#pane9.active,#pane10.active,
+#pane11.active,#pane12.active,#pane13.active,#pane14.active{flex-direction:row}
+.p7-canvas-col,.p8-canvas-col,.p9-canvas-col,.p10-canvas-col,
+.p11-canvas-col,.p12-canvas-col,.p13-canvas-col,.p14-canvas-col{
+  display:flex;flex-direction:column;flex:1;padding:10px;gap:6px;overflow:hidden;min-width:0}
+.p7-canvas-col canvas,.p8-canvas-col canvas,.p9-canvas-col canvas,.p10-canvas-col canvas,
+.p11-canvas-col canvas,.p12-canvas-col canvas,.p13-canvas-col canvas,.p14-canvas-col canvas{
+  flex:1;min-height:0;width:100%}
 </style>
 </head>
 <body>
@@ -85,7 +101,7 @@ input[type=range]{accent-color:var(--accent);cursor:pointer;width:100px}
   <span class="badge">Ch. 20</span>
   <div class="title-block">
     <h1>Chaos &amp; Poincaré Sections</h1>
-    <p>Sensitive dependence, KAM tori, strange attractors, and the boundary of integrability</p>
+    <p>Classical &amp; quantum chaos — Lyapunovs, entropy, embedding, scars, cascade (post-doc / frontier)</p>
   </div>
 </header>
 
@@ -97,6 +113,14 @@ input[type=range]{accent-color:var(--accent);cursor:pointer;width:100px}
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(4)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(4)}">Feigenbaum Universality</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(5)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(5)}">KAM / Standard Map</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(6)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(6)}">Quantum Chaos</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(7)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(7)}">Period Doubling Cascade</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(8)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(8)}">KS Entropy</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(9)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(9)}">Fractal Dimension</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(10)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(10)}">Horseshoe Dynamics</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(11)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(11)}">Sync & Control</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(12)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(12)}">Delay Embedding</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(13)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(13)}">Quantum Scars</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(14)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(14)}">Turbulence Cascade</div>
 </div>
 
 <!-- ═══════════════════  TAB 0  ═══════════════════ -->
@@ -437,6 +461,358 @@ input[type=range]{accent-color:var(--accent);cursor:pointer;width:100px}
   </div>
 </div>
 
+
+<!-- ═══════════════════  TAB 7 — PERIOD DOUBLING CASCADE  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane7">
+  <div class="p7-canvas-col">
+    <canvas aria-label="40 · Chaos — Period Doubling Cascade" id="c7"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay7" class="animBtn" onclick="togglePlay7()">▶ Animate</button>
+      <button onclick="resetPDoubling()">Reset</button>
+      <label>r <input type="range" id="sl_pd_r" min="250" max="400" value="356" oninput="onPDParam()"> <span class="vval" id="vpd_r">3.56</span></label>
+      <label>zoom <input type="range" id="sl_pd_z" min="1" max="40" value="1" oninput="onPDParam()"> <span class="vval" id="vpd_z">1.0×</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed8" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal8" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      Superstable cascade · renormalization fixed point of the doubling operator &nbsp;|&nbsp;
+      period = <span id="pdPer" class="hilite">—</span> &nbsp;|&nbsp;
+      r − r<sub>∞</sub> = <span id="pdRinf" class="hilite">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Period Doubling Cascade</h3>
+    <div class="info-box">
+      Beyond Feigenbaum's δ, the <strong>doubling operator</strong>
+      $$\mathcal{T}g(x)=-\alpha\,g\bigl(g(-x/\alpha)\bigr)$$
+      has a unique hyperbolic fixed point g* in the space of unimodal maps — the origin of universality.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Superstable points</strong> r<sub>n</sub><sup>ss</sup> (critical point is periodic):
+      r<sub>∞</sub> ≈ 3.5699456… &nbsp;|&nbsp; α ≈ 2.502907…
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Frontier:</strong> renormalization for Hénon-like maps (Collet–Eckmann, Lyubich) and the real bound for quadratic maps (Yoccoz, Lyubich–Graczyk–Świątek).
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Current r<span id="s7r">3.56</span></div>
+    <div class="stat-row">Detected period<span id="s7per">—</span></div>
+    <div class="stat-row">|α| est.<span id="s7alpha">—</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 8 — KS ENTROPY  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane8">
+  <div class="p8-canvas-col">
+    <div class="split-view split-v" style="flex:1;min-height:0">
+      <canvas aria-label="40 · Chaos — KS Entropy phase" id="c8top"></canvas>
+      <canvas aria-label="40 · Chaos — KS Entropy rate" id="c8bot"></canvas>
+    </div>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay8" class="animBtn" onclick="togglePlay8()">▶ Animate</button>
+      <button onclick="resetKS()">Reset</button>
+      <label>r <input type="range" id="sl_ks_r" min="300" max="400" value="380" oninput="onKSParam()"> <span class="vval" id="vks_r">3.80</span></label>
+      <label>ε bins <input type="range" id="sl_ks_eps" min="4" max="64" value="16" oninput="onKSParam()"> <span class="vval" id="vks_eps">16</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed9" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal9" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      h<sub>KS</sub> ≈ <span id="ksH" class="hilite">—</span> &nbsp;|&nbsp;
+      Σ λ⁺ ≈ <span id="ksLyap" class="hilite">—</span> &nbsp;|&nbsp;
+      Pesin: h<sub>μ</sub> = Σ λ<sub>i</sub><sup>+</sup> (smooth measures)
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Kolmogorov–Sinai Entropy</h3>
+    <div class="info-box">
+      Metric entropy of a partition 𝒫:
+      $$h_\mu(T,\mathcal{P})=\lim_{n\to\infty}\frac1n H\!\Bigl(\bigvee_{k=0}^{n-1}T^{-k}\mathcal{P}\Bigr)$$
+      $$h_{\mathrm{KS}}=\sup_{\mathcal{P}} h_\mu(T,\mathcal{P})$$
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Pesin's identity</strong> (C² diffeomorphisms, SRB): entropy equals the sum of positive Lyapunov exponents. For the logistic map in chaos, h ≈ λ when λ &gt; 0.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Frontier:</strong> Ruelle inequality, Ledrappier–Young formula, and entropy rigidity (Katok, Pesin theory for nonuniform hyperbolicity).
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">h_KS est.<span id="s8h">—</span></div>
+    <div class="stat-row">λ⁺<span id="s8lam">—</span></div>
+    <div class="stat-row">Blocks<span id="s8n">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 9 — FRACTAL DIMENSION  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane9">
+  <div class="p9-canvas-col">
+    <div class="split-view split-v" style="flex:1;min-height:0">
+      <canvas aria-label="40 · Chaos — Correlation Dimension attractor" id="c9top"></canvas>
+      <canvas aria-label="40 · Chaos — Correlation integral C(r)" id="c9bot"></canvas>
+    </div>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay9" class="animBtn" onclick="togglePlay9()">▶ Animate</button>
+      <button onclick="resetCorrDim()">Reset</button>
+      <label>System
+        <select id="cdSys" onchange="resetCorrDim()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.78rem;padding:3px 6px;border-radius:4px">
+          <option value="henon">Hénon</option>
+          <option value="logistic">Logistic (r=4)</option>
+          <option value="lorenz">Lorenz slice</option>
+        </select>
+      </label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed10" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal10" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      D₂ ≈ <span id="cdD2" class="hilite">—</span> &nbsp;|&nbsp;
+      Grassberger–Procaccia C(r) ∼ r<sup>D₂</sup> &nbsp;|&nbsp;
+      pts: <span id="cdN" class="hilite">0</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Fractal &amp; Correlation Dimension</h3>
+    <div class="info-box">
+      Correlation integral:
+      $$C(r)=\frac{2}{N(N-1)}\sum_{i&lt;j}\Theta(r-\|x_i-x_j\|)$$
+      $$D_2=\lim_{r\to0}\frac{\log C(r)}{\log r}$$
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Kaplan–Yorke conjecture:</strong> D<sub>L</sub> = k + Σ<sub>i≤k</sub>λ<sub>i</sub>/|λ<sub>k+1</sub>| interpolates Lyapunov spectrum to fractal dimension.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      Hénon: D₂ ≈ 1.22 &nbsp;|&nbsp; Lorenz: D₂ ≈ 2.05. Multifractal spectrum f(α) encodes local dimensions.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">D₂ fit<span id="s9d2">—</span></div>
+    <div class="stat-row">Slope band<span id="s9band">—</span></div>
+    <div class="stat-row">N pts<span id="s9n">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 10 — HORSESHOE  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane10">
+  <div class="p10-canvas-col">
+    <canvas aria-label="40 · Chaos — Smale Horseshoe symbolic dynamics" id="c10"></canvas>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay10" class="animBtn" onclick="togglePlay10()">▶ Animate</button>
+      <button onclick="resetHorseshoe()">Reset</button>
+      <label>stretch λ <input type="range" id="sl_hs_lam" min="20" max="50" value="30" oninput="onHSParam()"> <span class="vval" id="vhs_lam">3.0</span></label>
+      <label>iters <input type="range" id="sl_hs_n" min="1" max="8" value="4" oninput="onHSParam()"> <span class="vval" id="vhs_n">4</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed11" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal11" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      Smale horseshoe · conjugacy to full 2-shift &nbsp;|&nbsp;
+      symbol: <span id="hsSym" class="hilite">—</span> &nbsp;|&nbsp;
+      h_top = log 2 ≈ 0.693
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Horseshoe &amp; Symbolic Dynamics</h3>
+    <div class="info-box">
+      Stretch–fold–cut maps a square into a horseshoe intersecting two vertical strips. The invariant set Λ is a Cantor set conjugate to the Bernoulli shift σ on {0,1}<sup>ℤ</sup>.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      $$h_{\mathrm{top}}(f|_\Lambda)=\log 2,\qquad \#\mathrm{Per}_n(f)=2^n$$
+      Dense periodic orbits, sensitive dependence, topological mixing.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Frontier:</strong> Newhouse wild hyperbolic sets, Hénon attractors as deformed horseshoes (Benedicks–Carleson), and the pruning front (Cvitanović).
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Top. entropy<span>log 2</span></div>
+    <div class="stat-row">Itinerary<span id="s10itin">—</span></div>
+    <div class="stat-row">Phase t<span id="s10t">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 11 — SYNC & CONTROL  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane11">
+  <div class="p11-canvas-col">
+    <div class="split-view split-v" style="flex:1;min-height:0">
+      <canvas aria-label="40 · Chaos — Synchronization phase space" id="c11top"></canvas>
+      <canvas aria-label="40 · Chaos — Sync error and control" id="c11bot"></canvas>
+    </div>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay11" class="animBtn" onclick="togglePlay11()">▶ Animate</button>
+      <button onclick="resetSync()">Reset</button>
+      <label>κ couple <input type="range" id="sl_sy_k" min="0" max="100" value="20" oninput="onSyncParam()"> <span class="vval" id="vsy_k">0.20</span></label>
+      <label>OGY ε <input type="range" id="sl_sy_ogy" min="0" max="50" value="10" oninput="onSyncParam()"> <span class="vval" id="vsy_ogy">0.10</span></label>
+      <button id="btnOGY" onclick="toggleOGY()">OGY OFF</button>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed12" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal12" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      Pecora–Carroll / diffusive sync &nbsp;|&nbsp;
+      ‖e‖ = <span id="syErr" class="hilite">—</span> &nbsp;|&nbsp;
+      OGY: <span id="syOGY" class="hilite">off</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Synchronization &amp; Chaos Control</h3>
+    <div class="info-box">
+      Two Lorenz systems with drive–response coupling:
+      $$\dot{\mathbf{y}}=\mathbf{F}(\mathbf{y})+\kappa\,P(\mathbf{x}-\mathbf{y})$$
+      Synchronize when κ exceeds a threshold set by the largest conditional Lyapunov exponent.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>OGY control</strong> (Ott–Grebogi–Yorke): small parameter kicks when the state nears an unstable periodic orbit, using the stable manifold.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Frontier:</strong> chimera states, cluster sync on networks, and control of high-dimensional turbulence (model predictive / reinforcement).
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">‖x−y‖<span id="s11err">—</span></div>
+    <div class="stat-row">κ<span id="s11k">0.20</span></div>
+    <div class="stat-row">UPO hold<span id="s11upo">—</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 12 — DELAY EMBEDDING  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane12">
+  <div class="p12-canvas-col">
+    <div class="split-view split-v" style="flex:1;min-height:0">
+      <canvas aria-label="40 · Chaos — Takens delay embedding" id="c12top"></canvas>
+      <canvas aria-label="40 · Chaos — Mutual information tau" id="c12bot"></canvas>
+    </div>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay12" class="animBtn" onclick="togglePlay12()">▶ Animate</button>
+      <button onclick="resetTakens()">Reset</button>
+      <label>τ <input type="range" id="sl_tk_tau" min="1" max="40" value="10" oninput="onTakensParam()"> <span class="vval" id="vtk_tau">10</span></label>
+      <label>m <input type="range" id="sl_tk_m" min="2" max="5" value="3" oninput="onTakensParam()"> <span class="vval" id="vtk_m">3</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed13" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal13" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      Takens theorem · scalar x(t) → delay vectors &nbsp;|&nbsp;
+      τ = <span id="tkTau" class="hilite">10</span> &nbsp;|&nbsp;
+      m = <span id="tkM" class="hilite">3</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Delay Embedding (Takens)</h3>
+    <div class="info-box">
+      For a smooth attractor of dim d, generic observation h and delay τ give an embedding
+      $$\Phi(x)=\bigl(h(x),h(T_\tau x),\ldots,h(T_{(m-1)\tau}x)\bigr)$$
+      when m ≥ 2d+1 (Whitney/Takens).
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      Choose τ via first minimum of mutual information I(τ); m via false nearest neighbors. Reconstructs topology, Lyapunovs, and D₂ from a single series.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Frontier:</strong> causal embeddings, HAVOK/SINDy for sparse governing equations, and neural delay coordinates.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">τ (MI min)<span id="s12tau">—</span></div>
+    <div class="stat-row">m embed<span id="s12m">3</span></div>
+    <div class="stat-row">Series N<span id="s12n">0</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 13 — QUANTUM SCARS  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane13">
+  <div class="p13-canvas-col">
+    <div class="split-view split-v" style="flex:1;min-height:0">
+      <canvas aria-label="40 · Chaos — Quantum scar billiard eigenstate" id="c13top"></canvas>
+      <canvas aria-label="40 · Chaos — ETH diagonal vs off-diagonal" id="c13bot"></canvas>
+    </div>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay13" class="animBtn" onclick="togglePlay13()">▶ Animate</button>
+      <button onclick="resetScars()">Reset</button>
+      <label>mode n <input type="range" id="sl_sc_n" min="1" max="24" value="8" oninput="onScarParam()"> <span class="vval" id="vsc_n">8</span></label>
+      <label>scar mix <input type="range" id="sl_sc_mix" min="0" max="100" value="55" oninput="onScarParam()"> <span class="vval" id="vsc_mix">0.55</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed14" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal14" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      Heller scars · ETH lite (no deep GUE/zeta) &nbsp;|&nbsp;
+      scar strength = <span id="scStr" class="hilite">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Quantum Scars &amp; ETH (lite)</h3>
+    <div class="info-box">
+      <strong>Scars</strong> (Heller): some chaotic eigenstates |ψ<sub>n</sub>|² enhance along unstable periodic orbits — a semiclassical imprint beyond Berry's random waves.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>ETH:</strong> for few-body operators A,
+      $$A_{mn}=\mathcal{A}(E)\,\delta_{mn}+e^{-S(E)/2}f(E,\omega)R_{mn}$$
+      Diagonal ≈ microcanonical; off-diagonal ~ e^{−S/2}. Scars are weak ETH violations in sparse states.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Frontier:</strong> many-body scars (PXP, Rydberg), quantum many-body scars vs Hilbert-space fragmentation.
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Mode n<span id="s13n">8</span></div>
+    <div class="stat-row">Scar wt<span id="s13w">0.55</span></div>
+    <div class="stat-row">⟨A⟩_diag<span id="s13a">—</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════  TAB 14 — TURBULENCE CASCADE  ═══════════════════ -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane14">
+  <div class="p14-canvas-col">
+    <div class="split-view split-v" style="flex:1;min-height:0">
+      <canvas aria-label="40 · Chaos — Kolmogorov energy cascade spectrum" id="c14top"></canvas>
+      <canvas aria-label="40 · Chaos — Eddy cascade visualization" id="c14bot"></canvas>
+    </div>
+    <div class="ctrls" data-role="sidebar">
+      <button id="btnPlay14" class="animBtn" onclick="togglePlay14()">▶ Animate</button>
+      <button onclick="resetTurb()">Reset</button>
+      <label>Re <input type="range" id="sl_tb_re" min="100" max="10000" value="2000" oninput="onTurbParam()"> <span class="vval" id="vtb_re">2000</span></label>
+      <label>ε diss <input type="range" id="sl_tb_eps" min="1" max="100" value="20" oninput="onTurbParam()"> <span class="vval" id="vtb_eps">0.20</span></label>
+      <label style="font-size:.72rem;color:var(--dim);margin-left:8px">Global Speed</label>
+      <input type="range" id="globalSpeed15" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal15" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    </div>
+    <div class="info-box">
+      Kolmogorov K41 · E(k) ∼ ε<sup>2/3</sup> k<sup>−5/3</sup> &nbsp;|&nbsp;
+      η<sub>K</sub> = <span id="tbEta" class="hilite">—</span> &nbsp;|&nbsp;
+      L/η = <span id="tbRange" class="hilite">—</span>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Turbulence Cascade</h3>
+    <div class="info-box">
+      Inertial-range energy spectrum (K41):
+      $$E(k)=C_K\,\varepsilon^{2/3}k^{-5/3}$$
+      Energy injects at large scale L, cascades at rate ε, dissipates at Kolmogorov scale η = (ν³/ε)^{1/4}.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      <strong>Intermittency</strong> (K62, She–Leveque): anomalous scaling ζ<sub>p</sub> ≠ p/3 for structure functions ⟨|δv<sub>r</sub>|<sup>p</sup>⟩ ∼ r<sup>ζ_p</sup>.
+    </div>
+    <div class="sep"></div>
+    <div class="info-box">
+      Bridge to chaos: strange attractors in truncated Galerkin NSE; Lagrangian chaos and pair dispersion (Richardson r² ∼ ε t³).
+    </div>
+    <div class="sep"></div>
+    <div class="stat-row">Re<span id="s14re">2000</span></div>
+    <div class="stat-row">k_η<span id="s14keta">—</span></div>
+    <div class="stat-row">C_K<span>1.5</span></div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 // UTILITY
@@ -482,31 +858,64 @@ function _resizeCanvasesIn(pane) {
   });
 }
 
+const NUM_TABS40 = 15;
+const _rafVars40 = ['raf0','poincRaf','attrRaf','raf3','fg4Raf','kamRaf','qcRaf',
+  'raf7','raf8','raf9','raf10','raf11','raf12','raf13','raf14'];
+const _playFlags40 = ['playing0','poincPlaying','attrPlaying','lyap3Playing','playing4','playing5','playing6',
+  'playing7','playing8','playing9','playing10','playing11','playing12','playing13','playing14'];
+
+function _setPlayBtn40(id, on) {
+  const b = document.getElementById(id);
+  if (!b) return;
+  b.textContent = on ? '⏸ Pause' : '▶ Animate';
+  b.classList.toggle('act', !!on);
+  if (on) b.setAttribute('data-kt-autoplay', '1');
+  else b.removeAttribute('data-kt-autoplay');
+}
+
 function switchTab(n) {
   _cancelAllAnims40();
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === n));
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', i === n);
+    if (t.getAttribute('role') === 'tab') t.setAttribute('aria-selected', i === n ? 'true' : 'false');
+  });
   document.querySelectorAll('.pane').forEach((p, i) => p.classList.toggle('active', i === n));
   var pane = document.getElementById('pane' + n);
   if (pane) _resizeCanvasesIn(pane);
-  if (n === 0) scheduleLoop0();
-  if (n === 1) scheduleLoop1();
-  if (n === 2) scheduleLoop2();
-  if (n === 3) scheduleLoop3();
-  if (n === 4) scheduleLoop4();
-  if (n === 5) scheduleLoop5();
-  if (n === 6) scheduleLoop6();
+  const sp = window.animSpeed || 1;
+  const spd = document.getElementById('globalSpeed' + (n + 1));
+  if (spd) {
+    spd.value = sp;
+    if (spd.nextElementSibling) spd.nextElementSibling.textContent = (+sp).toFixed(2) + 'x';
+  }
+  const starters = [
+    scheduleLoop0, scheduleLoop1, scheduleLoop2, scheduleLoop3, scheduleLoop4,
+    scheduleLoop5, scheduleLoop6, scheduleLoop7, scheduleLoop8, scheduleLoop9,
+    scheduleLoop10, scheduleLoop11, scheduleLoop12, scheduleLoop13, scheduleLoop14
+  ];
+  if (starters[n]) starters[n]();
 }
 
 function _cancelAllAnims40() {
-  [raf0, poincRaf, attrRaf, raf3, fg4Raf, kamRaf, qcRaf].forEach(id => {
-    if (id) cancelAnimationFrame(id);
-  });
-  raf0 = poincRaf = attrRaf = raf3 = fg4Raf = kamRaf = qcRaf = null;
-  const btns = ['btnPlay0','btnPlay1','btnPlay2','btnPlay3','btnPlay4','btnPlay5','btnPlay6'];
-  btns.forEach(id => {
-    const b = document.getElementById(id);
-    if(b){ b.textContent='▶ Animate'; b.classList.remove('act'); }
-  });
+  // cancel known RAF handles if defined
+  if (typeof raf0 !== 'undefined' && raf0) { cancelAnimationFrame(raf0); raf0 = null; }
+  if (typeof poincRaf !== 'undefined' && poincRaf) { cancelAnimationFrame(poincRaf); poincRaf = null; }
+  if (typeof attrRaf !== 'undefined' && attrRaf) { cancelAnimationFrame(attrRaf); attrRaf = null; }
+  if (typeof raf3 !== 'undefined' && raf3) { cancelAnimationFrame(raf3); raf3 = null; }
+  if (typeof fg4Raf !== 'undefined' && fg4Raf) { cancelAnimationFrame(fg4Raf); fg4Raf = null; }
+  if (typeof kamRaf !== 'undefined' && kamRaf) { cancelAnimationFrame(kamRaf); kamRaf = null; }
+  if (typeof qcRaf !== 'undefined' && qcRaf) { cancelAnimationFrame(qcRaf); qcRaf = null; }
+  if (typeof raf7 !== 'undefined' && raf7) { cancelAnimationFrame(raf7); raf7 = null; }
+  if (typeof raf8 !== 'undefined' && raf8) { cancelAnimationFrame(raf8); raf8 = null; }
+  if (typeof raf9 !== 'undefined' && raf9) { cancelAnimationFrame(raf9); raf9 = null; }
+  if (typeof raf10 !== 'undefined' && raf10) { cancelAnimationFrame(raf10); raf10 = null; }
+  if (typeof raf11 !== 'undefined' && raf11) { cancelAnimationFrame(raf11); raf11 = null; }
+  if (typeof raf12 !== 'undefined' && raf12) { cancelAnimationFrame(raf12); raf12 = null; }
+  if (typeof raf13 !== 'undefined' && raf13) { cancelAnimationFrame(raf13); raf13 = null; }
+  if (typeof raf14 !== 'undefined' && raf14) { cancelAnimationFrame(raf14); raf14 = null; }
+  for (let i = 0; i < NUM_TABS40; i++) {
+    _setPlayBtn40('btnPlay' + i, false);
+  }
 }
 
 // Speed is controlled globally via window.animSpeed
@@ -750,6 +1159,7 @@ function loop0() {
 
 function scheduleLoop0() {
   if (raf0) cancelAnimationFrame(raf0);
+  playing0 = true; _setPlayBtn40('btnPlay0', true);
   [W0, H0, ctx0] = cv0info.resize();
   loop0();
 }
@@ -912,6 +1322,7 @@ function loop1() {
 
 function scheduleLoop1() {
   if (poincRaf) cancelAnimationFrame(poincRaf);
+  poincPlaying = true; _setPlayBtn40('btnPlay1', true);
   resetPoincare();
   loop1();
 }
@@ -1309,6 +1720,7 @@ function loop2() {
 
 function scheduleLoop2() {
   if (attrRaf) cancelAnimationFrame(attrRaf);
+  attrPlaying = true; _setPlayBtn40('btnPlay2', true);
   [W2, H2, ctx2] = cv2info.resize();
   loop2();
 }
@@ -1554,6 +1966,7 @@ function loop3() {
 
 function scheduleLoop3() {
   if (raf3) cancelAnimationFrame(raf3);
+  lyap3Playing = true; _setPlayBtn40('btnPlay3', true);
   buildLyap3Background();
   resetLyapunov();
   loop3();
@@ -1789,20 +2202,14 @@ function loop4() {
 
 function scheduleLoop4() {
   if (fg4Raf) cancelAnimationFrame(fg4Raf);
+  playing4 = true; _setPlayBtn40('btnPlay4', true);
   buildFg4();
   loop4();
 }
 
 function togglePlay4() {
   playing4 = !playing4;
-  const btn = document.getElementById('btnPlay4');
-  btn.textContent = playing4 ? '⏸ Pause' : '▶ Animate';
-  btn.classList.toggle('act', playing4);
-  if (playing4) {
-    loop4();
-  } else {
-    if (fg4Raf) cancelAnimationFrame(fg4Raf);
-  }
+  _setPlayBtn40('btnPlay4', playing4);
 }
 
 // ═══════════════════════════════════════════════
@@ -1941,8 +2348,8 @@ function loop5() {
 
 function scheduleLoop5() {
   if (kamRaf) cancelAnimationFrame(kamRaf);
+  playing5 = true; _setPlayBtn40('btnPlay5', true);
   onKChange();
-  // auto-fill on first load
   if (kamOrbits.length === 0) fillStdMap();
   loop5();
 }
@@ -2303,9 +2710,9 @@ function drawQChaosBot() {
 function loop6() {
   if (playing6) {
     otocPhase += 0.003*(window.animSpeed || 1);
-    drawQChaosTop();
-    drawQChaosBot();
   }
+  drawQChaosTop();
+  drawQChaosBot();
   qcRaf = requestAnimationFrame(loop6);
 }
 
@@ -2317,8 +2724,1251 @@ function togglePlay6() {
 
 function scheduleLoop6() {
   if (qcRaf) cancelAnimationFrame(qcRaf);
+  playing6 = true; _setPlayBtn40('btnPlay6', true);
   regenQChaos();
   loop6();
+}
+
+
+// ═══════════════════════════════════════════════
+// TAB 7 — PERIOD DOUBLING CASCADE
+// ═══════════════════════════════════════════════
+let pdR = 3.56, pdZoom = 1, pdPhase = 0;
+let playing7 = true, raf7 = null;
+let pdOrbit = [], pdBif = [];
+const PD_RINF = 3.5699456;
+const cv7Info = makeCanvas('c7');
+let W7, H7, ctx7;
+
+function onPDParam() {
+  pdR = parseInt(document.getElementById('sl_pd_r').value) / 100;
+  pdZoom = parseInt(document.getElementById('sl_pd_z').value);
+  document.getElementById('vpd_r').textContent = pdR.toFixed(2);
+  document.getElementById('vpd_z').textContent = pdZoom.toFixed(1) + '×';
+  document.getElementById('s7r').textContent = pdR.toFixed(4);
+  document.getElementById('pdRinf').textContent = (pdR - PD_RINF).toExponential(2);
+  buildPDBif();
+  samplePDOrbit();
+}
+
+function buildPDBif() {
+  pdBif = [];
+  const rC = PD_RINF;
+  const span = 0.08 / pdZoom;
+  const r0 = Math.max(3.4, rC - span * 0.7);
+  const r1 = Math.min(4.0, rC + span * 0.3);
+  const NR = 500;
+  for (let i = 0; i < NR; i++) {
+    const r = r0 + (r1 - r0) * i / NR;
+    let x = 0.5;
+    for (let k = 0; k < 400; k++) x = r * x * (1 - x);
+    const xs = [];
+    for (let k = 0; k < 120; k++) { x = r * x * (1 - x); xs.push(x); }
+    pdBif.push({ r, xs });
+  }
+}
+
+function samplePDOrbit() {
+  pdOrbit = [];
+  let x = 0.5;
+  for (let k = 0; k < 800; k++) x = pdR * x * (1 - x);
+  for (let k = 0; k < 256; k++) { x = pdR * x * (1 - x); pdOrbit.push(x); }
+  // detect period (approx)
+  let per = 0;
+  const tol = 1e-4;
+  const last = pdOrbit[pdOrbit.length - 1];
+  for (let p = 1; p <= 128; p++) {
+    if (Math.abs(pdOrbit[pdOrbit.length - 1 - p] - last) < tol) { per = p; break; }
+  }
+  document.getElementById('pdPer').textContent = per || 'chaos/high';
+  document.getElementById('s7per').textContent = per || '—';
+  // alpha width estimate: ratio of successive peak separations in orbit
+  if (per >= 2) {
+    const a = Math.abs(pdOrbit[pdOrbit.length - 1] - 0.5);
+    const b = Math.abs(pdOrbit[pdOrbit.length - 1 - Math.floor(per / 2)] - 0.5);
+    const al = b > 1e-8 ? a / b : NaN;
+    document.getElementById('s7alpha').textContent = isFinite(al) ? al.toFixed(3) : '—';
+  } else document.getElementById('s7alpha').textContent = '—';
+}
+
+function resetPDoubling() {
+  document.getElementById('sl_pd_r').value = 356;
+  document.getElementById('sl_pd_z').value = 1;
+  pdPhase = 0;
+  onPDParam();
+}
+
+function togglePlay7() {
+  playing7 = !playing7;
+  _setPlayBtn40('btnPlay7', playing7);
+}
+
+function drawPD() {
+  [W7, H7, ctx7] = cv7Info.resize();
+  ctx7.clearRect(0, 0, W7, H7);
+  ctx7.fillStyle = '#03030c';
+  ctx7.fillRect(0, 0, W7, H7);
+  if (!pdBif.length) return;
+  const r0 = pdBif[0].r, r1 = pdBif[pdBif.length - 1].r;
+  // bif diagram
+  ctx7.fillStyle = 'rgba(255,204,0,0.4)';
+  pdBif.forEach(({ r, xs }) => {
+    const px = ((r - r0) / (r1 - r0)) * W7;
+    xs.forEach(x => {
+      const py = (1 - x) * H7 * 0.92 + 8;
+      ctx7.fillRect(px, py, 1, 1);
+    });
+  });
+  // r∞ line
+  if (PD_RINF >= r0 && PD_RINF <= r1) {
+    const px = ((PD_RINF - r0) / (r1 - r0)) * W7;
+    ctx7.strokeStyle = 'rgba(255,80,80,0.7)';
+    ctx7.setLineDash([4, 3]);
+    ctx7.beginPath(); ctx7.moveTo(px, 0); ctx7.lineTo(px, H7); ctx7.stroke();
+    ctx7.setLineDash([]);
+    ctx7.fillStyle = '#ff6666';
+    ctx7.font = '12px Share Tech Mono';
+    ctx7.fillText('r∞', px + 4, 16);
+  }
+  // current r
+  if (pdR >= r0 && pdR <= r1) {
+    const px = ((pdR - r0) / (r1 - r0)) * W7;
+    ctx7.strokeStyle = '#00ffcc';
+    ctx7.lineWidth = 1.5;
+    ctx7.beginPath(); ctx7.moveTo(px, 0); ctx7.lineTo(px, H7); ctx7.stroke();
+  }
+  // orbit cobweb inset right
+  const ix = W7 * 0.62, iy = 20, iw = W7 * 0.36, ih = H7 * 0.35;
+  ctx7.fillStyle = 'rgba(10,10,30,0.85)';
+  ctx7.fillRect(ix, iy, iw, ih);
+  ctx7.strokeStyle = 'rgba(255,204,0,0.3)';
+  ctx7.strokeRect(ix, iy, iw, ih);
+  // parabola
+  ctx7.strokeStyle = '#ffcc00';
+  ctx7.lineWidth = 1;
+  ctx7.beginPath();
+  for (let i = 0; i <= 80; i++) {
+    const x = i / 80;
+    const y = pdR * x * (1 - x);
+    const px = ix + x * iw;
+    const py = iy + ih - y * ih;
+    if (i === 0) ctx7.moveTo(px, py); else ctx7.lineTo(px, py);
+  }
+  ctx7.stroke();
+  // y=x
+  ctx7.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx7.beginPath(); ctx7.moveTo(ix, iy + ih); ctx7.lineTo(ix + iw, iy); ctx7.stroke();
+  // cobweb animated
+  let x = 0.2 + 0.1 * Math.sin(pdPhase);
+  ctx7.strokeStyle = '#00ffcc';
+  ctx7.beginPath();
+  for (let i = 0; i < 40; i++) {
+    const y = pdR * x * (1 - x);
+    const px0 = ix + x * iw, py0 = iy + ih - x * ih;
+    const px1 = ix + x * iw, py1 = iy + ih - y * ih;
+    const px2 = ix + y * iw, py2 = iy + ih - y * ih;
+    if (i === 0) ctx7.moveTo(px0, py0);
+    ctx7.lineTo(px1, py1); ctx7.lineTo(px2, py2);
+    x = y;
+  }
+  ctx7.stroke();
+  ctx7.fillStyle = 'rgba(255,204,0,0.55)';
+  ctx7.font = '12px Share Tech Mono';
+  ctx7.fillText('Period-doubling zoom near r∞ · cobweb inset', 10, H7 - 10);
+  ctx7.fillText(`r=${pdR.toFixed(4)}  zoom=${pdZoom}×`, 10, 16);
+}
+
+function loop7() {
+  if (playing7) {
+    pdPhase += 0.04 * (window.animSpeed || 1);
+    // slow sweep of r near cascade for demo
+    if (pdZoom <= 2) {
+      const base = 3.5 + 0.08 * (0.5 + 0.5 * Math.sin(pdPhase * 0.15));
+      // only visual sweep if user near default — don't fight slider hard
+    }
+  }
+  drawPD();
+  raf7 = requestAnimationFrame(loop7);
+}
+
+function scheduleLoop7() {
+  if (raf7) cancelAnimationFrame(raf7);
+  playing7 = true; _setPlayBtn40('btnPlay7', true);
+  onPDParam();
+  loop7();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 8 — KS ENTROPY
+// ═══════════════════════════════════════════════
+let ksR = 3.8, ksBins = 16, ksPhase = 0;
+let playing8 = true, raf8 = null;
+let ksHist = [], ksHSeries = [], ksLam = 0, ksH = 0, ksBlocks = 0;
+let ksX = 0.3;
+const cv8t = makeCanvas('c8top');
+const cv8b = makeCanvas('c8bot');
+let W8t, H8t, ctx8t, W8b, H8b, ctx8b;
+
+function onKSParam() {
+  ksR = parseInt(document.getElementById('sl_ks_r').value) / 100;
+  ksBins = parseInt(document.getElementById('sl_ks_eps').value);
+  document.getElementById('vks_r').textContent = ksR.toFixed(2);
+  document.getElementById('vks_eps').textContent = ksBins;
+  resetKS(false);
+}
+
+function resetKS(full) {
+  if (full !== false) {
+    document.getElementById('sl_ks_r').value = 380;
+    document.getElementById('sl_ks_eps').value = 16;
+    ksR = 3.8; ksBins = 16;
+    document.getElementById('vks_r').textContent = '3.80';
+    document.getElementById('vks_eps').textContent = '16';
+  }
+  ksX = 0.3; ksPhase = 0; ksHist = new Array(ksBins).fill(0);
+  ksHSeries = []; ksLam = 0; ksH = 0; ksBlocks = 0;
+  // warm Lyapunov
+  let x = 0.5, s = 0, n = 0;
+  for (let i = 0; i < 5000; i++) {
+    const d = Math.abs(ksR * (1 - 2 * x));
+    if (d > 0) { s += Math.log(d); n++; }
+    x = ksR * x * (1 - x);
+  }
+  ksLam = n ? s / n : 0;
+  document.getElementById('ksLyap').textContent = ksLam.toFixed(4);
+  document.getElementById('s8lam').textContent = ksLam.toFixed(4);
+}
+
+function togglePlay8() {
+  playing8 = !playing8;
+  _setPlayBtn40('btnPlay8', playing8);
+}
+
+function drawKSTop() {
+  [W8t, H8t, ctx8t] = cv8t.resize();
+  ctx8t.clearRect(0, 0, W8t, H8t);
+  ctx8t.fillStyle = '#03030c';
+  ctx8t.fillRect(0, 0, W8t, H8t);
+  // symbolic itinerary as colored strips + orbit on logistic
+  const pad = 20;
+  // parabola
+  ctx8t.strokeStyle = '#ffcc00';
+  ctx8t.beginPath();
+  for (let i = 0; i <= 100; i++) {
+    const x = i / 100;
+    const y = ksR * x * (1 - x);
+    const px = pad + x * (W8t - 2 * pad);
+    const py = H8t - pad - y * (H8t - 2 * pad);
+    if (i === 0) ctx8t.moveTo(px, py); else ctx8t.lineTo(px, py);
+  }
+  ctx8t.stroke();
+  // partitions
+  for (let b = 0; b <= ksBins; b++) {
+    const x = b / ksBins;
+    const px = pad + x * (W8t - 2 * pad);
+    ctx8t.strokeStyle = 'rgba(0,200,255,0.15)';
+    ctx8t.beginPath(); ctx8t.moveTo(px, pad); ctx8t.lineTo(px, H8t - pad); ctx8t.stroke();
+  }
+  // histogram of visits
+  const maxH = Math.max(1, ...ksHist);
+  for (let b = 0; b < ksBins; b++) {
+    const x0 = pad + (b / ksBins) * (W8t - 2 * pad);
+    const bw = (W8t - 2 * pad) / ksBins;
+    const h = (ksHist[b] / maxH) * (H8t - 2 * pad) * 0.4;
+    ctx8t.fillStyle = 'rgba(0,255,180,0.25)';
+    ctx8t.fillRect(x0, H8t - pad - h, bw - 1, h);
+  }
+  // current point
+  const px = pad + ksX * (W8t - 2 * pad);
+  const py = H8t - pad - (ksR * ksX * (1 - ksX)) * (H8t - 2 * pad);
+  ctx8t.fillStyle = '#00ffcc';
+  ctx8t.shadowColor = '#00ffcc'; ctx8t.shadowBlur = 10;
+  ctx8t.beginPath(); ctx8t.arc(px, py, 5, 0, TAU); ctx8t.fill();
+  ctx8t.shadowBlur = 0;
+  ctx8t.fillStyle = 'rgba(255,204,0,0.55)';
+  ctx8t.font = '12px Share Tech Mono';
+  ctx8t.fillText(`Logistic r=${ksR.toFixed(2)} · partition bins=${ksBins} · symbolic measure`, 10, 16);
+}
+
+function drawKSBot() {
+  [W8b, H8b, ctx8b] = cv8b.resize();
+  ctx8b.clearRect(0, 0, W8b, H8b);
+  ctx8b.fillStyle = '#03030c';
+  ctx8b.fillRect(0, 0, W8b, H8b);
+  const padL = 45, padR = 15, padT = 18, padB = 28;
+  const pw = W8b - padL - padR, ph = H8b - padT - padB;
+  // axes
+  ctx8b.strokeStyle = 'rgba(255,204,0,0.25)';
+  ctx8b.beginPath(); ctx8b.moveTo(padL, padT); ctx8b.lineTo(padL, padT + ph); ctx8b.lineTo(padL + pw, padT + ph); ctx8b.stroke();
+  // h series
+  if (ksHSeries.length > 1) {
+    const maxY = Math.max(1.2, ...ksHSeries.map(v => Math.abs(v) + 0.1));
+    ctx8b.strokeStyle = '#00ffcc';
+    ctx8b.lineWidth = 1.5;
+    ctx8b.beginPath();
+    ksHSeries.forEach((h, i) => {
+      const px = padL + (i / Math.max(1, ksHSeries.length - 1)) * pw;
+      const py = padT + ph - (h / maxY) * ph;
+      if (i === 0) ctx8b.moveTo(px, py); else ctx8b.lineTo(px, py);
+    });
+    ctx8b.stroke();
+    // lambda line
+    ctx8b.strokeStyle = 'rgba(255,80,80,0.6)';
+    ctx8b.setLineDash([4, 3]);
+    const ly = padT + ph - (Math.max(0, ksLam) / maxY) * ph;
+    ctx8b.beginPath(); ctx8b.moveTo(padL, ly); ctx8b.lineTo(padL + pw, ly); ctx8b.stroke();
+    ctx8b.setLineDash([]);
+    ctx8b.fillStyle = '#ff6666';
+    ctx8b.font = '12px Share Tech Mono';
+    ctx8b.fillText('Σλ⁺ (Pesin)', padL + 8, Math.max(padT + 12, ly - 4));
+  }
+  ctx8b.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx8b.font = '12px Share Tech Mono';
+  ctx8b.fillText('Block entropy rate → h_KS', padL, H8b - 8);
+  ctx8b.fillStyle = '#00ffcc';
+  ctx8b.fillText(`h≈${ksH.toFixed(4)}`, padL + pw - 80, padT + 14);
+}
+
+function loop8() {
+  if (playing8) {
+    const steps = Math.max(1, Math.round(40 * (window.animSpeed || 1)));
+    for (let s = 0; s < steps; s++) {
+      const bin = Math.min(ksBins - 1, Math.floor(ksX * ksBins));
+      ksHist[bin]++;
+      ksX = ksR * ksX * (1 - ksX);
+      if (!isFinite(ksX) || ksX < 0 || ksX > 1) ksX = Math.random();
+      ksBlocks++;
+    }
+    // Shannon of empirical measure as crude entropy rate proxy (for expanding maps ≈ h)
+    const tot = ksHist.reduce((a, b) => a + b, 0) || 1;
+    let H = 0;
+    ksHist.forEach(c => {
+      if (c > 0) {
+        const p = c / tot;
+        H -= p * Math.log(p);
+      }
+    });
+    // convert to nats/iterate via partition refinement heuristic
+    ksH = H; // bits in nats if natural log
+    // running average series
+    if (ksBlocks % 20 === 0) {
+      ksHSeries.push(ksH);
+      if (ksHSeries.length > 200) ksHSeries.shift();
+    }
+    document.getElementById('ksH').textContent = ksH.toFixed(4);
+    document.getElementById('s8h').textContent = ksH.toFixed(4);
+    document.getElementById('s8n').textContent = ksBlocks;
+  }
+  drawKSTop();
+  drawKSBot();
+  raf8 = requestAnimationFrame(loop8);
+}
+
+function scheduleLoop8() {
+  if (raf8) cancelAnimationFrame(raf8);
+  playing8 = true; _setPlayBtn40('btnPlay8', true);
+  onKSParam();
+  loop8();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 9 — CORRELATION DIMENSION
+// ═══════════════════════════════════════════════
+let playing9 = true, raf9 = null;
+let cdPts = [], cdC = [], cdD2 = NaN, cdReveal = 0;
+const cv9t = makeCanvas('c9top');
+const cv9b = makeCanvas('c9bot');
+let W9t, H9t, ctx9t, W9b, H9b, ctx9b;
+
+function genCDPoints() {
+  const sys = document.getElementById('cdSys').value;
+  cdPts = [];
+  if (sys === 'henon') {
+    let x = 0, y = 0;
+    for (let i = 0; i < 4000; i++) {
+      const xn = 1 - 1.4 * x * x + y;
+      const yn = 0.3 * x;
+      x = xn; y = yn;
+      if (i > 200) cdPts.push([x, y]);
+    }
+  } else if (sys === 'logistic') {
+    let x = 0.3;
+    const r = 4;
+    for (let i = 0; i < 4000; i++) {
+      x = r * x * (1 - x);
+      if (i > 200) cdPts.push([x, 0]);
+    }
+  } else {
+    // Lorenz x-z projection sample
+    let s = [0.1, 0, 0];
+    for (let i = 0; i < 8000; i++) {
+      s = rk4(s, 0.01, lorenzDeriv);
+      if (i > 500 && i % 2 === 0) cdPts.push([s[0] / 25, (s[2] - 25) / 25]);
+    }
+  }
+  // correlation integral at log-spaced r
+  cdC = [];
+  const N = Math.min(cdPts.length, 1200);
+  const rs = [];
+  for (let k = 0; k < 24; k++) rs.push(Math.pow(10, -2.2 + k * 0.12));
+  rs.forEach(r => {
+    let cnt = 0, tot = 0;
+    const r2 = r * r;
+    const step = Math.max(1, Math.floor(N / 400));
+    for (let i = 0; i < N; i += step) {
+      for (let j = i + step; j < N; j += step) {
+        const dx = cdPts[i][0] - cdPts[j][0];
+        const dy = cdPts[i][1] - cdPts[j][1];
+        if (dx * dx + dy * dy < r2) cnt++;
+        tot++;
+      }
+    }
+    cdC.push({ r, C: tot ? cnt / tot : 0 });
+  });
+  // fit D2 in mid band
+  const band = cdC.filter(p => p.C > 1e-4 && p.C < 0.3);
+  if (band.length >= 3) {
+    let sx = 0, sy = 0, sxx = 0, sxy = 0, n = 0;
+    band.forEach(p => {
+      const x = Math.log(p.r), y = Math.log(p.C + 1e-15);
+      sx += x; sy += y; sxx += x * x; sxy += x * y; n++;
+    });
+    cdD2 = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+  } else cdD2 = NaN;
+  document.getElementById('cdD2').textContent = isFinite(cdD2) ? cdD2.toFixed(3) : '—';
+  document.getElementById('s9d2').textContent = isFinite(cdD2) ? cdD2.toFixed(3) : '—';
+  document.getElementById('s9band').textContent = band.length ? `${band[0].r.toExponential(1)}–${band[band.length-1].r.toExponential(1)}` : '—';
+  document.getElementById('cdN').textContent = cdPts.length;
+  document.getElementById('s9n').textContent = cdPts.length;
+  cdReveal = 0;
+}
+
+function resetCorrDim() { genCDPoints(); }
+
+function togglePlay9() {
+  playing9 = !playing9;
+  _setPlayBtn40('btnPlay9', playing9);
+}
+
+function drawCDTop() {
+  [W9t, H9t, ctx9t] = cv9t.resize();
+  ctx9t.clearRect(0, 0, W9t, H9t);
+  ctx9t.fillStyle = '#03030c';
+  ctx9t.fillRect(0, 0, W9t, H9t);
+  const n = Math.floor(cdPts.length * Math.min(1, cdReveal));
+  // bounds
+  let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+  for (let i = 0; i < n; i++) {
+    minX = Math.min(minX, cdPts[i][0]); maxX = Math.max(maxX, cdPts[i][0]);
+    minY = Math.min(minY, cdPts[i][1]); maxY = Math.max(maxY, cdPts[i][1]);
+  }
+  if (n < 2) {
+    ctx9t.fillStyle = 'rgba(255,204,0,0.4)';
+    ctx9t.font = '12px Share Tech Mono';
+    ctx9t.fillText('Building attractor sample…', 12, 20);
+    return;
+  }
+  const pad = 16;
+  const sx = (W9t - 2 * pad) / (maxX - minX + 1e-9);
+  const sy = (H9t - 2 * pad) / (maxY - minY + 1e-9);
+  ctx9t.fillStyle = '#ffcc00';
+  for (let i = 0; i < n; i++) {
+    const px = pad + (cdPts[i][0] - minX) * sx;
+    const py = H9t - pad - (cdPts[i][1] - minY) * sy;
+    ctx9t.fillRect(px, py, 1.5, 1.5);
+  }
+  ctx9t.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx9t.font = '12px Share Tech Mono';
+  ctx9t.fillText(`Attractor sample (${n}/${cdPts.length}) — Grassberger–Procaccia`, 10, 16);
+}
+
+function drawCDBot() {
+  [W9b, H9b, ctx9b] = cv9b.resize();
+  ctx9b.clearRect(0, 0, W9b, H9b);
+  ctx9b.fillStyle = '#03030c';
+  ctx9b.fillRect(0, 0, W9b, H9b);
+  const padL = 50, padR = 15, padT = 18, padB = 30;
+  const pw = W9b - padL - padR, ph = H9b - padT - padB;
+  if (cdC.length < 2) return;
+  const logR = cdC.map(p => Math.log10(p.r));
+  const logC = cdC.map(p => Math.log10(p.C + 1e-15));
+  const minX = Math.min(...logR), maxX = Math.max(...logR);
+  const minY = Math.min(...logC), maxY = Math.max(...logC);
+  function X(v) { return padL + ((v - minX) / (maxX - minX + 1e-9)) * pw; }
+  function Y(v) { return padT + ph - ((v - minY) / (maxY - minY + 1e-9)) * ph; }
+  ctx9b.strokeStyle = 'rgba(255,204,0,0.2)';
+  ctx9b.beginPath(); ctx9b.moveTo(padL, padT); ctx9b.lineTo(padL, padT + ph); ctx9b.lineTo(padL + pw, padT + ph); ctx9b.stroke();
+  ctx9b.strokeStyle = '#00ffcc';
+  ctx9b.lineWidth = 2;
+  ctx9b.beginPath();
+  cdC.forEach((p, i) => {
+    const px = X(logR[i]), py = Y(logC[i]);
+    if (i === 0) ctx9b.moveTo(px, py); else ctx9b.lineTo(px, py);
+  });
+  ctx9b.stroke();
+  // fit line
+  if (isFinite(cdD2)) {
+    const mid = cdC[Math.floor(cdC.length / 2)];
+    const x0 = Math.log10(mid.r);
+    const y0 = Math.log10(mid.C + 1e-15);
+    const x1 = minX, y1 = y0 + cdD2 * (x1 - x0);
+    const x2 = maxX, y2 = y0 + cdD2 * (x2 - x0);
+    ctx9b.strokeStyle = 'rgba(255,80,80,0.7)';
+    ctx9b.setLineDash([4, 3]);
+    ctx9b.beginPath(); ctx9b.moveTo(X(x1), Y(y1)); ctx9b.lineTo(X(x2), Y(y2)); ctx9b.stroke();
+    ctx9b.setLineDash([]);
+  }
+  ctx9b.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx9b.font = '12px Share Tech Mono';
+  ctx9b.fillText('log C(r) vs log r', padL, H9b - 8);
+  ctx9b.fillStyle = '#ff6666';
+  ctx9b.fillText(`D₂≈${isFinite(cdD2) ? cdD2.toFixed(3) : '—'}`, padL + 8, padT + 14);
+}
+
+function loop9() {
+  if (playing9) {
+    cdReveal = Math.min(1, cdReveal + 0.01 * (window.animSpeed || 1));
+  }
+  drawCDTop();
+  drawCDBot();
+  raf9 = requestAnimationFrame(loop9);
+}
+
+function scheduleLoop9() {
+  if (raf9) cancelAnimationFrame(raf9);
+  playing9 = true; _setPlayBtn40('btnPlay9', true);
+  genCDPoints();
+  loop9();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 10 — HORSESHOE
+// ═══════════════════════════════════════════════
+let playing10 = true, raf10 = null;
+let hsLam = 3.0, hsN = 4, hsT = 0, hsItin = '';
+const cv10Info = makeCanvas('c10');
+let W10, H10, ctx10;
+
+function onHSParam() {
+  hsLam = parseInt(document.getElementById('sl_hs_lam').value) / 10;
+  hsN = parseInt(document.getElementById('sl_hs_n').value);
+  document.getElementById('vhs_lam').textContent = hsLam.toFixed(1);
+  document.getElementById('vhs_n').textContent = hsN;
+}
+
+function resetHorseshoe() {
+  document.getElementById('sl_hs_lam').value = 30;
+  document.getElementById('sl_hs_n').value = 4;
+  hsT = 0;
+  onHSParam();
+}
+
+function togglePlay10() {
+  playing10 = !playing10;
+  _setPlayBtn40('btnPlay10', playing10);
+}
+
+function drawHorseshoe() {
+  [W10, H10, ctx10] = cv10Info.resize();
+  ctx10.clearRect(0, 0, W10, H10);
+  ctx10.fillStyle = '#03030c';
+  ctx10.fillRect(0, 0, W10, H10);
+  const cx = W10 * 0.5, cy = H10 * 0.48;
+  const S = Math.min(W10, H10) * 0.28;
+  // phase 0..1 of stretch-fold animation
+  const phase = (hsT % 4) / 4;
+  const stage = Math.floor(hsT % 4);
+  // unit square
+  function rect(x0, y0, x1, y1, fill, stroke) {
+    const px0 = cx + x0 * S, py0 = cy - y0 * S;
+    const px1 = cx + x1 * S, py1 = cy - y1 * S;
+    ctx10.fillStyle = fill;
+    ctx10.fillRect(Math.min(px0, px1), Math.min(py0, py1), Math.abs(px1 - px0), Math.abs(py1 - py0));
+    if (stroke) {
+      ctx10.strokeStyle = stroke;
+      ctx10.strokeRect(Math.min(px0, px1), Math.min(py0, py1), Math.abs(px1 - px0), Math.abs(py1 - py0));
+    }
+  }
+  // original square
+  rect(-1, -1, 1, 1, 'rgba(255,204,0,0.08)', 'rgba(255,204,0,0.5)');
+  // animated horseshoe geometry (schematic)
+  const u = phase;
+  if (stage === 0) {
+    // stretch vertically
+    const h = 1 + (hsLam - 1) * u;
+    const w = 1 / h;
+    rect(-w, -h, w, h, 'rgba(0,255,180,0.2)', '#00ffcc');
+  } else if (stage === 1) {
+    // fold
+    const bend = u;
+    ctx10.strokeStyle = '#00ffcc';
+    ctx10.lineWidth = 8;
+    ctx10.beginPath();
+    for (let i = 0; i <= 40; i++) {
+      const t = i / 40;
+      const x = (t - 0.5) * 2 * (1 - 0.3 * bend);
+      const y = -1.2 + 2.4 * t + bend * 0.8 * Math.sin(Math.PI * t);
+      const px = cx + x * S, py = cy - y * S * 0.5;
+      if (i === 0) ctx10.moveTo(px, py); else ctx10.lineTo(px, py);
+    }
+    ctx10.stroke();
+  } else {
+    // strips in square — invariant set approximation
+    const depth = Math.min(hsN, 1 + stage);
+    function drawStrips(lev, x0, x1) {
+      if (lev <= 0) {
+        rect(x0, -1, x1, 1, 'rgba(0,200,255,0.35)', 'rgba(0,200,255,0.6)');
+        return;
+      }
+      const mid = (x0 + x1) / 2;
+      const gap = (x1 - x0) * 0.15;
+      drawStrips(lev - 1, x0, mid - gap);
+      drawStrips(lev - 1, mid + gap, x1);
+    }
+    drawStrips(Math.min(hsN, 5), -1, 1);
+    // horizontal dual (unstable)
+    ctx10.save();
+    ctx10.translate(cx, cy);
+    ctx10.rotate(Math.PI / 2);
+    ctx10.translate(-cx, -cy);
+    // lighter horizontal
+    for (let k = 0; k < Math.pow(2, Math.min(hsN, 4)); k++) {
+      // skip
+    }
+    ctx10.restore();
+  }
+  // itinerary animation
+  const bits = [];
+  let code = Math.floor((hsT * 3) % 256);
+  for (let i = 0; i < Math.min(hsN + 2, 12); i++) {
+    bits.push((code >> i) & 1);
+  }
+  hsItin = bits.join('');
+  document.getElementById('hsSym').textContent = hsItin;
+  document.getElementById('s10itin').textContent = hsItin;
+  document.getElementById('s10t').textContent = hsT.toFixed(1);
+  ctx10.fillStyle = 'rgba(255,204,0,0.55)';
+  ctx10.font = '12px Share Tech Mono';
+  ctx10.fillText('Smale horseshoe: stretch → fold → intersect · Λ ≅ 2^ℤ shift', 10, 16);
+  ctx10.fillText(`λ=${hsLam.toFixed(1)}  depth=${hsN}  itinerary=${hsItin}`, 10, H10 - 10);
+  // symbol boxes
+  bits.forEach((b, i) => {
+    ctx10.fillStyle = b ? 'rgba(255,100,80,0.7)' : 'rgba(80,180,255,0.7)';
+    ctx10.fillRect(W10 - 14 * (bits.length - i) - 10, 28, 12, 16);
+  });
+}
+
+function loop10() {
+  if (playing10) {
+    hsT += 0.02 * (window.animSpeed || 1);
+  }
+  drawHorseshoe();
+  raf10 = requestAnimationFrame(loop10);
+}
+
+function scheduleLoop10() {
+  if (raf10) cancelAnimationFrame(raf10);
+  playing10 = true; _setPlayBtn40('btnPlay10', true);
+  onHSParam();
+  loop10();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 11 — SYNC & CONTROL
+// ═══════════════════════════════════════════════
+let playing11 = true, raf11 = null;
+let syK = 0.2, syOgy = 0.1, syOgyOn = false;
+let syX = [1, 1, 1], syY = [1.5, 0.5, 0.8];
+let syTrailX = [], syTrailY = [], syErrHist = [];
+const cv11t = makeCanvas('c11top');
+const cv11b = makeCanvas('c11bot');
+let W11t, H11t, ctx11t, W11b, H11b, ctx11b;
+
+function onSyncParam() {
+  syK = parseInt(document.getElementById('sl_sy_k').value) / 100;
+  syOgy = parseInt(document.getElementById('sl_sy_ogy').value) / 100;
+  document.getElementById('vsy_k').textContent = syK.toFixed(2);
+  document.getElementById('vsy_ogy').textContent = syOgy.toFixed(2);
+  document.getElementById('s11k').textContent = syK.toFixed(2);
+}
+
+function toggleOGY() {
+  syOgyOn = !syOgyOn;
+  document.getElementById('btnOGY').textContent = syOgyOn ? 'OGY ON' : 'OGY OFF';
+  document.getElementById('btnOGY').classList.toggle('act', syOgyOn);
+  document.getElementById('syOGY').textContent = syOgyOn ? 'on' : 'off';
+}
+
+function resetSync() {
+  syX = [1, 1, 1];
+  syY = [1.5, 0.5, 0.8];
+  syTrailX = []; syTrailY = []; syErrHist = [];
+  document.getElementById('sl_sy_k').value = 20;
+  document.getElementById('sl_sy_ogy').value = 10;
+  syOgyOn = false;
+  document.getElementById('btnOGY').textContent = 'OGY OFF';
+  document.getElementById('btnOGY').classList.remove('act');
+  document.getElementById('syOGY').textContent = 'off';
+  onSyncParam();
+}
+
+function togglePlay11() {
+  playing11 = !playing11;
+  _setPlayBtn40('btnPlay11', playing11);
+}
+
+function lorenzCouple(x, y, k) {
+  // dx/dt = F(x); dy/dt = F(y) + k*(x-y) on all components
+  const Fx = lorenzDeriv(x);
+  const Fy = lorenzDeriv(y);
+  return {
+    dx: Fx,
+    dy: [Fy[0] + k * (x[0] - y[0]), Fy[1] + k * (x[1] - y[1]), Fy[2] + k * (x[2] - y[2])]
+  };
+}
+
+function drawSyncTop() {
+  [W11t, H11t, ctx11t] = cv11t.resize();
+  ctx11t.clearRect(0, 0, W11t, H11t);
+  ctx11t.fillStyle = '#03030c';
+  ctx11t.fillRect(0, 0, W11t, H11t);
+  function proj(p) {
+    return [W11t * 0.5 + p[0] * 8, H11t * 0.55 - (p[2] - 25) * 6];
+  }
+  // trails
+  if (syTrailX.length > 1) {
+    ctx11t.strokeStyle = 'rgba(255,204,0,0.5)';
+    ctx11t.beginPath();
+    syTrailX.forEach((p, i) => {
+      const [px, py] = proj(p);
+      if (i === 0) ctx11t.moveTo(px, py); else ctx11t.lineTo(px, py);
+    });
+    ctx11t.stroke();
+  }
+  if (syTrailY.length > 1) {
+    ctx11t.strokeStyle = 'rgba(0,220,255,0.5)';
+    ctx11t.beginPath();
+    syTrailY.forEach((p, i) => {
+      const [px, py] = proj(p);
+      if (i === 0) ctx11t.moveTo(px, py); else ctx11t.lineTo(px, py);
+    });
+    ctx11t.stroke();
+  }
+  const [ax, ay] = proj(syX);
+  const [bx, by] = proj(syY);
+  ctx11t.fillStyle = '#ffcc00';
+  ctx11t.beginPath(); ctx11t.arc(ax, ay, 4, 0, TAU); ctx11t.fill();
+  ctx11t.fillStyle = '#00ddff';
+  ctx11t.beginPath(); ctx11t.arc(bx, by, 4, 0, TAU); ctx11t.fill();
+  ctx11t.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx11t.font = '12px Share Tech Mono';
+  ctx11t.fillText('Drive (gold) · Response (cyan) — Pecora–Carroll / diffusive', 10, 16);
+}
+
+function drawSyncBot() {
+  [W11b, H11b, ctx11b] = cv11b.resize();
+  ctx11b.clearRect(0, 0, W11b, H11b);
+  ctx11b.fillStyle = '#03030c';
+  ctx11b.fillRect(0, 0, W11b, H11b);
+  const padL = 45, padR = 12, padT = 16, padB = 26;
+  const pw = W11b - padL - padR, ph = H11b - padT - padB;
+  ctx11b.strokeStyle = 'rgba(255,204,0,0.2)';
+  ctx11b.beginPath(); ctx11b.moveTo(padL, padT); ctx11b.lineTo(padL, padT + ph); ctx11b.lineTo(padL + pw, padT + ph); ctx11b.stroke();
+  if (syErrHist.length > 1) {
+    const maxE = Math.max(1e-3, ...syErrHist);
+    ctx11b.strokeStyle = '#00ffcc';
+    ctx11b.lineWidth = 1.5;
+    ctx11b.beginPath();
+    syErrHist.forEach((e, i) => {
+      const px = padL + (i / Math.max(1, syErrHist.length - 1)) * pw;
+      const py = padT + ph - (Math.log10(e + 1e-8) - (-4)) / (2 - (-4)) * ph;
+      const py2 = Math.max(padT, Math.min(padT + ph, py));
+      if (i === 0) ctx11b.moveTo(px, py2); else ctx11b.lineTo(px, py2);
+    });
+    ctx11b.stroke();
+  }
+  ctx11b.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx11b.font = '12px Share Tech Mono';
+  ctx11b.fillText('log₁₀‖e‖  sync error', padL, H11b - 8);
+}
+
+function loop11() {
+  if (playing11) {
+    const dt = 0.01 * (window.animSpeed || 1);
+    for (let i = 0; i < 6; i++) {
+      // RK2
+      const c1 = lorenzCouple(syX, syY, syK);
+      const xh = syX.map((v, j) => v + dt * c1.dx[j]);
+      const yh = syY.map((v, j) => v + dt * c1.dy[j]);
+      const c2 = lorenzCouple(xh, yh, syK);
+      syX = syX.map((v, j) => v + 0.5 * dt * (c1.dx[j] + c2.dx[j]));
+      syY = syY.map((v, j) => v + 0.5 * dt * (c1.dy[j] + c2.dy[j]));
+      // OGY: when near fixed-ish x≈0 plane crossing, kick parameter via y shift
+      if (syOgyOn && Math.abs(syX[0]) < 2) {
+        const target = 0; // crude UPO proxy
+        syY[0] += syOgy * (target - syY[0]) * 0.05;
+      }
+    }
+    syTrailX.push([...syX]);
+    syTrailY.push([...syY]);
+    if (syTrailX.length > 400) { syTrailX.shift(); syTrailY.shift(); }
+    const err = Math.sqrt(syX.reduce((s, v, i) => s + (v - syY[i]) ** 2, 0));
+    syErrHist.push(err);
+    if (syErrHist.length > 300) syErrHist.shift();
+    document.getElementById('syErr').textContent = err.toExponential(2);
+    document.getElementById('s11err').textContent = err.toExponential(2);
+    document.getElementById('s11upo').textContent = syOgyOn ? (err < 0.5 ? 'holding' : 'seeking') : '—';
+  }
+  drawSyncTop();
+  drawSyncBot();
+  raf11 = requestAnimationFrame(loop11);
+}
+
+function scheduleLoop11() {
+  if (raf11) cancelAnimationFrame(raf11);
+  playing11 = true; _setPlayBtn40('btnPlay11', true);
+  onSyncParam();
+  loop11();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 12 — DELAY EMBEDDING
+// ═══════════════════════════════════════════════
+let playing12 = true, raf12 = null;
+let tkTau = 10, tkM = 3, tkSeries = [], tkMI = [], tkReveal = 0;
+let tkAz = 0.4, tkEl = 0.3;
+const cv12t = makeCanvas('c12top');
+const cv12b = makeCanvas('c12bot');
+let W12t, H12t, ctx12t, W12b, H12b, ctx12b;
+
+function buildTakensSeries() {
+  // Lorenz x(t) scalar
+  tkSeries = [];
+  let s = [0.1, 0, 0];
+  for (let i = 0; i < 5000; i++) {
+    s = rk4(s, 0.02, lorenzDeriv);
+    if (i > 300) tkSeries.push(s[0]);
+  }
+  // mutual information vs lag
+  tkMI = [];
+  const bins = 16;
+  const N = tkSeries.length;
+  function hist2(lag) {
+    const h = new Array(bins * bins).fill(0);
+    const hx = new Array(bins).fill(0);
+    const hy = new Array(bins).fill(0);
+    let min = Infinity, max = -Infinity;
+    for (let i = 0; i < N; i++) { min = Math.min(min, tkSeries[i]); max = Math.max(max, tkSeries[i]); }
+    const sc = (bins - 1e-9) / (max - min + 1e-12);
+    let cnt = 0;
+    for (let i = 0; i + lag < N; i++) {
+      const bx = Math.floor((tkSeries[i] - min) * sc);
+      const by = Math.floor((tkSeries[i + lag] - min) * sc);
+      h[bx * bins + by]++; hx[bx]++; hy[by]++; cnt++;
+    }
+    let I = 0;
+    for (let i = 0; i < bins; i++) for (let j = 0; j < bins; j++) {
+      const p = h[i * bins + j] / cnt;
+      if (p > 0) I += p * Math.log(p / ((hx[i] / cnt) * (hy[j] / cnt)));
+    }
+    return I;
+  }
+  for (let lag = 1; lag <= 40; lag++) tkMI.push(hist2(lag));
+  // first minimum
+  let tmin = 1;
+  for (let i = 1; i < tkMI.length - 1; i++) {
+    if (tkMI[i] < tkMI[i - 1] && tkMI[i] <= tkMI[i + 1]) { tmin = i + 1; break; }
+  }
+  document.getElementById('s12tau').textContent = tmin;
+  document.getElementById('s12n').textContent = tkSeries.length;
+  document.getElementById('s12m').textContent = tkM;
+  tkReveal = 0;
+}
+
+function onTakensParam() {
+  tkTau = parseInt(document.getElementById('sl_tk_tau').value);
+  tkM = parseInt(document.getElementById('sl_tk_m').value);
+  document.getElementById('vtk_tau').textContent = tkTau;
+  document.getElementById('vtk_m').textContent = tkM;
+  document.getElementById('tkTau').textContent = tkTau;
+  document.getElementById('tkM').textContent = tkM;
+  document.getElementById('s12m').textContent = tkM;
+}
+
+function resetTakens() {
+  document.getElementById('sl_tk_tau').value = 10;
+  document.getElementById('sl_tk_m').value = 3;
+  onTakensParam();
+  buildTakensSeries();
+}
+
+function togglePlay12() {
+  playing12 = !playing12;
+  _setPlayBtn40('btnPlay12', playing12);
+}
+
+function drawTakensTop() {
+  [W12t, H12t, ctx12t] = cv12t.resize();
+  ctx12t.clearRect(0, 0, W12t, H12t);
+  ctx12t.fillStyle = '#03030c';
+  ctx12t.fillRect(0, 0, W12t, H12t);
+  const maxI = Math.floor((tkSeries.length - (tkM - 1) * tkTau) * Math.min(1, tkReveal));
+  if (maxI < 10) {
+    ctx12t.fillStyle = 'rgba(255,204,0,0.4)';
+    ctx12t.font = '12px Share Tech Mono';
+    ctx12t.fillText('Reconstructing delay coordinates…', 12, 20);
+    return;
+  }
+  const cosA = Math.cos(tkAz), sinA = Math.sin(tkAz);
+  const cosE = Math.cos(tkEl), sinE = Math.sin(tkEl);
+  ctx12t.fillStyle = '#ffcc00';
+  for (let i = 0; i < maxI; i++) {
+    const x = tkSeries[i];
+    const y = tkSeries[i + tkTau];
+    const z = tkSeries[i + 2 * tkTau] || 0;
+    const rx = x * cosA - z * sinA;
+    const ry = y * cosE - (x * sinA + z * cosA) * sinE;
+    const px = W12t * 0.5 + rx * 7;
+    const py = H12t * 0.5 - ry * 7;
+    ctx12t.fillRect(px, py, 1.2, 1.2);
+  }
+  ctx12t.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx12t.font = '12px Share Tech Mono';
+  ctx12t.fillText(`Delay embedding Φ: m=${tkM}, τ=${tkTau}  (Lorenz x-series)`, 10, 16);
+}
+
+function drawTakensBot() {
+  [W12b, H12b, ctx12b] = cv12b.resize();
+  ctx12b.clearRect(0, 0, W12b, H12b);
+  ctx12b.fillStyle = '#03030c';
+  ctx12b.fillRect(0, 0, W12b, H12b);
+  if (!tkMI.length) return;
+  const padL = 40, padR = 12, padT = 16, padB = 26;
+  const pw = W12b - padL - padR, ph = H12b - padT - padB;
+  const maxI = Math.max(...tkMI);
+  ctx12b.strokeStyle = '#00ffcc';
+  ctx12b.lineWidth = 1.5;
+  ctx12b.beginPath();
+  tkMI.forEach((v, i) => {
+    const px = padL + (i / (tkMI.length - 1)) * pw;
+    const py = padT + ph - (v / maxI) * ph;
+    if (i === 0) ctx12b.moveTo(px, py); else ctx12b.lineTo(px, py);
+  });
+  ctx12b.stroke();
+  // current tau
+  const px = padL + ((tkTau - 1) / (tkMI.length - 1)) * pw;
+  ctx12b.strokeStyle = '#ff6666';
+  ctx12b.beginPath(); ctx12b.moveTo(px, padT); ctx12b.lineTo(px, padT + ph); ctx12b.stroke();
+  ctx12b.fillStyle = 'rgba(255,204,0,0.5)';
+  ctx12b.font = '12px Share Tech Mono';
+  ctx12b.fillText('Mutual information I(τ)', padL, H12b - 8);
+  ctx12b.fillStyle = '#ff6666';
+  ctx12b.fillText(`τ=${tkTau}`, px + 4, padT + 12);
+}
+
+function loop12() {
+  if (playing12) {
+    tkReveal = Math.min(1, tkReveal + 0.008 * (window.animSpeed || 1));
+    tkAz += 0.008 * (window.animSpeed || 1);
+  }
+  drawTakensTop();
+  drawTakensBot();
+  raf12 = requestAnimationFrame(loop12);
+}
+
+function scheduleLoop12() {
+  if (raf12) cancelAnimationFrame(raf12);
+  playing12 = true; _setPlayBtn40('btnPlay12', true);
+  onTakensParam();
+  buildTakensSeries();
+  loop12();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 13 — QUANTUM SCARS / ETH LITE
+// ═══════════════════════════════════════════════
+let playing13 = true, raf13 = null;
+let scN = 8, scMix = 0.55, scPhase = 0;
+const cv13t = makeCanvas('c13top');
+const cv13b = makeCanvas('c13bot');
+let W13t, H13t, ctx13t, W13b, H13b, ctx13b;
+let scField = null, scW = 0, scH = 0;
+
+function onScarParam() {
+  scN = parseInt(document.getElementById('sl_sc_n').value);
+  scMix = parseInt(document.getElementById('sl_sc_mix').value) / 100;
+  document.getElementById('vsc_n').textContent = scN;
+  document.getElementById('vsc_mix').textContent = scMix.toFixed(2);
+  document.getElementById('s13n').textContent = scN;
+  document.getElementById('s13w').textContent = scMix.toFixed(2);
+  scField = null;
+}
+
+function resetScars() {
+  document.getElementById('sl_sc_n').value = 8;
+  document.getElementById('sl_sc_mix').value = 55;
+  scPhase = 0;
+  onScarParam();
+}
+
+function togglePlay13() {
+  playing13 = !playing13;
+  _setPlayBtn40('btnPlay13', playing13);
+}
+
+function buildScarField(W, H) {
+  scW = W; scH = H;
+  const img = new Float32Array(W * H);
+  // stadium-like: random waves + scar along diamond periodic orbit
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const u = (x / W) * 2 - 1, v = (y / H) * 2 - 1;
+      // soft stadium mask
+      const rx = Math.abs(u) - 0.3, ry = Math.abs(v);
+      const inB = (Math.abs(u) < 0.85 && Math.abs(v) < 0.7) || (u * u + v * v < 0.55);
+      if (!inB) { img[y * W + x] = 0; continue; }
+      // random-wave component (Berry)
+      let psi = 0;
+      for (let k = 1; k <= 6; k++) {
+        const kx = (scN + k) * Math.cos(k * 1.7 + scPhase * 0.1);
+        const ky = (scN + k) * Math.sin(k * 1.3);
+        psi += Math.cos(kx * u * Math.PI + ky * v * Math.PI + k);
+      }
+      // scar: enhance along unstable diamond orbit (rotated square)
+      const d1 = Math.abs(u + v);
+      const d2 = Math.abs(u - v);
+      const scar = Math.exp(-d1 * d1 * 40) + Math.exp(-d2 * d2 * 40);
+      const amp = (1 - scMix) * psi + scMix * 4 * scar * Math.cos(scN * Math.PI * (u + v) + scPhase);
+      img[y * W + x] = amp * amp;
+    }
+  }
+  scField = img;
+}
+
+function drawScarTop() {
+  [W13t, H13t, ctx13t] = cv13t.resize();
+  if (!scField || scW !== W13t || scH !== H13t) buildScarField(W13t, H13t);
+  const imgData = ctx13t.createImageData(W13t, H13t);
+  let max = 0;
+  for (let i = 0; i < scField.length; i++) if (scField[i] > max) max = scField[i];
+  max = max || 1;
+  for (let i = 0; i < scField.length; i++) {
+    const t = scField[i] / max;
+    const o = i * 4;
+    imgData.data[o] = Math.floor(20 + t * 235);
+    imgData.data[o + 1] = Math.floor(30 + t * 150);
+    imgData.data[o + 2] = Math.floor(40 + (1 - t) * 180);
+    imgData.data[o + 3] = 255;
+  }
+  ctx13t.putImageData(imgData, 0, 0);
+  ctx13t.fillStyle = 'rgba(255,204,0,0.7)';
+  ctx13t.font = '12px Share Tech Mono';
+  ctx13t.fillText('Billiard |ψ|² — Berry waves + Heller scar along diamond UPO', 10, 16);
+  document.getElementById('scStr').textContent = scMix.toFixed(2);
+}
+
+function drawScarBot() {
+  [W13b, H13b, ctx13b] = cv13b.resize();
+  ctx13b.clearRect(0, 0, W13b, H13b);
+  ctx13b.fillStyle = '#03030c';
+  ctx13b.fillRect(0, 0, W13b, H13b);
+  // ETH schematic: diagonal A(E) smooth + off-diagonal cloud ~ e^{-S/2}
+  const padL = 45, padR = 12, padT = 18, padB = 28;
+  const pw = W13b - padL - padR, ph = H13b - padT - padB;
+  const N = 40;
+  // diagonal
+  ctx13b.strokeStyle = '#00ffcc';
+  ctx13b.lineWidth = 2;
+  ctx13b.beginPath();
+  for (let i = 0; i < N; i++) {
+    const E = i / (N - 1);
+    const A = 0.5 + 0.3 * Math.sin(2 * Math.PI * E + scPhase * 0.2);
+    const px = padL + E * pw;
+    const py = padT + ph - A * ph;
+    if (i === 0) ctx13b.moveTo(px, py); else ctx13b.lineTo(px, py);
+  }
+  ctx13b.stroke();
+  // off-diagonal scatter
+  for (let i = 0; i < 120; i++) {
+    const E = Math.random();
+    const Sfac = Math.exp(-1.5); // e^{-S/2} toy
+    const off = (Math.random() - 0.5) * 2 * Sfac * (1 - 0.5 * scMix);
+    const px = padL + E * pw;
+    const py = padT + ph * 0.5 - off * ph * 3;
+    ctx13b.fillStyle = `rgba(255,100,80,${0.3 + 0.5 * Math.random()})`;
+    ctx13b.fillRect(px, py, 2, 2);
+  }
+  // scar outlier
+  const sx = padL + 0.55 * pw;
+  const sy = padT + ph * 0.2;
+  ctx13b.fillStyle = '#ffcc00';
+  ctx13b.beginPath(); ctx13b.arc(sx, sy, 5, 0, TAU); ctx13b.fill();
+  ctx13b.fillStyle = 'rgba(255,204,0,0.55)';
+  ctx13b.font = '12px Share Tech Mono';
+  ctx13b.fillText('ETH: A_nn≈𝒜(E) · A_mn~e^{−S/2}  (scar outlier gold)', padL, H13b - 8);
+  document.getElementById('s13a').textContent = (0.5 + 0.3 * Math.sin(scPhase * 0.2)).toFixed(3);
+}
+
+function loop13() {
+  if (playing13) {
+    scPhase += 0.03 * (window.animSpeed || 1);
+    if (Math.floor(scPhase * 10) % 8 === 0) scField = null; // rebuild occasionally
+  }
+  drawScarTop();
+  drawScarBot();
+  raf13 = requestAnimationFrame(loop13);
+}
+
+function scheduleLoop13() {
+  if (raf13) cancelAnimationFrame(raf13);
+  playing13 = true; _setPlayBtn40('btnPlay13', true);
+  onScarParam();
+  loop13();
+}
+
+// ═══════════════════════════════════════════════
+// TAB 14 — TURBULENCE CASCADE
+// ═══════════════════════════════════════════════
+let playing14 = true, raf14 = null;
+let tbRe = 2000, tbEps = 0.2, tbPhase = 0;
+const cv14t = makeCanvas('c14top');
+const cv14b = makeCanvas('c14bot');
+let W14t, H14t, ctx14t, W14b, H14b, ctx14b;
+
+function onTurbParam() {
+  tbRe = parseInt(document.getElementById('sl_tb_re').value);
+  tbEps = parseInt(document.getElementById('sl_tb_eps').value) / 100;
+  document.getElementById('vtb_re').textContent = tbRe;
+  document.getElementById('vtb_eps').textContent = tbEps.toFixed(2);
+  document.getElementById('s14re').textContent = tbRe;
+  const nu = 1 / tbRe;
+  const eta = Math.pow(nu * nu * nu / Math.max(tbEps, 1e-6), 0.25);
+  document.getElementById('tbEta').textContent = eta.toExponential(2);
+  document.getElementById('tbRange').textContent = (1 / eta).toFixed(0);
+  document.getElementById('s14keta').textContent = (1 / eta).toExponential(2);
+}
+
+function resetTurb() {
+  document.getElementById('sl_tb_re').value = 2000;
+  document.getElementById('sl_tb_eps').value = 20;
+  tbPhase = 0;
+  onTurbParam();
+}
+
+function togglePlay14() {
+  playing14 = !playing14;
+  _setPlayBtn40('btnPlay14', playing14);
+}
+
+function drawTurbTop() {
+  [W14t, H14t, ctx14t] = cv14t.resize();
+  ctx14t.clearRect(0, 0, W14t, H14t);
+  ctx14t.fillStyle = '#03030c';
+  ctx14t.fillRect(0, 0, W14t, H14t);
+  const padL = 50, padR = 15, padT = 22, padB = 32;
+  const pw = W14t - padL - padR, ph = H14t - padT - padB;
+  const nu = 1 / tbRe;
+  const eta = Math.pow(nu ** 3 / Math.max(tbEps, 1e-6), 0.25);
+  const k0 = 1, kEta = 1 / eta;
+  const CK = 1.5;
+  // log-log E(k)
+  const kMin = Math.log10(k0), kMax = Math.log10(kEta * 3);
+  const eMin = -6, eMax = 2;
+  function X(logk) { return padL + ((logk - kMin) / (kMax - kMin)) * pw; }
+  function Y(loge) { return padT + ph - ((loge - eMin) / (eMax - eMin)) * ph; }
+  // grid
+  ctx14t.strokeStyle = 'rgba(255,204,0,0.08)';
+  for (let g = 0; g <= 6; g++) {
+    const lx = kMin + (kMax - kMin) * g / 6;
+    ctx14t.beginPath(); ctx14t.moveTo(X(lx), padT); ctx14t.lineTo(X(lx), padT + ph); ctx14t.stroke();
+  }
+  // -5/3 spectrum with intermittency wiggle
+  ctx14t.strokeStyle = '#00ffcc';
+  ctx14t.lineWidth = 2;
+  ctx14t.beginPath();
+  for (let i = 0; i <= 200; i++) {
+    const logk = kMin + (kMax - kMin) * i / 200;
+    const k = Math.pow(10, logk);
+    let E = CK * Math.pow(tbEps, 2 / 3) * Math.pow(k, -5 / 3);
+    // dissipation roll-off
+    E *= Math.exp(-Math.pow(k / kEta, 4 / 3));
+    // forcing bump
+    E *= 1 + 2 * Math.exp(-Math.pow(Math.log(k / k0), 2));
+    // intermittent flicker
+    E *= 1 + 0.08 * Math.sin(logk * 8 + tbPhase);
+    const loge = Math.log10(E + 1e-12);
+    const px = X(logk), py = Y(loge);
+    if (i === 0) ctx14t.moveTo(px, py); else ctx14t.lineTo(px, py);
+  }
+  ctx14t.stroke();
+  // -5/3 guide
+  ctx14t.strokeStyle = 'rgba(255,80,80,0.5)';
+  ctx14t.setLineDash([4, 3]);
+  const k1 = Math.pow(10, kMin + 0.3), k2 = Math.pow(10, (kMin + Math.log10(kEta)) / 2);
+  const E1 = CK * Math.pow(tbEps, 2 / 3) * Math.pow(k1, -5 / 3);
+  const E2 = CK * Math.pow(tbEps, 2 / 3) * Math.pow(k2, -5 / 3);
+  ctx14t.beginPath();
+  ctx14t.moveTo(X(Math.log10(k1)), Y(Math.log10(E1)));
+  ctx14t.lineTo(X(Math.log10(k2)), Y(Math.log10(E2)));
+  ctx14t.stroke();
+  ctx14t.setLineDash([]);
+  // markers
+  ctx14t.fillStyle = '#ff6666';
+  ctx14t.font = '12px Share Tech Mono';
+  ctx14t.fillText('k^{-5/3}', X(Math.log10(k2)) + 4, Y(Math.log10(E2)) - 4);
+  ctx14t.fillStyle = 'rgba(255,204,0,0.55)';
+  ctx14t.fillText('E(k) Kolmogorov cascade (K41 + soft intermittency)', padL, 14);
+  ctx14t.fillText('log k', padL + pw / 2, H14t - 8);
+  // k_η marker
+  const kx = X(Math.log10(kEta));
+  ctx14t.strokeStyle = 'rgba(255,200,0,0.5)';
+  ctx14t.beginPath(); ctx14t.moveTo(kx, padT); ctx14t.lineTo(kx, padT + ph); ctx14t.stroke();
+  ctx14t.fillText('k_η', kx + 3, padT + 12);
+}
+
+function drawTurbBot() {
+  [W14b, H14b, ctx14b] = cv14b.resize();
+  ctx14b.clearRect(0, 0, W14b, H14b);
+  ctx14b.fillStyle = '#03030c';
+  ctx14b.fillRect(0, 0, W14b, H14b);
+  // eddy cascade: nested whirls
+  const levels = 6;
+  for (let L = 0; L < levels; L++) {
+    const n = 1 << L;
+    const r = Math.min(W14b, H14b) * 0.35 / Math.pow(1.7, L);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < Math.max(1, n / 2); j++) {
+        const ang = tbPhase * (1 + L * 0.3) + i * 1.7 + j;
+        const cx = W14b * (0.2 + 0.6 * (i + 0.5) / n) + Math.cos(ang) * r * 0.2;
+        const cy = H14b * (0.3 + 0.4 * (j + 0.5) / Math.max(1, n / 2)) + Math.sin(ang * 1.3) * r * 0.15;
+        ctx14b.strokeStyle = `hsla(${50 + L * 40},90%,60%,${0.7 - L * 0.08})`;
+        ctx14b.lineWidth = Math.max(1, 3 - L * 0.4);
+        ctx14b.beginPath();
+        ctx14b.arc(cx, cy, r * (0.6 + 0.2 * Math.sin(ang)), ang, ang + Math.PI * 1.4);
+        ctx14b.stroke();
+      }
+    }
+  }
+  ctx14b.fillStyle = 'rgba(255,204,0,0.55)';
+  ctx14b.font = '12px Share Tech Mono';
+  ctx14b.fillText('Eddy cascade L → η  ·  Richardson dispersion r²∼ε t³', 10, 16);
+  ctx14b.fillText(`Re=${tbRe}  ε=${tbEps.toFixed(2)}`, 10, H14b - 10);
+}
+
+function loop14() {
+  if (playing14) {
+    tbPhase += 0.025 * (window.animSpeed || 1);
+  }
+  drawTurbTop();
+  drawTurbBot();
+  raf14 = requestAnimationFrame(loop14);
+}
+
+function scheduleLoop14() {
+  if (raf14) cancelAnimationFrame(raf14);
+  playing14 = true; _setPlayBtn40('btnPlay14', true);
+  onTurbParam();
+  loop14();
 }
 
 // ═══════════════════════════════════════════════

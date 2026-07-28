@@ -27,8 +27,9 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 
 .badge{background:var(--accent);color:#000;font-weight:700;font-size:.8rem;padding:3px 9px;border-radius:20px;font-family:'Orbitron',sans-serif}
 .title-block h1{font-size:1.4rem;color:var(--accent);letter-spacing:.02em;font-family:'Orbitron',sans-serif;text-shadow:0 0 20px #aa66ff55}
 .title-block p{font-size:.78rem;color:var(--dim);margin-top:2px}
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 24px}
-.tab{padding:10px 20px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 12px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;flex-shrink:0}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab{padding:9px 12px;cursor:pointer;font-size:.72rem;border-bottom:2px solid transparent;color:var(--dim);transition:.2s;white-space:nowrap;flex-shrink:0}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab:hover:not(.active){color:var(--text)}
 .pane{display:none;flex:1;flex-direction:row;gap:0;overflow:hidden;height:calc(100vh - 109px)}
@@ -61,7 +62,7 @@ select:focus{outline:1px solid var(--accent)}
   <span class="badge">Ch. 8</span>
   <div class="title-block">
     <h1>Riemann Surfaces</h1>
-    <p>Multi-sheeted complex surfaces, analytic continuation, and the topology of complex functions</p>
+    <p>Riemann surfaces · moduli · dessins · uniformization · periods · Hitchin · frontier RS geometry</p>
   </div>
 </header>
 
@@ -74,6 +75,13 @@ select:focus{outline:1px solid var(--accent)}
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(5)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(5)}">Dessins d'Enfants</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(6)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(6)}">Seiberg-Witten</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(7)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(7)}">Spectral Curves</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(8)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(8)}">Uniformization</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(9)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(9)}">Fuchsian Groups</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(10)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(10)}">Period Matrix</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(11)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(11)}">Branched Covers</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(12)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(12)}">Meromorphic Diffs</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(13)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(13)}">Mirror Symmetry</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(14)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(14)}">Hitchin Systems</div>
 </div>
 
 <!-- ==================== TAB 0: SHEET NAVIGATOR ==================== -->
@@ -174,7 +182,7 @@ select:focus{outline:1px solid var(--accent)}
       <button id="btnTorus" onclick="setGenus(1)">Torus g=1</button>
       <button id="btnGenus2" onclick="setGenus(2)">Genus-2 g=2</button>
       <button id="btnAddHandle" onclick="addHandle()">+ Add Handle</button>
-      <button id="btnTorusSpin" onclick="toggleTorusSpin()">&#9654; Spin</button>
+      <button id="btnTorusSpin" class="animBtn" onclick="toggleTorusSpin()">▶ Animate</button>
       <button onclick="resetGenus()">&#8635; Reset</button>
     </div>
     <canvas aria-label="36 · Riemann Surfaces — panel 4" id="c2" style="flex:1;min-height:0"></canvas>
@@ -254,37 +262,100 @@ function _mkImgBuf(iW, iH) {
 // TAB SWITCHING
 // ============================================================
 let currentTab = 0;
+const NUM_TABS_36 = 15;
 function switchTab(n){
   _cancelAllAnims36();
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',i===n);
+    t.setAttribute('aria-selected', i===n ? 'true' : 'false');
+  });
   document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('active',i===n));
   currentTab = n;
   syncSpeedControl36(n);
+  // enter + auto-start animations (toggle* starts when stopped)
   if(n===0){initPane0();drawSheetNav();drawWindDiagram();toggleOrbitAnim();}
   if(n===1){initPane1();drawCont();toggleAnimPath();}
   if(n===2){initPane2();drawGenus();toggleTorusSpin();}
-  if(n===3){initPane3();drawModuli();toggleModuliAnim();}
-  if(n===4){initPane4();drawTheta();toggleThetaAnim();}
-  if(n===5){initPane5();drawDessin();toggleDessinAnim();}
-  if(n===6){initPane6();drawSW();toggleSWAnim();}
-  if(n===7){initPane7();drawSpectral();toggleSpectralAnim();}
+  if(n===3){if(typeof initPane3==='function')initPane3();if(typeof drawModuli==='function')drawModuli();if(typeof toggleModuliAnim==='function')toggleModuliAnim();}
+  if(n===4){if(typeof initPane4==='function')initPane4();if(typeof drawTheta==='function')drawTheta();if(typeof toggleThetaAnim==='function')toggleThetaAnim();}
+  if(n===5){if(typeof initPane5==='function')initPane5();if(typeof drawDessin==='function')drawDessin();if(typeof toggleDessinAnim==='function')toggleDessinAnim();}
+  if(n===6){if(typeof initPane6==='function')initPane6();if(typeof drawSW==='function')drawSW();if(typeof toggleSWAnim==='function')toggleSWAnim();}
+  if(n===7){if(typeof initPane7==='function')initPane7();if(typeof drawSpectral==='function')drawSpectral();if(typeof toggleSpectralAnim==='function')toggleSpectralAnim();}
+  if(n===8){if(typeof initPane8==='function')initPane8();if(typeof drawUnif==='function')drawUnif();if(typeof toggleUnifAnim==='function')toggleUnifAnim();}
+  if(n===9){if(typeof initPane9==='function')initPane9();if(typeof drawFuchs==='function')drawFuchs();if(typeof toggleFuchsAnim==='function')toggleFuchsAnim();}
+  if(n===10){if(typeof initPane10==='function')initPane10();if(typeof drawPeriod==='function')drawPeriod();if(typeof togglePeriodAnim==='function')togglePeriodAnim();}
+  if(n===11){if(typeof initPane11==='function')initPane11();if(typeof drawHurwitz==='function')drawHurwitz();if(typeof toggleHurwitzAnim==='function')toggleHurwitzAnim();}
+  if(n===12){if(typeof initPane12==='function')initPane12();if(typeof drawMero==='function')drawMero();if(typeof toggleMeroAnim==='function')toggleMeroAnim();}
+  if(n===13){if(typeof initPane13==='function')initPane13();if(typeof drawMirror==='function')drawMirror();if(typeof toggleMirrorAnim==='function')toggleMirrorAnim();}
+  if(n===14){if(typeof initPane14==='function')initPane14();if(typeof drawHitchin==='function')drawHitchin();if(typeof toggleHitchinAnim==='function')toggleHitchinAnim();}
 }
 
 function syncSpeedControl36(n){
-  for(var j=0;j<8;j++){
+  for(var j=1;j<=15;j++){
     var spd=document.getElementById('globalSpeed'+j);
-    if(spd){spd.value=window.animSpeed||1;document.getElementById('globalSpeedVal'+j).textContent=(window.animSpeed || 1).toFixed(2);}
+    var val=document.getElementById('globalSpeedVal'+j);
+    if(spd){spd.value=window.animSpeed||1;if(val)val.textContent=(window.animSpeed || 1).toFixed(2)+'x';}
   }
 }
 
 function _cancelAllAnims36(){
-  // Cancel all animation frames
-  [contAnimRAF,sheetAnimRAF,addHandleRAF,torusRAF,orbitAnimRAF,moduliAnimRAF,thetaAnimRAF,dessinAnimRAF,swAnimRAF,spectralAnimRAF].forEach(id=>{if(id)cancelAnimationFrame(id);});
-  contAnimRAF=sheetAnimRAF=addHandleRAF=torusRAF=orbitAnimRAF=moduliAnimRAF=thetaAnimRAF=dessinAnimRAF=swAnimRAF=spectralAnimRAF=null;
-  contAnimRunning=false;torusSpinning=false;orbitAnimActive=false;moduliAnimActive=false;
-  thetaAnimActive=false;dessinAnimActive=false;swAnimActive=false;spectralAnimActive=false;
-  // Reset all buttons
-  const btns = ['btnOrbit','btnAnimPath','btnTorusSpin','btnModAnim','btnThetaAnim','btnDessinAnim','btnSWanim','btnSpectralAnim'];
+  // Cancel all animation frames (T RAF pattern: store id, cancel on leave)
+  const rafs = [
+    typeof contAnimRAF!=='undefined'?contAnimRAF:null,
+    typeof sheetAnimRAF!=='undefined'?sheetAnimRAF:null,
+    typeof addHandleRAF!=='undefined'?addHandleRAF:null,
+    typeof torusRAF!=='undefined'?torusRAF:null,
+    typeof orbitAnimRAF!=='undefined'?orbitAnimRAF:null,
+    typeof moduliAnimRAF!=='undefined'?moduliAnimRAF:null,
+    typeof thetaAnimRAF!=='undefined'?thetaAnimRAF:null,
+    typeof dessinAnimRAF!=='undefined'?dessinAnimRAF:null,
+    typeof swAnimRAF!=='undefined'?swAnimRAF:null,
+    typeof spectralAnimRAF!=='undefined'?spectralAnimRAF:null,
+    typeof unifAnimRAF!=='undefined'?unifAnimRAF:null,
+    typeof fuchsAnimRAF!=='undefined'?fuchsAnimRAF:null,
+    typeof periodAnimRAF!=='undefined'?periodAnimRAF:null,
+    typeof hurwitzAnimRAF!=='undefined'?hurwitzAnimRAF:null,
+    typeof meroAnimRAF!=='undefined'?meroAnimRAF:null,
+    typeof mirrorAnimRAF!=='undefined'?mirrorAnimRAF:null,
+    typeof hitchinAnimRAF!=='undefined'?hitchinAnimRAF:null
+  ];
+  rafs.forEach(id=>{if(id)cancelAnimationFrame(id);});
+  if(typeof contAnimRAF!=='undefined') contAnimRAF=null;
+  if(typeof sheetAnimRAF!=='undefined') sheetAnimRAF=null;
+  if(typeof addHandleRAF!=='undefined') addHandleRAF=null;
+  if(typeof torusRAF!=='undefined') torusRAF=null;
+  if(typeof orbitAnimRAF!=='undefined') orbitAnimRAF=null;
+  if(typeof moduliAnimRAF!=='undefined') moduliAnimRAF=null;
+  if(typeof thetaAnimRAF!=='undefined') thetaAnimRAF=null;
+  if(typeof dessinAnimRAF!=='undefined') dessinAnimRAF=null;
+  if(typeof swAnimRAF!=='undefined') swAnimRAF=null;
+  if(typeof spectralAnimRAF!=='undefined') spectralAnimRAF=null;
+  if(typeof unifAnimRAF!=='undefined') unifAnimRAF=null;
+  if(typeof fuchsAnimRAF!=='undefined') fuchsAnimRAF=null;
+  if(typeof periodAnimRAF!=='undefined') periodAnimRAF=null;
+  if(typeof hurwitzAnimRAF!=='undefined') hurwitzAnimRAF=null;
+  if(typeof meroAnimRAF!=='undefined') meroAnimRAF=null;
+  if(typeof mirrorAnimRAF!=='undefined') mirrorAnimRAF=null;
+  if(typeof hitchinAnimRAF!=='undefined') hitchinAnimRAF=null;
+
+  contAnimRunning=false;
+  if(typeof torusSpinning!=='undefined') torusSpinning=false;
+  if(typeof orbitAnimRunning!=='undefined') orbitAnimRunning=false;
+  if(typeof moduliAnimRunning!=='undefined') moduliAnimRunning=false;
+  if(typeof thetaAnimRunning!=='undefined') thetaAnimRunning=false;
+  if(typeof dessinAnimRunning!=='undefined') dessinAnimRunning=false;
+  if(typeof swAnimRunning!=='undefined') swAnimRunning=false;
+  if(typeof spectralAnimRunning!=='undefined') spectralAnimRunning=false;
+  if(typeof unifAnimRunning!=='undefined') unifAnimRunning=false;
+  if(typeof fuchsAnimRunning!=='undefined') fuchsAnimRunning=false;
+  if(typeof periodAnimRunning!=='undefined') periodAnimRunning=false;
+  if(typeof hurwitzAnimRunning!=='undefined') hurwitzAnimRunning=false;
+  if(typeof meroAnimRunning!=='undefined') meroAnimRunning=false;
+  if(typeof mirrorAnimRunning!=='undefined') mirrorAnimRunning=false;
+  if(typeof hitchinAnimRunning!=='undefined') hitchinAnimRunning=false;
+
+  const btns = ['btnOrbit','btnAnimPath','btnTorusSpin','btnModAnim','btnThetaAnim','btnDessinAnim','btnSWanim','btnSpectralAnim',
+    'btnUnifAnim','btnFuchsAnim','btnPeriodAnim','btnHurwitzAnim','btnMeroAnim','btnMirrorAnim','btnHitchinAnim'];
   btns.forEach(id => {
     const b = document.getElementById(id);
     if(b){ b.textContent='▶ Animate'; b.classList.remove('active-btn'); }
@@ -1017,9 +1088,15 @@ function addHandle(){
 
 function toggleTorusSpin(){
   const btn=document.getElementById('btnTorusSpin');
-  torusSpinning=!torusSpinning;
-  if(btn) btn.textContent = torusSpinning ? '\u23F8 Spin' : '\u25B6 Spin';
-  if(torusSpinning) spinTorus();
+  if(torusSpinning){
+    torusSpinning=false;
+    if(torusRAF){cancelAnimationFrame(torusRAF);torusRAF=null;}
+    if(btn){ btn.textContent='▶ Animate'; btn.classList.remove('active-btn'); }
+    return;
+  }
+  torusSpinning=true;
+  if(btn){ btn.textContent='⏸ Pause'; btn.classList.add('active-btn'); }
+  spinTorus();
 }
 
 function spinTorus(){
@@ -1278,11 +1355,18 @@ window.addEventListener('resize',()=>{
   if(currentTab===0){drawSheetNav();drawWindDiagram();}
   if(currentTab===1){drawCont();}
   if(currentTab===2){drawGenus();}
-  if(currentTab===3){drawModuli();}
-  if(currentTab===4){drawTheta();}
-  if(currentTab===5){drawDessin();}
-  if(currentTab===6){drawSW();}
-  if(currentTab===7){drawSpectral();}
+  if(currentTab===3 && typeof drawModuli==='function'){drawModuli();}
+  if(currentTab===4 && typeof drawTheta==='function'){drawTheta();}
+  if(currentTab===5 && typeof drawDessin==='function'){drawDessin();}
+  if(currentTab===6 && typeof drawSW==='function'){drawSW();}
+  if(currentTab===7 && typeof drawSpectral==='function'){drawSpectral();}
+  if(currentTab===8 && typeof drawUnif==='function'){drawUnif();}
+  if(currentTab===9 && typeof drawFuchs==='function'){drawFuchs();}
+  if(currentTab===10 && typeof drawPeriod==='function'){drawPeriod();}
+  if(currentTab===11 && typeof drawHurwitz==='function'){drawHurwitz();}
+  if(currentTab===12 && typeof drawMero==='function'){drawMero();}
+  if(currentTab===13 && typeof drawMirror==='function'){drawMirror();}
+  if(currentTab===14 && typeof drawHitchin==='function'){drawHitchin();}
 });
 </script>
 
@@ -1517,6 +1601,262 @@ window.addEventListener('resize',()=>{
     <p><strong>Gaiotto theories (2009):</strong> 4d $\mathcal{N}=2$ SCFTs of class $\mathcal{S}$ arise from wrapping M5-branes on $C$ with punctures. The Seiberg-Witten curve IS the spectral curve of the associated Hitchin system.</p>
     <div class="sep"></div>
     <p><strong>Geometric Langlands:</strong> the Hitchin fibration $h:\mathcal{M}_{Higgs}\to\mathcal{A}$ (projection to spectral data) is a crucial ingredient in the geometric Langlands correspondence and mirror symmetry $(\mathcal{M}_{Higgs}(G)\leftrightarrow\mathcal{M}_{Higgs}(^LG))$.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 8: UNIFORMIZATION ==================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane8">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed9" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal9" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00x</span>
+      <button class="active-btn" id="btnUnif0" onclick="setUnifGenus(0)">g=0 Sphere</button>
+      <button id="btnUnif1" onclick="setUnifGenus(1)">g=1 Plane</button>
+      <button id="btnUnif2" onclick="setUnifGenus(2)">g≥2 Disk</button>
+      <button id="btnUnifAnim" class="animBtn" onclick="toggleUnifAnim()">▶ Animate</button>
+      <button onclick="resetUnif()">&#8635; Reset</button>
+    </div>
+    <canvas aria-label="36 · Riemann Surfaces — panel 10" id="c8" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">Universal cover = <span id="s8cover">ℂP¹</span></div>
+      <div class="stat">χ = <span id="s8chi">2</span></div>
+      <div class="stat">Curvature K = <span id="s8K">+1</span></div>
+      <div class="stat">t = <span id="s8t">0.00</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Uniformization Theorem</h3>
+    <p>Every simply connected Riemann surface is biholomorphic to exactly one of:
+    $\mathbb{CP}^1$, $\mathbb{C}$, or $\mathbb{D}=\{|z|&lt;1\}$.</p>
+    <div class="sep"></div>
+    <p><strong>Consequence for compact $\Sigma_g$:</strong></p>
+    <ul>
+      <li>$g=0$: $\Sigma\cong\mathbb{CP}^1$ (spherical, $K=+1$)</li>
+      <li>$g=1$: $\Sigma\cong\mathbb{C}/\Lambda$ (flat, $K=0$)</li>
+      <li>$g\geq 2$: $\Sigma\cong\mathbb{D}/\Gamma$ for a Fuchsian group $\Gamma\subset\mathrm{PSL}_2(\mathbb{R})$ (hyperbolic, $K=-1$)</li>
+    </ul>
+    <div class="sep"></div>
+    <p><strong>Poincaré metric</strong> on $\mathbb{D}$: $ds^2=\frac{4|dz|^2}{(1-|z|^2)^2}$, constant curvature $-1$.</p>
+    <div class="sep"></div>
+    <p><strong>Koebe–Poincaré (1907):</strong> proved for all planar domains; full compact case via Hilbert / Koebe. Modern proofs use the Ricci flow (Hamilton–Chow) or the measurable Riemann mapping theorem.</p>
+    <div class="sep"></div>
+    <p><strong>Frontier:</strong> uniformization of infinite-type surfaces, quasiconformal deformations of Fuchsian groups, and the Bers embedding of Teichmüller space into holomorphic quadratic differentials.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 9: FUCHSIAN GROUPS ==================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane9">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed10" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal10" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00x</span>
+      <button class="active-btn" id="btnFuchsMod" onclick="setFuchsMode('modular')">Modular Γ(1)</button>
+      <button id="btnFuchsSurf" onclick="setFuchsMode('surface')">Surface group</button>
+      <button id="btnFuchsHoro" onclick="setFuchsMode('horo')">Horocycles</button>
+      <button id="btnFuchsAnim" class="animBtn" onclick="toggleFuchsAnim()">▶ Animate</button>
+      <button onclick="resetFuchs()">&#8635; Reset</button>
+    </div>
+    <canvas aria-label="36 · Riemann Surfaces — panel 11" id="c9" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">Group = <span id="s9grp">PSL₂(ℤ)</span></div>
+      <div class="stat">Tiles = <span id="s9tiles">—</span></div>
+      <div class="stat">Area(ℱ) = <span id="s9area">π/3</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Hyperbolic Metrics &amp; Fuchsian Groups</h3>
+    <p>A <strong>Fuchsian group</strong> is a discrete subgroup $\Gamma\subset\mathrm{PSL}_2(\mathbb{R})$ acting on $\mathbb{H}$ (or $\mathbb{D}$) by Möbius transformations.</p>
+    <div class="sep"></div>
+    <p><strong>Modular group</strong> $\mathrm{PSL}_2(\mathbb{Z})$: fundamental domain $\mathcal{F}=\{|\mathrm{Re}\,z|\leq\tfrac12,\,|z|\geq 1\}$, area $\pi/3$, quotient the modular curve $X(1)\cong\mathbb{CP}^1$.</p>
+    <div class="sep"></div>
+    <p><strong>Surface groups:</strong> for $g\geq 2$, $\pi_1(\Sigma_g)$ admits a discrete faithful representation into $\mathrm{PSL}_2(\mathbb{R})$ (uniformization). The hyperbolic metric is unique in its conformal class (Koebe–Poincaré).</p>
+    <div class="sep"></div>
+    <p><strong>Geodesic flow / horocycles:</strong> unit tangent bundle $T^1\Sigma\cong\Gamma\backslash\mathrm{PSL}_2(\mathbb{R})$. Anosov dynamics; mixing implies equidistribution of horocycles (Hedlund, Ratner).</p>
+    <div class="sep"></div>
+    <p><strong>Frontier:</strong> Mirzakhani's integration over moduli of hyperbolic surfaces, Weil–Petersson volumes, and the mapping class group action on character varieties $\mathrm{Hom}(\pi_1,\mathrm{PSL}_2)/\mathrm{conj}$.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 10: PERIOD MATRIX / HODGE ==================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane10">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed11" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal11" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00x</span>
+      <button class="active-btn" id="btnPerCycles" onclick="setPeriodMode('cycles')">A/B Cycles</button>
+      <button id="btnPerLattice" onclick="setPeriodMode('lattice')">Period Lattice</button>
+      <button id="btnPerSiegel" onclick="setPeriodMode('siegel')">Siegel 𝔥₂</button>
+      <button id="btnPeriodAnim" class="animBtn" onclick="togglePeriodAnim()">▶ Animate</button>
+      <button onclick="resetPeriod()">&#8635; Reset</button>
+    </div>
+    <canvas aria-label="36 · Riemann Surfaces — panel 12" id="c10" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">g = <span id="s10g">1</span></div>
+      <div class="stat">Ω = <span id="s10omega">τ</span></div>
+      <div class="stat">Im Ω ≻ 0: <span id="s10pos">yes</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Period Matrix &amp; Hodge Structure</h3>
+    <p>Choose a symplectic basis $(A_i,B_j)$ of $H_1(\Sigma,\mathbb{Z})$ and a dual basis of holomorphic 1-forms $\omega_k$ with $\oint_{A_i}\omega_j=\delta_{ij}$. The <strong>period matrix</strong> is
+    $$\Omega_{ij}=\oint_{B_i}\omega_j\in\mathfrak{H}_g$$
+    the Siegel upper half-space: $\Omega^t=\Omega$, $\mathrm{Im}\,\Omega\succ 0$.</p>
+    <div class="sep"></div>
+    <p><strong>Weight-1 Hodge structure:</strong> $H^1(\Sigma,\mathbb{C})=H^{1,0}\oplus H^{0,1}$ with $H^{1,0}=H^0(\Omega^1)$ and conjugation. The period domain is $\mathrm{Sp}(2g,\mathbb{R})/U(g)$.</p>
+    <div class="sep"></div>
+    <p><strong>Torelli map</strong> $j:\mathcal{M}_g\to\mathcal{A}_g$, $\Sigma\mapsto (J(\Sigma),\Theta)$ lands in the principally polarized abelian varieties. Injectivity for $g\geq 2$ (Torelli); image for $g\geq 4$ is a proper subvariety (Schottky problem).</p>
+    <div class="sep"></div>
+    <p><strong>Frontier:</strong> infinitesimal Torelli, variation of Hodge structure (VHS) for families of curves, and the Andreotti–Mayer loci in $\mathcal{A}_g$.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 11: BRANCHED COVERS / HURWITZ ==================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane11">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed12" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal12" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00x</span>
+      <button class="active-btn" id="btnHurCover" onclick="setHurwitzMode('cover')">Branched Cover</button>
+      <button id="btnHurRH" onclick="setHurwitzMode('rh')">Riemann–Hurwitz</button>
+      <button id="btnHurNum" onclick="setHurwitzMode('num')">Hurwitz Numbers</button>
+      <button id="btnHurwitzAnim" class="animBtn" onclick="toggleHurwitzAnim()">▶ Animate</button>
+      <button onclick="resetHurwitz()">&#8635; Reset</button>
+    </div>
+    <canvas aria-label="36 · Riemann Surfaces — panel 13" id="c11" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">deg = <span id="s11deg">2</span></div>
+      <div class="stat">branch pts = <span id="s11br">3</span></div>
+      <div class="stat">g(cover) = <span id="s11g">1</span></div>
+      <div class="stat">H = <span id="s11H">—</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Branched Covers &amp; Hurwitz Numbers</h3>
+    <p>A degree-$d$ branched cover $f:\Sigma\to\mathbb{CP}^1$ is determined (up to isomorphism) by monodromy $\rho:\pi_1(\mathbb{CP}^1\setminus B)\to S_d$ sending loops around branch points to permutations of the sheets.</p>
+    <div class="sep"></div>
+    <p><strong>Riemann–Hurwitz:</strong>
+    $$2g-2 = d(2g_0-2)+\sum_p(e_p-1)$$
+    For $g_0=0$ and simple branching (transpositions), $g=1+\tfrac{b}{2}-d$ with $b=\#$ branch points.</p>
+    <div class="sep"></div>
+    <p><strong>Hurwitz numbers</strong> $H_{g,d}(\mu^{(1)},\ldots,\mu^{(b)})$ count covers with specified ramification profiles, weighted by $1/|\mathrm{Aut}|$. Classical formula via characters of $S_d$ (Frobenius).</p>
+    <div class="sep"></div>
+    <p><strong>ELS V formula / Gromov–Witten:</strong> simple Hurwitz numbers generate the tautological ring of $\overline{\mathcal{M}}_{g,n}$; Hodge integrals appear via the ELSV formula linking $H_{g,d}$ to $\lambda$-classes.</p>
+    <div class="sep"></div>
+    <p><strong>Lite frontier:</strong> double Hurwitz numbers, tropical Hurwitz, and the connection to topological recursion / Eynard–Orantin.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 12: MEROMORPHIC DIFFERENTIALS ==================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane12">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed13" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal13" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00x</span>
+      <button class="active-btn" id="btnMeroRes" onclick="setMeroMode('res')">Residues</button>
+      <button id="btnMeroWP" onclick="setMeroMode('wp')">Weierstrass ℘</button>
+      <button id="btnMeroAb" onclick="setMeroMode('abel')">Abelian Diffs</button>
+      <button id="btnMeroAnim" class="animBtn" onclick="toggleMeroAnim()">▶ Animate</button>
+      <button onclick="resetMero()">&#8635; Reset</button>
+    </div>
+    <canvas aria-label="36 · Riemann Surfaces — panel 14" id="c12" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">Σ residues = <span id="s12sum">0</span></div>
+      <div class="stat">zeros − poles = <span id="s12div">2g−2</span></div>
+      <div class="stat">type = <span id="s12type">meromorphic 1-form</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Meromorphic Differentials &amp; Residues</h3>
+    <p>A meromorphic 1-form $\omega$ on compact $\Sigma$ has $\sum_p\mathrm{Res}_p(\omega)=0$ (residue theorem). The divisor of zeros and poles of a holomorphic section of $K_\Sigma$ has degree $2g-2=\deg K$.</p>
+    <div class="sep"></div>
+    <p><strong>Classification (Abelian differentials):</strong></p>
+    <ul>
+      <li>1st kind: holomorphic (no poles) — dim $g$</li>
+      <li>2nd kind: poles with zero residues</li>
+      <li>3rd kind: simple poles, $\sum\mathrm{Res}=0$</li>
+    </ul>
+    <div class="sep"></div>
+    <p><strong>Weierstrass $\wp$:</strong> on $E=\mathbb{C}/\Lambda$, $\wp'(z)^2=4\wp^3-g_2\wp-g_3$. The form $dz$ is holomorphic; $\wp\,dz$ has a double pole with zero residue.</p>
+    <div class="sep"></div>
+    <p><strong>Quadratic differentials</strong> $q\in H^0(K^{\otimes 2})$ measure Teichmüller deformations (Hubbard–Masur). Horizontal trajectories define measured foliations.</p>
+    <div class="sep"></div>
+    <p><strong>Frontier:</strong> strata of abelian differentials $\mathcal{H}(\mu)$, Mirzakhani–Wright orbit closures, and the Eskin–Mirzakhani–Mohammadi theorem on affine invariant submanifolds.</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 13: MIRROR SYMMETRY FOR CURVES ==================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane13">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed14" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal14" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00x</span>
+      <button class="active-btn" id="btnMirSYZ" onclick="setMirrorMode('syz')">SYZ Fibration</button>
+      <button id="btnMirMod" onclick="setMirrorMode('moduli')">Complex ↔ Kähler</button>
+      <button id="btnMirHom" onclick="setMirrorMode('hms')">HMS Lite</button>
+      <button id="btnMirrorAnim" class="animBtn" onclick="toggleMirrorAnim()">▶ Animate</button>
+      <button onclick="resetMirror()">&#8635; Reset</button>
+    </div>
+    <canvas aria-label="36 · Riemann Surfaces — panel 15" id="c13" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">τ (complex) = <span id="s13tau">i</span></div>
+      <div class="stat">ρ (Kähler) = <span id="s13rho">i</span></div>
+      <div class="stat">mirror map = <span id="s13map">τ ↔ ρ</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Mirror Symmetry for Curves (Lite)</h3>
+    <p>For an elliptic curve $E_\tau=\mathbb{C}/(\mathbb{Z}+\tau\mathbb{Z})$, the complex structure modulus $\tau\in\mathbb{H}$ and the complexified Kähler modulus $\rho=B+i\mathrm{Vol}\in\mathbb{H}$ exchange roles under T-duality / mirror symmetry:
+    $$E_\tau \;\longleftrightarrow\; E^\vee_\rho$$</p>
+    <div class="sep"></div>
+    <p><strong>SYZ:</strong> special Lagrangian $T^1$-fibers of $E$ dualize to dual tori; the base is $S^1$. For higher-genus curves SYZ is more subtle (no Calabi–Yau volume form in dim 1 the same way), but Landau–Ginzburg mirrors of $(\mathbb{CP}^1,W)$ exist.</p>
+    <div class="sep"></div>
+    <p><strong>Homological mirror symmetry (HMS):</strong> $D^b\mathrm{Coh}(E)\simeq D^\pi\mathrm{Fuk}(E^\vee)$ — coherent sheaves ↔ Lagrangian intersections (Polishchuk–Zaslow for elliptic curves).</p>
+    <div class="sep"></div>
+    <p><strong>A-model / B-model:</strong> Gromov–Witten (A) of $E$ is trivial in positive degree; B-model is variation of Hodge structure on $H^{1,0}$. Mirror swaps A↔B.</p>
+    <div class="sep"></div>
+    <p><strong>Frontier lite:</strong> mirrors of punctured curves via cluster varieties, and the SYZ picture for Hitchin systems (Donagi–Pantev).</p>
+  </div>
+</div>
+
+<!-- ==================== TAB 14: HITCHIN SYSTEMS ==================== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane14">
+  <div class="canvas-col">
+    <div class="controls" data-role="sidebar">
+      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
+      <input type="range" id="globalSpeed15" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+      <span id="globalSpeedVal15" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00x</span>
+      <button class="active-btn" id="btnHitBase" onclick="setHitchinMode('base')">Hitchin Base</button>
+      <button id="btnHitFiber" onclick="setHitchinMode('fiber')">Liouville Fiber</button>
+      <button id="btnHitHiggs" onclick="setHitchinMode('higgs')">Higgs Field Φ</button>
+      <button id="btnHitchinAnim" class="animBtn" onclick="toggleHitchinAnim()">▶ Animate</button>
+      <button onclick="resetHitchin()">&#8635; Reset</button>
+    </div>
+    <canvas aria-label="36 · Riemann Surfaces — panel 16" id="c14" style="flex:1;min-height:0"></canvas>
+    <div class="stat-row">
+      <div class="stat">G = <span id="s14G">SL₂</span></div>
+      <div class="stat">dim base = <span id="s14base">3g−3</span></div>
+      <div class="stat">fiber = <span id="s14fiber">Prym / Jac</span></div>
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar">
+    <h3>Hitchin Systems</h3>
+    <p>The moduli space $\mathcal{M}_H$ of $G$-Higgs bundles $(E,\Phi)$ on a curve $C$ of genus $g\geq 2$ carries a complete integrable system (Hitchin 1987):
+    $$h:\mathcal{M}_H\to\mathcal{A}=\bigoplus_{i=1}^{\mathrm{rk}} H^0(C,K^{d_i})$$
+    with generic fiber an abelian variety (Prym/Jacobian of the spectral curve).</p>
+    <div class="sep"></div>
+    <p><strong>For $\mathrm{SL}_2$:</strong> $\mathcal{A}=H^0(K_C^{\otimes 2})$, $\dim=3g-3$. Spectral curve $y^2=\det\Phi\in H^0(K^2)$. Fiber $\cong\mathrm{Prym}(\Sigma_{\mathrm{spec}}/C)$.</p>
+    <div class="sep"></div>
+    <p><strong>Self-duality:</strong> $\mathcal{M}_H$ is hyperkähler; the Hitchin fibration is special Lagrangian for the SYZ mirror of $\mathcal{M}_H(G)$ to $\mathcal{M}_H({}^LG)$ (Donagi–Pantev), realizing geometric Langlands at the level of BAA/BBB branes.</p>
+    <div class="sep"></div>
+    <p><strong>Physics:</strong> class-$\mathcal{S}$ theories of Gaiotto: compactify the 6d $(2,0)$ theory on $C$; the Coulomb branch is the Hitchin base, and the SW curve is the spectral curve.</p>
+    <div class="sep"></div>
+    <p><strong>Frontier:</strong> wild Hitchin systems (irregular singularities), mirror symmetry for parabolic Higgs moduli, and the $P=W$ conjecture (now theorem) relating perverse filtration on $H^*(\mathcal{M}_H)$ to weight filtration on character varieties.</p>
   </div>
 </div>
 
@@ -3235,9 +3575,975 @@ function initPane7(){
   updateSpectralStats();
 }
 
+// ============================================================
+// TAB 8: UNIFORMIZATION
+// ============================================================
+let unifGenus=0, unifAnimRAF=null, unifAnimRunning=false, unifT=0;
+
+function setUnifGenus(g){
+  unifGenus=g;
+  const ids=['btnUnif0','btnUnif1','btnUnif2'];
+  ids.forEach((id,i)=>{
+    const b=document.getElementById(id);
+    if(b) b.classList.toggle('active-btn', (g>=2 && i===2) || (g<2 && i===g));
+  });
+  drawUnif(); updateUnifStats();
+}
+function updateUnifStats(){
+  const covers=['ℂP¹','ℂ','𝔻'], Ks=['+1','0','−1'], chis=[2,0,-2];
+  const i=Math.min(unifGenus,2);
+  const el=id=>document.getElementById(id);
+  if(el('s8cover')) el('s8cover').textContent=covers[i];
+  if(el('s8chi')) el('s8chi').textContent=String(2-2*unifGenus);
+  if(el('s8K')) el('s8K').textContent=Ks[i];
+  if(el('s8t')) el('s8t').textContent=unifT.toFixed(2);
+}
+function stopUnifAnim(){
+  unifAnimRunning=false;
+  if(unifAnimRAF){cancelAnimationFrame(unifAnimRAF);unifAnimRAF=null;}
+  const b=document.getElementById('btnUnifAnim');
+  if(b){b.textContent='▶ Animate';b.classList.remove('active-btn');}
+}
+function toggleUnifAnim(){
+  if(unifAnimRunning){stopUnifAnim();return;}
+  unifAnimRunning=true;
+  const b=document.getElementById('btnUnifAnim');
+  if(b){b.textContent='⏸ Pause';b.classList.add('active-btn');}
+  unifAnimStep();
+}
+function unifAnimStep(){
+  if(!unifAnimRunning)return;
+  unifT+=0.018*(window.animSpeed||1);
+  drawUnif(); updateUnifStats();
+  unifAnimRAF=requestAnimationFrame(unifAnimStep);
+}
+function resetUnif(){stopUnifAnim();unifT=0;unifGenus=0;setUnifGenus(0);}
+function initPane8(){updateUnifStats();}
+
+function drawUnif(){
+  const cv=document.getElementById('c8'); if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const CX=W/2, CY=H/2, R=Math.min(W,H)*0.32;
+  const t=unifT;
+
+  // Title band
+  ctx.fillStyle='rgba(170,102,255,0.9)';
+  ctx.font='bold 13px Share Tech Mono';
+  ctx.fillText('Uniformization: simply connected cover',12,18);
+
+  if(unifGenus===0){
+    // Sphere with conformal stereographic animation
+    const g=ctx.createRadialGradient(CX-R*0.3,CY-R*0.3,R*0.05,CX,CY,R);
+    g.addColorStop(0,'rgba(120,160,255,0.55)'); g.addColorStop(1,'rgba(30,20,90,0.55)');
+    ctx.beginPath();ctx.arc(CX,CY,R,0,2*Math.PI);ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(140,160,255,0.7)';ctx.lineWidth=1.5;ctx.stroke();
+    for(let lat=-60;lat<=60;lat+=30){
+      const lr=R*Math.cos(lat*Math.PI/180), lcy=CY+R*Math.sin(lat*Math.PI/180);
+      ctx.strokeStyle='rgba(140,180,255,0.3)';ctx.beginPath();
+      ctx.ellipse(CX,lcy,Math.max(2,lr),Math.max(2,lr*0.28),0,0,2*Math.PI);ctx.stroke();
+    }
+    // Orbiting point + stereographic ray
+    const th=t*0.9;
+    const px=CX+R*0.7*Math.cos(th), py=CY+R*0.35*Math.sin(th);
+    ctx.beginPath();ctx.arc(px,py,5,0,2*Math.PI);ctx.fillStyle='#ffcc66';ctx.fill();
+    ctx.strokeStyle='rgba(255,200,100,0.5)';ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(CX,CY-R);ctx.lineTo(px,py);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(200,210,255,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('ℂP¹ ≅ S²  (g=0, K=+1)',CX-70,CY+R+24);
+    ctx.fillText('stereographic → ℂ ∪ {∞}',12,H-12);
+  } else if(unifGenus===1){
+    // Flat plane tiling lattice
+    const SCALE=Math.min(W,H)/7;
+    const re=Math.cos(t*0.4)*0.3, im=1.1+0.15*Math.sin(t*0.55);
+    ctx.strokeStyle='rgba(100,90,160,0.4)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,CY);ctx.lineTo(W,CY);ctx.moveTo(CX,0);ctx.lineTo(CX,H);ctx.stroke();
+    for(let m=-4;m<=4;m++){
+      for(let n=-3;n<=3;n++){
+        const x=CX+(m+n*re)*SCALE, y=CY-(n*im)*SCALE;
+        ctx.beginPath();ctx.arc(x,y,3,0,2*Math.PI);
+        ctx.fillStyle=m===0&&n===0?'#aa66ff':'rgba(120,140,255,0.55)';ctx.fill();
+        if(n===0&&m>=0&&m<1){
+          ctx.strokeStyle='rgba(100,200,140,0.7)';ctx.lineWidth=2;
+          ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(CX+(m+1)*SCALE,CY);ctx.stroke();
+        }
+      }
+    }
+    // parallelogram
+    ctx.strokeStyle='rgba(255,180,80,0.85)';ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(CX,CY);
+    ctx.lineTo(CX+SCALE,CY);
+    ctx.lineTo(CX+SCALE+re*SCALE,CY-im*SCALE);
+    ctx.lineTo(CX+re*SCALE,CY-im*SCALE);
+    ctx.closePath();ctx.stroke();
+    ctx.fillStyle='rgba(255,200,100,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('ℂ / ⟨1, τ⟩  (g=1, K=0)',12,H-12);
+    ctx.fillText('τ = '+re.toFixed(2)+' + '+im.toFixed(2)+'i',12,34);
+  } else {
+    // Poincaré disk
+    ctx.beginPath();ctx.arc(CX,CY,R,0,2*Math.PI);
+    const dg=ctx.createRadialGradient(CX,CY,0,CX,CY,R);
+    dg.addColorStop(0,'rgba(40,20,80,0.9)');dg.addColorStop(1,'rgba(10,5,30,0.95)');
+    ctx.fillStyle=dg;ctx.fill();
+    ctx.strokeStyle='rgba(170,102,255,0.8)';ctx.lineWidth=2;ctx.stroke();
+    // hyperbolic geodesics (circular arcs)
+    for(let k=0;k<8;k++){
+      const a=k*Math.PI/4+t*0.15;
+      const d=0.35+0.2*Math.sin(t+k);
+      const ox=CX+d*R*Math.cos(a), oy=CY+d*R*Math.sin(a);
+      const rr=R*Math.sqrt(1-d*d)*0.95;
+      ctx.strokeStyle=`hsla(${260+k*15},70%,65%,0.45)`;ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.arc(ox,oy,rr,0,2*Math.PI);ctx.stroke();
+    }
+    // orbit point under Möbius
+    const r0=0.55*R, ang=t*0.7;
+    const zx=r0*Math.cos(ang)/(1+0.3*Math.sin(t)), zy=r0*Math.sin(ang);
+    ctx.beginPath();ctx.arc(CX+zx,CY+zy,6,0,2*Math.PI);
+    ctx.fillStyle='#66ffaa';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('𝔻 / Γ  (g≥2, K=−1)',12,H-12);
+    ctx.fillText('Poincaré metric  ds² = 4|dz|²/(1−|z|²)²',12,34);
+  }
+  updateUnifStats();
+}
+
+// ============================================================
+// TAB 9: FUCHSIAN GROUPS
+// ============================================================
+let fuchsMode='modular', fuchsAnimRAF=null, fuchsAnimRunning=false, fuchsT=0;
+
+function setFuchsMode(m){
+  fuchsMode=m;
+  const map={modular:'btnFuchsMod',surface:'btnFuchsSurf',horo:'btnFuchsHoro'};
+  Object.keys(map).forEach(k=>document.getElementById(map[k])?.classList.toggle('active-btn',k===m));
+  drawFuchs();
+}
+function stopFuchsAnim(){
+  fuchsAnimRunning=false;
+  if(fuchsAnimRAF){cancelAnimationFrame(fuchsAnimRAF);fuchsAnimRAF=null;}
+  const b=document.getElementById('btnFuchsAnim');
+  if(b){b.textContent='▶ Animate';b.classList.remove('active-btn');}
+}
+function toggleFuchsAnim(){
+  if(fuchsAnimRunning){stopFuchsAnim();return;}
+  fuchsAnimRunning=true;
+  const b=document.getElementById('btnFuchsAnim');
+  if(b){b.textContent='⏸ Pause';b.classList.add('active-btn');}
+  fuchsAnimStep();
+}
+function fuchsAnimStep(){
+  if(!fuchsAnimRunning)return;
+  fuchsT+=0.016*(window.animSpeed||1);
+  drawFuchs();
+  fuchsAnimRAF=requestAnimationFrame(fuchsAnimStep);
+}
+function resetFuchs(){stopFuchsAnim();fuchsT=0;fuchsMode='modular';setFuchsMode('modular');}
+function initPane9(){}
+
+function drawFuchs(){
+  const cv=document.getElementById('c9'); if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const CX=W/2, CY=H*0.55, R=Math.min(W,H)*0.42;
+  const t=fuchsT;
+
+  // Upper half-plane style or disk
+  if(fuchsMode==='modular'){
+    // Draw upper half plane strip
+    ctx.fillStyle='rgba(15,10,40,0.9)';
+    ctx.fillRect(0,0,W,H);
+    const SCALE=Math.min(W,H)/3.2;
+    const originY=H*0.85;
+    const toX=re=>W/2+re*SCALE;
+    const toY=im=>originY-im*SCALE;
+
+    // grid
+    ctx.strokeStyle='rgba(80,70,140,0.35)';ctx.lineWidth=1;
+    for(let x=-3;x<=3;x+=0.5){ctx.beginPath();ctx.moveTo(toX(x),0);ctx.lineTo(toX(x),originY);ctx.stroke();}
+    for(let y=0;y<=4;y+=0.5){ctx.beginPath();ctx.moveTo(0,toY(y));ctx.lineTo(W,toY(y));ctx.stroke();}
+    ctx.strokeStyle='rgba(120,100,180,0.5)';ctx.beginPath();ctx.moveTo(0,originY);ctx.lineTo(W,originY);ctx.stroke();
+
+    // Fundamental domain F
+    ctx.fillStyle='rgba(255,200,80,0.18)';
+    ctx.strokeStyle='rgba(255,200,80,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(toX(-0.5),toY(0.01));
+    ctx.lineTo(toX(-0.5),toY(3.5));
+    // arc |z|=1 from -0.5 to 0.5
+    const steps=40;
+    for(let i=0;i<=steps;i++){
+      const ang=Math.PI-Math.acos(0.5) - i/steps*(Math.PI-2*Math.acos(0.5));
+      // wait: arc of unit circle from -1/2 to 1/2 in upper half
+      const th=Math.PI - Math.acos(0.5) + (i/steps)*(2*Math.acos(0.5)-0); // from ~2π/3 to π/3
+    }
+    // simpler: polyline unit arc
+    ctx.beginPath();
+    ctx.moveTo(toX(-0.5),toY(Math.sqrt(0.75)));
+    for(let i=0;i<=50;i++){
+      const th=2*Math.PI/3 - i/50*(Math.PI/3);
+      ctx.lineTo(toX(Math.cos(th)), toY(Math.sin(th)));
+    }
+    ctx.lineTo(toX(0.5),toY(3.5));
+    ctx.lineTo(toX(-0.5),toY(3.5));
+    ctx.closePath();
+    ctx.fill();ctx.stroke();
+
+    // SL2Z images of F (tiles)
+    let tiles=1;
+    const mats=[[1,0,0,1],[1,1,0,1],[1,-1,0,1],[0,-1,1,0],[1,1,-1,0],[1,-1,1,0],[2,1,1,0],[-1,2,0,-1]];
+    mats.forEach((m,mi)=>{
+      const [a,b,c,d]=m;
+      // map unit arc vertices
+      ctx.strokeStyle=`hsla(${40+mi*30},70%,60%,0.55)`;ctx.lineWidth=1.2;
+      ctx.beginPath();
+      for(let i=0;i<=40;i++){
+        const th=2*Math.PI/3 - i/40*(Math.PI/3);
+        let zr=Math.cos(th), zi=Math.sin(th);
+        // (az+b)/(cz+d)
+        const denR=c*zr+d, denI=c*zi;
+        const den2=denR*denR+denI*denI;
+        if(den2<1e-8)return;
+        const numR=a*zr+b, numI=a*zi;
+        const wr=(numR*denR+numI*denI)/den2;
+        const wi=(numI*denR-numR*denI)/den2;
+        if(wi<0.02)return;
+        if(i===0)ctx.moveTo(toX(wr),toY(wi)); else ctx.lineTo(toX(wr),toY(wi));
+      }
+      ctx.stroke(); tiles++;
+    });
+
+    // moving τ
+    const tre=0.35*Math.sin(t*0.9), tim=1.15+0.25*Math.abs(Math.sin(t*0.5));
+    ctx.beginPath();ctx.arc(toX(tre),toY(tim),6,0,2*Math.PI);
+    ctx.fillStyle='#aa66ff';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+
+    ctx.fillStyle='rgba(255,220,120,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Modular fundamental domain ℱ ⊂ ℍ',12,18);
+    ctx.fillStyle='rgba(180,160,220,0.8)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('PSL₂(ℤ) tiles ℍ · area(ℱ)=π/3',12,H-12);
+    const el=id=>document.getElementById(id);
+    if(el('s9grp')) el('s9grp').textContent='PSL₂(ℤ)';
+    if(el('s9tiles')) el('s9tiles').textContent=String(tiles);
+    if(el('s9area')) el('s9area').textContent='π/3';
+  } else if(fuchsMode==='surface'){
+    // Poincaré disk with octagon FD for genus 2
+    ctx.beginPath();ctx.arc(CX,CY,R,0,2*Math.PI);
+    ctx.fillStyle='rgba(12,8,35,0.95)';ctx.fill();
+    ctx.strokeStyle='rgba(170,102,255,0.85)';ctx.lineWidth=2;ctx.stroke();
+    const n=8;
+    const rFD=R*0.62;
+    ctx.fillStyle='rgba(100,80,200,0.2)';
+    ctx.strokeStyle='rgba(170,140,255,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<=n;i++){
+      const a=i*2*Math.PI/n + t*0.05;
+      const x=CX+rFD*Math.cos(a), y=CY+rFD*Math.sin(a);
+      if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath();ctx.fill();ctx.stroke();
+    // side pairing arrows
+    for(let i=0;i<n;i++){
+      const a0=i*2*Math.PI/n+t*0.05, a1=((i+1)%n)*2*Math.PI/n+t*0.05;
+      const mx=CX+rFD*0.85*Math.cos((a0+a1)/2), my=CY+rFD*0.85*Math.sin((a0+a1)/2);
+      ctx.fillStyle=`hsla(${i*40},70%,65%,0.85)`;
+      ctx.beginPath();ctx.arc(mx,my,4,0,2*Math.PI);ctx.fill();
+      ctx.font='10px Share Tech Mono';ctx.fillText(String.fromCharCode(97+(i%4)),mx+6,my);
+    }
+    // group orbit of a point
+    for(let k=0;k<12;k++){
+      const a=k*Math.PI/6+t*0.4;
+      const rr=R*(0.2+0.55*(0.5+0.5*Math.sin(t+k)));
+      ctx.beginPath();ctx.arc(CX+rr*Math.cos(a),CY+rr*Math.sin(a),3,0,2*Math.PI);
+      ctx.fillStyle='rgba(100,255,180,0.7)';ctx.fill();
+    }
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Genus-2 octagon · side pairing → π₁',12,18);
+    ctx.fillStyle='rgba(160,140,220,0.8)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('Σ₂ ≅ 𝔻 / Γ   Γ ⊂ PSL₂(ℝ) Fuchsian',12,H-12);
+    const el=id=>document.getElementById(id);
+    if(el('s9grp')) el('s9grp').textContent='π₁(Σ₂) ↪ PSL₂(ℝ)';
+    if(el('s9tiles')) el('s9tiles').textContent='∞';
+    if(el('s9area')) el('s9area').textContent='4π (g=2)';
+  } else {
+    // Horocycles in disk
+    ctx.beginPath();ctx.arc(CX,CY,R,0,2*Math.PI);
+    ctx.fillStyle='rgba(12,8,35,0.95)';ctx.fill();
+    ctx.strokeStyle='rgba(170,102,255,0.85)';ctx.lineWidth=2;ctx.stroke();
+    for(let i=1;i<=8;i++){
+      const hr=R*(0.12*i)*(0.85+0.15*Math.sin(t+i));
+      const ox=CX+R*0.55, oy=CY;
+      ctx.strokeStyle=`hsla(${180+i*15},70%,55%,0.5)`;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.arc(ox,oy,hr,0,2*Math.PI);ctx.stroke();
+    }
+    // geodesic
+    ctx.strokeStyle='rgba(255,180,80,0.85)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(CX,CY+R*0.2,R*0.85,-2.2,-0.9);ctx.stroke();
+    ctx.fillStyle='rgba(255,200,100,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Horocycles · geodesic flow on T¹Σ',12,18);
+    ctx.fillStyle='rgba(160,140,220,0.8)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('Anosov · Hedlund equidistribution',12,H-12);
+    const el=id=>document.getElementById(id);
+    if(el('s9grp')) el('s9grp').textContent='Γ \\ PSL₂(ℝ)';
+    if(el('s9tiles')) el('s9tiles').textContent='—';
+    if(el('s9area')) el('s9area').textContent='—';
+  }
+}
+
+// ============================================================
+// TAB 10: PERIOD MATRIX / HODGE
+// ============================================================
+let periodMode='cycles', periodAnimRAF=null, periodAnimRunning=false, periodT=0;
+
+function setPeriodMode(m){
+  periodMode=m;
+  const map={cycles:'btnPerCycles',lattice:'btnPerLattice',siegel:'btnPerSiegel'};
+  Object.keys(map).forEach(k=>document.getElementById(map[k])?.classList.toggle('active-btn',k===m));
+  drawPeriod();
+}
+function stopPeriodAnim(){
+  periodAnimRunning=false;
+  if(periodAnimRAF){cancelAnimationFrame(periodAnimRAF);periodAnimRAF=null;}
+  const b=document.getElementById('btnPeriodAnim');
+  if(b){b.textContent='▶ Animate';b.classList.remove('active-btn');}
+}
+function togglePeriodAnim(){
+  if(periodAnimRunning){stopPeriodAnim();return;}
+  periodAnimRunning=true;
+  const b=document.getElementById('btnPeriodAnim');
+  if(b){b.textContent='⏸ Pause';b.classList.add('active-btn');}
+  periodAnimStep();
+}
+function periodAnimStep(){
+  if(!periodAnimRunning)return;
+  periodT+=0.018*(window.animSpeed||1);
+  drawPeriod();
+  periodAnimRAF=requestAnimationFrame(periodAnimStep);
+}
+function resetPeriod(){stopPeriodAnim();periodT=0;periodMode='cycles';setPeriodMode('cycles');}
+function initPane10(){}
+
+function drawPeriod(){
+  const cv=document.getElementById('c10'); if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const CX=W/2, CY=H/2, t=periodT;
+  const el=id=>document.getElementById(id);
+
+  if(periodMode==='cycles'){
+    // Torus with A/B cycles
+    const R=Math.min(W,H)*0.22, r=R*0.38;
+    const ang=t*0.4;
+    if(typeof drawTorus==='function') drawTorus(ctx,CX,CY-10,R,r,ang,0.85);
+    else {
+      ctx.strokeStyle='rgba(150,120,255,0.8)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.ellipse(CX,CY,R*1.4,R*0.7,0,0,2*Math.PI);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(CX,CY,R*0.55,R*0.28,0,0,2*Math.PI);ctx.stroke();
+    }
+    // A-cycle (meridian) and B-cycle (longitude)
+    ctx.strokeStyle='rgba(80,200,255,0.95)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.ellipse(CX+R*0.9,CY,r*0.9,R*0.55,0,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle='rgba(80,200,255,0.95)';ctx.font='bold 13px Share Tech Mono';
+    ctx.fillText('A-cycle',CX+R*1.1,CY-R*0.7);
+    ctx.strokeStyle='rgba(255,120,100,0.95)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.ellipse(CX,CY,R+r*0.2,R*0.35,0,0.2,Math.PI*1.6);ctx.stroke();
+    ctx.fillStyle='rgba(255,120,100,0.95)';ctx.fillText('B-cycle',CX-R*1.6,CY+R*0.9);
+    // moving integral point
+    const ph=t;
+    const ix=CX+(R+r*Math.cos(ph*2))*Math.cos(ph);
+    const iy=CY-(R+r*Math.cos(ph*2))*Math.sin(ph)*0.5;
+    ctx.beginPath();ctx.arc(ix,iy,6,0,2*Math.PI);ctx.fillStyle='#ffe066';ctx.fill();
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('∮_A ω = 1   ∮_B ω = τ = Ω',12,22);
+    ctx.fillText('Symplectic basis: A·B = 1',12,H-12);
+    if(el('s10g')) el('s10g').textContent='1';
+    if(el('s10omega')) el('s10omega').textContent='τ ∈ ℍ';
+    if(el('s10pos')) el('s10pos').textContent='Im τ > 0';
+  } else if(periodMode==='lattice'){
+    const SCALE=Math.min(W,H)/8;
+    const re=0.3*Math.sin(t*0.5), im=1.2+0.2*Math.cos(t*0.35);
+    ctx.strokeStyle='rgba(90,80,150,0.4)';
+    ctx.beginPath();ctx.moveTo(0,CY);ctx.lineTo(W,CY);ctx.moveTo(CX,0);ctx.lineTo(CX,H);ctx.stroke();
+    for(let m=-5;m<=5;m++){
+      for(let n=-4;n<=4;n++){
+        const x=CX+(m+n*re)*SCALE*1.4, y=CY-n*im*SCALE*1.4;
+        ctx.beginPath();ctx.arc(x,y,m===0&&n===0?5:2.5,0,2*Math.PI);
+        ctx.fillStyle=m===0&&n===0?'#aa66ff':(n===0?'rgba(80,200,255,0.7)':'rgba(255,120,100,0.65)');
+        ctx.fill();
+      }
+    }
+    // parallelogram
+    ctx.strokeStyle='rgba(255,220,100,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(CX,CY);
+    ctx.lineTo(CX+SCALE*1.4,CY);
+    ctx.lineTo(CX+SCALE*1.4+re*SCALE*1.4,CY-im*SCALE*1.4);
+    ctx.lineTo(CX+re*SCALE*1.4,CY-im*SCALE*1.4);
+    ctx.closePath();ctx.stroke();
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('Period lattice Λ = ℤ + Ωℤ ⊂ ℂ',12,22);
+    ctx.fillText('J(Σ) = ℂ/Λ   (Jacobian)',12,H-12);
+    if(el('s10g')) el('s10g').textContent='1';
+    if(el('s10omega')) el('s10omega').textContent=re.toFixed(2)+'+'+im.toFixed(2)+'i';
+    if(el('s10pos')) el('s10pos').textContent='yes';
+  } else {
+    // Siegel upper half schematic for g=2
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 13px Share Tech Mono';
+    ctx.fillText('Siegel upper half-space 𝔥₂',12,22);
+    // matrix display
+    const a=1.1+0.1*Math.sin(t), b=0.2*Math.cos(t*0.7), c=1.3+0.1*Math.cos(t*0.5);
+    const bx=CX-90, by=CY-70, bw=180, bh=120;
+    ctx.fillStyle='rgba(20,15,50,0.9)';ctx.strokeStyle='rgba(170,102,255,0.7)';
+    ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,6);ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(255,220,120,0.95)';ctx.font='14px Share Tech Mono';ctx.textAlign='center';
+    ctx.fillText('Ω = [ '+a.toFixed(2)+'  '+b.toFixed(2)+' ]',CX,by+40);
+    ctx.fillText('    [ '+b.toFixed(2)+'  '+c.toFixed(2)+' ]',CX,by+62);
+    ctx.fillStyle='rgba(100,220,160,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('Ωᵗ = Ω,  Im Ω ≻ 0',CX,by+90);
+    ctx.textAlign='left';
+    // period domain dim
+    ctx.fillStyle='rgba(160,140,220,0.85)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('dim 𝔥_g = g(g+1)/2   ·   Sp(2g,ℝ)/U(g)',12,H-28);
+    ctx.fillText('Torelli: ℳ_g → 𝒜_g  (injective g≥2)',12,H-12);
+    if(el('s10g')) el('s10g').textContent='2';
+    if(el('s10omega')) el('s10omega').textContent='2×2 Siegel';
+    if(el('s10pos')) el('s10pos').textContent='Im Ω ≻ 0';
+  }
+}
+
+// ============================================================
+// TAB 11: BRANCHED COVERS / HURWITZ
+// ============================================================
+let hurwitzMode='cover', hurwitzAnimRAF=null, hurwitzAnimRunning=false, hurwitzT=0;
+
+function setHurwitzMode(m){
+  hurwitzMode=m;
+  const map={cover:'btnHurCover',rh:'btnHurRH',num:'btnHurNum'};
+  Object.keys(map).forEach(k=>document.getElementById(map[k])?.classList.toggle('active-btn',k===m));
+  drawHurwitz();
+}
+function stopHurwitzAnim(){
+  hurwitzAnimRunning=false;
+  if(hurwitzAnimRAF){cancelAnimationFrame(hurwitzAnimRAF);hurwitzAnimRAF=null;}
+  const b=document.getElementById('btnHurwitzAnim');
+  if(b){b.textContent='▶ Animate';b.classList.remove('active-btn');}
+}
+function toggleHurwitzAnim(){
+  if(hurwitzAnimRunning){stopHurwitzAnim();return;}
+  hurwitzAnimRunning=true;
+  const b=document.getElementById('btnHurwitzAnim');
+  if(b){b.textContent='⏸ Pause';b.classList.add('active-btn');}
+  hurwitzAnimStep();
+}
+function hurwitzAnimStep(){
+  if(!hurwitzAnimRunning)return;
+  hurwitzT+=0.02*(window.animSpeed||1);
+  drawHurwitz();
+  hurwitzAnimRAF=requestAnimationFrame(hurwitzAnimStep);
+}
+function resetHurwitz(){stopHurwitzAnim();hurwitzT=0;hurwitzMode='cover';setHurwitzMode('cover');}
+function initPane11(){}
+
+function drawHurwitz(){
+  const cv=document.getElementById('c11'); if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const t=hurwitzT;
+  const el=id=>document.getElementById(id);
+  const deg=2, br=4, gcov=1;
+
+  if(hurwitzMode==='cover'){
+    // Base sphere CP1
+    const baseY=H*0.72, coverY=H*0.28;
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Degree-2 cover  Σ → ℂP¹  (elliptic)',12,18);
+    // base line
+    ctx.strokeStyle='rgba(120,100,180,0.7)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(40,baseY);ctx.lineTo(W-40,baseY);ctx.stroke();
+    ctx.fillStyle='rgba(160,140,220,0.8)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('ℂP¹ base',W-100,baseY+18);
+    // branch points
+    const bxs=[];
+    for(let i=0;i<br;i++){
+      const x=60+(W-120)*(i+0.5)/br;
+      bxs.push(x);
+      ctx.beginPath();ctx.arc(x,baseY,7,0,2*Math.PI);
+      ctx.fillStyle='#ff6688';ctx.fill();
+      ctx.fillStyle='rgba(255,150,170,0.9)';ctx.fillText('b'+(i+1),x-8,baseY+22);
+    }
+    // two sheets
+    ctx.strokeStyle='rgba(80,180,255,0.75)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(40,coverY-30);ctx.lineTo(W-40,coverY-30);ctx.stroke();
+    ctx.strokeStyle='rgba(100,255,160,0.75)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(40,coverY+30);ctx.lineTo(W-40,coverY+30);ctx.stroke();
+    ctx.fillStyle='rgba(80,180,255,0.85)';ctx.fillText('sheet 0',12,coverY-34);
+    ctx.fillStyle='rgba(100,255,160,0.85)';ctx.fillText('sheet 1',12,coverY+46);
+    // ramification connections with swap animation
+    bxs.forEach((x,i)=>{
+      const swap=Math.sin(t*1.5+i)>0;
+      ctx.strokeStyle='rgba(255,200,80,0.7)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+      ctx.beginPath();ctx.moveTo(x,baseY-8);
+      ctx.lineTo(x,coverY+(swap?30:-30));ctx.stroke();
+      ctx.setLineDash([]);
+      // monodromy transposition mark
+      ctx.strokeStyle='rgba(255,180,80,0.9)';ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(x-12,coverY-30);ctx.quadraticCurveTo(x,coverY,x+12,coverY+30);
+      ctx.stroke();
+    });
+    // orbiting point climbing sheets
+    const u=(t*0.15)%1;
+    const px=40+(W-80)*u;
+    const sheet=Math.floor(u*br)%2;
+    const py=coverY+(sheet===0?-30:30);
+    ctx.beginPath();ctx.arc(px,py,6,0,2*Math.PI);ctx.fillStyle='#ffe066';ctx.fill();
+    if(el('s11deg')) el('s11deg').textContent=String(deg);
+    if(el('s11br')) el('s11br').textContent=String(br);
+    if(el('s11g')) el('s11g').textContent=String(gcov);
+    if(el('s11H')) el('s11H').textContent='—';
+  } else if(hurwitzMode==='rh'){
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 13px Share Tech Mono';
+    ctx.fillText('Riemann–Hurwitz formula',12,22);
+    // visual accounting
+    const rows=[
+      ['χ(Σ)','=','d · χ(base)','−','Σ (e_p−1)'],
+      ['2−2g','=','d · (2−2g₀)','−','B (branching)'],
+      ['g','=','1 − d + B/2','(simple)','']
+    ];
+    rows.forEach((row,ri)=>{
+      ctx.fillStyle=ri===0?'rgba(255,220,120,0.95)':'rgba(180,160,230,0.9)';
+      ctx.font='14px Share Tech Mono';
+      ctx.fillText(row.join('  '),40,80+ri*36);
+    });
+    // animated numbers
+    const B=4+Math.floor((Math.sin(t)+1)*2);
+    const d=2, g=1-d+B/2;
+    ctx.fillStyle='rgba(100,255,180,0.95)';ctx.font='bold 16px Share Tech Mono';
+    ctx.fillText(`d=${d}  B=${B}  ⇒  g=${g}`,40,220);
+    ctx.fillStyle='rgba(160,140,220,0.85)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('Each simple branch point contributes +1 to total branching B',12,H-12);
+    if(el('s11deg')) el('s11deg').textContent=String(d);
+    if(el('s11br')) el('s11br').textContent=String(B);
+    if(el('s11g')) el('s11g').textContent=String(g);
+    if(el('s11H')) el('s11H').textContent='RH';
+  } else {
+    // Hurwitz numbers table lite
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 13px Share Tech Mono';
+    ctx.fillText('Hurwitz numbers H_{g,d} (simple)',12,22);
+    const data=[
+      ['H_{0,2}','1','ℂP¹ → ℂP¹'],
+      ['H_{0,3}','1','3 sheets, 4 branch'],
+      ['H_{1,2}','1/2','torus double cover'],
+      ['H_{0,d}','d^{d−3}','Cayley (trees)']
+    ];
+    data.forEach((row,i)=>{
+      const y=70+i*40;
+      const pulse=(Math.sin(t*2+i)+1)*0.5;
+      ctx.fillStyle=`rgba(30,20,60,${0.5+pulse*0.3})`;
+      ctx.fillRect(30,y-18,W-60,34);
+      ctx.fillStyle='rgba(255,200,100,0.95)';ctx.font='bold 13px Share Tech Mono';
+      ctx.fillText(row[0],40,y);
+      ctx.fillStyle='rgba(100,255,180,0.95)';ctx.fillText(row[1],160,y);
+      ctx.fillStyle='rgba(180,160,230,0.9)';ctx.fillText(row[2],240,y);
+    });
+    ctx.fillStyle='rgba(160,140,220,0.85)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('Frobenius: count factorizations in S_d · ELSV ↔ tautological classes',12,H-12);
+    if(el('s11deg')) el('s11deg').textContent='d';
+    if(el('s11br')) el('s11br').textContent='b';
+    if(el('s11g')) el('s11g').textContent='g';
+    if(el('s11H')) el('s11H').textContent='H_{g,d}';
+  }
+}
+
+// ============================================================
+// TAB 12: MEROMORPHIC DIFFERENTIALS
+// ============================================================
+let meroMode='res', meroAnimRAF=null, meroAnimRunning=false, meroT=0;
+
+function setMeroMode(m){
+  meroMode=m;
+  const map={res:'btnMeroRes',wp:'btnMeroWP',abel:'btnMeroAb'};
+  Object.keys(map).forEach(k=>document.getElementById(map[k])?.classList.toggle('active-btn',k===m));
+  drawMero();
+}
+function stopMeroAnim(){
+  meroAnimRunning=false;
+  if(meroAnimRAF){cancelAnimationFrame(meroAnimRAF);meroAnimRAF=null;}
+  const b=document.getElementById('btnMeroAnim');
+  if(b){b.textContent='▶ Animate';b.classList.remove('active-btn');}
+}
+function toggleMeroAnim(){
+  if(meroAnimRunning){stopMeroAnim();return;}
+  meroAnimRunning=true;
+  const b=document.getElementById('btnMeroAnim');
+  if(b){b.textContent='⏸ Pause';b.classList.add('active-btn');}
+  meroAnimStep();
+}
+function meroAnimStep(){
+  if(!meroAnimRunning)return;
+  meroT+=0.018*(window.animSpeed||1);
+  drawMero();
+  meroAnimRAF=requestAnimationFrame(meroAnimStep);
+}
+function resetMero(){stopMeroAnim();meroT=0;meroMode='res';setMeroMode('res');}
+function initPane12(){}
+
+function drawMero(){
+  const cv=document.getElementById('c12'); if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const CX=W/2, CY=H/2, t=meroT;
+  const el=id=>document.getElementById(id);
+
+  if(meroMode==='res'){
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Residue theorem on compact Σ',12,18);
+    // surface sketch
+    ctx.strokeStyle='rgba(140,120,220,0.7)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.ellipse(CX,CY,Math.min(W,H)*0.35,Math.min(W,H)*0.22,0,0,2*Math.PI);ctx.stroke();
+    // poles with residues
+    const poles=[
+      {x:-0.4,y:-0.2,res:1,lab:'+1'},
+      {x:0.35,y:0.15,res:2,lab:'+2'},
+      {x:0.1,y:-0.35,res:-3,lab:'−3'}
+    ];
+    const sc=Math.min(W,H)*0.35;
+    let sum=0;
+    poles.forEach((p,i)=>{
+      const px=CX+p.x*sc*1.6, py=CY+p.y*sc*1.6;
+      sum+=p.res;
+      const pulse=(Math.sin(t*2+i)+1)*0.5;
+      ctx.beginPath();ctx.arc(px,py,8+pulse*4,0,2*Math.PI);
+      ctx.fillStyle=p.res>0?'rgba(255,100,120,0.85)':'rgba(100,200,255,0.85)';ctx.fill();
+      ctx.fillStyle='#fff';ctx.font='bold 11px Share Tech Mono';ctx.textAlign='center';
+      ctx.fillText(p.lab,px,py+4);
+      // residue circle
+      ctx.strokeStyle='rgba(255,220,100,0.5)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.arc(px,py,18+pulse*6,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);
+    });
+    ctx.textAlign='left';
+    ctx.fillStyle='rgba(255,220,100,0.95)';ctx.font='bold 14px Share Tech Mono';
+    ctx.fillText('Σ Res = '+sum+'  (must vanish)',12,H-12);
+    if(el('s12sum')) el('s12sum').textContent=String(sum);
+    if(el('s12div')) el('s12div').textContent='2g−2';
+    if(el('s12type')) el('s12type').textContent='meromorphic 1-form';
+  } else if(meroMode==='wp'){
+    // Weierstrass p domain coloring lite
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Weierstrass ℘ on ℂ/Λ',12,18);
+    const SCALE=Math.min(W,H)/6;
+    const _D=Math.max(1,Math.ceil(Math.max(W,H)/280));
+    const iW=Math.max(1,Math.floor(W/_D)), iH=Math.max(1,Math.floor(H/_D));
+    const {imgData,flush}=_mkImgBuf(iW,iH);
+    for(let py=0;py<iH;py++){
+      for(let px=0;px<iW;px++){
+        const x=(px*_D-CX)/SCALE, y=(CY-py*_D)/SCALE;
+        // fake wp ~ 1/z^2 + ...
+        const r2=x*x+y*y+0.05;
+        const re=1/r2 + 0.3*Math.cos(t)*x;
+        const im=-2*x*y/(r2*r2) + 0.3*Math.sin(t)*y;
+        const mag=Math.hypot(re,im), arg=Math.atan2(im,re);
+        const hue=((arg/(2*Math.PI)*360)+360+t*20)%360;
+        const l=0.25+0.25*Math.tanh(Math.log(mag+0.1));
+        const s=0.7, c2=(1-Math.abs(2*l-1))*s, x2=c2*(1-Math.abs((hue/60)%2-1)), m=l-c2/2;
+        let rr=0,gg=0,bb=0;
+        if(hue<60){rr=c2;gg=x2;}else if(hue<120){rr=x2;gg=c2;}
+        else if(hue<180){gg=c2;bb=x2;}else if(hue<240){gg=x2;bb=c2;}
+        else if(hue<300){rr=x2;bb=c2;}else{rr=c2;bb=x2;}
+        const idx=(py*iW+px)*4;
+        imgData.data[idx]=Math.round((rr+m)*255);
+        imgData.data[idx+1]=Math.round((gg+m)*255);
+        imgData.data[idx+2]=Math.round((bb+m)*255);
+        imgData.data[idx+3]=200;
+      }
+    }
+    flush(ctx,0,0,W,H);
+    // lattice points (double poles)
+    for(let m=-2;m<=2;m++)for(let n=-1;n<=1;n++){
+      ctx.beginPath();ctx.arc(CX+m*SCALE*1.5,CY-n*SCALE*1.2,4,0,2*Math.PI);
+      ctx.fillStyle='#fff';ctx.fill();
+    }
+    ctx.fillStyle='rgba(255,240,200,0.95)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('℘ has double poles on Λ · ℘′² = 4℘³ − g₂℘ − g₃',12,H-12);
+    if(el('s12sum')) el('s12sum').textContent='0';
+    if(el('s12div')) el('s12div').textContent='deg K = 0 (g=1)';
+    if(el('s12type')) el('s12type').textContent='℘ dz (2nd kind)';
+  } else {
+    // Abelian differentials kinds
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 13px Share Tech Mono';
+    ctx.fillText('Abelian differentials (kinds)',12,22);
+    const kinds=[
+      {title:'1st kind — holomorphic', desc:'no poles · dim = g · basis ω_i', col:'#66aaff'},
+      {title:'2nd kind — zero residues', desc:'poles order ≥2 · used in bidifferentials', col:'#66ffaa'},
+      {title:'3rd kind — simple poles', desc:'Σ Res = 0 · AJ map / Green functions', col:'#ffaa66'}
+    ];
+    kinds.forEach((k,i)=>{
+      const y=70+i*90;
+      const pulse=(Math.sin(t*1.5+i)+1)*0.5;
+      ctx.fillStyle='rgba(20,15,45,0.85)';
+      ctx.strokeStyle=k.col;ctx.lineWidth=2;
+      ctx.beginPath();ctx.roundRect(30,y-20,W-60,75,6);ctx.fill();ctx.stroke();
+      ctx.fillStyle=k.col;ctx.font='bold 14px Share Tech Mono';
+      ctx.fillText(k.title,50,y+5);
+      ctx.fillStyle='rgba(200,190,240,0.9)';ctx.font='12px Share Tech Mono';
+      ctx.fillText(k.desc,50,y+28);
+      ctx.globalAlpha=0.3+pulse*0.5;
+      ctx.beginPath();ctx.arc(W-70,y+10,10+pulse*6,0,2*Math.PI);ctx.fillStyle=k.col;ctx.fill();
+      ctx.globalAlpha=1;
+    });
+    if(el('s12sum')) el('s12sum').textContent='0';
+    if(el('s12div')) el('s12div').textContent='2g−2';
+    if(el('s12type')) el('s12type').textContent='Abelian differentials';
+  }
+}
+
+// ============================================================
+// TAB 13: MIRROR SYMMETRY LITE
+// ============================================================
+let mirrorMode='syz', mirrorAnimRAF=null, mirrorAnimRunning=false, mirrorT=0;
+
+function setMirrorMode(m){
+  mirrorMode=m;
+  const map={syz:'btnMirSYZ',moduli:'btnMirMod',hms:'btnMirHom'};
+  Object.keys(map).forEach(k=>document.getElementById(map[k])?.classList.toggle('active-btn',k===m));
+  drawMirror();
+}
+function stopMirrorAnim(){
+  mirrorAnimRunning=false;
+  if(mirrorAnimRAF){cancelAnimationFrame(mirrorAnimRAF);mirrorAnimRAF=null;}
+  const b=document.getElementById('btnMirrorAnim');
+  if(b){b.textContent='▶ Animate';b.classList.remove('active-btn');}
+}
+function toggleMirrorAnim(){
+  if(mirrorAnimRunning){stopMirrorAnim();return;}
+  mirrorAnimRunning=true;
+  const b=document.getElementById('btnMirrorAnim');
+  if(b){b.textContent='⏸ Pause';b.classList.add('active-btn');}
+  mirrorAnimStep();
+}
+function mirrorAnimStep(){
+  if(!mirrorAnimRunning)return;
+  mirrorT+=0.018*(window.animSpeed||1);
+  drawMirror();
+  mirrorAnimRAF=requestAnimationFrame(mirrorAnimStep);
+}
+function resetMirror(){stopMirrorAnim();mirrorT=0;mirrorMode='syz';setMirrorMode('syz');}
+function initPane13(){}
+
+function drawMirror(){
+  const cv=document.getElementById('c13'); if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const CX=W/2, CY=H/2, t=mirrorT;
+  const el=id=>document.getElementById(id);
+  const tauRe=0.2*Math.sin(t*0.4), tauIm=1.1+0.15*Math.cos(t*0.3);
+  const rhoRe=0.15*Math.cos(t*0.35), rhoIm=1.0+0.2*Math.sin(t*0.45);
+
+  if(mirrorMode==='syz'){
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('SYZ: T¹-fibration of elliptic curve',12,18);
+    // base S1
+    const baseY=H*0.75;
+    ctx.strokeStyle='rgba(255,200,80,0.9)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(60,baseY);ctx.lineTo(W-60,baseY);ctx.stroke();
+    ctx.fillStyle='rgba(255,200,80,0.9)';ctx.fillText('base S¹ (SYZ)',W/2-40,baseY+20);
+    // fibers
+    for(let i=0;i<10;i++){
+      const x=80+(W-160)*i/9;
+      const r=12+6*Math.sin(t+i);
+      ctx.strokeStyle=`hsla(${200+i*15},70%,60%,0.75)`;ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.ellipse(x,baseY-80,r*0.4,r*1.8,0,0,2*Math.PI);ctx.stroke();
+    }
+    // dual fibers
+    for(let i=0;i<10;i++){
+      const x=80+(W-160)*i/9;
+      const r=12+6*Math.cos(t+i);
+      ctx.strokeStyle=`hsla(${40+i*12},70%,60%,0.5)`;ctx.lineWidth=1.2;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.ellipse(x,baseY-80,r*1.8,r*0.4,0,0,2*Math.PI);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.fillStyle='rgba(100,200,255,0.85)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('fiber T¹  (solid)  ·  dual T¹  (dashed)',12,H-12);
+    if(el('s13map')) el('s13map').textContent='T-dual fibers';
+  } else if(mirrorMode==='moduli'){
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Mirror map: complex τ  ↔  Kähler ρ',12,18);
+    // two fundamental domains
+    function drawFD(ox,oy,sc,re,im,label,col){
+      ctx.strokeStyle=col;ctx.lineWidth=2;ctx.fillStyle=col.replace('0.9','0.15').replace(')',',0.15)').replace('rgba','rgba');
+      // simpler fill
+      ctx.fillStyle='rgba(40,30,80,0.5)';
+      ctx.beginPath();
+      ctx.moveTo(ox-0.5*sc,oy);
+      ctx.lineTo(ox-0.5*sc,oy-3*sc);
+      for(let i=0;i<=30;i++){
+        const th=2*Math.PI/3 - i/30*(Math.PI/3);
+        ctx.lineTo(ox+Math.cos(th)*sc, oy-Math.sin(th)*sc);
+      }
+      ctx.lineTo(ox+0.5*sc,oy-3*sc);
+      ctx.lineTo(ox+0.5*sc,oy);
+      ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.arc(ox+re*sc,oy-im*sc,6,0,2*Math.PI);ctx.fillStyle=col;ctx.fill();
+      ctx.fillStyle=col;ctx.font='bold 12px Share Tech Mono';ctx.fillText(label,ox-30,oy+20);
+    }
+    drawFD(W*0.28,H*0.75,Math.min(W,H)*0.18,tauRe,tauIm,'τ ∈ ℳ_cpx','rgba(100,180,255,0.9)');
+    drawFD(W*0.72,H*0.75,Math.min(W,H)*0.18,rhoRe,rhoIm,'ρ ∈ ℳ_Kähler','rgba(255,180,80,0.9)');
+    // arrow
+    ctx.strokeStyle='rgba(200,150,255,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(W*0.4,H*0.4);ctx.lineTo(W*0.6,H*0.4);ctx.stroke();
+    ctx.fillStyle='rgba(200,150,255,0.95)';ctx.font='bold 14px Share Tech Mono';
+    ctx.fillText('mirror',W*0.45,H*0.38);
+    if(el('s13map')) el('s13map').textContent='τ ↔ ρ';
+  } else {
+    // HMS
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Homological mirror symmetry (elliptic)',12,18);
+    // two boxes
+    const boxes=[
+      {x:W*0.08,title:'B-model', lines:['Dᵇ Coh(E_τ)','complex structure','coherent sheaves','Ext groups'], col:'#66aaff'},
+      {x:W*0.54,title:'A-model', lines:['D^π Fuk(E^∨_ρ)','symplectic / Kähler','Lagrangians','HF Floer'], col:'#ffaa66'}
+    ];
+    boxes.forEach((bx,bi)=>{
+      const bw=W*0.36, bh=H*0.55, by=H*0.18;
+      ctx.fillStyle='rgba(20,15,45,0.9)';ctx.strokeStyle=bx.col;ctx.lineWidth=2;
+      ctx.beginPath();ctx.roundRect(bx.x,by,bw,bh,8);ctx.fill();ctx.stroke();
+      ctx.fillStyle=bx.col;ctx.font='bold 14px Share Tech Mono';
+      ctx.fillText(bx.title,bx.x+16,by+28);
+      ctx.fillStyle='rgba(200,190,240,0.9)';ctx.font='12px Share Tech Mono';
+      bx.lines.forEach((ln,i)=>ctx.fillText(ln,bx.x+16,by+60+i*28));
+    });
+    const pulse=(Math.sin(t*2)+1)*0.5;
+    ctx.strokeStyle=`rgba(200,150,255,${0.5+pulse*0.5})`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(W*0.44,H*0.45);ctx.lineTo(W*0.54,H*0.45);ctx.stroke();
+    ctx.fillStyle='rgba(200,150,255,0.95)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('≃',W*0.47,H*0.43);
+    ctx.fillText('Polishchuk–Zaslow',12,H-12);
+    if(el('s13map')) el('s13map').textContent='HMS equivalence';
+  }
+  if(el('s13tau')) el('s13tau').textContent=tauRe.toFixed(2)+'+'+tauIm.toFixed(2)+'i';
+  if(el('s13rho')) el('s13rho').textContent=rhoRe.toFixed(2)+'+'+rhoIm.toFixed(2)+'i';
+}
+
+// ============================================================
+// TAB 14: HITCHIN SYSTEMS
+// ============================================================
+let hitchinMode='base', hitchinAnimRAF=null, hitchinAnimRunning=false, hitchinT=0;
+
+function setHitchinMode(m){
+  hitchinMode=m;
+  const map={base:'btnHitBase',fiber:'btnHitFiber',higgs:'btnHitHiggs'};
+  Object.keys(map).forEach(k=>document.getElementById(map[k])?.classList.toggle('active-btn',k===m));
+  drawHitchin();
+}
+function stopHitchinAnim(){
+  hitchinAnimRunning=false;
+  if(hitchinAnimRAF){cancelAnimationFrame(hitchinAnimRAF);hitchinAnimRAF=null;}
+  const b=document.getElementById('btnHitchinAnim');
+  if(b){b.textContent='▶ Animate';b.classList.remove('active-btn');}
+}
+function toggleHitchinAnim(){
+  if(hitchinAnimRunning){stopHitchinAnim();return;}
+  hitchinAnimRunning=true;
+  const b=document.getElementById('btnHitchinAnim');
+  if(b){b.textContent='⏸ Pause';b.classList.add('active-btn');}
+  hitchinAnimStep();
+}
+function hitchinAnimStep(){
+  if(!hitchinAnimRunning)return;
+  hitchinT+=0.018*(window.animSpeed||1);
+  drawHitchin();
+  hitchinAnimRAF=requestAnimationFrame(hitchinAnimStep);
+}
+function resetHitchin(){stopHitchinAnim();hitchinT=0;hitchinMode='base';setHitchinMode('base');}
+function initPane14(){}
+
+function drawHitchin(){
+  const cv=document.getElementById('c14'); if(!cv)return;
+  const {ctx,W,H}=setupCtx(cv);
+  ctx.clearRect(0,0,W,H);
+  const CX=W/2, CY=H/2, t=hitchinT;
+  const el=id=>document.getElementById(id);
+
+  if(hitchinMode==='base'){
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Hitchin base 𝒜 = H⁰(K²)  (SL₂)',12,18);
+    // plane with discriminant
+    const SCALE=Math.min(W,H)/5;
+    ctx.strokeStyle='rgba(90,80,150,0.4)';
+    ctx.beginPath();ctx.moveTo(40,CY);ctx.lineTo(W-40,CY);ctx.moveTo(CX,40);ctx.lineTo(CX,H-40);ctx.stroke();
+    // discriminant locus (curve)
+    ctx.strokeStyle='rgba(255,100,120,0.85)';ctx.lineWidth=2.5;
+    ctx.beginPath();
+    for(let i=0;i<=80;i++){
+      const u=(i/80-0.5)*4;
+      const v=0.4*u*u*u - 0.6*u + 0.15*Math.sin(t+u);
+      const x=CX+u*SCALE, y=CY-v*SCALE;
+      if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle='rgba(255,120,140,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('Δ = 0 (singular spectral curves)',12,H-28);
+    // regular point moving
+    const u=1.2*Math.cos(t*0.6), v=0.8*Math.sin(t*0.5);
+    ctx.beginPath();ctx.arc(CX+u*SCALE,CY-v*SCALE,7,0,2*Math.PI);
+    ctx.fillStyle='#66ffaa';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();
+    ctx.fillStyle='rgba(100,255,180,0.9)';ctx.fillText('regular value → abelian fiber',12,H-12);
+    if(el('s14base')) el('s14base').textContent='3g−3';
+    if(el('s14fiber')) el('s14fiber').textContent='smooth Prym';
+  } else if(hitchinMode==='fiber'){
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Liouville torus fiber of Hitchin system',12,18);
+    // torus
+    const R=Math.min(W,H)*0.2, r=R*0.4;
+    if(typeof drawTorus==='function') drawTorus(ctx,CX,CY,R,r,t*0.5,0.9);
+    // action-angle coordinates
+    ctx.strokeStyle='rgba(255,220,100,0.8)';ctx.lineWidth=2;ctx.setLineDash([5,3]);
+    ctx.beginPath();ctx.ellipse(CX,CY,R+r,R*0.4,0,0,2*Math.PI);ctx.stroke();
+    ctx.setLineDash([]);
+    const ph=t;
+    ctx.beginPath();ctx.arc(CX+(R)*Math.cos(ph),CY-R*0.35*Math.sin(ph),5,0,2*Math.PI);
+    ctx.fillStyle='#ffe066';ctx.fill();
+    ctx.fillStyle='rgba(180,160,230,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('h⁻¹(a) ≅ Jac(Σ_spec) / Prym  ·  action-angle',12,H-12);
+    if(el('s14fiber')) el('s14fiber').textContent='Jac / Prym torus';
+  } else {
+    // Higgs field
+    ctx.fillStyle='rgba(200,180,255,0.9)';ctx.font='bold 12px Share Tech Mono';
+    ctx.fillText('Higgs field Φ ∈ H⁰(End(E) ⊗ K)',12,18);
+    // base curve
+    ctx.strokeStyle='rgba(140,120,220,0.8)';ctx.lineWidth=3;
+    ctx.beginPath();
+    for(let i=0;i<=60;i++){
+      const u=i/60;
+      const x=50+u*(W-100);
+      const y=CY+40*Math.sin(u*Math.PI*2+t*0.3);
+      if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // matrix glyphs along curve
+    for(let i=0;i<6;i++){
+      const u=(i+0.5)/6;
+      const x=50+u*(W-100);
+      const y=CY+40*Math.sin(u*Math.PI*2+t*0.3)-50;
+      const a=Math.cos(t+i).toFixed(1), b=Math.sin(t+i).toFixed(1);
+      ctx.fillStyle='rgba(20,15,50,0.9)';ctx.strokeStyle='rgba(100,255,180,0.8)';
+      ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x-36,y-22,72,44,4);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(100,255,180,0.95)';ctx.font='10px Share Tech Mono';ctx.textAlign='center';
+      ctx.fillText(`[${a} ${b}]`,x,y-4);
+      ctx.fillText(`[${(-b)} ${a}]`,x,y+12);
+      ctx.textAlign='left';
+    }
+    ctx.fillStyle='rgba(180,160,230,0.9)';ctx.font='12px Share Tech Mono';
+    ctx.fillText('det(y I − Φ) = 0 → spectral curve Σ_spec',12,H-12);
+    if(el('s14fiber')) el('s14fiber').textContent='spec(Φ)';
+  }
+  if(el('s14G')) el('s14G').textContent='SL₂';
+  if(el('s14base')) el('s14base').textContent=el('s14base').textContent||'3g−3';
+}
+
 // Init speed controls
-window.animSpeed=1;
-for(var i=0;i<8;i++){syncSpeedControl36(i);}
+window.animSpeed=window.animSpeed||1;
+for(var i=1;i<=15;i++){syncSpeedControl36(i);}
 switchTab(0);
 </script>
 
