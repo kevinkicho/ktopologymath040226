@@ -26,9 +26,10 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
 .back:hover{color:var(--accent)}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px rgba(204,102,255,.3);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px}
-.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text);background:var(--bg2)}
 .tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
 .content{flex:1;display:flex;overflow:hidden}
@@ -39,6 +40,11 @@ h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px rgba(204,102,255,.
 .sidebar.right{border-right:none;border-left:1px solid var(--border);width:210px}
 .main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
 canvas{display:block}
+.pan-mode .main-area canvas{cursor:grab!important}.pan-mode .main-area canvas:active{cursor:grabbing!important}
+.callout-green{background:rgba(80,220,140,.06);border:1px solid rgba(80,220,140,.22);border-radius:5px;padding:8px 10px;font-size:.74rem;line-height:1.55}
+.callout-green strong{color:#66ee99}
+.callout-blue{background:rgba(0,180,255,.06);border:1px solid rgba(0,180,255,.22);border-radius:5px;padding:8px 10px;font-size:.74rem;line-height:1.55}
+.callout-blue strong{color:#55ccff}
 .section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:4px}
 .eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:6px}
 .eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:4px}
@@ -105,6 +111,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(6)">GW Background</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(7)">Big Bang Nucleosynthesis</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(8)">Cosmic Structure Formation</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(9)">Boltzmann Hierarchy</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(10)">Recombination &amp; Saha</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(11)">Transfer &amp; BAO</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(12)">Slow-Roll ε,η</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(13)">Primordial f_NL</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(14)">CMB Lensing κ</button>
     <button class="proof-btn" onclick="openProof(null)">Proofs ▸</button>
   </div>
 </header>
@@ -636,10 +648,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
           <option value="slice">2D Density Slice</option>
           <option value="power">Power Spectrum Evolution</option>
           <option value="halos">Dark Matter Halos</option>
+          <option value="zeldovich">Zel'dovich → HMF</option>
         </select>
       </div>
       <div class="btn-row" style="margin-top:6px">
         <button class="btn" id="sfAnimBtn" onclick="toggleSFAnim(this)">▶ Animate</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
         <button class="btn" onclick="resetStructure()">Reset</button>
       </div>
       <div style="margin-top:4px">
@@ -680,12 +694,373 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
       <div class="callout" style="font-size:.7rem">
         <strong>Dark matter:</strong> ~85% of all matter. It doesn't interact electromagnetically, so it can collapse before baryons. The first dark matter halos formed at z~30, seeding galaxy formation. Without dark matter, structure would not have had time to form.
       </div>
+      <div class="callout-green" style="font-size:.68rem">
+        <strong>Frontier:</strong> Zel'dovich approx $q\mapsto q+D(a)\nabla\psi$; caustics → pancakes. Press–Schechter / Sheth–Tormen HMF: $dn/dM$ from $\sigma(M)$ and barrier $\delta_c\approx1.686$.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 9: BOLTZMANN HIERARCHY / CMB POL -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel9">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Photon Hierarchy</div>
+      <div>
+        <label>Multipole ℓ_max = <span id="bolLVal">8</span></label>
+        <input type="range" id="bolLSlider" min="2" max="16" step="1" value="8"
+          oninput="bolLmax=+this.value;document.getElementById('bolLVal').textContent=bolLmax;redrawBOL()">
+      </div>
+      <div>
+        <label style="margin-top:4px">k (Mpc⁻¹) = <span id="bolKVal">0.05</span></label>
+        <input type="range" id="bolKSlider" min="0.005" max="0.2" step="0.005" value="0.05"
+          oninput="bolK=+this.value;document.getElementById('bolKVal').textContent=bolK.toFixed(3);redrawBOL()">
+      </div>
+      <div>
+        <label style="margin-top:4px">τ_c (optical) = <span id="bolTauVal">0.40</span></label>
+        <input type="range" id="bolTauSlider" min="0.05" max="1.2" step="0.01" value="0.40"
+          oninput="bolTau=+this.value;document.getElementById('bolTauVal').textContent=bolTau.toFixed(2);redrawBOL()">
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn active" id="bolView0" onclick="setBOLView(0)">δf / Θ_ℓ</button>
+        <button class="btn" id="bolView1" onclick="setBOLView(1)">EE / BB lite</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="bolPauseBtn" onclick="toggleBOLPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset</button>
+      </div>
+      <div style="margin-top:4px">
+        <label>Speed <span id="bolSpeedVal">1.0x</span></label>
+        <input type="range" id="bolSpeedSlider" min="0.1" max="3" step="0.1" value="1"
+          oninput="window.animSpeed=+this.value;document.getElementById('bolSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Boltzmann hierarchy:</strong> photon brightness multipoles $\Theta_\ell$ couple via free-streaming $k/(2\ell+1)$ and Thomson scattering. Polarization sources EE; BB is lensing-induced or tensors.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Boltzmann hierarchy CMB multipoles" id="bolCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Moments</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">Θ₀ (δT/T)</span><span id="bolTh0" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">Θ₁ (dipole)</span><span id="bolTh1" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">Π (quad pol)</span><span id="bolPi" style="color:#ffcc00">—</span></div>
+        <div class="vrow"><span class="vlbl">r (tensor)</span><span id="bolR" style="color:#ff8844">0.00</span></div>
+      </div>
+      <div class="eq-block">
+        <div class="eq-title">Hierarchy (tight coupling)</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $\dot\Theta_0 = -k\Theta_1 - \dot\Phi$<br>
+          $\dot\Theta_1 = \frac{k}{3}\Theta_0 - \frac{2k}{3}\Theta_2 + k\Psi + \dot\tau(\Theta_1-v_b)$<br>
+          $\dot\Theta_\ell = \frac{k}{2\ell+1}\big[\ell\Theta_{\ell-1}-(\ell+1)\Theta_{\ell+1}\big]-\dot\tau\Theta_\ell$
+        </div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Frontier:</strong> CLASS/CAMB integrate ~thousands of multipoles + neutrinos. Lite BB here is lensing curl + optional $r$ tensors — not a detector forecast (see module 46 only for instruments).
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 10: RECOMBINATION & SAHA -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel10">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Recombination</div>
+      <div>
+        <label>Redshift z = <span id="sahaZVal">1100</span></label>
+        <input type="range" id="sahaZSlider" min="200" max="2000" step="5" value="1100"
+          oninput="sahaZ=+this.value;document.getElementById('sahaZVal').textContent=sahaZ;redrawSAHA()">
+      </div>
+      <div>
+        <label style="margin-top:4px">η₁₀ (baryon) = <span id="sahaEtaVal">6.1</span></label>
+        <input type="range" id="sahaEtaSlider" min="3" max="10" step="0.1" value="6.1"
+          oninput="sahaEta=+this.value;document.getElementById('sahaEtaVal').textContent=sahaEta.toFixed(1);redrawSAHA()">
+      </div>
+      <div>
+        <label style="margin-top:4px">Y_p (He) = <span id="sahaYpVal">0.245</span></label>
+        <input type="range" id="sahaYpSlider" min="0.20" max="0.30" step="0.001" value="0.245"
+          oninput="sahaYp=+this.value;document.getElementById('sahaYpVal').textContent=sahaYp.toFixed(3);redrawSAHA()">
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn active" id="sahaView0" onclick="setSAHAView(0)">X_e(z)</button>
+        <button class="btn" id="sahaView1" onclick="setSAHAView(1)">Visibility g</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="sahaPauseBtn" onclick="toggleSAHAPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset</button>
+      </div>
+      <div style="margin-top:4px">
+        <label>Speed <span id="sahaSpeedVal">1.0x</span></label>
+        <input type="range" id="sahaSpeedSlider" min="0.1" max="3" step="0.1" value="1"
+          oninput="window.animSpeed=+this.value;document.getElementById('sahaSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Saha ionization:</strong> $\frac{1-X_e}{X_e^2}=n_b\,\frac{h^3}{(2\pi m_e kT)^{3/2}}e^{B/kT}$. Last scattering at $z_*\approx1090$ when optical depth $\tau\sim1$.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Recombination Saha ionization fraction" id="sahaCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Plasma State</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">X_e</span><span id="sahaXe" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">T_γ (K)</span><span id="sahaT" style="color:#ffcc00">—</span></div>
+        <div class="vrow"><span class="vlbl">τ_Th</span><span id="sahaTau" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">z_*</span><span id="sahaZstar" style="color:#ff8844">~1090</span></div>
+      </div>
+      <div class="eq-block">
+        <div class="eq-title">Visibility</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $g(\eta)=\dot\tau\,e^{-\tau}$ peaks at last scattering<br>
+          Peebles eq. corrects Saha freeze-out via $C$ factor (2s–1s)
+        </div>
+      </div>
+      <div class="callout-green" style="font-size:.68rem">
+        <strong>Frontier:</strong> CosmoRec / HyRec track multi-level H + He with radiative transfer. Residual $X_e\sim10^{-4}$ freezes after recombination — key for 21 cm and dark ages.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 11: TRANSFER FUNCTIONS & BAO -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel11">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Matter Transfer</div>
+      <div>
+        <label>Ω_m h² = <span id="tfOmhVal">0.143</span></label>
+        <input type="range" id="tfOmhSlider" min="0.08" max="0.25" step="0.001" value="0.143"
+          oninput="tfOmh2=+this.value;document.getElementById('tfOmhVal').textContent=tfOmh2.toFixed(3);redrawTF()">
+      </div>
+      <div>
+        <label style="margin-top:4px">Ω_b h² = <span id="tfObhVal">0.0224</span></label>
+        <input type="range" id="tfObhSlider" min="0.01" max="0.04" step="0.0005" value="0.0224"
+          oninput="tfObh2=+this.value;document.getElementById('tfObhVal').textContent=tfObh2.toFixed(4);redrawTF()">
+      </div>
+      <div>
+        <label style="margin-top:4px">n_s = <span id="tfNsVal">0.965</span></label>
+        <input type="range" id="tfNsSlider" min="0.90" max="1.05" step="0.001" value="0.965"
+          oninput="tfNs=+this.value;document.getElementById('tfNsVal').textContent=tfNs.toFixed(3);redrawTF()">
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn active" id="tfView0" onclick="setTFView(0)">T(k)</button>
+        <button class="btn" id="tfView1" onclick="setTFView(1)">BAO wiggles</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="tfPauseBtn" onclick="toggleTFPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset</button>
+      </div>
+      <div style="margin-top:4px">
+        <label>Speed <span id="tfSpeedVal">1.0x</span></label>
+        <input type="range" id="tfSpeedSlider" min="0.1" max="3" step="0.1" value="1"
+          oninput="window.animSpeed=+this.value;document.getElementById('tfSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Transfer T(k):</strong> $P(k)=A_s k^{n_s}T^2(k)$. BBKS / EH shapes encode equality scale $k_{eq}$ and baryon loading; BAO is the sound-horizon feature $r_s\sim147\,\mathrm{Mpc}$.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Matter transfer function and BAO" id="tfCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Scales</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">k_eq</span><span id="tfKeq" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">r_s (Mpc)</span><span id="tfRs" style="color:#00e5ff">~147</span></div>
+        <div class="vrow"><span class="vlbl">α_BAO</span><span id="tfAlpha" style="color:#ffcc00">1.00</span></div>
+        <div class="vrow"><span class="vlbl">f_b</span><span id="tfFb" style="color:#ff8844">—</span></div>
+      </div>
+      <div class="eq-block">
+        <div class="eq-title">Eisenstein–Hu sketch</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $T(k)\approx\frac{\ln(1+2.34q)}{2.34q}\big[1+q(3.89+\cdots)\big]^{-1/4}$<br>
+          $q=k/(\Omega_m h^2\,\mathrm{Mpc}^{-1})$
+        </div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Frontier:</strong> DESI / Euclid measure $D_M(z)/r_s$ and $H(z)r_s$ to sub-percent. Full shape analyses use IR resummation of BAO damping.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 12: SLOW-ROLL ε,η & n_s -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel12">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Slow-Roll Inflation</div>
+      <div>
+        <label>Potential index p (φᵖ) = <span id="srPVal">2</span></label>
+        <input type="range" id="srPSlider" min="0.5" max="4" step="0.1" value="2"
+          oninput="srP=+this.value;document.getElementById('srPVal').textContent=srP.toFixed(1);redrawSR()">
+      </div>
+      <div>
+        <label style="margin-top:4px">φ / M_Pl = <span id="srPhiVal">15</span></label>
+        <input type="range" id="srPhiSlider" min="5" max="25" step="0.1" value="15"
+          oninput="srPhi=+this.value;document.getElementById('srPhiVal').textContent=srPhi.toFixed(1);redrawSR()">
+      </div>
+      <div>
+        <label style="margin-top:4px">N_* e-folds = <span id="srNVal">55</span></label>
+        <input type="range" id="srNSlider" min="40" max="70" step="1" value="55"
+          oninput="srN=+this.value;document.getElementById('srNVal').textContent=srN;redrawSR()">
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn active" id="srView0" onclick="setSRView(0)">ε,η(φ)</button>
+        <button class="btn" id="srView1" onclick="setSRView(1)">n_s–r plane</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="srPauseBtn" onclick="toggleSRPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset</button>
+      </div>
+      <div style="margin-top:4px">
+        <label>Speed <span id="srSpeedVal">1.0x</span></label>
+        <input type="range" id="srSpeedSlider" min="0.1" max="3" step="0.1" value="1"
+          oninput="window.animSpeed=+this.value;document.getElementById('srSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Slow-roll:</strong> $\varepsilon=\frac{M_{Pl}^2}{2}(V'/V)^2$, $\eta=M_{Pl}^2 V''/V$. Then $n_s=1-6\varepsilon+2\eta$, $r=16\varepsilon$. CMB requires $n_s\approx0.965$, $r\lesssim0.036$.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Slow-roll parameters and spectral index" id="srCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Observables</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">ε</span><span id="srEps" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">η</span><span id="srEta" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">n_s</span><span id="srNs" style="color:#ffcc00">—</span></div>
+        <div class="vrow"><span class="vlbl">r</span><span id="srR" style="color:#ff8844">—</span></div>
+      </div>
+      <div class="eq-block">
+        <div class="eq-title">Power spectrum</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $\mathcal{P}_\mathcal{R}(k)=\frac{H^2}{8\pi^2\varepsilon M_{Pl}^2}\big|_{k=aH}$<br>
+          $\mathcal{P}_t=\frac{2H^2}{\pi^2 M_{Pl}^2},\quad r=\mathcal{P}_t/\mathcal{P}_\mathcal{R}$
+        </div>
+      </div>
+      <div class="callout-green" style="font-size:.68rem">
+        <strong>Frontier:</strong> α-attractors / Starobinsky give $n_s=1-2/N$, $r=12/N^2$. LiteBIRD / CMB-S4 target $r\sim10^{-3}$.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 13: PRIMORDIAL NON-GAUSSIANITY f_NL -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel13">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Bispectrum</div>
+      <div>
+        <label>f_NL = <span id="fnlVal">10</span></label>
+        <input type="range" id="fnlSlider" min="-50" max="50" step="1" value="10"
+          oninput="fnlA=+this.value;document.getElementById('fnlVal').textContent=fnlA;redrawFNL()">
+      </div>
+      <div>
+        <label style="margin-top:4px">Shape</label>
+        <select id="fnlShape" onchange="redrawFNL()">
+          <option value="local">Local</option>
+          <option value="equil">Equilateral</option>
+          <option value="ortho">Orthogonal</option>
+        </select>
+      </div>
+      <div>
+        <label style="margin-top:4px">k₂/k₁ = <span id="fnlRatioVal">1.0</span></label>
+        <input type="range" id="fnlRatioSlider" min="0.2" max="2" step="0.05" value="1"
+          oninput="fnlRatio=+this.value;document.getElementById('fnlRatioVal').textContent=fnlRatio.toFixed(2);redrawFNL()">
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn active" id="fnlView0" onclick="setFNLView(0)">Triangle B</button>
+        <button class="btn" id="fnlView1" onclick="setFNLView(1)">PDF sketch</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="fnlPauseBtn" onclick="toggleFNLPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset</button>
+      </div>
+      <div style="margin-top:4px">
+        <label>Speed <span id="fnlSpeedVal">1.0x</span></label>
+        <input type="range" id="fnlSpeedSlider" min="0.1" max="3" step="0.1" value="1"
+          oninput="window.animSpeed=+this.value;document.getElementById('fnlSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Local NG:</strong> $\zeta=\zeta_g+\frac{3}{5}f_{NL}(\zeta_g^2-\langle\zeta_g^2\rangle)$. Single-field consistency: $f_{NL}^{local}\sim\mathcal{O}(\varepsilon)$. Multi-field / curvaton can give $|f_{NL}|\gg1$.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="Primordial non-Gaussianity f_NL bispectrum" id="fnlCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Constraints</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">shape</span><span id="fnlShapeDisp" style="color:var(--accent)">local</span></div>
+        <div class="vrow"><span class="vlbl">B peak</span><span id="fnlBpk" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">skewness</span><span id="fnlSkew" style="color:#ffcc00">—</span></div>
+        <div class="vrow"><span class="vlbl">Planck f_NL</span><span id="fnlPl" style="color:#ff8844">−0.9±5.1</span></div>
+      </div>
+      <div class="eq-block">
+        <div class="eq-title">Bispectrum</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $\langle\zeta_{k_1}\zeta_{k_2}\zeta_{k_3}\rangle=(2\pi)^3\delta_D B(k_1,k_2,k_3)$<br>
+          Local peaks in squeezed $k_3\ll k_1\simeq k_2$
+        </div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Frontier:</strong> Spherex / LSST scale-dependent bias $b(k)\propto f_{NL}/k^2$ can beat CMB on local NG. Equilateral probes derivative interactions in $P(X,\phi)$.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 14: CMB LENSING κ -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel14">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Weak Lensing of CMB</div>
+      <div>
+        <label>Lensing amp A_L = <span id="kapALVal">1.00</span></label>
+        <input type="range" id="kapALSlider" min="0" max="2" step="0.02" value="1"
+          oninput="kapAL=+this.value;document.getElementById('kapALVal').textContent=kapAL.toFixed(2);redrawKAP()">
+      </div>
+      <div>
+        <label style="margin-top:4px">σ₈ = <span id="kapS8Val">0.81</span></label>
+        <input type="range" id="kapS8Slider" min="0.6" max="1.0" step="0.01" value="0.81"
+          oninput="kapS8=+this.value;document.getElementById('kapS8Val').textContent=kapS8.toFixed(2);redrawKAP()">
+      </div>
+      <div>
+        <label style="margin-top:4px">ℓ_peak ≈ <span id="kapLVal">60</span></label>
+        <input type="range" id="kapLSlider" min="20" max="200" step="5" value="60"
+          oninput="kapLpk=+this.value;document.getElementById('kapLVal').textContent=kapLpk;redrawKAP()">
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn active" id="kapView0" onclick="setKAPView(0)">κ map</button>
+        <button class="btn" id="kapView1" onclick="setKAPView(1)">C_ℓ^{κκ}</button>
+      </div>
+      <div class="btn-row" style="margin-top:4px">
+        <button class="btn" id="kapPauseBtn" onclick="toggleKAPPause()">⏸ Pause</button>
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset</button>
+      </div>
+      <div style="margin-top:4px">
+        <label>Speed <span id="kapSpeedVal">1.0x</span></label>
+        <input type="range" id="kapSpeedSlider" min="0.1" max="3" step="0.1" value="1"
+          oninput="window.animSpeed=+this.value;document.getElementById('kapSpeedVal').textContent=(+this.value).toFixed(1)+'x'">
+      </div>
+      <div class="callout" style="font-size:.7rem">
+        <strong>Convergence:</strong> $\kappa=\frac{1}{2}\nabla\cdot\mathbf{d}=\int_0^{\chi_*}d\chi\,W(\chi)\,\delta_m$. Remaps $\tilde T(\hat n)=T(\hat n+\nabla\phi)$ with $\kappa=-\frac12\nabla^2\phi$.
+      </div>
+    </div>
+    <div class="main-area"><canvas aria-label="CMB lensing convergence kappa" id="kapCanvas"></canvas></div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Lensing Stats</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">σ_κ (rms)</span><span id="kapSig" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">ℓ(ℓ+1)C_ℓ</span><span id="kapCl" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">z_eff</span><span id="kapZeff" style="color:#ffcc00">~2</span></div>
+        <div class="vrow"><span class="vlbl">A_L</span><span id="kapALd" style="color:#ff8844">1.00</span></div>
+      </div>
+      <div class="eq-block">
+        <div class="eq-title">Deflection</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $C_\ell^{\kappa\kappa}=\int\frac{d\chi}{\chi^2}W^2(\chi)P_m\!\left(\frac{\ell+1/2}{\chi},z\right)$<br>
+          Quadratic estimators (Hu–Okamoto) reconstruct $\phi$ from T/E.
+        </div>
+      </div>
+      <div class="callout-green" style="font-size:.68rem">
+        <strong>Frontier:</strong> ACT / SPT / Planck κ maps; Simons Observatory + CMB-S4 delens BB for $r$. Neutrino mass $\sum m_\nu$ suppresses small-scale $C_\ell^{\kappa\kappa}$.
+      </div>
     </div>
   </div>
 
 </div>
 
-<div class="strip">Friedmann equations · Penrose conformal diagrams · Hawking T_H · CMB power spectrum · Inflation · Dark energy · GW background · Big Bang Nucleosynthesis · Cosmic Structure Formation · Road to Reality Ch. 27–34</div>
+<div class="strip">Friedmann · Penrose · Hawking · CMB · Inflation · DE · SGWB · BBN · Structure · Boltzmann · Saha · Transfer/BAO · Slow-roll · f_NL · CMB lensing · Road to Reality Ch. 27–34</div>
 
 <!-- PROOF PANEL -->
 <div id="proof-panel">
@@ -751,8 +1126,90 @@ const PROOFS=[
    <p>This "past hypothesis" for gravity (analogous to Boltzmann's low-entropy initial condition for thermodynamics) is Penrose's preferred explanation for time's arrow — and a central theme of his "Cycles of Time" (CCC) cosmological model.</p>`}
 ];
 
-// ── TAB SWITCHING ──
+// ── TAB SWITCHING + SHARED INFRA ──
 let activeTab=0;
+const NUM_TABS=15;
+const pans=Array.from({length:NUM_TABS},()=>({x:0,y:0}));
+let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+const RAF13={bol:null,saha:null,tf:null,sr:null,fnl:null,kap:null};
+// Flags declared early so cancel/autoStart never hit TDZ
+let bolRunning=false,sahaRunning=false,tfRunning=false,srRunning=false,fnlRunning=false,kapRunning=false;
+let bolPaused=false,sahaPaused=false,tfPaused=false,srPaused=false,fnlPaused=false,kapPaused=false;
+
+function togglePan(){
+  panMode=!panMode;
+  document.querySelectorAll('.panBtn').forEach(b=>{b.classList.toggle('active',panMode);b.textContent=panMode?'✋ On':'✋ Pan';});
+  document.body.classList.toggle('pan-mode',panMode);
+}
+function resetPan(){
+  const p=pans[activeTab]; if(p){p.x=0;p.y=0;}
+  const redraws=[solveFriedmann,redrawPenrose,updateHawking,drawCMB,drawInflation,drawDarkEnergy,drawGW,drawBBN,drawStructure,redrawBOL,redrawSAHA,redrawTF,redrawSR,redrawFNL,redrawKAP];
+  if(redraws[activeTab]) redraws[activeTab]();
+}
+function _addPan(canvas,idx,fn){
+  if(!canvas||canvas._panBound) return;
+  canvas._panBound=true;
+  canvas.addEventListener('mousedown',e=>{if(!panMode)return;_panDrag=true;_panTab=idx;_panSX=e.clientX-pans[idx].x;_panSY=e.clientY-pans[idx].y;e.preventDefault();},{passive:false});
+  canvas.addEventListener('mousemove',e=>{if(!_panDrag||_panTab!==idx)return;pans[idx].x=e.clientX-_panSX;pans[idx].y=e.clientY-_panSY;fn();});
+  canvas.addEventListener('mouseup',()=>_panDrag=false);
+  canvas.addEventListener('mouseleave',()=>_panDrag=false);
+}
+function _resizeMainCanvas(canvas, panelId){
+  if(!canvas) return;
+  const p=document.getElementById(panelId);
+  if(!p) return;
+  const ma=p.querySelector('.main-area');
+  const r=(ma||p).getBoundingClientRect();
+  let w=Math.floor(r.width), h=Math.floor(r.height);
+  if(!ma){
+    let sw=0; p.querySelectorAll('.sidebar').forEach(s=>sw+=s.offsetWidth);
+    w=Math.floor(r.width-sw); h=Math.floor(r.height);
+  }
+  w=Math.max(1,w); h=Math.max(1,h);
+  if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+}
+function _setPauseBtn(id, paused){
+  const b=document.getElementById(id);
+  if(b){b.textContent=paused?'▶ Resume':'⏸ Pause';b.classList.toggle('active',!!paused);}
+}
+function _gLayout(W,H){
+  const padL=Math.max(40,Math.min(58,W*0.055));
+  const padR=Math.max(16,Math.min(32,W*0.03));
+  const padT=Math.max(26,Math.min(40,H*0.055));
+  const padB=Math.max(26,Math.min(42,H*0.06));
+  const f1=Math.max(11,Math.min(14,Math.min(W,H)*0.018))|0;
+  const f2=Math.max(13,Math.min(17,Math.min(W,H)*0.022))|0;
+  return {padL,padR,padT,padB,x:padL,y:padT,w:Math.max(40,W-padL-padR),h:Math.max(40,H-padT-padB),f1,f2,W,H};
+}
+function _gFit(ctx,text,maxW,font){
+  ctx.font=font; if(ctx.measureText(text).width<=maxW) return text;
+  let s=text; while(s.length>3&&ctx.measureText(s+'\u2026').width>maxW) s=s.slice(0,-1); return s+'\u2026';
+}
+function _gTitle(ctx,L,title){ ctx.fillStyle='rgba(204,102,255,0.92)'; ctx.font='bold '+L.f2+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,title,L.w,ctx.font),L.x,L.y-8); }
+function _gFooter(ctx,L,text){ ctx.fillStyle='rgba(160,160,200,0.55)'; ctx.font=L.f1+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,text,L.w,ctx.font),L.x,L.H-10); }
+function _gAxes(ctx,L){
+  ctx.strokeStyle='#2a2a55'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(L.x,L.y); ctx.lineTo(L.x,L.y+L.h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(L.x,L.y+L.h); ctx.lineTo(L.x+L.w,L.y+L.h); ctx.stroke();
+}
+function _gClip(ctx,L){ ctx.save(); ctx.beginPath(); ctx.rect(L.x,L.y,L.w,L.h); ctx.clip(); }
+function _gClampY(y,L){ return Math.max(L.y+1,Math.min(L.y+L.h-1,y)); }
+
+function _cancelAllAnims13(){
+  if(friedAnimId){cancelAnimationFrame(friedAnimId);friedAnimId=null;}
+  if(penAnimId){cancelAnimationFrame(penAnimId);penAnimId=null;}
+  if(evapAnimId!==null&&evapAnimId!==undefined){cancelAnimationFrame(evapAnimId);evapAnimId=null;}
+  if(cmbAnimId){cancelAnimationFrame(cmbAnimId);cmbAnimId=null;}
+  if(inflAnimId){cancelAnimationFrame(inflAnimId);inflAnimId=null;}
+  if(deAnimId){cancelAnimationFrame(deAnimId);deAnimId=null;}
+  if(gwAnimId){cancelAnimationFrame(gwAnimId);gwAnimId=null;}
+  if(bbnAnimId){cancelAnimationFrame(bbnAnimId);bbnAnimId=null;}
+  if(sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
+  Object.keys(RAF13).forEach(k=>{if(RAF13[k]){cancelAnimationFrame(RAF13[k]);RAF13[k]=null;}});
+  bolRunning=sahaRunning=tfRunning=srRunning=fnlRunning=kapRunning=false;
+}
+
 function autoStartAnimations(){
   friedAnimRunning=true;
   pausedPenrose=false;
@@ -763,6 +1220,7 @@ function autoStartAnimations(){
   gwAnimRunning=true;
   bbnAnimRunning=true;
   sfAnimRunning=true;
+  bolPaused=sahaPaused=tfPaused=srPaused=fnlPaused=kapPaused=false;
   const friedBtn=document.getElementById('friedAnimBtn');
   if(friedBtn){friedBtn.textContent='⏸ Pause';friedBtn.classList.add('active');}
   const penBtn=document.getElementById('penroseAnimBtn');
@@ -781,73 +1239,38 @@ function autoStartAnimations(){
   if(bbnBtn){bbnBtn.textContent='⏸ Pause';bbnBtn.classList.add('active');}
   const sfBtn=document.getElementById('sfAnimBtn');
   if(sfBtn){sfBtn.textContent='⏸ Pause';sfBtn.classList.add('active');}
+  ['bolPauseBtn','sahaPauseBtn','tfPauseBtn','srPauseBtn','fnlPauseBtn','kapPauseBtn'].forEach(id=>_setPauseBtn(id,false));
 }
 function switchTab(n){
-  if(n!==0 && friedAnimId){cancelAnimationFrame(friedAnimId);friedAnimId=null;}
-  if(n!==1 && penAnimId){cancelAnimationFrame(penAnimId);penAnimId=null;}
-  if(n!==2 && evapAnimId!==null){cancelAnimationFrame(evapAnimId);evapAnimId=null;}
-  if(n!==3 && cmbAnimId){cancelAnimationFrame(cmbAnimId);cmbAnimId=null;}
-  if(n!==4 && inflAnimId){cancelAnimationFrame(inflAnimId);inflAnimId=null;}
-  if(n!==5 && deAnimId){cancelAnimationFrame(deAnimId);deAnimId=null;}
-  if(n!==6 && gwAnimId){cancelAnimationFrame(gwAnimId);gwAnimId=null;}
-  if(n!==7 && bbnAnimId){cancelAnimationFrame(bbnAnimId);bbnAnimId=null;}
-  if(n!==8 && sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  _cancelAllAnims13();
+  const tabs=document.querySelectorAll('.tabs > .tab');
+  tabs.forEach((t,i)=>{ t.classList.toggle('active',i===n); t.setAttribute('aria-selected', i===n?'true':'false'); });
   document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
   activeTab=n;
-  if(n===0){
-    const sl=document.getElementById('friedSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('friedSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeFried();solveFriedmann();if(friedAnimRunning&&!friedAnimId)friedAnimLoop();});
-  }
-  if(n===1){
-    const sl=document.getElementById('penSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('penSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizePenrose();redrawPenrose();if(!pausedPenrose&&!penAnimId)penAnimId=requestAnimationFrame(penLoop);});
-  }
-  if(n===2){
-    const sl=document.getElementById('hawkSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('hawkSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeHawk();updateHawking();if(!pausedHawkAnim&&evapAnimId===null)evapAnimId=requestAnimationFrame(hawkLoop);});
-  }
-  if(n===3){
-    const sl=document.getElementById('cmbAnimSpeed');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('cmbSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeCMB();drawCMB();if(cmbAnimRunning&&!cmbAnimId)cmbAnimLoop();});
-  }
-  if(n===4){
-    const sl=document.getElementById('inflSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('inflSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeInfl();drawInflation();if(inflAnimRunning&&!inflAnimId)inflAnimLoop();});
-  }
-  if(n===5){
-    const sl=document.getElementById('deSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('deSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeDE();drawDarkEnergy();if(deAnimRunning&&!deAnimId)deAnimLoop();});
-  }
-  if(n===6){
-    const sl=document.getElementById('gwSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('gwSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeGW();drawGW();if(gwAnimRunning&&!gwAnimId)gwAnimLoop();});
-  }
-  if(n===7){
-    const sl=document.getElementById('bbnSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('bbnSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeBBN();drawBBN();if(bbnAnimRunning&&!bbnAnimId)bbnAnimLoop();});
-  }
-  if(n===8){
-    const sl=document.getElementById('sfSpeedSlider');
-    const sv=document.getElementById('sfSpeedVal');
-    if(sl){sl.value=window.animSpeed||1;if(sv)sv.textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    // Double rAF so flex layout has non-zero main-area before resize/draw
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        resizeSF();
-        drawStructure();
-        if(sfAnimRunning&&!sfAnimId) sfAnimLoop();
-      });
-    });
-  }
+  const sp=window.animSpeed||1;
+  const sliders=['friedSpeedSlider','penSpeedSlider','hawkSpeedSlider','cmbAnimSpeed','inflSpeedSlider','deSpeedSlider','gwSpeedSlider','bbnSpeedSlider','sfSpeedSlider','bolSpeedSlider','sahaSpeedSlider','tfSpeedSlider','srSpeedSlider','fnlSpeedSlider','kapSpeedSlider'];
+  const vals=['friedSpeedVal','penSpeedVal','hawkSpeedVal','cmbSpeedVal','inflSpeedVal','deSpeedVal','gwSpeedVal','bbnSpeedVal','sfSpeedVal','bolSpeedVal','sahaSpeedVal','tfSpeedVal','srSpeedVal','fnlSpeedVal','kapSpeedVal'];
+  if(sliders[n]){const s=document.getElementById(sliders[n]);if(s){s.value=sp;const v=document.getElementById(vals[n]);if(v)v.textContent=(+sp).toFixed(1)+'x';}}
+  const startFns=[
+    ()=>{resizeFried();solveFriedmann();friedAnimRunning=true;const ab=document.getElementById('friedAnimBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!friedAnimId)friedAnimLoop();},
+    ()=>{resizePenrose();redrawPenrose();pausedPenrose=false;const ab=document.getElementById('penroseAnimBtn');if(ab){ab.textContent='⏸';ab.classList.add('active');}if(!penAnimId)penAnimId=requestAnimationFrame(penLoop);},
+    ()=>{resizeHawk();updateHawking();pausedHawkAnim=false;const ab=document.getElementById('evapBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(evapAnimId===null)evapAnimId=requestAnimationFrame(hawkLoop);},
+    ()=>{resizeCMB();drawCMB();cmbAnimRunning=true;const ab=document.getElementById('cmbAnimateBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!cmbAnimId)cmbAnimLoop();},
+    ()=>{resizeInfl();drawInflation();inflAnimRunning=true;const ab=document.getElementById('inflAnimBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!inflAnimId)inflAnimLoop();},
+    ()=>{resizeDE();drawDarkEnergy();deAnimRunning=true;const ab=document.getElementById('deAnimBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!deAnimId)deAnimLoop();},
+    ()=>{resizeGW();drawGW();gwAnimRunning=true;const ab=document.getElementById('gwAnimBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!gwAnimId)gwAnimLoop();},
+    ()=>{resizeBBN();drawBBN();bbnAnimRunning=true;const ab=document.getElementById('bbnAnimBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!bbnAnimId)bbnAnimLoop();},
+    ()=>{resizeSF();drawStructure();sfAnimRunning=true;const ab=document.getElementById('sfAnimBtn');if(ab){ab.textContent='⏸ Pause';ab.classList.add('active');}if(!sfAnimId)sfAnimLoop();},
+    ()=>{startBOLLoop();},
+    ()=>{startSAHALoop();},
+    ()=>{startTFLoop();},
+    ()=>{startSRLoop();},
+    ()=>{startFNLLoop();},
+    ()=>{startKAPLoop();}
+  ];
+  const tabN=n;
+  const raf=window.requestAnimationFrame||(cb=>setTimeout(cb,16));
+  raf(()=>{ raf(()=>{ if(activeTab!==tabN) return; if(startFns[tabN]) startFns[tabN](); }); });
 }
 
 function openProof(idx){
@@ -3273,12 +3696,15 @@ function drawStructure(){
   if(W<2||H<2) return;
   sfCtx.setTransform(1,0,0,1,0,0);
   sfCtx.fillStyle='#05050f'; sfCtx.fillRect(0,0,W,H);
+  if(typeof pans!=='undefined'&&pans[8]) sfCtx.setTransform(1,0,0,1,pans[8].x,pans[8].y);
 
   const viewEl=document.getElementById('sfView');
   const view=viewEl?viewEl.value:'slice';
   if(view==='slice') drawSFSlice(W,H);
   else if(view==='power') drawSFPower(W,H);
+  else if(view==='zeldovich') drawSFZeldovich(W,H);
   else drawSFHalos(W,H);
+  sfCtx.setTransform(1,0,0,1,0,0);
 }
 
 /** Build fixed random Fourier modes once (cheap amp rescale per frame). */
@@ -3601,10 +4027,954 @@ function drawSFHalos(W,H){
   if(sh) sh.textContent=String(nHalos);
 }
 
+/** Zel'dovich displacement → Press–Schechter-like HMF sketch */
+function drawSFZeldovich(W,H){
+  const L=_gLayout(W,H);
+  const z=sfZ;
+  const D=sfGrowth(z);
+  const split=L.x+L.w*0.52;
+  // Left: particle grid with Zel'dovich shift q + D ∇ψ
+  _gTitle(sfCtx,L,"Zel'dovich map  q → q + D(a)∇ψ");
+  let seed=91;
+  const rng=()=>{seed=(seed*1664525+1013904223)&0xffffffff;return (seed>>>0)/0xffffffff;};
+  const modes=[];
+  for(let i=0;i<6;i++){
+    modes.push({kx:1+i%3,ky:1+((i*2)%3),amp:0.35/(1+i*0.4),ph:rng()*Math.PI*2});
+  }
+  function psiGrad(qx,qy){
+    let gx=0,gy=0;
+    for(const m of modes){
+      const a=m.amp*Math.cos(m.kx*qx+m.ky*qy+m.ph);
+      gx+=-m.kx*m.amp*Math.sin(m.kx*qx+m.ky*qy+m.ph);
+      gy+=-m.ky*m.amp*Math.sin(m.kx*qx+m.ky*qy+m.ph);
+    }
+    return {gx,gy};
+  }
+  const N=18;
+  const boxW=split-L.x-12, boxH=L.h-8;
+  const ox=L.x+6, oy=L.y+4;
+  sfCtx.strokeStyle='rgba(80,80,140,0.35)'; sfCtx.lineWidth=1;
+  sfCtx.strokeRect(ox,oy,boxW,boxH);
+  for(let iy=0;iy<N;iy++){
+    for(let ix=0;ix<N;ix++){
+      const qx=(ix+0.5)/N*Math.PI*2;
+      const qy=(iy+0.5)/N*Math.PI*2;
+      const g=psiGrad(qx,qy);
+      const px=ox+(ix+0.5)/N*boxW + D*g.gx*boxW*0.12;
+      const py=oy+(iy+0.5)/N*boxH + D*g.gy*boxH*0.12;
+      const dens=1+D*Math.hypot(g.gx,g.gy);
+      const r=Math.min(5,1.2+dens*1.2);
+      sfCtx.beginPath(); sfCtx.arc(px,py,r,0,Math.PI*2);
+      sfCtx.fillStyle=`rgba(200,140,255,${0.35+0.45*Math.min(1,dens/3)})`;
+      sfCtx.fill();
+    }
+  }
+  sfCtx.fillStyle='rgba(180,180,220,0.55)'; sfCtx.font=L.f1+'px monospace';
+  sfCtx.fillText('D(z)='+D.toFixed(3)+'  caustics when det(δ_ij+D ψ,ij)=0', ox, L.y+L.h+L.padB-14);
+
+  // Right: dn/dlnM schematic
+  const rx=split+10, rw=L.x+L.w-rx, ry=L.y, rh=L.h;
+  sfCtx.strokeStyle='#2a2a55'; sfCtx.lineWidth=1.5;
+  sfCtx.beginPath(); sfCtx.moveTo(rx,ry); sfCtx.lineTo(rx,ry+rh); sfCtx.lineTo(rx+rw,ry+rh); sfCtx.stroke();
+  sfCtx.fillStyle='rgba(204,102,255,0.85)'; sfCtx.font='bold '+L.f1+'px monospace';
+  sfCtx.fillText('dn/dlnM (PS sketch)', rx+4, ry+14);
+  const sigma8=0.81*D;
+  sfCtx.strokeStyle='rgba(0,229,255,0.9)'; sfCtx.lineWidth=2;
+  sfCtx.beginPath();
+  for(let i=0;i<=60;i++){
+    const t=i/60;
+    const logM=10+t*5; // 10^10 .. 10^15
+    const M=Math.pow(10,logM);
+    // σ(M) ~ σ8 * (M/1e14)^(-0.3)
+    const sig=Math.max(0.05,sigma8*Math.pow(M/1e14,-0.28));
+    const nu=1.686/sig;
+    // f(ν) ~ √(2/π) ν exp(-ν²/2)
+    const f=Math.sqrt(2/Math.PI)*nu*Math.exp(-0.5*nu*nu);
+    const dndlnM=f*0.35; // arb scale
+    const x=rx+t*rw;
+    const y=ry+rh*(1-Math.min(0.98,dndlnM));
+    i===0?sfCtx.moveTo(x,y):sfCtx.lineTo(x,y);
+  }
+  sfCtx.stroke();
+  sfCtx.fillStyle='rgba(255,200,80,0.7)'; sfCtx.font=L.f1+'px monospace';
+  sfCtx.fillText('M⋆ falls as D↑', rx+rw*0.45, ry+rh*0.35);
+  sfCtx.fillStyle='rgba(160,160,200,0.5)';
+  sfCtx.fillText('log₁₀ M', rx+rw*0.35, ry+rh+12);
+  _gFooter(sfCtx,L,"Press–Schechter  f(ν)=√(2/π) ν e^{-ν²/2}  ·  ν=δ_c/σ(M,z)");
+
+  const sZ=document.getElementById('sfZdisp');
+  const s8=document.getElementById('sfSigma8');
+  const sk=document.getElementById('sfKmax');
+  const sh=document.getElementById('sfNhalos');
+  if(sZ) sZ.textContent=z.toFixed(0);
+  if(s8) s8.textContent=sigma8.toFixed(3);
+  if(sk) sk.textContent=(0.05/Math.max(D,0.05)).toFixed(3);
+  if(sh) sh.textContent=String(Math.round(80*D*D));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 9: BOLTZMANN HIERARCHY / CMB POL
+// ═══════════════════════════════════════════════════════════════════
+const bolC=document.getElementById('bolCanvas');
+const bolCtx=bolC?bolC.getContext('2d'):null;
+let bolLmax=8, bolK=0.05, bolTau=0.40, bolView=0;
+let bolT=0;
+
+function setBOLView(v){
+  bolView=v;
+  const b0=document.getElementById('bolView0'), b1=document.getElementById('bolView1');
+  if(b0) b0.classList.toggle('active',v===0);
+  if(b1) b1.classList.toggle('active',v===1);
+  redrawBOL();
+}
+function resizeBOL(){ _resizeMainCanvas(bolC,'panel9'); }
+function toggleBOLPause(){ bolPaused=!bolPaused; _setPauseBtn('bolPauseBtn',bolPaused); }
+
+function bolMoments(t){
+  // Schematic free-streaming + damping multipoles
+  const eta=t;
+  const x=bolK*eta*80;
+  const damp=Math.exp(-bolTau*bolTau*0.8);
+  const th=[];
+  for(let l=0;l<=bolLmax;l++){
+    const jl=Math.sin(x-l*0.4)/(x+1e-3)*Math.pow(0.92,l);
+    th.push(damp*jl*(l===0?1:1/(1+0.15*l)));
+  }
+  const Pi=0.1*damp*Math.sin(x*0.7+0.5);
+  return {th,Pi};
+}
+
+function redrawBOL(){
+  if(!bolC||!bolCtx||activeTab!==9) return;
+  if(!bolC.width||!bolC.height) resizeBOL();
+  const W=bolC.width, H=bolC.height;
+  if(W<2||H<2) return;
+  bolCtx.setTransform(1,0,0,1,0,0);
+  bolCtx.fillStyle='#05050f'; bolCtx.fillRect(0,0,W,H);
+  bolCtx.setTransform(1,0,0,1,pans[9].x,pans[9].y);
+  const L=_gLayout(W,H);
+  const mom=bolMoments(bolT);
+  const th0=document.getElementById('bolTh0');
+  const th1=document.getElementById('bolTh1');
+  const piEl=document.getElementById('bolPi');
+  const rEl=document.getElementById('bolR');
+  if(th0) th0.textContent=mom.th[0].toFixed(3);
+  if(th1) th1.textContent=(mom.th[1]||0).toFixed(3);
+  if(piEl) piEl.textContent=mom.Pi.toFixed(3);
+  if(rEl) rEl.textContent=(bolView===1?0.01:0).toFixed(2);
+
+  if(bolView===0){
+    _gTitle(bolCtx,L,'Photon multipoles Θ_ℓ(k,η)  ·  free-streaming cascade');
+    _gAxes(bolCtx,L);
+    const n=mom.th.length;
+    const barW=L.w/Math.max(n,1)*0.7;
+    for(let l=0;l<n;l++){
+      const x=L.x+(l+0.5)/n*L.w;
+      const val=mom.th[l];
+      const h=Math.min(L.h*0.9,Math.abs(val)*L.h*1.4);
+      const y=val>=0?L.y+L.h*0.5-h:L.y+L.h*0.5;
+      bolCtx.fillStyle=l===0?'rgba(204,102,255,0.85)':l===1?'rgba(0,229,255,0.75)':'rgba(120,140,220,0.55)';
+      bolCtx.fillRect(x-barW/2,y,barW,Math.max(2,h));
+      bolCtx.fillStyle='rgba(180,180,210,0.55)'; bolCtx.font=L.f1+'px monospace';
+      bolCtx.textAlign='center';
+      bolCtx.fillText(String(l),x,L.y+L.h+12);
+    }
+    bolCtx.textAlign='left';
+    // zero line
+    bolCtx.strokeStyle='rgba(255,255,255,0.12)'; bolCtx.beginPath();
+    bolCtx.moveTo(L.x,L.y+L.h*0.5); bolCtx.lineTo(L.x+L.w,L.y+L.h*0.5); bolCtx.stroke();
+    _gFooter(bolCtx,L,'k='+bolK.toFixed(3)+' Mpc⁻¹  ·  τ_c='+bolTau.toFixed(2)+'  ·  ℓ_max='+bolLmax+'  ·  T-driven');
+  } else {
+    _gTitle(bolCtx,L,'EE / BB polarization (lite)  ·  lensing BB + optional tensors');
+    _gAxes(bolCtx,L);
+    _gClip(bolCtx,L);
+    // EE and BB C_ℓ sketches
+    bolCtx.strokeStyle='rgba(0,229,255,0.9)'; bolCtx.lineWidth=2;
+    bolCtx.beginPath();
+    for(let i=0;i<=80;i++){
+      const ell=2+i/80*2000;
+      const x=L.x+(i/80)*L.w;
+      const ee=Math.exp(-Math.pow((Math.log(ell)-Math.log(900))/1.1,2))*0.9*(1+0.1*Math.sin(bolT+ell*0.01));
+      const y=_gClampY(L.y+L.h*(1-ee),L);
+      i===0?bolCtx.moveTo(x,y):bolCtx.lineTo(x,y);
+    }
+    bolCtx.stroke();
+    // BB lensing
+    bolCtx.strokeStyle='rgba(255,136,68,0.85)'; bolCtx.lineWidth=2;
+    bolCtx.beginPath();
+    for(let i=0;i<=80;i++){
+      const ell=2+i/80*2000;
+      const x=L.x+(i/80)*L.w;
+      const bb=0.35*Math.exp(-Math.pow((Math.log(ell)-Math.log(1000))/1.3,2))*bolTau*(0.8+0.2*Math.sin(bolT*0.7));
+      const y=_gClampY(L.y+L.h*(1-bb),L);
+      i===0?bolCtx.moveTo(x,y):bolCtx.lineTo(x,y);
+    }
+    bolCtx.stroke();
+    // tensor BB peak low-ℓ
+    bolCtx.strokeStyle='rgba(255,80,120,0.5)'; bolCtx.setLineDash([4,3]); bolCtx.lineWidth=1.5;
+    bolCtx.beginPath();
+    for(let i=0;i<=40;i++){
+      const ell=2+i/40*200;
+      const x=L.x+(ell/2000)*L.w;
+      const bbT=0.12*Math.exp(-ell/80)*(0.9+0.1*Math.sin(bolT));
+      const y=_gClampY(L.y+L.h*(1-bbT),L);
+      i===0?bolCtx.moveTo(x,y):bolCtx.lineTo(x,y);
+    }
+    bolCtx.stroke(); bolCtx.setLineDash([]);
+    bolCtx.restore();
+    bolCtx.fillStyle='rgba(0,229,255,0.8)'; bolCtx.font=L.f1+'px monospace';
+    bolCtx.fillText('EE', L.x+L.w*0.55, L.y+L.h*0.2);
+    bolCtx.fillStyle='rgba(255,136,68,0.8)';
+    bolCtx.fillText('BB (lensing)', L.x+L.w*0.55, L.y+L.h*0.45);
+    bolCtx.fillStyle='rgba(255,80,120,0.7)';
+    bolCtx.fillText('BB (r~0.01)', L.x+L.w*0.08, L.y+L.h*0.55);
+    _gFooter(bolCtx,L,'Π sources E; lensing rotates E→B  ·  not a detector forecast');
+  }
+  bolCtx.setTransform(1,0,0,1,0,0);
+}
+function bolLoop(){
+  if(activeTab!==9||!bolRunning){bolRunning=false;RAF13.bol=null;return;}
+  if(!bolPaused) bolT+=0.025*(window.animSpeed||1);
+  redrawBOL();
+  RAF13.bol=requestAnimationFrame(bolLoop);
+}
+function startBOLLoop(){
+  resizeBOL();
+  bolRunning=true; bolPaused=false;
+  _setPauseBtn('bolPauseBtn',false);
+  if(RAF13.bol){cancelAnimationFrame(RAF13.bol);RAF13.bol=null;}
+  bolLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 10: RECOMBINATION & SAHA
+// ═══════════════════════════════════════════════════════════════════
+const sahaC=document.getElementById('sahaCanvas');
+const sahaCtx=sahaC?sahaC.getContext('2d'):null;
+let sahaZ=1100, sahaEta=6.1, sahaYp=0.245, sahaView=0;
+let sahaT=0;
+
+function setSAHAView(v){
+  sahaView=v;
+  const b0=document.getElementById('sahaView0'), b1=document.getElementById('sahaView1');
+  if(b0) b0.classList.toggle('active',v===0);
+  if(b1) b1.classList.toggle('active',v===1);
+  redrawSAHA();
+}
+function resizeSAHA(){ _resizeMainCanvas(sahaC,'panel10'); }
+function toggleSAHAPause(){ sahaPaused=!sahaPaused; _setPauseBtn('sahaPauseBtn',sahaPaused); }
+
+function sahaXeAt(z){
+  // Approximate Saha X_e(z) with Peebles-like freeze-out residual
+  const T=2.725*(1+z);
+  const B=13.6; // eV
+  const kT=T/11604; // eV
+  const eta=sahaEta*1e-10;
+  const nb=eta*410*(1+z)*(1+z)*(1+z); // cm^-3 sketch
+  // Saha: (1-X)/X^2 = n_b λ^3 exp(B/kT) / 4  — use logistic fit tuned to z*~1090
+  const zstar=1090 - 40*(sahaEta-6.1)/3 - 30*(sahaYp-0.245)/0.05;
+  const width=80;
+  let Xe=1/(1+Math.exp((zstar-z)/width*4));
+  // residual freeze-out
+  const Xres=2.5e-4*(6.1/sahaEta);
+  Xe=Math.max(Xres, Xe);
+  if(z>zstar+200) Xe=Math.min(1, 0.5+0.5*Xe);
+  return {Xe,T,zstar,nb};
+}
+
+function sahaTauApprox(z){
+  // cumulative optical depth sketch from z to 0
+  let tau=0;
+  for(let zz=0;zz<z;zz+=20){
+    const x=sahaXeAt(zz).Xe;
+    tau+=0.0025*x*(1+zz)*(1+zz); // crude
+  }
+  return Math.min(20,tau);
+}
+
+function redrawSAHA(){
+  if(!sahaC||!sahaCtx||activeTab!==10) return;
+  if(!sahaC.width||!sahaC.height) resizeSAHA();
+  const W=sahaC.width, H=sahaC.height;
+  if(W<2||H<2) return;
+  sahaCtx.setTransform(1,0,0,1,0,0);
+  sahaCtx.fillStyle='#05050f'; sahaCtx.fillRect(0,0,W,H);
+  sahaCtx.setTransform(1,0,0,1,pans[10].x,pans[10].y);
+  const L=_gLayout(W,H);
+  const cur=sahaXeAt(sahaZ);
+  const tau=sahaTauApprox(sahaZ);
+  const xeEl=document.getElementById('sahaXe');
+  const tEl=document.getElementById('sahaT');
+  const tauEl=document.getElementById('sahaTau');
+  const zsEl=document.getElementById('sahaZstar');
+  if(xeEl) xeEl.textContent=cur.Xe.toExponential(2);
+  if(tEl) tEl.textContent=cur.T.toFixed(1);
+  if(tauEl) tauEl.textContent=tau.toFixed(2);
+  if(zsEl) zsEl.textContent=String(Math.round(cur.zstar));
+
+  const zMin=200, zMax=2000;
+  const toX=z=>L.x+(z-zMin)/(zMax-zMin)*L.w;
+  const toY=v=>L.y+L.h*(1-v);
+
+  if(sahaView===0){
+    _gTitle(sahaCtx,L,'Ionization fraction X_e(z)  ·  Saha + residual freeze-out');
+    _gAxes(sahaCtx,L);
+    _gClip(sahaCtx,L);
+    sahaCtx.strokeStyle='rgba(204,102,255,0.9)'; sahaCtx.lineWidth=2.5;
+    sahaCtx.beginPath();
+    for(let z=zMin;z<=zMax;z+=8){
+      const Xe=sahaXeAt(z).Xe;
+      const x=toX(z), y=_gClampY(toY(Math.min(1,Xe)),L);
+      z===zMin?sahaCtx.moveTo(x,y):sahaCtx.lineTo(x,y);
+    }
+    sahaCtx.stroke();
+    // pure Saha dashed (no residual)
+    sahaCtx.setLineDash([4,3]); sahaCtx.strokeStyle='rgba(255,200,80,0.45)'; sahaCtx.lineWidth=1.5;
+    sahaCtx.beginPath();
+    for(let z=zMin;z<=zMax;z+=8){
+      const zstar=cur.zstar;
+      const Xe=1/(1+Math.exp((zstar-z)/80*4));
+      const x=toX(z), y=_gClampY(toY(Xe),L);
+      z===zMin?sahaCtx.moveTo(x,y):sahaCtx.lineTo(x,y);
+    }
+    sahaCtx.stroke(); sahaCtx.setLineDash([]);
+    sahaCtx.restore();
+    // cursor at current z (+ anim pulse)
+    const pulse=0.5+0.5*Math.sin(sahaT*2);
+    const cx=toX(sahaZ);
+    const cy=toY(Math.min(1,cur.Xe));
+    sahaCtx.beginPath(); sahaCtx.arc(cx,cy,5+2*pulse,0,Math.PI*2);
+    sahaCtx.fillStyle='rgba(0,229,255,0.9)'; sahaCtx.fill();
+    sahaCtx.strokeStyle='rgba(0,229,255,0.4)'; sahaCtx.beginPath();
+    sahaCtx.moveTo(cx,L.y); sahaCtx.lineTo(cx,L.y+L.h); sahaCtx.stroke();
+    // z*
+    sahaCtx.strokeStyle='rgba(255,100,100,0.4)'; sahaCtx.setLineDash([3,3]);
+    sahaCtx.beginPath(); sahaCtx.moveTo(toX(cur.zstar),L.y); sahaCtx.lineTo(toX(cur.zstar),L.y+L.h); sahaCtx.stroke();
+    sahaCtx.setLineDash([]);
+    sahaCtx.fillStyle='rgba(255,100,100,0.7)'; sahaCtx.font=L.f1+'px monospace';
+    sahaCtx.fillText('z_*', toX(cur.zstar)+4, L.y+14);
+    sahaCtx.fillStyle='rgba(255,200,80,0.6)';
+    sahaCtx.fillText('Saha', L.x+L.w*0.7, L.y+L.h*0.25);
+    sahaCtx.fillStyle='rgba(204,102,255,0.8)';
+    sahaCtx.fillText('Peebles-like', L.x+L.w*0.15, L.y+L.h*0.75);
+    _gFooter(sahaCtx,L,'η₁₀='+sahaEta.toFixed(1)+'  Y_p='+sahaYp.toFixed(3)+'  ·  last scattering when τ∼1');
+  } else {
+    _gTitle(sahaCtx,L,'Visibility g(η)=τ̇ e^{-τ}  ·  last-scattering surface');
+    _gAxes(sahaCtx,L);
+    _gClip(sahaCtx,L);
+    // g(z) ~ Gaussian around z*
+    sahaCtx.strokeStyle='rgba(0,229,255,0.9)'; sahaCtx.lineWidth=2.5;
+    sahaCtx.beginPath();
+    let gmax=0;
+    const gs=[];
+    for(let z=zMin;z<=zMax;z+=5){
+      const sig=70;
+      const g=Math.exp(-0.5*Math.pow((z-cur.zstar)/sig,2));
+      gs.push({z,g}); if(g>gmax) gmax=g;
+    }
+    gs.forEach((p,i)=>{
+      const x=toX(p.z), y=_gClampY(toY(p.g/gmax*(0.85+0.15*Math.sin(sahaT))),L);
+      i===0?sahaCtx.moveTo(x,y):sahaCtx.lineTo(x,y);
+    });
+    sahaCtx.stroke();
+    // fill under curve
+    sahaCtx.lineTo(toX(zMax),L.y+L.h); sahaCtx.lineTo(toX(zMin),L.y+L.h); sahaCtx.closePath();
+    sahaCtx.fillStyle='rgba(0,229,255,0.08)'; sahaCtx.fill();
+    sahaCtx.restore();
+    sahaCtx.fillStyle='rgba(204,102,255,0.75)'; sahaCtx.font=L.f1+'px monospace';
+    sahaCtx.fillText('Δz ~ 80  (finite thickness)', L.x+L.w*0.35, L.y+L.h*0.35);
+    _gFooter(sahaCtx,L,'g peaks at z_*≈'+Math.round(cur.zstar)+'  ·  Silk damping from finite width');
+  }
+  sahaCtx.setTransform(1,0,0,1,0,0);
+}
+function sahaLoop(){
+  if(activeTab!==10||!sahaRunning){sahaRunning=false;RAF13.saha=null;return;}
+  if(!sahaPaused){
+    sahaT+=0.03*(window.animSpeed||1);
+    // animate z along track
+    const phase=(sahaT*0.08)%1;
+    sahaZ=200+phase*1800;
+    const sl=document.getElementById('sahaZSlider');
+    const zv=document.getElementById('sahaZVal');
+    if(sl) sl.value=String(Math.round(sahaZ));
+    if(zv) zv.textContent=String(Math.round(sahaZ));
+  }
+  redrawSAHA();
+  RAF13.saha=requestAnimationFrame(sahaLoop);
+}
+function startSAHALoop(){
+  resizeSAHA();
+  sahaRunning=true; sahaPaused=false;
+  _setPauseBtn('sahaPauseBtn',false);
+  if(RAF13.saha){cancelAnimationFrame(RAF13.saha);RAF13.saha=null;}
+  sahaLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 11: TRANSFER FUNCTIONS & BAO
+// ═══════════════════════════════════════════════════════════════════
+const tfC=document.getElementById('tfCanvas');
+const tfCtx=tfC?tfC.getContext('2d'):null;
+let tfOmh2=0.143, tfObh2=0.0224, tfNs=0.965, tfView=0;
+let tfT=0;
+
+function setTFView(v){
+  tfView=v;
+  const b0=document.getElementById('tfView0'), b1=document.getElementById('tfView1');
+  if(b0) b0.classList.toggle('active',v===0);
+  if(b1) b1.classList.toggle('active',v===1);
+  redrawTF();
+}
+function resizeTF(){ _resizeMainCanvas(tfC,'panel11'); }
+function toggleTFPause(){ tfPaused=!tfPaused; _setPauseBtn('tfPauseBtn',tfPaused); }
+
+function tfBBKS(k){
+  const Gamma=tfOmh2*Math.exp(-tfObh2*(1+Math.sqrt(2*0.7)/tfOmh2)); // rough shape param
+  const q=k/(Gamma||0.1);
+  const L0=Math.log(2*Math.E+1.8*q);
+  const C0=14.2+731/(1+62.5*q);
+  return L0/(L0+C0*q*q);
+}
+function tfRs(){ return 147.0*(0.13/tfOmh2)*(0.0224/tfObh2)*0.25 + 147*(tfOmh2/0.143)*0.1; } // sketch ~147
+
+function redrawTF(){
+  if(!tfC||!tfCtx||activeTab!==11) return;
+  if(!tfC.width||!tfC.height) resizeTF();
+  const W=tfC.width, H=tfC.height;
+  if(W<2||H<2) return;
+  tfCtx.setTransform(1,0,0,1,0,0);
+  tfCtx.fillStyle='#05050f'; tfCtx.fillRect(0,0,W,H);
+  tfCtx.setTransform(1,0,0,1,pans[11].x,pans[11].y);
+  const L=_gLayout(W,H);
+  const keq=0.073*tfOmh2/0.14; // h/Mpc sketch
+  const rs=147*(0.14/tfOmh2)*Math.pow(tfObh2/0.0224,-0.13);
+  const fb=tfObh2/tfOmh2;
+  const keqEl=document.getElementById('tfKeq');
+  const rsEl=document.getElementById('tfRs');
+  const alEl=document.getElementById('tfAlpha');
+  const fbEl=document.getElementById('tfFb');
+  if(keqEl) keqEl.textContent=keq.toFixed(4);
+  if(rsEl) rsEl.textContent=rs.toFixed(1);
+  if(alEl) alEl.textContent=(1+0.02*Math.sin(tfT)).toFixed(3);
+  if(fbEl) fbEl.textContent=fb.toFixed(3);
+
+  const logKmin=-3, logKmax=1;
+  const toX=lk=>L.x+(lk-logKmin)/(logKmax-logKmin)*L.w;
+
+  if(tfView===0){
+    _gTitle(tfCtx,L,'Matter transfer T(k)  ·  BBKS / EH shape');
+    _gAxes(tfCtx,L);
+    _gClip(tfCtx,L);
+    tfCtx.strokeStyle='rgba(204,102,255,0.9)'; tfCtx.lineWidth=2.5;
+    tfCtx.beginPath();
+    for(let i=0;i<=120;i++){
+      const lk=logKmin+(logKmax-logKmin)*i/120;
+      const k=Math.pow(10,lk);
+      const T=tfBBKS(k);
+      const y=_gClampY(L.y+L.h*(1-T),L);
+      i===0?tfCtx.moveTo(toX(lk),y):tfCtx.lineTo(toX(lk),y);
+    }
+    tfCtx.stroke();
+    // k_eq
+    tfCtx.strokeStyle='rgba(255,100,100,0.5)'; tfCtx.setLineDash([3,3]);
+    tfCtx.beginPath(); tfCtx.moveTo(toX(Math.log10(keq)),L.y); tfCtx.lineTo(toX(Math.log10(keq)),L.y+L.h); tfCtx.stroke();
+    tfCtx.setLineDash([]);
+    tfCtx.restore();
+    tfCtx.fillStyle='rgba(255,100,100,0.7)'; tfCtx.font=L.f1+'px monospace';
+    tfCtx.fillText('k_eq', toX(Math.log10(keq))+4, L.y+16);
+    tfCtx.fillStyle='rgba(180,180,220,0.5)';
+    tfCtx.fillText('log₁₀ k', L.x+L.w*0.4, L.y+L.h+14);
+    // anim pulse on large-scale plateau
+    const px=toX(-2.2), py=L.y+L.h*0.08;
+    tfCtx.beginPath(); tfCtx.arc(px,py,4+2*Math.sin(tfT*2),0,Math.PI*2);
+    tfCtx.fillStyle='rgba(0,229,255,0.85)'; tfCtx.fill();
+    _gFooter(tfCtx,L,'T→1 (large scales)  ·  T∝k^{-2} (small)  ·  Ω_m h²='+tfOmh2.toFixed(3));
+  } else {
+    _gTitle(tfCtx,L,'BAO wiggles in P(k)/P_smooth  ·  r_s≈'+rs.toFixed(0)+' Mpc');
+    _gAxes(tfCtx,L);
+    _gClip(tfCtx,L);
+    const alpha=1+0.015*Math.sin(tfT*0.5);
+    tfCtx.strokeStyle='rgba(0,229,255,0.9)'; tfCtx.lineWidth=2;
+    tfCtx.beginPath();
+    for(let i=0;i<=120;i++){
+      const lk=-1.5+(1.5)*i/120; // focus mid k
+      const k=Math.pow(10,lk);
+      const wiggle=1+0.06*Math.exp(-Math.pow(k*8,1.5))*Math.sin(k*rs*alpha);
+      const x=L.x+(i/120)*L.w;
+      const y=_gClampY(L.y+L.h*(1-(wiggle-0.9)/0.2),L);
+      i===0?tfCtx.moveTo(x,y):tfCtx.lineTo(x,y);
+    }
+    tfCtx.stroke();
+    // no-wiggle
+    tfCtx.strokeStyle='rgba(255,200,80,0.4)'; tfCtx.setLineDash([4,3]);
+    tfCtx.beginPath(); tfCtx.moveTo(L.x,L.y+L.h*0.5); tfCtx.lineTo(L.x+L.w,L.y+L.h*0.5); tfCtx.stroke();
+    tfCtx.setLineDash([]);
+    tfCtx.restore();
+    tfCtx.fillStyle='rgba(0,229,255,0.75)'; tfCtx.font=L.f1+'px monospace';
+    tfCtx.fillText('α_iso = '+alpha.toFixed(3)+' (anim.)', L.x+L.w*0.55, L.y+18);
+    _gFooter(tfCtx,L,'n_s='+tfNs.toFixed(3)+'  f_b='+fb.toFixed(3)+'  ·  DESI/Euclid α,ε AP parameters');
+  }
+  tfCtx.setTransform(1,0,0,1,0,0);
+}
+function tfLoop(){
+  if(activeTab!==11||!tfRunning){tfRunning=false;RAF13.tf=null;return;}
+  if(!tfPaused) tfT+=0.03*(window.animSpeed||1);
+  redrawTF();
+  RAF13.tf=requestAnimationFrame(tfLoop);
+}
+function startTFLoop(){
+  resizeTF();
+  tfRunning=true; tfPaused=false;
+  _setPauseBtn('tfPauseBtn',false);
+  if(RAF13.tf){cancelAnimationFrame(RAF13.tf);RAF13.tf=null;}
+  tfLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 12: SLOW-ROLL ε,η & n_s
+// ═══════════════════════════════════════════════════════════════════
+const srC=document.getElementById('srCanvas');
+const srCtx=srC?srC.getContext('2d'):null;
+let srP=2, srPhi=15, srN=55, srView=0;
+let srT=0;
+
+function setSRView(v){
+  srView=v;
+  const b0=document.getElementById('srView0'), b1=document.getElementById('srView1');
+  if(b0) b0.classList.toggle('active',v===0);
+  if(b1) b1.classList.toggle('active',v===1);
+  redrawSR();
+}
+function resizeSR(){ _resizeMainCanvas(srC,'panel12'); }
+function toggleSRPause(){ srPaused=!srPaused; _setPauseBtn('srPauseBtn',srPaused); }
+
+function srParams(phi,p){
+  // V ∝ φ^p  → ε = p²/(2φ²), η = p(p-1)/φ²  (Mpl=1)
+  const eps=p*p/(2*phi*phi);
+  const eta=p*(p-1)/(phi*phi);
+  const ns=1-6*eps+2*eta;
+  const r=16*eps;
+  return {eps,eta,ns,r};
+}
+
+function redrawSR(){
+  if(!srC||!srCtx||activeTab!==12) return;
+  if(!srC.width||!srC.height) resizeSR();
+  const W=srC.width, H=srC.height;
+  if(W<2||H<2) return;
+  srCtx.setTransform(1,0,0,1,0,0);
+  srCtx.fillStyle='#05050f'; srCtx.fillRect(0,0,W,H);
+  srCtx.setTransform(1,0,0,1,pans[12].x,pans[12].y);
+  const L=_gLayout(W,H);
+  // animated field value around slider
+  const phi=srPhi*(1+0.02*Math.sin(srT));
+  const par=srParams(phi,srP);
+  const eEl=document.getElementById('srEps');
+  const nEl=document.getElementById('srEta');
+  const nsEl=document.getElementById('srNs');
+  const rEl=document.getElementById('srR');
+  if(eEl) eEl.textContent=par.eps.toExponential(2);
+  if(nEl) nEl.textContent=par.eta.toExponential(2);
+  if(nsEl) nsEl.textContent=par.ns.toFixed(4);
+  if(rEl) rEl.textContent=par.r.toFixed(4);
+
+  if(srView===0){
+    _gTitle(srCtx,L,'Slow-roll ε(φ), η(φ)  ·  V∝φ^p  p='+srP.toFixed(1));
+    _gAxes(srCtx,L);
+    _gClip(srCtx,L);
+    const phiMin=5, phiMax=25;
+    srCtx.strokeStyle='rgba(204,102,255,0.9)'; srCtx.lineWidth=2;
+    srCtx.beginPath();
+    for(let i=0;i<=80;i++){
+      const ph=phiMin+(phiMax-phiMin)*i/80;
+      const e=srParams(ph,srP).eps;
+      const x=L.x+(i/80)*L.w;
+      const y=_gClampY(L.y+L.h*(1-Math.min(1,e*20)),L);
+      i===0?srCtx.moveTo(x,y):srCtx.lineTo(x,y);
+    }
+    srCtx.stroke();
+    srCtx.strokeStyle='rgba(0,229,255,0.85)'; srCtx.lineWidth=2;
+    srCtx.beginPath();
+    for(let i=0;i<=80;i++){
+      const ph=phiMin+(phiMax-phiMin)*i/80;
+      const et=Math.abs(srParams(ph,srP).eta);
+      const x=L.x+(i/80)*L.w;
+      const y=_gClampY(L.y+L.h*(1-Math.min(1,et*20)),L);
+      i===0?srCtx.moveTo(x,y):srCtx.lineTo(x,y);
+    }
+    srCtx.stroke();
+    // current phi marker
+    const cx=L.x+((phi-phiMin)/(phiMax-phiMin))*L.w;
+    srCtx.strokeStyle='rgba(255,200,80,0.7)'; srCtx.beginPath();
+    srCtx.moveTo(cx,L.y); srCtx.lineTo(cx,L.y+L.h); srCtx.stroke();
+    srCtx.restore();
+    srCtx.fillStyle='rgba(204,102,255,0.8)'; srCtx.font=L.f1+'px monospace';
+    srCtx.fillText('ε', L.x+L.w*0.8, L.y+20);
+    srCtx.fillStyle='rgba(0,229,255,0.8)';
+    srCtx.fillText('η', L.x+L.w*0.8, L.y+36);
+    _gFooter(srCtx,L,'ε≪1, |η|≪1 for slow-roll  ·  end when ε~1');
+  } else {
+    _gTitle(srCtx,L,'n_s – r plane  ·  monomial + attractor targets');
+    _gAxes(srCtx,L);
+    _gClip(srCtx,L);
+    // axes ranges: ns 0.92–1.0, r 0–0.2
+    const ns0=0.92, ns1=1.0, r0=0, r1=0.2;
+    const toX=ns=>L.x+(ns-ns0)/(ns1-ns0)*L.w;
+    const toY=r=>L.y+L.h*(1-(r-r0)/(r1-r0));
+    // Planck-ish contour ellipse
+    srCtx.strokeStyle='rgba(0,229,255,0.35)'; srCtx.lineWidth=1.5;
+    srCtx.beginPath();
+    for(let i=0;i<=60;i++){
+      const th=i/60*Math.PI*2;
+      const ns=0.965+0.008*Math.cos(th);
+      const r=0.02+0.025*Math.sin(th);
+      const x=toX(ns), y=toY(Math.max(0,r));
+      i===0?srCtx.moveTo(x,y):srCtx.lineTo(x,y);
+    }
+    srCtx.stroke();
+    // monomial track vs N
+    srCtx.strokeStyle='rgba(255,136,68,0.8)'; srCtx.lineWidth=2;
+    srCtx.beginPath();
+    for(let N=40;N<=70;N++){
+      const ph=Math.sqrt(srP*N/2)*1.2; // rough
+      const p=srParams(Math.max(5,ph),srP);
+      const x=toX(p.ns), y=toY(Math.min(r1,p.r));
+      N===40?srCtx.moveTo(x,y):srCtx.lineTo(x,y);
+    }
+    srCtx.stroke();
+    // Starobinsky
+    srCtx.strokeStyle='rgba(120,255,160,0.7)'; srCtx.setLineDash([4,3]);
+    srCtx.beginPath();
+    for(let N=40;N<=70;N++){
+      const ns=1-2/N, r=12/(N*N);
+      const x=toX(ns), y=toY(r);
+      N===40?srCtx.moveTo(x,y):srCtx.lineTo(x,y);
+    }
+    srCtx.stroke(); srCtx.setLineDash([]);
+    // current point
+    const cur=srParams(phi,srP);
+    srCtx.beginPath(); srCtx.arc(toX(cur.ns),toY(Math.min(r1,cur.r)),6,0,Math.PI*2);
+    srCtx.fillStyle='rgba(255,200,80,0.95)'; srCtx.fill();
+    srCtx.restore();
+    srCtx.fillStyle='rgba(0,229,255,0.6)'; srCtx.font=L.f1+'px monospace';
+    srCtx.fillText('Planck 68%', toX(0.97), toY(0.06));
+    srCtx.fillStyle='rgba(120,255,160,0.7)';
+    srCtx.fillText('R² / α-attractor', toX(0.955), toY(0.005));
+    _gFooter(srCtx,L,'n_s='+cur.ns.toFixed(4)+'  r='+cur.r.toFixed(4)+'  N_*='+srN);
+  }
+  srCtx.setTransform(1,0,0,1,0,0);
+}
+function srLoop(){
+  if(activeTab!==12||!srRunning){srRunning=false;RAF13.sr=null;return;}
+  if(!srPaused) srT+=0.03*(window.animSpeed||1);
+  redrawSR();
+  RAF13.sr=requestAnimationFrame(srLoop);
+}
+function startSRLoop(){
+  resizeSR();
+  srRunning=true; srPaused=false;
+  _setPauseBtn('srPauseBtn',false);
+  if(RAF13.sr){cancelAnimationFrame(RAF13.sr);RAF13.sr=null;}
+  srLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 13: PRIMORDIAL f_NL
+// ═══════════════════════════════════════════════════════════════════
+const fnlC=document.getElementById('fnlCanvas');
+const fnlCtx=fnlC?fnlC.getContext('2d'):null;
+let fnlA=10, fnlRatio=1.0, fnlView=0;
+let fnlT=0;
+
+function setFNLView(v){
+  fnlView=v;
+  const b0=document.getElementById('fnlView0'), b1=document.getElementById('fnlView1');
+  if(b0) b0.classList.toggle('active',v===0);
+  if(b1) b1.classList.toggle('active',v===1);
+  redrawFNL();
+}
+function resizeFNL(){ _resizeMainCanvas(fnlC,'panel13'); }
+function toggleFNLPause(){ fnlPaused=!fnlPaused; _setPauseBtn('fnlPauseBtn',fnlPaused); }
+
+function fnlShapeB(k1,k2,k3,shape){
+  const s=k1+k2+k3;
+  if(shape==='local'){
+    // peaks squeezed
+    return 2*(1/(k1*k1*k2*k2)+1/(k2*k2*k3*k3)+1/(k3*k3*k1*k1));
+  } else if(shape==='equil'){
+    return 6*(-1/(k1*k1*k2*k2)-1/(k2*k2*k3*k3)-1/(k3*k3*k1*k1)-2/(k1*k2*k3*s)+1/(k1*k1*k2*k3)+1/(k2*k2*k1*k3)+1/(k3*k3*k1*k2));
+  } else {
+    // orthogonal sketch
+    return fnlShapeB(k1,k2,k3,'equil')-3*fnlShapeB(k1,k2,k3,'local')*0.1;
+  }
+}
+
+function redrawFNL(){
+  if(!fnlC||!fnlCtx||activeTab!==13) return;
+  if(!fnlC.width||!fnlC.height) resizeFNL();
+  const W=fnlC.width, H=fnlC.height;
+  if(W<2||H<2) return;
+  fnlCtx.setTransform(1,0,0,1,0,0);
+  fnlCtx.fillStyle='#05050f'; fnlCtx.fillRect(0,0,W,H);
+  fnlCtx.setTransform(1,0,0,1,pans[13].x,pans[13].y);
+  const L=_gLayout(W,H);
+  const shapeEl=document.getElementById('fnlShape');
+  const shape=shapeEl?shapeEl.value:'local';
+  const shDisp=document.getElementById('fnlShapeDisp');
+  if(shDisp) shDisp.textContent=shape;
+
+  if(fnlView===0){
+    _gTitle(fnlCtx,L,'Bispectrum B(k₁,k₂,k₃)  ·  '+shape+' template × f_NL');
+    // triangle configuration scanner
+    const k1=1;
+    const k2=fnlRatio;
+    _gAxes(fnlCtx,L);
+    _gClip(fnlCtx,L);
+    let bmax=0, bvals=[];
+    for(let i=0;i<=80;i++){
+      const t=i/80;
+      // k3 from |k1-k2| to k1+k2
+      const k3min=Math.abs(k1-k2)+0.05, k3max=k1+k2-0.05;
+      const k3=k3min+(k3max-k3min)*t;
+      let B=fnlShapeB(k1,k2,k3,shape)*fnlA;
+      B*=(1+0.05*Math.sin(fnlT+t*4));
+      bvals.push({t,B,k3});
+      if(Math.abs(B)>bmax) bmax=Math.abs(B);
+    }
+    bmax=bmax||1;
+    fnlCtx.strokeStyle='rgba(204,102,255,0.9)'; fnlCtx.lineWidth=2.5;
+    fnlCtx.beginPath();
+    bvals.forEach((p,i)=>{
+      const x=L.x+p.t*L.w;
+      const y=_gClampY(L.y+L.h*0.5 - (p.B/bmax)*L.h*0.45, L);
+      i===0?fnlCtx.moveTo(x,y):fnlCtx.lineTo(x,y);
+    });
+    fnlCtx.stroke();
+    fnlCtx.strokeStyle='rgba(255,255,255,0.12)';
+    fnlCtx.beginPath(); fnlCtx.moveTo(L.x,L.y+L.h*0.5); fnlCtx.lineTo(L.x+L.w,L.y+L.h*0.5); fnlCtx.stroke();
+    fnlCtx.restore();
+    // triangle sketch
+    const tx=L.x+L.w*0.12, ty=L.y+L.h*0.22, sc=Math.min(L.w,L.h)*0.12;
+    fnlCtx.strokeStyle='rgba(0,229,255,0.6)'; fnlCtx.lineWidth=1.5;
+    fnlCtx.beginPath();
+    fnlCtx.moveTo(tx,ty);
+    fnlCtx.lineTo(tx+sc*k1,ty);
+    fnlCtx.lineTo(tx+sc*k1*0.5,ty-sc*fnlRatio*0.7);
+    fnlCtx.closePath(); fnlCtx.stroke();
+    fnlCtx.fillStyle='rgba(0,229,255,0.7)'; fnlCtx.font=L.f1+'px monospace';
+    fnlCtx.fillText('k₂/k₁='+fnlRatio.toFixed(2), tx-4, ty+18);
+    const bpk=document.getElementById('fnlBpk');
+    if(bpk) bpk.textContent=(bmax).toExponential(2);
+    const skew=document.getElementById('fnlSkew');
+    if(skew) skew.textContent=(0.001*fnlA).toFixed(4);
+    _gFooter(fnlCtx,L,'f_NL='+fnlA+'  ·  local → squeezed; equil → k₁≈k₂≈k₃');
+  } else {
+    _gTitle(fnlCtx,L,'ζ PDF  ·  Gaussian + local f_NL skewness');
+    _gAxes(fnlCtx,L);
+    _gClip(fnlCtx,L);
+    // PDF curves
+    fnlCtx.strokeStyle='rgba(180,180,200,0.5)'; fnlCtx.lineWidth=1.5;
+    fnlCtx.beginPath();
+    for(let i=0;i<=100;i++){
+      const x=L.x+(i/100)*L.w;
+      const z=-3+6*(i/100);
+      const g=Math.exp(-0.5*z*z)/Math.sqrt(2*Math.PI);
+      const y=_gClampY(L.y+L.h*(1-g*1.8),L);
+      i===0?fnlCtx.moveTo(x,y):fnlCtx.lineTo(x,y);
+    }
+    fnlCtx.stroke();
+    fnlCtx.strokeStyle='rgba(255,136,68,0.9)'; fnlCtx.lineWidth=2.5;
+    fnlCtx.beginPath();
+    for(let i=0;i<=100;i++){
+      const x=L.x+(i/100)*L.w;
+      const z=-3+6*(i/100);
+      // local NG maps ζ = g + (3/5)fNL (g² - σ²)
+      const skew=0.15*(fnlA/50)*(z*z-1);
+      const g=Math.exp(-0.5*z*z)/Math.sqrt(2*Math.PI)*(1+skew*(0.8+0.2*Math.sin(fnlT)));
+      const y=_gClampY(L.y+L.h*(1-Math.max(0,g)*1.8),L);
+      i===0?fnlCtx.moveTo(x,y):fnlCtx.lineTo(x,y);
+    }
+    fnlCtx.stroke();
+    fnlCtx.restore();
+    fnlCtx.fillStyle='rgba(180,180,200,0.6)'; fnlCtx.font=L.f1+'px monospace';
+    fnlCtx.fillText('Gaussian', L.x+L.w*0.7, L.y+L.h*0.3);
+    fnlCtx.fillStyle='rgba(255,136,68,0.85)';
+    fnlCtx.fillText('f_NL='+fnlA, L.x+L.w*0.7, L.y+L.h*0.42);
+    const skew=document.getElementById('fnlSkew');
+    if(skew) skew.textContent=(0.0012*fnlA).toFixed(4);
+    const bpk=document.getElementById('fnlBpk');
+    if(bpk) bpk.textContent='—';
+    _gFooter(fnlCtx,L,'ζ=ζ_g+(3/5)f_NL(ζ_g²−⟨ζ_g²⟩)  ·  Planck f_NL^loc=−0.9±5.1');
+  }
+  fnlCtx.setTransform(1,0,0,1,0,0);
+}
+function fnlLoop(){
+  if(activeTab!==13||!fnlRunning){fnlRunning=false;RAF13.fnl=null;return;}
+  if(!fnlPaused) fnlT+=0.03*(window.animSpeed||1);
+  redrawFNL();
+  RAF13.fnl=requestAnimationFrame(fnlLoop);
+}
+function startFNLLoop(){
+  resizeFNL();
+  fnlRunning=true; fnlPaused=false;
+  _setPauseBtn('fnlPauseBtn',false);
+  if(RAF13.fnl){cancelAnimationFrame(RAF13.fnl);RAF13.fnl=null;}
+  fnlLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 14: CMB LENSING κ
+// ═══════════════════════════════════════════════════════════════════
+const kapC=document.getElementById('kapCanvas');
+const kapCtx=kapC?kapC.getContext('2d'):null;
+let kapAL=1, kapS8=0.81, kapLpk=60, kapView=0;
+let kapT=0;
+let kapField=null, kapFieldKey='';
+
+function setKAPView(v){
+  kapView=v;
+  const b0=document.getElementById('kapView0'), b1=document.getElementById('kapView1');
+  if(b0) b0.classList.toggle('active',v===0);
+  if(b1) b1.classList.toggle('active',v===1);
+  redrawKAP();
+}
+function resizeKAP(){ _resizeMainCanvas(kapC,'panel14'); }
+function toggleKAPPause(){ kapPaused=!kapPaused; _setPauseBtn('kapPauseBtn',kapPaused); }
+
+function kapEnsureField(Nx,Ny,phase){
+  const key=Nx+'x'+Ny+'@'+kapS8.toFixed(2)+'@'+kapAL.toFixed(2)+'@'+(Math.round(phase*20)/20);
+  if(kapField&&kapFieldKey===key) return kapField;
+  let seed=77;
+  const rng=()=>{seed=(seed*1664525+1013904223)&0xffffffff;return (seed>>>0)/0xffffffff;};
+  const modes=[];
+  for(let kx=0;kx<=6;kx++) for(let ky=0;ky<=6;ky++){
+    if(kx===0&&ky===0) continue;
+    const k=Math.sqrt(kx*kx+ky*ky);
+    const Cl=Math.exp(-Math.pow(Math.log(k+0.5)-Math.log(2.5),2))*kapS8*kapS8*kapAL;
+    modes.push({kx,ky,amp:Math.sqrt(Cl)*0.5,ph:rng()*Math.PI*2+phase*0.3});
+  }
+  const field=new Float32Array(Nx*Ny);
+  let mn=Infinity,mx=-Infinity;
+  for(let iy=0;iy<Ny;iy++) for(let ix=0;ix<Nx;ix++){
+    let v=0;
+    const x=ix/Nx*Math.PI*2, y=iy/Ny*Math.PI*2;
+    for(const m of modes) v+=m.amp*Math.sin(m.kx*x+m.ky*y+m.ph);
+    field[iy*Nx+ix]=v;
+    if(v<mn) mn=v; if(v>mx) mx=v;
+  }
+  kapField={field,mn,mx,Nx,Ny};
+  kapFieldKey=key;
+  return kapField;
+}
+
+function redrawKAP(){
+  if(!kapC||!kapCtx||activeTab!==14) return;
+  if(!kapC.width||!kapC.height) resizeKAP();
+  const W=kapC.width, H=kapC.height;
+  if(W<2||H<2) return;
+  kapCtx.setTransform(1,0,0,1,0,0);
+  kapCtx.fillStyle='#05050f'; kapCtx.fillRect(0,0,W,H);
+  kapCtx.setTransform(1,0,0,1,pans[14].x,pans[14].y);
+  const L=_gLayout(W,H);
+  const sig=0.06*kapS8*Math.sqrt(kapAL);
+  const clpk=2e-7*kapS8*kapS8*kapAL*(kapLpk/60);
+  const sEl=document.getElementById('kapSig');
+  const cEl=document.getElementById('kapCl');
+  const aEl=document.getElementById('kapALd');
+  if(sEl) sEl.textContent=sig.toFixed(4);
+  if(cEl) cEl.textContent=clpk.toExponential(2);
+  if(aEl) aEl.textContent=kapAL.toFixed(2);
+
+  if(kapView===0){
+    _gTitle(kapCtx,L,'Convergence κ map  ·  A_L='+kapAL.toFixed(2)+'  σ₈='+kapS8.toFixed(2));
+    const Nx=90, Ny=Math.max(40,Math.floor(90*L.h/L.w));
+    const data=kapEnsureField(Nx,Ny,kapT);
+    const img=kapCtx.createImageData(Nx,Ny);
+    const range=(data.mx-data.mn)||1;
+    for(let i=0;i<data.field.length;i++){
+      const n=(data.field[i]-data.mn)/range;
+      // diverging colormap
+      let r,g,b;
+      if(n<0.5){
+        const t=n/0.5;
+        r=(20+40*t)|0; g=(30+80*t)|0; b=(80+120*t)|0;
+      } else {
+        const t=(n-0.5)/0.5;
+        r=(60+180*t)|0; g=(110+100*t)|0; b=(200-120*t)|0;
+      }
+      img.data[i*4]=r; img.data[i*4+1]=g; img.data[i*4+2]=b; img.data[i*4+3]=255;
+    }
+    const off=document.createElement('canvas');
+    off.width=Nx; off.height=Ny;
+    off.getContext('2d').putImageData(img,0,0);
+    kapCtx.imageSmoothingEnabled=true;
+    kapCtx.drawImage(off,0,0,Nx,Ny,L.x,L.y,L.w,L.h);
+    // deflection arrows sample
+    kapCtx.strokeStyle='rgba(255,255,255,0.25)'; kapCtx.lineWidth=1;
+    for(let j=0;j<5;j++) for(let i=0;i<6;i++){
+      const ix=((i+0.5)/6*Nx)|0, iy=((j+0.5)/5*Ny)|0;
+      const v=data.field[iy*Nx+ix];
+      const px=L.x+(i+0.5)/6*L.w, py=L.y+(j+0.5)/5*L.h;
+      const dx=v*12*kapAL, dy=Math.sin(kapT+i)*8*kapAL;
+      kapCtx.beginPath(); kapCtx.moveTo(px,py); kapCtx.lineTo(px+dx,py+dy); kapCtx.stroke();
+    }
+    _gFooter(kapCtx,L,'κ=½∇·d  ·  rms≈'+sig.toFixed(3)+'  ·  remaps T(n̂+∇φ)');
+  } else {
+    _gTitle(kapCtx,L,'C_ℓ^{κκ}  ·  lensing power (Limber sketch)');
+    _gAxes(kapCtx,L);
+    _gClip(kapCtx,L);
+    kapCtx.strokeStyle='rgba(204,102,255,0.9)'; kapCtx.lineWidth=2.5;
+    kapCtx.beginPath();
+    for(let i=0;i<=100;i++){
+      const ell=2+Math.pow(10,i/100*3.2); // 2 .. ~1600
+      const x=L.x+(i/100)*L.w;
+      const peak=kapLpk;
+      const Cl=kapAL*kapS8*kapS8*Math.exp(-Math.pow(Math.log(ell/peak)/1.2,2))*ell*(ell+1);
+      const y=_gClampY(L.y+L.h*(1-Math.min(1,Cl/ (kapAL*kapS8*kapS8*peak*peak*0.8) )),L);
+      // gentle anim
+      const y2=_gClampY(y+(Math.sin(kapT+i*0.1)*2),L);
+      i===0?kapCtx.moveTo(x,y2):kapCtx.lineTo(x,y2);
+    }
+    kapCtx.stroke();
+    // neutrino suppress hint
+    kapCtx.strokeStyle='rgba(255,100,100,0.45)'; kapCtx.setLineDash([4,3]); kapCtx.lineWidth=1.5;
+    kapCtx.beginPath();
+    for(let i=0;i<=100;i++){
+      const ell=2+Math.pow(10,i/100*3.2);
+      const x=L.x+(i/100)*L.w;
+      const peak=kapLpk;
+      const supp=1/(1+Math.pow(ell/800,1.2)*0.35);
+      const Cl=kapAL*kapS8*kapS8*Math.exp(-Math.pow(Math.log(ell/peak)/1.2,2))*ell*(ell+1)*supp;
+      const y=_gClampY(L.y+L.h*(1-Math.min(1,Cl/ (kapAL*kapS8*kapS8*peak*peak*0.8) )),L);
+      i===0?kapCtx.moveTo(x,y):kapCtx.lineTo(x,y);
+    }
+    kapCtx.stroke(); kapCtx.setLineDash([]);
+    kapCtx.restore();
+    kapCtx.fillStyle='rgba(255,100,100,0.65)'; kapCtx.font=L.f1+'px monospace';
+    kapCtx.fillText('∑m_ν suppress', L.x+L.w*0.55, L.y+L.h*0.55);
+    _gFooter(kapCtx,L,'ℓ_peak≈'+kapLpk+'  ·  A_L tension tests  ·  delensing for r');
+  }
+  kapCtx.setTransform(1,0,0,1,0,0);
+}
+function kapLoop(){
+  if(activeTab!==14||!kapRunning){kapRunning=false;RAF13.kap=null;return;}
+  if(!kapPaused) kapT+=0.02*(window.animSpeed||1);
+  redrawKAP();
+  RAF13.kap=requestAnimationFrame(kapLoop);
+}
+function startKAPLoop(){
+  resizeKAP();
+  kapRunning=true; kapPaused=false;
+  _setPauseBtn('kapPauseBtn',false);
+  if(RAF13.kap){cancelAnimationFrame(RAF13.kap);RAF13.kap=null;}
+  kapLoop();
+}
+
 // ── RESIZE & INIT ──
 function resizeAll(){
   resizeFried(); resizePenrose(); resizeHawk();
   resizeCMB(); resizeInfl(); resizeDE(); resizeGW(); resizeBBN(); resizeSF();
+  resizeBOL(); resizeSAHA(); resizeTF(); resizeSR(); resizeFNL(); resizeKAP();
   if(activeTab===0) solveFriedmann();
   if(activeTab===1) redrawPenrose();
   if(activeTab===2) updateHawking();
@@ -3614,11 +4984,34 @@ function resizeAll(){
   if(activeTab===6) drawGW();
   if(activeTab===7) drawBBN();
   if(activeTab===8) drawStructure();
+  if(activeTab===9) redrawBOL();
+  if(activeTab===10) redrawSAHA();
+  if(activeTab===11) redrawTF();
+  if(activeTab===12) redrawSR();
+  if(activeTab===13) redrawFNL();
+  if(activeTab===14) redrawKAP();
 }
 window.addEventListener('resize',resizeAll);
 
-
+// Bind pan handlers once DOM canvases exist
 setTimeout(()=>{
+  try{
+    _addPan(document.getElementById('friedCanvas'),0,()=>solveFriedmann());
+    _addPan(document.getElementById('penroseCanvas'),1,()=>redrawPenrose());
+    _addPan(document.getElementById('hawkCanvas'),2,()=>updateHawking());
+    _addPan(document.getElementById('cmbCanvas'),3,()=>drawCMB());
+    _addPan(document.getElementById('inflCanvas'),4,()=>drawInflation());
+    _addPan(document.getElementById('deCanvas'),5,()=>drawDarkEnergy());
+    _addPan(document.getElementById('gwCanvas'),6,()=>drawGW());
+    _addPan(document.getElementById('bbnCanvas'),7,()=>drawBBN());
+    _addPan(document.getElementById('sfCanvas'),8,()=>drawStructure());
+    _addPan(bolC,9,()=>redrawBOL());
+    _addPan(sahaC,10,()=>redrawSAHA());
+    _addPan(tfC,11,()=>redrawTF());
+    _addPan(srC,12,()=>redrawSR());
+    _addPan(fnlC,13,()=>redrawFNL());
+    _addPan(kapC,14,()=>redrawKAP());
+  }catch(e){}
   autoStartAnimations();
   switchTab(0);
 },120);
