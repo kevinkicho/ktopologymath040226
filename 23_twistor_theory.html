@@ -24,13 +24,16 @@ header{padding:18px 28px;border-bottom:1px solid var(--border);display:flex;alig
 .badge{background:var(--accent);color:#000;font-weight:700;font-size:.75rem;padding:3px 9px;border-radius:12px;}
 .header-text h1{font-size:1.25rem;font-weight:600;color:#fff;}
 .header-text p{font-size:.82rem;color:var(--dim);margin-top:2px;}
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);}
-.tab-btn{padding:11px 22px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:.88rem;border-bottom:2px solid transparent;transition:all .2s;}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%;}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab-btn{padding:11px 14px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:.82rem;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;flex-shrink:0;}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-btn:hover{color:var(--text);}
 .tab-panel{display:none;}.tab-panel.active{display:flex;flex-direction:column;}
-.canvas-wrap{position:relative;background:var(--bg3);border-bottom:1px solid var(--border);}
+.canvas-wrap{position:relative;background:var(--bg3);border-bottom:1px solid var(--border);overflow:hidden;}
 canvas{display:block;width:100%;height:420px;}
+.tab-body{padding:16px 20px 20px;font-size:.84rem;line-height:1.75;color:var(--text);max-width:960px;max-height:220px;overflow-y:auto;}
+.tab-body b{color:var(--accent);}
 .controls{padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
 .ctrl-group{display:flex;align-items:center;gap:8px;font-size:.83rem;}
 label{color:var(--dim);}
@@ -61,7 +64,7 @@ body{padding-bottom:38px}
   </div>
 </header>
 
-<div class="tabs" role="tablist" data-role="tab-bar" style="flex-wrap:wrap;">
+<div class="tabs" role="tablist" data-role="tab-bar">
   <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab(0)">Twistor Space &amp; Null Rays</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(1)">Celestial Sphere</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(2)">Penrose Transform &amp; Helicity</button>
@@ -71,6 +74,12 @@ body{padding-bottom:38px}
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(6)">Twistor Strings</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(7)">MHV Amplitudes</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(8)">Twistor Quantum Theory</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(9)">Incidence &amp; Projective PT</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(10)">Ward Correspondence</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(11)">Twistor Cohomology H¹</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(12)">Positive Grassmannian</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(13)">Scattering Eq. / CHY</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(14)">Asymptotic Twistor / Celestial</button>
 </div>
 
 <!-- TAB 0 -->
@@ -305,6 +314,166 @@ body{padding-bottom:38px}
   </div>
 </div>
 
+<!-- TAB 9: Incidence & Projective PT -->
+<div class="tab-panel" data-role="panel" id="tab9">
+  <div class="canvas-wrap"><canvas aria-label="23 — Twistor Theory — panel 10" id="c9" width="900" height="420"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>π phase:</label><input type="range" id="incPi" min="0" max="100" value="25"><span class="val-display" id="incPiv">0.25</span></div>
+    <div class="ctrl-group"><label>x slice:</label><input type="range" id="incX" min="0" max="100" value="50"><span class="val-display" id="incXv">0.00</span></div>
+    <button id="animBtn9" onclick="toggleAnim9()">▶ Animate</button>
+    <button onclick="resetTab23(9)">Reset</button>
+    <div class="ctrl-group"><label>Show flag</label><input type="checkbox" id="showFlag" checked></div>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom9" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal9').textContent=(+this.value).toFixed(1);zooms[9]=window.zoomX;draw9()"></div>
+    <span class="val-display" id="zoomVal9">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed10" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal10').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal10">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>Incidence: <span id="incInfo">—</span></div>
+    <div>$\omega^A = ix^{AA'}\pi_{A'}$ — $Z^\alpha\sim\lambda Z^\alpha$ on $\mathbb{PT}\cong\mathbb{CP}^3$</div>
+  </div>
+  <div class="tab-body">
+    <b>Incidence Geometry of Projective Twistor Space</b><br>
+    Projective twistor space $\mathbb{PT}=\mathbb{P}(\mathbb{T})\cong\mathbb{CP}^3$ is the space of lines through the origin in $\mathbb{T}\cong\mathbb{C}^4$. A spacetime point $x^{AA'}$ is encoded by the projective line
+    $\hat{x}=\{Z=(\omega,\pi):\omega^A=ix^{AA'}\pi_{A'}\}\cong\mathbb{CP}^1\subset\mathbb{PT}$.
+    The incidence variety $\mathbf{F}=\{(x,Z):Z\in\hat{x}\}$ is a flag manifold: double fibration $\mathbb{CM}\leftarrow\mathbf{F}\rightarrow\mathbb{PT}$.
+    Null separation of points $\Leftrightarrow$ intersecting lines in $\mathbb{PT}$. Compactified complexified Minkowski is the Klein quadric / Grassmannian $G(2,4)\subset\mathbb{CP}^5$.
+  </div>
+</div>
+
+<!-- TAB 10: Ward Correspondence -->
+<div class="tab-panel" data-role="panel" id="tab10">
+  <div class="canvas-wrap"><canvas aria-label="23 — Twistor Theory — panel 11" id="c10" width="900" height="420"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>Instanton k:</label><input type="range" id="wardK" min="0" max="4" value="1" step="1"><span class="val-display" id="wardKv">1</span></div>
+    <div class="ctrl-group"><label>Patch glue:</label><input type="range" id="wardGlue" min="0" max="100" value="40"><span class="val-display" id="wardGluev">0.40</span></div>
+    <button id="animBtn10" onclick="toggleAnim10()">▶ Animate</button>
+    <button onclick="resetTab23(10)">Reset</button>
+    <div class="ctrl-group"><label>Show SDYM</label><input type="checkbox" id="showSDYM" checked></div>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom10" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal10').textContent=(+this.value).toFixed(1);zooms[10]=window.zoomX;draw10()"></div>
+    <span class="val-display" id="zoomVal10">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed11" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal11').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal11">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>Bundle: <span id="wardInfo">—</span></div>
+    <div>Self-dual YM $\leftrightarrow$ holomorphic vector bundle on $\mathbb{PT}$ trivial on each $\hat{x}$</div>
+  </div>
+  <div class="tab-body">
+    <b>Ward Correspondence — Self-Dual Yang–Mills</b><br>
+    Richard Ward (1977): solutions of the self-dual Yang–Mills equations $F=*F$ on $\mathbb{CM}$ are equivalent to holomorphic vector bundles $E\to\mathbb{PT}$ that are holomorphically trivial on every line $\hat{x}\subset\mathbb{PT}$.
+    The SDYM curvature is recovered by restricting $E$ to $\hat{x}\cong\mathbb{CP}^1$ and reading off the transition function's expansion in the affine coordinate.
+    Instanton number $k=c_2(E)$ labels charge sectors; ADHM data reappear as monad presentations of $E$. Anti-self-dual YM uses dual twistor space $\mathbb{PT}^*$.
+  </div>
+</div>
+
+<!-- TAB 11: Twistor Cohomology H¹ -->
+<div class="tab-panel" data-role="panel" id="tab11">
+  <div class="canvas-wrap"><canvas aria-label="23 — Twistor Theory — panel 12" id="c11" width="900" height="420"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>Helicity s:</label><input type="range" id="cohS" min="-2" max="2" value="1" step="1"><span class="val-display" id="cohSv">+1</span></div>
+    <div class="ctrl-group"><label>Čech patches:</label><input type="range" id="cohPatches" min="2" max="5" value="3" step="1"><span class="val-display" id="cohPatchesv">3</span></div>
+    <button id="animBtn11" onclick="toggleAnim11()">▶ Animate</button>
+    <button onclick="resetTab23(11)">Reset</button>
+    <div class="ctrl-group"><label>Show Dolbeault</label><input type="checkbox" id="showDolb" checked></div>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom11" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal11').textContent=(+this.value).toFixed(1);zooms[11]=window.zoomX;draw11()"></div>
+    <span class="val-display" id="zoomVal11">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed12" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal12').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal12">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>Class: <span id="cohClassInfo">—</span></div>
+    <div>$H^1(\mathbb{PT}^+,\mathcal{O}(2s-2))\cong\{\text{helicity }s\text{ massless fields}\}$</div>
+  </div>
+  <div class="tab-body">
+    <b>Twistor Cohomology — Massless Fields as $H^1$</b><br>
+    Free massless fields of helicity $s$ on Minkowski space are isomorphic to sheaf cohomology classes
+    $H^1(\mathbb{PT}^+,\mathcal{O}(2s-2))$. Čech representatives are holomorphic functions $f_{ij}$ on double overlaps with cocycle condition $f_{ij}+f_{jk}+f_{ki}=0$.
+    Equivalently, Dolbeault: $\bar\partial$-closed $(0,1)$-forms modulo $\bar\partial$-exact. The Penrose contour integral
+    $\phi_{A\cdots B}(x)=\oint f(ix\pi,\pi)\,\pi_A\cdots\pi_B\langle\pi\,d\pi\rangle$ automatically solves $\nabla^{AA'}\phi_{A\cdots}=0$.
+    Spin $0,1/2,1,3/2,2$ are $n=-2,-1,0,1,2$ in $\mathcal{O}(n)$.
+  </div>
+</div>
+
+<!-- TAB 12: Positive Grassmannian (lite — unique vs 44 Amplituhedron) -->
+<div class="tab-panel" data-role="panel" id="tab12">
+  <div class="canvas-wrap"><canvas aria-label="23 — Twistor Theory — panel 13" id="c12" width="900" height="420"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>k (rows):</label><input type="range" id="pgK" min="1" max="3" value="2" step="1"><span class="val-display" id="pgKv">2</span></div>
+    <div class="ctrl-group"><label>n (cols):</label><input type="range" id="pgN" min="4" max="8" value="6" step="1"><span class="val-display" id="pgNv">6</span></div>
+    <button id="animBtn12" onclick="toggleAnim12()">▶ Animate</button>
+    <button onclick="resetTab23(12)">Reset</button>
+    <div class="ctrl-group"><label>Show plabic</label><input type="checkbox" id="showPlabic" checked></div>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom12" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal12').textContent=(+this.value).toFixed(1);zooms[12]=window.zoomX;draw12()"></div>
+    <span class="val-display" id="zoomVal12">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed13" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal13').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal13">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>Cell: <span id="pgInfo">—</span></div>
+    <div>$G_+(k,n)=\{C\in G(k,n):\text{all }k\times k\text{ minors }&gt;0\}$ — positroid cells → on-shell diagrams</div>
+  </div>
+  <div class="tab-body">
+    <b>Positive Grassmannian — On-Shell Geometry (lite)</b><br>
+    The positive Grassmannian $G_+(k,n)$ is the totally nonnegative part of $G(k,n)$. Positroid cells are labeled by decorated permutations / plabic graphs; each cell supports an on-shell diagram for $\mathcal{N}=4$ SYM.
+    Momentum twistor coordinates make Plücker coordinates $p_I=\langle Z_{i_1}\cdots Z_{i_k}\rangle$ the natural cluster variables. This module focuses on cell stratification and plabic graphs — not a full amplituhedron volume (see module 44 for that complementary view).
+    Tree amplitudes = sum of volumes of positive cells with correct boundary structure.
+  </div>
+</div>
+
+<!-- TAB 13: Scattering Equations / CHY -->
+<div class="tab-panel" data-role="panel" id="tab13">
+  <div class="canvas-wrap"><canvas aria-label="23 — Twistor Theory — panel 14" id="c13" width="900" height="420"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>Particles n:</label><input type="range" id="chyN" min="4" max="8" value="5" step="1"><span class="val-display" id="chyNv">5</span></div>
+    <div class="ctrl-group"><label>Moduli flow:</label><input type="range" id="chyFlow" min="0" max="100" value="30"><span class="val-display" id="chyFlowv">0.30</span></div>
+    <button id="animBtn13" onclick="toggleAnim13()">▶ Animate</button>
+    <button onclick="resetTab23(13)">Reset</button>
+    <div class="ctrl-group"><label>Show poles</label><input type="checkbox" id="showPoles" checked></div>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom13" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal13').textContent=(+this.value).toFixed(1);zooms[13]=window.zoomX;draw13()"></div>
+    <span class="val-display" id="zoomVal13">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed14" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal14').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal14">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>CHY: <span id="chyInfo">—</span></div>
+    <div>$E_a=\sum_{b\neq a}s_{ab}/(\sigma_a-\sigma_b)=0$ — scattering equations on $\mathcal{M}_{0,n}$</div>
+  </div>
+  <div class="tab-body">
+    <b>Scattering Equations &amp; CHY Bridge</b><br>
+    Cachazo–He–Yuan (2013): tree amplitudes in a wide class of theories localize on solutions of the scattering equations
+    $E_a=\sum_{b\neq a}s_{ab}/(\sigma_a-\sigma_b)=0$ for $\sigma\in\mathcal{M}_{0,n}$.
+    The CHY measure pairs a Pfaffian (or Parke–Taylor factor) with $\prod_a'\delta(E_a)$. Ambitwistor strings produce the same localization from a chiral worldsheet theory with target the cotangent bundle of null infinity / projective null cone.
+    Bridge: twistor-string MHV localization $\leftrightarrow$ CHY poles on $\mathbb{CP}^1$.
+  </div>
+</div>
+
+<!-- TAB 14: Asymptotic Twistor / Celestial Holography lite -->
+<div class="tab-panel" data-role="panel" id="tab14">
+  <div class="canvas-wrap"><canvas aria-label="23 — Twistor Theory — panel 15" id="c14" width="900" height="420"></canvas></div>
+  <div class="controls" data-role="sidebar">
+    <div class="ctrl-group"><label>u Bondi:</label><input type="range" id="asyU" min="0" max="100" value="40"><span class="val-display" id="asyUv">0.40</span></div>
+    <div class="ctrl-group"><label>Boost:</label><input type="range" id="asyBoost" min="0" max="100" value="20"><span class="val-display" id="asyBoostv">0.20</span></div>
+    <button id="animBtn14" onclick="toggleAnim14()">▶ Animate</button>
+    <button onclick="resetTab23(14)">Reset</button>
+    <div class="ctrl-group"><label>Show $\mathscr{I}^+$</label><input type="checkbox" id="showScri" checked></div>
+    <div class="ctrl-group"><label>Zoom:</label><input type="range" id="zoom14" min="0.5" max="2" step="0.1" value="1" oninput="window.zoomX=+this.value;document.getElementById('zoomVal14').textContent=(+this.value).toFixed(1);zooms[14]=window.zoomX;draw14()"></div>
+    <span class="val-display" id="zoomVal14">1.0</span>
+    <div class="ctrl-group"><label>Global:</label><input type="range" id="globalSpeed15" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;document.getElementById('globalSpeedVal15').textContent=(+this.value).toFixed(2)+'x'"></div>
+    <span class="val-display" id="globalSpeedVal15">1.00</span>
+  </div>
+  <div class="info-bar">
+    <div>Asymptotic: <span id="asyInfo">—</span></div>
+    <div>Asymptotic twistor space of $\mathscr{I}^+$ $\leftrightarrow$ celestial CFT data on $S^2$</div>
+  </div>
+  <div class="tab-body">
+    <b>Asymptotic Twistor Space &amp; Celestial Holography (lite)</b><br>
+    Null infinity $\mathscr{I}^+\cong\mathbb{R}_u\times S^2$ carries the radiative free data of massless fields. Asymptotic twistors are built from the shear $\sigma^0$ and Bondi news; they deform the flat twistor space of Minkowski into a space encoding the asymptotic geometry.
+    Celestial holography rewrites 4d scattering as a 2d CFT on the celestial sphere $S^2$ (the $u\to\pm\infty$ boundary of $\mathscr{I}$). Soft theorems $\leftrightarrow$ celestial Ward identities; twistor methods supply the spinor-helicity / conformal primary dictionaries.
+    Distinct from GW waveform modules: here the focus is the twistor ↔ celestial dictionary, not strain $h_+,\times$.
+  </div>
+</div>
+
 <!-- Proof panel -->
 <div id="proofPanel">
   <div class="proof-header">
@@ -325,6 +494,12 @@ body{padding-bottom:38px}
   <button onclick="showProof(8)">Nonlinear Graviton</button>
   <button onclick="showProof(9)">MHV Amplitudes</button>
   <button onclick="showProof(10)">Twistor Quantum</button>
+  <button onclick="showProof(11)">Projective PT</button>
+  <button onclick="showProof(12)">Ward SDYM</button>
+  <button onclick="showProof(13)">Cohomology H¹</button>
+  <button onclick="showProof(14)">Positive Grassmannian</button>
+  <button onclick="showProof(15)">CHY Equations</button>
+  <button onclick="showProof(16)">Asymptotic / Celestial</button>
 </div>
 
 <script>
@@ -396,7 +571,44 @@ A twistor function $f(Z)$ of homogeneity $2s-2$ defines a field via the <b>conto
 $$\\phi_{A\\ldots B}(x) = \\oint f(\\omega^A = ix^{A\\dot A}\\pi_{\\dot A}, \\pi_{\\dot A})\\, \\pi_{A'}\\cdots\\pi_{B'}\\, \\langle\\pi\\,d\\pi\\rangle$$
 For a photon ($s=1$): $F_{AB}(x) = \\oint f(Z)\\, \\pi_A\\pi_B\\, \\langle\\pi\\,d\\pi\\rangle$ gives the self-dual part of the field strength.
 For a graviton ($s=2$): $\\Psi_{ABCD}(x) = \\oint f(Z)\\, \\pi_A\\pi_B\\pi_C\\pi_D\\, \\langle\\pi\\,d\\pi\\rangle$ gives the self-dual Weyl curvature.<br><br>
-The cohomology class is represented by a <b>\\v{C}ech cocycle</b> on an open cover $\\{U_i\\}$ of $\\mathbb{PT}^+$: a collection of holomorphic functions $f_{ij}$ on $U_i \\cap U_j$ satisfying $f_{ij} + f_{jk} + f_{ki} = 0$ on triple overlaps. The contour integral picks out the physical field from the cocycle data.`
+The cohomology class is represented by a <b>\\v{C}ech cocycle</b> on an open cover $\\{U_i\\}$ of $\\mathbb{PT}^+$: a collection of holomorphic functions $f_{ij}$ on $U_i \\cap U_j$ satisfying $f_{ij} + f_{jk} + f_{ki} = 0$ on triple overlaps. The contour integral picks out the physical field from the cocycle data.`,
+
+  `<b>Incidence &amp; Projective Twistor Space</b><br><br>
+$\\mathbb{PT}=\\mathbb{P}(\\mathbb{T})\\cong\\mathbb{CP}^3$. Homogeneous coordinates $Z^\\alpha=(\\omega^A,\\pi_{A'})$ with $Z\\sim\\lambda Z$. Incidence:
+$$\\omega^A = i x^{AA'}\\pi_{A'}$$
+defines a line $\\hat{x}\\cong\\mathbb{CP}^1$ for each $x\\in\\mathbb{CM}$. The incidence variety $\\mathbf{F}\\subset\\mathbb{CM}\\times\\mathbb{PT}$ gives the double fibration
+$$\\mathbb{CM}\\xleftarrow{\\mu}\\mathbf{F}\\xrightarrow{\\nu}\\mathbb{PT}.$$
+Two points are null-separated iff their lines intersect. Compactified complexified Minkowski $\\cong G(2,4)$ (Klein quadric).`,
+
+  `<b>Ward Correspondence (Self-Dual Yang–Mills)</b><br><br>
+Holomorphic vector bundles $E\\to\\mathbb{PT}$ that are trivial on every line $\\hat{x}$ are in 1–1 correspondence with self-dual Yang–Mills connections on $\\mathbb{CM}$:
+$$F_{A'B'}=0 \\quad\\Leftrightarrow\\quad \\text{holomorphic }E\\text{ trivial on lines}.$$
+Transition functions $g_{ij}(Z)$ on $\\mathbb{PT}$ patches encode the SD gauge field. Instanton number $k=c_2(E)$. The ADHM construction is a monad presentation of such bundles. Dual: ASDYM on $\\mathbb{PT}^*$.`,
+
+  `<b>Twistor Cohomology $H^1$</b><br><br>
+Penrose transform isomorphism:
+$$\\{\\text{massless fields of helicity }s\\}\\cong H^1(\\mathbb{PT}^+,\\mathcal{O}(2s-2)).$$
+Čech: cocycles $f_{ij}\\in\\mathcal{O}(U_i\\cap U_j)$ with $f_{ij}+f_{jk}+f_{ki}=0$. Dolbeault: $\\bar\\partial$-closed $(0,1)$-forms.
+Contour integral recovers the field:
+$$\\phi_{A\\cdots B}(x)=\\frac{1}{2\\pi i}\\oint f(ix\\pi,\\pi)\\,\\pi_A\\cdots\\pi_B\\,\\langle\\pi\\,d\\pi\\rangle.$$
+Homogeneity $n=2s-2$ fixes spin: $n=-2$ scalar, $0$ photon, $2$ graviton (positive helicity).`,
+
+  `<b>Positive Grassmannian (lite)</b><br><br>
+$G_+(k,n)=\\{C\\in G(k,n):\\text{all Plücker coordinates }p_I\\ge 0\\}$. Cell decomposition by positroids (decorated permutations). On-shell diagrams $\\leftrightarrow$ plabic graphs; each face weight is a Plücker / cluster coordinate.
+Momentum twistors $Z_i\\in\\mathbb{CP}^3$ make $p_I=\\langle Z_{i_1}\\cdots Z_{i_k}\\rangle$ the natural coordinates for planar $\\mathcal{N}=4$ SYM.
+This tab emphasizes cell geometry and plabic structure — complementary to the full amplituhedron volume visualization in module 44.`,
+
+  `<b>Scattering Equations / CHY</b><br><br>
+For Mandelstam $s_{ab}=2k_a\\cdot k_b$ and moduli $\\sigma_a\\in\\mathbb{CP}^1$:
+$$E_a=\\sum_{b\\neq a}\\frac{s_{ab}}{\\sigma_a-\\sigma_b}=0,\\qquad a=1,\\ldots,n$$
+(only $n-3$ independent after SL$(2)$). Tree amplitude:
+$$\\mathcal{A}_n=\\int_{\\mathcal{M}_{0,n}}\\!\\!\\! d\\mu_{\\mathrm{CHY}}\\;\\mathrm{Pf}'\\Psi\\;(\\mathrm{PT}\\text{ or Pfaffian factors}).$$
+Ambitwistor strings derive the same measure from a chiral worldsheet theory. Link to twistor strings: MHV support on lines is the CHY residue at the appropriate pole.`,
+
+  `<b>Asymptotic Twistor Space &amp; Celestial Holography</b><br><br>
+Null infinity $\\mathscr{I}^+=\\mathbb{R}_u\\times S^2$ carries Bondi shear $\\sigma^0(u,\\zeta,\\bar\\zeta)$ and news $N=\\partial_u\\sigma^0$. Asymptotic twistor space is built from this free radiative data and deforms flat $\\mathbb{PT}$.
+Celestial holography: 4d S-matrix $\\leftrightarrow$ correlators of a 2d CFT on the celestial sphere. Conformal primary wavefunctions are Mellin transforms in energy; soft theorems become celestial Ward identities for supertranslations / superrotations (BMS).
+Twistor spinor brackets $\\langle ij\\rangle,[ij]$ are the natural celestial OPE building blocks.`
 ];
 
 function showProof(i){
@@ -411,43 +623,71 @@ function showProof(i){
 }
 function closeProof(){ document.getElementById('proofPanel').style.display='none'; }
 
+const NUM_TABS23=15;
+const drawFns=[];
 let activeTab=0;
+const _animBtnLabels23={0:'▶ Animate',1:'▶ Animate Möbius',2:'▶ Animate Helicity',3:'▶ Animate',4:'▶ Animate',5:'▶ Animate deformation',6:'▶ Animate',7:'▶ Animate',8:'▶ Animate',9:'▶ Animate',10:'▶ Animate',11:'▶ Animate',12:'▶ Animate',13:'▶ Animate',14:'▶ Animate'};
 function syncSpeedControl23(){
   var zoomSlider=document.getElementById('zoom'+activeTab);
-  if(zoomSlider){window.zoomX=+zoomSlider.value;document.getElementById('zoomVal'+activeTab).textContent=(+zoomSlider.value).toFixed(1);}
+  if(zoomSlider){window.zoomX=+zoomSlider.value;const zv=document.getElementById('zoomVal'+activeTab);if(zv)zv.textContent=(+zoomSlider.value).toFixed(1);}
 }
 function _cancelAllAnims23(){
-  [animId0,animId1,animId2,animId3,animId4,animId5,animId6,animId7,animId8].forEach(id=>{if(id)cancelAnimationFrame(id);});
-  animId0=animId1=animId2=animId3=animId4=animId5=animId6=animId7=animId8=null;
-  document.querySelectorAll('.animBtn').forEach(b=>{b.textContent='▶ Animate';b.classList.remove('active-btn');});
-  const b1=document.getElementById('animBtn1');if(b1)b1.textContent='▶ Animate Möbius';
-  const b2=document.getElementById('animBtn2');if(b2)b2.textContent='▶ Animate Helicity';
-  const b5=document.getElementById('animBtn5');if(b5)b5.textContent='▶ Animate deformation';
+  if(typeof animId0!=='undefined'&&animId0){cancelAnimationFrame(animId0);animId0=null;}
+  if(typeof animId1!=='undefined'&&animId1){cancelAnimationFrame(animId1);animId1=null;}
+  if(typeof animId2!=='undefined'&&animId2){cancelAnimationFrame(animId2);animId2=null;}
+  if(typeof animId3!=='undefined'&&animId3){cancelAnimationFrame(animId3);animId3=null;}
+  if(typeof animId4!=='undefined'&&animId4){cancelAnimationFrame(animId4);animId4=null;}
+  if(typeof animId5!=='undefined'&&animId5){cancelAnimationFrame(animId5);animId5=null;}
+  if(typeof animId6!=='undefined'&&animId6){cancelAnimationFrame(animId6);animId6=null;}
+  if(typeof animId7!=='undefined'&&animId7){cancelAnimationFrame(animId7);animId7=null;}
+  if(typeof animId8!=='undefined'&&animId8){cancelAnimationFrame(animId8);animId8=null;}
+  if(typeof animId9!=='undefined'&&animId9){cancelAnimationFrame(animId9);animId9=null;}
+  if(typeof animId10!=='undefined'&&animId10){cancelAnimationFrame(animId10);animId10=null;}
+  if(typeof animId11!=='undefined'&&animId11){cancelAnimationFrame(animId11);animId11=null;}
+  if(typeof animId12!=='undefined'&&animId12){cancelAnimationFrame(animId12);animId12=null;}
+  if(typeof animId13!=='undefined'&&animId13){cancelAnimationFrame(animId13);animId13=null;}
+  if(typeof animId14!=='undefined'&&animId14){cancelAnimationFrame(animId14);animId14=null;}
+  for(let k=0;k<NUM_TABS23;k++){
+    const b=document.getElementById('animBtn'+k);
+    if(b){b.classList.remove('active-btn');b.textContent=_animBtnLabels23[k]||'▶ Animate';}
+  }
 }
 // ── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(i){
-  activeTab=i;
   _cancelAllAnims23();
+  activeTab=i;
   document.querySelectorAll('.tab-panel').forEach((p,j)=>p.classList.toggle('active',j===i));
-  document.querySelectorAll('.tab-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  document.querySelectorAll('.tab-btn').forEach((b,j)=>{
+    b.classList.toggle('active',j===i);
+    b.setAttribute('aria-selected', j===i ? 'true' : 'false');
+  });
   syncSpeedControl23();
-  [draw0,draw1,draw2,draw3,draw4,draw5,draw6,draw7,draw8][i]();
-  // Auto-start animations
-  if(i===0)toggleAnim0();
-  else if(i===1)toggleAnim1();
-  else if(i===2)toggleAnim2();
-  else if(i===3)toggleAnim3();
-  else if(i===4)toggleAnim4();
-  else if(i===5)toggleAnim5();
-  else if(i===6)toggleAnim6();
-  else if(i===7)toggleAnim7();
-  else if(i===8)toggleAnim8();
+  if(drawFns[i]) drawFns[i]();
+  // Auto-start animations (RAF owned by each toggle)
+  const starters=[
+    ()=>typeof toggleAnim0==='function'&&toggleAnim0(),
+    ()=>typeof toggleAnim1==='function'&&toggleAnim1(),
+    ()=>typeof toggleAnim2==='function'&&toggleAnim2(),
+    ()=>typeof toggleAnim3==='function'&&toggleAnim3(),
+    ()=>typeof toggleAnim4==='function'&&toggleAnim4(),
+    ()=>typeof toggleAnim5==='function'&&toggleAnim5(),
+    ()=>typeof toggleAnim6==='function'&&toggleAnim6(),
+    ()=>typeof toggleAnim7==='function'&&toggleAnim7(),
+    ()=>typeof toggleAnim8==='function'&&toggleAnim8(),
+    ()=>typeof toggleAnim9==='function'&&toggleAnim9(),
+    ()=>typeof toggleAnim10==='function'&&toggleAnim10(),
+    ()=>typeof toggleAnim11==='function'&&toggleAnim11(),
+    ()=>typeof toggleAnim12==='function'&&toggleAnim12(),
+    ()=>typeof toggleAnim13==='function'&&toggleAnim13(),
+    ()=>typeof toggleAnim14==='function'&&toggleAnim14()
+  ];
+  if(starters[i]) starters[i]();
 }
 
 // ── PAN / ZOOM ────────────────────────────────────────────────────────────────
-const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
-const zooms=[1,1,1,1,1,1,1,1,1];
-function resetView(idx){ pans[idx]={x:0,y:0}; zooms[idx]=1; [draw0,draw1,draw2,draw3,draw4,draw5,draw6,draw7,draw8][idx](); }
+const pans=Array.from({length:NUM_TABS23},()=>({x:0,y:0}));
+const zooms=Array.from({length:NUM_TABS23},()=>1);
+function resetView(idx){ pans[idx]={x:0,y:0}; zooms[idx]=1; if(drawFns[idx]) drawFns[idx](); }
 
 function resetTab23(n){
   _cancelAllAnims23();
@@ -514,6 +754,48 @@ function resetTab23(n){
     document.getElementById('showCohom').checked=true;
     document.getElementById('zoom8').value=1;document.getElementById('zoomVal8').textContent='1.0';zooms[8]=1;
     draw8();
+  } else if(n===9){
+    animOffset9=0;
+    document.getElementById('incPi').value=25;document.getElementById('incPiv').textContent='0.25';
+    document.getElementById('incX').value=50;document.getElementById('incXv').textContent='0.00';
+    document.getElementById('showFlag').checked=true;
+    document.getElementById('zoom9').value=1;document.getElementById('zoomVal9').textContent='1.0';zooms[9]=1;
+    draw9();
+  } else if(n===10){
+    animOffset10=0;
+    document.getElementById('wardK').value=1;document.getElementById('wardKv').textContent='1';
+    document.getElementById('wardGlue').value=40;document.getElementById('wardGluev').textContent='0.40';
+    document.getElementById('showSDYM').checked=true;
+    document.getElementById('zoom10').value=1;document.getElementById('zoomVal10').textContent='1.0';zooms[10]=1;
+    draw10();
+  } else if(n===11){
+    animOffset11=0;
+    document.getElementById('cohS').value=1;document.getElementById('cohSv').textContent='+1';
+    document.getElementById('cohPatches').value=3;document.getElementById('cohPatchesv').textContent='3';
+    document.getElementById('showDolb').checked=true;
+    document.getElementById('zoom11').value=1;document.getElementById('zoomVal11').textContent='1.0';zooms[11]=1;
+    draw11();
+  } else if(n===12){
+    animOffset12=0;
+    document.getElementById('pgK').value=2;document.getElementById('pgKv').textContent='2';
+    document.getElementById('pgN').value=6;document.getElementById('pgNv').textContent='6';
+    document.getElementById('showPlabic').checked=true;
+    document.getElementById('zoom12').value=1;document.getElementById('zoomVal12').textContent='1.0';zooms[12]=1;
+    draw12();
+  } else if(n===13){
+    animOffset13=0;
+    document.getElementById('chyN').value=5;document.getElementById('chyNv').textContent='5';
+    document.getElementById('chyFlow').value=30;document.getElementById('chyFlowv').textContent='0.30';
+    document.getElementById('showPoles').checked=true;
+    document.getElementById('zoom13').value=1;document.getElementById('zoomVal13').textContent='1.0';zooms[13]=1;
+    draw13();
+  } else if(n===14){
+    animOffset14=0;
+    document.getElementById('asyU').value=40;document.getElementById('asyUv').textContent='0.40';
+    document.getElementById('asyBoost').value=20;document.getElementById('asyBoostv').textContent='0.20';
+    document.getElementById('showScri').checked=true;
+    document.getElementById('zoom14').value=1;document.getElementById('zoomVal14').textContent='1.0';zooms[14]=1;
+    draw14();
   }
 }
 function addZoom(canvas,idx,drawFn){
@@ -2014,12 +2296,12 @@ function draw7(){
     ctx7.fillStyle=col;
     ctx7.beginPath(); ctx7.arc(g.x,g.y,4,0,2*Math.PI); ctx7.fill();
     // Helicity label
-    ctx7.fillStyle=col; ctx7.font='11px sans-serif'; ctx7.textAlign='center';
+    ctx7.fillStyle=col; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
     const lx2=g.x+Math.cos(legAngle)*(legLen+12);
     const ly2=g.y+Math.sin(legAngle)*(legLen+12);
     ctx7.fillText(isNeg?'−':'+',lx2,ly2+3);
     // Gluon number
-    ctx7.fillStyle='rgba(200,200,240,0.5)'; ctx7.font='10px sans-serif';
+    ctx7.fillStyle='rgba(200,200,240,0.5)'; ctx7.font='12px sans-serif';
     ctx7.fillText(''+(i+1),g.x+Math.cos(legAngle)*18,g.y+Math.sin(legAngle)*18+3);
   }
 
@@ -2069,7 +2351,7 @@ function draw7(){
     ctx7.beginPath(); ctx7.moveTo(x1,y1); ctx7.lineTo(x2,y2); ctx7.stroke();
     // Bracket label
     const mx=(x1+x2)/2, my=(y1+y2)/2;
-    ctx7.fillStyle='rgba(200,200,240,0.4)'; ctx7.font='10px sans-serif'; ctx7.textAlign='center';
+    ctx7.fillStyle='rgba(200,200,240,0.4)'; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
     ctx7.fillText(`⟨${i+1},${(i+1)%nGl+1}⟩`,mx,my-6);
   }
 
@@ -2081,9 +2363,9 @@ function draw7(){
     const isNeg=i<nNeg;
     ctx7.fillStyle=col;
     ctx7.beginPath(); ctx7.arc(x,y,5,0,2*Math.PI); ctx7.fill();
-    ctx7.fillStyle=col; ctx7.font='11px sans-serif'; ctx7.textAlign='center';
+    ctx7.fillStyle=col; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
     ctx7.fillText(isNeg?'−':'+',x,y-12);
-    ctx7.fillStyle='rgba(200,200,240,0.6)'; ctx7.font='10px sans-serif';
+    ctx7.fillStyle='rgba(200,200,240,0.6)'; ctx7.font='12px sans-serif';
     ctx7.fillText(''+(i+1),x+8,y+4);
   }
 
@@ -2093,9 +2375,9 @@ function draw7(){
   ctx7.strokeStyle='#3a1a5a'; ctx7.lineWidth=1; ctx7.strokeRect(rX7+6,fY7,W-rX7-12,60);
   ctx7.fillStyle='#dd88ff'; ctx7.font='12px monospace'; ctx7.textAlign='left';
   ctx7.fillText('Parke-Taylor:',rX7+12,fY7+16);
-  ctx7.fillStyle='#aaaacc'; ctx7.font='11px monospace';
+  ctx7.fillStyle='#aaaacc'; ctx7.font='12px monospace';
   ctx7.fillText('A_n = ⟨12⟩⁴ / ∏⟨i,i+1⟩',rX7+12,fY7+32);
-  ctx7.fillStyle='#8888aa'; ctx7.font='10px monospace';
+  ctx7.fillStyle='#8888aa'; ctx7.font='12px monospace';
   ctx7.fillText('Twistor: localizes on CP¹ ⊂ PT',rX7+12,fY7+48);
 }
 
@@ -2158,7 +2440,7 @@ function draw8(){
     ctx8.lineWidth=1.5; ctx8.setLineDash([4,3]);
     ctx8.beginPath(); ctx8.arc(cx,cy,rad,0,2*Math.PI); ctx8.stroke();
     ctx8.setLineDash([]);
-    ctx8.fillStyle='rgba(200,200,240,0.5)'; ctx8.font='10px sans-serif'; ctx8.textAlign='center';
+    ctx8.fillStyle='rgba(200,200,240,0.5)'; ctx8.font='12px sans-serif'; ctx8.textAlign='center';
     ctx8.fillText(`U_${i}`,cx,cy+3);
   }
 
@@ -2175,7 +2457,7 @@ function draw8(){
         // Draw cocycle value on overlap
         const pulse=0.3+0.3*Math.sin(t*1.2+i*2.3+j*1.7);
         ctx8.fillStyle=`rgba(221,136,255,${pulse})`;
-        ctx8.font='10px sans-serif'; ctx8.textAlign='center';
+        ctx8.font='12px sans-serif'; ctx8.textAlign='center';
         ctx8.fillText(`f_{${i}${j}}`,mx,my+3);
         ctx8.strokeStyle=`rgba(221,136,255,${pulse*0.5})`;
         ctx8.lineWidth=0.8;
@@ -2297,6 +2579,742 @@ function draw8(){
   ctx8.fillText('transform',lW+(rX8-lW)/2,H/2+8);
 }
 
+// ── TAB 9: INCIDENCE & PROJECTIVE PT ──────────────────────────────────────────
+const c9=document.getElementById('c9');
+const ctx9=c9.getContext('2d');
+let animOffset9=0,animId9=null;
+
+function toggleAnim9(){
+  const btn=document.getElementById('animBtn9');
+  if(animId9){ cancelAnimationFrame(animId9); animId9=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim9(); }
+}
+function stepAnim9(){ animOffset9+=0.016*(window.animSpeed||1); draw9(); animId9=requestAnimationFrame(stepAnim9); }
+
+function draw9(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c9.offsetWidth, H=c9.offsetHeight;
+  if(!W||!H)return;
+  c9.width=W*dpr; c9.height=H*dpr;
+  ctx9.setTransform(dpr,0,0,dpr,0,0);
+  ctx9.clearRect(0,0,W,H);
+  ctx9.fillStyle='#05050f'; ctx9.fillRect(0,0,W,H);
+
+  const t=animOffset9;
+  const piPh=parseFloat(document.getElementById('incPi').value)/100;
+  const xSl=parseFloat(document.getElementById('incX').value)/100;
+  const showFlag=document.getElementById('showFlag').checked;
+  document.getElementById('incPiv').textContent=piPh.toFixed(2);
+  document.getElementById('incXv').textContent=((xSl-0.5)*2).toFixed(2);
+
+  const lW=W*0.5-6, rX=W*0.5+6, m=36;
+  // Left: flag variety schematic CM ← F → PT
+  ctx9.fillStyle='#0b0b1e'; ctx9.fillRect(0,0,lW,H);
+  ctx9.fillStyle='#55558a'; ctx9.font='12px sans-serif'; ctx9.textAlign='center';
+  ctx9.fillText('Double Fibration  ℂM ← F → PT',lW/2,18);
+
+  const nodes=[
+    {x:lW*0.18,y:H*0.55,lab:'ℂM',col:'#44ddff'},
+    {x:lW*0.5,y:H*0.32,lab:'F (flags)',col:'#ffdd44'},
+    {x:lW*0.82,y:H*0.55,lab:'PT≅CP³',col:'#dd88ff'}
+  ];
+  // edges
+  ctx9.strokeStyle='rgba(221,136,255,0.45)'; ctx9.lineWidth=2;
+  ctx9.beginPath(); ctx9.moveTo(nodes[0].x+28,nodes[0].y-10); ctx9.lineTo(nodes[1].x-20,nodes[1].y+16); ctx9.stroke();
+  ctx9.beginPath(); ctx9.moveTo(nodes[2].x-28,nodes[2].y-10); ctx9.lineTo(nodes[1].x+20,nodes[1].y+16); ctx9.stroke();
+  ctx9.fillStyle='#dd88ff'; ctx9.font='12px sans-serif';
+  ctx9.fillText('μ', (nodes[0].x+nodes[1].x)/2-8, (nodes[0].y+nodes[1].y)/2-4);
+  ctx9.fillText('ν', (nodes[2].x+nodes[1].x)/2+8, (nodes[2].y+nodes[1].y)/2-4);
+  nodes.forEach(n=>{
+    ctx9.fillStyle=n.col+'33';
+    ctx9.beginPath(); ctx9.arc(n.x,n.y,32+4*Math.sin(t*2),0,2*Math.PI); ctx9.fill();
+    ctx9.strokeStyle=n.col; ctx9.lineWidth=2;
+    ctx9.beginPath(); ctx9.arc(n.x,n.y,28,0,2*Math.PI); ctx9.stroke();
+    ctx9.fillStyle=n.col; ctx9.font='12px sans-serif'; ctx9.textAlign='center';
+    ctx9.fillText(n.lab,n.x,n.y+4);
+  });
+
+  // incidence formula box
+  ctx9.fillStyle='rgba(30,15,50,0.85)';
+  ctx9.fillRect(m,H-78,lW-2*m,58);
+  ctx9.strokeStyle='#3a1a5a'; ctx9.strokeRect(m,H-78,lW-2*m,58);
+  ctx9.fillStyle='#dd88ff'; ctx9.font='12px monospace'; ctx9.textAlign='left';
+  ctx9.fillText('ωᴬ = i xᴬᴬ′ π_A′', m+12, H-52);
+  ctx9.fillStyle='#aaaacc'; ctx9.font='12px sans-serif';
+  ctx9.fillText('Z ∼ λZ  on  PT = ℙ(𝕋)', m+12, H-32);
+
+  // Right: CP¹ line for point x sweeping
+  ctx9.fillStyle='#0b0b1e'; ctx9.fillRect(rX,0,W-rX,H);
+  ctx9.fillStyle='#55558a'; ctx9.font='12px sans-serif'; ctx9.textAlign='center';
+  ctx9.fillText('Line x̂ ≅ CP¹ ⊂ PT', rX+(W-rX)/2, 18);
+
+  const cx=rX+(W-rX)/2, cy=H/2, sc=Math.min(W-rX,H)*0.28;
+  // ambient grid of PT
+  ctx9.strokeStyle='rgba(80,40,140,0.25)'; ctx9.lineWidth=1;
+  for(let i=-3;i<=3;i++){
+    ctx9.beginPath(); ctx9.moveTo(cx+i*sc*0.35,cy-sc); ctx9.lineTo(cx+i*sc*0.35,cy+sc); ctx9.stroke();
+    ctx9.beginPath(); ctx9.moveTo(cx-sc,cy+i*sc*0.35); ctx9.lineTo(cx+sc,cy+i*sc*0.35); ctx9.stroke();
+  }
+  // line for x
+  const xP=(xSl-0.5)*2;
+  const phase=piPh*2*Math.PI+t*0.5;
+  ctx9.strokeStyle='#dd88ff'; ctx9.lineWidth=2.5;
+  ctx9.beginPath();
+  for(let k=0;k<=64;k++){
+    const a=k/64*2*Math.PI;
+    const piRe=Math.cos(a+phase), piIm=Math.sin(a+phase);
+    const omRe=-xP*piIm, omIm=xP*piRe;
+    const sx=cx+omRe*sc*0.55+piRe*sc*0.2;
+    const sy=cy-omIm*sc*0.55-piIm*sc*0.15;
+    if(k===0) ctx9.moveTo(sx,sy); else ctx9.lineTo(sx,sy);
+  }
+  ctx9.closePath(); ctx9.stroke();
+  ctx9.fillStyle='rgba(221,136,255,0.08)'; ctx9.fill();
+
+  // moving twistor point on line
+  const a0=phase;
+  const pRe=Math.cos(a0), pIm=Math.sin(a0);
+  const zx=cx+(-xP*pIm)*sc*0.55+pRe*sc*0.2;
+  const zy=cy-(xP*pRe)*sc*0.55-pIm*sc*0.15;
+  ctx9.fillStyle='#ffdd44';
+  ctx9.beginPath(); ctx9.arc(zx,zy,6,0,2*Math.PI); ctx9.fill();
+  ctx9.fillStyle='#ffdd44'; ctx9.font='12px sans-serif'; ctx9.textAlign='left';
+  ctx9.fillText('Z ∈ x̂', zx+10, zy-4);
+
+  if(showFlag){
+    // second nearby line (null-related)
+    ctx9.strokeStyle='rgba(68,221,255,0.7)'; ctx9.lineWidth=1.5;
+    ctx9.beginPath();
+    const xQ=xP+0.35;
+    for(let k=0;k<=48;k++){
+      const a=k/48*2*Math.PI;
+      const piRe=Math.cos(a-phase*0.5), piIm=Math.sin(a-phase*0.5);
+      const omRe=-xQ*piIm, omIm=xQ*piRe;
+      const sx=cx+omRe*sc*0.45+piRe*sc*0.15;
+      const sy=cy-omIm*sc*0.45-piIm*sc*0.12;
+      if(k===0) ctx9.moveTo(sx,sy); else ctx9.lineTo(sx,sy);
+    }
+    ctx9.closePath(); ctx9.stroke();
+    ctx9.fillStyle='rgba(68,221,255,0.7)'; ctx9.font='12px sans-serif'; ctx9.textAlign='center';
+    ctx9.fillText('intersecting lines ⇒ null sep.', cx, H-16);
+  }
+
+  document.getElementById('incInfo').textContent=
+    'x='+((xSl-0.5)*2).toFixed(2)+', π-phase='+(phase%(2*Math.PI)).toFixed(2);
+}
+
+// ── TAB 10: WARD CORRESPONDENCE ───────────────────────────────────────────────
+const c10=document.getElementById('c10');
+const ctx10=c10.getContext('2d');
+let animOffset10=0,animId10=null;
+
+function toggleAnim10(){
+  const btn=document.getElementById('animBtn10');
+  if(animId10){ cancelAnimationFrame(animId10); animId10=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim10(); }
+}
+function stepAnim10(){ animOffset10+=0.014*(window.animSpeed||1); draw10(); animId10=requestAnimationFrame(stepAnim10); }
+
+function draw10(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c10.offsetWidth, H=c10.offsetHeight;
+  if(!W||!H)return;
+  c10.width=W*dpr; c10.height=H*dpr;
+  ctx10.setTransform(dpr,0,0,dpr,0,0);
+  ctx10.clearRect(0,0,W,H);
+  ctx10.fillStyle='#05050f'; ctx10.fillRect(0,0,W,H);
+
+  const t=animOffset10;
+  const kInst=parseInt(document.getElementById('wardK').value);
+  const glue=parseFloat(document.getElementById('wardGlue').value)/100;
+  const showSD=document.getElementById('showSDYM').checked;
+  document.getElementById('wardKv').textContent=String(kInst);
+  document.getElementById('wardGluev').textContent=glue.toFixed(2);
+
+  const lW=W*0.48, rX=W*0.52;
+  // Left: holomorphic bundle patches on PT
+  ctx10.fillStyle='#0b0b1e'; ctx10.fillRect(0,0,lW,H);
+  ctx10.fillStyle='#55558a'; ctx10.font='12px sans-serif'; ctx10.textAlign='center';
+  ctx10.fillText('Holomorphic Bundle E → PT', lW/2, 18);
+  ctx10.fillText('trivial on each line x̂', lW/2, 34);
+
+  const nP=3+kInst;
+  const cxL=lW/2, cyL=H/2+10, R=Math.min(lW,H)*0.28;
+  for(let i=0;i<nP;i++){
+    const ang=i/nP*2*Math.PI+t*0.12;
+    const px=cxL+R*0.7*Math.cos(ang);
+    const py=cyL+R*0.55*Math.sin(ang);
+    const rad=R*0.42+6*Math.sin(t+i);
+    ctx10.fillStyle=`rgba(221,136,255,${0.08+0.06*i})`;
+    ctx10.beginPath(); ctx10.arc(px,py,rad,0,2*Math.PI); ctx10.fill();
+    ctx10.strokeStyle=`rgba(221,136,255,${0.35+0.1*glue})`; ctx10.lineWidth=1.5;
+    ctx10.setLineDash([5,3]);
+    ctx10.beginPath(); ctx10.arc(px,py,rad,0,2*Math.PI); ctx10.stroke();
+    ctx10.setLineDash([]);
+    ctx10.fillStyle='#c0c0ea'; ctx10.font='12px sans-serif'; ctx10.textAlign='center';
+    ctx10.fillText('U_'+i, px, py+4);
+  }
+  // transition functions on overlaps
+  for(let i=0;i<nP;i++){
+    const j=(i+1)%nP;
+    const a1=i/nP*2*Math.PI+t*0.12, a2=j/nP*2*Math.PI+t*0.12;
+    const x1=cxL+R*0.7*Math.cos(a1), y1=cyL+R*0.55*Math.sin(a1);
+    const x2=cxL+R*0.7*Math.cos(a2), y2=cyL+R*0.55*Math.sin(a2);
+    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    ctx10.strokeStyle=`rgba(255,221,68,${0.3+0.4*glue})`; ctx10.lineWidth=1;
+    ctx10.beginPath(); ctx10.moveTo(x1,y1); ctx10.lineTo(x2,y2); ctx10.stroke();
+    ctx10.fillStyle='#ffdd44'; ctx10.font='12px sans-serif';
+    ctx10.fillText('g_'+i+j, mx, my-4);
+  }
+  // line x̂ through bundle
+  ctx10.strokeStyle='#44ddff'; ctx10.lineWidth=2;
+  ctx10.beginPath();
+  ctx10.moveTo(cxL-R*1.1, cyL+8*Math.sin(t));
+  ctx10.lineTo(cxL+R*1.1, cyL-8*Math.sin(t));
+  ctx10.stroke();
+  ctx10.fillStyle='#44ddff'; ctx10.font='12px sans-serif';
+  ctx10.fillText('x̂ ≅ CP¹ (E|x̂ trivial)', cxL, H-18);
+
+  // Right: SDYM curvature / instanton
+  ctx10.fillStyle='#0b0b1e'; ctx10.fillRect(rX,0,W-rX,H);
+  ctx10.fillStyle='#55558a'; ctx10.font='12px sans-serif'; ctx10.textAlign='center';
+  const rcx=rX+(W-rX)/2;
+  ctx10.fillText('Self-Dual YM  F = *F', rcx, 18);
+  ctx10.fillText('instanton charge k = c₂(E) = '+kInst, rcx, 34);
+
+  if(showSD){
+    // field strength swirl
+    const fcx=rcx, fcy=H/2, fR=Math.min(W-rX,H)*0.28;
+    for(let r=0;r<kInst+2;r++){
+      const rad=fR*(0.35+r*0.22);
+      ctx10.strokeStyle=`rgba(68,221,255,${0.5-r*0.08})`; ctx10.lineWidth=2;
+      ctx10.beginPath();
+      for(let s=0;s<=80;s++){
+        const a=s/80*2*Math.PI+t*(0.4+r*0.1)* (r%2===0?1:-1);
+        const rr=rad*(1+0.08*Math.sin(3*a+t+glue*4));
+        const sx=fcx+rr*Math.cos(a), sy=fcy+rr*Math.sin(a)*0.75;
+        if(s===0) ctx10.moveTo(sx,sy); else ctx10.lineTo(sx,sy);
+      }
+      ctx10.closePath(); ctx10.stroke();
+    }
+    // center instanton core
+    for(let i=0;i<kInst;i++){
+      const ang=i/Math.max(kInst,1)*2*Math.PI+t*0.3;
+      const ix=fcx+22*Math.cos(ang)*kInst*0.3, iy=fcy+16*Math.sin(ang)*kInst*0.3;
+      ctx10.fillStyle='#ffdd44';
+      ctx10.beginPath(); ctx10.arc(ix,iy,5,0,2*Math.PI); ctx10.fill();
+    }
+    ctx10.fillStyle='#dd88ff'; ctx10.font='12px sans-serif';
+    ctx10.fillText('SD connection A_μ from g_ij|x̂', rcx, H-36);
+    ctx10.fillStyle='#aaaacc';
+    ctx10.fillText('glue strength ε = '+glue.toFixed(2), rcx, H-18);
+  }
+
+  document.getElementById('wardInfo').textContent='rank-2, c₂='+kInst+', patches='+nP+', ε='+glue.toFixed(2);
+}
+
+// ── TAB 11: TWISTOR COHOMOLOGY H¹ ─────────────────────────────────────────────
+const c11=document.getElementById('c11');
+const ctx11=c11.getContext('2d');
+let animOffset11=0,animId11=null;
+
+function toggleAnim11(){
+  const btn=document.getElementById('animBtn11');
+  if(animId11){ cancelAnimationFrame(animId11); animId11=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim11(); }
+}
+function stepAnim11(){ animOffset11+=0.015*(window.animSpeed||1); draw11(); animId11=requestAnimationFrame(stepAnim11); }
+
+function draw11(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c11.offsetWidth, H=c11.offsetHeight;
+  if(!W||!H)return;
+  c11.width=W*dpr; c11.height=H*dpr;
+  ctx11.setTransform(dpr,0,0,dpr,0,0);
+  ctx11.clearRect(0,0,W,H);
+  ctx11.fillStyle='#05050f'; ctx11.fillRect(0,0,W,H);
+
+  const t=animOffset11;
+  const sHel=parseInt(document.getElementById('cohS').value);
+  const nPat=parseInt(document.getElementById('cohPatches').value);
+  const showDolb=document.getElementById('showDolb').checked;
+  document.getElementById('cohSv').textContent=(sHel>0?'+':'')+sHel;
+  document.getElementById('cohPatchesv').textContent=String(nPat);
+  const nHom=2*sHel-2;
+  const cohomLab='H¹(PT⁺, O('+nHom+'))';
+  document.getElementById('cohClassInfo').textContent=cohomLab+'  helicity s='+sHel;
+
+  const lW=W*0.46, rX=W*0.5;
+  // Left: Čech cover
+  ctx11.fillStyle='#0b0b1e'; ctx11.fillRect(0,0,lW,H);
+  ctx11.fillStyle='#55558a'; ctx11.font='12px sans-serif'; ctx11.textAlign='center';
+  ctx11.fillText('Čech Cover of PT⁺', lW/2, 18);
+  ctx11.fillText(cohomLab, lW/2, 34);
+
+  const cx=lW/2, cy=H*0.48, R=Math.min(lW,H)*0.3;
+  const cols=['rgba(221,136,255,0.15)','rgba(68,221,255,0.12)','rgba(255,221,68,0.12)','rgba(136,255,136,0.12)','rgba(255,136,160,0.12)'];
+  const scols=['#dd88ff','#44ddff','#ffdd44','#88ff88','#ff88a0'];
+  for(let i=0;i<nPat;i++){
+    const a=i/nPat*2*Math.PI+t*0.1;
+    const px=cx+R*0.65*Math.cos(a), py=cy+R*0.5*Math.sin(a);
+    const rad=R*0.48+8*Math.sin(t*0.8+i);
+    ctx11.fillStyle=cols[i%cols.length];
+    ctx11.beginPath(); ctx11.arc(px,py,rad,0,2*Math.PI); ctx11.fill();
+    ctx11.strokeStyle=scols[i%scols.length]; ctx11.lineWidth=1.5;
+    ctx11.beginPath(); ctx11.arc(px,py,rad,0,2*Math.PI); ctx11.stroke();
+    ctx11.fillStyle=scols[i%scols.length]; ctx11.font='12px sans-serif';
+    ctx11.fillText('U_'+i, px, py+4);
+  }
+  // cocycle labels
+  for(let i=0;i<nPat;i++){
+    for(let j=i+1;j<nPat;j++){
+      const a1=i/nPat*2*Math.PI+t*0.1, a2=j/nPat*2*Math.PI+t*0.1;
+      const x1=cx+R*0.65*Math.cos(a1), y1=cy+R*0.5*Math.sin(a1);
+      const x2=cx+R*0.65*Math.cos(a2), y2=cy+R*0.5*Math.sin(a2);
+      const mx=(x1+x2)/2, my=(y1+y2)/2;
+      const pulse=0.4+0.3*Math.sin(t*1.5+i+j);
+      ctx11.fillStyle=`rgba(221,136,255,${pulse})`;
+      ctx11.font='12px sans-serif'; ctx11.textAlign='center';
+      ctx11.fillText('f_'+i+j, mx, my);
+    }
+  }
+  ctx11.fillStyle='#aaaacc'; ctx11.font='12px sans-serif';
+  ctx11.fillText('f_ij + f_jk + f_ki = 0', cx, H-20);
+
+  // Right: field from contour / Dolbeault
+  ctx11.fillStyle='#0b0b1e'; ctx11.fillRect(rX,0,W-rX,H);
+  ctx11.fillStyle='#55558a'; ctx11.font='12px sans-serif'; ctx11.textAlign='center';
+  const rcx=rX+(W-rX)/2;
+  ctx11.fillText(showDolb?'Dolbeault (0,1)-form':'Contour → Field', rcx, 18);
+
+  if(showDolb){
+    // grid with (0,1) arrows
+    const gx0=rX+30, gy0=50, gw=W-rX-60, gh=H-100;
+    const nG=8;
+    for(let i=0;i<=nG;i++){
+      for(let j=0;j<=nG;j++){
+        const u=i/nG, v=j/nG;
+        const px=gx0+u*gw, py=gy0+v*gh;
+        const ang=Math.atan2(Math.sin(2*Math.PI*u+t), Math.cos(2*Math.PI*v+t*0.7))+sHel*0.3;
+        const len=10+4*Math.sin(t+i+j);
+        ctx11.strokeStyle='rgba(68,221,255,0.55)'; ctx11.lineWidth=1.2;
+        ctx11.beginPath();
+        ctx11.moveTo(px,py);
+        ctx11.lineTo(px+len*Math.cos(ang), py+len*Math.sin(ang));
+        ctx11.stroke();
+        ctx11.fillStyle='rgba(68,221,255,0.4)';
+        ctx11.beginPath(); ctx11.arc(px,py,1.5,0,2*Math.PI); ctx11.fill();
+      }
+    }
+    ctx11.fillStyle='#44ddff'; ctx11.font='12px sans-serif';
+    ctx11.fillText('∂̄α = 0  (closed),  α ~ α+∂̄β', rcx, H-18);
+  } else {
+    // spiral field lines by helicity
+    const fcx=rcx, fcy=H/2, fR=Math.min(W-rX,H)*0.32;
+    const chir=sHel===0?0:Math.sign(sHel);
+    for(let i=0;i<12;i++){
+      ctx11.strokeStyle=sHel>=0?'rgba(221,136,255,0.55)':'rgba(68,180,255,0.55)';
+      ctx11.lineWidth=1.5;
+      ctx11.beginPath();
+      for(let k=0;k<=50;k++){
+        const r=(k/50)*fR;
+        const a=i/12*2*Math.PI+chir*t*1.2*(r/fR)*2;
+        const sx=fcx+r*Math.cos(a), sy=fcy+r*Math.sin(a);
+        if(k===0) ctx11.moveTo(sx,sy); else ctx11.lineTo(sx,sy);
+      }
+      ctx11.stroke();
+    }
+    ctx11.fillStyle='#dd88ff'; ctx11.font='12px sans-serif';
+    ctx11.fillText('φ_A…B(x) from ∮ f π…⟨π dπ⟩', rcx, H-18);
+  }
+}
+
+// ── TAB 12: POSITIVE GRASSMANNIAN (lite) ──────────────────────────────────────
+const c12=document.getElementById('c12');
+const ctx12=c12.getContext('2d');
+let animOffset12=0,animId12=null;
+
+function toggleAnim12(){
+  const btn=document.getElementById('animBtn12');
+  if(animId12){ cancelAnimationFrame(animId12); animId12=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim12(); }
+}
+function stepAnim12(){ animOffset12+=0.014*(window.animSpeed||1); draw12(); animId12=requestAnimationFrame(stepAnim12); }
+
+function draw12(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c12.offsetWidth, H=c12.offsetHeight;
+  if(!W||!H)return;
+  c12.width=W*dpr; c12.height=H*dpr;
+  ctx12.setTransform(dpr,0,0,dpr,0,0);
+  ctx12.clearRect(0,0,W,H);
+  ctx12.fillStyle='#05050f'; ctx12.fillRect(0,0,W,H);
+
+  const t=animOffset12;
+  let k=parseInt(document.getElementById('pgK').value);
+  let n=parseInt(document.getElementById('pgN').value);
+  if(k>=n) k=n-1;
+  const showPl=document.getElementById('showPlabic').checked;
+  document.getElementById('pgKv').textContent=String(k);
+  document.getElementById('pgNv').textContent=String(n);
+  const dim=k*(n-k);
+  document.getElementById('pgInfo').textContent='G₊('+k+','+n+') dim='+dim+'  cells ~ positroids';
+
+  const lW=W*0.5-4, rX=W*0.5+4;
+  // Left: matrix C with positive minors
+  ctx12.fillStyle='#0b0b1e'; ctx12.fillRect(0,0,lW,H);
+  ctx12.fillStyle='#55558a'; ctx12.font='12px sans-serif'; ctx12.textAlign='center';
+  ctx12.fillText('Positive Matrix C ∈ G₊(k,n)', lW/2, 18);
+
+  const cellW=Math.min(36,(lW-80)/n), cellH=28;
+  const mx0=(lW-n*cellW)/2, my0=50;
+  for(let r=0;r<k;r++){
+    for(let c=0;c<n;c++){
+      const val=0.2+0.7*Math.abs(Math.sin(0.7*r+1.3*c+t*0.4+k));
+      const px=mx0+c*cellW, py=my0+r*(cellH+8);
+      ctx12.fillStyle=`rgba(221,136,255,${0.15+0.55*val})`;
+      ctx12.fillRect(px,py,cellW-3,cellH);
+      ctx12.strokeStyle='rgba(221,136,255,0.4)'; ctx12.strokeRect(px,py,cellW-3,cellH);
+      ctx12.fillStyle='#e0e0ff'; ctx12.font='12px monospace'; ctx12.textAlign='center';
+      ctx12.fillText(val.toFixed(2), px+(cellW-3)/2, py+cellH/2+4);
+    }
+  }
+  // Plücker bars
+  ctx12.fillStyle='#55558a'; ctx12.font='12px sans-serif'; ctx12.textAlign='left';
+  ctx12.fillText('Plücker coords p_I > 0:', 20, my0+k*(cellH+8)+28);
+  const nPlu=Math.min(6, binomSmall(n,k));
+  for(let i=0;i<nPlu;i++){
+    const p=0.3+0.6*Math.abs(Math.sin(t*0.5+i*1.7));
+    const y=my0+k*(cellH+8)+48+i*22;
+    ctx12.fillStyle='rgba(68,221,255,0.15)';
+    ctx12.fillRect(24,y-10,lW-48,18);
+    ctx12.fillStyle='rgba(68,221,255,0.7)';
+    ctx12.fillRect(24,y-10,(lW-48)*p,18);
+    ctx12.fillStyle='#c0c0ea'; ctx12.font='12px sans-serif';
+    ctx12.fillText('p_'+i+' = '+p.toFixed(2), 28, y+4);
+  }
+
+  // Right: plabic / on-shell diagram
+  ctx12.fillStyle='#0b0b1e'; ctx12.fillRect(rX,0,W-rX,H);
+  ctx12.fillStyle='#55558a'; ctx12.font='12px sans-serif'; ctx12.textAlign='center';
+  const rcx=rX+(W-rX)/2;
+  ctx12.fillText(showPl?'Plabic / On-Shell Diagram':'Positroid Cell Skeleton', rcx, 18);
+
+  const cx=rcx, cy=H/2+10, RR=Math.min(W-rX,H)*0.32;
+  // external legs on circle
+  const verts=[];
+  for(let i=0;i<n;i++){
+    const a=i/n*2*Math.PI-Math.PI/2+t*0.05;
+    verts.push({x:cx+RR*Math.cos(a), y:cy+RR*Math.sin(a), i});
+  }
+  if(showPl){
+    // internal bipartite nodes
+    const internals=[];
+    const nInt=k+1;
+    for(let i=0;i<nInt;i++){
+      const a=i/nInt*2*Math.PI+t*0.2;
+      const rr=RR*0.35;
+      internals.push({
+        x:cx+rr*Math.cos(a), y:cy+rr*Math.sin(a),
+        black:i%2===0
+      });
+    }
+    // edges external → nearest internal
+    verts.forEach((v,vi)=>{
+      const inn=internals[vi%internals.length];
+      ctx12.strokeStyle='rgba(221,136,255,0.45)'; ctx12.lineWidth=1.5;
+      ctx12.beginPath(); ctx12.moveTo(v.x,v.y); ctx12.lineTo(inn.x,inn.y); ctx12.stroke();
+    });
+    // internal edges
+    for(let i=0;i<internals.length;i++){
+      const a=internals[i], b=internals[(i+1)%internals.length];
+      ctx12.strokeStyle='rgba(255,221,68,0.5)'; ctx12.lineWidth=1.5;
+      ctx12.beginPath(); ctx12.moveTo(a.x,a.y); ctx12.lineTo(b.x,b.y); ctx12.stroke();
+    }
+    internals.forEach(p=>{
+      ctx12.fillStyle=p.black?'#dd88ff':'#ffffff';
+      ctx12.beginPath(); ctx12.arc(p.x,p.y,7,0,2*Math.PI); ctx12.fill();
+      ctx12.strokeStyle=p.black?'#aa66cc':'#888'; ctx12.lineWidth=1.5;
+      ctx12.beginPath(); ctx12.arc(p.x,p.y,7,0,2*Math.PI); ctx12.stroke();
+    });
+  } else {
+    // polygon skeleton
+    ctx12.strokeStyle='rgba(221,136,255,0.5)'; ctx12.lineWidth=1.5;
+    ctx12.beginPath();
+    verts.forEach((v,i)=>{ if(i===0) ctx12.moveTo(v.x,v.y); else ctx12.lineTo(v.x,v.y); });
+    ctx12.closePath(); ctx12.stroke();
+  }
+  verts.forEach(v=>{
+    ctx12.fillStyle='#44ddff';
+    ctx12.beginPath(); ctx12.arc(v.x,v.y,5,0,2*Math.PI); ctx12.fill();
+    ctx12.fillStyle='#c0c0ea'; ctx12.font='12px sans-serif'; ctx12.textAlign='center';
+    ctx12.fillText(String(v.i+1), v.x, v.y-12);
+  });
+  ctx12.fillStyle='#aaaacc'; ctx12.font='12px sans-serif';
+  ctx12.fillText('k='+k+' n='+n+'  (not full amplituhedron vol.)', rcx, H-16);
+}
+
+function binomSmall(n,k){
+  if(k<0||k>n) return 0;
+  k=Math.min(k,n-k);
+  let r=1;
+  for(let i=0;i<k;i++) r=r*(n-i)/(i+1);
+  return Math.round(r);
+}
+
+// ── TAB 13: SCATTERING EQUATIONS / CHY ────────────────────────────────────────
+const c13=document.getElementById('c13');
+const ctx13=c13.getContext('2d');
+let animOffset13=0,animId13=null;
+
+function toggleAnim13(){
+  const btn=document.getElementById('animBtn13');
+  if(animId13){ cancelAnimationFrame(animId13); animId13=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim13(); }
+}
+function stepAnim13(){ animOffset13+=0.015*(window.animSpeed||1); draw13(); animId13=requestAnimationFrame(stepAnim13); }
+
+function draw13(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c13.offsetWidth, H=c13.offsetHeight;
+  if(!W||!H)return;
+  c13.width=W*dpr; c13.height=H*dpr;
+  ctx13.setTransform(dpr,0,0,dpr,0,0);
+  ctx13.clearRect(0,0,W,H);
+  ctx13.fillStyle='#05050f'; ctx13.fillRect(0,0,W,H);
+
+  const t=animOffset13;
+  const n=parseInt(document.getElementById('chyN').value);
+  const flow=parseFloat(document.getElementById('chyFlow').value)/100;
+  const showPoles=document.getElementById('showPoles').checked;
+  document.getElementById('chyNv').textContent=String(n);
+  document.getElementById('chyFlowv').textContent=flow.toFixed(2);
+
+  // synthetic σ on CP¹ and Mandelstam-like s_ab
+  const sigma=[];
+  for(let i=0;i<n;i++){
+    const base=i/n*2*Math.PI;
+    sigma.push(base+0.15*Math.sin(t*0.8+i)+flow*0.4*Math.sin(t*0.3+i*2));
+  }
+  // E_a residual (visual)
+  let eMax=0;
+  const Ea=[];
+  for(let a=0;a<n;a++){
+    let e=0;
+    for(let b=0;b<n;b++){
+      if(a===b) continue;
+      const sab=2*Math.cos((a-b)*Math.PI/n); // toy
+      let d=sigma[a]-sigma[b];
+      if(Math.abs(d)<1e-3) d=1e-3;
+      e+=sab/d;
+    }
+    Ea.push(e);
+    eMax=Math.max(eMax,Math.abs(e));
+  }
+  document.getElementById('chyInfo').textContent=
+    'n='+n+'  |E|_max≈'+(eMax||0).toFixed(2)+'  M_{0,n} dim='+(n-3);
+
+  const lW=W*0.5-4, rX=W*0.5+4;
+  // Left: points on CP¹ / circle
+  ctx13.fillStyle='#0b0b1e'; ctx13.fillRect(0,0,lW,H);
+  ctx13.fillStyle='#55558a'; ctx13.font='12px sans-serif'; ctx13.textAlign='center';
+  ctx13.fillText('Moduli σ_a ∈ ℳ_{0,n} ≅ CP¹', lW/2, 18);
+
+  const cx=lW/2, cy=H/2, R=Math.min(lW,H)*0.32;
+  ctx13.strokeStyle='rgba(100,60,160,0.45)'; ctx13.lineWidth=1.5;
+  ctx13.beginPath(); ctx13.arc(cx,cy,R,0,2*Math.PI); ctx13.stroke();
+
+  const cols=['#ffdd44','#44ffbb','#ff6688','#66aaff','#ffaa44','#aaffaa','#ff88dd','#44ddff'];
+  for(let i=0;i<n;i++){
+    const a=sigma[i];
+    const x=cx+R*Math.cos(a), y=cy+R*Math.sin(a);
+    if(showPoles){
+      // pole rays between points
+      for(let j=i+1;j<n;j++){
+        const b=sigma[j];
+        const x2=cx+R*Math.cos(b), y2=cy+R*Math.sin(b);
+        ctx13.strokeStyle='rgba(221,136,255,0.12)'; ctx13.lineWidth=1;
+        ctx13.beginPath(); ctx13.moveTo(x,y); ctx13.lineTo(x2,y2); ctx13.stroke();
+      }
+    }
+    ctx13.fillStyle=cols[i%cols.length];
+    ctx13.beginPath(); ctx13.arc(x,y,6,0,2*Math.PI); ctx13.fill();
+    ctx13.fillStyle=cols[i%cols.length]; ctx13.font='12px sans-serif';
+    ctx13.fillText('σ'+(i+1), x+10, y-8);
+  }
+  // SL(2) gauge fix hint
+  ctx13.fillStyle='#aaaacc'; ctx13.font='12px sans-serif';
+  ctx13.fillText('SL(2) fix: 3 punctures → n−3 free', cx, H-20);
+
+  // Right: E_a bars + CHY measure box
+  ctx13.fillStyle='#0b0b1e'; ctx13.fillRect(rX,0,W-rX,H);
+  ctx13.fillStyle='#55558a'; ctx13.font='12px sans-serif'; ctx13.textAlign='center';
+  const rcx=rX+(W-rX)/2;
+  ctx13.fillText('Scattering Equations E_a ≈ 0', rcx, 18);
+
+  const barW=Math.min(40,(W-rX-40)/n);
+  const baseY=H*0.55, maxH=H*0.28;
+  for(let i=0;i<n;i++){
+    const h=(eMax>1e-6?Ea[i]/eMax:0)*maxH;
+    const px=rX+24+i*((W-rX-48)/n)+((W-rX-48)/n-barW)/2;
+    ctx13.fillStyle=Math.abs(h)<maxH*0.15?'rgba(68,255,136,0.7)':'rgba(255,100,120,0.65)';
+    ctx13.fillRect(px, baseY-Math.max(h,0), barW, Math.abs(h)+2);
+    if(h<0) ctx13.fillRect(px, baseY, barW, Math.abs(h));
+    ctx13.fillStyle='#c0c0ea'; ctx13.font='12px sans-serif'; ctx13.textAlign='center';
+    ctx13.fillText('E'+(i+1), px+barW/2, baseY+18);
+  }
+  ctx13.strokeStyle='rgba(255,255,255,0.25)'; ctx13.lineWidth=1;
+  ctx13.beginPath(); ctx13.moveTo(rX+16,baseY); ctx13.lineTo(W-16,baseY); ctx13.stroke();
+
+  ctx13.fillStyle='rgba(30,15,50,0.9)';
+  ctx13.fillRect(rX+12, H-88, W-rX-24, 70);
+  ctx13.strokeStyle='#3a1a5a'; ctx13.strokeRect(rX+12, H-88, W-rX-24, 70);
+  ctx13.fillStyle='#dd88ff'; ctx13.font='12px monospace'; ctx13.textAlign='left';
+  ctx13.fillText('E_a = Σ s_ab/(σ_a−σ_b) = 0', rX+22, H-64);
+  ctx13.fillStyle='#aaaacc'; ctx13.font='12px sans-serif';
+  ctx13.fillText('CHY: ∫ dμ  Pf′Ψ · PT   (ambitwistor link)', rX+22, H-42);
+  ctx13.fillText('flow='+flow.toFixed(2)+' → moduli animation', rX+22, H-24);
+}
+
+// ── TAB 14: ASYMPTOTIC TWISTOR / CELESTIAL ────────────────────────────────────
+const c14=document.getElementById('c14');
+const ctx14=c14.getContext('2d');
+let animOffset14=0,animId14=null;
+
+function toggleAnim14(){
+  const btn=document.getElementById('animBtn14');
+  if(animId14){ cancelAnimationFrame(animId14); animId14=null; btn.classList.remove('active-btn'); btn.textContent='▶ Animate'; }
+  else { btn.classList.add('active-btn'); btn.textContent='⏸ Pause'; stepAnim14(); }
+}
+function stepAnim14(){ animOffset14+=0.014*(window.animSpeed||1); draw14(); animId14=requestAnimationFrame(stepAnim14); }
+
+function draw14(){
+  const dpr=window.devicePixelRatio||1;
+  const W=c14.offsetWidth, H=c14.offsetHeight;
+  if(!W||!H)return;
+  c14.width=W*dpr; c14.height=H*dpr;
+  ctx14.setTransform(dpr,0,0,dpr,0,0);
+  ctx14.clearRect(0,0,W,H);
+  ctx14.fillStyle='#05050f'; ctx14.fillRect(0,0,W,H);
+
+  const t=animOffset14;
+  const uB=parseFloat(document.getElementById('asyU').value)/100;
+  const boost=parseFloat(document.getElementById('asyBoost').value)/100;
+  const showScri=document.getElementById('showScri').checked;
+  document.getElementById('asyUv').textContent=uB.toFixed(2);
+  document.getElementById('asyBoostv').textContent=boost.toFixed(2);
+  document.getElementById('asyInfo').textContent=
+    'u='+uB.toFixed(2)+'  boost='+boost.toFixed(2)+'  ℐ⁺ = ℝ_u × S²';
+
+  const lW=W*0.5-4, rX=W*0.5+4;
+  // Left: Penrose diagram lite with I+
+  ctx14.fillStyle='#0b0b1e'; ctx14.fillRect(0,0,lW,H);
+  ctx14.fillStyle='#55558a'; ctx14.font='12px sans-serif'; ctx14.textAlign='center';
+  ctx14.fillText('Null Infinity ℐ⁺ & Asymptotic Twistors', lW/2, 18);
+
+  const ox=lW/2, oy=H*0.55, sc=Math.min(lW,H)*0.28;
+  // diamond (Minkowski compactification sketch)
+  ctx14.strokeStyle='rgba(100,80,160,0.5)'; ctx14.lineWidth=1.5;
+  ctx14.beginPath();
+  ctx14.moveTo(ox, oy-sc*1.2);
+  ctx14.lineTo(ox+sc, oy);
+  ctx14.lineTo(ox, oy+sc*1.2);
+  ctx14.lineTo(ox-sc, oy);
+  ctx14.closePath(); ctx14.stroke();
+
+  if(showScri){
+    // I+ as right-top edge, thickened with u coordinate
+    const uOff=(uB-0.5)*sc*0.8;
+    ctx14.strokeStyle='#ffdd44'; ctx14.lineWidth=3;
+    ctx14.beginPath();
+    ctx14.moveTo(ox+8, oy-sc*1.15);
+    ctx14.lineTo(ox+sc-4, oy-4);
+    ctx14.stroke();
+    // u ticks
+    for(let i=0;i<6;i++){
+      const f=i/5;
+      const x=ox+8+f*(sc-12), y=oy-sc*1.15+f*(sc*1.11);
+      ctx14.fillStyle='rgba(255,221,68,0.7)';
+      ctx14.beginPath(); ctx14.arc(x,y,2.5,0,2*Math.PI); ctx14.fill();
+    }
+    // highlight current u
+    const f=uB;
+    const hx=ox+8+f*(sc-12), hy=oy-sc*1.15+f*(sc*1.11);
+    ctx14.strokeStyle='#ffdd44'; ctx14.lineWidth=1.5;
+    ctx14.beginPath(); ctx14.arc(hx,hy,8+2*Math.sin(t*3),0,2*Math.PI); ctx14.stroke();
+    ctx14.fillStyle='#ffdd44'; ctx14.font='12px sans-serif'; ctx14.textAlign='left';
+    ctx14.fillText('ℐ⁺  u='+uB.toFixed(2), hx+12, hy);
+
+    // outgoing null rays
+    for(let i=0;i<5;i++){
+      const a=-0.6+i*0.25+boost*0.3;
+      ctx14.strokeStyle=`rgba(221,136,255,${0.25+0.1*Math.sin(t+i)})`;
+      ctx14.lineWidth=1;
+      ctx14.setLineDash([4,3]);
+      ctx14.beginPath();
+      ctx14.moveTo(ox,oy);
+      ctx14.lineTo(ox+sc*0.85*Math.cos(a-0.4), oy-sc*0.85*Math.sin(a+0.8));
+      ctx14.stroke();
+      ctx14.setLineDash([]);
+    }
+  }
+  ctx14.fillStyle='#44ddff'; ctx14.font='12px sans-serif'; ctx14.textAlign='center';
+  ctx14.fillText('i⁰', ox+sc+14, oy+4);
+  ctx14.fillText('i⁺', ox, oy-sc*1.2-10);
+  ctx14.fillText('i⁻', ox, oy+sc*1.2+14);
+
+  // shear wave along I+
+  ctx14.strokeStyle='rgba(68,221,255,0.7)'; ctx14.lineWidth=1.5;
+  ctx14.beginPath();
+  for(let i=0;i<=40;i++){
+    const f=i/40;
+    const x=20+f*(lW-40);
+    const y=H-40+12*Math.sin(f*6*Math.PI+t*2+boost*3)*Math.exp(-Math.abs(f-uB)*3);
+    if(i===0) ctx14.moveTo(x,y); else ctx14.lineTo(x,y);
+  }
+  ctx14.stroke();
+  ctx14.fillStyle='#44ddff'; ctx14.font='12px sans-serif';
+  ctx14.fillText('Bondi news N = ∂_u σ⁰', lW/2, H-12);
+
+  // Right: celestial sphere + soft insertions
+  ctx14.fillStyle='#0b0b1e'; ctx14.fillRect(rX,0,W-rX,H);
+  ctx14.fillStyle='#55558a'; ctx14.font='12px sans-serif'; ctx14.textAlign='center';
+  const rcx=rX+(W-rX)/2;
+  ctx14.fillText('Celestial Sphere S²  (CFT₂ data)', rcx, 18);
+
+  const scx=rcx, scy=H/2-10, sR=Math.min(W-rX,H)*0.3;
+  const rot=t*0.25+boost;
+  // sphere mesh
+  for(let lat=1;lat<8;lat++){
+    const th=lat/8*Math.PI;
+    ctx14.beginPath();
+    let first=true;
+    for(let j=0;j<=32;j++){
+      const ph=j/32*2*Math.PI;
+      const p=spherePoint(th,ph);
+      const q=project3D(p,rot,scx,scy,sR);
+      if(q.depth<-0.15){first=true;continue;}
+      if(first){ctx14.moveTo(q.sx,q.sy);first=false;}else ctx14.lineTo(q.sx,q.sy);
+    }
+    ctx14.strokeStyle='rgba(221,136,255,0.25)'; ctx14.lineWidth=1; ctx14.stroke();
+  }
+  // soft/hard operator points
+  for(let i=0;i<6;i++){
+    const th=0.4+i*0.35, ph=i*1.7+t*0.3;
+    const p=spherePoint(th,ph);
+    const q=project3D(p,rot,scx,scy,sR);
+    if(q.depth<-0.1) continue;
+    const soft=i%2===0;
+    ctx14.fillStyle=soft?'#ffdd44':'#44ddff';
+    ctx14.beginPath(); ctx14.arc(q.sx,q.sy,soft?4:6,0,2*Math.PI); ctx14.fill();
+    ctx14.fillStyle=soft?'#ffdd44':'#44ddff'; ctx14.font='12px sans-serif';
+    ctx14.fillText(soft?'soft':'hard', q.sx+8, q.sy-4);
+  }
+  ctx14.fillStyle='#aaaacc'; ctx14.font='12px sans-serif';
+  ctx14.fillText('soft thm ↔ celestial Ward id.', rcx, H-28);
+  ctx14.fillText('twistor ⟨ij⟩ as OPE building blocks', rcx, H-12);
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.getElementById('ptX').addEventListener('input',draw0);
 document.getElementById('ptT').addEventListener('input',draw0);
@@ -2314,6 +3332,18 @@ document.getElementById('showHopf').addEventListener('change',draw4);
 document.getElementById('showMhvLines').addEventListener('change',draw7);
 ['tqtHel','tqtMode','showCohom'].forEach(id=>document.getElementById(id).addEventListener('input',draw8));
 document.getElementById('showCohom').addEventListener('change',draw8);
+['incPi','incX','showFlag'].forEach(id=>document.getElementById(id).addEventListener('input',draw9));
+document.getElementById('showFlag').addEventListener('change',draw9);
+['wardK','wardGlue','showSDYM'].forEach(id=>document.getElementById(id).addEventListener('input',draw10));
+document.getElementById('showSDYM').addEventListener('change',draw10);
+['cohS','cohPatches','showDolb'].forEach(id=>document.getElementById(id).addEventListener('input',draw11));
+document.getElementById('showDolb').addEventListener('change',draw11);
+['pgK','pgN','showPlabic'].forEach(id=>document.getElementById(id).addEventListener('input',draw12));
+document.getElementById('showPlabic').addEventListener('change',draw12);
+['chyN','chyFlow','showPoles'].forEach(id=>document.getElementById(id).addEventListener('input',draw13));
+document.getElementById('showPoles').addEventListener('change',draw13);
+['asyU','asyBoost','showScri'].forEach(id=>document.getElementById(id).addEventListener('input',draw14));
+document.getElementById('showScri').addEventListener('change',draw14);
 
 addZoom(c0,0,draw0); addPan(c0,0,draw0);
 addZoom(c1,1,draw1); addPan(c1,1,draw1);
@@ -2324,23 +3354,24 @@ addZoom(c5,5,draw5); addPan(c5,5,draw5);
 addZoom(c6,6,draw6); addPan(c6,6,draw6);
 addZoom(c7,7,draw7); addPan(c7,7,draw7);
 addZoom(c8,8,draw8); addPan(c8,8,draw8);
+addZoom(c9,9,draw9); addPan(c9,9,draw9);
+addZoom(c10,10,draw10); addPan(c10,10,draw10);
+addZoom(c11,11,draw11); addPan(c11,11,draw11);
+addZoom(c12,12,draw12); addPan(c12,12,draw12);
+addZoom(c13,13,draw13); addPan(c13,13,draw13);
+addZoom(c14,14,draw14); addPan(c14,14,draw14);
+
+drawFns[0]=draw0; drawFns[1]=draw1; drawFns[2]=draw2;
+drawFns[3]=draw3; drawFns[4]=draw4; drawFns[5]=draw5; drawFns[6]=draw6;
+drawFns[7]=draw7; drawFns[8]=draw8;
+drawFns[9]=draw9; drawFns[10]=draw10; drawFns[11]=draw11;
+drawFns[12]=draw12; drawFns[13]=draw13; drawFns[14]=draw14;
 
 window.animSpeed=1;
 window.zoomX=1;
-requestAnimationFrame(()=>{ draw0(); draw1(); draw2(); draw3(); draw4(); draw5(); draw6(); draw7(); draw8(); });
+requestAnimationFrame(()=>{ for(let i=0;i<NUM_TABS23;i++) if(drawFns[i]) drawFns[i](); });
 
-window.addEventListener('resize',()=>{
-  const active=[...document.querySelectorAll('.tab-panel')].findIndex(p=>p.classList.contains('active'));
-  if(active===0) draw0();
-  if(active===1) draw1();
-  if(active===2) draw2();
-  if(active===3) draw3();
-  if(active===4) draw4();
-  if(active===5) draw5();
-  if(active===6) draw6();
-  if(active===7) draw7();
-  if(active===8) draw8();
-});
+window.addEventListener('resize',()=>{ if(drawFns[activeTab]) drawFns[activeTab](); });
 switchTab(0);
 </script>
 
