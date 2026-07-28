@@ -1087,6 +1087,10 @@ function _resizeMainCanvas(canvas, panelId){
   canvas.style.width=w+'px';
   canvas.style.height=h+'px';
 }
+function _setPauseBtn(id, paused){
+  const b=document.getElementById(id);
+  if(b){b.textContent=paused?'▶ Resume':'⏸ Pause';b.classList.toggle('active',!!paused);}
+}
 function switchTab(n){
   _cancelAllAnims();
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
@@ -2894,6 +2898,59 @@ function _drawStringTension(W,H){
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Shared layout helpers for advanced tabs (8–14)
+// Avoid: text overflow, wasted black space, unclipped graph curves
+// ═══════════════════════════════════════════════════════════════════
+function _gLayout(W,H){
+  // Tighter padding so diagrams/graphs use most of the canvas
+  const padL=Math.max(44, Math.min(64, W*0.055));
+  const padR=Math.max(18, Math.min(36, W*0.03));
+  const padT=Math.max(28, Math.min(42, H*0.055)); // title band
+  const padB=Math.max(28, Math.min(44, H*0.06));  // footer band
+  const f1=Math.max(11, Math.min(14, Math.min(W,H)*0.018))|0;
+  const f2=Math.max(13, Math.min(17, Math.min(W,H)*0.022))|0;
+  return {
+    padL,padR,padT,padB,
+    x:padL, y:padT,
+    w:Math.max(40, W-padL-padR),
+    h:Math.max(40, H-padT-padB),
+    f1,f2,
+    W,H
+  };
+}
+function _gFit(ctx, text, maxW, font){
+  ctx.font=font;
+  if(ctx.measureText(text).width<=maxW) return text;
+  let s=text;
+  while(s.length>3 && ctx.measureText(s+'\u2026').width>maxW) s=s.slice(0,-1);
+  return s+'\u2026';
+}
+function _gTitle(ctx, L, title){
+  ctx.fillStyle='rgba(0,229,255,0.9)';
+  ctx.font='bold '+L.f2+'px monospace';
+  ctx.textAlign='left';
+  ctx.fillText(_gFit(ctx, title, L.w, ctx.font), L.x, L.y-8);
+}
+function _gFooter(ctx, L, text){
+  ctx.fillStyle='rgba(160,160,200,0.55)';
+  ctx.font=L.f1+'px monospace';
+  ctx.textAlign='left';
+  ctx.fillText(_gFit(ctx, text, L.w, ctx.font), L.x, L.H-10);
+}
+function _gAxes(ctx, L){
+  ctx.strokeStyle='#2a2a55'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(L.x, L.y); ctx.lineTo(L.x, L.y+L.h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(L.x, L.y+L.h); ctx.lineTo(L.x+L.w, L.y+L.h); ctx.stroke();
+}
+function _gClip(ctx, L){
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(L.x, L.y, L.w, L.h);
+  ctx.clip();
+}
+function _gClampY(y, L){ return Math.max(L.y+1, Math.min(L.y+L.h-1, y)); }
+
+// ═══════════════════════════════════════════════════════════════════
 // TAB 8: BRST QUANTIZATION
 // ═══════════════════════════════════════════════════════════════════
 const brstC=document.getElementById('brstCanvas');
@@ -2921,83 +2978,92 @@ function redrawBRST(){
   brstCtx.setTransform(1,0,0,1,0,0);
   brstCtx.fillStyle='#05050f'; brstCtx.fillRect(0,0,W,H);
   brstCtx.setTransform(1,0,0,1,pans[8].x,pans[8].y);
-
-  const S=Math.min(W,H);
-  const f1=Math.max(12,S*0.022)|0;
-  const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
+  const L=_gLayout(W,H);
+  const phase=brstT;
 
   if(brstView===0){
-    // BRST complex: ghost number ladder
-    const cx=W/2, cy=H*0.4;
-    const levels=[{n:-1,label:'c (ghost)',col:'#ff4477'},{n:0,label:'A_\u03bc, \u03c8 (physical)',col:'#00e5ff'},{n:1,label:'\u0101 (antighost)',col:'#ff8844'}];
-
+    _gTitle(brstCtx,L,'BRST complex  (s\u00b2 = 0)');
+    // Use full plot height for 3 ghost-number levels
+    const levels=[
+      {n:-1,label:'c  (ghost)',col:'#ff4477'},
+      {n:0,label:'A_\u03bc, \u03c8  (physical)',col:'#00e5ff'},
+      {n:1,label:'\u0101  (antighost)',col:'#ff8844'}
+    ];
+    const boxH=Math.min(56, L.h/4.2);
+    const gap=(L.h-3*boxH)/4;
+    const boxW=Math.min(L.w*0.72, 420);
+    const bx=L.x+(L.w-boxW)/2;
     levels.forEach((lv,i)=>{
-      const y=cy+(i-1)*80;
-      brstCtx.fillStyle='rgba(16,16,36,0.9)'; brstCtx.fillRect(cx-120,y-18,240,36);
-      brstCtx.strokeStyle=lv.col; brstCtx.lineWidth=1.5; brstCtx.strokeRect(cx-120,y-18,240,36);
-      brstCtx.fillStyle=lv.col; brstCtx.font='bold '+f2+'px monospace';
-      brstCtx.fillText('ghost #'+lv.n+': '+lv.label,cx-100,y+6);
+      const y=L.y+gap+(boxH+gap)*i;
+      const pulse=0.85+0.15*Math.sin(phase*2+i);
+      brstCtx.fillStyle='rgba(16,16,36,0.95)';
+      brstCtx.fillRect(bx,y,boxW,boxH);
+      brstCtx.strokeStyle=lv.col;
+      brstCtx.globalAlpha=pulse;
+      brstCtx.lineWidth=2;
+      brstCtx.strokeRect(bx,y,boxW,boxH);
+      brstCtx.globalAlpha=1;
+      brstCtx.fillStyle=lv.col;
+      brstCtx.font='bold '+L.f2+'px monospace';
+      brstCtx.textAlign='left';
+      brstCtx.fillText(_gFit(brstCtx,'ghost #'+lv.n+':  '+lv.label, boxW-20, brstCtx.font), bx+12, y+boxH*0.62);
+      // s-arrows between levels
+      if(i<2){
+        const ay=y+boxH+2, by=y+boxH+gap-2;
+        const mid=bx+boxW/2;
+        const flow=(phase*40)%(gap-4);
+        brstCtx.strokeStyle='rgba(255,204,0,0.65)';
+        brstCtx.lineWidth=2;
+        brstCtx.beginPath(); brstCtx.moveTo(mid,ay); brstCtx.lineTo(mid,by); brstCtx.stroke();
+        brstCtx.beginPath();
+        brstCtx.moveTo(mid-5,by-6); brstCtx.lineTo(mid,by); brstCtx.lineTo(mid+5,by-6);
+        brstCtx.stroke();
+        brstCtx.fillStyle='rgba(255,204,0,0.9)';
+        brstCtx.font=L.f1+'px monospace';
+        brstCtx.fillText('s', mid+8, ay+flow+8);
+      }
     });
-
-    // s operator arrows
-    brstCtx.strokeStyle='rgba(255,204,0,0.6)'; brstCtx.lineWidth=2;
-    brstCtx.beginPath(); brstCtx.moveTo(cx,cy-18); brstCtx.lineTo(cx,cy-50); brstCtx.stroke();
-    brstCtx.beginPath(); brstCtx.moveTo(cx,cy+18); brstCtx.lineTo(cx,cy+50); brstCtx.stroke();
-    brstCtx.fillStyle='rgba(255,204,0,0.7)'; brstCtx.font='bold '+f1+'px monospace';
-    brstCtx.fillText('s',cx+10,cy-30);
-    brstCtx.fillText('s',cx+10,cy+40);
-
-    // s² = 0
-    brstCtx.fillStyle='rgba(255,204,0,0.9)'; brstCtx.font='bold '+f3+'px monospace';
-    brstCtx.fillText('s\u00b2 = 0  (nilpotent)',cx-f3*4,cy+100);
-
-    brstCtx.fillStyle='rgba(255,255,255,0.4)'; brstCtx.font=f1+'px monospace';
-    brstCtx.fillText('BRST cohomology = physical Hilbert space',cx-f1*10,H-14);
-
+    _gFooter(brstCtx,L,'s\u00b2=0 nilpotent  \u00b7  BRST cohomology = physical Hilbert space');
   } else {
-    // Slavnov-Taylor identities
-    const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-    brstCtx.fillStyle='rgba(0,229,255,0.85)'; brstCtx.font='bold '+f2+'px monospace';
-    brstCtx.fillText('Slavnov-Taylor Identities',mx,my+f2+4);
-
-    // Diagram: vertex with external legs
-    const cx2=W/2, cy2=my+ph*0.35;
-    const pR=Math.max(16,S*0.028);
-
-    // Gluon line
-    brstCtx.strokeStyle='rgba(0,229,255,0.6)'; brstCtx.lineWidth=2.5;
-    brstCtx.beginPath(); brstCtx.moveTo(cx2-80,cy2-40); brstCtx.lineTo(cx2,cy2); brstCtx.lineTo(cx2+80,cy2-40); brstCtx.stroke();
-    // Ghost line (dashed)
-    brstCtx.strokeStyle='rgba(255,68,119,0.6)'; brstCtx.lineWidth=2; brstCtx.setLineDash([5,3]);
-    brstCtx.beginPath(); brstCtx.moveTo(cx2-80,cy2+40); brstCtx.lineTo(cx2,cy2); brstCtx.lineTo(cx2+80,cy2+40); brstCtx.stroke();
-    brstCtx.setLineDash([]);
-
-    brstCtx.fillStyle='rgba(0,229,255,0.7)'; brstCtx.font=f1+'px monospace';
-    brstCtx.fillText('A_\u03bc',cx2-90,cy2-40);
-    brstCtx.fillText('A_\u03bd',cx2+70,cy2-40);
-    brstCtx.fillStyle='rgba(255,68,119,0.7)';
-    brstCtx.fillText('\u0101',cx2-90,cy2+40);
-    brstCtx.fillText('c',cx2+70,cy2+40);
-
-    // Identity
-    brstCtx.fillStyle='rgba(255,204,0,0.9)'; brstCtx.font='bold '+f2+'px monospace';
-    brstCtx.fillText('k^\u03bc \u0393_{\u03bc\u03bd}^{abc}(k) = ...',cx2-f2*5,cy2+90);
-    brstCtx.fillStyle='rgba(255,255,255,0.4)'; brstCtx.font=f1+'px monospace';
-    brstCtx.fillText('Non-Abelian generalization of Ward identities',mx,my+ph-10);
+    _gTitle(brstCtx,L,'Slavnov-Taylor identities');
+    const cx=L.x+L.w/2, cy=L.y+L.h*0.42;
+    const arm=Math.min(L.w,L.h)*0.22;
+    // Animated legs
+    const wig=4*Math.sin(phase*2);
+    brstCtx.strokeStyle='rgba(0,229,255,0.75)'; brstCtx.lineWidth=2.5;
+    brstCtx.beginPath();
+    brstCtx.moveTo(cx-arm,cy-arm*0.55+wig); brstCtx.lineTo(cx,cy); brstCtx.lineTo(cx+arm,cy-arm*0.55-wig);
+    brstCtx.stroke();
+    brstCtx.strokeStyle='rgba(255,68,119,0.75)'; brstCtx.lineWidth=2; brstCtx.setLineDash([5,3]);
+    brstCtx.lineDashOffset=-phase*20;
+    brstCtx.beginPath();
+    brstCtx.moveTo(cx-arm,cy+arm*0.55); brstCtx.lineTo(cx,cy); brstCtx.lineTo(cx+arm,cy+arm*0.55);
+    brstCtx.stroke(); brstCtx.setLineDash([]);
+    brstCtx.fillStyle='rgba(0,229,255,0.85)'; brstCtx.font=L.f1+'px monospace';
+    brstCtx.fillText('A_\u03bc', cx-arm-8, cy-arm*0.55-6);
+    brstCtx.fillText('A_\u03bd', cx+arm-8, cy-arm*0.55-6);
+    brstCtx.fillStyle='rgba(255,68,119,0.85)';
+    brstCtx.fillText('\u0101', cx-arm-8, cy+arm*0.55+16);
+    brstCtx.fillText('c', cx+arm-4, cy+arm*0.55+16);
+    brstCtx.fillStyle='rgba(255,204,0,0.9)'; brstCtx.font='bold '+L.f2+'px monospace';
+    brstCtx.textAlign='center';
+    brstCtx.fillText(_gFit(brstCtx,'k^\u03bc \u0393_\u03bc\u03bd^{abc}(k) = \u2026', L.w*0.9, brstCtx.font), cx, cy+arm*0.9);
+    brstCtx.textAlign='left';
+    _gFooter(brstCtx,L,'Non-Abelian Ward identity (ghosts appear)');
   }
   brstCtx.setTransform(1,0,0,1,0,0);
 }
 
 function brstLoop(){
-  if(activeTab!==8||!brstRunning){brstRunning=false;return;}
+  if(activeTab!==8||!brstRunning){brstRunning=false;RAF.brst=null;return;}
   if(!brstPaused) brstT+=0.03*(window.animSpeed||1);
   redrawBRST();
   RAF.brst=requestAnimationFrame(brstLoop);
 }
 function startBRSTLoop(){
   resizeBRST();
-  brstRunning=true;
+  brstRunning=true; brstPaused=false;
+  _setPauseBtn('brstPauseBtn',false);
   if(RAF.brst){cancelAnimationFrame(RAF.brst);RAF.brst=null;}
   brstLoop();
 }
@@ -3029,88 +3095,104 @@ function redrawGH(){
   ghCtx.setTransform(1,0,0,1,0,0);
   ghCtx.fillStyle='#05050f'; ghCtx.fillRect(0,0,W,H);
   ghCtx.setTransform(1,0,0,1,pans[9].x,pans[9].y);
-
-  const S=Math.min(W,H);
-  const f1=Math.max(12,S*0.022)|0;
-  const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
+  const L=_gLayout(W,H);
+  const phase=ghT;
 
   if(ghView===0){
-    // Ghost propagator
-    const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-    ghCtx.fillStyle='rgba(0,229,255,0.85)'; ghCtx.font='bold '+f2+'px monospace';
-    ghCtx.fillText('Ghost Propagator: i/(k\u00b2 - m\u00b2)',mx,my+f2+4);
+    _gTitle(ghCtx,L,'Ghost propagator  D(k) = i/(k\u00b2 + m\u00b2)');
+    _gAxes(ghCtx,L);
+    // Midline (y=0 for D)
+    ghCtx.strokeStyle='#2a2a55'; ghCtx.lineWidth=1;
+    ghCtx.beginPath(); ghCtx.moveTo(L.x, L.y+L.h*0.55); ghCtx.lineTo(L.x+L.w, L.y+L.h*0.55); ghCtx.stroke();
+    ghCtx.fillStyle='#55558a'; ghCtx.font=L.f1+'px monospace';
+    ghCtx.fillText('k', L.x+L.w-10, L.y+L.h*0.55-6);
+    ghCtx.fillText('D', L.x+4, L.y+L.f1+2);
 
-    // Axes
-    ghCtx.strokeStyle='#2a2a55'; ghCtx.lineWidth=1.5;
-    ghCtx.beginPath(); ghCtx.moveTo(mx,my); ghCtx.lineTo(mx,my+ph); ghCtx.stroke();
-    ghCtx.beginPath(); ghCtx.moveTo(mx,my+ph/2); ghCtx.lineTo(mx+pw,my+ph/2); ghCtx.stroke();
-    ghCtx.fillStyle='#55558a'; ghCtx.font=f1+'px monospace';
-    ghCtx.fillText('k',mx+pw+4,my+ph/2+4);
-    ghCtx.fillText('D(k)',mx-30,my+f1);
+    // Peak height scales to fill plot (no overflow)
+    const Dmax=1/(ghM*ghM+1e-6);
+    const y0=L.y+L.h*0.55;
+    const yScale=(L.h*0.48)/Math.max(Dmax,0.01);
+    const kSpan=8;
 
-    // Ghost propagator curve
-    ghCtx.strokeStyle='rgba(255,68,119,0.9)'; ghCtx.lineWidth=2.5;
+    _gClip(ghCtx,L);
+    ghCtx.strokeStyle='rgba(255,68,119,0.95)'; ghCtx.lineWidth=2.5;
     ghCtx.beginPath();
-    for(let xi=0;xi<=pw;xi++){
-      const k=(xi/pw-0.5)*8;
+    for(let xi=0;xi<=L.w;xi++){
+      const k=(xi/L.w-0.5)*kSpan;
       const D=1/(k*k+ghM*ghM);
-      const y=my+ph/2-D*ph*0.4;
-      xi===0?ghCtx.moveTo(mx+xi,y):ghCtx.lineTo(mx+xi,y);
+      const y=_gClampY(y0-D*yScale, L);
+      xi===0?ghCtx.moveTo(L.x+xi,y):ghCtx.lineTo(L.x+xi,y);
     }
     ghCtx.stroke();
 
-    // Current k marker
-    const kx=mx+(ghK/8+0.5)*pw;
-    ghCtx.strokeStyle='rgba(255,204,0,0.8)'; ghCtx.lineWidth=1.5; ghCtx.setLineDash([3,3]);
-    ghCtx.beginPath(); ghCtx.moveTo(kx,my); ghCtx.lineTo(kx,my+ph); ghCtx.stroke();
+    // k marker from slider; pulse radius with time
+    const kx=L.x+(ghK/kSpan+0.5)*L.w;
+    const Dmark=1/(ghK*ghK+ghM*ghM);
+    const ky=_gClampY(y0-Dmark*yScale, L);
+    ghCtx.strokeStyle='rgba(255,204,0,0.85)'; ghCtx.lineWidth=1.5; ghCtx.setLineDash([3,3]);
+    ghCtx.beginPath(); ghCtx.moveTo(kx, L.y); ghCtx.lineTo(kx, L.y+L.h); ghCtx.stroke();
     ghCtx.setLineDash([]);
-    ghCtx.fillStyle='rgba(255,204,0,0.8)'; ghCtx.font=f1+'px monospace';
-    ghCtx.fillText('k='+ghK.toFixed(1),kx+4,my+ph-6);
+    ghCtx.beginPath(); ghCtx.arc(kx, ky, 4+1.5*Math.sin(phase*3), 0, Math.PI*2); ghCtx.fillStyle='rgba(255,204,0,0.95)'; ghCtx.fill();
+    ghCtx.restore();
 
-    ghCtx.fillStyle='rgba(255,255,255,0.4)'; ghCtx.font=f1+'px monospace';
-    ghCtx.fillText('Ghosts: scalar fermions (wrong spin-statistics)  |  Cancel unphysical polarizations',mx,my+ph-30);
-
+    // k label inside plot bottom, clamped to not overflow right edge
+    ghCtx.fillStyle='rgba(255,204,0,0.9)'; ghCtx.font=L.f1+'px monospace';
+    const kLab='k='+ghK.toFixed(1);
+    const kLabW=ghCtx.measureText(kLab).width;
+    ghCtx.fillText(kLab, Math.min(Math.max(L.x+4, kx+6), L.x+L.w-kLabW-4), L.y+L.h-6);
+    _gFooter(ghCtx,L,'Ghosts: scalar fermions  \u00b7  cancel unphysical polarizations');
   } else {
-    // Ghost loop cancellation
-    const cx=W/2, cy=H*0.35;
-    const pR=Math.max(20,S*0.035);
+    _gTitle(ghCtx,L,'Ghost-loop cancellation');
+    const cy=L.y+L.h*0.42;
+    const r=Math.min(L.w*0.12, L.h*0.22, 48);
+    const gap=Math.min(L.w*0.28, r*3.2);
+    const cxL=L.x+L.w/2-gap/2, cxR=L.x+L.w/2+gap/2;
+    const spin=phase*1.2;
 
-    // Gluon loop (unphysical)
-    ghCtx.strokeStyle='rgba(0,229,255,0.4)'; ghCtx.lineWidth=2;
-    ghCtx.beginPath(); ghCtx.arc(cx-60,cy,40,0,Math.PI*2); ghCtx.stroke();
-    ghCtx.fillStyle='rgba(0,229,255,0.5)'; ghCtx.font=f1+'px monospace';
-    ghCtx.fillText('gluon loop',cx-100,cy-50);
+    // Gluon loop
+    ghCtx.strokeStyle='rgba(0,229,255,0.55)'; ghCtx.lineWidth=2.5;
+    ghCtx.beginPath(); ghCtx.arc(cxL,cy,r,0,Math.PI*2); ghCtx.stroke();
+    ghCtx.strokeStyle='rgba(0,229,255,0.9)';
+    ghCtx.beginPath(); ghCtx.arc(cxL,cy,r*0.55,spin,spin+Math.PI*1.2); ghCtx.stroke();
+    ghCtx.fillStyle='rgba(0,229,255,0.85)'; ghCtx.font=L.f1+'px monospace';
+    ghCtx.textAlign='center';
+    ghCtx.fillText('gluon loop', cxL, cy-r-10);
 
-    // Ghost loop (cancels)
-    ghCtx.strokeStyle='rgba(255,68,119,0.4)'; ghCtx.lineWidth=2; ghCtx.setLineDash([5,3]);
-    ghCtx.beginPath(); ghCtx.arc(cx+60,cy,40,0,Math.PI*2); ghCtx.stroke();
+    // Ghost loop (dashed, opposite spin)
+    ghCtx.strokeStyle='rgba(255,68,119,0.55)'; ghCtx.lineWidth=2.5; ghCtx.setLineDash([5,3]);
+    ghCtx.lineDashOffset=-phase*18;
+    ghCtx.beginPath(); ghCtx.arc(cxR,cy,r,0,Math.PI*2); ghCtx.stroke();
     ghCtx.setLineDash([]);
-    ghCtx.fillStyle='rgba(255,68,119,0.5)'; ghCtx.font=f1+'px monospace';
-    ghCtx.fillText('ghost loop',cx+20,cy-50);
+    ghCtx.strokeStyle='rgba(255,68,119,0.9)';
+    ghCtx.beginPath(); ghCtx.arc(cxR,cy,r*0.55,-spin,-spin+Math.PI*1.2); ghCtx.stroke();
+    ghCtx.fillStyle='rgba(255,68,119,0.85)';
+    ghCtx.fillText('ghost loop', cxR, cy-r-10);
 
-    // Cancel symbol
-    ghCtx.fillStyle='rgba(255,204,0,0.9)'; ghCtx.font='bold '+f3+'px monospace';
-    ghCtx.fillText('+',cx-f3*0.3,cy+6);
-    ghCtx.fillText('= 0',cx+80,cy+6);
+    // +  = 0 between / after
+    ghCtx.fillStyle='rgba(255,204,0,0.95)'; ghCtx.font='bold '+(L.f2+4)+'px monospace';
+    ghCtx.fillText('+', L.x+L.w/2, cy+6);
+    ghCtx.fillText('= 0', cxR+r+Math.min(40,L.w*0.08), cy+6);
+    ghCtx.textAlign='left';
 
-    ghCtx.fillStyle='rgba(255,255,255,0.5)'; ghCtx.font=f1+'px monospace';
-    ghCtx.fillText('Ghost loops cancel unphysical gluon polarizations in loops',cx-f1*12,cy+80);
-    ghCtx.fillStyle='rgba(255,68,119,0.5)'; ghCtx.font=f1+'px monospace';
-    ghCtx.fillText('Faddeev-Popov determinant: det(\u2202\u00b7D) = \u222b \u2131\u0101 \u2131c e^{i\u222b\u0101(\u2202\u00b7D)c}',cx-f1*10,cy+100);
+    // Formula band — single line, fitted
+    ghCtx.fillStyle='rgba(200,200,230,0.7)'; ghCtx.font=L.f1+'px monospace';
+    const formula='Faddeev-Popov: det(\u2202\u00b7D) = \u222b \u2131\u0101 \u2131c  e^{i\u222b \u0101(\u2202\u00b7D)c}';
+    ghCtx.fillText(_gFit(ghCtx, formula, L.w, ghCtx.font), L.x, L.y+L.h-8);
+    _gFooter(ghCtx,L,'Ghost loops cancel unphysical gluon polarizations');
   }
   ghCtx.setTransform(1,0,0,1,0,0);
 }
 
 function ghLoop(){
-  if(activeTab!==9||!ghRunning){ghRunning=false;return;}
-  if(!ghPaused) ghT+=0.02*(window.animSpeed||1);
+  if(activeTab!==9||!ghRunning){ghRunning=false;RAF.gh=null;return;}
+  if(!ghPaused) ghT+=0.03*(window.animSpeed||1);
   redrawGH();
   RAF.gh=requestAnimationFrame(ghLoop);
 }
 function startGHLoop(){
   resizeGH();
-  ghRunning=true;
+  ghRunning=true; ghPaused=false;
+  _setPauseBtn('ghPauseBtn',false);
   if(RAF.gh){cancelAnimationFrame(RAF.gh);RAF.gh=null;}
   ghLoop();
 }
@@ -3142,103 +3224,117 @@ function redrawREN(){
   renCtx.setTransform(1,0,0,1,0,0);
   renCtx.fillStyle='#05050f'; renCtx.fillRect(0,0,W,H);
   renCtx.setTransform(1,0,0,1,pans[10].x,pans[10].y);
-
-  const S=Math.min(W,H);
-  const f1=Math.max(12,S*0.022)|0;
-  const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
+  const L=_gLayout(W,H);
+  const phase=renT;
 
   if(renView===0){
-    // Counterterm diagrams
-    const cx=W/2, cy=H*0.3;
-    renCtx.fillStyle='rgba(0,229,255,0.85)'; renCtx.font='bold '+f2+'px monospace';
-    renCtx.fillText('Renormalization Counterterms',W*0.04,f2+16);
-
-    // Bare vertex
-    renCtx.strokeStyle='rgba(0,229,255,0.5)'; renCtx.lineWidth=2;
-    renCtx.beginPath(); renCtx.moveTo(cx-120,cy-30); renCtx.lineTo(cx-60,cy); renCtx.lineTo(cx-120,cy+30); renCtx.stroke();
-    renCtx.strokeStyle='rgba(255,200,0,0.4)'; renCtx.lineWidth=1.5;
-    renCtx.beginPath(); renCtx.moveTo(cx-60,cy); renCtx.lineTo(cx-20,cy); renCtx.stroke();
-    renCtx.fillStyle='rgba(255,255,255,0.4)'; renCtx.font=f1+'px monospace';
-    renCtx.fillText('bare',cx-130,cy+50);
-
-    // = sign
-    renCtx.fillStyle='rgba(255,204,0,0.7)'; renCtx.font='bold '+f3+'px monospace';
-    renCtx.fillText('=',cx-10,cy+6);
-
-    // Renormalized vertex
-    renCtx.strokeStyle='rgba(0,229,255,0.8)'; renCtx.lineWidth=2;
-    renCtx.beginPath(); renCtx.moveTo(cx+20,cy-30); renCtx.lineTo(cx+80,cy); renCtx.lineTo(cx+20,cy+30); renCtx.stroke();
-    renCtx.strokeStyle='rgba(255,200,0,0.6)'; renCtx.lineWidth=1.5;
-    renCtx.beginPath(); renCtx.moveTo(cx+80,cy); renCtx.lineTo(cx+120,cy); renCtx.stroke();
-    renCtx.fillStyle='rgba(255,255,255,0.4)'; renCtx.font=f1+'px monospace';
-    renCtx.fillText('renormalized',cx+20,cy+50);
-
-    // + counterterm
-    renCtx.fillStyle='rgba(255,204,0,0.7)'; renCtx.font='bold '+f2+'px monospace';
-    renCtx.fillText('+',cx+130,cy+6);
-
-    // Counterterm vertex (X)
-    renCtx.strokeStyle='rgba(255,68,119,0.8)'; renCtx.lineWidth=2;
-    renCtx.beginPath(); renCtx.moveTo(cx+160,cy-30); renCtx.lineTo(cx+220,cy); renCtx.lineTo(cx+160,cy+30); renCtx.stroke();
-    renCtx.strokeStyle='rgba(255,200,0,0.4)'; renCtx.lineWidth=1.5;
-    renCtx.beginPath(); renCtx.moveTo(cx+220,cy); renCtx.lineTo(cx+260,cy); renCtx.stroke();
-    renCtx.fillStyle='rgba(255,68,119,0.8)'; renCtx.font='bold '+f1+'px monospace';
-    renCtx.fillText('\u03b4Z',cx+180,cy+50);
-
-    // Order indicator
-    renCtx.fillStyle='rgba(255,204,0,0.8)'; renCtx.font='bold '+f2+'px monospace';
-    renCtx.fillText('Loop order: '+renOrd+'  |  \u039b = '+renL+' GeV',W*0.04,H-30);
-
+    _gTitle(renCtx,L,'Renormalization counterterms');
+    // Three diagram slots packed across full plot width
+    const n=3;
+    const slotW=L.w/n;
+    const cy=L.y+L.h*0.48;
+    const arm=Math.min(slotW*0.22, L.h*0.18, 36);
+    const labels=['bare','renormalized','\u03b4Z counterterm'];
+    const cols=['rgba(0,229,255,0.55)','rgba(0,229,255,0.95)','rgba(255,68,119,0.9)'];
+    const ops=['','=','+'];
+    for(let i=0;i<n;i++){
+      const cx=L.x+slotW*(i+0.5);
+      const pulse=0.75+0.25*Math.sin(phase*2+i);
+      // operator between slots
+      if(i>0){
+        renCtx.fillStyle='rgba(255,204,0,0.9)';
+        renCtx.font='bold '+(L.f2+2)+'px monospace';
+        renCtx.textAlign='center';
+        renCtx.fillText(ops[i], L.x+slotW*i, cy+4);
+      }
+      renCtx.globalAlpha=pulse;
+      renCtx.strokeStyle=cols[i]; renCtx.lineWidth=2.2;
+      renCtx.beginPath();
+      renCtx.moveTo(cx-arm,cy-arm*0.85); renCtx.lineTo(cx,cy); renCtx.lineTo(cx-arm,cy+arm*0.85);
+      renCtx.stroke();
+      renCtx.strokeStyle='rgba(255,200,0,0.7)'; renCtx.lineWidth=1.6;
+      renCtx.beginPath(); renCtx.moveTo(cx,cy); renCtx.lineTo(cx+arm*1.1,cy); renCtx.stroke();
+      renCtx.globalAlpha=1;
+      renCtx.fillStyle=i===2?'rgba(255,68,119,0.9)':'rgba(200,200,230,0.7)';
+      renCtx.font=L.f1+'px monospace'; renCtx.textAlign='center';
+      renCtx.fillText(labels[i], cx, cy+arm+L.f1+8);
+    }
+    renCtx.textAlign='left';
+    _gFooter(renCtx,L,'Loop order: '+renOrd+'  \u00b7  \u039b = '+renL+' GeV');
   } else {
-    // Running coupling
-    const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-    renCtx.fillStyle='rgba(0,229,255,0.85)'; renCtx.font='bold '+f2+'px monospace';
-    renCtx.fillText('Running Coupling \u03b1(\u03bc)',mx,my+f2+4);
+    _gTitle(renCtx,L,'Running coupling  \u03b1(\u03bc)');
+    _gAxes(renCtx,L);
+    renCtx.fillStyle='#55558a'; renCtx.font=L.f1+'px monospace';
+    renCtx.fillText('\u03bc', L.x+L.w-12, L.y+L.h-4);
+    renCtx.fillText('\u03b1', L.x+4, L.y+L.f1+2);
 
-    renCtx.strokeStyle='#2a2a55'; renCtx.lineWidth=1.5;
-    renCtx.beginPath(); renCtx.moveTo(mx,my); renCtx.lineTo(mx,my+ph); renCtx.stroke();
-    renCtx.beginPath(); renCtx.moveTo(mx,my+ph); renCtx.lineTo(mx+pw,my+ph); renCtx.stroke();
-    renCtx.fillStyle='#55558a'; renCtx.font=f1+'px monospace';
-    renCtx.fillText('\u03bc',mx+pw+4,my+ph+4);
-    renCtx.fillText('\u03b1',mx-20,my+f1);
+    // Sample alpha range for scaling into plot
+    const muMax=Math.max(renL, 2);
+    let aMin=1, aMax=0;
+    for(let xi=0;xi<=80;xi++){
+      const mu=1+xi/80*(muMax-1);
+      const aQ=1/137*(1+0.012*Math.log(mu));
+      const aQCD=0.3/(1+0.04*Math.log(mu));
+      aMin=Math.min(aMin,aQ,aQCD); aMax=Math.max(aMax,aQ,aQCD);
+    }
+    const pad=0.08*(aMax-aMin||0.01);
+    aMin-=pad; aMax+=pad;
+    const yOf=a=>_gClampY(L.y+L.h-(a-aMin)/(aMax-aMin)*L.h, L);
 
-    // QED running
-    renCtx.strokeStyle='rgba(0,229,255,0.8)'; renCtx.lineWidth=2.5;
+    _gClip(renCtx,L);
+    // QED
+    renCtx.strokeStyle='rgba(0,229,255,0.9)'; renCtx.lineWidth=2.5;
     renCtx.beginPath();
-    for(let xi=0;xi<=pw;xi++){
-      const mu=1+xi/pw*renL;
-      const a=1/137*(1+0.01*Math.log(mu));
-      const y=my+ph-(a-0.005)*ph*200;
-      xi===0?renCtx.moveTo(mx+xi,y):renCtx.lineTo(mx+xi,y);
+    for(let xi=0;xi<=L.w;xi++){
+      const mu=1+xi/L.w*(muMax-1);
+      const a=1/137*(1+0.012*Math.log(mu));
+      const y=yOf(a);
+      xi===0?renCtx.moveTo(L.x+xi,y):renCtx.lineTo(L.x+xi,y);
     }
     renCtx.stroke();
-    renCtx.fillStyle='rgba(0,229,255,0.7)'; renCtx.font=f1+'px monospace';
-    renCtx.fillText('QED',mx+4,my+14);
+    // QCD (animated dash)
+    renCtx.strokeStyle='rgba(255,68,119,0.85)'; renCtx.lineWidth=2; renCtx.setLineDash([6,4]);
+    renCtx.lineDashOffset=-phase*14;
+    renCtx.beginPath();
+    for(let xi=0;xi<=L.w;xi++){
+      const mu=1+xi/L.w*(muMax-1);
+      const a=0.3/(1+0.04*Math.log(mu));
+      const y=yOf(a);
+      xi===0?renCtx.moveTo(L.x+xi,y):renCtx.lineTo(L.x+xi,y);
+    }
+    renCtx.stroke(); renCtx.setLineDash([]);
 
-    // Cutoff marker
-    const lx=mx+(renL-1)/renL*pw;
-    renCtx.strokeStyle='rgba(255,68,119,0.6)'; renCtx.lineWidth=1.5; renCtx.setLineDash([3,3]);
-    renCtx.beginPath(); renCtx.moveTo(lx,my); renCtx.lineTo(lx,my+ph); renCtx.stroke();
+    // Moving scale marker
+    const muMark=1+(0.5+0.45*Math.sin(phase*0.7))*(muMax-1);
+    const mx=L.x+((muMark-1)/(muMax-1))*L.w;
+    renCtx.strokeStyle='rgba(255,204,0,0.75)'; renCtx.lineWidth=1.5; renCtx.setLineDash([3,3]);
+    renCtx.beginPath(); renCtx.moveTo(mx,L.y); renCtx.lineTo(mx,L.y+L.h); renCtx.stroke();
     renCtx.setLineDash([]);
-    renCtx.fillStyle='rgba(255,68,119,0.6)'; renCtx.font=f1+'px monospace';
-    renCtx.fillText('\u039b='+renL,Math.min(lx+4,mx+pw-40),my+ph-6);
+    renCtx.restore();
 
-    renCtx.fillStyle='rgba(255,255,255,0.4)'; renCtx.font=f1+'px monospace';
-    renCtx.fillText('Physical predictions are cutoff-independent  |  Renormalization group',mx,my+ph-30);
+    renCtx.fillStyle='rgba(0,229,255,0.85)'; renCtx.font=L.f1+'px monospace';
+    renCtx.fillText('QED \u2191', L.x+6, L.y+L.f1+4);
+    renCtx.fillStyle='rgba(255,68,119,0.85)';
+    renCtx.fillText('QCD \u2193', L.x+6, L.y+L.f1*2+10);
+    renCtx.fillStyle='rgba(255,204,0,0.85)';
+    const muLab='\u03bc~'+muMark.toFixed(1);
+    const muLabW=renCtx.measureText(muLab).width;
+    renCtx.fillText(muLab, Math.min(Math.max(L.x+4,mx+4), L.x+L.w-muLabW-4), L.y+L.h-6);
+    _gFooter(renCtx,L,'Cutoff-independent physics  \u00b7  renormalization group  \u00b7  \u039b='+renL);
   }
   renCtx.setTransform(1,0,0,1,0,0);
 }
 
 function renLoop(){
-  if(activeTab!==10||!renRunning){renRunning=false;return;}
-  if(!renPaused) renT+=0.02*(window.animSpeed||1);
+  if(activeTab!==10||!renRunning){renRunning=false;RAF.ren=null;return;}
+  if(!renPaused) renT+=0.03*(window.animSpeed||1);
   redrawREN();
   RAF.ren=requestAnimationFrame(renLoop);
 }
 function startRENLoop(){
   resizeREN();
-  renRunning=true;
+  renRunning=true; renPaused=false;
+  _setPauseBtn('renPauseBtn',false);
   if(RAF.ren){cancelAnimationFrame(RAF.ren);RAF.ren=null;}
   renLoop();
 }
@@ -3270,105 +3366,118 @@ function redrawEA(){
   eaCtx.setTransform(1,0,0,1,0,0);
   eaCtx.fillStyle='#05050f'; eaCtx.fillRect(0,0,W,H);
   eaCtx.setTransform(1,0,0,1,pans[11].x,pans[11].y);
-
-  const S=Math.min(W,H);
-  const f1=Math.max(12,S*0.022)|0;
-  const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
+  const L=_gLayout(W,H);
+  const phase=eaT;
 
   if(eaView===0){
-    // 1PI diagrams
-    const cx=W/2, cy=H*0.35;
-    eaCtx.fillStyle='rgba(0,229,255,0.85)'; eaCtx.font='bold '+f2+'px monospace';
-    eaCtx.fillText('1PI (One-Particle-Irreducible) Diagrams',W*0.04,f2+16);
-
-    // Tree
-    eaCtx.strokeStyle='rgba(0,229,255,0.6)'; eaCtx.lineWidth=2;
-    eaCtx.beginPath(); eaCtx.moveTo(cx-100,cy-30); eaCtx.lineTo(cx-50,cy); eaCtx.lineTo(cx-100,cy+30); eaCtx.stroke();
-    eaCtx.strokeStyle='rgba(255,200,0,0.4)'; eaCtx.lineWidth=1.5;
-    eaCtx.beginPath(); eaCtx.moveTo(cx-50,cy); eaCtx.lineTo(cx,cy); eaCtx.stroke();
-    eaCtx.fillStyle='rgba(255,255,255,0.4)'; eaCtx.font=f1+'px monospace';
-    eaCtx.fillText('tree',cx-100,cy+50);
-
-    // 1-loop
-    eaCtx.strokeStyle='rgba(0,229,255,0.6)'; eaCtx.lineWidth=2;
-    eaCtx.beginPath(); eaCtx.moveTo(cx+20,cy-30); eaCtx.lineTo(cx+70,cy); eaCtx.lineTo(cx+20,cy+30); eaCtx.stroke();
-    eaCtx.strokeStyle='rgba(255,200,0,0.4)'; eaCtx.lineWidth=1.5;
-    eaCtx.beginPath(); eaCtx.moveTo(cx+70,cy); eaCtx.lineTo(cx+120,cy); eaCtx.stroke();
-    eaCtx.strokeStyle='rgba(255,68,119,0.5)'; eaCtx.lineWidth=1.5;
-    eaCtx.beginPath(); eaCtx.arc(cx+70,cy-20,18,0,Math.PI*2); eaCtx.stroke();
-    eaCtx.fillStyle='rgba(255,255,255,0.4)'; eaCtx.font=f1+'px monospace';
-    eaCtx.fillText('1-loop',cx+20,cy+50);
-
-    // 2-loop
-    eaCtx.strokeStyle='rgba(0,229,255,0.6)'; eaCtx.lineWidth=2;
-    eaCtx.beginPath(); eaCtx.moveTo(cx+140,cy-30); eaCtx.lineTo(cx+190,cy); eaCtx.lineTo(cx+140,cy+30); eaCtx.stroke();
-    eaCtx.strokeStyle='rgba(255,200,0,0.4)'; eaCtx.lineWidth=1.5;
-    eaCtx.beginPath(); eaCtx.moveTo(cx+190,cy); eaCtx.lineTo(cx+240,cy); eaCtx.stroke();
-    eaCtx.strokeStyle='rgba(255,68,119,0.4)'; eaCtx.lineWidth=1;
-    eaCtx.beginPath(); eaCtx.arc(cx+190,cy-20,14,0,Math.PI*2); eaCtx.stroke();
-    eaCtx.beginPath(); eaCtx.arc(cx+190,cy+10,14,0,Math.PI*2); eaCtx.stroke();
-    eaCtx.fillStyle='rgba(255,255,255,0.4)'; eaCtx.font=f1+'px monospace';
-    eaCtx.fillText('2-loop',cx+140,cy+50);
-
-    // Legendre transform
-    eaCtx.fillStyle='rgba(255,204,0,0.8)'; eaCtx.font='bold '+f1+'px monospace';
-    eaCtx.fillText('\u0393[\u03c6] = W[J] - \u222b J\u03c6  |  \u03b4\u0393/\u03b4\u03c6 = -J',W*0.04,H-30);
-
+    _gTitle(eaCtx,L,'1PI diagrams  (one-particle-irreducible)');
+    const n=3;
+    const slotW=L.w/n;
+    const cy=L.y+L.h*0.45;
+    const arm=Math.min(slotW*0.2, L.h*0.16, 34);
+    const names=['tree','1-loop','2-loop'];
+    const highlight=Math.floor((phase*0.6)%3);
+    for(let i=0;i<n;i++){
+      const cx=L.x+slotW*(i+0.5);
+      const on=i===highlight;
+      const alpha=on?1:0.55;
+      eaCtx.globalAlpha=alpha;
+      eaCtx.strokeStyle='rgba(0,229,255,0.85)'; eaCtx.lineWidth=on?2.6:2;
+      eaCtx.beginPath();
+      eaCtx.moveTo(cx-arm,cy-arm*0.9); eaCtx.lineTo(cx,cy); eaCtx.lineTo(cx-arm,cy+arm*0.9);
+      eaCtx.stroke();
+      eaCtx.strokeStyle='rgba(255,200,0,0.7)'; eaCtx.lineWidth=1.5;
+      eaCtx.beginPath(); eaCtx.moveTo(cx,cy); eaCtx.lineTo(cx+arm*1.15,cy); eaCtx.stroke();
+      if(i>=1){
+        eaCtx.strokeStyle='rgba(255,68,119,0.7)'; eaCtx.lineWidth=1.5;
+        const lr=arm*0.45, ly=cy-arm*0.55;
+        eaCtx.beginPath(); eaCtx.arc(cx, ly, lr, 0, Math.PI*2); eaCtx.stroke();
+        // loop phase tick
+        eaCtx.beginPath(); eaCtx.arc(cx, ly, lr, phase*2+i, phase*2+i+1.2); eaCtx.stroke();
+      }
+      if(i>=2){
+        eaCtx.beginPath(); eaCtx.arc(cx, cy+arm*0.35, arm*0.4, 0, Math.PI*2); eaCtx.stroke();
+      }
+      eaCtx.globalAlpha=1;
+      eaCtx.fillStyle=on?'rgba(255,204,0,0.95)':'rgba(200,200,230,0.65)';
+      eaCtx.font=(on?'bold ':'')+L.f1+'px monospace';
+      eaCtx.textAlign='center';
+      eaCtx.fillText(names[i], cx, cy+arm+L.f1+10);
+    }
+    eaCtx.textAlign='left';
+    eaCtx.fillStyle='rgba(255,204,0,0.85)'; eaCtx.font=L.f1+'px monospace';
+    eaCtx.fillText(_gFit(eaCtx,'\u0393[\u03c6]=W[J]-\u222bJ\u03c6   \u00b7   \u03b4\u0393/\u03b4\u03c6=-J', L.w, eaCtx.font), L.x, L.y+L.h-6);
+    _gFooter(eaCtx,L,'Effective action generates 1PI Green functions');
   } else {
-    // Effective potential
-    const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-    eaCtx.fillStyle='rgba(0,229,255,0.85)'; eaCtx.font='bold '+f2+'px monospace';
-    eaCtx.fillText('Effective Potential V_eff(\u03c6)',mx,my+f2+4);
+    _gTitle(eaCtx,L,'Effective potential  V_eff(\u03c6)');
+    _gAxes(eaCtx,L);
+    // Horizontal axis at mid
+    eaCtx.strokeStyle='#2a2a55'; eaCtx.lineWidth=1;
+    eaCtx.beginPath(); eaCtx.moveTo(L.x, L.y+L.h*0.55); eaCtx.lineTo(L.x+L.w, L.y+L.h*0.55); eaCtx.stroke();
+    eaCtx.fillStyle='#55558a'; eaCtx.font=L.f1+'px monospace';
+    eaCtx.fillText('\u03c6', L.x+L.w-12, L.y+L.h*0.55-6);
+    eaCtx.fillText('V', L.x+4, L.y+L.f1+2);
 
-    eaCtx.strokeStyle='#2a2a55'; eaCtx.lineWidth=1.5;
-    eaCtx.beginPath(); eaCtx.moveTo(mx,my); eaCtx.lineTo(mx,my+ph); eaCtx.stroke();
-    eaCtx.beginPath(); eaCtx.moveTo(mx,my+ph/2); eaCtx.lineTo(mx+pw,my+ph/2); eaCtx.stroke();
-    eaCtx.fillStyle='#55558a'; eaCtx.font=f1+'px monospace';
-    eaCtx.fillText('\u03c6',mx+pw+4,my+ph/2+4);
-    eaCtx.fillText('V_eff',mx-30,my+f1);
-
-    // Classical potential
-    eaCtx.strokeStyle='rgba(0,229,255,0.4)'; eaCtx.lineWidth=1.5; eaCtx.setLineDash([4,3]);
-    eaCtx.beginPath();
-    for(let xi=0;xi<=pw;xi++){
-      const phi=(xi/pw-0.5)*4;
-      const V=0.5*phi*phi+0.1*phi*phi*phi*phi;
-      const y=my+ph/2-V*ph*0.3;
-      xi===0?eaCtx.moveTo(mx+xi,y):eaCtx.lineTo(mx+xi,y);
+    const phiSpan=4;
+    const jEff=eaJ*(0.85+0.15*Math.sin(phase));
+    // Precompute V range
+    let vMin=1e9, vMax=-1e9;
+    const samples=[];
+    for(let xi=0;xi<=120;xi++){
+      const phi=(xi/120-0.5)*phiSpan;
+      const Vc=0.5*phi*phi+0.1*phi*phi*phi*phi;
+      const Vq=Vc+jEff*Math.log(phi*phi+0.1)*0.08*eaOrd;
+      samples.push({phi,Vc,Vq});
+      vMin=Math.min(vMin,Vc,Vq); vMax=Math.max(vMax,Vc,Vq);
     }
+    const pad=(vMax-vMin)*0.1||0.1;
+    vMin-=pad; vMax+=pad;
+    const yMap=v=>_gClampY(L.y+L.h-(v-vMin)/(vMax-vMin)*L.h, L);
+
+    _gClip(eaCtx,L);
+    eaCtx.strokeStyle='rgba(0,229,255,0.45)'; eaCtx.lineWidth=1.6; eaCtx.setLineDash([4,3]);
+    eaCtx.beginPath();
+    samples.forEach((s,i)=>{
+      const x=L.x+(s.phi/phiSpan+0.5)*L.w;
+      const y=yMap(s.Vc);
+      i===0?eaCtx.moveTo(x,y):eaCtx.lineTo(x,y);
+    });
     eaCtx.stroke(); eaCtx.setLineDash([]);
-    eaCtx.fillStyle='rgba(0,229,255,0.5)'; eaCtx.font=f1+'px monospace';
-    eaCtx.fillText('classical',mx+4,my+14);
-
-    // Quantum corrected
-    eaCtx.strokeStyle='rgba(255,68,119,0.9)'; eaCtx.lineWidth=2.5;
+    eaCtx.strokeStyle='rgba(255,68,119,0.95)'; eaCtx.lineWidth=2.5;
     eaCtx.beginPath();
-    for(let xi=0;xi<=pw;xi++){
-      const phi=(xi/pw-0.5)*4;
-      const V=0.5*phi*phi+0.1*phi*phi*phi*phi+eaJ*Math.log(phi*phi+0.1)*0.05;
-      const y=my+ph/2-V*ph*0.3;
-      xi===0?eaCtx.moveTo(mx+xi,y):eaCtx.lineTo(mx+xi,y);
-    }
+    samples.forEach((s,i)=>{
+      const x=L.x+(s.phi/phiSpan+0.5)*L.w;
+      const y=yMap(s.Vq);
+      i===0?eaCtx.moveTo(x,y):eaCtx.lineTo(x,y);
+    });
     eaCtx.stroke();
-    eaCtx.fillStyle='rgba(255,68,119,0.7)'; eaCtx.font=f1+'px monospace';
-    eaCtx.fillText('quantum (1-loop)',mx+4,my+30);
+    // φ marker
+    const phiM=2*Math.sin(phase*0.5);
+    const xm=L.x+(phiM/phiSpan+0.5)*L.w;
+    eaCtx.strokeStyle='rgba(255,204,0,0.7)'; eaCtx.lineWidth=1.4; eaCtx.setLineDash([3,3]);
+    eaCtx.beginPath(); eaCtx.moveTo(xm,L.y); eaCtx.lineTo(xm,L.y+L.h); eaCtx.stroke();
+    eaCtx.setLineDash([]);
+    eaCtx.restore();
 
-    eaCtx.fillStyle='rgba(255,255,255,0.4)'; eaCtx.font=f1+'px monospace';
-    eaCtx.fillText('J = '+eaJ.toFixed(2)+'  |  Order: '+eaOrd, mx,my+ph-10);
+    eaCtx.fillStyle='rgba(0,229,255,0.75)'; eaCtx.font=L.f1+'px monospace';
+    eaCtx.fillText('classical', L.x+6, L.y+L.f1+4);
+    eaCtx.fillStyle='rgba(255,68,119,0.85)';
+    eaCtx.fillText('quantum', L.x+6, L.y+L.f1*2+10);
+    _gFooter(eaCtx,L,'J='+eaJ.toFixed(2)+'  \u00b7  order='+eaOrd+'  \u00b7  Coleman-Weinberg corrections');
   }
   eaCtx.setTransform(1,0,0,1,0,0);
 }
 
 function eaLoop(){
-  if(activeTab!==11||!eaRunning){eaRunning=false;return;}
-  if(!eaPaused) eaT+=0.02*(window.animSpeed||1);
+  if(activeTab!==11||!eaRunning){eaRunning=false;RAF.ea=null;return;}
+  if(!eaPaused) eaT+=0.03*(window.animSpeed||1);
   redrawEA();
   RAF.ea=requestAnimationFrame(eaLoop);
 }
 function startEALoop(){
   resizeEA();
-  eaRunning=true;
+  eaRunning=true; eaPaused=false;
+  _setPauseBtn('eaPauseBtn',false);
   if(RAF.ea){cancelAnimationFrame(RAF.ea);RAF.ea=null;}
   eaLoop();
 }
@@ -3400,108 +3509,126 @@ function redrawSM(){
   smCtx.setTransform(1,0,0,1,0,0);
   smCtx.fillStyle='#05050f'; smCtx.fillRect(0,0,W,H);
   smCtx.setTransform(1,0,0,1,pans[12].x,pans[12].y);
-
-  const S=Math.min(W,H);
-  const f1=Math.max(12,S*0.022)|0;
-  const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
+  const L=_gLayout(W,H);
+  const phase=smT;
 
   if(smView===0){
-    // Cross section vs angle
-    const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-    smCtx.fillStyle='rgba(0,229,255,0.85)'; smCtx.font='bold '+f2+'px monospace';
-    smCtx.fillText('Differential Cross Section d\u03c3/d\u03a9',mx,my+f2+4);
+    _gTitle(smCtx,L,'Differential cross section  d\u03c3/d\u03a9');
+    _gAxes(smCtx,L);
+    smCtx.fillStyle='#55558a'; smCtx.font=L.f1+'px monospace';
+    smCtx.fillText('\u03b8', L.x+L.w-12, L.y+L.h-4);
+    smCtx.fillText('d\u03c3', L.x+4, L.y+L.f1+2);
 
-    smCtx.strokeStyle='#2a2a55'; smCtx.lineWidth=1.5;
-    smCtx.beginPath(); smCtx.moveTo(mx,my); smCtx.lineTo(mx,my+ph); smCtx.stroke();
-    smCtx.beginPath(); smCtx.moveTo(mx,my+ph); smCtx.lineTo(mx+pw,my+ph); smCtx.stroke();
-    smCtx.fillStyle='#55558a'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('\u03b8',mx+pw+4,my+ph+4);
-    smCtx.fillText('d\u03c3/d\u03a9',mx-30,my+f1);
-
-    // Cross section curve (Rutherford-like)
-    smCtx.strokeStyle='rgba(0,229,255,0.8)'; smCtx.lineWidth=2.5;
-    smCtx.beginPath();
-    for(let xi=0;xi<=pw;xi++){
-      const th=xi/pw*Math.PI;
-      const cs=1/Math.pow(Math.sin(th/2),4)*smS/100;
-      const y=my+ph-cs*ph*0.02;
-      xi===0?smCtx.moveTo(mx+xi,y):smCtx.lineTo(mx+xi,y);
+    // Rutherford 1/sin^4(θ/2) — start θ from small epsilon; log-scale Y to fit
+    const thMin=0.08, thMax=Math.PI-0.02;
+    const scale=smS/100;
+    let cMin=1e99, cMax=0;
+    const pts=[];
+    for(let xi=0;xi<=160;xi++){
+      const th=thMin+xi/160*(thMax-thMin);
+      const s2=Math.sin(th/2);
+      const cs=scale/Math.max(s2*s2*s2*s2, 1e-8);
+      pts.push({th,cs});
+      cMin=Math.min(cMin,cs); cMax=Math.max(cMax,cs);
     }
+    // log map into plot height
+    const logMin=Math.log(cMin+1e-12), logMax=Math.log(cMax+1e-12);
+    const yMap=cs=>_gClampY(L.y+L.h-(Math.log(cs+1e-12)-logMin)/Math.max(logMax-logMin,1e-9)*L.h, L);
+
+    _gClip(smCtx,L);
+    smCtx.strokeStyle='rgba(0,229,255,0.95)'; smCtx.lineWidth=2.5;
+    smCtx.beginPath();
+    pts.forEach((p,i)=>{
+      const x=L.x+((p.th-thMin)/(thMax-thMin))*L.w;
+      const y=yMap(p.cs);
+      i===0?smCtx.moveTo(x,y):smCtx.lineTo(x,y);
+    });
     smCtx.stroke();
 
-    // Current angle marker
-    const ax=mx+smAng/180*pw;
-    smCtx.strokeStyle='rgba(255,68,119,0.8)'; smCtx.lineWidth=1.5; smCtx.setLineDash([3,3]);
-    smCtx.beginPath(); smCtx.moveTo(ax,my); smCtx.lineTo(ax,my+ph); smCtx.stroke();
+    // Angle marker (slider + gentle sweep)
+    const ang=Math.max(5, Math.min(175, smAng + 8*Math.sin(phase*0.8)));
+    const thM=ang*Math.PI/180;
+    const ax=L.x+((thM-thMin)/(thMax-thMin))*L.w;
+    smCtx.strokeStyle='rgba(255,68,119,0.85)'; smCtx.lineWidth=1.5; smCtx.setLineDash([3,3]);
+    smCtx.beginPath(); smCtx.moveTo(ax,L.y); smCtx.lineTo(ax,L.y+L.h); smCtx.stroke();
     smCtx.setLineDash([]);
-    smCtx.fillStyle='rgba(255,68,119,0.8)'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('\u03b8='+smAng+'\u00b0',ax+4,my+ph-6);
+    const s2m=Math.sin(thM/2);
+    const csm=scale/Math.max(s2m*s2m*s2m*s2m,1e-8);
+    smCtx.beginPath(); smCtx.arc(ax, yMap(csm), 4, 0, Math.PI*2);
+    smCtx.fillStyle='rgba(255,68,119,0.95)'; smCtx.fill();
+    smCtx.restore();
 
-    smCtx.fillStyle='rgba(255,255,255,0.4)'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('\u221as = '+smS+' GeV  |  \u03c3 \u221d 1/sin\u2074(\u03b8/2)',mx,my+ph-30);
-
+    smCtx.fillStyle='rgba(255,68,119,0.9)'; smCtx.font=L.f1+'px monospace';
+    const aLab='\u03b8='+Math.round(ang)+'\u00b0';
+    const aW=smCtx.measureText(aLab).width;
+    smCtx.fillText(aLab, Math.min(Math.max(L.x+4,ax+5), L.x+L.w-aW-4), L.y+L.h-6);
+    _gFooter(smCtx,L,'\u221as='+smS+' GeV  \u00b7  Rutherford ~ 1/sin\u2074(\u03b8/2)  \u00b7  log scale');
   } else {
-    // Unitarity bound
-    const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-    smCtx.fillStyle='rgba(0,229,255,0.85)'; smCtx.font='bold '+f2+'px monospace';
-    smCtx.fillText('Unitarity Bound',mx,my+f2+4);
+    _gTitle(smCtx,L,'Unitarity bound');
+    _gAxes(smCtx,L);
+    smCtx.fillStyle='#55558a'; smCtx.font=L.f1+'px monospace';
+    smCtx.fillText('\u221as', L.x+L.w-14, L.y+L.h-4);
+    smCtx.fillText('\u03c3', L.x+4, L.y+L.f1+2);
 
-    smCtx.strokeStyle='#2a2a55'; smCtx.lineWidth=1.5;
-    smCtx.beginPath(); smCtx.moveTo(mx,my); smCtx.lineTo(mx,my+ph); smCtx.stroke();
-    smCtx.beginPath(); smCtx.moveTo(mx,my+ph); smCtx.lineTo(mx+pw,my+ph); smCtx.stroke();
-    smCtx.fillStyle='#55558a'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('\u221as',mx+pw+4,my+ph+4);
-    smCtx.fillText('\u03c3_tot',mx-30,my+f1);
+    const s0=10, s1=510;
+    let vMin=1e9, vMax=0;
+    for(let xi=0;xi<=80;xi++){
+      const s=s0+xi/80*(s1-s0);
+      vMin=Math.min(vMin, 100/s, 4*Math.PI/s);
+      vMax=Math.max(vMax, 100/s, 4*Math.PI/s);
+    }
+    const pad=0.08*(vMax-vMin);
+    vMin=Math.max(0, vMin-pad); vMax+=pad;
+    const yMap=v=>_gClampY(L.y+L.h-(v-vMin)/(vMax-vMin)*L.h, L);
 
-    // Cross section
-    smCtx.strokeStyle='rgba(0,229,255,0.8)'; smCtx.lineWidth=2.5;
+    _gClip(smCtx,L);
+    smCtx.strokeStyle='rgba(0,229,255,0.9)'; smCtx.lineWidth=2.5;
     smCtx.beginPath();
-    for(let xi=0;xi<=pw;xi++){
-      const s=10+xi/pw*500;
-      const cs=100/s;
-      const y=my+ph-cs*ph*0.5;
-      xi===0?smCtx.moveTo(mx+xi,y):smCtx.lineTo(mx+xi,y);
+    for(let xi=0;xi<=L.w;xi++){
+      const s=s0+xi/L.w*(s1-s0);
+      const y=yMap(100/s);
+      xi===0?smCtx.moveTo(L.x+xi,y):smCtx.lineTo(L.x+xi,y);
     }
     smCtx.stroke();
-    smCtx.fillStyle='rgba(0,229,255,0.5)'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('\u03c3_tot',mx+4,my+14);
-
-    // Unitarity bound
-    smCtx.strokeStyle='rgba(255,68,119,0.8)'; smCtx.lineWidth=2; smCtx.setLineDash([4,3]);
+    smCtx.strokeStyle='rgba(255,68,119,0.9)'; smCtx.lineWidth=2; smCtx.setLineDash([5,3]);
+    smCtx.lineDashOffset=-phase*12;
     smCtx.beginPath();
-    for(let xi=0;xi<=pw;xi++){
-      const s=10+xi/pw*500;
-      const bound=4*Math.PI/s;
-      const y=my+ph-bound*ph*0.5;
-      xi===0?smCtx.moveTo(mx+xi,y):smCtx.lineTo(mx+xi,y);
+    for(let xi=0;xi<=L.w;xi++){
+      const s=s0+xi/L.w*(s1-s0);
+      const y=yMap(4*Math.PI/s);
+      xi===0?smCtx.moveTo(L.x+xi,y):smCtx.lineTo(L.x+xi,y);
     }
     smCtx.stroke(); smCtx.setLineDash([]);
-    smCtx.fillStyle='rgba(255,68,119,0.7)'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('4\u03c0/s (unitarity)',mx+4,my+30);
 
-    // Current energy
-    const ex=mx+(smS-10)/500*pw;
+    const sMark=Math.max(s0, Math.min(s1, smS));
+    const ex=L.x+((sMark-s0)/(s1-s0))*L.w;
     smCtx.strokeStyle='rgba(255,204,0,0.8)'; smCtx.lineWidth=1.5;
-    smCtx.beginPath(); smCtx.moveTo(ex,my); smCtx.lineTo(ex,my+ph); smCtx.stroke();
-    smCtx.fillStyle='rgba(255,204,0,0.8)'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('\u221as='+smS,ex+4,my+ph-6);
+    smCtx.beginPath(); smCtx.moveTo(ex,L.y); smCtx.lineTo(ex,L.y+L.h); smCtx.stroke();
+    smCtx.restore();
 
-    smCtx.fillStyle='rgba(255,255,255,0.4)'; smCtx.font=f1+'px monospace';
-    smCtx.fillText('Optical theorem: Im M(0) = 2E_cm p_cm \u03c3_tot',mx,my+ph-30);
+    smCtx.fillStyle='rgba(0,229,255,0.85)'; smCtx.font=L.f1+'px monospace';
+    smCtx.fillText('\u03c3_tot', L.x+6, L.y+L.f1+4);
+    smCtx.fillStyle='rgba(255,68,119,0.85)';
+    smCtx.fillText('4\u03c0/s', L.x+6, L.y+L.f1*2+10);
+    smCtx.fillStyle='rgba(255,204,0,0.9)';
+    const eLab='\u221as='+smS;
+    const eW=smCtx.measureText(eLab).width;
+    smCtx.fillText(eLab, Math.min(Math.max(L.x+4,ex+4), L.x+L.w-eW-4), L.y+L.h-6);
+    _gFooter(smCtx,L,'Optical theorem: Im M(0) = 2 E_cm p_cm \u03c3_tot');
   }
   smCtx.setTransform(1,0,0,1,0,0);
 }
 
 function smLoop(){
-  if(activeTab!==12||!smRunning){smRunning=false;return;}
-  if(!smPaused) smT+=0.02*(window.animSpeed||1);
+  if(activeTab!==12||!smRunning){smRunning=false;RAF.sm=null;return;}
+  if(!smPaused) smT+=0.03*(window.animSpeed||1);
   redrawSM();
   RAF.sm=requestAnimationFrame(smLoop);
 }
 function startSMLoop(){
   resizeSM();
-  smRunning=true;
+  smRunning=true; smPaused=false;
+  _setPauseBtn('smPauseBtn',false);
   if(RAF.sm){cancelAnimationFrame(RAF.sm);RAF.sm=null;}
   smLoop();
 }
@@ -3533,74 +3660,105 @@ function redrawWI(){
   wiCtx.setTransform(1,0,0,1,0,0);
   wiCtx.fillStyle='#05050f'; wiCtx.fillRect(0,0,W,H);
   wiCtx.setTransform(1,0,0,1,pans[13].x,pans[13].y);
-
-  const S=Math.min(W,H);
-  const f1=Math.max(12,S*0.022)|0;
-  const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
+  const L=_gLayout(W,H);
+  const phase=wiT;
 
   if(wiView===0){
-    // QED Ward identity
-    const cx=W/2, cy=H*0.35;
-    wiCtx.fillStyle='rgba(0,229,255,0.85)'; wiCtx.font='bold '+f2+'px monospace';
-    wiCtx.fillText('Ward-Takahashi Identity (QED)',W*0.04,f2+16);
+    _gTitle(wiCtx,L,'Ward-Takahashi identity  (QED)');
+    const cx=L.x+L.w/2, cy=L.y+L.h*0.38;
+    const arm=Math.min(L.w*0.22, L.h*0.28, 90);
+    const wig=5*Math.sin(phase*2);
 
-    // Vertex diagram
-    wiCtx.strokeStyle='rgba(0,229,255,0.6)'; wiCtx.lineWidth=2;
-    wiCtx.beginPath(); wiCtx.moveTo(cx-100,cy-30); wiCtx.lineTo(cx-40,cy); wiCtx.lineTo(cx-100,cy+30); wiCtx.stroke();
-    wiCtx.strokeStyle='rgba(255,200,0,0.4)'; wiCtx.lineWidth=1.5;
-    wiCtx.beginPath(); wiCtx.moveTo(cx-40,cy); wiCtx.lineTo(cx+40,cy); wiCtx.stroke();
-    wiCtx.strokeStyle='rgba(0,229,255,0.6)'; wiCtx.lineWidth=2;
-    wiCtx.beginPath(); wiCtx.moveTo(cx+40,cy); wiCtx.lineTo(cx+100,cy-30); wiCtx.lineTo(cx+100,cy+30); wiCtx.stroke();
+    // Electron lines
+    wiCtx.strokeStyle='rgba(0,229,255,0.85)'; wiCtx.lineWidth=2.4;
+    wiCtx.beginPath();
+    wiCtx.moveTo(cx-arm, cy-arm*0.45+wig); wiCtx.lineTo(cx-arm*0.15, cy);
+    wiCtx.lineTo(cx-arm, cy+arm*0.45-wig); wiCtx.stroke();
+    wiCtx.beginPath();
+    wiCtx.moveTo(cx+arm*0.15, cy); wiCtx.lineTo(cx+arm, cy-arm*0.45-wig);
+    wiCtx.moveTo(cx+arm*0.15, cy); wiCtx.lineTo(cx+arm, cy+arm*0.45+wig); wiCtx.stroke();
+    // Photon wavy
+    wiCtx.strokeStyle='rgba(255,200,0,0.9)'; wiCtx.lineWidth=2;
+    wiCtx.beginPath();
+    const nSeg=12;
+    for(let i=0;i<=nSeg;i++){
+      const t=i/nSeg;
+      const x=cx-arm*0.15+t*(arm*0.3);
+      const y=cy+8*Math.sin(t*Math.PI*3+phase*3)*(i>0&&i<nSeg?1:0);
+      i===0?wiCtx.moveTo(x,y):wiCtx.lineTo(x,y);
+    }
+    // longer photon from left vertex to right
+    wiCtx.beginPath();
+    for(let i=0;i<=nSeg;i++){
+      const t=i/nSeg;
+      const x=cx-arm*0.12+t*(arm*0.24);
+      const y=cy+7*Math.sin(t*Math.PI*4+phase*3);
+      i===0?wiCtx.moveTo(x,y):wiCtx.lineTo(x,y);
+    }
+    wiCtx.stroke();
 
-    wiCtx.fillStyle='rgba(0,229,255,0.7)'; wiCtx.font=f1+'px monospace';
-    wiCtx.fillText('p',cx-110,cy-30);
-    wiCtx.fillText('p+k',cx+90,cy-30);
-    wiCtx.fillStyle='rgba(255,200,0,0.7)';
-    wiCtx.fillText('\u03b3(k)',cx-10,cy-10);
+    wiCtx.fillStyle='rgba(0,229,255,0.85)'; wiCtx.font=L.f1+'px monospace';
+    wiCtx.fillText('p', cx-arm-4, cy-arm*0.45-8);
+    wiCtx.fillText('p+k', cx+arm-8, cy-arm*0.45-8);
+    wiCtx.fillStyle='rgba(255,200,0,0.9)';
+    wiCtx.fillText('\u03b3(k)', cx-10, cy-14);
 
-    // Identity
-    wiCtx.fillStyle='rgba(255,204,0,0.9)'; wiCtx.font='bold '+f2+'px monospace';
-    wiCtx.fillText('k^\u03bc \u0393_\u03bc(p,p+k) = S\u207b\u00b9(p+k) - S\u207b\u00b9(p)',cx-f2*8,cy+70);
-    wiCtx.fillStyle='rgba(255,255,255,0.5)'; wiCtx.font=f1+'px monospace';
-    wiCtx.fillText('Z\u2081 = Z\u2082  (vertex = wavefunction renormalization)',cx-f1*8,cy+90);
-    wiCtx.fillStyle='rgba(255,255,255,0.4)'; wiCtx.font=f1+'px monospace';
-    wiCtx.fillText('q = '+wiQ.toFixed(2)+' GeV  |  Ensures photon remains massless',cx-f1*8,H-14);
-
+    // Identity block — centered in lower third, no overflow
+    const idY=L.y+L.h*0.72;
+    wiCtx.fillStyle='rgba(255,204,0,0.95)'; wiCtx.font='bold '+L.f2+'px monospace';
+    wiCtx.textAlign='center';
+    wiCtx.fillText(_gFit(wiCtx,'k^\u03bc \u0393_\u03bc(p,p+k) = S\u207b\u00b9(p+k) - S\u207b\u00b9(p)', L.w*0.95, wiCtx.font), cx, idY);
+    wiCtx.fillStyle='rgba(200,200,230,0.7)'; wiCtx.font=L.f1+'px monospace';
+    wiCtx.fillText(_gFit(wiCtx,'Z\u2081 = Z\u2082  (vertex = wave-function renormalization)', L.w*0.95, wiCtx.font), cx, idY+L.f1+10);
+    wiCtx.textAlign='left';
+    _gFooter(wiCtx,L,'q = '+wiQ.toFixed(2)+' GeV  \u00b7  photon stays massless');
   } else {
-    // Slavnov-Taylor
-    const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-    wiCtx.fillStyle='rgba(0,229,255,0.85)'; wiCtx.font='bold '+f2+'px monospace';
-    wiCtx.fillText('Slavnov-Taylor Identities (non-Abelian)',mx,my+f2+4);
+    _gTitle(wiCtx,L,'Slavnov-Taylor identities  (non-Abelian)');
+    const cx=L.x+L.w/2, cy=L.y+L.h*0.4;
+    const arm=Math.min(L.w*0.28, L.h*0.32, 100);
+    const pulse=0.7+0.3*Math.sin(phase*2);
 
-    // 3-gluon vertex
-    const cx2=W/2, cy2=my+ph*0.35;
-    wiCtx.strokeStyle='rgba(0,229,255,0.6)'; wiCtx.lineWidth=2.5;
-    wiCtx.beginPath(); wiCtx.moveTo(cx2-80,cy2-50); wiCtx.lineTo(cx2,cy2); wiCtx.lineTo(cx2+80,cy2-50); wiCtx.stroke();
-    wiCtx.beginPath(); wiCtx.moveTo(cx2,cy2); wiCtx.lineTo(cx2,cy2+60); wiCtx.stroke();
+    wiCtx.globalAlpha=pulse;
+    wiCtx.strokeStyle='rgba(0,229,255,0.9)'; wiCtx.lineWidth=2.6;
+    wiCtx.beginPath();
+    wiCtx.moveTo(cx-arm, cy-arm*0.55); wiCtx.lineTo(cx, cy);
+    wiCtx.lineTo(cx+arm, cy-arm*0.55); wiCtx.stroke();
+    wiCtx.beginPath(); wiCtx.moveTo(cx, cy); wiCtx.lineTo(cx, cy+arm*0.65); wiCtx.stroke();
+    // ghost dashed legs (subtle)
+    wiCtx.strokeStyle='rgba(255,68,119,0.55)'; wiCtx.lineWidth=1.6; wiCtx.setLineDash([5,3]);
+    wiCtx.lineDashOffset=-phase*16;
+    wiCtx.beginPath();
+    wiCtx.moveTo(cx-arm*0.55, cy+arm*0.35); wiCtx.lineTo(cx, cy);
+    wiCtx.lineTo(cx+arm*0.55, cy+arm*0.35); wiCtx.stroke();
+    wiCtx.setLineDash([]);
+    wiCtx.globalAlpha=1;
 
-    wiCtx.fillStyle='rgba(0,229,255,0.7)'; wiCtx.font=f1+'px monospace';
-    wiCtx.fillText('A_\u03bc',cx2-90,cy2-50);
-    wiCtx.fillText('A_\u03bd',cx2+70,cy2-50);
-    wiCtx.fillText('A_\u03c1',cx2+6,cy2+70);
+    wiCtx.fillStyle='rgba(0,229,255,0.9)'; wiCtx.font=L.f1+'px monospace';
+    wiCtx.fillText('A_\u03bc', cx-arm-6, cy-arm*0.55-6);
+    wiCtx.fillText('A_\u03bd', cx+arm-10, cy-arm*0.55-6);
+    wiCtx.fillText('A_\u03c1', cx+6, cy+arm*0.65+4);
+    wiCtx.fillStyle='rgba(255,68,119,0.85)';
+    wiCtx.fillText('ghosts', cx-20, cy+arm*0.35+L.f1+4);
 
-    wiCtx.fillStyle='rgba(255,204,0,0.9)'; wiCtx.font='bold '+f1+'px monospace';
-    wiCtx.fillText('k^\u03bc \u0393_{\u03bc\u03bd\u03c1}^{abc}(k,p,q) = ... (involves ghosts)',cx2-f1*10,cy2+100);
-    wiCtx.fillStyle='rgba(255,255,255,0.4)'; wiCtx.font=f1+'px monospace';
-    wiCtx.fillText('Non-Abelian: ghosts appear in the identity  |  Ensures renormalizability',mx,my+ph-10);
+    wiCtx.fillStyle='rgba(255,204,0,0.95)'; wiCtx.font='bold '+L.f1+'px monospace';
+    wiCtx.textAlign='center';
+    wiCtx.fillText(_gFit(wiCtx,'k^\u03bc \u0393_{\u03bc\u03bd\u03c1}^{abc} = \u2026 (ghosts enter)', L.w*0.95, wiCtx.font), cx, L.y+L.h-L.f1-4);
+    wiCtx.textAlign='left';
+    _gFooter(wiCtx,L,'Non-Abelian Ward  \u00b7  ghosts ensure renormalizability');
   }
   wiCtx.setTransform(1,0,0,1,0,0);
 }
 
 function wiLoop(){
-  if(activeTab!==13||!wiRunning){wiRunning=false;return;}
-  if(!wiPaused) wiT+=0.02*(window.animSpeed||1);
+  if(activeTab!==13||!wiRunning){wiRunning=false;RAF.wi=null;return;}
+  if(!wiPaused) wiT+=0.03*(window.animSpeed||1);
   redrawWI();
   RAF.wi=requestAnimationFrame(wiLoop);
 }
 function startWILoop(){
   resizeWI();
-  wiRunning=true;
+  wiRunning=true; wiPaused=false;
+  _setPauseBtn('wiPauseBtn',false);
   if(RAF.wi){cancelAnimationFrame(RAF.wi);RAF.wi=null;}
   wiLoop();
 }
@@ -3631,71 +3789,83 @@ function redrawGF(){
   gfCtx.setTransform(1,0,0,1,0,0);
   gfCtx.fillStyle='#05050f'; gfCtx.fillRect(0,0,W,H);
   gfCtx.setTransform(1,0,0,1,pans[14].x,pans[14].y);
-
-  const S=Math.min(W,H);
-  const f1=Math.max(12,S*0.022)|0;
-  const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
+  const L=_gLayout(W,H);
+  const phase=gfT;
 
   const gaugeNames=['Feynman (\u03be=1)','Coulomb (\u2207\u00b7A=0)','Axial (n\u00b7A=0)'];
-  const gaugeLabel=gaugeNames[gfView];
+  const gaugeLabel=gaugeNames[gfView]||gaugeNames[0];
+  _gTitle(gfCtx,L,'Gauge-fixing: '+gaugeLabel+'  \u00b7  \u03be='+gfXi.toFixed(2));
+  _gAxes(gfCtx,L);
+  // Midline
+  gfCtx.strokeStyle='#2a2a55'; gfCtx.lineWidth=1;
+  gfCtx.beginPath(); gfCtx.moveTo(L.x, L.y+L.h*0.55); gfCtx.lineTo(L.x+L.w, L.y+L.h*0.55); gfCtx.stroke();
+  gfCtx.fillStyle='#55558a'; gfCtx.font=L.f1+'px monospace';
+  gfCtx.fillText('k', L.x+L.w-10, L.y+L.h*0.55-6);
+  gfCtx.fillText('D', L.x+4, L.y+L.f1+2);
 
-  // Photon propagator visualization
-  const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
-  gfCtx.fillStyle='rgba(0,229,255,0.85)'; gfCtx.font='bold '+f2+'px monospace';
-  gfCtx.fillText('Gauge-Fixing: '+gaugeLabel+'  (\u03be='+gfXi.toFixed(2)+')',mx,my+f2+4);
+  // ξ-dependent longitudinal; pulse ξ slightly for motion when slider fixed
+  const xiEff=gfXi*(0.92+0.08*Math.sin(phase));
+  const kSpan=6;
+  // scale so peak transverse fits plot
+  const Dpeak=1/0.1;
+  const y0=L.y+L.h*0.55;
+  const yScale=(L.h*0.45)/Dpeak;
 
-  // Propagator components
-  gfCtx.strokeStyle='#2a2a55'; gfCtx.lineWidth=1.5;
-  gfCtx.beginPath(); gfCtx.moveTo(mx,my); gfCtx.lineTo(mx,my+ph); gfCtx.stroke();
-  gfCtx.beginPath(); gfCtx.moveTo(mx,my+ph/2); gfCtx.lineTo(mx+pw,my+ph/2); gfCtx.stroke();
-  gfCtx.fillStyle='#55558a'; gfCtx.font=f1+'px monospace';
-  gfCtx.fillText('k',mx+pw+4,my+ph/2+4);
-  gfCtx.fillText('D(k)',mx-30,my+f1);
-
-  // Transverse part (gauge-invariant)
-  gfCtx.strokeStyle='rgba(0,229,255,0.8)'; gfCtx.lineWidth=2.5;
+  _gClip(gfCtx,L);
+  // Transverse
+  gfCtx.strokeStyle='rgba(0,229,255,0.95)'; gfCtx.lineWidth=2.5;
   gfCtx.beginPath();
-  for(let xi=0;xi<=pw;xi++){
-    const k=(xi/pw-0.5)*6;
+  for(let xi=0;xi<=L.w;xi++){
+    const k=(xi/L.w-0.5)*kSpan;
     const D=1/(k*k+0.1);
-    const y=my+ph/2-D*ph*0.35;
-    xi===0?gfCtx.moveTo(mx+xi,y):gfCtx.lineTo(mx+xi,y);
+    const y=_gClampY(y0-D*yScale, L);
+    xi===0?gfCtx.moveTo(L.x+xi,y):gfCtx.lineTo(L.x+xi,y);
   }
   gfCtx.stroke();
-  gfCtx.fillStyle='rgba(0,229,255,0.5)'; gfCtx.font=f1+'px monospace';
-  gfCtx.fillText('transverse (gauge-invariant)',mx+4,my+14);
-
-  // Longitudinal part (ξ-dependent)
-  gfCtx.strokeStyle='rgba(255,68,119,0.7)'; gfCtx.lineWidth=1.5; gfCtx.setLineDash([4,3]);
+  // Longitudinal (ξ-dependent)
+  gfCtx.strokeStyle='rgba(255,68,119,0.9)'; gfCtx.lineWidth=2; gfCtx.setLineDash([5,3]);
+  gfCtx.lineDashOffset=-phase*14;
   gfCtx.beginPath();
-  for(let xi=0;xi<=pw;xi++){
-    const k=(xi/pw-0.5)*6;
-    const D=(1-gfXi)/(k*k+0.1);
-    const y=my+ph/2-D*ph*0.35;
-    xi===0?gfCtx.moveTo(mx+xi,y):gfCtx.lineTo(mx+xi,y);
+  for(let xi=0;xi<=L.w;xi++){
+    const k=(xi/L.w-0.5)*kSpan;
+    const D=(1-xiEff)/(k*k+0.1);
+    const y=_gClampY(y0-D*yScale, L);
+    xi===0?gfCtx.moveTo(L.x+xi,y):gfCtx.lineTo(L.x+xi,y);
   }
   gfCtx.stroke(); gfCtx.setLineDash([]);
-  gfCtx.fillStyle='rgba(255,68,119,0.5)'; gfCtx.font=f1+'px monospace';
-  gfCtx.fillText('longitudinal (\u03be-dependent)',mx+4,my+30);
 
-  // Propagator formula
-  gfCtx.fillStyle='rgba(255,204,0,0.8)'; gfCtx.font='bold '+f1+'px monospace';
-  gfCtx.fillText('D_{\u03bc\u03bd}(k) = -i/k\u00b2 [g_{\u03bc\u03bd} - (1-\u03be)k_\u03bc k_\u03bd/k\u00b2]',mx,my+ph-30);
-  gfCtx.fillStyle='rgba(255,255,255,0.4)'; gfCtx.font=f1+'px monospace';
-  gfCtx.fillText('Physical observables: \u03be-independent  |  Feynman: \u03be=1  Landau: \u03be=0  Unitary: \u03be\u2192\u221e',mx,my+ph-12);
+  // Sweeping k marker
+  const kM=2.5*Math.sin(phase*0.6);
+  const kx=L.x+(kM/kSpan+0.5)*L.w;
+  gfCtx.strokeStyle='rgba(255,204,0,0.7)'; gfCtx.lineWidth=1.4; gfCtx.setLineDash([3,3]);
+  gfCtx.beginPath(); gfCtx.moveTo(kx,L.y); gfCtx.lineTo(kx,L.y+L.h); gfCtx.stroke();
+  gfCtx.setLineDash([]);
+  gfCtx.restore();
+
+  // Legend packed top-left inside plot, short labels
+  gfCtx.fillStyle='rgba(0,229,255,0.9)'; gfCtx.font=L.f1+'px monospace';
+  gfCtx.fillText('transverse (gauge-inv.)', L.x+6, L.y+L.f1+4);
+  gfCtx.fillStyle='rgba(255,68,119,0.9)';
+  gfCtx.fillText('longitudinal (\u03be)', L.x+6, L.y+L.f1*2+10);
+
+  // Formula — single fitted line above footer
+  gfCtx.fillStyle='rgba(255,204,0,0.9)'; gfCtx.font=L.f1+'px monospace';
+  const formula='D_{\u03bc\u03bd}=-i/k\u00b2 [g_{\u03bc\u03bd}-(1-\u03be)k_\u03bc k_\u03bd/k\u00b2]';
+  gfCtx.fillText(_gFit(gfCtx, formula, L.w, gfCtx.font), L.x, L.y+L.h-6);
+  _gFooter(gfCtx,L,'\u03be-independent physics  \u00b7  Feynman \u03be=1  \u00b7  Landau \u03be=0  \u00b7  unitary \u03be\u2192\u221e');
   gfCtx.setTransform(1,0,0,1,0,0);
 }
 
 function gfLoop(){
-  if(activeTab!==14||!gfRunning){gfRunning=false;return;}
-  if(!gfPaused) gfT+=0.02*(window.animSpeed||1);
+  if(activeTab!==14||!gfRunning){gfRunning=false;RAF.gf=null;return;}
+  if(!gfPaused) gfT+=0.03*(window.animSpeed||1);
   redrawGF();
   RAF.gf=requestAnimationFrame(gfLoop);
 }
 function startGFLoop(){
   resizeGF();
-  gfRunning=true;
+  gfRunning=true; gfPaused=false;
+  _setPauseBtn('gfPauseBtn',false);
   if(RAF.gf){cancelAnimationFrame(RAF.gf);RAF.gf=null;}
   gfLoop();
 }
