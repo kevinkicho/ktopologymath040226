@@ -26,11 +26,16 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
 .back:hover{color:var(--accent)}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px rgba(255,204,0,.35);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px}
-.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab{padding:7px 12px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.75rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text);background:var(--bg2)}
 .tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
+.callout-blue{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);border-radius:5px;padding:8px 10px;font-size:.72rem;line-height:1.55}
+.callout-blue strong{color:#00e5ff}
+.callout-green{background:rgba(0,255,100,.05);border:1px solid rgba(0,255,100,.2);border-radius:5px;padding:8px 10px;font-size:.72rem;line-height:1.55}
+.callout-green strong{color:#00ff88}
 .content{flex:1;display:flex;overflow:hidden}
 .panel{display:none;flex:1;overflow:hidden}
 .panel.active{display:flex}
@@ -119,6 +124,13 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(6)">Field Theory</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(7)">Hamilton-Jacobi</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(8)">Poisson Brackets</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(9)">Dirac Constraints</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(10)">Symplectic Reduction</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(11)">Jet Bundles</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(12)">Liouville / Lyapunov</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(13)">Canonical Maps</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(14)">KAM Tori</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(15)">Covariant Phase</button>
     <button class="proof-btn" onclick="openProof(null)">Proofs ▸</button>
   </div>
 </header>
@@ -698,6 +710,324 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
     </div>
   </div>
 
+  <!-- TAB 9: DIRAC CONSTRAINTS -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel9">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Constrained mechanics</div>
+      <div class="eq-block">
+        <div class="eq-title">Primary constraint</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $\phi(q,p)\approx 0$ on constraint surface<br>
+          $H_T = H + u^\alpha\phi_\alpha$
+        </div>
+      </div>
+      <label>Constraint radius R = <span id="dirRVal">1.0</span></label>
+      <input type="range" id="dirR" min="0.4" max="1.8" step="0.05" value="1"
+        oninput="dirR=+this.value;document.getElementById('dirRVal').textContent=dirR.toFixed(1);dirReset()">
+      <label>Multiplier u = <span id="dirUVal">0.5</span></label>
+      <input type="range" id="dirU" min="0" max="2" step="0.05" value="0.5"
+        oninput="dirU=+this.value;document.getElementById('dirUVal').textContent=dirU.toFixed(2)">
+      <div class="btn-row">
+        <button class="btn active" id="dirAnimBtn" onclick="toggleDirAnim()">⏸ Pause</button>
+        <button class="btn" onclick="dirReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset View</button>
+      </div>
+      <div class="callout">
+        <strong>Dirac bracket</strong> (second-class):<br>
+        $\{f,g\}_D = \{f,g\} - \{f,\phi_a\}C^{ab}\{\phi_b,g\}$<br>
+        $C_{ab}=\{\phi_a,\phi_b\}$, $C^{ab}C_{bc}=\delta^a_c$
+      </div>
+    </div>
+    <div class="main-area">
+      <canvas aria-label="Dirac constraints and brackets on constrained phase space" id="dirCanvas"></canvas>
+    </div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="section-lbl">Live</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">φ ≈</span><span id="dirPhiVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">{φ,H}</span><span id="dirStabVal" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">θ</span><span id="dirThVal" style="color:#88ff44">—</span></div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Frontier:</strong> first-class constraints generate gauge; BRST / BFV extend Dirac to cohomological reduction (hand-off: gauge modules).
+      </div>
+      <div class="callout" style="font-size:.68rem">
+        Gold: free orbit. Cyan: projected on $\phi=0$. Magenta: constraint circle.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 10: SYMPLECTIC REDUCTION -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel10">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Marsden–Weinstein</div>
+      <div class="eq-block">
+        <div class="eq-title">Momentum map</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $\mu:T^*Q\to\mathfrak{g}^*$<br>
+          $M_\mu=\mu^{-1}(\mu)/G_\mu$
+        </div>
+      </div>
+      <label>Level μ = <span id="mwMuVal">1.0</span></label>
+      <input type="range" id="mwMu" min="0.3" max="2.2" step="0.05" value="1"
+        oninput="mwMu=+this.value;document.getElementById('mwMuVal').textContent=mwMu.toFixed(1)">
+      <label>Group angle speed = <span id="mwOmVal">0.8</span></label>
+      <input type="range" id="mwOm" min="0.1" max="2" step="0.05" value="0.8"
+        oninput="mwOm=+this.value;document.getElementById('mwOmVal').textContent=mwOm.toFixed(1)">
+      <div class="btn-row">
+        <button class="btn active" id="mwAnimBtn" onclick="toggleMwAnim()">⏸ Pause</button>
+        <button class="btn" onclick="mwReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset View</button>
+      </div>
+      <div class="callout">
+        $S^1$ acts by rotation on $T^*\mathbb{R}^2$. Level set $\mu=J=x p_y-y p_x$ is a coadjoint orbit; quotient is the reduced symplectic leaf.
+      </div>
+    </div>
+    <div class="main-area">
+      <canvas aria-label="Marsden-Weinstein symplectic reduction sketch" id="mwCanvas"></canvas>
+    </div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">μ level</span><span id="mwLevelVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">dim ker dμ</span><span id="mwKerVal" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">orbit angle</span><span id="mwAngVal" style="color:#88ff44">—</span></div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Frontier:</strong> singular reduction (Sjamaar–Lerman) when $G_\mu$ jumps; stratified symplectic spaces. Pure catalogue → module 29.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 11: JET BUNDLES -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel11">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">1-jets &amp; EL fields</div>
+      <div class="eq-block">
+        <div class="eq-title">Jet coordinates</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $j^1\phi=(x,\varphi,\varphi_x)$ on $J^1(E)$<br>
+          $\mathcal{L}(x,\varphi,\partial\varphi)$
+        </div>
+      </div>
+      <label>Wave number k = <span id="jetKVal">1.5</span></label>
+      <input type="range" id="jetK" min="0.4" max="3" step="0.05" value="1.5"
+        oninput="jetK=+this.value;document.getElementById('jetKVal').textContent=jetK.toFixed(1)">
+      <label>Amplitude A = <span id="jetAVal">1.0</span></label>
+      <input type="range" id="jetA" min="0.2" max="1.8" step="0.05" value="1"
+        oninput="jetA=+this.value;document.getElementById('jetAVal').textContent=jetA.toFixed(1)">
+      <div class="btn-row">
+        <button class="btn active" id="jetAnimBtn" onclick="toggleJetAnim()">⏸ Pause</button>
+        <button class="btn" onclick="jetReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset View</button>
+      </div>
+      <div class="callout">
+        Classical EL for fields:<br>
+        $\dfrac{\partial\mathcal{L}}{\partial\varphi}-\partial_\mu\dfrac{\partial\mathcal{L}}{\partial\varphi_{,\mu}}=0$<br>
+        No path integrals (→ 22).
+      </div>
+    </div>
+    <div class="main-area">
+      <canvas aria-label="Jet bundle coordinates and classical field EL" id="jetCanvas"></canvas>
+    </div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">φ(x★)</span><span id="jetPhiVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">φ_x</span><span id="jetDxVal" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">EL residual</span><span id="jetElVal" style="color:#ff8844">—</span></div>
+      </div>
+      <div class="callout-green" style="font-size:.68rem">
+        <strong>Frontier:</strong> higher jets $J^k$, Cartan form $\Theta_\mathcal{L}$, multisymplectic $n$-forms for covariant field theory.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 12: LIOUVILLE + LYAPUNOV -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel12">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Volume &amp; mild chaos</div>
+      <div class="eq-block">
+        <div class="eq-title">Liouville</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $\mathcal{L}_{X_H}\omega^n=0$<br>
+          $\nabla\cdot X_H=0$
+        </div>
+      </div>
+      <label>System</label>
+      <select id="lioSys" onchange="lioReset()">
+        <option value="ho" selected>Harmonic oscillator</option>
+        <option value="pend">Pendulum</option>
+      </select>
+      <label>Separation ε₀ = <span id="lioEpsVal">0.04</span></label>
+      <input type="range" id="lioEps" min="0.01" max="0.15" step="0.005" value="0.04"
+        oninput="lioEps=+this.value;document.getElementById('lioEpsVal').textContent=lioEps.toFixed(2);lioReset()">
+      <div class="btn-row">
+        <button class="btn active" id="lioAnimBtn" onclick="toggleLioAnim()">⏸ Pause</button>
+        <button class="btn" onclick="lioReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset View</button>
+      </div>
+      <div class="callout">
+        Cloud area ≈ constant (Liouville). Gold/cyan pair: finite-time Lyapunov indicator $\lambda\approx\frac{1}{t}\log\frac{|\delta(t)|}{|\delta_0|}$.
+      </div>
+    </div>
+    <div class="main-area">
+      <canvas aria-label="Liouville volume preservation and mild Lyapunov indicator" id="lioCanvas"></canvas>
+    </div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">area≈</span><span id="lioAreaVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">|δ(t)|</span><span id="lioSepVal" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">λ_FTLE</span><span id="lioLamVal" style="color:#ff8844">—</span></div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Hand-off:</strong> deep chaos, strange attractors, full Lyapunov spectra → module 40. Here only mild FTLE + area.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 13: CANONICAL TRANSFORMATIONS -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel13">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Generating functions</div>
+      <div class="eq-block">
+        <div class="eq-title">Type 2</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $F_2(q,P)$: $p=\partial_q F_2$, $Q=\partial_P F_2$
+        </div>
+      </div>
+      <label>Transform</label>
+      <select id="canType" onchange="canReset()">
+        <option value="id" selected>Identity F₂=qP</option>
+        <option value="rot">Point rotation</option>
+        <option value="action">HO action-angle</option>
+      </select>
+      <label>Mix α = <span id="canAVal">0.5</span></label>
+      <input type="range" id="canA" min="0" max="1" step="0.02" value="0.5"
+        oninput="canA=+this.value;document.getElementById('canAVal').textContent=canA.toFixed(2)">
+      <div class="btn-row">
+        <button class="btn active" id="canAnimBtn" onclick="toggleCanAnim()">⏸ Pause</button>
+        <button class="btn" onclick="canReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset View</button>
+      </div>
+      <div class="callout">
+        Canonical ⇔ preserves $\omega=dq\wedge dp$ ⇔ $\{Q_i,P_j\}=\delta_{ij}$. Grid deforms with area cells preserved.
+      </div>
+    </div>
+    <div class="main-area">
+      <canvas aria-label="Canonical transformations via generating functions" id="canCanvas"></canvas>
+    </div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">det ∂(Q,P)/∂(q,p)</span><span id="canDetVal" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">cell area ratio</span><span id="canAreaVal" style="color:#00e5ff">—</span></div>
+      </div>
+      <div class="callout-green" style="font-size:.68rem">
+        <strong>Frontier:</strong> type 1–4 generators, free generating functions on Lagrangian submanifolds of $T^*Q\times T^*Q^-$.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 14: KAM TORI -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel14">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Near-integrable</div>
+      <div class="eq-block">
+        <div class="eq-title">KAM sketch</div>
+        <div style="font-size:.7rem;line-height:1.55">
+          $H=H_0(I)+\varepsilon H_1(\theta,I)$<br>
+          most tori survive small $\varepsilon$
+        </div>
+      </div>
+      <label>Perturbation ε = <span id="kamEpsVal">0.15</span></label>
+      <input type="range" id="kamEps" min="0" max="0.9" step="0.02" value="0.15"
+        oninput="kamEps=+this.value;document.getElementById('kamEpsVal').textContent=kamEps.toFixed(2);kamReset()">
+      <label>Kick K (std map) = <span id="kamKVal">0.6</span></label>
+      <input type="range" id="kamK" min="0" max="2" step="0.05" value="0.6"
+        oninput="kamK=+this.value;document.getElementById('kamKVal').textContent=kamK.toFixed(2);kamReset()">
+      <div class="btn-row">
+        <button class="btn active" id="kamAnimBtn" onclick="toggleKamAnim()">⏸ Pause</button>
+        <button class="btn" onclick="kamReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset View</button>
+      </div>
+      <div class="callout">
+        Chirikov standard map Poincaré section: nested curves ≈ KAM tori; breakup near critical $K_c\approx 0.97$.
+      </div>
+    </div>
+    <div class="main-area">
+      <canvas aria-label="Mild KAM tori and standard map section" id="kamCanvas"></canvas>
+    </div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">K</span><span id="kamKLive" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">ε</span><span id="kamEpsLive" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">orbits</span><span id="kamNVal" style="color:#88ff44">—</span></div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Hand-off:</strong> full Chirikov overlap, Arnold diffusion, Lyapunov chaos → module 40. Mild visual only.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 15: COVARIANT PHASE SPACE / PEIERLS -->
+  <div class="panel" role="tabpanel" data-role="panel" id="panel15">
+    <div class="sidebar" data-role="sidebar">
+      <div class="section-lbl">Covariant phase space</div>
+      <div class="eq-block">
+        <div class="eq-title">Peierls bracket</div>
+        <div style="font-size:.68rem;line-height:1.5">
+          $\{F,G\}_P=\int\!\frac{\delta F}{\delta\phi}(G_A-G_R)\frac{\delta G}{\delta\phi}$
+        </div>
+      </div>
+      <label>Source sep Δx = <span id="peiDxVal">1.2</span></label>
+      <input type="range" id="peiDx" min="0.3" max="2.5" step="0.05" value="1.2"
+        oninput="peiDx=+this.value;document.getElementById('peiDxVal').textContent=peiDx.toFixed(1)">
+      <label>Mass m = <span id="peiMVal">0.5</span></label>
+      <input type="range" id="peiM" min="0" max="1.5" step="0.05" value="0.5"
+        oninput="peiM=+this.value;document.getElementById('peiMVal').textContent=peiM.toFixed(1)">
+      <div class="btn-row">
+        <button class="btn active" id="peiAnimBtn" onclick="togglePeiAnim()">⏸ Pause</button>
+        <button class="btn" onclick="peiReset()">Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn panBtn" onclick="togglePan()">✋ Pan</button>
+        <button class="btn" onclick="resetPan()">Reset View</button>
+      </div>
+      <div class="callout">
+        Solution space of EL is the covariant phase space. $\omega_{\mathrm{CPS}}$ is the integral of the symplectic current over a Cauchy surface — independent of the slice.
+      </div>
+    </div>
+    <div class="main-area">
+      <canvas aria-label="Covariant phase space and Peierls bracket sketch" id="peiCanvas"></canvas>
+    </div>
+    <div class="sidebar right" data-role="sidebar">
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">G_R peak</span><span id="peiGrVal" style="color:#ff8844">—</span></div>
+        <div class="vrow"><span class="vlbl">G_A peak</span><span id="peiGaVal" style="color:#00e5ff">—</span></div>
+        <div class="vrow"><span class="vlbl">Ẽ = G_A−G_R</span><span id="peiEVal" style="color:var(--accent)">—</span></div>
+      </div>
+      <div class="callout-blue" style="font-size:.68rem">
+        <strong>Frontier:</strong> covariant Poisson structure (Peierls), multisymplectic geometry, BV/BFV for gauge fields — classical only here; QFT path integrals → 22.
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div class="strip" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -785,7 +1115,7 @@ const PROOFS = [
 ];
 
 // ── PAN ──
-const pans=[{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+const pans=Array.from({length:16},()=>({x:0,y:0}));
 let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
 function togglePan(){
   panMode=!panMode;
@@ -796,12 +1126,54 @@ function togglePan(){
   document.body.classList.toggle('pan-mode',panMode);
 }
 function resetPan(){
-  const p=pans[activeTab];p.x=0;p.y=0;
+  const p=pans[activeTab];if(p){p.x=0;p.y=0;}
   if(activeTab===0){clearTrail();}
   else if(activeTab===1) redrawPhase();
   else if(activeTab===2) drawAction();
   else if(activeTab===7) hjDraw();
   else if(activeTab===8) pbDraw();
+  else if(activeTab===9) dirDraw();
+  else if(activeTab===10) mwDraw();
+  else if(activeTab===11) jetDraw();
+  else if(activeTab===12) lioDraw();
+  else if(activeTab===13) canDraw();
+  else if(activeTab===14) kamDraw();
+  else if(activeTab===15) peiDraw();
+}
+function _resizeMainCanvas(canvas, panelId){
+  if(!canvas) return;
+  const p=document.getElementById(panelId);
+  if(!p) return;
+  const ma=p.querySelector('.main-area');
+  const r=(ma||p).getBoundingClientRect();
+  let w=Math.floor(r.width), h=Math.floor(r.height);
+  if(!ma){
+    let sw=0; p.querySelectorAll('.sidebar').forEach(s=>sw+=s.offsetWidth);
+    w=Math.floor(r.width-sw); h=Math.floor(r.height);
+  }
+  w=Math.max(1,w); h=Math.max(1,h);
+  if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+}
+function _gLayout(W,H){
+  const padL=Math.max(40,Math.min(58,W*0.055));
+  const padR=Math.max(16,Math.min(32,W*0.03));
+  const padT=Math.max(26,Math.min(40,H*0.055));
+  const padB=Math.max(26,Math.min(42,H*0.06));
+  const f1=Math.max(11,Math.min(14,Math.min(W,H)*0.018))|0;
+  const f2=Math.max(13,Math.min(17,Math.min(W,H)*0.022))|0;
+  return {padL,padR,padT,padB,x:padL,y:padT,w:Math.max(40,W-padL-padR),h:Math.max(40,H-padT-padB),f1,f2,W,H};
+}
+function _gFit(ctx,text,maxW,font){
+  ctx.font=font; if(ctx.measureText(text).width<=maxW) return text;
+  let s=text; while(s.length>3&&ctx.measureText(s+'\u2026').width>maxW) s=s.slice(0,-1); return s+'\u2026';
+}
+function _gTitle(ctx,L,title){ ctx.fillStyle='rgba(255,204,0,0.92)'; ctx.font='bold '+L.f2+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,title,L.w,ctx.font),L.x,L.y-8); }
+function _gFooter(ctx,L,text){ ctx.fillStyle='rgba(160,160,200,0.55)'; ctx.font=L.f1+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,text,L.w,ctx.font),L.x,L.H-10); }
+function _gClip(ctx,L){ ctx.save(); ctx.beginPath(); ctx.rect(L.x,L.y,L.w,L.h); ctx.clip(); }
+function _setPauseBtn(id, paused){
+  const b=document.getElementById(id);
+  if(b){b.textContent=paused?'▶ Resume':'⏸ Pause';b.classList.toggle('active',!paused);}
 }
 function _addPan(canvas,idx,fn){
   canvas.addEventListener('mousedown',e=>{
@@ -818,6 +1190,12 @@ function _addPan(canvas,idx,fn){
   canvas.addEventListener('mouseup',()=>_panDrag=false);
   canvas.addEventListener('mouseleave',()=>_panDrag=false);
 }
+
+// ── Frontier tab RAF state (tabs 9–15) ──
+let dirRafId=null, mwRafId=null, jetRafId=null, lioRafId=null, canRafId=null, kamRafId=null, peiRafId=null;
+let dirRunning=false, mwRunning=false, jetRunning=false, lioRunning=false, canRunning=false, kamRunning=false, peiRunning=false;
+let dirPaused=false, mwPaused=false, jetPaused=false, lioPaused=false, canPaused=false, kamPaused=false, peiPaused=false;
+let dirT=0, mwT=0, jetT=0, lioT=0, canT=0, kamT=0, peiT=0;
 
 // ── TAB SWITCHING ──
 // Cancel ALL animation loops and timeouts to free memory and prevent bugs
@@ -859,89 +1237,45 @@ function cancelAllAnimations() {
   saAnimPlaying=false;
   const saBtn=document.getElementById('saAnimBtn');
   if(saBtn){saBtn.textContent='▶ Play';saBtn.classList.remove('active');}
+  // frontier tabs 9–15
+  if(dirRafId){cancelAnimationFrame(dirRafId);dirRafId=null;}
+  if(mwRafId){cancelAnimationFrame(mwRafId);mwRafId=null;}
+  if(jetRafId){cancelAnimationFrame(jetRafId);jetRafId=null;}
+  if(lioRafId){cancelAnimationFrame(lioRafId);lioRafId=null;}
+  if(canRafId){cancelAnimationFrame(canRafId);canRafId=null;}
+  if(kamRafId){cancelAnimationFrame(kamRafId);kamRafId=null;}
+  if(peiRafId){cancelAnimationFrame(peiRafId);peiRafId=null;}
+  dirRunning=mwRunning=jetRunning=lioRunning=canRunning=kamRunning=peiRunning=false;
 }
 
 let activeTab = 0;
 function switchTab(n) {
   cancelAllAnimations();
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  const tabs=document.querySelectorAll('.tabs > .tab');
+  tabs.forEach((t,i)=>{ t.classList.toggle('active',i===n); t.setAttribute('aria-selected', i===n?'true':'false'); });
   document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
   activeTab = n;
-
-  // Each tab: resize, reset state to fresh, start animation
-  if (n===0) {
-    resizePend(); resetPendulum(); clearTrail();
-    pendAnimating = true;
-    const pendBtn = document.getElementById('pendAnimBtn');
-    if(pendBtn){pendBtn.textContent = '⏸ Pause';pendBtn.classList.add('active');}
-    pendRafId=requestAnimationFrame(pendLoop);
-  }
-  if (n===1) {
-    resizePhase(); clearPhaseTrajs();
-    phaseInitParticles();
-    const phaseBtn = document.getElementById('phaseAnimBtn');
-    if(phaseBtn){phaseBtn.textContent='⏸ Pause';phaseBtn.classList.add('active');}
-    phaseRafId=requestAnimationFrame(phaseLoop);
-  }
-  if (n===2) {
-    resizeAction();
-    deviation=0;
-    document.getElementById('devSlider').value=0;
-    document.getElementById('devAval').textContent='0.00';
-    drawAction();
-    actAnimPlaying=true;
-    const actBtn=document.getElementById('actAnimBtn');
-    if(actBtn){actBtn.textContent='⏸ Pause';actBtn.classList.add('active');}
-    animateAction();
-  }
-  if (n===3) {
-    saResize(); saInit(); saAnimTime=0;
-    saAnimPlaying=true;
-    const saBtn=document.getElementById('saAnimBtn');
-    if(saBtn){saBtn.textContent='⏸ Pause';saBtn.classList.add('active');}
-    saAnimRafId=requestAnimationFrame(saAnimLoop);
-  }
-  if (n===4) {
-    noethResize(); noethReset();
-    const noethBtn = document.getElementById('noethAnimBtn');
-    if(noethBtn){noethBtn.textContent='⏸ Pause';noethBtn.classList.add('active');}
-    noethRafId=requestAnimationFrame(noethLoop);
-  }
-  if (n===5) {
-    legResize(); legResetTraj();
-    drawLegendre(); legDrawPhase();
-    const legBtn = document.getElementById('legAnimBtn');
-    if(legBtn){legBtn.textContent='⏸ Pause';legBtn.classList.add('active');}
-    legRafId=requestAnimationFrame(legLoop);
-  }
-  if (n===6) {
-    fldResize(); fldReset();
-    const fldBtn = document.getElementById('fldAnimBtn');
-    if(fldBtn){fldBtn.textContent='⏸ Pause';fldBtn.classList.add('active');}
-    fldRafId=requestAnimationFrame(fldLoop);
-  }
-  if (n===7) {
-    hjResize(); hjReset();
-    const hjBtn = document.getElementById('hjAnimBtn');
-    if(hjBtn){hjBtn.textContent='⏸ Pause';hjBtn.classList.add('active');}
-    hjRafId=requestAnimationFrame(hjLoop);
-  }
-  if (n===8) {
-    // Double-rAF so flex slots have non-zero size before canvas resize
-    const raf=window.requestAnimationFrame||(cb=>setTimeout(cb,16));
-    raf(()=>{
-      raf(()=>{
-        if(activeTab!==8) return;
-        pbResize();
-        pbReset();
-        const pbBtn=document.getElementById('pbAnimBtn');
-        if(pbBtn){pbBtn.textContent='⏸ Pause';pbBtn.classList.add('active');}
-        pbPaused=false;
-        if(pbRafId){cancelAnimationFrame(pbRafId);pbRafId=null;}
-        pbRafId=requestAnimationFrame(pbLoop);
-      });
-    });
-  }
+  const tabN=n;
+  const raf=window.requestAnimationFrame||(cb=>setTimeout(cb,16));
+  const startFns=[
+    ()=>{ resizePend(); resetPendulum(); clearTrail(); pendAnimating=true; const pendBtn=document.getElementById('pendAnimBtn'); if(pendBtn){pendBtn.textContent='⏸ Pause';pendBtn.classList.add('active');} pendRafId=requestAnimationFrame(pendLoop); },
+    ()=>{ resizePhase(); clearPhaseTrajs(); phaseInitParticles(); const phaseBtn=document.getElementById('phaseAnimBtn'); if(phaseBtn){phaseBtn.textContent='⏸ Pause';phaseBtn.classList.add('active');} phaseRafId=requestAnimationFrame(phaseLoop); },
+    ()=>{ resizeAction(); deviation=0; document.getElementById('devSlider').value=0; document.getElementById('devAval').textContent='0.00'; drawAction(); actAnimPlaying=true; const actBtn=document.getElementById('actAnimBtn'); if(actBtn){actBtn.textContent='⏸ Pause';actBtn.classList.add('active');} animateAction(); },
+    ()=>{ saResize(); saInit(); saAnimTime=0; saAnimPlaying=true; const saBtn=document.getElementById('saAnimBtn'); if(saBtn){saBtn.textContent='⏸ Pause';saBtn.classList.add('active');} saAnimRafId=requestAnimationFrame(saAnimLoop); },
+    ()=>{ noethResize(); noethReset(); const noethBtn=document.getElementById('noethAnimBtn'); if(noethBtn){noethBtn.textContent='⏸ Pause';noethBtn.classList.add('active');} noethRafId=requestAnimationFrame(noethLoop); },
+    ()=>{ legResize(); legResetTraj(); drawLegendre(); legDrawPhase(); const legBtn=document.getElementById('legAnimBtn'); if(legBtn){legBtn.textContent='⏸ Pause';legBtn.classList.add('active');} legRafId=requestAnimationFrame(legLoop); },
+    ()=>{ fldResize(); fldReset(); const fldBtn=document.getElementById('fldAnimBtn'); if(fldBtn){fldBtn.textContent='⏸ Pause';fldBtn.classList.add('active');} fldRafId=requestAnimationFrame(fldLoop); },
+    ()=>{ hjResize(); hjReset(); const hjBtn=document.getElementById('hjAnimBtn'); if(hjBtn){hjBtn.textContent='⏸ Pause';hjBtn.classList.add('active');} hjRafId=requestAnimationFrame(hjLoop); },
+    ()=>{ pbResize(); pbReset(); const pbBtn=document.getElementById('pbAnimBtn'); if(pbBtn){pbBtn.textContent='⏸ Pause';pbBtn.classList.add('active');} pbPaused=false; if(pbRafId){cancelAnimationFrame(pbRafId);pbRafId=null;} pbRafId=requestAnimationFrame(pbLoop); },
+    ()=>{ startDirLoop(); },
+    ()=>{ startMwLoop(); },
+    ()=>{ startJetLoop(); },
+    ()=>{ startLioLoop(); },
+    ()=>{ startCanLoop(); },
+    ()=>{ startKamLoop(); },
+    ()=>{ startPeiLoop(); }
+  ];
+  raf(()=>{ raf(()=>{ if(activeTab!==tabN) return; if(startFns[tabN]) startFns[tabN](); }); });
 }
 
 // ── PROOF PANEL ──
@@ -2912,6 +3246,659 @@ function pbLoop(){
   pbRafId=requestAnimationFrame(pbLoop);
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// TAB 9: DIRAC CONSTRAINTS
+// ═══════════════════════════════════════════════════════════════════
+const dirC=document.getElementById('dirCanvas');
+const dirCtx=dirC?dirC.getContext('2d'):null;
+let dirR=1, dirU=0.5, dirTh=0.3, dirOm=1.2, dirFreeX=1.4, dirFreeY=0, dirFreePx=0, dirFreePy=0.9;
+function toggleDirAnim(){ dirPaused=!dirPaused; _setPauseBtn('dirAnimBtn',dirPaused); if(!dirPaused&&!dirRafId) startDirLoop(); }
+function dirResize(){ _resizeMainCanvas(dirC,'panel9'); }
+function dirReset(){
+  dirR=+(document.getElementById('dirR')||{}).value||1;
+  dirU=+(document.getElementById('dirU')||{}).value||0.5;
+  dirTh=0.3; dirOm=1.2; dirT=0;
+  dirFreeX=dirR*1.4; dirFreeY=0; dirFreePx=0; dirFreePy=0.9;
+  dirDraw();
+}
+function dirDraw(){
+  if(!dirCtx||activeTab!==9) return;
+  const W=dirC.width,H=dirC.height; if(!W||!H) return;
+  dirCtx.setTransform(1,0,0,1,0,0); dirCtx.fillStyle='#05050f'; dirCtx.fillRect(0,0,W,H);
+  dirCtx.setTransform(1,0,0,1,pans[9].x,pans[9].y);
+  const L=_gLayout(W,H);
+  _gTitle(dirCtx,L,'Dirac constraints  ·  φ≈0  ·  {f,g}_D');
+  const cx=L.x+L.w*0.42, cy=L.y+L.h*0.52;
+  const sc=Math.min(L.w,L.h)*0.28;
+  _gClip(dirCtx,L);
+  // axes
+  dirCtx.strokeStyle='rgba(40,40,80,0.7)'; dirCtx.lineWidth=1;
+  dirCtx.beginPath(); dirCtx.moveTo(L.x,cy); dirCtx.lineTo(L.x+L.w*0.78,cy); dirCtx.moveTo(cx,L.y); dirCtx.lineTo(cx,L.y+L.h); dirCtx.stroke();
+  // constraint circle φ = x²+y² - R²
+  dirCtx.strokeStyle='rgba(255,68,136,0.9)'; dirCtx.lineWidth=2;
+  dirCtx.beginPath(); dirCtx.arc(cx,cy,dirR*sc,0,Math.PI*2); dirCtx.stroke();
+  // free particle orbit (gold)
+  const steps=80;
+  dirCtx.strokeStyle='rgba(255,204,0,0.45)'; dirCtx.lineWidth=1.5; dirCtx.beginPath();
+  let fx=dirFreeX, fy=dirFreeY, fpx=dirFreePx, fpy=dirFreePy;
+  for(let i=0;i<=steps;i++){
+    const x=cx+fx*sc, y=cy-fy*sc;
+    i===0?dirCtx.moveTo(x,y):dirCtx.lineTo(x,y);
+    // free HO-ish drift for visual
+    const dt=0.04;
+    fx+=fpx*dt; fy+=fpy*dt; fpx-=0.15*fx*dt; fpy-=0.15*fy*dt;
+  }
+  dirCtx.stroke();
+  // constrained particle
+  const qx=dirR*Math.cos(dirTh), qy=dirR*Math.sin(dirTh);
+  const px=-dirOm*dirR*Math.sin(dirTh), py=dirOm*dirR*Math.cos(dirTh);
+  // free state marker
+  dirCtx.fillStyle='rgba(255,204,0,0.9)';
+  dirCtx.beginPath(); dirCtx.arc(cx+dirFreeX*sc, cy-dirFreeY*sc, 5, 0, Math.PI*2); dirCtx.fill();
+  // constrained
+  dirCtx.fillStyle='#00e5ff';
+  dirCtx.beginPath(); dirCtx.arc(cx+qx*sc, cy-qy*sc, 6, 0, Math.PI*2); dirCtx.fill();
+  // momentum arrow on constraint
+  dirCtx.strokeStyle='rgba(136,255,68,0.9)'; dirCtx.lineWidth=2;
+  dirCtx.beginPath(); dirCtx.moveTo(cx+qx*sc, cy-qy*sc);
+  dirCtx.lineTo(cx+(qx+0.35*px)*sc, cy-(qy+0.35*py)*sc); dirCtx.stroke();
+  // side sketch of Dirac correction
+  const sx=L.x+L.w*0.82, sy=L.y+L.h*0.25;
+  dirCtx.fillStyle='rgba(255,204,0,0.12)'; dirCtx.fillRect(sx-40,sy-20,88,110);
+  dirCtx.strokeStyle='rgba(255,204,0,0.4)'; dirCtx.strokeRect(sx-40,sy-20,88,110);
+  dirCtx.fillStyle='#c0c0ea'; dirCtx.font=L.f1+'px monospace'; dirCtx.textAlign='center';
+  dirCtx.fillText('{f,g}',sx,sy);
+  dirCtx.fillStyle='#ff8844'; dirCtx.fillText('− {f,φ} C⁻¹ {φ,g}',sx,sy+22);
+  dirCtx.fillStyle='#00e5ff'; dirCtx.fillText('= {f,g}_D',sx,sy+48);
+  dirCtx.restore();
+  const phi=qx*qx+qy*qy-dirR*dirR;
+  const stab=2*qx*px+2*qy*py; // {φ, H_free} with H=p²/2
+  const el=document.getElementById('dirPhiVal'); if(el) el.textContent=phi.toFixed(4);
+  const e2=document.getElementById('dirStabVal'); if(e2) e2.textContent=stab.toFixed(4);
+  const e3=document.getElementById('dirThVal'); if(e3) e3.textContent=(dirTh*180/Math.PI).toFixed(1)+'°';
+  _gFooter(dirCtx,L,'magenta φ=0 · cyan constrained · gold free · u='+dirU.toFixed(2));
+  dirCtx.setTransform(1,0,0,1,0,0);
+}
+function dirLoop(){
+  if(activeTab!==9||!dirRunning){dirRunning=false;dirRafId=null;return;}
+  if(!dirPaused){
+    const sp=window.animSpeed||1;
+    dirT+=0.03*sp;
+    dirTh+=dirOm*0.025*sp;
+    // free particle step
+    const dt=0.02*sp;
+    dirFreeX+=dirFreePx*dt; dirFreeY+=dirFreePy*dt;
+    dirFreePx-=0.12*dirFreeX*dt; dirFreePy-=0.12*dirFreeY*dt;
+    // soft pull toward constraint for free particle (visual only)
+    const r=Math.hypot(dirFreeX,dirFreeY)+1e-9;
+    dirFreePx+=dirU*(dirR-r)*dirFreeX/r*dt*2;
+    dirFreePy+=dirU*(dirR-r)*dirFreeY/r*dt*2;
+  }
+  dirDraw();
+  dirRafId=requestAnimationFrame(dirLoop);
+}
+function startDirLoop(){
+  dirResize(); dirPaused=false; dirRunning=true; _setPauseBtn('dirAnimBtn',false);
+  if(dirRafId){cancelAnimationFrame(dirRafId);dirRafId=null;}
+  dirLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 10: SYMPLECTIC REDUCTION (Marsden–Weinstein sketch)
+// ═══════════════════════════════════════════════════════════════════
+const mwC=document.getElementById('mwCanvas');
+const mwCtx=mwC?mwC.getContext('2d'):null;
+let mwMu=1, mwOm=0.8;
+function toggleMwAnim(){ mwPaused=!mwPaused; _setPauseBtn('mwAnimBtn',mwPaused); if(!mwPaused&&!mwRafId) startMwLoop(); }
+function mwResize(){ _resizeMainCanvas(mwC,'panel10'); }
+function mwReset(){ mwT=0; mwMu=+(document.getElementById('mwMu')||{}).value||1; mwOm=+(document.getElementById('mwOm')||{}).value||0.8; mwDraw(); }
+function mwDraw(){
+  if(!mwCtx||activeTab!==10) return;
+  const W=mwC.width,H=mwC.height; if(!W||!H) return;
+  mwCtx.setTransform(1,0,0,1,0,0); mwCtx.fillStyle='#05050f'; mwCtx.fillRect(0,0,W,H);
+  mwCtx.setTransform(1,0,0,1,pans[10].x,pans[10].y);
+  const L=_gLayout(W,H);
+  _gTitle(mwCtx,L,'Marsden–Weinstein  ·  μ⁻¹(μ)/G_μ');
+  const cx=L.x+L.w*0.38, cy=L.y+L.h*0.52;
+  const sc=Math.min(L.w,L.h)*0.26;
+  _gClip(mwCtx,L);
+  // ambient T*R² as plane (q space)
+  mwCtx.strokeStyle='rgba(40,40,80,0.6)'; mwCtx.lineWidth=1;
+  mwCtx.beginPath(); mwCtx.moveTo(L.x,cy); mwCtx.lineTo(L.x+L.w*0.72,cy); mwCtx.moveTo(cx,L.y); mwCtx.lineTo(cx,L.y+L.h); mwCtx.stroke();
+  // level set μ = J = r * p_θ ~ circle of radius ~ sqrt(2μ) sketch
+  const R=Math.sqrt(Math.max(0.2,mwMu))*1.1;
+  mwCtx.strokeStyle='rgba(255,204,0,0.85)'; mwCtx.lineWidth=2.5;
+  mwCtx.beginPath(); mwCtx.arc(cx,cy,R*sc,0,Math.PI*2); mwCtx.stroke();
+  mwCtx.fillStyle='rgba(255,204,0,0.06)'; mwCtx.beginPath(); mwCtx.arc(cx,cy,R*sc,0,Math.PI*2); mwCtx.fill();
+  // group orbit: several points on the circle
+  const nOrb=8;
+  for(let i=0;i<nOrb;i++){
+    const th=mwT*mwOm + i*Math.PI*2/nOrb;
+    const x=cx+R*sc*Math.cos(th), y=cy+R*sc*Math.sin(th);
+    mwCtx.fillStyle=i===0?'#00e5ff':'rgba(0,229,255,0.45)';
+    mwCtx.beginPath(); mwCtx.arc(x,y,i===0?6:3.5,0,Math.PI*2); mwCtx.fill();
+  }
+  // arrow along orbit
+  const th0=mwT*mwOm;
+  const tx=-Math.sin(th0), ty=Math.cos(th0);
+  const px=cx+R*sc*Math.cos(th0), py=cy+R*sc*Math.sin(th0);
+  mwCtx.strokeStyle='rgba(136,255,68,0.9)'; mwCtx.lineWidth=2;
+  mwCtx.beginPath(); mwCtx.moveTo(px,py); mwCtx.lineTo(px+tx*28,py+ty*28); mwCtx.stroke();
+  // reduced space sketch (right)
+  const rx=L.x+L.w*0.82, ry=L.y+L.h*0.45;
+  mwCtx.strokeStyle='rgba(255,136,68,0.8)'; mwCtx.lineWidth=2;
+  mwCtx.beginPath(); mwCtx.arc(rx,ry,22,0,Math.PI*2); mwCtx.stroke();
+  mwCtx.fillStyle='rgba(255,136,68,0.9)';
+  mwCtx.beginPath(); mwCtx.arc(rx,ry,5,0,Math.PI*2); mwCtx.fill();
+  mwCtx.fillStyle='#c0c0ea'; mwCtx.font=L.f1+'px monospace'; mwCtx.textAlign='center';
+  mwCtx.fillText('M_μ',rx,ry+40);
+  mwCtx.fillText('reduced leaf',rx,ry+54);
+  // mu axis
+  mwCtx.strokeStyle='rgba(170,119,255,0.7)'; mwCtx.lineWidth=2;
+  const mx=L.x+L.w*0.12, my0=L.y+L.h*0.88, my1=L.y+L.h*0.15;
+  mwCtx.beginPath(); mwCtx.moveTo(mx,my0); mwCtx.lineTo(mx,my1); mwCtx.stroke();
+  const my=my0-(mwMu/2.5)*(my0-my1);
+  mwCtx.fillStyle='#aa77ff'; mwCtx.beginPath(); mwCtx.arc(mx,my,5,0,Math.PI*2); mwCtx.fill();
+  mwCtx.fillText('μ',mx-14,my1-6);
+  mwCtx.restore();
+  const e1=document.getElementById('mwLevelVal'); if(e1) e1.textContent=mwMu.toFixed(2);
+  const e2=document.getElementById('mwKerVal'); if(e2) e2.textContent='dim G=1';
+  const e3=document.getElementById('mwAngVal'); if(e3) e3.textContent=((th0%(Math.PI*2))*180/Math.PI).toFixed(0)+'°';
+  _gFooter(mwCtx,L,'gold = μ⁻¹(μ) · cyan orbit of G · orange = reduced M_μ');
+  mwCtx.setTransform(1,0,0,1,0,0);
+}
+function mwLoop(){
+  if(activeTab!==10||!mwRunning){mwRunning=false;mwRafId=null;return;}
+  if(!mwPaused){
+    mwT+=0.03*(window.animSpeed||1);
+    mwMu=+(document.getElementById('mwMu')||{}).value||mwMu;
+    mwOm=+(document.getElementById('mwOm')||{}).value||mwOm;
+  }
+  mwDraw();
+  mwRafId=requestAnimationFrame(mwLoop);
+}
+function startMwLoop(){
+  mwResize(); mwPaused=false; mwRunning=true; _setPauseBtn('mwAnimBtn',false);
+  if(mwRafId){cancelAnimationFrame(mwRafId);mwRafId=null;}
+  mwLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 11: JET BUNDLES & CLASSICAL EL
+// ═══════════════════════════════════════════════════════════════════
+const jetC=document.getElementById('jetCanvas');
+const jetCtx=jetC?jetC.getContext('2d'):null;
+let jetK=1.5, jetA=1.0;
+function toggleJetAnim(){ jetPaused=!jetPaused; _setPauseBtn('jetAnimBtn',jetPaused); if(!jetPaused&&!jetRafId) startJetLoop(); }
+function jetResize(){ _resizeMainCanvas(jetC,'panel11'); }
+function jetReset(){ jetT=0; jetK=+(document.getElementById('jetK')||{}).value||1.5; jetA=+(document.getElementById('jetA')||{}).value||1; jetDraw(); }
+function jetDraw(){
+  if(!jetCtx||activeTab!==11) return;
+  const W=jetC.width,H=jetC.height; if(!W||!H) return;
+  jetCtx.setTransform(1,0,0,1,0,0); jetCtx.fillStyle='#05050f'; jetCtx.fillRect(0,0,W,H);
+  jetCtx.setTransform(1,0,0,1,pans[11].x,pans[11].y);
+  const L=_gLayout(W,H);
+  _gTitle(jetCtx,L,'1-jet j¹φ  ·  classical EL residual');
+  const x0=L.x+8, x1=L.x+L.w*0.62, yMid=L.y+L.h*0.55;
+  const amp=L.h*0.22*jetA;
+  _gClip(jetCtx,L);
+  // axes for φ(x)
+  jetCtx.strokeStyle='rgba(40,40,80,0.7)'; jetCtx.lineWidth=1;
+  jetCtx.beginPath(); jetCtx.moveTo(x0,yMid); jetCtx.lineTo(x1,yMid); jetCtx.stroke();
+  // field profile φ(x,t)=A cos(kx - ωt)
+  const omega=jetK; // c=1
+  jetCtx.strokeStyle='rgba(0,229,255,0.95)'; jetCtx.lineWidth=2.2;
+  jetCtx.beginPath();
+  const N=160;
+  for(let i=0;i<=N;i++){
+    const u=i/N, x=x0+u*(x1-x0);
+    const xx=(u-0.5)*4;
+    const phi=jetA*Math.cos(jetK*xx - omega*jetT);
+    const y=yMid - phi*amp;
+    i===0?jetCtx.moveTo(x,y):jetCtx.lineTo(x,y);
+  }
+  jetCtx.stroke();
+  // probe point x*
+  const uStar=0.55+0.12*Math.sin(jetT*0.4);
+  const xx=(uStar-0.5)*4;
+  const phi=jetA*Math.cos(jetK*xx - omega*jetT);
+  const dphi=-jetA*jetK*Math.sin(jetK*xx - omega*jetT);
+  const d2phi=-jetA*jetK*jetK*Math.cos(jetK*xx - omega*jetT);
+  const xStar=x0+uStar*(x1-x0);
+  const yStar=yMid - phi*amp;
+  jetCtx.fillStyle='#ffcc00';
+  jetCtx.beginPath(); jetCtx.arc(xStar,yStar,6,0,Math.PI*2); jetCtx.fill();
+  // tangent (jet: φ_x)
+  jetCtx.strokeStyle='rgba(255,136,68,0.95)'; jetCtx.lineWidth=2;
+  const tlen=40;
+  jetCtx.beginPath(); jetCtx.moveTo(xStar-tlen, yStar+dphi*(amp/1)*0.15*tlen);
+  jetCtx.lineTo(xStar+tlen, yStar-dphi*(amp/1)*0.15*tlen); jetCtx.stroke();
+  // jet fiber sketch (right): (φ, φ_x) plane
+  const jx=L.x+L.w*0.78, jy=L.y+L.h*0.5, js=Math.min(L.w,L.h)*0.12;
+  jetCtx.strokeStyle='rgba(255,204,0,0.5)'; jetCtx.lineWidth=1.5;
+  jetCtx.beginPath(); jetCtx.moveTo(jx-js*1.6,jy); jetCtx.lineTo(jx+js*1.6,jy); jetCtx.moveTo(jx,jy-js*1.6); jetCtx.lineTo(jx,jy+js*1.6); jetCtx.stroke();
+  jetCtx.fillStyle='#00e5ff';
+  jetCtx.beginPath(); jetCtx.arc(jx+phi*js*0.7, jy-dphi*js*0.35, 5, 0, Math.PI*2); jetCtx.fill();
+  jetCtx.fillStyle='#c0c0ea'; jetCtx.font=L.f1+'px monospace'; jetCtx.textAlign='center';
+  jetCtx.fillText('J¹ fiber',jx,jy+js*1.9);
+  jetCtx.fillText('(φ, φ_x)',jx,jy+js*1.9+14);
+  // EL residual for KG: □φ + m²φ with m=0, c=1 → -ω²φ + k²φ; on-shell if ω=k
+  const elRes=Math.abs(d2phi + jetK*jetK*phi); // should be ~0 for traveling wave ω=k
+  jetCtx.restore();
+  const e1=document.getElementById('jetPhiVal'); if(e1) e1.textContent=phi.toFixed(3);
+  const e2=document.getElementById('jetDxVal'); if(e2) e2.textContent=dphi.toFixed(3);
+  const e3=document.getElementById('jetElVal'); if(e3) e3.textContent=elRes.toExponential(2);
+  _gFooter(jetCtx,L,'cyan φ(x) · orange contact line = φ_x · gold probe · EL for KG ≈ 0 on-shell');
+  jetCtx.setTransform(1,0,0,1,0,0);
+}
+function jetLoop(){
+  if(activeTab!==11||!jetRunning){jetRunning=false;jetRafId=null;return;}
+  if(!jetPaused){
+    jetT+=0.03*(window.animSpeed||1);
+    jetK=+(document.getElementById('jetK')||{}).value||jetK;
+    jetA=+(document.getElementById('jetA')||{}).value||jetA;
+  }
+  jetDraw();
+  jetRafId=requestAnimationFrame(jetLoop);
+}
+function startJetLoop(){
+  jetResize(); jetPaused=false; jetRunning=true; _setPauseBtn('jetAnimBtn',false);
+  if(jetRafId){cancelAnimationFrame(jetRafId);jetRafId=null;}
+  jetLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 12: LIOUVILLE + MILD LYAPUNOV
+// ═══════════════════════════════════════════════════════════════════
+const lioC=document.getElementById('lioCanvas');
+const lioCtx=lioC?lioC.getContext('2d'):null;
+let lioEps=0.04, lioCloud=[], lioA={q:1.0,p:0.0}, lioB={q:1.04,p:0.0}, lioArea0=1, lioHist=[];
+function toggleLioAnim(){ lioPaused=!lioPaused; _setPauseBtn('lioAnimBtn',lioPaused); if(!lioPaused&&!lioRafId) startLioLoop(); }
+function lioResize(){ _resizeMainCanvas(lioC,'panel12'); }
+function lioSysType(){ return (document.getElementById('lioSys')||{}).value||'ho'; }
+function lioF(q,p){
+  if(lioSysType()==='pend') return {dq:p, dp:-Math.sin(q)};
+  return {dq:p, dp:-q};
+}
+function lioStepState(s,dt){
+  // RK2
+  const f1=lioF(s.q,s.p);
+  const qh=s.q+0.5*dt*f1.dq, ph=s.p+0.5*dt*f1.dp;
+  const f2=lioF(qh,ph);
+  s.q+=dt*f2.dq; s.p+=dt*f2.dp;
+}
+function lioReset(){
+  lioT=0; lioEps=+(document.getElementById('lioEps')||{}).value||0.04;
+  lioCloud=[];
+  const n=24;
+  for(let i=0;i<n;i++){
+    const a=i/n*Math.PI*2;
+    lioCloud.push({q:1.0+0.12*Math.cos(a), p:0.12*Math.sin(a)});
+  }
+  lioA={q:1.0,p:0.0}; lioB={q:1.0+lioEps,p:0.0};
+  lioArea0=lioCloudArea(); lioHist=[];
+  lioDraw();
+}
+function lioCloudArea(){
+  // shoelace
+  const pts=lioCloud; const n=pts.length; if(n<3) return 0;
+  let a=0;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    a+=pts[i].q*pts[j].p - pts[j].q*pts[i].p;
+  }
+  return Math.abs(a)*0.5;
+}
+function lioDraw(){
+  if(!lioCtx||activeTab!==12) return;
+  const W=lioC.width,H=lioC.height; if(!W||!H) return;
+  lioCtx.setTransform(1,0,0,1,0,0); lioCtx.fillStyle='#05050f'; lioCtx.fillRect(0,0,W,H);
+  lioCtx.setTransform(1,0,0,1,pans[12].x,pans[12].y);
+  const L=_gLayout(W,H);
+  _gTitle(lioCtx,L,'Liouville volume  ·  mild FTLE (→ 40)');
+  const cx=L.x+L.w*0.38, cy=L.y+L.h*0.52;
+  const sc=Math.min(L.w,L.h)*0.22;
+  _gClip(lioCtx,L);
+  lioCtx.strokeStyle='rgba(40,40,80,0.7)'; lioCtx.lineWidth=1;
+  lioCtx.beginPath(); lioCtx.moveTo(L.x,cy); lioCtx.lineTo(L.x+L.w*0.72,cy); lioCtx.moveTo(cx,L.y); lioCtx.lineTo(cx,L.y+L.h); lioCtx.stroke();
+  // cloud polygon
+  if(lioCloud.length>2){
+    lioCtx.fillStyle='rgba(0,229,255,0.12)';
+    lioCtx.strokeStyle='rgba(0,229,255,0.85)'; lioCtx.lineWidth=1.8;
+    lioCtx.beginPath();
+    lioCloud.forEach((pt,i)=>{
+      const x=cx+pt.q*sc, y=cy-pt.p*sc;
+      i===0?lioCtx.moveTo(x,y):lioCtx.lineTo(x,y);
+    });
+    lioCtx.closePath(); lioCtx.fill(); lioCtx.stroke();
+  }
+  // pair
+  lioCtx.fillStyle='#ffcc00';
+  lioCtx.beginPath(); lioCtx.arc(cx+lioA.q*sc, cy-lioA.p*sc, 5, 0, Math.PI*2); lioCtx.fill();
+  lioCtx.fillStyle='#ff8844';
+  lioCtx.beginPath(); lioCtx.arc(cx+lioB.q*sc, cy-lioB.p*sc, 5, 0, Math.PI*2); lioCtx.fill();
+  lioCtx.strokeStyle='rgba(255,136,68,0.7)'; lioCtx.lineWidth=1.2;
+  lioCtx.beginPath(); lioCtx.moveTo(cx+lioA.q*sc, cy-lioA.p*sc); lioCtx.lineTo(cx+lioB.q*sc, cy-lioB.p*sc); lioCtx.stroke();
+  // FTLE strip
+  const hx=L.x+L.w*0.76, hy=L.y+L.h*0.2, hw=L.w*0.2, hh=L.h*0.55;
+  lioCtx.strokeStyle='rgba(255,204,0,0.35)'; lioCtx.strokeRect(hx,hy,hw,hh);
+  lioCtx.fillStyle='#c0c0ea'; lioCtx.font=L.f1+'px monospace'; lioCtx.textAlign='left';
+  lioCtx.fillText('log|δ|',hx,hy-6);
+  if(lioHist.length>1){
+    lioCtx.strokeStyle='rgba(255,136,68,0.95)'; lioCtx.lineWidth=1.6; lioCtx.beginPath();
+    const maxL=Math.max(0.5,...lioHist);
+    lioHist.forEach((v,i)=>{
+      const x=hx+(i/Math.max(1,lioHist.length-1))*hw;
+      const y=hy+hh-(v/maxL)*hh*0.9;
+      i===0?lioCtx.moveTo(x,y):lioCtx.lineTo(x,y);
+    });
+    lioCtx.stroke();
+  }
+  lioCtx.restore();
+  const area=lioCloudArea();
+  const sep=Math.hypot(lioA.q-lioB.q, lioA.p-lioB.p);
+  const lam=lioT>0.05?Math.log(Math.max(sep,1e-12)/Math.max(lioEps,1e-12))/lioT:0;
+  const e1=document.getElementById('lioAreaVal'); if(e1) e1.textContent=(area/Math.max(lioArea0,1e-9)).toFixed(3)+'×';
+  const e2=document.getElementById('lioSepVal'); if(e2) e2.textContent=sep.toFixed(4);
+  const e3=document.getElementById('lioLamVal'); if(e3) e3.textContent=lam.toFixed(3);
+  _gFooter(lioCtx,L,'cyan blob area ~ const · gold/orange pair · deep chaos → 40');
+  lioCtx.setTransform(1,0,0,1,0,0);
+}
+function lioLoop(){
+  if(activeTab!==12||!lioRunning){lioRunning=false;lioRafId=null;return;}
+  if(!lioPaused){
+    const sp=window.animSpeed||1;
+    const dt=0.025*sp;
+    lioT+=dt;
+    lioCloud.forEach(pt=>lioStepState(pt,dt));
+    lioStepState(lioA,dt); lioStepState(lioB,dt);
+    const sep=Math.hypot(lioA.q-lioB.q, lioA.p-lioB.p);
+    lioHist.push(Math.log(Math.max(sep,1e-12)));
+    if(lioHist.length>120) lioHist.shift();
+  }
+  lioDraw();
+  lioRafId=requestAnimationFrame(lioLoop);
+}
+function startLioLoop(){
+  lioResize(); if(!lioCloud.length) lioReset();
+  lioPaused=false; lioRunning=true; _setPauseBtn('lioAnimBtn',false);
+  if(lioRafId){cancelAnimationFrame(lioRafId);lioRafId=null;}
+  lioLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 13: CANONICAL TRANSFORMATIONS
+// ═══════════════════════════════════════════════════════════════════
+const canC=document.getElementById('canCanvas');
+const canCtx=canC?canC.getContext('2d'):null;
+let canA=0.5;
+function toggleCanAnim(){ canPaused=!canPaused; _setPauseBtn('canAnimBtn',canPaused); if(!canPaused&&!canRafId) startCanLoop(); }
+function canResize(){ _resizeMainCanvas(canC,'panel13'); }
+function canReset(){ canT=0; canA=+(document.getElementById('canA')||{}).value||0.5; canDraw(); }
+function canMap(q,p){
+  const type=(document.getElementById('canType')||{}).value||'id';
+  const a=canA*(0.5+0.5*Math.sin(canT*0.5)); // animated mix
+  if(type==='id') return {Q:q, P:p};
+  if(type==='rot'){
+    const th=a*Math.PI*0.5;
+    const c=Math.cos(th), s=Math.sin(th);
+    return {Q:c*q - s*p, P:s*q + c*p};
+  }
+  // HO action-angle style: q=√(2I) cosθ, p=-√(2I) sinθ  with mix to id
+  const I=0.5*(q*q+p*p), th=Math.atan2(-p,q);
+  const Qaa=th, Paa=I;
+  return {Q:(1-a)*q + a*Qaa, P:(1-a)*p + a*Paa};
+}
+function canDraw(){
+  if(!canCtx||activeTab!==13) return;
+  const W=canC.width,H=canC.height; if(!W||!H) return;
+  canCtx.setTransform(1,0,0,1,0,0); canCtx.fillStyle='#05050f'; canCtx.fillRect(0,0,W,H);
+  canCtx.setTransform(1,0,0,1,pans[13].x,pans[13].y);
+  const L=_gLayout(W,H);
+  _gTitle(canCtx,L,'Canonical maps  ·  F₂ generators');
+  const cx=L.x+L.w*0.5, cy=L.y+L.h*0.52;
+  const sc=Math.min(L.w,L.h)*0.18;
+  _gClip(canCtx,L);
+  canCtx.strokeStyle='rgba(40,40,80,0.7)'; canCtx.lineWidth=1;
+  canCtx.beginPath(); canCtx.moveTo(L.x,cy); canCtx.lineTo(L.x+L.w,cy); canCtx.moveTo(cx,L.y); canCtx.lineTo(cx,L.y+L.h); canCtx.stroke();
+  // grid in (q,p) mapped to (Q,P)
+  const gN=7, gR=2.2;
+  let areaSum=0, areaN=0;
+  canCtx.strokeStyle='rgba(0,229,255,0.55)'; canCtx.lineWidth=1.2;
+  for(let i=0;i<=gN;i++){
+    const v=-gR+2*gR*i/gN;
+    canCtx.beginPath();
+    for(let j=0;j<=40;j++){
+      const u=-gR+2*gR*j/40;
+      const m=canMap(u,v);
+      const x=cx+m.Q*sc, y=cy-m.P*sc;
+      j===0?canCtx.moveTo(x,y):canCtx.lineTo(x,y);
+    }
+    canCtx.stroke();
+    canCtx.beginPath();
+    for(let j=0;j<=40;j++){
+      const u=-gR+2*gR*j/40;
+      const m=canMap(v,u);
+      const x=cx+m.Q*sc, y=cy-m.P*sc;
+      j===0?canCtx.moveTo(x,y):canCtx.lineTo(x,y);
+    }
+    canCtx.stroke();
+  }
+  // sample cell area ratio via parallelogram at origin
+  const eps=0.15;
+  const m00=canMap(0,0), m10=canMap(eps,0), m01=canMap(0,eps);
+  const det=(m10.Q-m00.Q)*(m01.P-m00.P)-(m01.Q-m00.Q)*(m10.P-m00.P);
+  const areaRatio=Math.abs(det)/(eps*eps);
+  // orbit of HO
+  canCtx.strokeStyle='rgba(255,204,0,0.9)'; canCtx.lineWidth=2;
+  canCtx.beginPath();
+  for(let i=0;i<=80;i++){
+    const th=i/80*Math.PI*2;
+    const m=canMap(1.2*Math.cos(th+canT), -1.2*Math.sin(th+canT));
+    const x=cx+m.Q*sc, y=cy-m.P*sc;
+    i===0?canCtx.moveTo(x,y):canCtx.lineTo(x,y);
+  }
+  canCtx.stroke();
+  canCtx.restore();
+  const e1=document.getElementById('canDetVal'); if(e1) e1.textContent=det.toFixed(3);
+  const e2=document.getElementById('canAreaVal'); if(e2) e2.textContent=areaRatio.toFixed(3);
+  _gFooter(canCtx,L,'cyan grid = image of dq∧dp cells · gold HO orbit · det≈1 if symplectic');
+  canCtx.setTransform(1,0,0,1,0,0);
+}
+function canLoop(){
+  if(activeTab!==13||!canRunning){canRunning=false;canRafId=null;return;}
+  if(!canPaused){
+    canT+=0.03*(window.animSpeed||1);
+    canA=+(document.getElementById('canA')||{}).value||canA;
+  }
+  canDraw();
+  canRafId=requestAnimationFrame(canLoop);
+}
+function startCanLoop(){
+  canResize(); canPaused=false; canRunning=true; _setPauseBtn('canAnimBtn',false);
+  if(canRafId){cancelAnimationFrame(canRafId);canRafId=null;}
+  canLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 14: KAM TORI (mild; pointer to 40)
+// ═══════════════════════════════════════════════════════════════════
+const kamC=document.getElementById('kamCanvas');
+const kamCtx=kamC?kamC.getContext('2d'):null;
+let kamEps=0.15, kamK=0.6, kamOrbits=[];
+function toggleKamAnim(){ kamPaused=!kamPaused; _setPauseBtn('kamAnimBtn',kamPaused); if(!kamPaused&&!kamRafId) startKamLoop(); }
+function kamResize(){ _resizeMainCanvas(kamC,'panel14'); }
+function kamInitOrbits(){
+  kamOrbits=[];
+  const n=18;
+  for(let i=0;i<n;i++){
+    const p0=-Math.PI + (i+0.5)*(2*Math.PI)/n;
+    const th0=0.1*i;
+    const pts=[];
+    let th=th0, p=p0;
+    for(let k=0;k<280;k++){
+      // standard map
+      p = p + kamK*Math.sin(th);
+      th = th + p;
+      // wrap
+      th=((th+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
+      p=((p+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
+      // mild ε: small noise for visual chaos seas when K large
+      if(kamEps>0.01 && kamK>0.8){ th+=0.01*kamEps*Math.sin(k*0.7); }
+      pts.push({th,p});
+    }
+    kamOrbits.push({pts, hue:i/n});
+  }
+}
+function kamReset(){
+  kamT=0;
+  kamEps=+(document.getElementById('kamEps')||{}).value||0.15;
+  kamK=+(document.getElementById('kamK')||{}).value||0.6;
+  kamInitOrbits();
+  kamDraw();
+}
+function kamDraw(){
+  if(!kamCtx||activeTab!==14) return;
+  const W=kamC.width,H=kamC.height; if(!W||!H) return;
+  kamCtx.setTransform(1,0,0,1,0,0); kamCtx.fillStyle='#05050f'; kamCtx.fillRect(0,0,W,H);
+  kamCtx.setTransform(1,0,0,1,pans[14].x,pans[14].y);
+  const L=_gLayout(W,H);
+  _gTitle(kamCtx,L,'KAM tori (mild)  ·  standard map  ·  → 40');
+  if(!kamOrbits.length) kamInitOrbits();
+  const nShow=Math.min(280, 40+Math.floor((kamT*30)%280));
+  _gClip(kamCtx,L);
+  // frame
+  kamCtx.strokeStyle='rgba(40,40,80,0.8)'; kamCtx.lineWidth=1;
+  kamCtx.strokeRect(L.x,L.y,L.w,L.h);
+  kamOrbits.forEach(orb=>{
+    const col=`hsla(${40+orb.hue*280},85%,60%,0.75)`;
+    kamCtx.fillStyle=col;
+    for(let i=0;i<nShow;i++){
+      const pt=orb.pts[i]; if(!pt) continue;
+      const x=L.x+((pt.th+Math.PI)/(2*Math.PI))*L.w;
+      const y=L.y+L.h-((pt.p+Math.PI)/(2*Math.PI))*L.h;
+      kamCtx.fillRect(x,y,1.6,1.6);
+    }
+  });
+  kamCtx.restore();
+  const e1=document.getElementById('kamKLive'); if(e1) e1.textContent=kamK.toFixed(2);
+  const e2=document.getElementById('kamEpsLive'); if(e2) e2.textContent=kamEps.toFixed(2);
+  const e3=document.getElementById('kamNVal'); if(e3) e3.textContent=String(kamOrbits.length);
+  _gFooter(kamCtx,L,'nested curves ≈ surviving tori · sea of dots ≈ broken · K_c≈0.97');
+  kamCtx.setTransform(1,0,0,1,0,0);
+}
+function kamLoop(){
+  if(activeTab!==14||!kamRunning){kamRunning=false;kamRafId=null;return;}
+  if(!kamPaused){
+    kamT+=0.03*(window.animSpeed||1);
+  }
+  kamDraw();
+  kamRafId=requestAnimationFrame(kamLoop);
+}
+function startKamLoop(){
+  kamResize(); if(!kamOrbits.length) kamInitOrbits();
+  kamPaused=false; kamRunning=true; _setPauseBtn('kamAnimBtn',false);
+  if(kamRafId){cancelAnimationFrame(kamRafId);kamRafId=null;}
+  kamLoop();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB 15: COVARIANT PHASE SPACE / PEIERLS
+// ═══════════════════════════════════════════════════════════════════
+const peiC=document.getElementById('peiCanvas');
+const peiCtx=peiC?peiC.getContext('2d'):null;
+let peiDx=1.2, peiM=0.5;
+function togglePeiAnim(){ peiPaused=!peiPaused; _setPauseBtn('peiAnimBtn',peiPaused); if(!peiPaused&&!peiRafId) startPeiLoop(); }
+function peiResize(){ _resizeMainCanvas(peiC,'panel15'); }
+function peiReset(){ peiT=0; peiDx=+(document.getElementById('peiDx')||{}).value||1.2; peiM=+(document.getElementById('peiM')||{}).value||0.5; peiDraw(); }
+function peiKernel(x,t,m,ret){
+  // toy 1+1d massive propagator envelope (not exact Bessel)
+  const r2=t*t - x*x;
+  if(ret){ if(t<0 || r2<0) return 0; }
+  else { if(t>0 || r2<0) return 0; }
+  const s=Math.sqrt(Math.max(0,r2));
+  const env=Math.exp(-m*s)*Math.cos(s*2.2)/(1+0.3*s);
+  return env*(ret?1:-1)*0.5;
+}
+function peiDraw(){
+  if(!peiCtx||activeTab!==15) return;
+  const W=peiC.width,H=peiC.height; if(!W||!H) return;
+  peiCtx.setTransform(1,0,0,1,0,0); peiCtx.fillStyle='#05050f'; peiCtx.fillRect(0,0,W,H);
+  peiCtx.setTransform(1,0,0,1,pans[15].x,pans[15].y);
+  const L=_gLayout(W,H);
+  _gTitle(peiCtx,L,'Covariant phase space  ·  Peierls Ẽ=G_A−G_R');
+  peiDx=+(document.getElementById('peiDx')||{}).value||peiDx;
+  peiM=+(document.getElementById('peiM')||{}).value||peiM;
+  const cx=L.x+L.w*0.5, cy=L.y+L.h*0.55;
+  _gClip(peiCtx,L);
+  // light cone axes
+  peiCtx.strokeStyle='rgba(40,40,80,0.8)'; peiCtx.lineWidth=1;
+  peiCtx.beginPath(); peiCtx.moveTo(L.x,cy); peiCtx.lineTo(L.x+L.w,cy); peiCtx.moveTo(cx,L.y); peiCtx.lineTo(cx,L.y+L.h); peiCtx.stroke();
+  // light cone lines
+  peiCtx.strokeStyle='rgba(255,204,0,0.35)'; peiCtx.setLineDash([4,4]);
+  peiCtx.beginPath(); peiCtx.moveTo(cx,cy); peiCtx.lineTo(L.x+L.w,cy-(L.w*0.5)); peiCtx.moveTo(cx,cy); peiCtx.lineTo(L.x,cy-(L.w*0.5));
+  peiCtx.moveTo(cx,cy); peiCtx.lineTo(L.x+L.w,cy+(L.w*0.5)); peiCtx.moveTo(cx,cy); peiCtx.lineTo(L.x,cy+(L.w*0.5)); peiCtx.stroke();
+  peiCtx.setLineDash([]);
+  // retarded / advanced shells as pulses
+  const scX=L.w*0.18, scT=L.h*0.18;
+  const tPulse=1.2+0.4*Math.sin(peiT*0.7);
+  // G_R (future cone) orange
+  peiCtx.strokeStyle='rgba(255,136,68,0.9)'; peiCtx.lineWidth=2;
+  peiCtx.beginPath();
+  for(let i=0;i<=80;i++){
+    const x=-2.5+5*i/80;
+    const g=peiKernel(x,tPulse,peiM,true);
+    const X=cx+x*scX, Y=cy - tPulse*scT - g*40;
+    i===0?peiCtx.moveTo(X,Y):peiCtx.lineTo(X,Y);
+  }
+  peiCtx.stroke();
+  // G_A (past cone) cyan
+  peiCtx.strokeStyle='rgba(0,229,255,0.9)'; peiCtx.lineWidth=2;
+  peiCtx.beginPath();
+  for(let i=0;i<=80;i++){
+    const x=-2.5+5*i/80;
+    const g=peiKernel(x,-tPulse,peiM,false);
+    const X=cx+x*scX, Y=cy + tPulse*scT - g*40;
+    i===0?peiCtx.moveTo(X,Y):peiCtx.lineTo(X,Y);
+  }
+  peiCtx.stroke();
+  // two field observables supports
+  const xF=-peiDx*0.5, xG=peiDx*0.5;
+  peiCtx.fillStyle='rgba(136,255,68,0.9)';
+  peiCtx.beginPath(); peiCtx.arc(cx+xF*scX, cy, 6, 0, Math.PI*2); peiCtx.fill();
+  peiCtx.fillStyle='rgba(255,68,136,0.9)';
+  peiCtx.beginPath(); peiCtx.arc(cx+xG*scX, cy, 6, 0, Math.PI*2); peiCtx.fill();
+  peiCtx.fillStyle='#c0c0ea'; peiCtx.font=L.f1+'px monospace'; peiCtx.textAlign='center';
+  peiCtx.fillText('δF/δφ',cx+xF*scX,cy+18);
+  peiCtx.fillText('δG/δφ',cx+xG*scX,cy+18);
+  // Cauchy slice
+  peiCtx.strokeStyle='rgba(170,119,255,0.7)'; peiCtx.lineWidth=1.5;
+  peiCtx.beginPath(); peiCtx.moveTo(L.x+8,cy); peiCtx.lineTo(L.x+L.w-8,cy); peiCtx.stroke();
+  peiCtx.fillText('Σ_t (Cauchy)', L.x+L.w*0.85, cy-8);
+  peiCtx.restore();
+  const gR=peiKernel(0,tPulse,peiM,true);
+  const gA=peiKernel(0,-tPulse,peiM,false);
+  const eTilde=gA-gR;
+  const e1=document.getElementById('peiGrVal'); if(e1) e1.textContent=gR.toFixed(3);
+  const e2=document.getElementById('peiGaVal'); if(e2) e2.textContent=gA.toFixed(3);
+  const e3=document.getElementById('peiEVal'); if(e3) e3.textContent=eTilde.toFixed(3);
+  _gFooter(peiCtx,L,'orange G_R · cyan G_A · green/magenta sources · ω_CPS independent of Σ');
+  peiCtx.setTransform(1,0,0,1,0,0);
+}
+function peiLoop(){
+  if(activeTab!==15||!peiRunning){peiRunning=false;peiRafId=null;return;}
+  if(!peiPaused){
+    peiT+=0.03*(window.animSpeed||1);
+  }
+  peiDraw();
+  peiRafId=requestAnimationFrame(peiLoop);
+}
+function startPeiLoop(){
+  peiResize(); peiPaused=false; peiRunning=true; _setPauseBtn('peiAnimBtn',false);
+  if(peiRafId){cancelAnimationFrame(peiRafId);peiRafId=null;}
+  peiLoop();
+}
+
 // ── RESIZE & INIT ──
 
 // ── GUIDED TOUR ──
@@ -2924,7 +3911,14 @@ const TOUR_STEPS=[
   {tab:5,title:'Legendre Transform & Hamiltonian',body:'The lower panel shows L(q̇) with a tangent line at the selected velocity. The y-intercept of that tangent is H(p). Below, phase-space flow evolves under Hamilton\'s equations. Switch potentials to see ellipses, straight lines, or Morse bound/unbound orbits.',target:'.tabs'},
   {tab:6,title:'Field Theory Lagrangian',body:'A 1D field φ(x,t) evolving under Klein-Gordon, massless wave, or ϕ⁴ theory. Watch the wave packet propagate and disperse. The energy decomposition shows kinetic, gradient, mass, and total energy vs time.',target:'.tabs'},
   {tab:7,title:'Hamilton-Jacobi Equation',body:'Wavefronts of constant action S(q,t) propagate outward from a source. The cyan rays follow ∇S — these are the classical particle trajectories. Add a potential to see wavefronts bend, just like light in a medium.',target:'.tabs'},
-  {tab:8,title:'Poisson Brackets',body:'The fundamental bracket {q,p}=1 generates time evolution. Select different observables f and g to see their bracket computed live. The trajectory in phase space follows {f,H} — the Poisson bracket with the Hamiltonian.',target:'.tabs'}
+  {tab:8,title:'Poisson Brackets',body:'The fundamental bracket {q,p}=1 generates time evolution. Select different observables f and g to see their bracket computed live. The trajectory in phase space follows {f,H} — the Poisson bracket with the Hamiltonian.',target:'.tabs'},
+  {tab:9,title:'Dirac Constraints',body:'Second-class constraints φ≈0 cut phase space. Compare free motion with the constrained orbit and read the Dirac bracket correction {f,g}_D.',target:'.tabs'},
+  {tab:10,title:'Symplectic Reduction',body:'Marsden–Weinstein: level set of the momentum map μ, group orbits of G, and the reduced leaf M_μ=μ⁻¹(μ)/G_μ.',target:'.tabs'},
+  {tab:11,title:'Jet Bundles',body:'Classical field theory on J¹(E): the 1-jet (φ,φ_x) and the Euler–Lagrange residual for a traveling wave.',target:'.tabs'},
+  {tab:12,title:'Liouville / Lyapunov',body:'Hamiltonian flow preserves phase volume (Liouville). A mild finite-time Lyapunov indicator tracks separation — deep chaos is module 40.',target:'.tabs'},
+  {tab:13,title:'Canonical Maps',body:'Generating-function style maps deform the (q,p) grid while aiming to keep det ∂(Q,P)/∂(q,p) ≈ 1.',target:'.tabs'},
+  {tab:14,title:'KAM Tori',body:'Mild standard-map section: nested curves are surviving tori; chaotic seas grow with K. Full chaos → 40.',target:'.tabs'},
+  {tab:15,title:'Covariant Phase',body:'Peierls advanced/retarded kernels and the causal propagator Ẽ=G_A−G_R on covariant phase space — classical fields only.',target:'.tabs'}
 ];
 let tourIdx=-1;
 function startTour(){
@@ -2958,12 +3952,20 @@ function endTour(){
 function resizeAll(){
   resizePend(); resizePhase(); resizeAction();
   saResize(); noethResize(); legResize(); fldResize(); hjResize(); pbResize();
+  dirResize(); mwResize(); jetResize(); lioResize(); canResize(); kamResize(); peiResize();
   if(activeTab===1) redrawPhase();
   if(activeTab===2) drawAction();
   if(activeTab===3) saDraw();
   if(activeTab===5) drawLegendre();
   if(activeTab===7) hjDraw();
   if(activeTab===8) pbDraw();
+  if(activeTab===9) dirDraw();
+  if(activeTab===10) mwDraw();
+  if(activeTab===11) jetDraw();
+  if(activeTab===12) lioDraw();
+  if(activeTab===13) canDraw();
+  if(activeTab===14) kamDraw();
+  if(activeTab===15) peiDraw();
 }
 window.addEventListener('resize',resizeAll);
 
@@ -2975,6 +3977,15 @@ setTimeout(()=>{
   _addPan(actC,2,drawAction);
   _addPan(hjC,7,hjDraw);
   _addPan(pbC,8,pbDraw);
+  if(dirC) _addPan(dirC,9,dirDraw);
+  if(mwC) _addPan(mwC,10,mwDraw);
+  if(jetC) _addPan(jetC,11,jetDraw);
+  if(lioC) _addPan(lioC,12,lioDraw);
+  if(canC) _addPan(canC,13,canDraw);
+  if(kamC) _addPan(kamC,14,kamDraw);
+  if(peiC) _addPan(peiC,15,peiDraw);
+  lioReset();
+  kamInitOrbits();
   pendRafId=requestAnimationFrame(pendLoop);
   saInit();
   noethReset();

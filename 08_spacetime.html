@@ -25,21 +25,27 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
 .hrow{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px rgba(68,221,255,.4);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px}
-.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%}
+.tabs::-webkit-scrollbar{height:4px}
+.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab{padding:7px 12px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.75rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text);background:var(--bg2)}
 .tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
 
 .content{flex:1;display:flex;overflow:hidden}
-.panel{display:none;flex:1}
+.panel{display:none;flex:1;overflow:hidden}
 .panel.active{display:flex}
 
 .sidebar{background:var(--bg2);border-right:1px solid var(--border);
   padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:11px;flex-shrink:0}
 .sidebar.right{border-right:none;border-left:1px solid var(--border);width:230px}
 .canvas-wrap{flex:1;overflow:hidden;position:relative;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative;min-width:0;min-height:0}
+.main-area canvas{display:block;width:100%;height:100%}
 canvas{display:block}
+.callout-blue{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.2);border-radius:5px;padding:8px 10px;font-size:.72rem;line-height:1.55}
+.callout-blue strong{color:#00e5ff}
 
 .section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
 .eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:6px}
@@ -178,6 +184,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab('sl2c',this)">SL(2,ℂ) Cover</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab('doppler',this)">Relativistic Doppler</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab('emom',this)">Energy-Momentum</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab('thomas',this)">Thomas–Wigner</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab('rindler',this)">Rindler–Unruh</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab('causal',this)">Causal Structure</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab('aberr',this)">Aberration &amp; Beaming</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab('fmunu',this)">Maxwell F<sub>μν</sub></button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab('wigner',this)">Wigner Little Group</button>
   </div>
 </header>
 
@@ -775,6 +787,368 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
   </div>
 </div>
 
+<!-- ════════════ TAB 10: THOMAS–WIGNER ROTATION ════════════ -->
+<div class="panel" role="tabpanel" data-role="panel" id="panel-thomas">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Boost parameters</div>
+      <label>β₁ (first boost)</label>
+      <input type="range" id="th-b1" min="0.05" max="0.95" step="0.01" value="0.55"
+        oninput="updateThomas()">
+      <div class="val-disp" id="th-b1-disp">β₁ = 0.55</div>
+      <label style="margin-top:6px">β₂ (second boost)</label>
+      <input type="range" id="th-b2" min="0.05" max="0.95" step="0.01" value="0.55" oninput="updateThomas()">
+      <div class="val-disp" id="th-b2-disp">β₂ = 0.55</div>
+      <label style="margin-top:6px">Angle φ between boosts</label>
+      <input type="range" id="th-phi" min="5" max="175" step="1" value="60" oninput="updateThomas()">
+      <div class="val-disp" id="th-phi-disp">φ = 60°</div>
+    </div>
+    <div>
+      <div class="section-lbl">Wigner angle</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">θ_W</span><span id="th-wign" style="color:var(--gold)">—</span></div>
+        <div class="vrow"><span class="vlbl">γ_tot</span><span id="th-gtot" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">β_tot</span><span id="th-btot">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn active" id="th-pause-btn" onclick="thTogglePause()">⏸ Pause</button>
+        <button class="btn red" onclick="thReset()">Reset</button>
+      </div>
+      <label style="margin-top:6px">Speed <span id="th-spd-val">1.0×</span></label>
+      <input type="range" id="th-speed" min="0.1" max="3" step="0.1" value="1"
+        oninput="window.animSpeed=+this.value;document.getElementById('th-spd-val').textContent=(+this.value).toFixed(1)+'×'">
+    </div>
+    <div class="callout">
+      <strong>Thomas–Wigner rotation</strong><br>
+      Non-collinear boosts do not commute. The composition of two pure boosts is a boost times a spatial rotation $R(\theta_W)$.
+    </div>
+  </div>
+  <div class="main-area"><canvas aria-label="Thomas–Wigner rotation" id="thomas-canvas"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Composition law</div>
+    <div class="eq-block">
+      <div class="eq-title">Boost product</div>
+      <div style="font-size:.72rem;line-height:1.65">
+        $\Lambda(\boldsymbol{\beta}_2)\,\Lambda(\boldsymbol{\beta}_1)=R(\theta_W)\,\Lambda(\boldsymbol{\beta}_\mathrm{tot})$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Wigner angle</div>
+      <div style="font-size:.7rem;line-height:1.6">
+        $\cos\theta_W=\frac{(1+\gamma_1+\gamma_2+\gamma_\mathrm{tot})^2}{(1+\gamma_1)(1+\gamma_2)(1+\gamma_\mathrm{tot})}-1$
+        <br><span style="color:var(--dim)">(equivalent forms via rapidities)</span>
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Thomas precession</div>
+      <div style="font-size:.72rem;line-height:1.6">
+        $\boldsymbol{\omega}_T=\frac{\gamma^2}{\gamma+1}\,\frac{\mathbf{a}\times\mathbf{v}}{c^2}$
+      </div>
+    </div>
+    <div class="callout-blue">
+      <strong>Frontier:</strong> Thomas rotation enters the fine-structure Hamiltonian and Fermi–Walker transport of gyros; modern tests include ring-laser and atomic interferometers for accelerated frames.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB 11: RINDLER–UNRUH ════════════ -->
+<div class="panel" role="tabpanel" data-role="panel" id="panel-rindler">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Proper acceleration</div>
+      <label>α (Rindler) · c=1</label>
+      <input type="range" id="ri-alpha" min="0.3" max="2.5" step="0.05" value="1.0" oninput="updateRindler()">
+      <div class="val-disp" id="ri-alpha-disp">α = 1.00</div>
+      <label style="margin-top:6px">Worldline ρ₀</label>
+      <input type="range" id="ri-rho" min="0.4" max="2.5" step="0.05" value="1.2" oninput="updateRindler()">
+      <div class="val-disp" id="ri-rho-disp">ρ₀ = 1.20</div>
+    </div>
+    <div>
+      <div class="section-lbl">Unruh temperature</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">T_U</span><span id="ri-TU" style="color:var(--gold)">—</span></div>
+        <div class="vrow"><span class="vlbl">a = α/ρ₀</span><span id="ri-a" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">horizon</span><span id="ri-hor" style="color:var(--red)">ρ=0</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn active" id="ri-pause-btn" onclick="riTogglePause()">⏸ Pause</button>
+        <button class="btn red" onclick="riReset()">Reset</button>
+      </div>
+      <label style="margin-top:6px">Speed <span id="ri-spd-val">1.0×</span></label>
+      <input type="range" id="ri-speed" min="0.1" max="3" step="0.1" value="1"
+        oninput="window.animSpeed=+this.value;document.getElementById('ri-spd-val').textContent=(+this.value).toFixed(1)+'×'">
+    </div>
+    <div class="callout">
+      <strong>Rindler wedge</strong><br>
+      Uniform proper acceleration → hyperbolic worldlines. The Rindler horizon ρ=0 is a causal boundary for the accelerated observer (SR only — not a black hole).
+    </div>
+  </div>
+  <div class="main-area"><canvas aria-label="Rindler coordinates and Unruh effect" id="rindler-canvas"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Rindler chart</div>
+    <div class="eq-block">
+      <div class="eq-title">Coordinates</div>
+      <div style="font-size:.72rem;line-height:1.65">
+        $t=\rho\sinh(\alpha\eta),\quad x=\rho\cosh(\alpha\eta)$<br>
+        $ds^2=-\alpha^2\rho^2\,d\eta^2+d\rho^2+dy^2+dz^2$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Unruh temperature</div>
+      <div style="font-size:.72rem;line-height:1.65">
+        $T_U=\dfrac{\hbar\,a}{2\pi k_B c},\quad a=\alpha/\rho_0$
+      </div>
+    </div>
+    <div class="callout-blue">
+      <strong>Frontier:</strong> detector response functions and analogue Unruh setups (trapped ions, optical lattices) probe the thermal character of the Minkowski vacuum for accelerated observers — still no laboratory measurement of $T_U$.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB 12: CAUSAL STRUCTURE ════════════ -->
+<div class="panel" role="tabpanel" data-role="panel" id="panel-causal">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Cauchy surface S</div>
+      <label>Half-width of S</label>
+      <input type="range" id="ca-width" min="0.5" max="3.5" step="0.1" value="1.8" oninput="updateCausal()">
+      <div class="val-disp" id="ca-width-disp">w = 1.8</div>
+      <label style="margin-top:6px">Center x₀</label>
+      <input type="range" id="ca-x0" min="-1.5" max="1.5" step="0.1" value="0" oninput="updateCausal()">
+      <div class="val-disp" id="ca-x0-disp">x₀ = 0.0</div>
+    </div>
+    <div>
+      <div class="section-lbl">Sets</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">D⁺(S)</span><span style="color:var(--accent)">domain⁺</span></div>
+        <div class="vrow"><span class="vlbl">D⁻(S)</span><span style="color:var(--pink)">domain⁻</span></div>
+        <div class="vrow"><span class="vlbl">J±(p)</span><span style="color:var(--gold)">causal</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn active" id="ca-pause-btn" onclick="caTogglePause()">⏸ Pause</button>
+        <button class="btn red" onclick="caReset()">Reset</button>
+      </div>
+      <label style="margin-top:6px">Speed <span id="ca-spd-val">1.0×</span></label>
+      <input type="range" id="ca-speed" min="0.1" max="3" step="0.1" value="1"
+        oninput="window.animSpeed=+this.value;document.getElementById('ca-spd-val').textContent=(+this.value).toFixed(1)+'×'">
+    </div>
+    <div class="callout">
+      <strong>Domain of dependence</strong><br>
+      $D^+(S)$ is the set of points $p$ such that every past-inextendible causal curve through $p$ meets $S$. Data on $S$ determine fields in $D(S)$.
+    </div>
+  </div>
+  <div class="main-area"><canvas aria-label="Causal structure and domains of dependence" id="causal-canvas"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Minkowski causality</div>
+    <div class="eq-block">
+      <div class="eq-title">Chronological / causal</div>
+      <div style="font-size:.72rem;line-height:1.65">
+        $I^+(p)=\{q:q\gg p\}$ (timelike)<br>
+        $J^+(p)=\{q:q\succeq p\}$ (causal)<br>
+        $D(S)=D^+(S)\cup D^-(S)$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Global hyperbolicity</div>
+      <div style="font-size:.72rem;line-height:1.6">
+        Minkowski space is globally hyperbolic: Cauchy surfaces exist, wave equations are well-posed.
+      </div>
+    </div>
+    <div class="callout-blue">
+      <strong>Frontier:</strong> causal sets and Lorentzian length spaces abstract $J^\pm$ beyond smooth metrics; related to continuum limits of discrete spacetime models.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB 13: ABERRATION & BEAMING ════════════ -->
+<div class="panel" role="tabpanel" data-role="panel" id="panel-aberr">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Source speed</div>
+      <label>β = v/c</label>
+      <input type="range" id="ab-beta" min="0" max="0.98" step="0.01" value="0.7" oninput="updateAberr()">
+      <div class="val-disp" id="ab-beta-disp">β = 0.70</div>
+      <div class="val-disp gold" id="ab-gamma-disp">γ = 1.400</div>
+      <label style="margin-top:6px">Emission angle θ′ (rest)</label>
+      <input type="range" id="ab-theta" min="0" max="180" step="1" value="90" oninput="updateAberr()">
+      <div class="val-disp" id="ab-theta-disp">θ′ = 90°</div>
+    </div>
+    <div>
+      <div class="section-lbl">Observed</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">θ lab</span><span id="ab-thlab" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">δ Doppler</span><span id="ab-delta" style="color:var(--gold)">—</span></div>
+        <div class="vrow"><span class="vlbl">I / I₀ ~ δⁿ</span><span id="ab-beam" style="color:var(--pink)">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn active" id="ab-pause-btn" onclick="abTogglePause()">⏸ Pause</button>
+        <button class="btn red" onclick="abReset()">Reset</button>
+      </div>
+      <label style="margin-top:6px">Speed <span id="ab-spd-val">1.0×</span></label>
+      <input type="range" id="ab-speed" min="0.1" max="3" step="0.1" value="1"
+        oninput="window.animSpeed=+this.value;document.getElementById('ab-spd-val').textContent=(+this.value).toFixed(1)+'×'">
+    </div>
+    <div class="callout">
+      <strong>Headlight effect</strong><br>
+      Isotropic emission in the rest frame is beamed into a forward cone $\sim 1/\gamma$ in the lab frame.
+    </div>
+  </div>
+  <div class="main-area"><canvas aria-label="Relativistic aberration and beaming" id="aberr-canvas"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Aberration formula</div>
+    <div class="eq-block">
+      <div class="eq-title">Angle transform</div>
+      <div style="font-size:.72rem;line-height:1.65">
+        $\cos\theta=\dfrac{\cos\theta'+\beta}{1+\beta\cos\theta'}$<br>
+        $\delta=\dfrac{1}{\gamma(1-\beta\cos\theta)}$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Beaming</div>
+      <div style="font-size:.72rem;line-height:1.6">
+        Surface brightness $\propto\delta^3$; flux density for spectral index $\alpha$ scales as $\delta^{3+\alpha}$.
+      </div>
+    </div>
+    <div class="callout-blue">
+      <strong>Frontier:</strong> relativistic jets in AGN/blazars use Doppler boosting to explain superluminal motion and rapid TeV variability; multi-messenger constraints tighten bulk-Γ estimates.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB 14: MAXWELL F_μν ════════════ -->
+<div class="panel" role="tabpanel" data-role="panel" id="panel-fmunu">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Plane wave</div>
+      <label>Wave number k</label>
+      <input type="range" id="fm-k" min="0.5" max="3" step="0.1" value="1.2" oninput="updateFmunu()">
+      <div class="val-disp" id="fm-k-disp">k = 1.2</div>
+      <label style="margin-top:6px">Boost β along x</label>
+      <input type="range" id="fm-beta" min="0" max="0.9" step="0.01" value="0.4" oninput="updateFmunu()">
+      <div class="val-disp" id="fm-beta-disp">β = 0.40</div>
+    </div>
+    <div>
+      <div class="section-lbl">Invariants</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">F·F</span><span id="fm-FF" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">F·*F</span><span id="fm-Fstar" style="color:var(--gold)">—</span></div>
+        <div class="vrow"><span class="vlbl">|E|,|B|</span><span id="fm-EB">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn active" id="fm-pause-btn" onclick="fmTogglePause()">⏸ Pause</button>
+        <button class="btn red" onclick="fmReset()">Reset</button>
+      </div>
+      <label style="margin-top:6px">Speed <span id="fm-spd-val">1.0×</span></label>
+      <input type="range" id="fm-speed" min="0.1" max="3" step="0.1" value="1"
+        oninput="window.animSpeed=+this.value;document.getElementById('fm-spd-val').textContent=(+this.value).toFixed(1)+'×'">
+    </div>
+    <div class="callout">
+      <strong>Covariant EM</strong><br>
+      $F_{\mu\nu}=\partial_\mu A_\nu-\partial_\nu A_\mu$. Homogeneous Maxwell: $\partial_{[\lambda}F_{\mu\nu]}=0$. Forms language → module 16.
+    </div>
+  </div>
+  <div class="main-area"><canvas aria-label="Maxwell field strength tensor evolution" id="fmunu-canvas"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Field strength</div>
+    <div class="eq-block">
+      <div class="eq-title">Components</div>
+      <div style="font-size:.7rem;line-height:1.6">
+        $F^{0i}=E^i,\quad F^{ij}=-\varepsilon^{ijk}B_k$<br>
+        Boost: $\mathbf{E}_\parallel'=\mathbf{E}_\parallel$, $\mathbf{E}_\perp'=\gamma(\mathbf{E}+\mathbf{v}\times\mathbf{B})_\perp$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Invariants</div>
+      <div style="font-size:.72rem;line-height:1.6">
+        $\mathcal{I}_1=\tfrac12 F_{\mu\nu}F^{\mu\nu}=\mathbf{B}^2-\mathbf{E}^2$<br>
+        $\mathcal{I}_2=\tfrac14 F_{\mu\nu}{}^*F^{\mu\nu}=\mathbf{E}\cdot\mathbf{B}$
+      </div>
+    </div>
+    <div class="callout-blue">
+      <strong>Frontier:</strong> strong-field QED (vacuum birefringence, Schwinger pair production) probes nonlinear corrections to Maxwell while preserving Lorentz covariance of $F_{\mu\nu}$.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ TAB 15: WIGNER LITTLE GROUP ════════════ -->
+<div class="panel" role="tabpanel" data-role="panel" id="panel-wigner">
+  <div class="sidebar" data-role="sidebar">
+    <div>
+      <div class="section-lbl">Representation</div>
+      <div class="btn-row">
+        <button class="btn active" id="wg-mode-mass" onclick="setWignerMode('mass')">Massive SO(3)</button>
+        <button class="btn" id="wg-mode-null" onclick="setWignerMode('null')">Massless ISO(2)</button>
+      </div>
+      <label style="margin-top:8px">Mass m (massive)</label>
+      <input type="range" id="wg-mass" min="0.2" max="2" step="0.05" value="1" oninput="updateWigner()">
+      <div class="val-disp" id="wg-mass-disp">m = 1.00</div>
+      <label style="margin-top:6px">Helicity / spin s</label>
+      <input type="range" id="wg-spin" min="0" max="2" step="0.5" value="0.5" oninput="updateWigner()">
+      <div class="val-disp" id="wg-spin-disp">s = ½</div>
+    </div>
+    <div>
+      <div class="section-lbl">Stabilizer</div>
+      <div class="eq-block">
+        <div class="vrow"><span class="vlbl">p·p</span><span id="wg-pp" style="color:var(--accent)">—</span></div>
+        <div class="vrow"><span class="vlbl">Little G</span><span id="wg-little" style="color:var(--gold)">—</span></div>
+        <div class="vrow"><span class="vlbl">dim</span><span id="wg-dim">—</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-lbl">Animation</div>
+      <div class="btn-row">
+        <button class="btn active" id="wg-pause-btn" onclick="wgTogglePause()">⏸ Pause</button>
+        <button class="btn red" onclick="wgReset()">Reset</button>
+      </div>
+      <label style="margin-top:6px">Speed <span id="wg-spd-val">1.0×</span></label>
+      <input type="range" id="wg-speed" min="0.1" max="3" step="0.1" value="1"
+        oninput="window.animSpeed=+this.value;document.getElementById('wg-spd-val').textContent=(+this.value).toFixed(1)+'×'">
+    </div>
+    <div class="callout">
+      <strong>Wigner classification</strong><br>
+      Irreps of the Poincaré group are labeled by mass $m^2=p\cdot p$ and little-group spin/helicity. (Dirac equation → module 11.)
+    </div>
+  </div>
+  <div class="main-area"><canvas aria-label="Wigner little group ISO(2) and SO(3)" id="wigner-canvas"></canvas></div>
+  <div class="sidebar right" data-role="sidebar">
+    <div class="section-lbl">Little groups</div>
+    <div class="eq-block">
+      <div class="eq-title">Massive $m&gt;0$</div>
+      <div style="font-size:.72rem;line-height:1.65">
+        Rest frame $p=(m,0,0,0)$.<br>
+        Stabilizer $\simeq\mathrm{SO}(3)$ (or $\mathrm{SU}(2)$ double cover).<br>
+        Spin $s=0,\tfrac12,1,\ldots$
+      </div>
+    </div>
+    <div class="eq-block">
+      <div class="eq-title">Massless $m=0$</div>
+      <div style="font-size:.72rem;line-height:1.65">
+        $p=E(1,0,0,1)$.<br>
+        Little group $\mathrm{ISO}(2)=E(2)$.<br>
+        Helicity $\lambda\in\tfrac12\mathbb{Z}$; continuous-spin reps also exist.
+      </div>
+    </div>
+    <div class="callout-blue">
+      <strong>Frontier:</strong> continuous-spin representations and higher-spin massless fields remain active in amplitude methods and tensionless string limits; soft theorems encode little-group scaling.
+    </div>
+  </div>
+</div>
+
 </div><!-- .content -->
 <div class="strip">
   <span class="bookref">Penrose Ch. 17–18</span>
@@ -806,6 +1180,44 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 </div>
 
 <script>
+if(typeof window.animSpeed==='undefined') window.animSpeed=parseFloat(sessionStorage.getItem('ktour-speed')||'1')||1;
+
+function _resizeMainCanvas(canvas, panelId){
+  if(!canvas) return;
+  const p=document.getElementById(panelId);
+  if(!p) return;
+  const ma=p.querySelector('.main-area');
+  const r=(ma||p).getBoundingClientRect();
+  let w=Math.floor(r.width), h=Math.floor(r.height);
+  if(!ma){
+    let sw=0; p.querySelectorAll('.sidebar').forEach(s=>sw+=s.offsetWidth);
+    w=Math.floor(r.width-sw); h=Math.floor(r.height);
+  }
+  w=Math.max(1,w); h=Math.max(1,h);
+  if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; }
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+}
+function _gLayout(W,H){
+  const padL=Math.max(40,Math.min(58,W*0.055));
+  const padR=Math.max(16,Math.min(32,W*0.03));
+  const padT=Math.max(26,Math.min(40,H*0.055));
+  const padB=Math.max(26,Math.min(42,H*0.06));
+  const f1=Math.max(11,Math.min(14,Math.min(W,H)*0.018))|0;
+  const f2=Math.max(13,Math.min(17,Math.min(W,H)*0.022))|0;
+  return {padL,padR,padT,padB,x:padL,y:padT,w:Math.max(40,W-padL-padR),h:Math.max(40,H-padT-padB),f1,f2,W,H};
+}
+function _gFit(ctx,text,maxW,font){
+  ctx.font=font; if(ctx.measureText(text).width<=maxW) return text;
+  let s=text; while(s.length>3&&ctx.measureText(s+'\u2026').width>maxW) s=s.slice(0,-1); return s+'\u2026';
+}
+function _gTitle(ctx,L,title){ ctx.fillStyle='rgba(68,221,255,0.92)'; ctx.font='bold '+L.f2+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,title,L.w,ctx.font),L.x,L.y-8); }
+function _gFooter(ctx,L,text){ ctx.fillStyle='rgba(160,160,200,0.55)'; ctx.font=L.f1+'px monospace'; ctx.textAlign='left'; ctx.fillText(_gFit(ctx,text,L.w,ctx.font),L.x,L.H-10); }
+function _gClip(ctx,L){ ctx.save(); ctx.beginPath(); ctx.rect(L.x,L.y,L.w,L.h); ctx.clip(); }
+function _setPauseBtn(id, paused){
+  const b=document.getElementById(id);
+  if(b){b.textContent=paused?'▶ Resume':'⏸ Pause';b.classList.toggle('active',!paused);}
+}
+
 function _cancelAllAnims08(){
   if(typeof boostStopAnim==='function') boostStopAnim();
   if(typeof twinStopAnim==='function') twinStopAnim();
@@ -816,28 +1228,43 @@ function _cancelAllAnims08(){
   if(typeof parStopAnim==='function') parStopAnim();
   if(typeof dopStopAnim==='function') dopStopAnim();
   if(typeof emStopAnim==='function') emStopAnim();
+  if(typeof thStopAnim==='function') thStopAnim();
+  if(typeof riStopAnim==='function') riStopAnim();
+  if(typeof caStopAnim==='function') caStopAnim();
+  if(typeof abStopAnim==='function') abStopAnim();
+  if(typeof fmStopAnim==='function') fmStopAnim();
+  if(typeof wgStopAnim==='function') wgStopAnim();
 }
 
 function switchTab(id, btn) {
   _cancelAllAnims08();
-  minkTutReset();
-  parTutReset();
-  slTutReset();
+  if(typeof minkTutReset==='function') minkTutReset();
+  if(typeof parTutReset==='function') parTutReset();
+  if(typeof slTutReset==='function') slTutReset();
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
   document.getElementById('panel-' + id).classList.add('active');
-  btn.classList.add('active');
-  setTimeout(() => {
-    if (id === 'mink')    { resizeMink(); minkToggleAnim(); }
-    if (id === 'boost')   { resizeBoost(); if(typeof boostStartAnim==='function') boostStartAnim(); }
-    if (id === 'twin')    { resizeTwin(); if(typeof twinStartAnim==='function') twinStartAnim(); }
-    if (id === 'paradox') { resizeParadox(); parToggleAnim(); }
-    if (id === '4vec')    { resize4Vec(); if(typeof fvStartAnim==='function') fvStartAnim(); }
-    if (id === 'penrose') { resizePenrose(); if(typeof penroseStartAnim==='function') penroseStartAnim(); }
-    if (id === 'sl2c')    { resizeSL2C(); if(typeof slStartAnim==='function') slStartAnim(); }
-    if (id === 'doppler') { resizeDoppler(); dopToggleAnim(); }
-    if (id === 'emom')    { resizeEMom(); emToggleAnim(); }
-  }, 20);
+  if(btn){ btn.classList.add('active'); btn.setAttribute('aria-selected','true'); }
+  const tabId=id;
+  const raf=window.requestAnimationFrame||(cb=>setTimeout(cb,16));
+  raf(()=>{ raf(()=>{
+    if(!document.getElementById('panel-'+tabId)||!document.getElementById('panel-'+tabId).classList.contains('active')) return;
+    if (tabId === 'mink')    { resizeMink(); if(!minkAnimating) minkToggleAnim(); }
+    if (tabId === 'boost')   { resizeBoost(); if(typeof boostStartAnim==='function') boostStartAnim(); }
+    if (tabId === 'twin')    { resizeTwin(); if(typeof twinStartAnim==='function') twinStartAnim(); }
+    if (tabId === 'paradox') { resizeParadox(); if(!parAnimating) parToggleAnim(); }
+    if (tabId === '4vec')    { resize4Vec(); if(typeof fvStartAnim==='function') fvStartAnim(); }
+    if (tabId === 'penrose') { resizePenrose(); if(typeof penroseStartAnim==='function') penroseStartAnim(); }
+    if (tabId === 'sl2c')    { resizeSL2C(); if(typeof slStartAnim==='function') slStartAnim(); }
+    if (tabId === 'doppler') { resizeDoppler(); if(!dopAnimating) dopToggleAnim(); }
+    if (tabId === 'emom')    { resizeEMom(); if(!emAnimating) emToggleAnim(); }
+    if (tabId === 'thomas')  { thStartLoop(); }
+    if (tabId === 'rindler') { riStartLoop(); }
+    if (tabId === 'causal')  { caStartLoop(); }
+    if (tabId === 'aberr')   { abStartLoop(); }
+    if (tabId === 'fmunu')   { fmStartLoop(); }
+    if (tabId === 'wigner')  { wgStartLoop(); }
+  }); });
 }
 
 function fmt(v, d=1) { return v.toFixed(d); }
@@ -4597,6 +5024,640 @@ window.emStopAnim = function() {
 };
 
 // ══════════════════════════════════════════════
+//  TAB 10 — THOMAS–WIGNER ROTATION
+// ══════════════════════════════════════════════
+const thCanvas=document.getElementById('thomas-canvas');
+const thCtx=thCanvas?thCanvas.getContext('2d'):null;
+let thT=0, thAnimId=null, thPaused=false, thRunning=false;
+
+function thWignerAngle(b1,b2,phi){
+  // Successive non-collinear boosts: half-rapidity formula
+  const g1=1/Math.sqrt(Math.max(1e-9,1-b1*b1));
+  const g2=1/Math.sqrt(Math.max(1e-9,1-b2*b2));
+  const c=Math.cos(phi);
+  const gtot=g1*g2*(1+b1*b2*c);
+  const r1=Math.atanh(Math.min(0.999,Math.max(0,b1)));
+  const r2=Math.atanh(Math.min(0.999,Math.max(0,b2)));
+  const sh1=Math.sinh(r1/2), ch1=Math.cosh(r1/2);
+  const sh2=Math.sinh(r2/2), ch2=Math.cosh(r2/2);
+  const thW=2*Math.atan2(Math.sin(phi)*sh1*sh2, ch1*ch2 + Math.cos(phi)*sh1*sh2);
+  const btot=Math.sqrt(Math.max(0,1-1/(gtot*gtot)));
+  return {thW:Math.abs(thW), gtot, btot, g1, g2};
+}
+function updateThomas(){
+  const b1=+document.getElementById('th-b1').value;
+  const b2=+document.getElementById('th-b2').value;
+  const phiDeg=+document.getElementById('th-phi').value;
+  document.getElementById('th-b1-disp').textContent='β₁ = '+b1.toFixed(2);
+  document.getElementById('th-b2-disp').textContent='β₂ = '+b2.toFixed(2);
+  document.getElementById('th-phi-disp').textContent='φ = '+phiDeg+'°';
+  const r=thWignerAngle(b1,b2,phiDeg*Math.PI/180);
+  document.getElementById('th-wign').textContent=(r.thW*180/Math.PI).toFixed(2)+'°';
+  document.getElementById('th-gtot').textContent=r.gtot.toFixed(3);
+  document.getElementById('th-btot').textContent=r.btot.toFixed(3);
+  drawThomas();
+}
+function resizeThomas(){ _resizeMainCanvas(thCanvas,'panel-thomas'); drawThomas(); }
+function drawThomas(){
+  if(!thCtx||!thCanvas) return;
+  const W=thCanvas.width, H=thCanvas.height; if(W<2||H<2) return;
+  const ctx=thCtx, L=_gLayout(W,H);
+  ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+  _gTitle(ctx,L,'Thomas–Wigner rotation · non-collinear boosts');
+  _gFooter(ctx,L,'Λ₂Λ₁ = R(θ_W) Λ_tot  ·  triad rotates by θ_W');
+  const b1=+document.getElementById('th-b1').value;
+  const b2=+document.getElementById('th-b2').value;
+  const phi=+document.getElementById('th-phi').value*Math.PI/180;
+  const r=thWignerAngle(b1,b2,phi);
+  const T=thT;
+  const cx=L.x+L.w*0.5, cy=L.y+L.h*0.52;
+  const R=Math.min(L.w,L.h)*0.28;
+  _gClip(ctx,L);
+  // boost arrows
+  const a1=T*0.4;
+  const stage=(Math.sin(T*0.55)+1)/2; // 0..1 blend
+  ctx.strokeStyle='rgba(68,221,255,0.35)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,R*1.15,0,Math.PI*2); ctx.stroke();
+  // first boost direction
+  const d1x=Math.cos(a1), d1y=Math.sin(a1);
+  const d2x=Math.cos(a1+phi), d2y=Math.sin(a1+phi);
+  function arrow(x0,y0,dx,dy,len,col,lbl){
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=2.5;
+    const x1=x0+dx*len, y1=y0+dy*len;
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+    const ang=Math.atan2(dy,dx);
+    ctx.beginPath(); ctx.moveTo(x1,y1);
+    ctx.lineTo(x1-10*Math.cos(ang-0.35),y1-10*Math.sin(ang-0.35));
+    ctx.lineTo(x1-10*Math.cos(ang+0.35),y1-10*Math.sin(ang+0.35));
+    ctx.closePath(); ctx.fill();
+    ctx.font=L.f1+'px monospace'; ctx.fillText(lbl,x1+6,y1-4);
+  }
+  arrow(cx,cy,d1x,d1y,R*b1*1.4,'#44ddff','β₁');
+  arrow(cx,cy,d2x,d2y,R*b2*1.4,'#ffd700','β₂');
+  // triad before/after Wigner rotation
+  const rot=r.thW*stage;
+  const arms=[{c:'#00ff99',a:0},{c:'#ff44ff',a:Math.PI/2},{c:'#ff8844',a:Math.PI}];
+  arms.forEach((arm,i)=>{
+    const ang0=arm.a+a1*0.2;
+    const ang1=ang0+rot;
+    const x0=cx+Math.cos(ang0)*R*0.55, y0=cy+Math.sin(ang0)*R*0.55;
+    const x1=cx+Math.cos(ang1)*R*0.85, y1=cy+Math.sin(ang1)*R*0.85;
+    ctx.strokeStyle=arm.c; ctx.globalAlpha=0.35; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x0,y0); ctx.stroke();
+    ctx.globalAlpha=1; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x1,y1); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x1,y1,4,0,Math.PI*2); ctx.fillStyle=arm.c; ctx.fill();
+  });
+  // Wigner angle arc
+  ctx.strokeStyle='rgba(255,215,0,0.8)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(cx,cy,R*0.4, a1*0.2, a1*0.2+rot); ctx.stroke();
+  ctx.fillStyle='#ffd700'; ctx.font='bold '+L.f1+'px monospace';
+  ctx.fillText('θ_W = '+(r.thW*180/Math.PI).toFixed(1)+'°', cx-R*0.2, cy-R*1.25);
+  ctx.fillStyle='rgba(192,192,234,0.75)'; ctx.font=L.f1+'px monospace';
+  ctx.fillText('γ_tot='+r.gtot.toFixed(2)+'  β_tot='+r.btot.toFixed(2), L.x+8, L.y+L.h-8);
+  // phase pulse
+  const px=cx+Math.cos(T)*R*1.05, py=cy+Math.sin(T)*R*1.05;
+  ctx.beginPath(); ctx.arc(px,py,5,0,Math.PI*2);
+  ctx.fillStyle='rgba(68,221,255,0.9)'; ctx.fill();
+  ctx.restore();
+}
+function thStartLoop(){
+  thPaused=false; thRunning=true; _setPauseBtn('th-pause-btn',false);
+  resizeThomas(); updateThomas();
+  if(thAnimId) return;
+  function loop(){
+    if(!thRunning){ thAnimId=null; return; }
+    if(!thPaused){ thT+=0.02*(window.animSpeed||1); drawThomas(); }
+    thAnimId=requestAnimationFrame(loop);
+  }
+  thAnimId=requestAnimationFrame(loop);
+}
+function thTogglePause(){ thPaused=!thPaused; _setPauseBtn('th-pause-btn',thPaused); if(!thPaused&&!thAnimId) thStartLoop(); }
+function thReset(){ thT=0; thPaused=false; _setPauseBtn('th-pause-btn',false); drawThomas(); if(!thAnimId) thStartLoop(); }
+function thStopAnim(){ thRunning=false; if(thAnimId){cancelAnimationFrame(thAnimId);thAnimId=null;} }
+
+// ══════════════════════════════════════════════
+//  TAB 11 — RINDLER–UNRUH
+// ══════════════════════════════════════════════
+const riCanvas=document.getElementById('rindler-canvas');
+const riCtx=riCanvas?riCanvas.getContext('2d'):null;
+let riT=0, riAnimId=null, riPaused=false, riRunning=false;
+
+function updateRindler(){
+  const alpha=+document.getElementById('ri-alpha').value;
+  const rho0=+document.getElementById('ri-rho').value;
+  document.getElementById('ri-alpha-disp').textContent='α = '+alpha.toFixed(2);
+  document.getElementById('ri-rho-disp').textContent='ρ₀ = '+rho0.toFixed(2);
+  const a=alpha/rho0;
+  document.getElementById('ri-a').textContent=a.toFixed(3);
+  // T_U in units ħ=k_B=c=1
+  const TU=a/(2*Math.PI);
+  document.getElementById('ri-TU').textContent=TU.toFixed(4)+' (ħ=k=1)';
+  drawRindler();
+}
+function resizeRindler(){ _resizeMainCanvas(riCanvas,'panel-rindler'); drawRindler(); }
+function drawRindler(){
+  if(!riCtx||!riCanvas) return;
+  const W=riCanvas.width, H=riCanvas.height; if(W<2||H<2) return;
+  const ctx=riCtx, L=_gLayout(W,H);
+  ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+  _gTitle(ctx,L,'Rindler wedge · Unruh temperature (SR / QFT-lite)');
+  _gFooter(ctx,L,'Horizon ρ=0 · hyperbolic worldlines · T_U = a/(2π)');
+  const alpha=+document.getElementById('ri-alpha').value;
+  const rho0=+document.getElementById('ri-rho').value;
+  const T=riT;
+  const ox=L.x+L.w*0.5, oy=L.y+L.h*0.55;
+  const sc=Math.min(L.w,L.h)*0.12;
+  _gClip(ctx,L);
+  // axes
+  ctx.strokeStyle='rgba(85,85,138,0.6)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(L.x+10,oy); ctx.lineTo(L.x+L.w-10,oy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox,L.y+10); ctx.lineTo(ox,L.y+L.h-10); ctx.stroke();
+  ctx.fillStyle='rgba(160,160,200,0.5)'; ctx.font=L.f1+'px monospace';
+  ctx.fillText('x', L.x+L.w-24, oy-6); ctx.fillText('ct', ox+6, L.y+18);
+  // light cone
+  ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.moveTo(ox-L.h*0.4,oy+L.h*0.4); ctx.lineTo(ox+L.h*0.4,oy-L.h*0.4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox+L.h*0.4,oy+L.h*0.4); ctx.lineTo(ox-L.h*0.4,oy-L.h*0.4); ctx.stroke();
+  ctx.setLineDash([]);
+  // Rindler wedges (right wedge shaded)
+  ctx.fillStyle='rgba(68,221,255,0.06)';
+  ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+L.w*0.45,oy-L.w*0.45); ctx.lineTo(ox+L.w*0.45,oy+L.w*0.45); ctx.closePath(); ctx.fill();
+  // hyperbolas ρ=const
+  for(let k=1;k<=5;k++){
+    const rho=0.5*k;
+    ctx.strokeStyle=Math.abs(rho-rho0)<0.15?'rgba(255,215,0,0.85)':'rgba(68,221,255,0.35)';
+    ctx.lineWidth=Math.abs(rho-rho0)<0.15?2.2:1;
+    ctx.beginPath();
+    for(let i=0;i<=80;i++){
+      const eta=-2.2+i/80*4.4;
+      const t=rho*Math.sinh(alpha*eta), x=rho*Math.cosh(alpha*eta);
+      const px=ox+x*sc, py=oy-t*sc;
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+  // moving observer on ρ0
+  const eta=T*0.35;
+  const t0=rho0*Math.sinh(alpha*eta), x0=rho0*Math.cosh(alpha*eta);
+  const px=ox+x0*sc, py=oy-t0*sc;
+  // horizon label
+  ctx.fillStyle='rgba(255,68,102,0.85)'; ctx.font=L.f1+'px monospace';
+  ctx.fillText('horizon ρ=0', ox+8, oy-L.h*0.22);
+  // Unruh "thermal" particles near observer
+  for(let i=0;i<12;i++){
+    const ang=T*1.3+i*0.52;
+    const rr=8+6*Math.sin(T*2+i);
+    const qx=px+Math.cos(ang)*rr, qy=py+Math.sin(ang)*rr;
+    ctx.beginPath(); ctx.arc(qx,qy,2.2,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,215,0,${0.3+0.5*((Math.sin(T+i)+1)/2)})`; ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2);
+  ctx.fillStyle='#ffd700'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle='#c0c0ea'; ctx.font=L.f1+'px monospace';
+  ctx.fillText('observer a=α/ρ₀', px+10, py-8);
+  const TU=(alpha/rho0)/(2*Math.PI);
+  ctx.fillStyle='#ffd700';
+  ctx.fillText('T_U = '+TU.toFixed(3)+'  (units ħ=k_B=c=1)', L.x+8, L.y+18);
+  ctx.restore();
+}
+function riStartLoop(){
+  riPaused=false; riRunning=true; _setPauseBtn('ri-pause-btn',false);
+  resizeRindler(); updateRindler();
+  if(riAnimId) return;
+  function loop(){
+    if(!riRunning){ riAnimId=null; return; }
+    if(!riPaused){ riT+=0.02*(window.animSpeed||1); drawRindler(); }
+    riAnimId=requestAnimationFrame(loop);
+  }
+  riAnimId=requestAnimationFrame(loop);
+}
+function riTogglePause(){ riPaused=!riPaused; _setPauseBtn('ri-pause-btn',riPaused); if(!riPaused&&!riAnimId) riStartLoop(); }
+function riReset(){ riT=0; riPaused=false; _setPauseBtn('ri-pause-btn',false); drawRindler(); if(!riAnimId) riStartLoop(); }
+function riStopAnim(){ riRunning=false; if(riAnimId){cancelAnimationFrame(riAnimId);riAnimId=null;} }
+
+// ══════════════════════════════════════════════
+//  TAB 12 — CAUSAL STRUCTURE
+// ══════════════════════════════════════════════
+const caCanvas=document.getElementById('causal-canvas');
+const caCtx=caCanvas?caCanvas.getContext('2d'):null;
+let caT=0, caAnimId=null, caPaused=false, caRunning=false;
+
+function updateCausal(){
+  const w=+document.getElementById('ca-width').value;
+  const x0=+document.getElementById('ca-x0').value;
+  document.getElementById('ca-width-disp').textContent='w = '+w.toFixed(1);
+  document.getElementById('ca-x0-disp').textContent='x₀ = '+x0.toFixed(1);
+  drawCausal();
+}
+function resizeCausal(){ _resizeMainCanvas(caCanvas,'panel-causal'); drawCausal(); }
+function drawCausal(){
+  if(!caCtx||!caCanvas) return;
+  const W=caCanvas.width, H=caCanvas.height; if(W<2||H<2) return;
+  const ctx=caCtx, L=_gLayout(W,H);
+  ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+  _gTitle(ctx,L,'Domains of dependence D±(S) in Minkowski space');
+  _gFooter(ctx,L,'D⁺(S): every past causal curve meets S · Cauchy development');
+  const half=+document.getElementById('ca-width').value;
+  const x0=+document.getElementById('ca-x0').value;
+  const T=caT;
+  const ox=L.x+L.w*0.5, oy=L.y+L.h*0.55;
+  const sc=Math.min(L.w,L.h)*0.14;
+  _gClip(ctx,L);
+  // grid
+  ctx.strokeStyle='rgba(28,28,68,0.8)'; ctx.lineWidth=1;
+  for(let i=-6;i<=6;i++){
+    ctx.beginPath(); ctx.moveTo(ox+i*sc, L.y+4); ctx.lineTo(ox+i*sc, L.y+L.h-4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(L.x+4, oy-i*sc); ctx.lineTo(L.x+L.w-4, oy-i*sc); ctx.stroke();
+  }
+  // light rays fill (animated wavefront)
+  const fillH=Math.min(half*1.2, 0.15+ (T%8)*0.35);
+  // D+(S): diamond above S
+  const xl=x0-half, xr=x0+half;
+  ctx.fillStyle='rgba(68,221,255,0.12)';
+  ctx.beginPath();
+  ctx.moveTo(ox+xl*sc, oy);
+  ctx.lineTo(ox+xr*sc, oy);
+  ctx.lineTo(ox+(x0)*sc, oy-half*sc);
+  ctx.closePath(); ctx.fill();
+  // D-(S)
+  ctx.fillStyle='rgba(255,68,255,0.10)';
+  ctx.beginPath();
+  ctx.moveTo(ox+xl*sc, oy);
+  ctx.lineTo(ox+xr*sc, oy);
+  ctx.lineTo(ox+(x0)*sc, oy+half*sc);
+  ctx.closePath(); ctx.fill();
+  // expanding characteristics
+  ctx.strokeStyle='rgba(68,221,255,0.45)'; ctx.lineWidth=1.5;
+  for(let s=-1;s<=1;s+=0.25){
+    const base=x0+s*half;
+    const h=fillH*(0.7+0.3*Math.sin(T+s*3));
+    ctx.beginPath();
+    ctx.moveTo(ox+base*sc, oy);
+    ctx.lineTo(ox+(base+h)*sc, oy-h*sc);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(ox+base*sc, oy);
+    ctx.lineTo(ox+(base-h)*sc, oy-h*sc);
+    ctx.stroke();
+  }
+  // surface S
+  ctx.strokeStyle='#ffd700'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(ox+xl*sc, oy); ctx.lineTo(ox+xr*sc, oy); ctx.stroke();
+  ctx.fillStyle='#ffd700'; ctx.font=L.f1+'px monospace';
+  ctx.fillText('S (Cauchy slice)', ox+x0*sc-40, oy+16);
+  // sample event p in D+
+  const pe=0.35*Math.sin(T*0.7);
+  const pt=Math.min(half*0.55, 0.2+0.15*(1+Math.sin(T)));
+  const ppx=ox+(x0+pe)*sc, ppy=oy-pt*sc;
+  ctx.beginPath(); ctx.arc(ppx,ppy,6,0,Math.PI*2);
+  ctx.fillStyle='#44ddff'; ctx.fill();
+  ctx.fillStyle='#c0c0ea'; ctx.fillText('p ∈ D⁺(S)', ppx+8, ppy);
+  // labels
+  ctx.fillStyle='rgba(68,221,255,0.85)'; ctx.fillText('D⁺(S)', ox+x0*sc-14, oy-half*sc*0.55);
+  ctx.fillStyle='rgba(255,68,255,0.85)'; ctx.fillText('D⁻(S)', ox+x0*sc-14, oy+half*sc*0.55);
+  ctx.restore();
+}
+function caStartLoop(){
+  caPaused=false; caRunning=true; _setPauseBtn('ca-pause-btn',false);
+  resizeCausal(); updateCausal();
+  if(caAnimId) return;
+  function loop(){
+    if(!caRunning){ caAnimId=null; return; }
+    if(!caPaused){ caT+=0.02*(window.animSpeed||1); drawCausal(); }
+    caAnimId=requestAnimationFrame(loop);
+  }
+  caAnimId=requestAnimationFrame(loop);
+}
+function caTogglePause(){ caPaused=!caPaused; _setPauseBtn('ca-pause-btn',caPaused); if(!caPaused&&!caAnimId) caStartLoop(); }
+function caReset(){ caT=0; caPaused=false; _setPauseBtn('ca-pause-btn',false); drawCausal(); if(!caAnimId) caStartLoop(); }
+function caStopAnim(){ caRunning=false; if(caAnimId){cancelAnimationFrame(caAnimId);caAnimId=null;} }
+
+// ══════════════════════════════════════════════
+//  TAB 13 — ABERRATION & BEAMING
+// ══════════════════════════════════════════════
+const abCanvas=document.getElementById('aberr-canvas');
+const abCtx=abCanvas?abCanvas.getContext('2d'):null;
+let abT=0, abAnimId=null, abPaused=false, abRunning=false;
+
+function updateAberr(){
+  const beta=+document.getElementById('ab-beta').value;
+  const thp=+document.getElementById('ab-theta').value*Math.PI/180;
+  const gamma=1/Math.sqrt(Math.max(1e-9,1-beta*beta));
+  document.getElementById('ab-beta-disp').textContent='β = '+beta.toFixed(2);
+  document.getElementById('ab-gamma-disp').textContent='γ = '+gamma.toFixed(3);
+  document.getElementById('ab-theta-disp').textContent="θ′ = "+document.getElementById('ab-theta').value+"°";
+  const ctp=Math.cos(thp);
+  const ct=(ctp+beta)/(1+beta*ctp);
+  const th=Math.acos(Math.max(-1,Math.min(1,ct)));
+  const delta=1/(gamma*(1-beta*Math.cos(th)));
+  document.getElementById('ab-thlab').textContent=(th*180/Math.PI).toFixed(1)+'°';
+  document.getElementById('ab-delta').textContent=delta.toFixed(3);
+  document.getElementById('ab-beam').textContent=(Math.pow(delta,3)).toFixed(2)+' (n=3)';
+  drawAberr();
+}
+function resizeAberr(){ _resizeMainCanvas(abCanvas,'panel-aberr'); drawAberr(); }
+function drawAberr(){
+  if(!abCtx||!abCanvas) return;
+  const W=abCanvas.width, H=abCanvas.height; if(W<2||H<2) return;
+  const ctx=abCtx, L=_gLayout(W,H);
+  ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+  _gTitle(ctx,L,'Relativistic aberration & headlight beaming');
+  _gFooter(ctx,L,"cos θ = (cos θ′ + β)/(1 + β cos θ′)  ·  δ = 1/[γ(1−β cos θ)]");
+  const beta=+document.getElementById('ab-beta').value;
+  const gamma=1/Math.sqrt(Math.max(1e-9,1-beta*beta));
+  const T=abT;
+  const cx=L.x+L.w*0.32, cy=L.y+L.h*0.52;
+  const R=Math.min(L.w,L.h)*0.32;
+  _gClip(ctx,L);
+  // rest-frame circle of rays
+  ctx.strokeStyle='rgba(85,85,138,0.7)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='rgba(160,160,200,0.6)'; ctx.font=L.f1+'px monospace';
+  ctx.fillText("rest frame θ′", cx-R*0.45, cy-R-8);
+  const nRays=24;
+  for(let i=0;i<nRays;i++){
+    const thp=i/nRays*Math.PI*2 + T*0.15;
+    // only upper hemisphere emission visualization: all angles
+    const ctp=Math.cos(thp), stp=Math.sin(thp);
+    // rest ray
+    ctx.strokeStyle='rgba(255,215,0,0.35)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+ctp*R, cy-stp*R); ctx.stroke();
+    // lab angle (treat thp as polar from +x boost direction)
+    const ct=(ctp+beta)/(1+beta*ctp+1e-12);
+    const st=Math.sqrt(Math.max(0,1-ct*ct))*(stp>=0?1:-1);
+    const delta=1/(gamma*(1-beta*ct)+1e-12);
+    const len=R*0.25+R*0.75*Math.min(3,delta)/3;
+    const cx2=L.x+L.w*0.72, cy2=cy;
+    ctx.strokeStyle=`rgba(68,221,255,${Math.min(1,0.2+0.35*delta)})`;
+    ctx.lineWidth=1+Math.min(3,delta*0.5);
+    ctx.beginPath(); ctx.moveTo(cx2,cy2); ctx.lineTo(cx2+ct*len, cy2-st*len); ctx.stroke();
+  }
+  // lab circle
+  const cx2=L.x+L.w*0.72, cy2=cy;
+  ctx.strokeStyle='rgba(68,221,255,0.5)'; ctx.beginPath(); ctx.arc(cx2,cy2,R,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='rgba(68,221,255,0.75)'; ctx.fillText('lab frame θ', cx2-R*0.35, cy2-R-8);
+  // beaming cone ~1/γ
+  const cone=1/gamma;
+  ctx.strokeStyle='rgba(255,68,102,0.7)'; ctx.lineWidth=2; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(cx2,cy2); ctx.lineTo(cx2+R*Math.cos(cone), cy2-R*Math.sin(cone)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx2,cy2); ctx.lineTo(cx2+R*Math.cos(cone), cy2+R*Math.sin(cone)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='#ff4466'; ctx.fillText('~1/γ cone', cx2+8, cy2+R+14);
+  // moving source pulse
+  const sx=cx2-R*0.15+Math.sin(T)*4;
+  ctx.beginPath(); ctx.arc(sx,cy2,6,0,Math.PI*2); ctx.fillStyle='#ffd700'; ctx.fill();
+  ctx.fillStyle='#c0c0ea'; ctx.fillText('β='+beta.toFixed(2)+'  γ='+gamma.toFixed(2), L.x+8, L.y+L.h-8);
+  ctx.restore();
+}
+function abStartLoop(){
+  abPaused=false; abRunning=true; _setPauseBtn('ab-pause-btn',false);
+  resizeAberr(); updateAberr();
+  if(abAnimId) return;
+  function loop(){
+    if(!abRunning){ abAnimId=null; return; }
+    if(!abPaused){ abT+=0.02*(window.animSpeed||1); drawAberr(); }
+    abAnimId=requestAnimationFrame(loop);
+  }
+  abAnimId=requestAnimationFrame(loop);
+}
+function abTogglePause(){ abPaused=!abPaused; _setPauseBtn('ab-pause-btn',abPaused); if(!abPaused&&!abAnimId) abStartLoop(); }
+function abReset(){ abT=0; abPaused=false; _setPauseBtn('ab-pause-btn',false); drawAberr(); if(!abAnimId) abStartLoop(); }
+function abStopAnim(){ abRunning=false; if(abAnimId){cancelAnimationFrame(abAnimId);abAnimId=null;} }
+
+// ══════════════════════════════════════════════
+//  TAB 14 — MAXWELL F_μν
+// ══════════════════════════════════════════════
+const fmCanvas=document.getElementById('fmunu-canvas');
+const fmCtx=fmCanvas?fmCanvas.getContext('2d'):null;
+let fmT=0, fmAnimId=null, fmPaused=false, fmRunning=false;
+
+function updateFmunu(){
+  const k=+document.getElementById('fm-k').value;
+  const beta=+document.getElementById('fm-beta').value;
+  document.getElementById('fm-k-disp').textContent='k = '+k.toFixed(1);
+  document.getElementById('fm-beta-disp').textContent='β = '+beta.toFixed(2);
+  // plane wave: E=E0 cos(kz-ωt) x̂, B=E0 cos(...) ŷ → invariants 0
+  document.getElementById('fm-FF').textContent='0 (null wave)';
+  document.getElementById('fm-Fstar').textContent='0';
+  document.getElementById('fm-EB').textContent='|E|=|B|';
+  drawFmunu();
+}
+function resizeFmunu(){ _resizeMainCanvas(fmCanvas,'panel-fmunu'); drawFmunu(); }
+function drawFmunu(){
+  if(!fmCtx||!fmCanvas) return;
+  const W=fmCanvas.width, H=fmCanvas.height; if(W<2||H<2) return;
+  const ctx=fmCtx, L=_gLayout(W,H);
+  ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+  _gTitle(ctx,L,'Covariant Maxwell · F_μν plane-wave evolution');
+  _gFooter(ctx,L,'F^{0i}=E^i · F^{ij}=−ε^{ijk}B_k · boost mixes E⊥,B⊥');
+  const k=+document.getElementById('fm-k').value;
+  const beta=+document.getElementById('fm-beta').value;
+  const gamma=1/Math.sqrt(Math.max(1e-9,1-beta*beta));
+  const T=fmT;
+  _gClip(ctx,L);
+  const midY=L.y+L.h*0.48;
+  const amp=L.h*0.16;
+  // E field (cyan) and B field (gold) as wave trains
+  ctx.lineWidth=2;
+  ctx.strokeStyle='#44ddff';
+  ctx.beginPath();
+  for(let i=0;i<=120;i++){
+    const x=L.x+i/120*L.w;
+    const z=i/120*8;
+    const phase=k*z - T*1.4;
+    const Ey=Math.cos(phase)*amp;
+    // lab boost along x: for wave along z, E_y' = γ(E_y - β B_x) with B_x=0, B=E cross n
+    const Eyp=gamma*Ey; // simplified
+    if(i===0) ctx.moveTo(x, midY-Eyp); else ctx.lineTo(x, midY-Eyp);
+  }
+  ctx.stroke();
+  ctx.strokeStyle='#ffd700';
+  ctx.beginPath();
+  for(let i=0;i<=120;i++){
+    const x=L.x+i/120*L.w;
+    const z=i/120*8;
+    const phase=k*z - T*1.4;
+    const By=Math.cos(phase)*amp*0.85;
+    const Byp=gamma*(By - beta*Math.cos(phase)*amp); // mix
+    // draw as vertical offset below mid
+    if(i===0) ctx.moveTo(x, midY+20-Byp*0.5); else ctx.lineTo(x, midY+20-Byp*0.5);
+  }
+  ctx.stroke();
+  // matrix tiles F_μν
+  const cells=[
+    ['0','E_x','E_y','E_z'],
+    ['-E_x','0','-B_z','B_y'],
+    ['-E_y','B_z','0','-B_x'],
+    ['-E_z','-B_y','B_x','0']
+  ];
+  const phase=Math.cos(T*1.4);
+  const E0=phase, B0=phase;
+  const vals=[
+    [0, E0, gamma*E0, 0],
+    [-E0, 0, 0, gamma*B0],
+    [-gamma*E0, 0, 0, -E0*0],
+    [0, -gamma*B0, 0, 0]
+  ];
+  const tw=Math.min(36, L.w/12), th=tw;
+  const mx=L.x+12, my=L.y+L.h-tw*4-20;
+  ctx.font=Math.max(9,L.f1-1)+'px monospace';
+  for(let i=0;i<4;i++) for(let j=0;j<4;j++){
+    const v=vals[i][j];
+    const a=Math.min(1,Math.abs(v));
+    ctx.fillStyle=v>=0?`rgba(68,221,255,${0.1+0.45*a})`:`rgba(255,68,102,${0.1+0.45*a})`;
+    ctx.fillRect(mx+j*tw, my+i*th, tw-2, th-2);
+    ctx.fillStyle='#c0c0ea';
+    ctx.fillText(v===0?'0':v.toFixed(1), mx+j*tw+4, my+i*th+th*0.65);
+  }
+  ctx.fillStyle='rgba(160,160,200,0.7)';
+  ctx.fillText('F_μν (boosted frame snapshot)', mx, my-6);
+  ctx.fillStyle='#44ddff'; ctx.fillText('E (cyan)', L.x+L.w-100, L.y+16);
+  ctx.fillStyle='#ffd700'; ctx.fillText('B (gold)', L.x+L.w-100, L.y+32);
+  // Poynting pulse
+  const px=L.x+((T*40)%L.w);
+  ctx.beginPath(); ctx.arc(px, midY, 5,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,255,153,0.9)'; ctx.fill();
+  ctx.fillStyle='#00ff99'; ctx.fillText('S = E×B', px+8, midY-8);
+  ctx.restore();
+}
+function fmStartLoop(){
+  fmPaused=false; fmRunning=true; _setPauseBtn('fm-pause-btn',false);
+  resizeFmunu(); updateFmunu();
+  if(fmAnimId) return;
+  function loop(){
+    if(!fmRunning){ fmAnimId=null; return; }
+    if(!fmPaused){ fmT+=0.02*(window.animSpeed||1); drawFmunu(); }
+    fmAnimId=requestAnimationFrame(loop);
+  }
+  fmAnimId=requestAnimationFrame(loop);
+}
+function fmTogglePause(){ fmPaused=!fmPaused; _setPauseBtn('fm-pause-btn',fmPaused); if(!fmPaused&&!fmAnimId) fmStartLoop(); }
+function fmReset(){ fmT=0; fmPaused=false; _setPauseBtn('fm-pause-btn',false); drawFmunu(); if(!fmAnimId) fmStartLoop(); }
+function fmStopAnim(){ fmRunning=false; if(fmAnimId){cancelAnimationFrame(fmAnimId);fmAnimId=null;} }
+
+// ══════════════════════════════════════════════
+//  TAB 15 — WIGNER LITTLE GROUP
+// ══════════════════════════════════════════════
+const wgCanvas=document.getElementById('wigner-canvas');
+const wgCtx=wgCanvas?wgCanvas.getContext('2d'):null;
+let wgT=0, wgAnimId=null, wgPaused=false, wgRunning=false;
+let wgMode='mass';
+
+function setWignerMode(m){
+  wgMode=m;
+  document.getElementById('wg-mode-mass').classList.toggle('active', m==='mass');
+  document.getElementById('wg-mode-null').classList.toggle('active', m==='null');
+  updateWigner();
+}
+function updateWigner(){
+  const m=+document.getElementById('wg-mass').value;
+  const s=+document.getElementById('wg-spin').value;
+  document.getElementById('wg-mass-disp').textContent='m = '+m.toFixed(2);
+  document.getElementById('wg-spin-disp').textContent='s = '+(s===0.5?'½':s===1.5?'3/2':String(s));
+  if(wgMode==='mass'){
+    document.getElementById('wg-pp').textContent='m² = '+(m*m).toFixed(2);
+    document.getElementById('wg-little').textContent='SO(3) / SU(2)';
+    document.getElementById('wg-dim').textContent=String(2*s+1)+' (2s+1)';
+  } else {
+    document.getElementById('wg-pp').textContent='0 (null)';
+    document.getElementById('wg-little').textContent='ISO(2) = E(2)';
+    document.getElementById('wg-dim').textContent='2 (helicity ±s)';
+  }
+  drawWigner();
+}
+function resizeWigner(){ _resizeMainCanvas(wgCanvas,'panel-wigner'); drawWigner(); }
+function drawWigner(){
+  if(!wgCtx||!wgCanvas) return;
+  const W=wgCanvas.width, H=wgCanvas.height; if(W<2||H<2) return;
+  const ctx=wgCtx, L=_gLayout(W,H);
+  ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+  _gTitle(ctx,L, wgMode==='mass' ? 'Massive little group SO(3) · spin states' : 'Massless little group ISO(2) · helicity');
+  _gFooter(ctx,L,'Poincaré irreps: (m,s) or (0,λ) · double cover for spin-½');
+  const m=+document.getElementById('wg-mass').value;
+  const s=+document.getElementById('wg-spin').value;
+  const T=wgT;
+  _gClip(ctx,L);
+  const cx=L.x+L.w*0.5, cy=L.y+L.h*0.5;
+  if(wgMode==='mass'){
+    // sphere of directions for rest-frame spin
+    const R=Math.min(L.w,L.h)*0.28;
+    ctx.strokeStyle='rgba(68,221,255,0.4)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.ellipse(cx,cy,R,R*0.55,0,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx,cy,R*0.55,R,0,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+    // spin vector precessing
+    const th=T*0.8, ph=T*0.45;
+    const sx=Math.sin(th)*Math.cos(ph), sy=Math.sin(th)*Math.sin(ph), sz=Math.cos(th);
+    const px=cx+sx*R, py=cy-sz*R*0.85+sy*R*0.2;
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2); ctx.fillStyle='#ffd700'; ctx.fill();
+    // multiplet dots 2s+1
+    const n=Math.round(2*s+1);
+    for(let i=0;i<n;i++){
+      const mz=-s+i;
+      const yy=cy + (n>1?(mz/s)*R*0.7:0);
+      ctx.beginPath(); ctx.arc(cx+R*1.35, yy, 5,0,Math.PI*2);
+      ctx.fillStyle=i===Math.floor((Math.sin(T)*0.5+0.5)*(n-0.01))?'#00ff99':'#44ddff';
+      ctx.fill();
+      ctx.fillStyle='#c0c0ea'; ctx.font=L.f1+'px monospace';
+      ctx.fillText('m_s='+mz, cx+R*1.35+10, yy+4);
+    }
+    ctx.fillStyle='#44ddff'; ctx.font=L.f1+'px monospace';
+    ctx.fillText('p = (m,0,0,0)  little group SO(3)', L.x+8, L.y+16);
+  } else {
+    // ISO(2): circle + translations (null plane)
+    const R=Math.min(L.w,L.h)*0.26;
+    ctx.strokeStyle='rgba(255,68,102,0.5)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+    // E(2) translations: sliding plane
+    ctx.strokeStyle='rgba(68,221,255,0.35)';
+    for(let i=-3;i<=3;i++){
+      const off=Math.sin(T+i)*12;
+      ctx.beginPath();
+      ctx.moveTo(cx-R*1.4, cy+i*18+off);
+      ctx.lineTo(cx+R*1.4, cy+i*18+off);
+      ctx.stroke();
+    }
+    // helicity rotation
+    const ang=T*1.1;
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.cos(ang)*R, cy+Math.sin(ang)*R); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+Math.cos(ang)*R, cy+Math.sin(ang)*R, 6,0,Math.PI*2);
+    ctx.fillStyle='#ffd700'; ctx.fill();
+    // ±helicity labels
+    ctx.fillStyle='#00ff99'; ctx.font='bold '+L.f2+'px monospace';
+    ctx.fillText('λ = +'+s, cx+R+20, cy-20);
+    ctx.fillStyle='#ff4466';
+    ctx.fillText('λ = −'+s, cx+R+20, cy+20);
+    ctx.fillStyle='#44ddff'; ctx.font=L.f1+'px monospace';
+    ctx.fillText('p = E(1,0,0,1)  little group ISO(2)', L.x+8, L.y+16);
+    ctx.fillStyle='rgba(192,192,234,0.7)';
+    ctx.fillText('translations ↔ gauge (photons); helicity = SO(2) charge', L.x+8, L.y+L.h-8);
+  }
+  // orbiting phase marker
+  const ox=L.x+L.w*0.12+Math.cos(T)*20, oy=L.y+L.h*0.85+Math.sin(T)*8;
+  ctx.beginPath(); ctx.arc(ox,oy,4,0,Math.PI*2); ctx.fillStyle='#ff44ff'; ctx.fill();
+  ctx.restore();
+}
+function wgStartLoop(){
+  wgPaused=false; wgRunning=true; _setPauseBtn('wg-pause-btn',false);
+  resizeWigner(); updateWigner();
+  if(wgAnimId) return;
+  function loop(){
+    if(!wgRunning){ wgAnimId=null; return; }
+    if(!wgPaused){ wgT+=0.02*(window.animSpeed||1); drawWigner(); }
+    wgAnimId=requestAnimationFrame(loop);
+  }
+  wgAnimId=requestAnimationFrame(loop);
+}
+function wgTogglePause(){ wgPaused=!wgPaused; _setPauseBtn('wg-pause-btn',wgPaused); if(!wgPaused&&!wgAnimId) wgStartLoop(); }
+function wgReset(){ wgT=0; wgPaused=false; _setPauseBtn('wg-pause-btn',false); drawWigner(); if(!wgAnimId) wgStartLoop(); }
+function wgStopAnim(){ wgRunning=false; if(wgAnimId){cancelAnimationFrame(wgAnimId);wgAnimId=null;} }
+
+// ══════════════════════════════════════════════
 //  INIT & RESIZE
 // ══════════════════════════════════════════════
 window.addEventListener('resize', () => {
@@ -4611,6 +5672,12 @@ window.addEventListener('resize', () => {
   if (active.id === 'panel-sl2c')    { resizeSL2C(); drawSL2C(); }
   if (active.id === 'panel-doppler') resizeDoppler();
   if (active.id === 'panel-emom')    resizeEMom();
+  if (active.id === 'panel-thomas')  resizeThomas();
+  if (active.id === 'panel-rindler') resizeRindler();
+  if (active.id === 'panel-causal')  resizeCausal();
+  if (active.id === 'panel-aberr')   resizeAberr();
+  if (active.id === 'panel-fmunu')   resizeFmunu();
+  if (active.id === 'panel-wigner')  resizeWigner();
 });
 
 window.addEventListener('load', () => {
@@ -4629,7 +5696,6 @@ window.addEventListener('load', () => {
   var _visPaused = {};
   document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
-      // Record which animations were running, then pause them
       _visPaused.mink = minkAnimating; if(minkAnimating) minkToggleAnim();
       _visPaused.boost = boostAnimating; if(boostAnimating) boostStopAnim();
       _visPaused.twin = twinAnim; if(twinAnim) twinToggleAnim();
@@ -4639,8 +5705,13 @@ window.addEventListener('load', () => {
       _visPaused.sl = slAnimating; if(slAnimating) slToggleAnim();
       _visPaused.dop = dopAnimating; if(dopAnimating) dopToggleAnim();
       _visPaused.em = emAnimating; if(emAnimating) emToggleAnim();
+      _visPaused.th = thRunning && !thPaused; if(thRunning) thStopAnim();
+      _visPaused.ri = riRunning && !riPaused; if(riRunning) riStopAnim();
+      _visPaused.ca = caRunning && !caPaused; if(caRunning) caStopAnim();
+      _visPaused.ab = abRunning && !abPaused; if(abRunning) abStopAnim();
+      _visPaused.fm = fmRunning && !fmPaused; if(fmRunning) fmStopAnim();
+      _visPaused.wg = wgRunning && !wgPaused; if(wgRunning) wgStopAnim();
     } else {
-      // Resume animations that were running before tab was hidden
       if(_visPaused.mink) minkToggleAnim();
       if(_visPaused.boost) { boostAnimating=true; document.getElementById('boost-anim-btn').textContent='Pause'; document.getElementById('boost-anim-btn').classList.add('active'); boostStartLoop(); }
       if(_visPaused.twin) twinToggleAnim();
@@ -4650,6 +5721,12 @@ window.addEventListener('load', () => {
       if(_visPaused.sl) slToggleAnim();
       if(_visPaused.dop) dopToggleAnim();
       if(_visPaused.em) emToggleAnim();
+      if(_visPaused.th) thStartLoop();
+      if(_visPaused.ri) riStartLoop();
+      if(_visPaused.ca) caStartLoop();
+      if(_visPaused.ab) abStartLoop();
+      if(_visPaused.fm) fmStartLoop();
+      if(_visPaused.wg) wgStartLoop();
       _visPaused = {};
     }
   });
