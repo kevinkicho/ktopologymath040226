@@ -3274,6 +3274,10 @@ function resizeG2(){ window.resizeCanvas(g2C); }
 function toggleG2Pause(){
   g2Paused=!g2Paused;
   _setPauseBtn('g2PauseBtn',g2Paused);
+  if(!g2Paused && activeTab===11){
+    g2Running=true;
+    if(!g2RafId) g2Loop();
+  }
 }
 
 function redrawG2(){
@@ -3303,59 +3307,112 @@ function redrawG2(){
   document.getElementById('g2Total').textContent=totalSM.toExponential(2);
 
   if(g2View===0){
-    // Feynman diagrams for g-2
-    const cx=W/2, cy=H*0.3;
-    const pR=Math.max(16,S*0.028);
+    // Feynman diagrams for g-2 (animated photon loops + charge flow)
+    const cy=H*0.32;
+    const phase=g2T;
 
-    // Tree level (order 0): vertex
     g2Ctx.fillStyle='rgba(0,229,255,0.85)'; g2Ctx.font='bold '+f2+'px monospace';
     g2Ctx.fillText('g-2 Feynman Diagrams',W*0.04,f2+16);
 
+    // Helper: electron line with phase wiggle
+    function eLine(x0,y0,x1,y1,col){
+      g2Ctx.strokeStyle=col; g2Ctx.lineWidth=2;
+      g2Ctx.beginPath();
+      const n=24;
+      for(let k=0;k<=n;k++){
+        const t=k/n;
+        const x=x0+(x1-x0)*t, y=y0+(y1-y0)*t;
+        const nx=-(y1-y0), ny=(x1-x0);
+        const len=Math.hypot(nx,ny)||1;
+        const wig=2.5*Math.sin(t*8+phase*3);
+        const px=x+nx/len*wig, py=y+ny/len*wig;
+        k===0?g2Ctx.moveTo(px,py):g2Ctx.lineTo(px,py);
+      }
+      g2Ctx.stroke();
+    }
+    // Helper: photon as wavy line
+    function photon(x0,y0,x1,y1){
+      g2Ctx.strokeStyle='rgba(255,200,0,0.75)'; g2Ctx.lineWidth=1.6;
+      g2Ctx.beginPath();
+      const n=28;
+      for(let k=0;k<=n;k++){
+        const t=k/n;
+        const x=x0+(x1-x0)*t, y=y0+(y1-y0)*t;
+        const nx=-(y1-y0), ny=(x1-x0);
+        const len=Math.hypot(nx,ny)||1;
+        const wig=5*Math.sin(t*10+phase*4);
+        const px=x+nx/len*wig, py=y+ny/len*wig;
+        k===0?g2Ctx.moveTo(px,py):g2Ctx.lineTo(px,py);
+      }
+      g2Ctx.stroke();
+    }
+    // Helper: circulating charge on a loop
+    function loopWithCharge(cx,cy,R,col){
+      g2Ctx.strokeStyle=col; g2Ctx.lineWidth=2;
+      g2Ctx.beginPath(); g2Ctx.arc(cx,cy,R,0,Math.PI*2); g2Ctx.stroke();
+      // Dashed arc segment showing circulation
+      g2Ctx.strokeStyle=col.replace(/[\d.]+\)$/, '0.35)');
+      g2Ctx.setLineDash([4,4]);
+      g2Ctx.beginPath(); g2Ctx.arc(cx,cy,R+4,phase,phase+1.2); g2Ctx.stroke();
+      g2Ctx.setLineDash([]);
+      // Moving charge
+      const a=phase*1.8;
+      const qx=cx+R*Math.cos(a), qy=cy+R*Math.sin(a);
+      g2Ctx.beginPath(); g2Ctx.arc(qx,qy,4,0,Math.PI*2);
+      g2Ctx.fillStyle='#ffee88'; g2Ctx.shadowBlur=10; g2Ctx.shadowColor='#ffcc00';
+      g2Ctx.fill(); g2Ctx.shadowBlur=0;
+    }
+
     // Order 0: simple vertex
     const x0=W*0.2, y0=cy;
-    g2Ctx.strokeStyle='rgba(0,229,255,0.6)'; g2Ctx.lineWidth=2;
-    g2Ctx.beginPath(); g2Ctx.moveTo(x0-60,y0-30); g2Ctx.lineTo(x0,y0); g2Ctx.lineTo(x0-60,y0+30); g2Ctx.stroke();
-    g2Ctx.strokeStyle='rgba(255,200,0,0.5)'; g2Ctx.lineWidth=1.5;
-    g2Ctx.beginPath(); g2Ctx.moveTo(x0,y0); g2Ctx.lineTo(x0+60,y0); g2Ctx.stroke();
-    g2Ctx.fillStyle='rgba(255,255,255,0.4)'; g2Ctx.font=f1+'px monospace';
-    g2Ctx.fillText('g=2 (tree)',x0-30,y0+50);
+    eLine(x0-60,y0-30,x0,y0,'rgba(0,229,255,0.75)');
+    eLine(x0,y0,x0-60,y0+30,'rgba(0,229,255,0.75)');
+    photon(x0,y0,x0+60,y0);
+    g2Ctx.fillStyle='rgba(255,255,255,0.45)'; g2Ctx.font=f1+'px monospace';
+    g2Ctx.fillText('g=2 (tree)',x0-30,y0+55);
 
     // Order 1: one-loop (Schwinger)
     const x1=W*0.5, y1=cy;
-    g2Ctx.strokeStyle='rgba(0,229,255,0.6)'; g2Ctx.lineWidth=2;
-    g2Ctx.beginPath(); g2Ctx.moveTo(x1-60,y1-30); g2Ctx.lineTo(x1-20,y1); g2Ctx.lineTo(x1-60,y1+30); g2Ctx.stroke();
-    g2Ctx.strokeStyle='rgba(255,200,0,0.5)'; g2Ctx.lineWidth=1.5;
-    g2Ctx.beginPath(); g2Ctx.moveTo(x1+20,y1); g2Ctx.lineTo(x1+60,y1); g2Ctx.stroke();
-    // Loop
-    g2Ctx.strokeStyle='rgba(255,68,119,0.7)'; g2Ctx.lineWidth=2;
-    g2Ctx.beginPath(); g2Ctx.arc(x1,y1,25,0,Math.PI*2); g2Ctx.stroke();
-    g2Ctx.fillStyle='rgba(255,68,119,0.4)'; g2Ctx.font=f1+'px monospace';
-    g2Ctx.fillText('a = \u03b1/2\u03c0',x1-25,y1+50);
+    eLine(x1-60,y1-30,x1-20,y1,'rgba(0,229,255,0.75)');
+    eLine(x1-20,y1,x1-60,y1+30,'rgba(0,229,255,0.75)');
+    photon(x1+20,y1,x1+60,y1);
+    loopWithCharge(x1,y1,25,'rgba(255,68,119,0.85)');
+    g2Ctx.fillStyle='rgba(255,68,119,0.55)'; g2Ctx.font=f1+'px monospace';
+    g2Ctx.fillText('a = \u03b1/2\u03c0',x1-25,y1+55);
 
     // Order 2: two-loop
     const x2=W*0.8, y2=cy;
-    g2Ctx.strokeStyle='rgba(0,229,255,0.6)'; g2Ctx.lineWidth=2;
-    g2Ctx.beginPath(); g2Ctx.moveTo(x2-60,y2-30); g2Ctx.lineTo(x2-20,y2); g2Ctx.lineTo(x2-60,y2+30); g2Ctx.stroke();
-    g2Ctx.strokeStyle='rgba(255,200,0,0.5)'; g2Ctx.lineWidth=1.5;
-    g2Ctx.beginPath(); g2Ctx.moveTo(x2+20,y2); g2Ctx.lineTo(x2+60,y2); g2Ctx.stroke();
-    // Two loops
-    g2Ctx.strokeStyle='rgba(255,68,119,0.5)'; g2Ctx.lineWidth=1.5;
-    g2Ctx.beginPath(); g2Ctx.arc(x2-12,y2,18,0,Math.PI*2); g2Ctx.stroke();
-    g2Ctx.beginPath(); g2Ctx.arc(x2+12,y2,18,0,Math.PI*2); g2Ctx.stroke();
-    g2Ctx.fillStyle='rgba(255,68,119,0.3)'; g2Ctx.font=f1+'px monospace';
-    g2Ctx.fillText('O(\u03b1\u00b2)',x2-20,y2+50);
+    eLine(x2-60,y2-30,x2-20,y2,'rgba(0,229,255,0.75)');
+    eLine(x2-20,y2,x2-60,y2+30,'rgba(0,229,255,0.75)');
+    photon(x2+20,y2,x2+60,y2);
+    loopWithCharge(x2-12,y2,18,'rgba(255,68,119,0.7)');
+    loopWithCharge(x2+12,y2,18,'rgba(255,136,68,0.7)');
+    g2Ctx.fillStyle='rgba(255,68,119,0.4)'; g2Ctx.font=f1+'px monospace';
+    g2Ctx.fillText('O(\u03b1\u00b2)',x2-20,y2+55);
 
-    // Highlight current order
+    // Highlight current order (pulsing)
     const highlights=[{x:W*0.2,label:'Order 0'},{x:W*0.5,label:'Order 1'},{x:W*0.8,label:'Order 2'}];
     if(g2Order<=2){
       const h=highlights[g2Order];
-      g2Ctx.strokeStyle='rgba(255,204,0,0.8)'; g2Ctx.lineWidth=2;
-      g2Ctx.strokeRect(h.x-70,cy-50,140,110);
-      g2Ctx.fillStyle='rgba(255,204,0,0.8)'; g2Ctx.font='bold '+f1+'px monospace';
-      g2Ctx.fillText(h.label,h.x-20,cy-60);
+      const pulse=0.55+0.45*Math.sin(phase*2.5);
+      g2Ctx.strokeStyle='rgba(255,204,0,'+pulse.toFixed(2)+')'; g2Ctx.lineWidth=2;
+      g2Ctx.strokeRect(h.x-70,cy-55,140,120);
+      g2Ctx.fillStyle='rgba(255,204,0,0.9)'; g2Ctx.font='bold '+f1+'px monospace';
+      g2Ctx.fillText(h.label,h.x-22,cy-62);
     }
 
-    // Bottom info
+    // Animated a-value bar under diagrams
+    const barY=H*0.62, barX=W*0.08, barW=W*0.84, barH=14;
+    g2Ctx.fillStyle='rgba(255,255,255,0.06)'; g2Ctx.fillRect(barX,barY,barW,barH);
+    g2Ctx.strokeStyle='rgba(255,204,0,0.35)'; g2Ctx.strokeRect(barX,barY,barW,barH);
+    // Contribution grows with order + mild pulse
+    const contrib=[0.15, 0.55, 0.82, 0.95][Math.min(3,g2Order)];
+    const grow=Math.min(1, (0.4+0.6*((phase*0.15)%1)) * contrib);
+    g2Ctx.fillStyle='rgba(0,229,255,0.55)';
+    g2Ctx.fillRect(barX,barY,barW*grow,barH);
+    g2Ctx.fillStyle='rgba(255,255,255,0.55)'; g2Ctx.font=f1+'px monospace';
+    g2Ctx.fillText('QED series for a_e (order slider + loops)', barX, barY-8);
+
     g2Ctx.fillStyle='rgba(255,255,255,0.5)'; g2Ctx.font=f1+'px monospace';
     g2Ctx.fillText('Schwinger (1948): a_e = \u03b1/2\u03c0 \u2248 0.0011614  |  Muon g-2: 4.2\u03c3 deviation from SM',W*0.04,H-14);
 
@@ -3379,16 +3436,28 @@ function redrawG2(){
     ];
 
     const yearMin=1940, yearMax=2030;
+    // Scanning cursor along timeline
+    const scanT=(0.5+0.5*Math.sin(g2T*0.4));
+    const scanX=mx+scanT*pw;
+    g2Ctx.strokeStyle='rgba(0,229,255,0.25)'; g2Ctx.lineWidth=1;
+    g2Ctx.beginPath(); g2Ctx.moveTo(scanX,my+10); g2Ctx.lineTo(scanX,my+ph-10); g2Ctx.stroke();
+
     milestones.forEach((m,i)=>{
       const x=mx+(m.year-yearMin)/(yearMax-yearMin)*pw;
       const y=my+ph*0.5;
       const pulse=0.3+0.3*Math.sin(g2T*2+i*1.2);
 
-      // Dot
+      // Connecting beam when cursor near
+      const near=Math.exp(-Math.pow((x-scanX)/40,2));
+      if(near>0.15){
+        g2Ctx.strokeStyle='rgba(255,204,0,'+(0.15+0.5*near)+')';
+        g2Ctx.lineWidth=1;
+        g2Ctx.beginPath(); g2Ctx.moveTo(x,y); g2Ctx.lineTo(x,y-18-10*near); g2Ctx.stroke();
+      }
+
       g2Ctx.beginPath(); g2Ctx.arc(x,y,4+2*pulse,0,Math.PI*2);
       g2Ctx.fillStyle='rgba(255,204,0,'+(0.6+pulse)+')'; g2Ctx.fill();
 
-      // Label
       g2Ctx.fillStyle='rgba(255,255,255,0.7)'; g2Ctx.font='bold '+f1+'px monospace';
       g2Ctx.fillText(m.label,x-20,y-20);
       g2Ctx.fillStyle='#55558a'; g2Ctx.font=f1+'px monospace';
@@ -3402,14 +3471,18 @@ function redrawG2(){
 }
 
 function g2Loop(){
-  if(activeTab!==11||!g2Running){g2Running=false;return;}
-  if(!g2Paused) g2T+=0.02*(window.animSpeed||1);
+  if(activeTab!==11||!g2Running){g2Running=false;g2RafId=null;return;}
+  if(!g2Paused) g2T+=0.03*(window.animSpeed||1);
   redrawG2();
   g2RafId=requestAnimationFrame(g2Loop);
 }
 function startG2Loop(){
   resizeG2();
-  if(!g2Running){g2Running=true;g2Loop();}
+  g2Running=true;
+  g2Paused=false;
+  _setPauseBtn('g2PauseBtn',false);
+  if(g2RafId){cancelAnimationFrame(g2RafId);g2RafId=null;}
+  g2Loop();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3429,6 +3502,10 @@ function resizeCM(){ window.resizeCanvas(cmC); }
 function toggleCMPause(){
   cmPaused=!cmPaused;
   _setPauseBtn('cmPauseBtn',cmPaused);
+  if(!cmPaused && activeTab===12){
+    cmRunning=true;
+    if(!cmRafId) cmLoop();
+  }
 }
 
 function redrawCM(){
@@ -3442,10 +3519,8 @@ function redrawCM(){
   const S=Math.min(W,H);
   const f1=Math.max(12,S*0.022)|0;
   const f2=Math.max(14,S*0.026)|0;
-  const f3=Math.max(16,S*0.032)|0;
 
   const matNames=['Graphene','TI Surface','Weyl SM'];
-  const matColors=['#00e5ff','#ff4477','#ffcc00'];
   const vF_vals=[1e6,5e5,3e5];
   const gap_vals=[0,0.3,0];
   const berry_vals=['\u03c0','\u03c0','0'];
@@ -3461,12 +3536,25 @@ function redrawCM(){
   // Band structure
   const mx=60, my=40, pw=W-mx-20, ph=H-my-40;
   const cx=mx+pw/2, cy=my+ph/2;
+  const phase=cmT2;
 
   cmCtx.fillStyle='rgba(0,229,255,0.85)'; cmCtx.font='bold '+f2+'px monospace';
   cmCtx.fillText(matNames[cmMat]+' Band Structure',mx,my+f2+4);
 
+  // Soft glow along Dirac cone (animated)
+  const glow=0.08+0.06*Math.sin(phase*1.5);
+  cmCtx.strokeStyle='rgba(0,229,255,'+glow+')'; cmCtx.lineWidth=8;
+  cmCtx.beginPath();
+  for(let xi=0;xi<=pw;xi++){
+    const k=(xi/pw-0.5)*6;
+    const E=Math.sqrt(k*k+gap*gap);
+    const y=cy-E*ph*0.3;
+    xi===0?cmCtx.moveTo(mx+xi,y):cmCtx.lineTo(mx+xi,y);
+  }
+  cmCtx.stroke();
+
   // Conduction band
-  cmCtx.strokeStyle='rgba(0,229,255,0.8)'; cmCtx.lineWidth=2.5;
+  cmCtx.strokeStyle='rgba(0,229,255,0.85)'; cmCtx.lineWidth=2.5;
   cmCtx.beginPath();
   for(let xi=0;xi<=pw;xi++){
     const k=(xi/pw-0.5)*6;
@@ -3477,7 +3565,7 @@ function redrawCM(){
   cmCtx.stroke();
 
   // Valence band
-  cmCtx.strokeStyle='rgba(255,68,119,0.8)'; cmCtx.lineWidth=2.5;
+  cmCtx.strokeStyle='rgba(255,68,119,0.85)'; cmCtx.lineWidth=2.5;
   cmCtx.beginPath();
   for(let xi=0;xi<=pw;xi++){
     const k=(xi/pw-0.5)*6;
@@ -3487,26 +3575,59 @@ function redrawCM(){
   }
   cmCtx.stroke();
 
-  // Fermi level
+  // Thermal smear band around E_F (width ~ T, pulse)
+  const smear=Math.max(0.02, cmT)*(1+0.15*Math.sin(phase*2));
   const efY=cy-cmMu*ph*0.1;
-  cmCtx.strokeStyle='rgba(255,204,0,0.6)'; cmCtx.lineWidth=1.5; cmCtx.setLineDash([4,3]);
+  const smearPx=smear*ph*0.1;
+  cmCtx.fillStyle='rgba(255,204,0,0.08)';
+  cmCtx.fillRect(mx, efY-smearPx, pw, Math.max(2,2*smearPx));
+
+  // Fermi level
+  cmCtx.strokeStyle='rgba(255,204,0,0.75)'; cmCtx.lineWidth=1.5; cmCtx.setLineDash([4,3]);
   cmCtx.beginPath(); cmCtx.moveTo(mx,efY); cmCtx.lineTo(mx+pw,efY); cmCtx.stroke();
   cmCtx.setLineDash([]);
-  cmCtx.fillStyle='rgba(255,204,0,0.6)'; cmCtx.font=f1+'px monospace';
+  cmCtx.fillStyle='rgba(255,204,0,0.75)'; cmCtx.font=f1+'px monospace';
   cmCtx.fillText('E_F',mx+pw+4,efY+4);
 
   // Filled states (shading)
   if(cmMu>0){
-    cmCtx.fillStyle='rgba(0,229,255,0.06)';
+    cmCtx.fillStyle='rgba(0,229,255,0.07)';
     cmCtx.beginPath();
     cmCtx.moveTo(mx,cy);
     for(let xi=0;xi<=pw;xi++){
       const k=(xi/pw-0.5)*6;
       const E=Math.sqrt(k*k+gap*gap);
       const y=cy-E*ph*0.3;
-      xi===0?cmCtx.lineTo(mx+xi,y):cmCtx.lineTo(mx+xi,y);
+      cmCtx.lineTo(mx+xi,y);
     }
     cmCtx.lineTo(mx+pw,efY); cmCtx.lineTo(mx,efY); cmCtx.closePath(); cmCtx.fill();
+  }
+
+  // Traveling wave-packet quasiparticles on the cone (Dirac carriers)
+  const nPack=5;
+  for(let i=0;i<nPack;i++){
+    const u=((phase*0.12+i/nPack)%1);
+    const k=(u-0.5)*6;
+    const E=Math.sqrt(k*k+gap*gap);
+    // Conduction (+) and valence (−) packets alternate
+    const sign=i%2===0?1:-1;
+    const x=mx+(u)*pw;
+    const y=cy-sign*E*ph*0.3;
+    const a=0.35+0.45*Math.sin(phase*2+i);
+    cmCtx.beginPath(); cmCtx.arc(x,y,3.5+1.5*a,0,Math.PI*2);
+    cmCtx.fillStyle=sign>0
+      ?('rgba(0,229,255,'+Math.min(1,a).toFixed(2)+')')
+      :('rgba(255,68,119,'+Math.min(1,a).toFixed(2)+')');
+    cmCtx.fill();
+  }
+
+  // Berry phase marker near Dirac point (rotating)
+  if(cmMat!==2){
+    const br=14+3*Math.sin(phase);
+    cmCtx.strokeStyle='rgba(255,204,0,0.45)'; cmCtx.lineWidth=1.5;
+    cmCtx.beginPath(); cmCtx.arc(cx,cy,br,phase,phase+Math.PI*1.4); cmCtx.stroke();
+    cmCtx.fillStyle='rgba(255,204,0,0.5)'; cmCtx.font=f1+'px monospace';
+    cmCtx.fillText('Berry '+berry,cx+18,cy-8);
   }
 
   // Axes
@@ -3517,22 +3638,25 @@ function redrawCM(){
   cmCtx.fillText('E',mx-16,my+f1);
   cmCtx.fillText('k',mx+pw+4,cy+4);
 
-  // Temperature smearing
-  cmCtx.fillStyle='rgba(255,204,0,0.15)'; cmCtx.font=f1+'px monospace';
-  cmCtx.fillText('T = '+cmT.toFixed(2)+' eV  |  \u03bc = '+cmMu.toFixed(2)+' eV',mx,my+ph-10);
+  cmCtx.fillStyle='rgba(255,204,0,0.45)'; cmCtx.font=f1+'px monospace';
+  cmCtx.fillText('T = '+cmT.toFixed(2)+' eV  |  \u03bc = '+cmMu.toFixed(2)+' eV  |  carriers flowing on cone',mx,my+ph-10);
 
   cmCtx.setTransform(1,0,0,1,0,0);
 }
 
 function cmLoop(){
-  if(activeTab!==12||!cmRunning){cmRunning=false;return;}
-  if(!cmPaused) cmT2+=0.02*(window.animSpeed||1);
+  if(activeTab!==12||!cmRunning){cmRunning=false;cmRafId=null;return;}
+  if(!cmPaused) cmT2+=0.03*(window.animSpeed||1);
   redrawCM();
   cmRafId=requestAnimationFrame(cmLoop);
 }
 function startCMLoop(){
   resizeCM();
-  if(!cmRunning){cmRunning=true;cmLoop();}
+  cmRunning=true;
+  cmPaused=false;
+  _setPauseBtn('cmPauseBtn',false);
+  if(cmRafId){cancelAnimationFrame(cmRafId);cmRafId=null;}
+  cmLoop();
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -71,11 +71,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(3)">Tension Meter</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(4)">QED Feynman</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(5)">Ring &amp; Precession</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(6)">Hadronic VP</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(6)">HVP (e⁺e⁻ Data)</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(7)">EDM &amp; New Physics</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(8)">SM Precision</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(9)">Anomalous Moment</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(10)">Hadronic VP</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(10)">HVP Lattice QCD</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(11)">HLbL Scattering</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(12)">Electroweak</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(13)">Fermilab E989</button>
@@ -591,7 +591,7 @@ window.ringSpeed = 1.0;
 function initTab1() {
   const cv = document.getElementById('cv1');
   let raf1, t=0;
-  let paused1 = false;
+  window.paused1=false;
 
   function draw() {
     const {W, H, ctx} = fitCanvas(cv);
@@ -651,17 +651,21 @@ function initTab1() {
       ? 'No drift (SM prediction = reference)'
       : `Spin drift from orbit: ${driftDeg}° (amplified ×10⁷)`, 12, H-14);
 
-    if (!paused1) t+=(window.animSpeed || 1);
-    if (!paused1) raf1=requestAnimationFrame(draw);
+    if (!window.paused1) t+=(window.animSpeed || 1);
+    if (!window.paused1) raf1=requestAnimationFrame(draw);
+    window._raf1 = raf1;
   }
+  window._draw1 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf1);}};
 }
 window.toggleAnim1 = function(btn) {
-  paused1 = !paused1;
-  btn.textContent = paused1 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused1);
-  if (!paused1) raf1=requestAnimationFrame(draw);
+  window.paused1 = !window.paused1;
+  btn.textContent = window.paused1 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused1);
+  if (!window.paused1 && typeof window._draw1 === 'function') {
+    window._raf1 = requestAnimationFrame(window._draw1);
+  }
 };
 
 // ── Tab 2 — Feynman Loop Corrections ─────────────────────────
@@ -677,7 +681,7 @@ function roundRect(ctx,x,y,w,h,r){
 function initTab2() {
   const cv = document.getElementById('cv2');
   let raf2;
-  let paused2 = false;
+  window.paused2=false;
   window.highlightedDiagram = -1;
 
   const diagrams = [
@@ -753,7 +757,7 @@ function initTab2() {
       ctx.fillText('Click a diagram to see its contribution to a_μ', 20, H-12);
     }
 
-    if (!paused2) raf2=requestAnimationFrame(draw);
+    if (!window.paused2) raf2=requestAnimationFrame(draw);
   }
 
   function onClick(e) {
@@ -773,17 +777,17 @@ function initTab2() {
   return { stop(){cancelAnimationFrame(raf2);cv.removeEventListener('click',onClick);}};
 }
 window.toggleAnim2 = function(btn) {
-  paused2 = !paused2;
-  btn.textContent = paused2 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused2);
-  if (!paused2) raf2=requestAnimationFrame(draw);
+  window.paused2 = !window.paused2;
+  btn.textContent = window.paused2 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused2);
+  if (!window.paused2) raf2=requestAnimationFrame(draw);
 };
 
 // ── Tab 3 — Tension Meter ─────────────────────────────────────
 function initTab3() {
   const cv = document.getElementById('cv3');
   let raf3, animT = 0;
-  let paused3 = false;
+  window.paused3=false;
 
   const d = {
     sm:     { val:116591810, unc:43, label:'SM dispersive (e⁺e⁻ data)',  col:'#55558a' },
@@ -881,24 +885,24 @@ function initTab3() {
     ctx.fillText('Toggle HVP method (sidebar) — switches between dispersive and BMW lattice SM prediction', W/2, H-padB+30);
     ctx.textAlign='left';
 
-    if (!paused3) animT = (animT + 0.3*(window.animSpeed || 1)) % (steps[steps.length-1].t + 90);
-    if (!paused3) raf3=requestAnimationFrame(draw);
+    if (!window.paused3) animT = (animT + 0.3*(window.animSpeed || 1)) % (steps[steps.length-1].t + 90);
+    if (!window.paused3) raf3=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf3);}};
 }
 window.toggleAnim3 = function(btn) {
-  paused3 = !paused3;
-  btn.textContent = paused3 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused3);
-  if (!paused3) raf3=requestAnimationFrame(draw);
+  window.paused3 = !window.paused3;
+  btn.textContent = window.paused3 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused3);
+  if (!window.paused3) raf3=requestAnimationFrame(draw);
 };
 
 // ── Tab 4 — QED Feynman Diagram Expansion ────────────────────
 function initTab4() {
   const cv = document.getElementById('cv4');
   let raf4, t4=0;
-  let paused4 = false;
+  window.paused4=false;
   let selectedOrder = -1;
 
   const orders = [
@@ -1073,8 +1077,8 @@ function initTab4() {
       ctx.fillText('Click an order to inspect its Feynman diagram contribution', barX, barY+barH2+18);
     }
 
-    if (!paused4) t4+=(window.animSpeed || 1);
-    if (!paused4) raf4=requestAnimationFrame(draw);
+    if (!window.paused4) t4+=(window.animSpeed || 1);
+    if (!window.paused4) raf4=requestAnimationFrame(draw);
   }
 
   function onClick4(e) {
@@ -1095,10 +1099,10 @@ function initTab4() {
   return { stop(){cancelAnimationFrame(raf4);cv.removeEventListener('click',onClick4);}};
 }
 window.toggleAnim4 = function(btn) {
-  paused4 = !paused4;
-  btn.textContent = paused4 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused4);
-  if (!paused4) raf4=requestAnimationFrame(draw);
+  window.paused4 = !window.paused4;
+  btn.textContent = window.paused4 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused4);
+  if (!window.paused4) raf4=requestAnimationFrame(draw);
 };
 
 // ── Tab 5 — Storage Ring & Spin Precession (deep) ────────────
@@ -1110,7 +1114,7 @@ window.updateHVPBtn = function(){}; // forward-declared below
 function initTab5() {
   const cv = document.getElementById('cv5');
   let raf5, t5=0;
-  let paused5 = false;
+  window.paused5=false;
 
   // ωa = eB·aμ/m  — in natural relative scale
   function getOmegaA() {
@@ -1236,17 +1240,17 @@ function initTab5() {
       ctx.fillText('● Muon bunches (5 shown)', W*0.04, H*0.95);
     }
 
-    if (!paused5) t5+=(window.animSpeed || 1);
-    if (!paused5) raf5=requestAnimationFrame(draw);
+    if (!window.paused5) t5+=(window.animSpeed || 1);
+    if (!window.paused5) raf5=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf5);}};
 }
 window.toggleAnim5 = function(btn) {
-  paused5 = !paused5;
-  btn.textContent = paused5 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused5);
-  if (!paused5) raf5=requestAnimationFrame(draw);
+  window.paused5 = !window.paused5;
+  btn.textContent = window.paused5 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused5);
+  if (!window.paused5) raf5=requestAnimationFrame(draw);
 };
 
 // ── Tab 6 — Hadronic Vacuum Polarization ─────────────────────
@@ -1266,7 +1270,7 @@ window.updateHVPBtn = function() {
 function initTab6() {
   const cv = document.getElementById('cv6');
   let raf6, t6=0;
-  let paused6 = false;
+  window.paused6=false;
 
   // Breit-Wigner cross-section σ(s) for e+e- -> pi+pi-
   function bw(s_MeV, peak_MeV, scale) {
@@ -1383,17 +1387,17 @@ function initTab6() {
     ctx.fillText('HVP diagram', diaX, diaY+22);
     ctx.textAlign='left';
 
-    if (!paused6) t6+=(window.animSpeed || 1);
-    if (!paused6) raf6=requestAnimationFrame(draw);
+    if (!window.paused6) t6+=(window.animSpeed || 1);
+    if (!window.paused6) raf6=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf6);}};
 }
 window.toggleAnim6 = function(btn) {
-  paused6 = !paused6;
-  btn.textContent = paused6 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused6);
-  if (!paused6) raf6=requestAnimationFrame(draw);
+  window.paused6 = !window.paused6;
+  btn.textContent = window.paused6 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused6);
+  if (!window.paused6) raf6=requestAnimationFrame(draw);
 };
 
 // ── Tab 7 — Muon EDM & New Physics ───────────────────────────
@@ -1412,7 +1416,7 @@ window.updateNPBtn = function() {
 function initTab7() {
   const cv = document.getElementById('cv7');
   let raf7, t7=0;
-  let paused7 = false;
+  window.paused7=false;
 
   function draw() {
     const {W,H,ctx} = fitCanvas(cv);
@@ -1544,17 +1548,17 @@ function initTab7() {
     ctx.fillStyle='rgba(255,136,68,0.7)'; ctx.font='12px monospace';
     ctx.fillText('BNL EDM |d_μ|<1.8×10⁻¹⁹ e·cm', plotX+4, edmY-3);
 
-    if (!paused7) t7+=(window.animSpeed || 1);
-    if (!paused7) raf7=requestAnimationFrame(draw);
+    if (!window.paused7) t7+=(window.animSpeed || 1);
+    if (!window.paused7) raf7=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf7);}};
 }
 window.toggleAnim7 = function(btn) {
-  paused7 = !paused7;
-  btn.textContent = paused7 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused7);
-  if (!paused7) raf7=requestAnimationFrame(draw);
+  window.paused7 = !window.paused7;
+  btn.textContent = window.paused7 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused7);
+  if (!window.paused7) raf7=requestAnimationFrame(draw);
 };
 
 // ── Tab 8 — Precision SM Tests ───────────────────────────────
@@ -1573,7 +1577,7 @@ window.updateP8Btn = function() {
 function initTab8() {
   const cv = document.getElementById('cv8');
   let raf8, t8=0;
-  let paused8 = false;
+  window.paused8=false;
 
   // Precision observables: {name, theory, exp, unit, sigma, color}
   const observables = [
@@ -1667,17 +1671,17 @@ function initTab8() {
     ctx.fillText('Dirac 1928: g=2 exactly  →  Kusch & Foley 1947: g≠2  →  Schwinger 1948: g=2+α/π', W/2, padT+ph+42);
     ctx.textAlign='left';
 
-    if (!paused8) t8+=(window.animSpeed || 1);
-    if (!paused8) raf8=requestAnimationFrame(draw);
+    if (!window.paused8) t8+=(window.animSpeed || 1);
+    if (!window.paused8) raf8=requestAnimationFrame(draw);
   }
   draw();
   return { stop(){cancelAnimationFrame(raf8);}};
 }
 window.toggleAnim8 = function(btn) {
-  paused8 = !paused8;
-  btn.textContent = paused8 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused8);
-  if (!paused8) raf8=requestAnimationFrame(draw);
+  window.paused8 = !window.paused8;
+  btn.textContent = window.paused8 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused8);
+  if (!window.paused8) raf8=requestAnimationFrame(draw);
 };
 
 // ── Tab 9 — Muon Anomalous Magnetic Moment & g-2 ─────────────

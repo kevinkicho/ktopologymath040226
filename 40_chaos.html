@@ -463,12 +463,31 @@ function makeCanvas(id) {
   return { cv, resize, dpr };
 }
 
+function _resizeCanvasesIn(pane) {
+  // Local fallback — auto-start.js defines window.resizeAllCanvases later
+  if (typeof window.resizeAllCanvases === 'function') {
+    window.resizeAllCanvases(pane);
+    return;
+  }
+  if (!pane) return;
+  const dpr = window.devicePixelRatio || 1;
+  pane.querySelectorAll('canvas').forEach(c => {
+    if (!c.parentElement) return;
+    const rect = c.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return;
+    c.style.width = rect.width + 'px';
+    c.style.height = rect.height + 'px';
+    c.width = Math.floor(rect.width * dpr);
+    c.height = Math.floor(rect.height * dpr);
+  });
+}
+
 function switchTab(n) {
   _cancelAllAnims40();
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === n));
   document.querySelectorAll('.pane').forEach((p, i) => p.classList.toggle('active', i === n));
   var pane = document.getElementById('pane' + n);
-  if (pane) resizeAllCanvases(pane);
+  if (pane) _resizeCanvasesIn(pane);
   if (n === 0) scheduleLoop0();
   if (n === 1) scheduleLoop1();
   if (n === 2) scheduleLoop2();
@@ -2307,7 +2326,7 @@ function scheduleLoop6() {
 // ═══════════════════════════════════════════════
 window.addEventListener('resize', () => {
   var pane = document.querySelector('.pane.active');
-  if (pane) resizeAllCanvases(pane);
+  if (pane) _resizeCanvasesIn(pane);
   cv0info.resize();
   cv1info.resize();
   cv2info.resize();

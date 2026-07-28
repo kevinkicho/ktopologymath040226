@@ -6,6 +6,77 @@
 window.animSpeed = parseFloat(sessionStorage.getItem('ktour-speed') || '1');
 window.isPaused = false;
 
+// ── Default autoplay: if a tab has ▶ Animate/Play and is still stopped after settle,
+// click it once. Skips when Pause is already showing (module already auto-started).
+// Does not own RAF loops — only triggers the module's own control once.
+(function () {
+  function isShown(el) {
+    if (!el) return false;
+    var s = window.getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden') return false;
+    var r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  }
+  function classify(text, id) {
+    var t = (text || '').replace(/\s+/g, ' ').trim();
+    var idl = (id || '').toLowerCase();
+    if (/proof|export|reset|pan\b|tour|download|copy|prev|next|home|zoom|clear/i.test(t)) return null;
+    if (/anim/i.test(idl) && !/param|speed/i.test(idl)) {
+      return /⏸|\u23f8|pause|stop/i.test(t) ? 'pause' : 'start';
+    }
+    if (/▶|⏸|\u25b6|\u23f8/.test(t) || /\banimate\b/i.test(t)) {
+      return /⏸|\u23f8|pause|stop/i.test(t) ? 'pause' : 'start';
+    }
+    if (/^(play|pause)$/i.test(t)) return /pause/i.test(t) ? 'pause' : 'start';
+    if (/^\s*play\s*$/i.test(t) || /^▶\s*play\b/i.test(t)) return 'start';
+    return null;
+  }
+  function tryAutoplay() {
+    if (window.isPaused || document.hidden) return;
+    if (window._ktAutoplayBusy) return;
+    var buttons = document.querySelectorAll('button, [role="button"], .btn');
+    var hasPause = false;
+    var startBtn = null;
+    for (var i = 0; i < buttons.length; i++) {
+      var b = buttons[i];
+      if (!isShown(b)) continue;
+      var text = (b.textContent || '').replace(/\s+/g, ' ').trim();
+      var state = classify(text, b.id);
+      if (state === 'pause') hasPause = true;
+      if (state === 'start' && !startBtn) startBtn = b;
+    }
+    // Already running — do nothing (avoids double-toggle that stops anims)
+    if (hasPause || !startBtn) return;
+    if (startBtn.getAttribute('data-kt-autoplay') === '1') return;
+    startBtn.setAttribute('data-kt-autoplay', '1');
+    window._ktAutoplayBusy = true;
+    try { startBtn.click(); } catch (e) { /* ignore */ }
+    setTimeout(function () { window._ktAutoplayBusy = false; }, 300);
+  }
+  function scheduleAutoplay() {
+    // Wait past typical module init/auto-start (300–500ms) so we only
+    // kick tabs that are still stopped — avoids double-toggle races.
+    setTimeout(tryAutoplay, 700);
+    setTimeout(tryAutoplay, 1400);
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('.tab, .tab-btn, [role="tab"]') : null;
+    if (t) {
+      // allow a fresh autoplay attempt on the new tab
+      document.querySelectorAll('[data-kt-autoplay]').forEach(function (el) {
+        el.removeAttribute('data-kt-autoplay');
+      });
+      scheduleAutoplay();
+    }
+  }, true);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleAutoplay);
+  } else {
+    scheduleAutoplay();
+  }
+  window._ktTryAutoplay = tryAutoplay;
+})();
+
 // ── Pause animations when browser tab is hidden, resume when visible ──────────
 document.addEventListener('visibilitychange', function() {
   window.isPaused = document.hidden;
@@ -66,6 +137,74 @@ window.resizeCanvas = function (canvas) {
     '.split-view>.split-66{flex:0 0 66.666%;min-height:0;min-width:0}' +
     '.split-view>canvas{flex:1 1 0;min-height:0;min-width:0}';
   document.head.appendChild(style);
+})();
+
+// ── Scrollable tab bars (many modules have 10–20 tabs) ────────────────────────
+(function () {
+  if (document.getElementById('tab-bar-scroll-css')) return;
+  var style = document.createElement('style');
+  style.id = 'tab-bar-scroll-css';
+  style.textContent =
+    /* Horizontal scroll instead of clipping when tabs overflow the viewport */
+    '.tabs, .tab-bar, [role="tablist"], [data-role="tab-bar"]{' +
+      'overflow-x:auto!important;overflow-y:hidden!important;' +
+      '-webkit-overflow-scrolling:touch;' +
+      'scrollbar-width:thin;' +
+      'max-width:100%;' +
+      'flex-wrap:nowrap!important;' +
+    '}' +
+    '.tabs::-webkit-scrollbar, .tab-bar::-webkit-scrollbar,' +
+    '[role="tablist"]::-webkit-scrollbar, [data-role="tab-bar"]::-webkit-scrollbar{height:4px}' +
+    '.tabs::-webkit-scrollbar-thumb, .tab-bar::-webkit-scrollbar-thumb,' +
+    '[role="tablist"]::-webkit-scrollbar-thumb, [data-role="tab-bar"]::-webkit-scrollbar-thumb{' +
+      'background:rgba(120,120,160,.45);border-radius:2px' +
+    '}' +
+    /* Individual tabs must not shrink — user scrolls the bar instead */
+    '.tabs > .tab, .tabs > .tab-btn, .tabs > button,' +
+    '.tab-bar > .tab, .tab-bar > .tab-btn, .tab-bar > button,' +
+    '[role="tablist"] > .tab, [role="tablist"] > .tab-btn, [role="tablist"] > button,' +
+    '[role="tablist"] > [role="tab"], [data-role="tab-bar"] > .tab,' +
+    '[data-role="tab-bar"] > .tab-btn, [data-role="tab-bar"] > button,' +
+    '[data-role="tab-bar"] > [role="tab"]{' +
+      'flex:0 0 auto!important;' +
+      'white-space:nowrap!important;' +
+    '}';
+  document.head.appendChild(style);
+
+  // Keep the active / clicked tab visible in the scroll strip
+  function scrollTabIntoView(el) {
+    if (!el || typeof el.scrollIntoView !== 'function') return;
+    try {
+      el.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+    } catch (e) {
+      try { el.scrollIntoView(false); } catch (e2) { /* ignore */ }
+    }
+  }
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target && e.target.closest
+        ? e.target.closest('.tab, .tab-btn, [role="tab"]')
+        : null;
+      if (t) scrollTabIntoView(t);
+    },
+    true
+  );
+  // After load, ensure the initially active tab is in view on narrow screens
+  function scrollActive() {
+    var a = document.querySelector(
+      '.tabs .tab.active, .tab-bar .tab.active, [role="tablist"] .tab.active,' +
+        '[role="tablist"] [role="tab"][aria-selected="true"], [data-role="tab-bar"] .tab.active'
+    );
+    if (a) scrollTabIntoView(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(scrollActive, 50);
+    });
+  } else {
+    setTimeout(scrollActive, 50);
+  }
 })();
 
 window.resizeAllCanvases = function (container) {

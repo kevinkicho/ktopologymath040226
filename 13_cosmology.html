@@ -837,8 +837,16 @@ function switchTab(n){
   }
   if(n===8){
     const sl=document.getElementById('sfSpeedSlider');
-    if(sl){sl.value=window.animSpeed||1;document.getElementById('sfSpeedVal').textContent=(window.animSpeed||1).toFixed(1)+'x';}
-    requestAnimationFrame(()=>{resizeSF();drawStructure();if(sfAnimRunning&&!sfAnimId)sfAnimLoop();});
+    const sv=document.getElementById('sfSpeedVal');
+    if(sl){sl.value=window.animSpeed||1;if(sv)sv.textContent=(window.animSpeed||1).toFixed(1)+'x';}
+    // Double rAF so flex layout has non-zero main-area before resize/draw
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        resizeSF();
+        drawStructure();
+        if(sfAnimRunning&&!sfAnimId) sfAnimLoop();
+      });
+    });
   }
 }
 
@@ -3194,173 +3202,228 @@ function drawBBN(){
 // TAB 8: COSMIC STRUCTURE FORMATION
 // ═══════════════════════════════════════════════════════════════════
 const sfC=document.getElementById('sfCanvas');
-const sfCtx=sfC.getContext('2d');
+const sfCtx=sfC.getContext('2d',{alpha:false});
 let sfZ=1100;
 let sfAnimRunning=false, sfAnimT=0, sfAnimId=null;
+// Cached Fourier modes (phases fixed; amplitudes scale with growth)
+let sfModes=null, sfFieldCache=null, sfFieldKey='';
+let sfOff=null; // reusable offscreen for slice upscale
 
 function resizeSF(){
+  if(!sfC) return;
   const p=document.getElementById('panel8');
-  const r=p.getBoundingClientRect();
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  sfC.width=r.width-sw; sfC.height=r.height;
+  if(!p) return;
+  // Prefer the main-area box (correct flex width) over panel-minus-sidebars
+  const ma=p.querySelector('.main-area');
+  const r=(ma||p).getBoundingClientRect();
+  const w=Math.max(1,Math.floor(r.width));
+  const h=Math.max(1,Math.floor(r.height));
+  if(sfC.width!==w || sfC.height!==h){
+    sfC.width=w; sfC.height=h;
+    sfC.style.width=w+'px';
+    sfC.style.height=h+'px';
+    sfFieldCache=null; // size change invalidates bitmap cache
+  }
 }
 
 function resetStructure(){
   sfAnimRunning=false;
   if(sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
   sfAnimT=0;
+  sfZ=1100;
+  const sl=document.getElementById('sfZslider');
+  const zv=document.getElementById('sfZval');
+  if(sl) sl.value=1100;
+  if(zv) zv.textContent='1100';
   const btn=document.getElementById('sfAnimBtn');
   if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}
+  sfFieldCache=null;
   drawStructure();
 }
 
 function toggleSFAnim(btn){
   sfAnimRunning=!sfAnimRunning;
   if(btn){btn.textContent=sfAnimRunning?'⏸ Pause':'▶ Animate';btn.classList.toggle('active',sfAnimRunning);}
-  if(sfAnimRunning){if(!sfAnimId) sfAnimLoop();}
-  else if(sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
+  if(sfAnimRunning){
+    // Restart cycle if already at z≈0
+    if(sfZ<=1){sfAnimT=0;sfZ=1100;}
+    if(!sfAnimId) sfAnimLoop();
+  } else if(sfAnimId){cancelAnimationFrame(sfAnimId);sfAnimId=null;}
 }
 
 function sfAnimLoop(){
   if(!sfAnimRunning){sfAnimId=null;return;}
-  sfAnimT+=0.012 * window.animSpeed;
-  // Animate z from 1100 down to 0
+  const spd=(typeof window.animSpeed==='number' && window.animSpeed>0)?window.animSpeed:1;
+  sfAnimT+=0.008*spd;
+  // Animate z from 1100 → 0, then loop
+  if(sfAnimT>=1){sfAnimT=0;}
   sfZ=Math.max(0,1100*(1-sfAnimT));
-  document.getElementById('sfZval').textContent=Math.round(sfZ);
-  document.getElementById('sfZslider').value=Math.round(sfZ);
+  const zv=document.getElementById('sfZval');
+  const sl=document.getElementById('sfZslider');
+  if(zv) zv.textContent=String(Math.round(sfZ));
+  if(sl) sl.value=String(Math.round(sfZ));
   drawStructure();
   sfAnimId=requestAnimationFrame(sfAnimLoop);
 }
 
 function drawStructure(){
+  if(!sfC||!sfCtx) return;
+  if(!sfC.width||!sfC.height) resizeSF();
   const W=sfC.width, H=sfC.height;
+  if(W<2||H<2) return;
   sfCtx.setTransform(1,0,0,1,0,0);
   sfCtx.fillStyle='#05050f'; sfCtx.fillRect(0,0,W,H);
 
-  const view=document.getElementById('sfView').value;
+  const viewEl=document.getElementById('sfView');
+  const view=viewEl?viewEl.value:'slice';
   if(view==='slice') drawSFSlice(W,H);
   else if(view==='power') drawSFPower(W,H);
   else drawSFHalos(W,H);
 }
 
-function drawSFSlice(W,H){
-  // 2D density slice: use log-normal random field with evolving correlation
-  const mx=10, my=10, pw=W-mx-10, ph=H-my-10;
-  const Nx=Math.floor(pw/3), Ny=Math.floor(ph/3);
-  const cellW=pw/Nx, cellH=ph/Ny;
-
-  // Growth factor: D(z) ~ 1/(1+z) in matter era, flattens in Λ era
-  const z=sfZ;
-  const growth=1/(1+z/10); // simplified
-
-  // Generate density field using Fourier modes
-  const field=[];
-  let seed=z*1000+42;
+/** Build fixed random Fourier modes once (cheap amp rescale per frame). */
+function sfEnsureModes(){
+  if(sfModes) return sfModes;
+  let seed=42;
   const rng=()=>{ seed=(seed*1664525+1013904223)&0xffffffff; return (seed>>>0)/0xffffffff; };
-
-  // Pre-generate random phases and amplitudes
   const modes=[];
-  for(let kx=0;kx<20;kx++){
-    for(let ky=0;ky<20;ky++){
+  // Keep mode count modest — visual quality is fine, animation stays real-time
+  const KMAX=8;
+  for(let kx=0;kx<=KMAX;kx++){
+    for(let ky=0;ky<=KMAX;ky++){
+      if(kx===0&&ky===0) continue;
       const k=Math.sqrt(kx*kx+ky*ky);
-      if(k===0) continue;
-      // Power spectrum: P(k) ∝ k^(n_s-1) * T(k)^2
       const ns=0.965;
       const kp=k/5;
-      const Tk=1/(1+kp*16); // simplified transfer function
+      const Tk=1/(1+kp*16);
       const Pk=Math.pow(k,ns-1)*Tk*Tk;
-      const amp=Math.sqrt(Pk)*growth*0.3;
-      const phase=rng()*Math.PI*2;
-      modes.push({kx,ky,amp,phase});
+      const baseAmp=Math.sqrt(Math.max(Pk,1e-12))*0.55;
+      modes.push({kx,ky,baseAmp,phase:rng()*Math.PI*2,phase2:rng()*Math.PI*2});
     }
   }
+  sfModes=modes;
+  return modes;
+}
 
-  for(let iy=0;iy<Ny;iy++){
-    for(let ix=0;ix<Nx;ix++){
-      const x=(ix+0.5)/Nx*2*Math.PI;
-      const y=(iy+0.5)/Ny*2*Math.PI;
-      let val=0;
-      for(const m of modes){
-        val+=m.amp*Math.sin(m.kx*x+m.ky*y+m.phase);
+function sfGrowth(z){
+  // D(z) ~ 1/(1+z) matter-era sketch, softer freeze-in at high z
+  return 1/(1+Math.max(0,z)/10);
+}
+
+function drawSFSlice(W,H){
+  // Leave room for title strip at bottom
+  const mx=8, my=8, bot=36, rightPad=36;
+  const pw=Math.max(8,W-mx-rightPad);
+  const ph=Math.max(8,H-my-bot);
+
+  const z=sfZ;
+  const growth=sfGrowth(z);
+
+  // Low-res field, then upscale with putImageData stretch via drawImage
+  // Cap resolution so modes×cells stays under ~1e5 ops
+  const maxDim=120;
+  const Nx=Math.max(24,Math.min(maxDim,Math.floor(pw/5)));
+  const Ny=Math.max(18,Math.min(maxDim,Math.floor(ph/5)));
+  const modes=sfEnsureModes();
+  // Quantize growth so neighboring anim frames can share a cache entry
+  const key=Nx+'x'+Ny+'@'+(Math.round(growth*40)/40).toFixed(3);
+
+  let img;
+  if(sfFieldCache && sfFieldKey===key){
+    img=sfFieldCache;
+  } else {
+    img=sfCtx.createImageData(Nx,Ny);
+    const d=img.data;
+    const field=new Float32Array(Nx*Ny);
+    let fMin=Infinity, fMax=-Infinity;
+    const twoPi=Math.PI*2;
+    for(let iy=0;iy<Ny;iy++){
+      const y=(iy+0.5)/Ny*twoPi;
+      for(let ix=0;ix<Nx;ix++){
+        const x=(ix+0.5)/Nx*twoPi;
+        let val=0;
+        for(let m=0;m<modes.length;m++){
+          const md=modes[m];
+          val+=md.baseAmp*growth*Math.sin(md.kx*x+md.ky*y+md.phase);
+          // Second harmonic for filamentary look without more modes
+          if(md.kx+md.ky<=6){
+            val+=md.baseAmp*growth*0.35*Math.sin(2*md.kx*x+2*md.ky*y+md.phase2);
+          }
+        }
+        const density=Math.exp(val*0.55);
+        field[iy*Nx+ix]=density;
+        if(density<fMin) fMin=density;
+        if(density>fMax) fMax=density;
       }
-      // Log-normal transform for positive density
-      const density=Math.exp(val*0.5);
-      field.push(density);
     }
-  }
-
-  // Normalize
-  const fMin=Math.min(...field);
-  const fMax=Math.max(...field);
-  const range=fMax-fMin||1;
-
-  // Draw pixel by pixel
-  for(let iy=0;iy<Ny;iy++){
-    for(let ix=0;ix<Nx;ix++){
-      const idx=iy*Nx+ix;
-      const norm=(field[idx]-fMin)/range;
-      // Color map: dark blue (voids) → purple → orange → white (clusters)
+    const range=(fMax-fMin)||1;
+    for(let i=0;i<field.length;i++){
+      const norm=(field[i]-fMin)/range;
       let r,g,b;
       if(norm<0.3){
         const t=norm/0.3;
-        r=Math.round(10+20*t); g=Math.round(10+30*t); b=Math.round(60+80*t);
+        r=(10+20*t)|0; g=(10+30*t)|0; b=(60+80*t)|0;
       }else if(norm<0.6){
         const t=(norm-0.3)/0.3;
-        r=Math.round(30+80*t); g=Math.round(40+60*t); b=Math.round(140-40*t);
+        r=(30+80*t)|0; g=(40+60*t)|0; b=(140-40*t)|0;
       }else if(norm<0.85){
         const t=(norm-0.6)/0.25;
-        r=Math.round(110+100*t); g=Math.round(100+80*t); b=Math.round(100-60*t);
+        r=(110+100*t)|0; g=(100+80*t)|0; b=(100-60*t)|0;
       }else{
         const t=(norm-0.85)/0.15;
-        r=Math.round(210+45*t); g=Math.round(180+75*t); b=Math.round(40+20*t);
+        r=(210+45*t)|0; g=(180+75*t)|0; b=(40+215*t)|0;
       }
-      sfCtx.fillStyle=`rgb(${r},${g},${b})`;
-      sfCtx.fillRect(mx+ix*cellW,my+iy*cellH,cellW+1,cellH+1);
+      const o=i*4;
+      d[o]=r; d[o+1]=g; d[o+2]=b; d[o+3]=255;
     }
+    sfFieldCache=img;
+    sfFieldKey=key;
   }
 
-  // Overlay grid lines
-  sfCtx.strokeStyle='rgba(255,255,255,0.03)'; sfCtx.lineWidth=0.5;
-  for(let i=0;i<=Nx;i+=10){
-    sfCtx.beginPath(); sfCtx.moveTo(mx+i*cellW,my); sfCtx.lineTo(mx+i*cellW,my+ph); sfCtx.stroke();
-  }
-  for(let i=0;i<=Ny;i+=10){
-    sfCtx.beginPath(); sfCtx.moveTo(mx,my+i*cellH); sfCtx.lineTo(mx+pw,my+i*cellH); sfCtx.stroke();
-  }
-
-  // Title
-  sfCtx.fillStyle='rgba(204,102,255,0.7)'; sfCtx.font='12px sans-serif';
-  sfCtx.textAlign='center';
-  sfCtx.fillText('Cosmic Density Field (2D slice)',W/2,my+ph+16);
-  sfCtx.fillStyle='rgba(255,255,255,0.5)'; sfCtx.font='12px monospace';
-  sfCtx.fillText('z = '+z.toFixed(0)+'  |  growth factor D(z) = '+growth.toFixed(3),W/2,my+ph+30);
-  sfCtx.textAlign='left';
+  // Upscale low-res field to canvas region
+  if(!sfOff) sfOff=document.createElement('canvas');
+  if(sfOff.width!==Nx||sfOff.height!==Ny){sfOff.width=Nx;sfOff.height=Ny;}
+  sfOff.getContext('2d').putImageData(img,0,0);
+  sfCtx.imageSmoothingEnabled=true;
+  sfCtx.drawImage(sfOff,0,0,Nx,Ny,mx,my,pw,ph);
 
   // Color bar
-  const cbX=W-30, cbY=my+20, cbH=ph-40;
+  const cbX=W-26, cbY=my+12, cbH=Math.max(20,ph-24);
   const grd=sfCtx.createLinearGradient(0,cbY,0,cbY+cbH);
-  grd.addColorStop(0,'rgb(255,255,60)');
-  grd.addColorStop(0.3,'rgb(210,180,40)');
-  grd.addColorStop(0.6,'rgb(110,100,100)');
+  grd.addColorStop(0,'rgb(255,255,255)');
+  grd.addColorStop(0.2,'rgb(255,255,60)');
+  grd.addColorStop(0.45,'rgb(210,180,40)');
+  grd.addColorStop(0.7,'rgb(110,100,100)');
   grd.addColorStop(1,'rgb(10,10,60)');
   sfCtx.fillStyle=grd; sfCtx.fillRect(cbX,cbY,12,cbH);
-  sfCtx.strokeStyle='rgba(204,102,255,0.3)'; sfCtx.strokeRect(cbX,cbY,12,cbH);
-  sfCtx.fillStyle='rgba(200,200,200,0.5)'; sfCtx.font='12px monospace';
-  sfCtx.fillText('high',cbX-6,cbY-4);
-  sfCtx.fillText('low',cbX-6,cbY+cbH+12);
+  sfCtx.strokeStyle='rgba(204,102,255,0.35)'; sfCtx.strokeRect(cbX,cbY,12,cbH);
+  sfCtx.fillStyle='rgba(200,200,200,0.55)'; sfCtx.font='11px monospace';
+  sfCtx.textAlign='right';
+  sfCtx.fillText('high',cbX-4,cbY+10);
+  sfCtx.fillText('low',cbX-4,cbY+cbH);
 
-  // Update sidebar
-  document.getElementById('sfZdisp').textContent=z.toFixed(0);
-  document.getElementById('sfSigma8').textContent=(0.81*growth).toFixed(3);
-  document.getElementById('sfKmax').textContent=(0.1*growth).toFixed(3);
-  document.getElementById('sfNhalos').textContent=Math.round(200*growth);
+  // Title (inside canvas)
+  sfCtx.textAlign='center';
+  sfCtx.fillStyle='rgba(204,102,255,0.85)'; sfCtx.font='12px sans-serif';
+  sfCtx.fillText('Cosmic Density Field (2D slice)',W/2,H-20);
+  sfCtx.fillStyle='rgba(200,200,220,0.55)'; sfCtx.font='11px monospace';
+  sfCtx.fillText('z = '+z.toFixed(0)+'  |  growth D(z) = '+growth.toFixed(3),W/2,H-6);
+  sfCtx.textAlign='left';
+
+  const sZ=document.getElementById('sfZdisp');
+  const s8=document.getElementById('sfSigma8');
+  const sk=document.getElementById('sfKmax');
+  const sh=document.getElementById('sfNhalos');
+  if(sZ) sZ.textContent=z.toFixed(0);
+  if(s8) s8.textContent=(0.81*growth).toFixed(3);
+  if(sk) sk.textContent=(0.1*growth).toFixed(3);
+  if(sh) sh.textContent=String(Math.round(200*growth));
 }
 
 function drawSFPower(W,H){
-  const mx=65, my=30, pw=W-mx-25, ph=H-my-55;
+  const mx=65, my=30, pw=Math.max(40,W-mx-25), ph=Math.max(40,H-my-55);
   const z=sfZ;
-  const growth=1/(1+z/10);
+  const growth=sfGrowth(z);
 
   // k range: 0.001 to 10 h/Mpc
   const logKmin=-3, logKmax=1;
@@ -3450,18 +3513,22 @@ function drawSFPower(W,H){
   sfCtx.fillStyle='rgba(255,100,100,0.5)'; sfCtx.font='12px sans-serif';
   sfCtx.fillText('k_eq',toX(Math.log10(k_eq))+2,my+12);
 
-  // Update sidebar
-  document.getElementById('sfZdisp').textContent=z.toFixed(0);
-  document.getElementById('sfSigma8').textContent=(0.81*growth).toFixed(3);
-  document.getElementById('sfKmax').textContent=(0.1*growth).toFixed(3);
-  document.getElementById('sfNhalos').textContent=Math.round(200*growth);
+  const sZ=document.getElementById('sfZdisp');
+  const s8=document.getElementById('sfSigma8');
+  const sk=document.getElementById('sfKmax');
+  const sh=document.getElementById('sfNhalos');
+  if(sZ) sZ.textContent=z.toFixed(0);
+  if(s8) s8.textContent=(0.81*growth).toFixed(3);
+  if(sk) sk.textContent=(0.1*growth).toFixed(3);
+  if(sh) sh.textContent=String(Math.round(200*growth));
 }
 
 function drawSFHalos(W,H){
   // Dark matter halo distribution: N-body-like visualization
-  const mx=10, my=10, pw=W-mx-10, ph=H-my-10;
+  const mx=10, my=10, bot=36;
+  const pw=Math.max(8,W-mx-10), ph=Math.max(8,H-my-bot);
   const z=sfZ;
-  const growth=1/(1+z/10);
+  const growth=sfGrowth(z);
 
   // Generate halo positions and masses
   let seed=z*999+7;
@@ -3516,19 +3583,22 @@ function drawSFHalos(W,H){
     sfCtx.fill();
   });
 
-  // Title
-  sfCtx.fillStyle='rgba(204,102,255,0.7)'; sfCtx.font='12px sans-serif';
+  // Title inside canvas
+  sfCtx.fillStyle='rgba(204,102,255,0.85)'; sfCtx.font='12px sans-serif';
   sfCtx.textAlign='center';
-  sfCtx.fillText('Dark Matter Halos (z = '+z.toFixed(0)+')',W/2,my+ph+16);
-  sfCtx.fillStyle='rgba(255,255,255,0.5)'; sfCtx.font='12px monospace';
-  sfCtx.fillText(nHalos+' halos  |  σ₈ = '+(0.81*growth).toFixed(3),W/2,my+ph+30);
+  sfCtx.fillText('Dark Matter Halos (z = '+z.toFixed(0)+')',W/2,H-20);
+  sfCtx.fillStyle='rgba(200,200,220,0.55)'; sfCtx.font='11px monospace';
+  sfCtx.fillText(nHalos+' halos  |  σ₈ = '+(0.81*growth).toFixed(3),W/2,H-6);
   sfCtx.textAlign='left';
 
-  // Update sidebar
-  document.getElementById('sfZdisp').textContent=z.toFixed(0);
-  document.getElementById('sfSigma8').textContent=(0.81*growth).toFixed(3);
-  document.getElementById('sfKmax').textContent=(0.1*growth).toFixed(3);
-  document.getElementById('sfNhalos').textContent=nHalos;
+  const sZ=document.getElementById('sfZdisp');
+  const s8=document.getElementById('sfSigma8');
+  const sk=document.getElementById('sfKmax');
+  const sh=document.getElementById('sfNhalos');
+  if(sZ) sZ.textContent=z.toFixed(0);
+  if(s8) s8.textContent=(0.81*growth).toFixed(3);
+  if(sk) sk.textContent=(0.1*growth).toFixed(3);
+  if(sh) sh.textContent=String(nHalos);
 }
 
 // ── RESIZE & INIT ──

@@ -1050,8 +1050,42 @@ function _cancelAllAnims(){
   names.forEach((n,i)=>{
     if(RAF[n]){cancelAnimationFrame(RAF[n]);RAF[n]=null;}
     const b=document.getElementById(btnIds[i]);
-    if(b){b.textContent='\u25b6 Animate';b.classList.remove('active');}
+    // Pause-style controls (tabs 8–14) use ⏸ Pause; animate-style use ▶ Animate
+    if(b){
+      const isPauseCtrl=/Pause|⏸|brstPause|ghPause|renPause|eaPause|smPause|wiPause|gfPause/i.test(b.id+' '+b.textContent);
+      b.textContent=isPauseCtrl?'\u23f8 Pause':'\u25b6 Animate';
+      if(!isPauseCtrl) b.classList.remove('active');
+    }
   });
+  // Clear loop flags so start*Loop re-arms on re-entry (tabs 8–14)
+  try{
+    brstRunning=false; ghRunning=false; renRunning=false;
+    eaRunning=false; smRunning=false; wiRunning=false; gfRunning=false;
+  }catch(e){/* vars may not exist during early bootstrap */}
+}
+
+/** Size a tab canvas to its panel main-area (same approach as tabs 0–7). */
+function _resizeMainCanvas(canvas, panelId){
+  if(!canvas) return;
+  const p=document.getElementById(panelId);
+  if(!p) return;
+  const ma=p.querySelector('.main-area');
+  const r=(ma||p).getBoundingClientRect();
+  let w=Math.floor(r.width), h=Math.floor(r.height);
+  if(!ma){
+    // Fallback: panel width minus sidebars
+    let sw=0;
+    p.querySelectorAll('.sidebar').forEach(s=>sw+=s.offsetWidth);
+    w=Math.floor(r.width-sw);
+    h=Math.floor(r.height);
+  }
+  w=Math.max(1,w); h=Math.max(1,h);
+  if(canvas.width!==w||canvas.height!==h){
+    canvas.width=w;
+    canvas.height=h;
+  }
+  canvas.style.width=w+'px';
+  canvas.style.height=h+'px';
 }
 function switchTab(n){
   _cancelAllAnims();
@@ -1073,7 +1107,10 @@ function switchTab(n){
     ()=>{resizeSM();redrawSM();startSMLoop();},
     ()=>{resizeWI();redrawWI();startWILoop();},
     ()=>{resizeGF();redrawGF();startGFLoop();}];
-  if(startFns[n]) startFns[n]();
+  // Double-rAF so panel layout has non-zero size before resize/draw
+  const tabN=n;
+  const raf=window.requestAnimationFrame||(cb=>setTimeout(cb,16));
+  raf(()=>{ raf(()=>{ if(activeTab!==tabN) return; if(startFns[tabN]) startFns[tabN](); }); });
 }
 
 function openProof(idx){
@@ -2870,7 +2907,7 @@ function setBRSTView(v){
   document.getElementById('brstView1').classList.toggle('active',v===1);
   redrawBRST();
 }
-function resizeBRST(){ window.resizeCanvas(brstC); }
+function resizeBRST(){ _resizeMainCanvas(brstC,'panel8'); }
 function toggleBRSTPause(){
   brstPaused=!brstPaused;
   _setPauseBtn('brstPauseBtn',brstPaused);
@@ -2960,7 +2997,9 @@ function brstLoop(){
 }
 function startBRSTLoop(){
   resizeBRST();
-  if(!brstRunning){brstRunning=true;brstLoop();}
+  brstRunning=true;
+  if(RAF.brst){cancelAnimationFrame(RAF.brst);RAF.brst=null;}
+  brstLoop();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2977,7 +3016,7 @@ function setGHView(v){
   document.getElementById('ghView1').classList.toggle('active',v===1);
   redrawGH();
 }
-function resizeGH(){ window.resizeCanvas(ghC); }
+function resizeGH(){ _resizeMainCanvas(ghC,'panel9'); }
 function toggleGHPause(){
   ghPaused=!ghPaused;
   _setPauseBtn('ghPauseBtn',ghPaused);
@@ -3071,7 +3110,9 @@ function ghLoop(){
 }
 function startGHLoop(){
   resizeGH();
-  if(!ghRunning){ghRunning=true;ghLoop();}
+  ghRunning=true;
+  if(RAF.gh){cancelAnimationFrame(RAF.gh);RAF.gh=null;}
+  ghLoop();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3088,7 +3129,7 @@ function setRENView(v){
   document.getElementById('renView1').classList.toggle('active',v===1);
   redrawREN();
 }
-function resizeREN(){ window.resizeCanvas(renC); }
+function resizeREN(){ _resizeMainCanvas(renC,'panel10'); }
 function toggleRENPause(){
   renPaused=!renPaused;
   _setPauseBtn('renPauseBtn',renPaused);
@@ -3197,7 +3238,9 @@ function renLoop(){
 }
 function startRENLoop(){
   resizeREN();
-  if(!renRunning){renRunning=true;renLoop();}
+  renRunning=true;
+  if(RAF.ren){cancelAnimationFrame(RAF.ren);RAF.ren=null;}
+  renLoop();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3214,7 +3257,7 @@ function setEAView(v){
   document.getElementById('eaView1').classList.toggle('active',v===1);
   redrawEA();
 }
-function resizeEA(){ window.resizeCanvas(eaC); }
+function resizeEA(){ _resizeMainCanvas(eaC,'panel11'); }
 function toggleEAPause(){
   eaPaused=!eaPaused;
   _setPauseBtn('eaPauseBtn',eaPaused);
@@ -3325,7 +3368,9 @@ function eaLoop(){
 }
 function startEALoop(){
   resizeEA();
-  if(!eaRunning){eaRunning=true;eaLoop();}
+  eaRunning=true;
+  if(RAF.ea){cancelAnimationFrame(RAF.ea);RAF.ea=null;}
+  eaLoop();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3342,7 +3387,7 @@ function setSMView(v){
   document.getElementById('smView1').classList.toggle('active',v===1);
   redrawSM();
 }
-function resizeSM(){ window.resizeCanvas(smC); }
+function resizeSM(){ _resizeMainCanvas(smC,'panel12'); }
 function toggleSMPause(){
   smPaused=!smPaused;
   _setPauseBtn('smPauseBtn',smPaused);
@@ -3456,7 +3501,9 @@ function smLoop(){
 }
 function startSMLoop(){
   resizeSM();
-  if(!smRunning){smRunning=true;smLoop();}
+  smRunning=true;
+  if(RAF.sm){cancelAnimationFrame(RAF.sm);RAF.sm=null;}
+  smLoop();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3473,7 +3520,7 @@ function setWIView(v){
   document.getElementById('wiView1').classList.toggle('active',v===1);
   redrawWI();
 }
-function resizeWI(){ window.resizeCanvas(wiC); }
+function resizeWI(){ _resizeMainCanvas(wiC,'panel13'); }
 function toggleWIPause(){
   wiPaused=!wiPaused;
   _setPauseBtn('wiPauseBtn',wiPaused);
@@ -3553,7 +3600,9 @@ function wiLoop(){
 }
 function startWILoop(){
   resizeWI();
-  if(!wiRunning){wiRunning=true;wiLoop();}
+  wiRunning=true;
+  if(RAF.wi){cancelAnimationFrame(RAF.wi);RAF.wi=null;}
+  wiLoop();
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3569,7 +3618,7 @@ function setGFView(v){
   [0,1,2].forEach(i=>document.getElementById('gfView'+i).classList.toggle('active',i===v));
   redrawGF();
 }
-function resizeGF(){ window.resizeCanvas(gfC); }
+function resizeGF(){ _resizeMainCanvas(gfC,'panel14'); }
 function toggleGFPause(){
   gfPaused=!gfPaused;
   _setPauseBtn('gfPauseBtn',gfPaused);
@@ -3646,7 +3695,9 @@ function gfLoop(){
 }
 function startGFLoop(){
   resizeGF();
-  if(!gfRunning){gfRunning=true;gfLoop();}
+  gfRunning=true;
+  if(RAF.gf){cancelAnimationFrame(RAF.gf);RAF.gf=null;}
+  gfLoop();
 }
 
 // Initialize lattice on load (called from this script block after all defs)

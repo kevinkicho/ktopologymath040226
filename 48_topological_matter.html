@@ -416,9 +416,9 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#001
       <label>Speed:</label><input type="range" id="speed7" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal7">1x</span>
     </div>
     <div class="info-box" id="fqheInfo">
-      Laughlin state: $\Psi_m = \prod_{i<j}(z_i-z_j)^m\exp(-\sum|z_k|^2/4l_B^2)$
-      &nbsp;|&nbsp; ν = 1/<span class="val" id="fqheNuVal">3</span>
-      &nbsp;|&nbsp; Anyon statistics θ = π/<span class="val" id="fqheThetaVal">3</span>
+      <div>Laughlin state ν = 1/m (see about panel for Ψ<sub>m</sub>)</div>
+      <div>ν = 1/<span class="val" id="fqheNuVal">3</span>
+      &nbsp;|&nbsp; Anyon statistics θ = π/<span class="val" id="fqheThetaVal">3</span></div>
     </div>
   </div>
   <div class="side-panel" data-role="sidebar" id="about7">
@@ -447,7 +447,15 @@ function _cancelAllAnims48(){
   if(raf5){cancelAnimationFrame(raf5);raf5=null;}
   if(raf6){cancelAnimationFrame(raf6);raf6=null;}
   if(raf7){cancelAnimationFrame(raf7);raf7=null;}
-  const btns=['btnAnimQHE','btnAnim1','btnAnimBerry','btnAnimTopo','btnAnim5','btnAnim6','btnAnim7'];
+  // Clear run flags so switchTab can force-start again
+  if(typeof animQHE!=='undefined') animQHE=false;
+  if(typeof animating1!=='undefined') animating1=false;
+  if(typeof animTopo!=='undefined') animTopo=false;
+  if(typeof chernAnim!=='undefined') chernAnim=false;
+  if(typeof anim5!=='undefined') anim5=false;
+  if(typeof anim6!=='undefined') anim6=false;
+  if(typeof anim7!=='undefined') anim7=false;
+  const btns=['btnAnimQHE','btnAnim1','btnAnimBerry','btnAnimTopo','btnAnim5','btnAnim6','btnAnim7','btnChernAnim','btnZ2Anim'];
   btns.forEach(id=>{
     const b=document.getElementById(id);
     if(b){b.textContent='\u25b6';b.classList.remove('active-btn');}
@@ -475,14 +483,23 @@ function switchTab(i){
   document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',j===i));
   syncSpeedControl48(i);
   resizeAll();
-  if(i===0) toggleAnimQHE();
-  if(i===1) toggleAnim1();
-  if(i===2) toggleChernAnim();
-  if(i===3) toggleAnimTopo();
+  // Force-start animations (do not use toggle* — cancel left flags false / buttons at ▶)
+  if(i===0){
+    if(!animQHE) toggleAnimQHE();
+  }
+  if(i===1){
+    if(!animating1) toggleAnim1();
+  }
+  if(i===2){
+    if(typeof chernAnim!=='undefined' && !chernAnim && typeof toggleChernAnim==='function') toggleChernAnim();
+  }
+  if(i===3){
+    if(typeof animTopo!=='undefined' && !animTopo && typeof toggleAnimTopo==='function') toggleAnimTopo();
+  }
   if(i===4) { draw3(); if(gmrMode==='rotating'||showHardDrive) animGMR(); }
-  if(i===5) { draw5(); if(anim5) loopAnim5(); }
-  if(i===6) { draw6(); if(anim6) loopAnim6(); }
-  if(i===7) { draw7(); if(anim7) loopAnim7(); }
+  if(i===5) { draw5(); if(!anim5 && typeof toggleAnim5==='function') toggleAnim5(); else if(anim5) loopAnim5(); }
+  if(i===6) { draw6(); if(!anim6 && typeof toggleAnim6==='function') toggleAnim6(); else if(anim6) loopAnim6(); }
+  if(i===7) { draw7(); if(!anim7 && typeof toggleAnim7==='function') toggleAnim7(); else if(anim7) loopAnim7(); }
 }
 
 function setupCanvas(id){
@@ -2395,9 +2412,9 @@ function reset7(){
   fqheNu=3; fqheN=6; fqheAnimT=0; anim7=false;
   document.getElementById('fqheNuSel').value='3';
   document.getElementById('fqheNSel').value='6';
-  document.getElementById('fqheNuVal').textContent='3';
-  document.getElementById('fqheThetaVal').textContent='3';
-  document.getElementById('btnAnim7').textContent='\u25b6'; document.getElementById('btnAnim7').classList.remove('active-btn');
+  const nuEl=document.getElementById('fqheNuVal'); if(nuEl) nuEl.textContent='3';
+  const thEl=document.getElementById('fqheThetaVal'); if(thEl) thEl.textContent='3';
+  const b7=document.getElementById('btnAnim7'); if(b7){b7.textContent='\u25b6'; b7.classList.remove('active-btn');}
   draw7();
 }
 
@@ -2417,8 +2434,8 @@ function draw7(){
   const N=fqheN;
   const theta=Math.PI/m;
 
-  document.getElementById('fqheNuVal').textContent=m;
-  document.getElementById('fqheThetaVal').textContent=m;
+  const nuEl=document.getElementById('fqheNuVal'); if(nuEl) nuEl.textContent=m;
+  const thEl=document.getElementById('fqheThetaVal'); if(thEl) thEl.textContent=m;
 
   // Generate particle positions on a disk
   const cx=W/2, cy=H*0.4;

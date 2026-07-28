@@ -68,7 +68,7 @@ button.active{background:rgba(68,170,255,0.35);box-shadow:0 0 14px #44aaff66}
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(8)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(8)}">Octonions</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(9)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(9)}">Clifford Algebras</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(10)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(10)}">Quat. Analysis</div>
-  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(11)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(11)}">HP\u207F Spaces</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(11)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(11)}">HPⁿ Spaces</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(12)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(12)}">Screw Theory</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(13)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(13)}">Cayley-Dickson</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(14)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(14)}">Computer Graphics</div>
@@ -762,6 +762,7 @@ button.active{background:rgba(68,170,255,0.35);box-shadow:0 0 14px #44aaff66}
   <div class="proof-content" id="proofContent"></div>
 </div>
 
+<script src="lib/tab-controller.js"></script>
 <script>
 const PROOFS=[
   {title:"Quaternion Multiplication Rule",body:`
@@ -830,6 +831,9 @@ const NUM_TABS=15;
 let activeTab=0;
 const pans=Array.from({length:NUM_TABS},()=>({x:0,y:0}));
 let panMode=false,_panDrag=false,_panSX=0,_panSY=0,_panTab=0;
+// Tabs 6–14 animation handles (must exist before _cancelAllAnims15 runs)
+let hopfAnimId=null, bqAnimId=null, octAnimId=null, cliffAnimId=null;
+let qaAnimId=null, hpnAnimId=null, scrAnimId=null, cdAnimId=null, cgAnimId=null;
 
 function togglePan(){
   panMode=!panMode;
@@ -936,37 +940,42 @@ function autoStartAnimations() {
   }
   syncSpeedControl15();
   
-  // Auto-start the first animation in the active tab
+  // Auto-start the primary animation for the active tab (idempotent: only start if stopped)
+  function _startIf(fn, isRunning) {
+    if (typeof isRunning === 'function' ? !isRunning() : !isRunning) {
+      try { fn(); } catch (e) { console.warn(e); }
+    }
+  }
   if (activeTab === 0) {
-    // No auto-start for Tab 0 (static visualization)
+    _startIf(animQAlg, () => !!qAlgAnimId);
   } else if (activeTab === 1) {
-    animS3();
+    _startIf(animS3, () => !!s3AnimId);
   } else if (activeTab === 2) {
-    animateRot();
+    _startIf(animateRot, () => !!rotAnimId);
   } else if (activeTab === 3) {
-    animateCayley();
+    _startIf(animateCayley, () => !!cayleyAnim);
   } else if (activeTab === 4) {
-    animPhys();
+    _startIf(animPhys, () => !!physAnimId);
   } else if (activeTab === 5) {
-    animTech();
+    _startIf(animTech, () => !!techAnimId);
   } else if (activeTab === 6) {
-    animHopf();
+    _startIf(animHopf, () => !!hopfAnimId);
   } else if (activeTab === 7) {
-    animBQ();
+    _startIf(animBQ, () => !!bqAnimId);
   } else if (activeTab === 8) {
-    animOct();
+    _startIf(animOct, () => !!octAnimId);
   } else if (activeTab === 9) {
-    animCliff();
+    _startIf(animCliff, () => !!cliffAnimId);
   } else if (activeTab === 10) {
-    animQA();
+    _startIf(animQA, () => !!qaAnimId);
   } else if (activeTab === 11) {
-    animHPN();
+    _startIf(animHPN, () => !!hpnAnimId);
   } else if (activeTab === 12) {
-    animSCR();
+    _startIf(animSCR, () => !!scrAnimId);
   } else if (activeTab === 13) {
-    animCD();
+    _startIf(animCD, () => !!cdAnimId);
   } else if (activeTab === 14) {
-    animCG();
+    _startIf(animCG, () => !!cgAnimId);
   }
 }
 
@@ -977,14 +986,58 @@ function syncSpeedControl15() {
     display.textContent = (window.animSpeed || 1).toFixed(1);
   }
 }
+// Opt-in TabController: same lifecycle as before (cancel → show → draw → autoStart),
+// plus aria-selected updates. Falls back if lib/tab-controller.js failed to load.
+const _tc15 = (window.TabController && window.TabController.create)
+  ? window.TabController.create('15_quaternions', {
+      initial: 0,
+      cancelAll: function () { _cancelAllAnims15(); },
+      setActive: function (t) {
+        activeTab = t;
+        if (window.TabController.showIndexedPanels) {
+          window.TabController.showIndexedPanels(t, NUM_TABS, 'panel', 'flex');
+        } else {
+          for (let i = 0; i < NUM_TABS; i++) {
+            const el = document.getElementById('panel' + i);
+            if (el) el.style.display = i === t ? 'flex' : 'none';
+          }
+        }
+        const tabs = document.querySelectorAll('.tab');
+        if (window.TabController.setTabChrome) {
+          window.TabController.setTabChrome(tabs, t);
+        } else {
+          tabs.forEach((el, i) => el.classList.toggle('active', i === t));
+        }
+        syncSpeedControl15();
+      },
+      enter: function (t) {
+        activeTab = t;
+        redrawTab();
+      },
+      autoStart: function () {
+        autoStartAnimations();
+      }
+    })
+  : null;
+
 function switchTab(t){
+  if (_tc15) {
+    _tc15.go(t);
+    return;
+  }
+  // Fallback (identical pre-controller behavior)
   _cancelAllAnims15();
   activeTab=t;
   for(let i=0;i<NUM_TABS;i++){
     const el=document.getElementById('panel'+i);
     if(el)el.style.display=i===t?'flex':'none';
   }
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===t));
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',i===t);
+    if(el.getAttribute('role')==='tab'||el.hasAttribute('aria-selected')){
+      el.setAttribute('aria-selected',i===t?'true':'false');
+    }
+  });
   syncSpeedControl15();
   redrawTab();
   autoStartAnimations();
@@ -2326,23 +2379,694 @@ function animQAlg(){
   frame();
 }
 
+// ═══════════════════════════════════════════════════════
+//  TABS 6–14: draw / update / animate / reset
+// ═══════════════════════════════════════════════════════
+let hopfPhase=0, bqPhase=0, octPhase=0, cliffPhase=0, qaPhase=0;
+let hpnPhase=0, scrPhase=0, cdPhase=0, cgPhase=0;
+let octMode=0, cliffMode=0, qaMode=0, cdStep=2, cgMode=0;
+
+function _fillCanvas(ctx,c,panIdx){
+  resizeCanvas(c);
+  const W=c.width,H=c.height;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='#06060f';ctx.fillRect(0,0,W,H);
+  ctx.setTransform(1,0,0,1,pans[panIdx].x,pans[panIdx].y);
+  return{W,H,cx:W/2,cy:H/2};
+}
+function _title(ctx,cx,cy,W,H,title,sub){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='rgba(68,170,255,0.9)';ctx.font='13px Share Tech Mono';ctx.textAlign='left';
+  ctx.fillText(title,16,22);
+  if(sub){ctx.fillStyle='rgba(180,200,255,0.55)';ctx.font='11px Share Tech Mono';ctx.fillText(sub,16,40);}
+}
+function _toggleAnim(idName,getId,setId,btnId,onFrame){
+  const btn=document.getElementById(btnId);
+  if(getId()){cancelAnimationFrame(getId());setId(null);if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}return;}
+  if(btn){btn.textContent='⏸ Pause';btn.classList.add('active');}
+  function frame(){onFrame();setId(requestAnimationFrame(frame));}
+  frame();
+}
+function _resetAnim(getId,setId,btnId,resetState,drawFn){
+  if(getId()){cancelAnimationFrame(getId());setId(null);}
+  const btn=document.getElementById(btnId);
+  if(btn){btn.textContent='▶ Animate';btn.classList.remove('active');}
+  resetState();drawFn();
+}
+
+// ── TAB 6: Hopf Fibration ──
+function updateHopf(){
+  const n=parseInt(document.getElementById('hopfN').value,10);
+  const lat=parseFloat(document.getElementById('hopfLat').value);
+  const phi=parseFloat(document.getElementById('hopfPhi').value);
+  document.getElementById('v_hopfN').textContent=n;
+  document.getElementById('v_hopfLat').textContent=lat.toFixed(2);
+  document.getElementById('v_hopfPhi').textContent=phi.toFixed(2);
+  const info=document.getElementById('hopfInfo');
+  if(info) info.textContent=`Hopf map h:S³→S² — ${n} fibers, θ=${lat.toFixed(2)}, φ=${phi.toFixed(2)}`;
+  drawHopf();
+}
+function drawHopf(){
+  const{W,H,cx,cy}=_fillCanvas(hopfCtx,hopfC,6);
+  const scale=Math.min(W,H)*0.28;
+  const nF=parseInt(document.getElementById('hopfN').value,10)||12;
+  const baseLat=parseFloat(document.getElementById('hopfLat').value)||0.8;
+  const basePhi=parseFloat(document.getElementById('hopfPhi').value)||0;
+  const rx=0.45, ry=0.55+hopfPhase;
+  const NT=100, allLines=[];
+  for(let fi=0;fi<nF;fi++){
+    const phi=basePhi+fi/nF*2*Math.PI;
+    const theta=baseLat+Math.sin(phi*0.5)*0.25;
+    const cosT=Math.cos(theta),sinT=Math.sin(theta);
+    const a=Math.sqrt(Math.max(0,(1+cosT)/2)), b=Math.sqrt(Math.max(0,(1-cosT)/2));
+    if(a<0.02||b<0.02) continue;
+    const pts=[];
+    for(let i=0;i<=NT;i++){
+      const t=i/NT*2*Math.PI;
+      const x1=Math.cos(t/2)*a, x2=Math.sin(t/2)*a;
+      const x3=Math.cos(phi+t/2)*b, x4=Math.sin(phi+t/2)*b;
+      const denom=1-x4;
+      if(Math.abs(denom)<0.06) continue;
+      pts.push([x1/denom,x2/denom,x3/denom]);
+    }
+    allLines.push({pts,hue:fi/nF*360});
+  }
+  allLines.forEach(l=>{
+    l.rpts=l.pts.map(p=>{
+      const pr=proj3D(p,rx,ry);
+      return{x:cx+pr.x*scale,y:cy-pr.y*scale,z:pr.z};
+    });
+    l.zMean=l.rpts.reduce((s,p)=>s+p.z,0)/(l.rpts.length||1);
+  });
+  allLines.sort((a,b)=>a.zMean-b.zMean);
+  allLines.forEach(({rpts,hue})=>{
+    if(rpts.length<2) return;
+    hopfCtx.beginPath();
+    rpts.forEach((p,i)=>{if(i===0)hopfCtx.moveTo(p.x,p.y);else hopfCtx.lineTo(p.x,p.y);});
+    hopfCtx.strokeStyle=`hsl(${hue},80%,60%)`;hopfCtx.lineWidth=1.5;hopfCtx.stroke();
+  });
+  // base S² silhouette
+  hopfCtx.strokeStyle='rgba(68,170,255,0.25)';hopfCtx.lineWidth=1;
+  hopfCtx.beginPath();hopfCtx.arc(cx,cy,scale*0.55,0,Math.PI*2);hopfCtx.stroke();
+  _title(hopfCtx,cx,cy,W,H,`Hopf fibration S³→S² — ${nF} fibers`,`Each colored circle is one S¹ fiber (stereographic proj to ℝ³)`);
+}
+function animHopf(){
+  _toggleAnim('hopf',()=>hopfAnimId,v=>hopfAnimId=v,'hopfAnimBtn',()=>{
+    hopfPhase=(hopfPhase+0.012*(window.animSpeed||1))%(2*Math.PI);drawHopf();
+  });
+}
+function resetHopfAnim(){
+  _resetAnim(()=>hopfAnimId,v=>hopfAnimId=v,'hopfAnimBtn',()=>{hopfPhase=0;},drawHopf);
+}
+
+// ── TAB 7: Biquaternions ──
+function updateBQ(){
+  const a=parseFloat(document.getElementById('bqA').value);
+  const ai=parseFloat(document.getElementById('bqAi').value);
+  const b=parseFloat(document.getElementById('bqB').value);
+  const bi=parseFloat(document.getElementById('bqBi').value);
+  document.getElementById('v_bqA').textContent=a.toFixed(2);
+  document.getElementById('v_bqAi').textContent=ai.toFixed(2);
+  document.getElementById('v_bqB').textContent=b.toFixed(2);
+  document.getElementById('v_bqBi').textContent=bi.toFixed(2);
+  const info=document.getElementById('bqInfo');
+  if(info) info.textContent=`a=${a.toFixed(2)}+${ai.toFixed(2)}i  b=${b.toFixed(2)}+${bi.toFixed(2)}i\n|q|²≈${(a*a+ai*ai+b*b+bi*bi).toFixed(3)}`;
+  drawBQ();
+}
+function drawBQ(){
+  const{W,H,cx,cy}=_fillCanvas(bqCtx,bqC,7);
+  const a=parseFloat(document.getElementById('bqA').value)||1;
+  const ai=parseFloat(document.getElementById('bqAi').value)||0;
+  const b=parseFloat(document.getElementById('bqB').value)||0.5;
+  const bi=parseFloat(document.getElementById('bqBi').value)||0.3;
+  const t=bqPhase;
+  const scale=Math.min(W,H)*0.22;
+  // 2×2 complex matrix picture of biquaternion block
+  const blocks=[
+    {lab:'a',re:a,im:ai,x:cx-scale*1.4,y:cy-scale*0.6,col:'#44aaff'},
+    {lab:'b',re:b,im:bi,x:cx+scale*0.4,y:cy-scale*0.6,col:'#ff8844'},
+    {lab:'−b̄',re:-b,im:bi,x:cx-scale*1.4,y:cy+scale*0.5,col:'#44ff88'},
+    {lab:'ā',re:a,im:-ai,x:cx+scale*0.4,y:cy+scale*0.5,col:'#ffaa44'}
+  ];
+  bqCtx.strokeStyle='rgba(68,170,255,0.35)';bqCtx.lineWidth=1.5;
+  bqCtx.strokeRect(cx-scale*1.7,cy-scale*1.1,scale*3.4,scale*2.2);
+  blocks.forEach(bl=>{
+    const r=12+8*Math.hypot(bl.re,bl.im);
+    const ox=Math.cos(t+bl.re)*6, oy=Math.sin(t+bl.im)*6;
+    bqCtx.beginPath();bqCtx.arc(bl.x+ox,bl.y+oy,r,0,Math.PI*2);
+    bqCtx.fillStyle=bl.col+'33';bqCtx.fill();bqCtx.strokeStyle=bl.col;bqCtx.lineWidth=2;bqCtx.stroke();
+    bqCtx.fillStyle=bl.col;bqCtx.font='12px Share Tech Mono';bqCtx.textAlign='center';
+    bqCtx.fillText(bl.lab,bl.x+ox,bl.y+oy-r-8);
+    bqCtx.fillText(`${bl.re.toFixed(1)}+${bl.im.toFixed(1)}i`,bl.x+ox,bl.y+oy+4);
+  });
+  // Lorentz boost sketch
+  bqCtx.textAlign='left';
+  bqCtx.fillStyle='rgba(255,200,100,0.75)';bqCtx.font='12px Share Tech Mono';
+  bqCtx.fillText('ℍ⊗ℂ ≅ M₂(ℂ)  —  used for Lorentz spinors & EM',cx-W*0.42,cy+H*0.42);
+  _title(bqCtx,cx,cy,W,H,'Biquaternions ℍ⊗ℂ','Complex coefficients on 1,i,j,k — matrix isomorphism M₂(ℂ)');
+}
+function animBQ(){
+  _toggleAnim('bq',()=>bqAnimId,v=>bqAnimId=v,'bqAnimBtn',()=>{
+    bqPhase+=0.02*(window.animSpeed||1);drawBQ();
+  });
+}
+function resetBQAnim(){
+  _resetAnim(()=>bqAnimId,v=>bqAnimId=v,'bqAnimBtn',()=>{bqPhase=0;},drawBQ);
+}
+
+// ── TAB 8: Octonions ──
+function setOctMode(m){
+  octMode=m;
+  ['octm0','octm1','octm2'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',i===m);});
+  drawOct();
+}
+function updateOct(){
+  const hl=parseInt(document.getElementById('octHl').value,10);
+  document.getElementById('v_octHl').textContent=hl;
+  const info=document.getElementById('octInfo');
+  if(info) info.textContent=`Highlight e${hl} — mode ${['table','Fano','Moufang'][octMode]}`;
+  drawOct();
+}
+function drawOct(){
+  const{W,H,cx,cy}=_fillCanvas(octCtx,octC,8);
+  const hl=parseInt(document.getElementById('octHl').value,10)||1;
+  if(octMode===1){
+    // Fano plane (reuse triples)
+    const R=Math.min(W,H)*0.32;
+    const verts=[];
+    for(let i=0;i<7;i++){
+      const ang=Math.PI/2+i*2*Math.PI/7+octPhase*0.15;
+      verts.push({x:cx+R*Math.cos(ang),y:cy+R*Math.sin(ang)});
+    }
+    const lineColors=['#44aaff','#ff8844','#44ff88','#ff44aa','#ffff44','#ff6688','#88ffcc'];
+    OCT_TRIPLES.forEach(([a,b,c],idx)=>{
+      const va=verts[a-1],vb=verts[b-1],vc=verts[c-1];
+      octCtx.strokeStyle=lineColors[idx];octCtx.lineWidth=2;octCtx.globalAlpha=0.55;
+      octCtx.beginPath();octCtx.moveTo(va.x,va.y);octCtx.lineTo(vb.x,vb.y);octCtx.lineTo(vc.x,vc.y);octCtx.closePath();octCtx.stroke();
+      octCtx.globalAlpha=1;
+    });
+    verts.forEach((v,i)=>{
+      const on=i+1===hl;
+      octCtx.beginPath();octCtx.arc(v.x,v.y,on?16:12,0,Math.PI*2);
+      octCtx.fillStyle=on?'#44aaff':'#ff8844';octCtx.fill();
+      octCtx.fillStyle='#fff';octCtx.font='bold 12px Share Tech Mono';octCtx.textAlign='center';octCtx.textBaseline='middle';
+      octCtx.fillText('e'+(i+1),v.x,v.y);
+    });
+    octCtx.textBaseline='alphabetic';
+    _title(octCtx,cx,cy,W,H,'Octonion Fano plane','Colored triangles encode eᵢeⱼ=eₖ (cyclic)');
+    return;
+  }
+  if(octMode===2){
+    // Moufang identity visual: (xy)(zx)=x(yz)x schematic
+    const nodes=[{l:'x',x:cx-120,y:cy},{l:'y',x:cx,y:cy-90},{l:'z',x:cx+120,y:cy},{l:'(xy)(zx)',x:cx,y:cy+100}];
+    nodes.forEach((n,i)=>{
+      const pulse=6*Math.sin(octPhase+i);
+      octCtx.beginPath();octCtx.arc(n.x,n.y+pulse,22,0,Math.PI*2);
+      octCtx.fillStyle='#44aaff33';octCtx.fill();octCtx.strokeStyle='#44aaff';octCtx.lineWidth=2;octCtx.stroke();
+      octCtx.fillStyle='#cceeff';octCtx.font='12px Share Tech Mono';octCtx.textAlign='center';
+      octCtx.fillText(n.l,n.x,n.y+pulse+4);
+    });
+    octCtx.strokeStyle='rgba(255,200,100,0.5)';octCtx.setLineDash([4,4]);
+    octCtx.beginPath();octCtx.moveTo(nodes[0].x,nodes[0].y);octCtx.lineTo(nodes[1].x,nodes[1].y);octCtx.lineTo(nodes[2].x,nodes[2].y);octCtx.lineTo(nodes[3].x,nodes[3].y);octCtx.stroke();
+    octCtx.setLineDash([]);
+    octCtx.fillStyle='rgba(255,200,100,0.8)';octCtx.font='12px Share Tech Mono';octCtx.textAlign='left';
+    octCtx.fillText('Moufang: (xy)(zx) = x(yz)x   — holds in 𝕆 even without associativity',cx-W*0.42,cy+H*0.42);
+    _title(octCtx,cx,cy,W,H,'Moufang identities','Aut(𝕆)=G₂ (dim 14)');
+    return;
+  }
+  // Multiplication table heatmap
+  const n=8, cell=Math.min(36,Math.floor(Math.min(W,H)*0.07));
+  const ox=cx-(n*cell)/2, oy=cy-(n*cell)/2+10;
+  const labels=['1','e1','e2','e3','e4','e5','e6','e7'];
+  // sign table for left mult by e_hl (simplified visual)
+  for(let i=0;i<n;i++){
+    for(let j=0;j<n;j++){
+      const x=ox+j*cell,y=oy+i*cell;
+      const same=i===hl||j===hl;
+      const hue=(i*47+j*31+octPhase*40)%360;
+      octCtx.fillStyle=same?`hsla(${hue},70%,45%,0.55)`:`hsla(${hue},50%,30%,0.35)`;
+      octCtx.fillRect(x,y,cell-2,cell-2);
+      if(i===0){octCtx.fillStyle='#aaccee';octCtx.font='10px Share Tech Mono';octCtx.textAlign='center';octCtx.fillText(labels[j],x+cell/2,y-6);}
+      if(j===0){octCtx.fillStyle='#aaccee';octCtx.font='10px Share Tech Mono';octCtx.textAlign='right';octCtx.fillText(labels[i],x-4,y+cell/2+3);}
+    }
+  }
+  octCtx.fillStyle='rgba(255,200,100,0.75)';octCtx.font='12px Share Tech Mono';octCtx.textAlign='left';
+  octCtx.fillText(`Highlight row/col e${hl}  —  eᵢ²=-1, non-associative`,cx-W*0.42,cy+H*0.42);
+  _title(octCtx,cx,cy,W,H,'Octonion multiplication table','dim 8 · Aut = G₂');
+}
+function animOct(){
+  _toggleAnim('oct',()=>octAnimId,v=>octAnimId=v,'octAnimBtn',()=>{
+    octPhase+=0.03*(window.animSpeed||1);drawOct();
+  });
+}
+function resetOctAnim(){
+  _resetAnim(()=>octAnimId,v=>octAnimId=v,'octAnimBtn',()=>{octPhase=0;},drawOct);
+}
+
+// ── TAB 9: Clifford Algebras ──
+function setCliffMode(m){
+  cliffMode=m;
+  ['clm0','clm1','clm2'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',i===m);});
+  drawCliff();
+}
+function updateCliff(){
+  const g=parseInt(document.getElementById('cliffG').value,10);
+  document.getElementById('v_cliffG').textContent=g;
+  const names=['Cl₃,₀ Euclidean','Cl₁,₃ Minkowski','Cl₀,₂ ≅ ℍ'];
+  const info=document.getElementById('cliffInfo');
+  if(info) info.textContent=`${names[cliffMode]} — grade filter ${g}`;
+  drawCliff();
+}
+function drawCliff(){
+  const{W,H,cx,cy}=_fillCanvas(cliffCtx,cliffC,9);
+  const gFilter=parseInt(document.getElementById('cliffG').value,10)||0;
+  const sigs=[
+    {name:'Cl₃,₀', basis:['1','e₁','e₂','e₃','e₁₂','e₁₃','e₂₃','e₁₂₃'], grades:[0,1,1,1,2,2,2,3], dims:'8'},
+    {name:'Cl₁,₃', basis:['1','γ⁰','γ¹','γ²','γ³','γ⁰¹','γ⁰²','γ⁰³','γ¹²','γ¹³','γ²³','γ⁰¹²','γ⁰¹³','γ⁰²³','γ¹²³','γ⁵'], grades:[0,1,1,1,1,2,2,2,2,2,2,3,3,3,3,4], dims:'16'},
+    {name:'Cl₀,₂≅ℍ', basis:['1','e₁','e₂','e₁₂'], grades:[0,1,1,2], dims:'4'}
+  ];
+  const S=sigs[cliffMode]||sigs[0];
+  const n=S.basis.length;
+  const cols=Math.ceil(Math.sqrt(n));
+  const cell=Math.min(70,Math.floor(Math.min(W,H)*0.14));
+  const ox=cx-(cols*cell)/2, oy=cy-(Math.ceil(n/cols)*cell)/2+20;
+  S.basis.forEach((lab,i)=>{
+    const r=Math.floor(i/cols),c=i%cols;
+    const x=ox+c*cell+cell/2, y=oy+r*cell+cell/2;
+    const gr=S.grades[i];
+    const show=gFilter===0||gr===gFilter||(gFilter===0);
+    const active=gFilter===0||gr===gFilter;
+    const pulse=active?4*Math.sin(cliffPhase+i*0.4):0;
+    const hue=[200,40,120,280,50][gr%5];
+    cliffCtx.globalAlpha=active?1:0.25;
+    cliffCtx.beginPath();cliffCtx.arc(x,y,18+pulse,0,Math.PI*2);
+    cliffCtx.fillStyle=`hsla(${hue},70%,50%,0.25)`;cliffCtx.fill();
+    cliffCtx.strokeStyle=`hsl(${hue},80%,60%)`;cliffCtx.lineWidth=2;cliffCtx.stroke();
+    cliffCtx.fillStyle='#eef';cliffCtx.font='11px Share Tech Mono';cliffCtx.textAlign='center';cliffCtx.textBaseline='middle';
+    cliffCtx.fillText(lab,x,y);
+    cliffCtx.globalAlpha=1;
+  });
+  cliffCtx.textBaseline='alphabetic';
+  cliffCtx.fillStyle='rgba(255,200,100,0.75)';cliffCtx.font='12px Share Tech Mono';cliffCtx.textAlign='left';
+  cliffCtx.fillText(`${S.name}  dim=${S.dims}  ·  {eᵢ,eⱼ}=2ηᵢⱼ  ·  Spin ⊂ Clˣ`,cx-W*0.42,cy+H*0.42);
+  _title(cliffCtx,cx,cy,W,H,'Clifford algebra basis (by grade)',`Filter grade ${gFilter===0?'all':gFilter} — Cl₀,₂⁺ ≅ ℍ`);
+}
+function animCliff(){
+  _toggleAnim('cliff',()=>cliffAnimId,v=>cliffAnimId=v,'cliffAnimBtn',()=>{
+    cliffPhase+=0.04*(window.animSpeed||1);drawCliff();
+  });
+}
+function resetCliffAnim(){
+  _resetAnim(()=>cliffAnimId,v=>cliffAnimId=v,'cliffAnimBtn',()=>{cliffPhase=0;},drawCliff);
+}
+
+// ── TAB 10: Quaternionic Analysis ──
+function setQAMode(m){
+  qaMode=m;
+  ['qam0','qam1','qam2'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',i===m);});
+  drawQA();
+}
+function updateQA(){
+  const n=parseInt(document.getElementById('qaN').value,10);
+  document.getElementById('v_qaN').textContent=n;
+  const info=document.getElementById('qaInfo');
+  if(info) info.textContent=`${['Fueter','Cauchy–Fueter','Power series'][qaMode]} · N=${n}`;
+  drawQA();
+}
+function drawQA(){
+  const{W,H,cx,cy}=_fillCanvas(qaCtx,qaC,10);
+  const N=parseInt(document.getElementById('qaN').value,10)||5;
+  if(qaMode===2){
+    // power series disks |q|^k
+    for(let k=1;k<=N;k++){
+      const r=Math.min(W,H)*0.08*k*(0.85+0.15*Math.sin(qaPhase+k));
+      qaCtx.strokeStyle=`hsla(${200+k*20},70%,60%,${0.7-k*0.05})`;
+      qaCtx.lineWidth=1.5;
+      qaCtx.beginPath();qaCtx.arc(cx,cy,r,0,Math.PI*2);qaCtx.stroke();
+      qaCtx.fillStyle=`hsla(${200+k*20},70%,70%,0.8)`;qaCtx.font='11px Share Tech Mono';qaCtx.textAlign='left';
+      qaCtx.fillText(`|q|${k===1?'':`^${k}`}`,cx+r*0.7,cy-r*0.7);
+    }
+    qaCtx.fillStyle='rgba(255,200,100,0.75)';qaCtx.font='12px Share Tech Mono';
+    qaCtx.fillText('Regular power series: Σ qⁿ aₙ  (right coefficients)',cx-W*0.42,cy+H*0.42);
+    _title(qaCtx,cx,cy,W,H,'Quaternionic power series',`First ${N} homogeneous degrees`);
+    return;
+  }
+  // Fueter / Cauchy-Fueter: 4D sphere + operator arrows
+  const R=Math.min(W,H)*0.28;
+  qaCtx.strokeStyle='rgba(68,170,255,0.4)';qaCtx.lineWidth=2;
+  qaCtx.beginPath();qaCtx.arc(cx,cy,R,0,Math.PI*2);qaCtx.stroke();
+  qaCtx.strokeStyle='rgba(68,170,255,0.15)';
+  qaCtx.beginPath();qaCtx.ellipse(cx,cy,R,R*0.35,0,0,Math.PI*2);qaCtx.stroke();
+  const dirs=[[1,0,'∂₀'],[0.7,0.7,'i∂₁'],[-0.2,1,'j∂₂'],[-0.9,0.3,'k∂₃']];
+  dirs.forEach(([dx,dy,lab],i)=>{
+    const ang=qaPhase+i*0.5;
+    const x=cx+R*0.85*(dx*Math.cos(ang*0.2)-dy*Math.sin(ang*0.2));
+    const y=cy+R*0.85*(dx*Math.sin(ang*0.2)+dy*Math.cos(ang*0.2));
+    qaCtx.strokeStyle='#ff8844';qaCtx.lineWidth=2;
+    qaCtx.beginPath();qaCtx.moveTo(cx,cy);qaCtx.lineTo(x,y);qaCtx.stroke();
+    qaCtx.fillStyle='#ffcc88';qaCtx.font='12px Share Tech Mono';qaCtx.textAlign='center';
+    qaCtx.fillText(lab,x,y-10);
+  });
+  qaCtx.fillStyle='rgba(180,200,255,0.8)';qaCtx.font='12px Share Tech Mono';qaCtx.textAlign='left';
+  if(qaMode===0) qaCtx.fillText('Fueter: if f holomorphic on ℂ then Δf is regular on ℍ',cx-W*0.42,cy+H*0.42);
+  else qaCtx.fillText('Cauchy–Fueter: ∂̄q f = 0  ⇒  integral formula on S³',cx-W*0.42,cy+H*0.42);
+  _title(qaCtx,cx,cy,W,H,qaMode===0?"Fueter's theorem":'Cauchy–Fueter operator','Regular (monogenic) functions of a quaternionic variable');
+}
+function animQA(){
+  _toggleAnim('qa',()=>qaAnimId,v=>qaAnimId=v,'qaAnimBtn',()=>{
+    qaPhase+=0.03*(window.animSpeed||1);drawQA();
+  });
+}
+function resetQAAnim(){
+  _resetAnim(()=>qaAnimId,v=>qaAnimId=v,'qaAnimBtn',()=>{qaPhase=0;},drawQA);
+}
+
+// ── TAB 11: HPⁿ ──
+function updateHPN(){
+  const n=parseInt(document.getElementById('hpnN').value,10);
+  const rot=parseFloat(document.getElementById('hpnRot').value);
+  document.getElementById('v_hpnN').textContent=n;
+  document.getElementById('v_hpnRot').textContent=rot.toFixed(2);
+  const info=document.getElementById('hpnInfo');
+  if(info) info.textContent=`ℍP${n}  dimℝ=${4*n}  ·  rot=${rot.toFixed(2)}`;
+  drawHPN();
+}
+function drawHPN(){
+  const{W,H,cx,cy}=_fillCanvas(hpnCtx,hpnC,11);
+  const n=parseInt(document.getElementById('hpnN').value,10)||1;
+  const rot=parseFloat(document.getElementById('hpnRot').value)||0;
+  const ang=rot+hpnPhase;
+  // nested spheres: HP¹≅S⁴ sketch as nested S³ fibers
+  for(let k=n;k>=1;k--){
+    const R=Math.min(W,H)*0.12*k;
+    hpnCtx.strokeStyle=`hsla(${180+k*30},70%,55%,0.5)`;hpnCtx.lineWidth=2;
+    hpnCtx.beginPath();hpnCtx.arc(cx,cy,R,0,Math.PI*2);hpnCtx.stroke();
+    hpnCtx.beginPath();hpnCtx.ellipse(cx,cy,R,R*0.35,ang,0,Math.PI*2);hpnCtx.stroke();
+  }
+  // basepoint + fiber
+  const fx=cx+Math.cos(ang)*Math.min(W,H)*0.28;
+  const fy=cy+Math.sin(ang)*Math.min(W,H)*0.12;
+  hpnCtx.beginPath();hpnCtx.arc(fx,fy,8,0,Math.PI*2);hpnCtx.fillStyle='#44aaff';hpnCtx.fill();
+  hpnCtx.strokeStyle='rgba(255,136,68,0.7)';hpnCtx.setLineDash([3,3]);
+  hpnCtx.beginPath();hpnCtx.moveTo(cx,cy);hpnCtx.lineTo(fx,fy);hpnCtx.stroke();hpnCtx.setLineDash([]);
+  hpnCtx.fillStyle='rgba(255,200,100,0.8)';hpnCtx.font='12px Share Tech Mono';hpnCtx.textAlign='left';
+  hpnCtx.fillText(`ℍPⁿ = ℍⁿ⁺¹\\{0}/ℍˣ   ·   ℍP¹ ≅ S⁴   ·   twistor ℂP^{${2*n+1}}→ℍP${n}`,cx-W*0.42,cy+H*0.42);
+  _title(hpnCtx,cx,cy,W,H,`Quaternionic projective space ℍP${n}`,`Real dim ${4*n} · holonomy Sp(n)·Sp(1)`);
+}
+function animHPN(){
+  _toggleAnim('hpn',()=>hpnAnimId,v=>hpnAnimId=v,'hpnAnimBtn',()=>{
+    hpnPhase+=0.02*(window.animSpeed||1);drawHPN();
+  });
+}
+function resetHPNAnim(){
+  _resetAnim(()=>hpnAnimId,v=>hpnAnimId=v,'hpnAnimBtn',()=>{hpnPhase=0;},drawHPN);
+}
+
+// ── TAB 12: Screw Theory ──
+function updateSCR(){
+  const tx=parseFloat(document.getElementById('scrTx').value);
+  const ty=parseFloat(document.getElementById('scrTy').value);
+  const tz=parseFloat(document.getElementById('scrTz').value);
+  const pitch=parseFloat(document.getElementById('scrPitch').value);
+  document.getElementById('v_scrTx').textContent=tx.toFixed(2);
+  document.getElementById('v_scrTy').textContent=ty.toFixed(2);
+  document.getElementById('v_scrTz').textContent=tz.toFixed(2);
+  document.getElementById('v_scrPitch').textContent=pitch.toFixed(2);
+  const info=document.getElementById('scrInfo');
+  if(info) info.textContent=`t=(${tx.toFixed(2)},${ty.toFixed(2)},${tz.toFixed(2)})  pitch=${pitch.toFixed(2)}`;
+  drawSCR();
+}
+function drawSCR(){
+  const{W,H,cx,cy}=_fillCanvas(scrCtx,scrC,12);
+  const tx=parseFloat(document.getElementById('scrTx').value)||0;
+  const ty=parseFloat(document.getElementById('scrTy').value)||0;
+  const tz=parseFloat(document.getElementById('scrTz').value)||0;
+  const pitch=parseFloat(document.getElementById('scrPitch').value)||0;
+  const scale=Math.min(W,H)*0.28;
+  const t=scrPhase;
+  const rx=0.4, ry=0.7+t*0.2;
+  // screw axis
+  const axis=qNormalize([0,tx+0.01,ty,tz+0.5]);
+  const axis3=[axis[1],axis[2],axis[3]];
+  // helix points
+  scrCtx.strokeStyle='#44aaff';scrCtx.lineWidth=2;scrCtx.beginPath();
+  for(let i=0;i<=80;i++){
+    const u=i/80;
+    const ang=u*4*Math.PI+t;
+    const along=u*2-1;
+    const p=[
+      axis3[0]*along*1.2+Math.cos(ang)*0.35*(1-Math.abs(along)*0.3),
+      axis3[1]*along*1.2+Math.sin(ang)*0.35*(1-Math.abs(along)*0.3),
+      axis3[2]*along*1.2+pitch*along
+    ];
+    const pr=proj3D(p,rx,ry);
+    const x=cx+pr.x*scale,y=cy-pr.y*scale;
+    if(i===0)scrCtx.moveTo(x,y);else scrCtx.lineTo(x,y);
+  }
+  scrCtx.stroke();
+  // axis line
+  const a0=proj3D([-axis3[0],-axis3[1],-axis3[2]],rx,ry);
+  const a1=proj3D([axis3[0],axis3[1],axis3[2]],rx,ry);
+  scrCtx.strokeStyle='#ff8844';scrCtx.lineWidth=2;scrCtx.setLineDash([5,4]);
+  scrCtx.beginPath();scrCtx.moveTo(cx+a0.x*scale,cy-a0.y*scale);scrCtx.lineTo(cx+a1.x*scale,cy-a1.y*scale);scrCtx.stroke();
+  scrCtx.setLineDash([]);
+  // body frame box
+  const qR=qNormalize([Math.cos(t/2),Math.sin(t/2)*axis3[0],Math.sin(t/2)*axis3[1],Math.sin(t/2)*axis3[2]]);
+  const verts=[[0.3,0.2,0.15],[0.3,-0.2,0.15],[-0.3,-0.2,0.15],[-0.3,0.2,0.15],[0.3,0.2,-0.15],[0.3,-0.2,-0.15],[-0.3,-0.2,-0.15],[-0.3,0.2,-0.15]];
+  const shift=[tx*0.5,ty*0.5,tz*0.5+pitch*Math.sin(t)*0.2];
+  const pv=verts.map(v=>{
+    const r=rotVec(qR,v);
+    return proj3D([r[0]+shift[0],r[1]+shift[1],r[2]+shift[2]],rx,ry);
+  });
+  [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach(([i,j])=>{
+    scrCtx.strokeStyle='rgba(68,255,136,0.7)';scrCtx.lineWidth=1.5;
+    scrCtx.beginPath();scrCtx.moveTo(cx+pv[i].x*scale,cy-pv[i].y*scale);scrCtx.lineTo(cx+pv[j].x*scale,cy-pv[j].y*scale);scrCtx.stroke();
+  });
+  scrCtx.fillStyle='rgba(255,200,100,0.8)';scrCtx.font='12px Share Tech Mono';scrCtx.textAlign='left';
+  scrCtx.fillText('Dual quat: q̂ = qᵣ + ε q_d   ·   Chasles: rigid motion = one screw',cx-W*0.42,cy+H*0.42);
+  _title(scrCtx,cx,cy,W,H,'Screw theory / dual quaternions',`pitch=${pitch.toFixed(2)} · SE(3) ≅ ℍ_d/{±1}`);
+}
+function animSCR(){
+  _toggleAnim('scr',()=>scrAnimId,v=>scrAnimId=v,'scrAnimBtn',()=>{
+    scrPhase+=0.02*(window.animSpeed||1);drawSCR();
+  });
+}
+function resetSCRAnim(){
+  _resetAnim(()=>scrAnimId,v=>scrAnimId=v,'scrAnimBtn',()=>{scrPhase=0;},drawSCR);
+}
+
+// ── TAB 13: Cayley–Dickson ──
+function setCDStep(s){
+  cdStep=s;
+  for(let i=0;i<=4;i++){const el=document.getElementById('cds'+i);if(el)el.classList.toggle('active',i===s);}
+  drawCD();
+}
+function updateCDSpeed(){
+  const v=parseFloat(document.getElementById('cdSpeed').value);
+  document.getElementById('v_cdSpeed').textContent=v.toFixed(1);
+}
+function drawCD(){
+  const{W,H,cx,cy}=_fillCanvas(cdCtx,cdC,13);
+  const names=['ℝ','ℂ','ℍ','𝕆','𝕊'];
+  const dims=[1,2,4,8,16];
+  const lost=['—','ordering','commutativity','associativity','division'];
+  const cols=['#aaaaff','#44aaff','#ff8844','#44ff88','#ff66aa'];
+  const n=5;
+  const gap=Math.min(W,H)*0.14;
+  for(let i=0;i<n;i++){
+    const x=cx+(i-(n-1)/2)*gap*1.3;
+    const y=cy+Math.sin(cdPhase+i*0.8)*8;
+    const R=28+dims[i]*2;
+    const on=i===cdStep;
+    cdCtx.beginPath();cdCtx.arc(x,y,R,0,Math.PI*2);
+    cdCtx.fillStyle=cols[i]+(on?'44':'18');cdCtx.fill();
+    cdCtx.strokeStyle=cols[i];cdCtx.lineWidth=on?3:1.5;cdCtx.stroke();
+    cdCtx.fillStyle=cols[i];cdCtx.font=(on?'bold ':'')+'16px Orbitron';cdCtx.textAlign='center';
+    cdCtx.fillText(names[i],x,y+5);
+    cdCtx.font='11px Share Tech Mono';cdCtx.fillText('dim '+dims[i],x,y+R+14);
+    if(i>0){
+      cdCtx.strokeStyle='rgba(68,170,255,0.35)';cdCtx.lineWidth=1;
+      const x0=cx+((i-1)-(n-1)/2)*gap*1.3;
+      cdCtx.beginPath();cdCtx.moveTo(x0+30,cy);cdCtx.lineTo(x-30,y);cdCtx.stroke();
+    }
+  }
+  cdCtx.fillStyle='rgba(255,200,100,0.85)';cdCtx.font='13px Share Tech Mono';cdCtx.textAlign='left';
+  cdCtx.fillText(`At ${names[cdStep]}: lose ${lost[cdStep]}  ·  (a,b)(c,d)=(ac−d̄b, da+bc̄)`,cx-W*0.42,cy+H*0.38);
+  cdCtx.fillStyle='rgba(180,200,255,0.7)';cdCtx.font='12px Share Tech Mono';
+  cdCtx.fillText('Cayley–Dickson doubles dim each step; 𝕊 (sedenions) has zero divisors',cx-W*0.42,cy+H*0.44);
+  _title(cdCtx,cx,cy,W,H,'Cayley–Dickson tower',`${names[cdStep]} highlighted`);
+}
+function animCD(){
+  _toggleAnim('cd',()=>cdAnimId,v=>cdAnimId=v,'cdAnimBtn',()=>{
+    const sp=parseFloat(document.getElementById('cdSpeed').value)||1;
+    cdPhase+=0.03*(window.animSpeed||1)*sp;
+    // auto cycle steps slowly
+    if(Math.floor(cdPhase*0.15)%5!==cdStep && Math.sin(cdPhase*2)>0.99){
+      setCDStep((cdStep+1)%5);
+    }else drawCD();
+  });
+}
+function resetCDAnim(){
+  _resetAnim(()=>cdAnimId,v=>cdAnimId=v,'cdAnimBtn',()=>{cdPhase=0;cdStep=2;setCDStep(2);},drawCD);
+}
+
+// ── TAB 14: Computer Graphics ──
+function setCGMode(m){
+  cgMode=m;
+  ['cgm0','cgm1','cgm2'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.classList.toggle('active',i===m);});
+  drawCG();
+}
+function updateCG(){
+  const t=parseFloat(document.getElementById('cgT').value);
+  document.getElementById('v_cgT').textContent=t.toFixed(2);
+  const info=document.getElementById('cgInfo');
+  if(info) info.textContent=`t=${t.toFixed(2)} · ${['SLERP vs LERP','Gimbal lock','Keyframes'][cgMode]}`;
+  drawCG();
+}
+function drawCG(){
+  const{W,H,cx,cy}=_fillCanvas(cgCtx,cgC,14);
+  const t=parseFloat(document.getElementById('cgT').value)||0;
+  const tt=(t+cgPhase*0.05)%1;
+  const q0=qNormalize([1,0,0,0]);
+  const q1=qNormalize([0.3,0.7,0.5,0.2]);
+  if(cgMode===0){
+    // SLERP vs nLERP paths on sphere
+    const R=Math.min(W,H)*0.32;
+    cgCtx.strokeStyle='rgba(68,170,255,0.3)';cgCtx.lineWidth=1.5;
+    cgCtx.beginPath();cgCtx.arc(cx,cy,R,0,Math.PI*2);cgCtx.stroke();
+    function qToXY(q){
+      const th=2*Math.acos(Math.min(1,Math.abs(q[0])));
+      const ph=Math.atan2(q[2],q[1]);
+      return{x:cx+R*Math.sin(th)*Math.cos(ph),y:cy-R*Math.cos(th)};
+    }
+    // nLERP
+    cgCtx.strokeStyle='#ff8844';cgCtx.lineWidth=2;cgCtx.beginPath();
+    for(let i=0;i<=40;i++){
+      const u=i/40;
+      const raw=q0.map((v,k)=>v*(1-u)+q1[k]*u);
+      const q=qNormalize(raw);
+      const p=qToXY(q);
+      if(i===0)cgCtx.moveTo(p.x,p.y);else cgCtx.lineTo(p.x,p.y);
+    }
+    cgCtx.stroke();
+    // SLERP
+    cgCtx.strokeStyle='#44aaff';cgCtx.lineWidth=2;cgCtx.beginPath();
+    for(let i=0;i<=40;i++){
+      const p=qToXY(slerp(q0,q1,i/40));
+      if(i===0)cgCtx.moveTo(p.x,p.y);else cgCtx.lineTo(p.x,p.y);
+    }
+    cgCtx.stroke();
+    const pS=qToXY(slerp(q0,q1,tt));
+    const pL=qToXY(qNormalize(q0.map((v,k)=>v*(1-tt)+q1[k]*tt)));
+    cgCtx.beginPath();cgCtx.arc(pS.x,pS.y,8,0,Math.PI*2);cgCtx.fillStyle='#44aaff';cgCtx.fill();
+    cgCtx.beginPath();cgCtx.arc(pL.x,pL.y,8,0,Math.PI*2);cgCtx.fillStyle='#ff8844';cgCtx.fill();
+    cgCtx.fillStyle='rgba(180,200,255,0.85)';cgCtx.font='12px Share Tech Mono';cgCtx.textAlign='left';
+    cgCtx.fillText('Blue = SLERP (const angular speed)   Orange = nLERP',cx-W*0.42,cy+H*0.42);
+    _title(cgCtx,cx,cy,W,H,'SLERP vs LERP on S³',`t=${tt.toFixed(2)}`);
+    return;
+  }
+  if(cgMode===1){
+    // Gimbal lock: Euler pitch → 90°
+    const pitch=tt*Math.PI/2;
+    const yaw=Math.sin(cgPhase)*0.8;
+    const roll=Math.cos(cgPhase*0.7)*0.5;
+    // Euler axes collapsing
+    const axes=[
+      {lab:'yaw',col:'#ff6666',v:[Math.cos(yaw),0,Math.sin(yaw)]},
+      {lab:'pitch',col:'#66ff66',v:[0,Math.cos(pitch),Math.sin(pitch)]},
+      {lab:'roll',col:'#6699ff',v:[Math.sin(roll)*Math.sin(pitch),Math.sin(roll)*Math.cos(pitch),Math.cos(roll)]}
+    ];
+    const scale=Math.min(W,H)*0.28;
+    axes.forEach(a=>{
+      const p=proj3D(a.v,0.4,0.6);
+      cgCtx.strokeStyle=a.col;cgCtx.lineWidth=3;
+      cgCtx.beginPath();cgCtx.moveTo(cx,cy);cgCtx.lineTo(cx+p.x*scale,cy-p.y*scale);cgCtx.stroke();
+      cgCtx.fillStyle=a.col;cgCtx.font='12px Share Tech Mono';cgCtx.textAlign='center';
+      cgCtx.fillText(a.lab,cx+p.x*scale*1.15,cy-p.y*scale*1.15);
+    });
+    const lock=pitch>1.4;
+    cgCtx.fillStyle=lock?'#ff4466':'rgba(255,200,100,0.8)';cgCtx.font='13px Share Tech Mono';cgCtx.textAlign='left';
+    cgCtx.fillText(lock?'GIMBAL LOCK — yaw & roll axes aligned':`Euler pitch → ${(pitch*180/Math.PI).toFixed(0)}°  (quaternions avoid this)`,cx-W*0.42,cy+H*0.42);
+    _title(cgCtx,cx,cy,W,H,'Gimbal lock demo','Euler angles lose a DOF at pitch = ±90°');
+    return;
+  }
+  // Keyframe path
+  const keys=[
+    qNormalize([1,0,0,0]),
+    qNormalize([0.7,0.5,0.2,0]),
+    qNormalize([0.2,0.6,0.7,0.1]),
+    qNormalize([0.5,0,0.5,0.7])
+  ];
+  const scale=Math.min(W,H)*0.22;
+  const rx=0.35,ry=0.8;
+  // path
+  cgCtx.strokeStyle='rgba(68,170,255,0.5)';cgCtx.lineWidth=1.5;cgCtx.beginPath();
+  for(let i=0;i<=60;i++){
+    const u=i/60*(keys.length-1);
+    const i0=Math.min(Math.floor(u),keys.length-2);
+    const f=u-i0;
+    const q=slerp(keys[i0],keys[i0+1],f);
+    const fwd=rotVec(q,[0,0,1]);
+    const p=proj3D(fwd,rx,ry);
+    if(i===0)cgCtx.moveTo(cx+p.x*scale,cy-p.y*scale);else cgCtx.lineTo(cx+p.x*scale,cy-p.y*scale);
+  }
+  cgCtx.stroke();
+  keys.forEach((q,i)=>{
+    const p=proj3D(rotVec(q,[0,0,1]),rx,ry);
+    cgCtx.beginPath();cgCtx.arc(cx+p.x*scale,cy-p.y*scale,7,0,Math.PI*2);
+    cgCtx.fillStyle='#ff8844';cgCtx.fill();
+    cgCtx.fillStyle='#ffcc88';cgCtx.font='11px Share Tech Mono';cgCtx.textAlign='center';
+    cgCtx.fillText('K'+i,cx+p.x*scale,cy-p.y*scale-12);
+  });
+  const u=tt*(keys.length-1);
+  const i0=Math.min(Math.floor(u),keys.length-2);
+  const q=slerp(keys[i0],keys[i0+1],u-i0);
+  const p=proj3D(rotVec(q,[0,0,1]),rx,ry);
+  cgCtx.beginPath();cgCtx.arc(cx+p.x*scale,cy-p.y*scale,9,0,Math.PI*2);cgCtx.fillStyle='#44aaff';cgCtx.fill();
+  cgCtx.fillStyle='rgba(255,200,100,0.8)';cgCtx.font='12px Share Tech Mono';cgCtx.textAlign='left';
+  cgCtx.fillText('Squad/SLERP keyframe path on attitude sphere',cx-W*0.42,cy+H*0.42);
+  _title(cgCtx,cx,cy,W,H,'Keyframe quaternion path',`segment ${i0}→${i0+1}  t=${tt.toFixed(2)}`);
+}
+function animCG(){
+  _toggleAnim('cg',()=>cgAnimId,v=>cgAnimId=v,'cgAnimBtn',()=>{
+    cgPhase+=0.02*(window.animSpeed||1);
+    const slider=document.getElementById('cgT');
+    if(slider){
+      let v=parseFloat(slider.value)+0.008*(window.animSpeed||1);
+      if(v>1)v=0;
+      slider.value=v;
+      document.getElementById('v_cgT').textContent=v.toFixed(2);
+    }
+    drawCG();
+  });
+}
+function resetCGAnim(){
+  _resetAnim(()=>cgAnimId,v=>cgAnimId=v,'cgAnimBtn',()=>{
+    cgPhase=0;
+    const slider=document.getElementById('cgT');
+    if(slider){slider.value=0;document.getElementById('v_cgT').textContent='0.00';}
+  },drawCG);
+}
+
 // ── INIT ──
 window.animSpeed=1;
-// Auto-start animations for all tabs
-setTimeout(() => {
-  animQAlg();
-  animS3();
-  animateRot();
-  animateCayley();
-  animPhys();
-  animTech();
-}, 500);
+// Auto-start only the active tab (avoid fighting cancel/start on every tab at once)
+setTimeout(() => { autoStartAnimations(); }, 400);
 _addPan(qAlgC,0,drawAlg);
 _addPan(s3C,1,drawS3);
 _addPan(rotC,2,drawRot);
 _addPan(daC,3,drawDA);
 _addPan(physC,4,drawPhys);
 _addPan(techC,5,drawTech);
+_addPan(hopfC,6,drawHopf);
+_addPan(bqC,7,drawBQ);
+_addPan(octC,8,drawOct);
+_addPan(cliffC,9,drawCliff);
+_addPan(qaC,10,drawQA);
+_addPan(hpnC,11,drawHPN);
+_addPan(scrC,12,drawSCR);
+_addPan(cdC,13,drawCD);
+_addPan(cgC,14,drawCG);
 
 requestAnimationFrame(()=>{
   updateQ();
@@ -2351,6 +3075,11 @@ requestAnimationFrame(()=>{
   setHighlight(2);
   setPhysMode(0);
   setTechMode(0);
+  // init new tabs' value displays without forcing active tab
+  try{
+    updateHopf();updateBQ();updateOct();updateCliff();updateQA();
+    updateHPN();updateSCR();updateCDSpeed();setCDStep(2);updateCG();
+  }catch(e){/* controls may not be ready */}
   autoStartAnimations();
 });
 

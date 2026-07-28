@@ -69,19 +69,19 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <button class="tab active" role="tab" aria-selected="true" onclick="switchTab(1)">Flavor Probability</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(2)">PMNS Matrix</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(3)">Detector View</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(4)">Mass Hierarchy</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(5)">Solar &amp; MSW</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(6)">Majorana &amp; 0&#957;&#946;&#946;</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(4)">Mixing &amp; Hierarchy</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(5)">Solar MSW</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(6)">Majorana Nature</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(7)">Sterile &#957;</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(8)">Next-Gen Expts</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(9)">Three-Flavor Mixing</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(10)">MSW Resonance</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(10)">MSW Resonance Curves</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(11)">Atm &amp; Solar Anomalies</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(12)">Sterile 3+1 Models</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(13)">Mass Hierarchy</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(13)">NH vs IH Ordering</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(14)">Supernova ν</button>
     <button class="tab" role="tab" aria-selected="false" onclick="switchTab(15)">UHE ν Astronomy</button>
-    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(16)">0νββ &amp; Majorana</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="switchTab(16)">0νββ Limits</button>
   </div>
 </header>
 
@@ -702,7 +702,7 @@ function P3(alpha, L_km, E_GeV) {
 function initTab1() {
   const cv = document.getElementById('cv1');
   let raf1;
-  let paused1 = false;
+  window.paused1=false;
   function draw() {
     const {W, H, ctx} = fitCanvas(cv);
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
@@ -739,23 +739,27 @@ function initTab1() {
     }
     ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
     ctx.fillText(preset.label, pad.l, pad.t-12);
-    if (!paused1) raf1 = requestAnimationFrame(draw);
+    if (!window.paused1) raf1 = requestAnimationFrame(draw);
+    window._raf1 = raf1;
   }
+  window._draw1 = draw;
   draw();
   return { stop() { cancelAnimationFrame(raf1); } };
 }
 window.toggleAnim1 = function(btn) {
-  paused1 = !paused1;
-  btn.textContent = paused1 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused1);
-  if (!paused1) raf1 = requestAnimationFrame(draw);
+  window.paused1 = !window.paused1;
+  btn.textContent = window.paused1 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused1);
+  if (!window.paused1 && typeof window._draw1 === 'function') {
+    window._raf1 = requestAnimationFrame(window._draw1);
+  }
 };
 
 // ── Tab 2 — PMNS Matrix Heatmap ──────────────────────────────
 function initTab2() {
   const cv = document.getElementById('cv2');
   let raf2;
-  let paused2 = false;
+  window.paused2=false;
   function draw() {
     const {W, H, ctx} = fitCanvas(cv);
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
@@ -824,23 +828,23 @@ function initTab2() {
     for(let i=0;i<3;i++){rowSums+=`col${i+1}=${U2.reduce((s,r)=>s+r[i],0).toFixed(3)}  `;}
     ctx.fillStyle='#55558a'; ctx.font='12px monospace';
     ctx.fillText('Unitarity: '+rowSums, W*0.18, H-12);
-    if (!paused2) raf2 = requestAnimationFrame(draw);
+    if (!window.paused2) raf2 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf2); } };
 }
 window.toggleAnim2 = function(btn) {
-  paused2 = !paused2;
-  btn.textContent = paused2 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused2);
-  if (!paused2) raf2 = requestAnimationFrame(draw);
+  window.paused2 = !window.paused2;
+  btn.textContent = window.paused2 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused2);
+  if (!window.paused2) raf2 = requestAnimationFrame(draw);
 };
 
 // ── Tab 3 — Neutrino Flight / Flavor Evolution ──────────────
 function initTab3() {
   const cv = document.getElementById('cv3');
   let raf3, t3=0;
-  let paused3 = false;
+  window.paused3=false;
   function draw() {
     const {W, H, ctx} = fitCanvas(cv);
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
@@ -916,24 +920,24 @@ function initTab3() {
     ctx.fillText('ντ', W*0.28+18, legY+11);
     ctx.fillStyle='#666688';
     ctx.fillText('← tube color = instantaneous flavor mix', W*0.38, legY+11);
-    if (!paused3) t3++;
-    if (!paused3) raf3 = requestAnimationFrame(draw);
+    if (!window.paused3) t3++;
+    if (!window.paused3) raf3 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf3); } };
 }
 window.toggleAnim3 = function(btn) {
-  paused3 = !paused3;
-  btn.textContent = paused3 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused3);
-  if (!paused3) raf3 = requestAnimationFrame(draw);
+  window.paused3 = !window.paused3;
+  btn.textContent = window.paused3 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused3);
+  if (!window.paused3) raf3 = requestAnimationFrame(draw);
 };
 
 // ── Tab 4 — Mixing Matrix & Mass Hierarchy ──────────────────
 function initTab4() {
   const cv = document.getElementById('cv4');
   let raf4, t4=0;
-  let paused4 = false;
+  window.paused4=false;
 
   function buildPMNS(th12, th23, th13, dcp) {
     const c12=Math.cos(th12), s12=Math.sin(th12);
@@ -960,7 +964,7 @@ function initTab4() {
     const {W, H, ctx} = fitCanvas(cv);
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
     const spd = (window.animSpeed || 1);
-    if (!paused4) t4 += 0.6 * spd;
+    if (!window.paused4) t4 += 0.6 * spd;
 
     const { th12, th23, th13, dcp, ordering } = window.mh;
     const U2 = buildPMNS(th12, th23, th13, dcp);
@@ -1072,23 +1076,23 @@ function initTab4() {
     ctx.setLineDash([]);
     ctx.textAlign='left';
 
-    if (!paused4) raf4 = requestAnimationFrame(draw);
+    if (!window.paused4) raf4 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf4); } };
 }
 window.toggleAnim4 = function(btn) {
-  paused4 = !paused4;
-  btn.textContent = paused4 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused4);
-  if (!paused4) raf4 = requestAnimationFrame(draw);
+  window.paused4 = !window.paused4;
+  btn.textContent = window.paused4 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused4);
+  if (!window.paused4) raf4 = requestAnimationFrame(draw);
 };
 
 // ── Tab 5 — Solar / MSW ─────────────────────────────────────
 function initTab5() {
   const cv = document.getElementById('cv5');
   let raf5, t5=0;
-  let paused5 = false;
+  window.paused5=false;
 
   // Solar density profile (normalized): ne(r) ~ ne0 * exp(-r/r0)
   function solarDensity(r_frac) {
@@ -1294,24 +1298,24 @@ function initTab5() {
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
     if(window.msw.mode === 'solar') drawSolar(W, H, ctx);
     else drawAtmospheric(W, H, ctx);
-    if (!paused5) t5 += (window.animSpeed || 1);
-    if (!paused5) raf5 = requestAnimationFrame(draw);
+    if (!window.paused5) t5 += (window.animSpeed || 1);
+    if (!window.paused5) raf5 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf5); } };
 }
 window.toggleAnim5 = function(btn) {
-  paused5 = !paused5;
-  btn.textContent = paused5 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused5);
-  if (!paused5) raf5 = requestAnimationFrame(draw);
+  window.paused5 = !window.paused5;
+  btn.textContent = window.paused5 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused5);
+  if (!window.paused5) raf5 = requestAnimationFrame(draw);
 };
 
 // ── Tab 6 — Majorana & 0νββ ─────────────────────────────────
 function initTab6() {
   const cv = document.getElementById('cv6');
   let raf6, t6=0;
-  let paused6 = false;
+  window.paused6=false;
 
   function drawSpectrum(W, H, ctx) {
     const pad = {l:70, r:30, t:50, b:60};
@@ -1475,24 +1479,24 @@ function initTab6() {
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
     if(window.bbdecay.mode === 'spectrum') drawSpectrum(W, H, ctx);
     else drawFeynman(W, H, ctx);
-    if (!paused6) t6 += (window.animSpeed || 1);
-    if (!paused6) raf6 = requestAnimationFrame(draw);
+    if (!window.paused6) t6 += (window.animSpeed || 1);
+    if (!window.paused6) raf6 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf6); } };
 }
 window.toggleAnim6 = function(btn) {
-  paused6 = !paused6;
-  btn.textContent = paused6 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused6);
-  if (!paused6) raf6 = requestAnimationFrame(draw);
+  window.paused6 = !window.paused6;
+  btn.textContent = window.paused6 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused6);
+  if (!window.paused6) raf6 = requestAnimationFrame(draw);
 };
 
 // ── Tab 7 — Sterile Neutrinos ────────────────────────────────
 function initTab7() {
   const cv = document.getElementById('cv7');
   let raf7, t7=0;
-  let paused7 = false;
+  window.paused7=false;
 
   function Psterile(L_m, E_MeV, sin2th, dm2) {
     // Approximate 2-flavor appearance/disappearance for short-baseline
@@ -1605,24 +1609,24 @@ function initTab7() {
     }
     ctx.textAlign='left';
 
-    if (!paused7) t7 += spd;
-    if (!paused7) raf7 = requestAnimationFrame(draw);
+    if (!window.paused7) t7 += spd;
+    if (!window.paused7) raf7 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf7); } };
 }
 window.toggleAnim7 = function(btn) {
-  paused7 = !paused7;
-  btn.textContent = paused7 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused7);
-  if (!paused7) raf7 = requestAnimationFrame(draw);
+  window.paused7 = !window.paused7;
+  btn.textContent = window.paused7 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused7);
+  if (!window.paused7) raf7 = requestAnimationFrame(draw);
 };
 
 // ── Tab 8 — Next-Generation Experiments ─────────────────────
 function initTab8() {
   const cv = document.getElementById('cv8');
   let raf8, t8=0;
-  let paused8 = false;
+  window.paused8=false;
 
   function drawDUNE(W, H, ctx) {
     const pad = {l:75, r:30, t:55, b:55};
@@ -1891,17 +1895,17 @@ function initTab8() {
     if(expt === 'dune') drawDUNE(W, H, ctx);
     else if(expt === 'hyperk' || expt === 'icecube') drawHyperK(W, H, ctx);
     else drawSN(W, H, ctx);
-    if (!paused8) t8 += (window.animSpeed || 1);
-    if (!paused8) raf8 = requestAnimationFrame(draw);
+    if (!window.paused8) t8 += (window.animSpeed || 1);
+    if (!window.paused8) raf8 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf8); } };
 }
 window.toggleAnim8 = function(btn) {
-  paused8 = !paused8;
-  btn.textContent = paused8 ? '▶' : '⏸';
-  btn.classList.toggle('active', paused8);
-  if (!paused8) raf8 = requestAnimationFrame(draw);
+  window.paused8 = !window.paused8;
+  btn.textContent = window.paused8 ? '▶' : '⏸';
+  btn.classList.toggle('active', window.paused8);
+  if (!window.paused8) raf8 = requestAnimationFrame(draw);
 };
 
 // ── Tab 9 — Three-Flavor Mixing & PMNS Matrix ────────────────

@@ -453,12 +453,16 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         <div class="vrow"><span class="vlbl">H = pq̇−L</span><span id="leg_H_disp" style="color:#aa77ff">—</span></div>
       </div>
     </div>
-    <div class="main-area" style="display:flex;flex-direction:column">
-      <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 10" id="legCanvas" style="flex:1;min-height:0"></canvas>
+    <div class="main-area" style="display:flex;flex-direction:column;min-height:0">
+      <div class="canvas-slot" style="flex:1 1 0;min-height:0;position:relative;overflow:hidden">
+        <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 10" id="legCanvas" style="display:block;width:100%;height:100%"></canvas>
+      </div>
       <div style="border-top:1px solid var(--border);padding:2px 8px;font-size:.65rem;color:var(--dim);flex-shrink:0">
         <strong style="color:var(--accent)">Below:</strong> Phase space flow — Hamilton's equations: $\dot q = \partial H/\partial p$, $\dot p = -\partial H/\partial q$
       </div>
-      <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 11" id="legPhaseCanvas" style="flex:1;min-height:0;border-top:1px solid var(--border)"></canvas>
+      <div class="canvas-slot" style="flex:1 1 0;min-height:0;position:relative;overflow:hidden;border-top:1px solid var(--border)">
+        <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 11" id="legPhaseCanvas" style="display:block;width:100%;height:100%"></canvas>
+      </div>
     </div>
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-block">
@@ -522,10 +526,14 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         Symmetry breaking for $m^2&lt;0$
       </div>
     </div>
-    <div class="main-area" style="display:flex;flex-direction:column">
-      <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 12" id="fldCanvas" style="flex:3;min-height:0"></canvas>
+    <div class="main-area" style="display:flex;flex-direction:column;min-height:0">
+      <div class="canvas-slot" style="flex:3 1 0;min-height:0;position:relative;overflow:hidden">
+        <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 12" id="fldCanvas" style="display:block;width:100%;height:100%"></canvas>
+      </div>
       <div style="display:flex;flex:2;min-height:0;gap:0;border-top:1px solid var(--border)">
-        <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 13" id="fldECanvas" style="flex:3;min-height:0"></canvas>
+        <div class="canvas-slot" style="flex:3 1 0;min-height:0;position:relative;overflow:hidden">
+          <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 13" id="fldECanvas" style="display:block;width:100%;height:100%"></canvas>
+        </div>
         <div style="flex:2;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:4px;font-size:.78rem">
           <div class="section-lbl" style="margin-bottom:4px">Energy Decomposition</div>
           <div class="vrow"><span class="vlbl" style="color:#00e5ff">■ E_kinetic</span><span id="fld_Ekin" style="color:#00e5ff;font-size:.82rem;font-weight:600">—</span></div>
@@ -660,12 +668,17 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:1px}
         Time evolution: $\dot f = \{f,H\}$
       </div>
     </div>
-    <div class="main-area" style="display:flex;flex-direction:column">
-      <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 16" id="pbCanvas" style="flex:1;min-height:0"></canvas>
+    <div class="main-area" style="display:flex;flex-direction:column;min-height:0">
+      <!-- Each canvas lives in its own flex slot so resize targets the slot, not the full main-area -->
+      <div class="canvas-slot" id="pbSlot" style="flex:1 1 0;min-height:0;position:relative;overflow:hidden">
+        <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 16" id="pbCanvas" style="display:block;width:100%;height:100%"></canvas>
+      </div>
       <div style="border-top:1px solid var(--border);padding:2px 8px;font-size:.65rem;color:var(--dim);flex-shrink:0">
         <strong style="color:var(--accent)">Phase space flow</strong> — the Poisson bracket generates infinitesimal canonical transformations.
       </div>
-      <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 17" id="pbPlotCanvas" style="flex:1;min-height:0;border-top:1px solid var(--border)"></canvas>
+      <div class="canvas-slot" id="pbPlotSlot" style="flex:1 1 0;min-height:0;position:relative;overflow:hidden;border-top:1px solid var(--border)">
+        <canvas aria-label="Lagrangian and Hamiltonian Mechanics | Road to Reality — panel 17" id="pbPlotCanvas" style="display:block;width:100%;height:100%"></canvas>
+      </div>
     </div>
     <div class="sidebar right" data-role="sidebar">
       <div class="section-lbl">Bracket Values</div>
@@ -914,10 +927,20 @@ function switchTab(n) {
     hjRafId=requestAnimationFrame(hjLoop);
   }
   if (n===8) {
-    pbResize(); pbReset();
-    const pbBtn = document.getElementById('pbAnimBtn');
-    if(pbBtn){pbBtn.textContent='⏸ Pause';pbBtn.classList.add('active');}
-    pbRafId=requestAnimationFrame(pbLoop);
+    // Double-rAF so flex slots have non-zero size before canvas resize
+    const raf=window.requestAnimationFrame||(cb=>setTimeout(cb,16));
+    raf(()=>{
+      raf(()=>{
+        if(activeTab!==8) return;
+        pbResize();
+        pbReset();
+        const pbBtn=document.getElementById('pbAnimBtn');
+        if(pbBtn){pbBtn.textContent='⏸ Pause';pbBtn.classList.add('active');}
+        pbPaused=false;
+        if(pbRafId){cancelAnimationFrame(pbRafId);pbRafId=null;}
+        pbRafId=requestAnimationFrame(pbLoop);
+      });
+    });
   }
 }
 
@@ -2078,11 +2101,21 @@ function legResetTraj() {
 }
 
 function legResize() {
-  const p=document.getElementById('panel5');
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  window.resizeCanvas(legC);
-  window.resizeCanvas(legPhC);
+  // Dual canvases: size each to its flex slot (not shared .main-area).
+  // Draw paths use buffer pixels + identity transform.
+  function sizePhys(c){
+    if(typeof sizeCanvasToSlot==='function'){
+      sizeCanvasToSlot(c);
+      const ctx=c.getContext('2d');
+      if(ctx) ctx.setTransform(1,0,0,1,0,0);
+    } else if(typeof window.resizeCanvas==='function'){
+      window.resizeCanvas(c);
+      const ctx=c.getContext('2d');
+      if(ctx) ctx.setTransform(1,0,0,1,0,0);
+    }
+  }
+  sizePhys(legC);
+  sizePhys(legPhC);
 }
 
 function drawLegendre() {
@@ -2298,11 +2331,21 @@ function fldEnergy() {
 }
 
 function fldResize() {
-  const p=document.getElementById('panel6');
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  window.resizeCanvas(fldC);
-  window.resizeCanvas(fldEC);
+  // Dual canvases: size each to its flex slot (not shared .main-area).
+  // Draw paths use buffer pixels + identity transform.
+  function sizePhys(c){
+    if(typeof sizeCanvasToSlot==='function'){
+      sizeCanvasToSlot(c);
+      const ctx=c.getContext('2d');
+      if(ctx) ctx.setTransform(1,0,0,1,0,0);
+    } else if(typeof window.resizeCanvas==='function'){
+      window.resizeCanvas(c);
+      const ctx=c.getContext('2d');
+      if(ctx) ctx.setTransform(1,0,0,1,0,0);
+    }
+  }
+  sizePhys(fldC);
+  sizePhys(fldEC);
 }
 
 function fldDraw() {
@@ -2592,12 +2635,35 @@ let pbTime=0;
 let pbState={q:0.8,p:0.5};
 let pbHist=[];
 
+/** Size a canvas to its immediate parent slot (not a shared main-area). */
+function sizeCanvasToSlot(canvas){
+  if(!canvas) return null;
+  const slot=canvas.parentElement;
+  if(!slot) return null;
+  const rect=slot.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const cssW=Math.max(1,Math.floor(rect.width));
+  const cssH=Math.max(1,Math.floor(rect.height));
+  // Avoid writing 0×0 when panel is still display:none
+  if(cssW<2||cssH<2) return null;
+  canvas.style.width=cssW+'px';
+  canvas.style.height=cssH+'px';
+  const bw=Math.floor(cssW*dpr), bh=Math.floor(cssH*dpr);
+  if(canvas.width!==bw||canvas.height!==bh){
+    canvas.width=bw;
+    canvas.height=bh;
+  }
+  const ctx=canvas.getContext('2d');
+  // Draw in CSS pixels
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {cssW,cssH,ctx,dpr};
+}
+// Alias used by Poisson Brackets draw path
+const pbSizeToSlot=sizeCanvasToSlot;
+
 function pbResize(){
-  const p=document.getElementById('panel8');
-  const sbs=p.querySelectorAll('.sidebar');
-  let sw=0; sbs.forEach(s=>sw+=s.offsetWidth);
-  window.resizeCanvas(pbC);
-  window.resizeCanvas(pbPlotC);
+  sizeCanvasToSlot(pbC);
+  sizeCanvasToSlot(pbPlotC);
 }
 
 function pbGetF(name,q,p){
@@ -2706,30 +2772,40 @@ function pbScrub(targetTime){
 }
 
 function pbDraw(){
-  const W=pbC.width, H=pbC.height;
-  pbCtx.setTransform(1,0,0,1,0,0);
-  pbCtx.fillStyle='#05050f'; pbCtx.fillRect(0,0,W,H);
-  pbCtx.setTransform(1,0,0,1,pans[8].x,pans[8].y);
+  // Ensure slots are sized (handles first paint / window resize)
+  let sz=pbSizeToSlot(pbC);
+  let szP=pbSizeToSlot(pbPlotC);
+  if(!sz||sz.cssW<2||sz.cssH<2){
+    // Fallback if layout not ready yet
+    if(typeof window.resizeCanvas==='function') window.resizeCanvas(pbC);
+    sz={cssW:pbC.clientWidth||pbC.width||300, cssH:pbC.clientHeight||pbC.height||150, ctx:pbCtx, dpr:window.devicePixelRatio||1};
+  }
+  const W=sz.cssW, H=sz.cssH;
+  const ctx=sz.ctx||pbCtx;
+  // CSS-pixel drawing space (transform already set in pbSizeToSlot)
+  ctx.setTransform(sz.dpr||1,0,0,sz.dpr||1,0,0);
+  ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+  ctx.setTransform(sz.dpr||1,0,0,sz.dpr||1,pans[8].x,pans[8].y);
 
   const qR=2.5, pR=2.5;
   const toSc=(q,p)=>[(q/qR*0.45+0.5)*W,(0.5-p/pR*0.45)*H];
 
   // Grid
-  pbCtx.strokeStyle='#1a1a38'; pbCtx.lineWidth=0.5;
+  ctx.strokeStyle='#1a1a38'; ctx.lineWidth=0.5;
   for(let q=-2;q<=2;q++){
     const [x]=toSc(q,0);
-    pbCtx.beginPath(); pbCtx.moveTo(x,0); pbCtx.lineTo(x,H); pbCtx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
   }
   for(let p=-2;p<=2;p++){
     const [,y]=toSc(0,p);
-    pbCtx.beginPath(); pbCtx.moveTo(0,y); pbCtx.lineTo(W,y); pbCtx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
   }
 
   // Energy contours
   const mode=document.getElementById('pbH').value;
   for(let E=0.2;E<=4.5;E+=0.4){
-    pbCtx.strokeStyle='rgba(100,150,255,0.12)'; pbCtx.lineWidth=1;
-    pbCtx.beginPath(); let mv=true;
+    ctx.strokeStyle='rgba(100,150,255,0.18)'; ctx.lineWidth=1;
+    ctx.beginPath(); let mv=true;
     for(let q=-qR;q<=qR;q+=0.04){
       let p2;
       if(mode==='harmonic') p2=2*E-q*q;
@@ -2737,9 +2813,9 @@ function pbDraw(){
       else p2=2*E;
       if(p2<0){mv=true;continue;}
       const p=Math.sqrt(p2);
-      const [x1,y1]=toSc(q,p); mv?(pbCtx.moveTo(x1,y1),mv=false):pbCtx.lineTo(x1,y1);
+      const [x1,y1]=toSc(q,p); mv?(ctx.moveTo(x1,y1),mv=false):ctx.lineTo(x1,y1);
     }
-    pbCtx.stroke();
+    ctx.stroke();
     mv=true;
     for(let q=-qR;q<=qR;q+=0.04){
       let p2;
@@ -2748,35 +2824,35 @@ function pbDraw(){
       else p2=2*E;
       if(p2<0){mv=true;continue;}
       const p=-Math.sqrt(p2);
-      const [x1,y1]=toSc(q,p); mv?(pbCtx.moveTo(x1,y1),mv=false):pbCtx.lineTo(x1,y1);
+      const [x1,y1]=toSc(q,p); mv?(ctx.moveTo(x1,y1),mv=false):ctx.lineTo(x1,y1);
     }
-    pbCtx.stroke();
+    ctx.stroke();
   }
 
   // Trajectory history
   if(pbHist.length>1){
-    pbCtx.strokeStyle='rgba(255,204,0,0.6)'; pbCtx.lineWidth=1.5;
-    pbCtx.beginPath();
+    ctx.strokeStyle='rgba(255,204,0,0.7)'; ctx.lineWidth=1.5;
+    ctx.beginPath();
     pbHist.forEach((s,i)=>{
       const [x,y]=toSc(s.q,s.p);
-      i===0?pbCtx.moveTo(x,y):pbCtx.lineTo(x,y);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     });
-    pbCtx.stroke();
+    ctx.stroke();
   }
 
   // Current point
   const [cx2,cy2]=toSc(pbState.q,pbState.p);
-  pbCtx.beginPath(); pbCtx.arc(cx2,cy2,7,0,Math.PI*2);
-  pbCtx.fillStyle='#ffcc00'; pbCtx.shadowBlur=18; pbCtx.shadowColor='#ffcc00'; pbCtx.fill(); pbCtx.shadowBlur=0;
-  pbCtx.strokeStyle='#fff'; pbCtx.lineWidth=1.5; pbCtx.stroke();
+  ctx.beginPath(); ctx.arc(cx2,cy2,7,0,Math.PI*2);
+  ctx.fillStyle='#ffcc00'; ctx.shadowBlur=18; ctx.shadowColor='#ffcc00'; ctx.fill(); ctx.shadowBlur=0;
+  ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
 
   // Axes
   const [ax,ay]=toSc(0,0);
-  pbCtx.strokeStyle='#2a2a55'; pbCtx.lineWidth=1.5;
-  pbCtx.beginPath(); pbCtx.moveTo(0,ay); pbCtx.lineTo(W,ay); pbCtx.stroke();
-  pbCtx.beginPath(); pbCtx.moveTo(ax,0); pbCtx.lineTo(ax,H); pbCtx.stroke();
-  pbCtx.fillStyle='#55558a'; pbCtx.font='12px monospace';
-  pbCtx.fillText('q',W-14,ay-4); pbCtx.fillText('p',ax+4,14);
+  ctx.strokeStyle='#2a2a55'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(0,ay); ctx.lineTo(W,ay); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ax,0); ctx.lineTo(ax,H); ctx.stroke();
+  ctx.fillStyle='#55558a'; ctx.font='12px monospace';
+  ctx.fillText('q',W-14,ay-4); ctx.fillText('p',ax+4,14);
 
   // Bracket info overlay
   const fName=document.getElementById('pbF').value;
@@ -2786,37 +2862,41 @@ function pbDraw(){
   const gVal=pbGetF(gName,pbState.q,pbState.p);
   const dtF=pbTimeDeriv(fName,pbState.q,pbState.p);
 
-  pbCtx.fillStyle='rgba(255,204,0,0.85)'; pbCtx.font='bold 13px monospace';
-  pbCtx.fillText('{'+fName+','+gName+'} = '+bracket.toFixed(3),12,28);
-  pbCtx.fillStyle='rgba(0,229,255,0.7)'; pbCtx.font='12px monospace';
-  pbCtx.fillText('d'+fName+'/dt = {'+fName+',H} = '+dtF.toFixed(3),12,48);
-
-  pbCtx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle='rgba(255,204,0,0.9)'; ctx.font='bold 13px monospace';
+  ctx.fillText('{'+fName+','+gName+'} = '+bracket.toFixed(3),12,28);
+  ctx.fillStyle='rgba(0,229,255,0.8)'; ctx.font='12px monospace';
+  ctx.fillText('d'+fName+'/dt = {'+fName+',H} = '+dtF.toFixed(3),12,48);
 
   // Bottom plot: f(t) and g(t)
-  const PW=pbPlotC.width, PH=pbPlotC.height;
-  pbPlotCtx.fillStyle='#06060f'; pbPlotCtx.fillRect(0,0,PW,PH);
-  if(pbHist.length>2){
-    const mb2=15, mt2=12;
-    let fHist=pbHist.map(s=>pbGetF(fName,s.q,s.p));
-    let gHist=pbHist.map(s=>pbGetF(gName,s.q,s.p));
-    const allVals=fHist.concat(gHist);
-    const minV=Math.min(...allVals), maxV=Math.max(...allVals);
-    const rngV=maxV-minV||1;
-    const toX=i=>i/pbHist.length*PW;
-    const toY=v=>mt2+(PH-mt2-mb2)*(1-(v-minV)/rngV);
-    // f(t)
-    pbPlotCtx.strokeStyle='rgba(255,136,68,0.8)'; pbPlotCtx.lineWidth=1.5;
-    pbPlotCtx.beginPath();
-    fHist.forEach((v,i)=>{const px=toX(i),py=toY(v);i===0?pbPlotCtx.moveTo(px,py):pbPlotCtx.lineTo(px,py);});
-    pbPlotCtx.stroke();
-    // g(t)
-    pbPlotCtx.strokeStyle='rgba(136,255,68,0.8)'; pbPlotCtx.lineWidth=1.5;
-    pbPlotCtx.beginPath();
-    gHist.forEach((v,i)=>{const px=toX(i),py=toY(v);i===0?pbPlotCtx.moveTo(px,py):pbPlotCtx.lineTo(px,py);});
-    pbPlotCtx.stroke();
-    pbPlotCtx.fillStyle='#55558a'; pbPlotCtx.font='11px monospace';
-    pbPlotCtx.fillText(fName+'(t) (orange), '+gName+'(t) (green)',2,10);
+  if(szP&&szP.cssW>2&&szP.cssH>2){
+    const PW=szP.cssW, PH=szP.cssH;
+    const pctx=szP.ctx||pbPlotCtx;
+    const pdpr=szP.dpr||1;
+    pctx.setTransform(pdpr,0,0,pdpr,0,0);
+    pctx.fillStyle='#06060f'; pctx.fillRect(0,0,PW,PH);
+    if(pbHist.length>1){
+      const mb2=15, mt2=14;
+      let fHist=pbHist.map(s=>pbGetF(fName,s.q,s.p));
+      let gHist=pbHist.map(s=>pbGetF(gName,s.q,s.p));
+      const allVals=fHist.concat(gHist);
+      const minV=Math.min(...allVals), maxV=Math.max(...allVals);
+      const rngV=maxV-minV||1;
+      const toX=i=> (i/Math.max(1,pbHist.length-1))*PW;
+      const toY=v=>mt2+(PH-mt2-mb2)*(1-(v-minV)/rngV);
+      pctx.strokeStyle='rgba(255,136,68,0.85)'; pctx.lineWidth=1.5;
+      pctx.beginPath();
+      fHist.forEach((v,i)=>{const px=toX(i),py=toY(v);i===0?pctx.moveTo(px,py):pctx.lineTo(px,py);});
+      pctx.stroke();
+      pctx.strokeStyle='rgba(136,255,68,0.85)'; pctx.lineWidth=1.5;
+      pctx.beginPath();
+      gHist.forEach((v,i)=>{const px=toX(i),py=toY(v);i===0?pctx.moveTo(px,py):pctx.lineTo(px,py);});
+      pctx.stroke();
+      pctx.fillStyle='#8888aa'; pctx.font='11px monospace';
+      pctx.fillText(fName+'(t) orange · '+gName+'(t) green',6,11);
+    } else {
+      pctx.fillStyle='#55558a'; pctx.font='12px monospace';
+      pctx.fillText('f(t), g(t) — animating…',8,PH/2);
+    }
   }
 
   // Update sidebar values

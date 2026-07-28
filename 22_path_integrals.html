@@ -29,8 +29,10 @@ header{padding:18px 28px;border-bottom:1px solid var(--border);display:flex;alig
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-btn:hover{color:var(--text);}
 .tab-panel{display:none;}.tab-panel.active{display:flex;flex-direction:column;}
-.canvas-wrap{position:relative;background:var(--bg3);border-bottom:1px solid var(--border);}
+.canvas-wrap{position:relative;background:var(--bg3);border-bottom:1px solid var(--border);overflow:hidden;}
 canvas{display:block;width:100%;height:420px;}
+/* WKB needs room for potential + ψ + connection/tunneling strip */
+#tab7 canvas{height:480px;}
 .controls{padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
 .ctrl-group{display:flex;align-items:center;gap:8px;font-size:.83rem;}
 label{color:var(--dim);}
@@ -1608,181 +1610,278 @@ function stepAnim7(){ animOffset7+=0.012*(window.animSpeed || 1); draw7(); animI
 
 function draw7(){
   const dpr=window.devicePixelRatio||1;
-  const W=c7.offsetWidth, H=c7.offsetHeight;
-  if(!W||!H)return;
-  c7.width=W*dpr; c7.height=H*dpr;
+  const W=Math.max(1,c7.offsetWidth|0), H=Math.max(1,c7.offsetHeight|0);
+  if(!W||!H) return;
+  c7.width=Math.floor(W*dpr);
+  c7.height=Math.floor(H*dpr);
   ctx7.setTransform(dpr,0,0,dpr,0,0);
   ctx7.clearRect(0,0,W,H);
-  ctx7.fillStyle='#05050f'; ctx7.fillRect(0,0,W,H);
+  ctx7.fillStyle='#05050f';
+  ctx7.fillRect(0,0,W,H);
+
+  // Hard clip: nothing leaves the canvas bitmap
+  ctx7.save();
+  ctx7.beginPath();
+  ctx7.rect(0,0,W,H);
+  ctx7.clip();
 
   const E=parseFloat(document.getElementById('wkbE').value)/100;
   document.getElementById('wkbEv').textContent=E.toFixed(2);
   const V0=parseFloat(document.getElementById('wkbV0').value)/100;
   document.getElementById('wkbV0v').textContent=V0.toFixed(2);
-  const hb=parseFloat(document.getElementById('wkbHbar').value)/100;
+  const hb=Math.max(0.01,parseFloat(document.getElementById('wkbHbar').value)/100);
   document.getElementById('wkbHbarv').textContent=hb.toFixed(2);
   const t=animOffset7;
 
-  const margin=60;
-  const pW=W-2*margin, pH=H-2*margin;
+  // Layout bands (all content must fit inside H)
+  // top title | plot | bottom connection + tunneling bar
+  const topBand=28;
+  const botBand=56;
+  const leftPad=48;
+  const rightPad=28;
+  const plotL=leftPad;
+  const plotR=W-rightPad;
+  const plotT=topBand;
+  const plotB=H-botBand;
+  const pW=Math.max(40,plotR-plotL);
+  const pH=Math.max(40,plotB-plotT);
+
   const xMin=-5, xMax=5;
-  const xToC=(x)=> margin + (x-xMin)/(xMax-xMin)*pW;
+  const xToC=(x)=> plotL + (x-xMin)/(xMax-xMin)*pW;
   const V=(x)=> V0*Math.exp(-x*x*0.3) + 0.05*x*x;
   const Vmax=Math.max(V(0),E)+0.15;
-  const vToC=(v)=> margin+pH - (v/Vmax)*pH;
+  const vToC=(v)=> plotB - (v/Vmax)*pH;
 
-  // Axes
-  ctx7.strokeStyle='#1c1c44'; ctx7.lineWidth=1;
-  ctx7.beginPath(); ctx7.moveTo(margin,margin); ctx7.lineTo(margin,margin+pH); ctx7.stroke();
-  ctx7.beginPath(); ctx7.moveTo(margin,margin+pH); ctx7.lineTo(W-margin,margin+pH); ctx7.stroke();
-  ctx7.fillStyle='#55558a'; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
-  ctx7.fillText('V(x) and WKB wavefunction',W/2,margin-8);
-  ctx7.fillText('x',W-margin,margin+pH+16);
-  ctx7.save(); ctx7.translate(14,margin+pH/2); ctx7.rotate(-Math.PI/2); ctx7.fillText('V, ψ',0,0); ctx7.restore();
+  // Title
+  ctx7.fillStyle='#55558a';
+  ctx7.font='12px sans-serif';
+  ctx7.textAlign='center';
+  ctx7.fillText('V(x) and WKB wavefunction',W/2,16);
+
+  // Plot frame
+  ctx7.strokeStyle='#1c1c44';
+  ctx7.lineWidth=1;
+  ctx7.strokeRect(plotL,plotT,pW,pH);
+  ctx7.fillStyle='#55558a';
+  ctx7.font='11px sans-serif';
+  ctx7.fillText('x',plotR-4,plotB+14);
+  ctx7.save();
+  ctx7.translate(14,plotT+pH/2);
+  ctx7.rotate(-Math.PI/2);
+  ctx7.fillText('V, ψ',0,0);
+  ctx7.restore();
+
+  // Clip drawing to plot rectangle
+  ctx7.save();
+  ctx7.beginPath();
+  ctx7.rect(plotL,plotT,pW,pH);
+  ctx7.clip();
 
   // Potential
-  ctx7.strokeStyle='#ffdd44'; ctx7.lineWidth=2;
-  ctx7.beginPath(); let f7=true;
+  ctx7.strokeStyle='#ffdd44';
+  ctx7.lineWidth=2;
+  ctx7.beginPath();
+  let f7=true;
   for(let xi=xMin;xi<=xMax;xi+=0.02){
-    const vv=V(xi);
-    const cx2=xToC(xi), cy2=vToC(vv);
+    const cx2=xToC(xi), cy2=vToC(V(xi));
     if(f7){ ctx7.moveTo(cx2,cy2); f7=false; } else ctx7.lineTo(cx2,cy2);
   }
   ctx7.stroke();
 
   // Energy line
   const eY=vToC(E);
-  ctx7.strokeStyle='#44ddff'; ctx7.lineWidth=1.5; ctx7.setLineDash([6,4]);
-  ctx7.beginPath(); ctx7.moveTo(margin,eY); ctx7.lineTo(W-margin,eY); ctx7.stroke();
+  ctx7.strokeStyle='#44ddff';
+  ctx7.lineWidth=1.5;
+  ctx7.setLineDash([6,4]);
+  ctx7.beginPath();
+  ctx7.moveTo(plotL,eY);
+  ctx7.lineTo(plotR,eY);
+  ctx7.stroke();
   ctx7.setLineDash([]);
-  ctx7.fillStyle='#44ddff'; ctx7.font='12px sans-serif'; ctx7.textAlign='left';
-  ctx7.fillText('E',W-margin-20,eY-6);
+  ctx7.fillStyle='#44ddff';
+  ctx7.font='12px sans-serif';
+  ctx7.textAlign='left';
+  ctx7.fillText('E',plotR-18,Math.max(plotT+12,eY-6));
 
-  // Find turning points where V(x)=E
+  // Turning points V(x)=E
   const tps=[];
   for(let xi=xMin;xi<=xMax;xi+=0.01){
     if(Math.abs(V(xi)-E)<0.01||(xi>xMin&&(V(xi-0.01)-E)*(V(xi)-E)<0)){
       if(tps.length===0||Math.abs(xi-tps[tps.length-1])>0.3) tps.push(xi);
     }
   }
-  // Ensure exactly 2 turning points
-  while(tps.length<2){ tps.push(0); }
+  while(tps.length<2) tps.push(0);
   const tpL=tps[0], tpR=tps[tps.length-1];
-
-  // Mark turning points
   tps.forEach(xp=>{
     const cx2=xToC(xp);
     ctx7.fillStyle='#ff4488';
-    ctx7.beginPath(); ctx7.arc(cx2,eY,5,0,2*Math.PI); ctx7.fill();
-    ctx7.fillStyle='#ff4488'; ctx7.font='11px sans-serif'; ctx7.textAlign='center';
-    ctx7.fillText('TP',cx2,eY+16);
+    ctx7.beginPath();
+    ctx7.arc(cx2,eY,4,0,2*Math.PI);
+    ctx7.fill();
+    ctx7.font='10px sans-serif';
+    ctx7.textAlign='center';
+    const tpy=Math.min(plotB-4,eY+14);
+    ctx7.fillText('TP',cx2,tpy);
   });
 
-  // WKB wavefunction
-  // ψ(x) ≈ C/√|p(x)| * exp(±i/ħ ∫ p dx) in allowed region
-  // ψ(x) ≈ C/√|p(x)| * exp(-1/ħ ∫ |p| dx) in forbidden region
-  // p(x) = √(2m(E-V(x))) with m=1
-  const pFn=(x)=> Math.sqrt(Math.max(0, 2*(E-V(x))));
-  const kFn=(x)=> Math.sqrt(Math.max(0, 2*(V(x)-E)));
-
-  // Compute ∫ p dx from left turning point
+  // WKB phase accumulation
+  const pFn=(x)=> Math.sqrt(Math.max(0,2*(E-V(x))));
+  const kFn=(x)=> Math.sqrt(Math.max(0,2*(V(x)-E)));
   const nInt=200;
   const dxInt=(xMax-xMin)/nInt;
   let phaseInt=0;
   const phaseArr=[];
   for(let i=0;i<=nInt;i++){
     const xi=xMin+i*dxInt;
-    if(xi<tpL){
-      phaseInt+=kFn(xi)*dxInt;
-    } else if(xi<tpR){
-      phaseInt+=pFn(xi)*dxInt;
-    } else {
-      phaseInt+=kFn(xi)*dxInt;
-    }
+    if(xi<tpL) phaseInt+=kFn(xi)*dxInt;
+    else if(xi<tpR) phaseInt+=pFn(xi)*dxInt;
+    else phaseInt+=kFn(xi)*dxInt;
     phaseArr.push(phaseInt);
   }
 
-  // Draw WKB wavefunction
-  const ampScale=0.35*pH;
+  // Amplitude capped so ψ stays inside plot around the E line
+  const roomAbove=Math.max(8,eY-plotT-8);
+  const roomBelow=Math.max(8,plotB-eY-8);
+  const ampScale=Math.min(0.32*pH, roomAbove*0.9, roomBelow*0.9);
   const wkbPhase=t*3;
-  ctx7.lineWidth=1.5;
+
+  // First pass: raw ψ values to normalize envelope spikes near turning points
+  const psiPts=[];
+  let maxAbs=1e-6;
   for(let i=0;i<=nInt;i++){
     const xi=xMin+i*dxInt;
-    const cx2=xToC(xi);
-    const pVal=pFn(xi);
-    const kVal=kFn(xi);
+    const pVal=pFn(xi), kVal=kFn(xi);
     let psi;
     if(xi<tpL){
-      // Left forbidden: exponential decay
       const expArg=-phaseArr[i]/hb;
-      psi=ampScale*Math.exp(Math.min(expArg,0))/Math.sqrt(kVal+0.01);
-      ctx7.strokeStyle='rgba(255,68,136,0.7)';
+      psi=Math.exp(Math.min(expArg,0))/Math.sqrt(kVal+0.05);
     } else if(xi<tpR){
-      // Allowed: oscillatory
       const phase=phaseArr[i]/hb+wkbPhase;
-      psi=ampScale*Math.cos(phase)/Math.sqrt(pVal+0.01);
-      ctx7.strokeStyle='rgba(68,221,255,0.8)';
+      psi=Math.cos(phase)/Math.sqrt(pVal+0.05);
     } else {
-      // Right forbidden: exponential decay
-      const expArg=-phaseArr[i]/hb;
-      psi=ampScale*Math.exp(Math.min(expArg,0))/Math.sqrt(kVal+0.01);
-      ctx7.strokeStyle='rgba(255,68,136,0.7)';
+      const expArg=-(phaseArr[i]-phaseArr[Math.min(nInt,Math.floor((tpR-xMin)/dxInt))])/hb;
+      // decay measured from right turning point
+      let acc=0;
+      for(let j=Math.floor((tpR-xMin)/dxInt);j<=i;j++) acc+=kFn(xMin+j*dxInt)*dxInt;
+      psi=Math.exp(Math.min(-acc/hb,0))/Math.sqrt(kVal+0.05);
     }
-    const py=eY-psi;
-    if(i===0) ctx7.beginPath();
-    if(i===0) ctx7.moveTo(cx2,py);
-    else ctx7.lineTo(cx2,py);
+    // soft-cap near turning points
+    psi=Math.max(-4,Math.min(4,psi));
+    psiPts.push(psi);
+    if(Math.abs(psi)>maxAbs) maxAbs=Math.abs(psi);
   }
+
+  // Wavefunction
+  ctx7.lineWidth=1.5;
+  ctx7.beginPath();
+  for(let i=0;i<=nInt;i++){
+    const xi=xMin+i*dxInt;
+    const cx2=xToC(xi);
+    const psi=(psiPts[i]/maxAbs)*ampScale;
+    const py=eY-psi;
+    if(i===0) ctx7.moveTo(cx2,py); else ctx7.lineTo(cx2,py);
+  }
+  // Color by region: draw as single stroke first, then region overlays via segments
+  ctx7.strokeStyle='rgba(68,221,255,0.85)';
   ctx7.stroke();
 
-  // Envelope ±C/√p
-  ctx7.strokeStyle='rgba(255,221,68,0.25)'; ctx7.lineWidth=1; ctx7.setLineDash([3,3]);
-  ctx7.beginPath(); f7=true;
-  for(let i=0;i<=nInt;i++){
-    const xi=xMin+i*dxInt;
-    const cx2=xToC(xi);
-    const pVal=pFn(xi);
-    const kVal=kFn(xi);
-    const env=ampScale/Math.sqrt(Math.max(pVal,kVal,0.01));
-    if(f7){ ctx7.moveTo(cx2,eY-env); f7=false; } else ctx7.lineTo(cx2,eY-env);
+  // Region-colored overlays (allowed vs forbidden)
+  const strokeRegion=(i0,i1,col)=>{
+    ctx7.beginPath();
+    ctx7.strokeStyle=col;
+    for(let i=i0;i<=i1;i++){
+      const xi=xMin+i*dxInt;
+      const cx2=xToC(xi);
+      const py=eY-(psiPts[i]/maxAbs)*ampScale;
+      if(i===i0) ctx7.moveTo(cx2,py); else ctx7.lineTo(cx2,py);
+    }
+    ctx7.stroke();
+  };
+  const iL=Math.max(0,Math.min(nInt,Math.floor((tpL-xMin)/dxInt)));
+  const iR=Math.max(0,Math.min(nInt,Math.floor((tpR-xMin)/dxInt)));
+  strokeRegion(0,iL,'rgba(255,68,136,0.8)');
+  strokeRegion(iL,iR,'rgba(68,221,255,0.9)');
+  strokeRegion(iR,nInt,'rgba(255,68,136,0.8)');
+
+  // Envelope ±C/√p (capped to ampScale so it stays in-plot)
+  ctx7.strokeStyle='rgba(255,221,68,0.28)';
+  ctx7.lineWidth=1;
+  ctx7.setLineDash([3,3]);
+  for(const sign of [-1,1]){
+    ctx7.beginPath();
+    for(let i=0;i<=nInt;i++){
+      const xi=xMin+i*dxInt;
+      const local=ampScale/Math.sqrt(Math.max(pFn(xi),kFn(xi),0.08));
+      const e=Math.min(ampScale, local*0.35);
+      const cx2=xToC(xi);
+      if(i===0) ctx7.moveTo(cx2,eY+sign*e); else ctx7.lineTo(cx2,eY+sign*e);
+    }
+    ctx7.stroke();
   }
-  ctx7.stroke();
-  ctx7.beginPath(); f7=true;
-  for(let i=0;i<=nInt;i++){
-    const xi=xMin+i*dxInt;
-    const cx2=xToC(xi);
-    const pVal=pFn(xi);
-    const kVal=kFn(xi);
-    const env=ampScale/Math.sqrt(Math.max(pVal,kVal,0.01));
-    if(f7){ ctx7.moveTo(cx2,eY+env); f7=false; } else ctx7.lineTo(cx2,eY+env);
-  }
-  ctx7.stroke();
   ctx7.setLineDash([]);
 
-  // Connection formula annotation
-  const connX=W*0.5, connY=margin+pH+30;
-  ctx7.fillStyle='#ffdd44'; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
-  ctx7.fillText('Connection: 1/√p cos(∫p dx/ħ − π/4) ↔ 1/√|p| exp(−∫|p| dx/ħ)', connX, connY);
+  // Region labels (clamped inside plot)
+  const labelY=Math.max(plotT+12, Math.min(plotB-8, eY-ampScale-10));
+  ctx7.font='11px sans-serif';
+  ctx7.textAlign='center';
+  ctx7.fillStyle='rgba(68,221,255,0.45)';
+  ctx7.fillText('Allowed (oscillatory)', (xToC(tpL)+xToC(tpR))/2, labelY);
+  ctx7.fillStyle='rgba(255,68,136,0.4)';
+  ctx7.fillText('Forbidden', (plotL+xToC(tpL))/2, labelY);
+  ctx7.fillText('Forbidden', (xToC(tpR)+plotR)/2, labelY);
 
-  // Tunneling probability
-  const tunnelInt=phaseArr[nInt]-phaseArr[0];
-  const T=Math.exp(-2*tunnelInt/hb);
-  document.getElementById('wkbT').textContent=T.toExponential(3);
-  document.getElementById('wkbConn').textContent=`∫p dx = ${tunnelInt.toFixed(2)}`;
+  ctx7.restore(); // end plot clip
 
-  // Tunneling bar
-  const barX=margin, barY=connY+18, barW=pW, barH=10;
-  ctx7.fillStyle='#111'; ctx7.fillRect(barX,barY,barW,barH);
-  ctx7.fillStyle='#ff8844'; ctx7.fillRect(barX,barY,barW*Math.min(T,1),barH);
-  ctx7.fillStyle='#aaa'; ctx7.font='11px sans-serif'; ctx7.textAlign='left';
-  ctx7.fillText(`Tunneling probability T = exp(-2∫|p|dx/ħ) = ${T.toExponential(3)}`, barX, barY+barH+14);
+  // Bottom band: connection formula + tunneling probability (fully inside canvas)
+  const tunnelInt=Math.max(0, phaseArr[nInt]-phaseArr[0]);
+  // Better tunneling integral: only barrier region between turning points
+  let barrierInt=0;
+  for(let i=iL;i<=iR;i++){
+    const xi=xMin+i*dxInt;
+    barrierInt+=kFn(xi)*dxInt; // inside barrier k is imaginary momentum when V>E
+  }
+  // Actually between tpL and tpR is classically allowed for barrier potential when E < V0
+  // For a barrier, allowed is OUTSIDE, forbidden BETWEEN turning points
+  // Recompute: barrier is where V>E between the two TPs
+  barrierInt=0;
+  for(let i=0;i<=nInt;i++){
+    const xi=xMin+i*dxInt;
+    if(xi>=tpL && xi<=tpR) barrierInt+=kFn(xi)*dxInt;
+  }
+  const T=Math.exp(-2*barrierInt/hb);
+  const tw=document.getElementById('wkbT');
+  const tc=document.getElementById('wkbConn');
+  if(tw) tw.textContent=T.toExponential(3);
+  if(tc) tc.textContent=`∫|p| dx = ${barrierInt.toFixed(2)}`;
 
-  // Region labels
-  ctx7.fillStyle='rgba(68,221,255,0.3)'; ctx7.font='12px sans-serif'; ctx7.textAlign='center';
-  ctx7.fillText('Classically Allowed (oscillatory)', (xToC(tpL)+xToC(tpR))/2, eY-ampScale-12);
-  ctx7.fillStyle='rgba(255,68,136,0.3)';
-  ctx7.fillText('Forbidden (exponential)', (margin+xToC(tpL))/2, eY-ampScale-12);
-  ctx7.fillText('Forbidden (exponential)', (xToC(tpR)+W-margin)/2, eY-ampScale-12);
+  const botY0=plotB+4;
+  ctx7.fillStyle='#ffdd44';
+  ctx7.font='11px sans-serif';
+  ctx7.textAlign='center';
+  // Truncate connection formula if canvas is narrow
+  let conn='Connection: 1/√p cos(∫p/ħ − π/4)  ↔  1/√|p| exp(−∫|p|/ħ)';
+  while(ctx7.measureText(conn).width>W-16 && conn.length>20) conn=conn.slice(0,-4)+'…';
+  ctx7.fillText(conn, W/2, botY0+12);
+
+  const barX=plotL, barY=botY0+20, barW=pW, barH=8;
+  ctx7.fillStyle='#111128';
+  ctx7.fillRect(barX,barY,barW,barH);
+  ctx7.strokeStyle='#1c1c44';
+  ctx7.strokeRect(barX,barY,barW,barH);
+  // log-scale visual for tiny T
+  const barFrac=Math.min(1, Math.max(0, (Math.log10(T+1e-30)+20)/20));
+  ctx7.fillStyle='#ff8844';
+  ctx7.fillRect(barX,barY,barW*barFrac,barH);
+  ctx7.fillStyle='#8888aa';
+  ctx7.font='10px sans-serif';
+  ctx7.textAlign='left';
+  let tLab=`T = exp(−2∫|p|dx/ℏ) = ${T.toExponential(3)}`;
+  while(ctx7.measureText(tLab).width>pW && tLab.length>12) tLab=tLab.slice(0,-2);
+  // Keep label above canvas bottom
+  const labY=Math.min(H-4, barY+barH+12);
+  ctx7.fillText(tLab, barX, labY);
+
+  ctx7.restore(); // end canvas clip
 }
 
 // ── TAB 8: EFFECTIVE ACTION & COLEMAN-WEINBERG ───────────────────────────────
@@ -1918,7 +2017,7 @@ function draw8(){
 
   // Formula display
   ctx8.fillStyle='#55558a'; ctx8.font='12px sans-serif'; ctx8.textAlign='center';
-  ctx8.fillText('V_eff(φ) = ½m²φ² + λ/24 φ⁴ + (ħ/64π²)(V'')² ln(V''/μ²)', W/2, margin+pH+30);
+  ctx8.fillText("V_eff(φ) = ½m²φ² + λ/24 φ⁴ + (ħ/64π²)(V'')² ln(V''/μ²)", W/2, margin+pH+30);
 
   // Quantum correction bar
   const barX2=margin, barY2=margin+pH+40, barW2=pW, barH2=8;

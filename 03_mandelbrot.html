@@ -173,15 +173,74 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 .fp-btn-row{display:flex;gap:3px;flex-wrap:wrap}
 .fp-coord-bar{position:absolute;bottom:0;left:0;width:100%;background:rgba(5,5,15,.7);padding:2px 8px;font-size:.65rem;font-family:monospace;color:var(--dim);display:flex;gap:14px;z-index:10;pointer-events:none}
 
-/* ── TAB SYSTEM ── */
-.tabs{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 18px;flex-shrink:0}
-.tab{padding:7px 18px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.82rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+/* ── TAB SYSTEM (horizontal scroll when many tabs) ── */
+.tabs{
+  display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 12px;flex-shrink:0;
+  overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+  max-width:100%;
+}
+.tabs::-webkit-scrollbar{height:4px}
+.tabs::-webkit-scrollbar-track{background:transparent}
+.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab{
+  padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;
+  position:relative;top:1px;
+  flex:0 0 auto; /* never shrink — scroll instead */
+  white-space:nowrap;
+}
 .tab:hover{color:var(--text);background:var(--bg3)}
 .tab.active{color:var(--pink);background:var(--bg3);border-color:var(--border)}
 .content{flex:1;display:flex;overflow:hidden;min-height:0}
-.panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0}
+.panel{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;min-width:0;width:100%}
 .panel.active{display:flex}
+/* Main explorer chrome: row of (left | canvas | right), with strip/drawer stacked below */
+.panel-main-row{
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:row;
+  align-items:stretch;
+  min-height:0;
+  min-width:0;
+  width:100%;
+  overflow:hidden;
+}
+.panel-main-row > .sidebar{
+  flex:0 0 210px;
+  width:210px;
+}
+.panel-main-row > .sidebar.right{
+  flex:0 0 252px;
+  width:252px;
+}
+.panel-main-row > .canvas-wrap{
+  flex:1 1 0%;
+  min-width:0;
+  min-height:0;
+  position:relative;
+}
+/* Hint overlays sit on the canvas, not in document flow (avoids squeezing height) */
+.canvas-wrap > .hint{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  padding:4px 10px;
+  font-size:.68rem;
+  color:var(--dim);
+  background:rgba(5,5,15,.72);
+  pointer-events:none;
+  z-index:10;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#panel-explorer > .strip,
+#panel-explorer > #dm-toggle-bar{
+  flex:0 0 auto;
+}
 </style>
 </head>
 <body>
@@ -219,6 +278,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 
 <div class="panel active" role="tabpanel" id="panel-explorer">
 
+<div class="panel-main-row">
   <!-- ── LEFT SIDEBAR ── -->
   <div class="sidebar" data-role="sidebar">
     <div>
@@ -319,6 +379,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <strong>Penrose connection:</strong> The Mandelbrot boundary has infinite detail at every scale — it exemplifies the complex-analytic structures central to Chapters 7–9.
     </div>
   </div>
+</div><!-- /.panel-main-row -->
 
   <div class="strip">
     <span class="bookref">📖 Road to Reality §7.3 – 7.5</span>
@@ -931,6 +992,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
 
 <!-- ════════════ TAB: MISIUREWICZ POINTS ════════════ -->
 <div class="panel" role="tabpanel" id="panel-misiurewicz">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Misiurewicz Point</div>
@@ -984,9 +1046,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: HERMAN RINGS ════════════ -->
 <div class="panel" role="tabpanel" id="panel-herman">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Rotation Number θ</div>
@@ -1023,9 +1088,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: SIEGEL DISKS ════════════ -->
 <div class="panel" role="tabpanel" id="panel-siegel">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Rotation Number θ</div>
@@ -1066,9 +1134,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: RENORMALIZATION ════════════ -->
 <div class="panel" role="tabpanel" id="panel-renorm">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Renormalization Level</div>
@@ -1112,9 +1183,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: DOUADY'S RABBIT ════════════ -->
 <div class="panel" role="tabpanel" id="panel-rabbit">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Rabbit Type</div>
@@ -1159,9 +1233,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: FATOU COMPONENTS ════════════ -->
 <div class="panel" role="tabpanel" id="panel-fatou">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Component Type</div>
@@ -1210,9 +1287,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: MLC BOUNDARY ════════════ -->
 <div class="panel" role="tabpanel" id="panel-mlc">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Boundary Zoom</div>
@@ -1257,9 +1337,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: COMPLEX DYNAMICS THEORY ════════════ -->
 <div class="panel" role="tabpanel" id="panel-dynamics">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Theory Topic</div>
@@ -1298,9 +1381,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: PARABOLIC IMPLOSION ════════════ -->
 <div class="panel" role="tabpanel" id="panel-parabolic">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Parabolic Parameter</div>
@@ -1345,9 +1431,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: CREMER POINTS ════════════ -->
 <div class="panel" role="tabpanel" id="panel-cremer">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Rotation Number θ</div>
@@ -1388,9 +1477,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     </div>
   </div>
 </div>
+</div><!-- /.panel-main-row -->
+
 
 <!-- ════════════ TAB: LYAPUNOV EXPONENTS ════════════ -->
 <div class="panel" role="tabpanel" id="panel-lyapunov">
+<div class="panel-main-row">
   <div class="sidebar" data-role="sidebar">
     <div>
       <div class="section-lbl">Parameter c (real)</div>
@@ -1431,46 +1523,138 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
     </div>
   </div>
-</div>
+</div><!-- /.panel-main-row -->
+</div><!-- /#panel-lyapunov -->
 
 </div><!-- /.content -->
 
 <script>
   window.animSpeed=1;
 
+  function _cancelAllAnims03() {
+    // Stop every known RAF loop so leaving a tab cannot leave hidden work running.
+    try {
+      if (typeof OA !== 'undefined' && OA) {
+        OA.running = false;
+        if (OA.raf) { cancelAnimationFrame(OA.raf); OA.raf = null; }
+      }
+      [
+        [typeof BB !== 'undefined' ? BB : null, 'anim', 'raf', 'bb-anim-btn'],
+        [typeof NF !== 'undefined' ? NF : null, 'anim', 'raf', 'nf-anim-btn'],
+        [typeof BS !== 'undefined' ? BS : null, 'anim', 'raf', 'bs-anim-btn'],
+      ].forEach(([st, flag, rafKey, btnId]) => {
+        if (!st) return;
+        st[flag] = false;
+        if (st[rafKey]) { cancelAnimationFrame(st[rafKey]); st[rafKey] = null; }
+        const b = document.getElementById(btnId);
+        if (b) { b.textContent = '▶ Animate'; b.classList.remove('active'); }
+      });
+      [
+        typeof MW !== 'undefined' ? MW : null,
+        typeof HR !== 'undefined' ? HR : null,
+        typeof SD !== 'undefined' ? SD : null,
+        typeof RN !== 'undefined' ? RN : null,
+        typeof RB !== 'undefined' ? RB : null,
+        typeof FT !== 'undefined' ? FT : null,
+        typeof MLC !== 'undefined' ? MLC : null,
+        typeof DY !== 'undefined' ? DY : null,
+        typeof PI !== 'undefined' ? PI : null,
+        typeof CR !== 'undefined' ? CR : null,
+        typeof LY !== 'undefined' ? LY : null,
+      ].forEach(st => {
+        if (!st) return;
+        st.animating = false;
+        if (st.rafId) { cancelAnimationFrame(st.rafId); st.rafId = null; }
+      });
+      // Reset any visible Animate/Pause control labels on panels
+      document.querySelectorAll('.panel button').forEach(b => {
+        const t = b.textContent || '';
+        if (t.includes('⏸') || t.includes('Pause')) {
+          b.textContent = '▶ Animate';
+          b.classList.remove('active');
+        }
+      });
+      const orbitBtn = document.getElementById('orbit-anim-btn');
+      if (orbitBtn) orbitBtn.textContent = '▶ Animate';
+    } catch (e) { /* states may not be initialized yet during early bootstrap */ }
+  }
+
   function switchTab(name, btn) {
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
-    btn.classList.add('active');
+    _cancelAllAnims03();
+    document.querySelectorAll('.tab').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    // Prefer class-only show/hide so CSS (flex-direction etc.) stays in control.
+    // Clear any leftover inline display from earlier revisions.
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.remove('active');
+      p.style.display = '';
+    });
+    if (btn) {
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+    }
     const panel = document.getElementById('panel-' + name);
-    if (panel) { panel.classList.add('active'); panel.style.display = 'flex'; }
+    if (panel) {
+      panel.classList.add('active');
+      panel.style.display = ''; // let .panel.active { display:flex } apply
+    }
     // Initialize canvases for the selected tab
-    if (name === 'orbit') { requestAnimationFrame(()=>{ dmSizeCanvas('orbit-anim-c'); orbitAnimBuild(); OA.idx=0; orbitAnimDraw(); }); }
-    if (name === 'hausdorff') { requestAnimationFrame(()=>{ dmSizeCanvas('boxcount-c'); runBoxCount(); }); }
-    if (name === 'rays') { requestAnimationFrame(()=>{ dmSizeCanvas('ray-c'); rayDraw(); }); }
-    if (name === 'feigenbaum') { requestAnimationFrame(()=>{ dmSizeCanvas('bifurc-c'); renderBifurc(); bifurcInitClick(); }); }
-    if (name === 'buddhabrot') { requestAnimationFrame(()=>{ bbInit(); }); }
-    if (name === 'newton') { requestAnimationFrame(()=>{ nfInit(); }); }
-    if (name === 'burning') { requestAnimationFrame(()=>{ bsInit(); }); }
-    if (name === 'misiurewicz') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('mw-c')); mwCompute(); mwDraw(); }); }
-    if (name === 'herman') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('hr-c')); hrDraw(); }); }
-    if (name === 'siegel') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('sd-c')); sdDraw(); }); }
-    if (name === 'renorm') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('rn-c')); rnDraw(); }); }
-    if (name === 'rabbit') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('rb-c')); rbDraw(); }); }
-    if (name === 'fatou') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('ft-c')); ftDraw(); }); }
-    if (name === 'mlc') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('mlc-c')); mlcDraw(); }); }
-    if (name === 'dynamics') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('dy-c')); dyDraw(); }); }
-    if (name === 'parabolic') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('pi-c')); piDraw(); }); }
-    if (name === 'cremer') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('cr-c')); crDraw(); }); }
-    if (name === 'lyapunov') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('ly-c')); lyDraw(); }); }
+    // Defer init+autoplay until layout has size (double rAF)
+    const _start = (fn) => {
+      const raf = window.requestAnimationFrame || ((cb) => setTimeout(cb, 16));
+      raf(() => raf(fn));
+    };
+    // Main Mandelbrot/Julia explorer — must re-size + re-render when shown
+    if (name === 'explorer') {
+      _start(() => {
+        try {
+          initCanvas();
+          scheduleRender(true);
+        } catch (e) { console.warn('explorer init', e); }
+      });
+    }
+    if (name === 'physics') {
+      _start(() => {
+        try {
+          const c = document.getElementById('cm'); // physics may share layout helpers
+          if (typeof renderPhysics === 'function') renderPhysics();
+        } catch (e) { /* optional */ }
+      });
+    }
+    // Heavy fractal tabs: start anim FIRST (sets Pause label) then draw — so
+    // autoplay is visible even if first paint is slow.
+    if (name === 'orbit') { _start(()=>{ dmSizeCanvas('orbit-anim-c'); orbitAnimBuild(); OA.idx=0; if(!OA.running) orbitAnimToggle(); else orbitAnimDraw(); }); }
+    if (name === 'hausdorff') { _start(()=>{ dmSizeCanvas('boxcount-c'); runBoxCount(); }); }
+    if (name === 'rays') { _start(()=>{ dmSizeCanvas('ray-c'); rayDraw(); }); }
+    if (name === 'feigenbaum') { _start(()=>{ dmSizeCanvas('bifurc-c'); renderBifurc(); bifurcInitClick(); }); }
+    if (name === 'buddhabrot') { _start(()=>{ bbInit(); const b=document.getElementById('bb-anim-btn'); if(b && typeof BB!=='undefined' && !BB.anim) bbToggleAnim(b); }); }
+    if (name === 'newton') { _start(()=>{ nfInit(); const b=document.getElementById('nf-anim-btn'); if(b && typeof NF!=='undefined' && !NF.anim) nfToggleAnim(b); }); }
+    if (name === 'burning') { _start(()=>{ bsInit(); const b=document.getElementById('bs-anim-btn'); if(b && typeof BS!=='undefined' && !BS.anim) bsToggleAnim(b); }); }
+    if (name === 'misiurewicz') { _start(()=>{ mwCompute(); const b=document.getElementById('mw-anim-btn'); if(b && typeof MW!=='undefined' && !MW.animating) mwToggleAnim(b); else mwDraw(); }); }
+    if (name === 'herman') { _start(()=>{ const b=document.getElementById('hr-anim-btn'); if(b && typeof HR!=='undefined' && !HR.animating) hrToggleAnim(b); else hrDraw(); }); }
+    if (name === 'siegel') { _start(()=>{ const b=document.getElementById('sd-anim-btn'); if(b && typeof SD!=='undefined' && !SD.animating) sdToggleAnim(b); else sdDraw(); }); }
+    if (name === 'renorm') { _start(()=>{ const b=document.getElementById('rn-anim-btn'); if(b && typeof RN!=='undefined' && !RN.animating) rnToggleAnim(b); else rnDraw(); }); }
+    if (name === 'rabbit') { _start(()=>{ const b=document.getElementById('rb-anim-btn'); if(b && typeof RB!=='undefined' && !RB.animating) rbToggleAnim(b); else rbDraw(); }); }
+    if (name === 'fatou') { _start(()=>{ const b=document.getElementById('ft-anim-btn'); if(b && typeof FT!=='undefined' && !FT.animating) ftToggleAnim(b); else ftDraw(); }); }
+    if (name === 'mlc') { _start(()=>{ const b=document.getElementById('mlc-anim-btn'); if(b && typeof MLC!=='undefined' && !MLC.animating) mlcToggleAnim(b); else mlcDraw(); }); }
+    if (name === 'dynamics') { _start(()=>{ const b=document.getElementById('dy-anim-btn'); if(b && typeof DY!=='undefined' && !DY.animating) dyToggleAnim(b); else dyDraw(); }); }
+    if (name === 'parabolic') { _start(()=>{ const b=document.getElementById('pi-anim-btn'); if(b && typeof PI!=='undefined' && !PI.animating) piToggleAnim(b); else piDraw(); }); }
+    if (name === 'cremer') { _start(()=>{ const b=document.getElementById('cr-anim-btn'); if(b && typeof CR!=='undefined' && !CR.animating) crToggleAnim(b); else crDraw(); }); }
+    if (name === 'lyapunov') { _start(()=>{ const b=document.getElementById('ly-anim-btn'); if(b && typeof LY!=='undefined' && !LY.animating) lyToggleAnim(b); else lyDraw(); }); }
+    // explorer / physics: static fractal views — continuous autoplay not required
   }
 
   function autoStartAnimations() {
     if (window.animSpeed === undefined) {
       window.animSpeed=1;
     }
-    // Auto-start orbit animation if the panel is active
-    orbitAnimToggle();
+    // Default landing tab is explorer (static). Orbit auto-start only when that panel is active.
+    const orbitPanel = document.getElementById('panel-orbit');
+    if (orbitPanel && orbitPanel.classList.contains('active') && typeof OA !== 'undefined' && !OA.running) {
+      orbitAnimToggle();
+    }
   }
 
 // ═══════════════════════════════════════════════════════
@@ -1878,9 +2062,25 @@ function setPreset(name){
 // ═══════════════════════════════════════════════════════
 function initCanvas(){
   const c=document.getElementById('cm');
-  if (c) window.resizeCanvas(c);
-  const base=Math.min(c.width/2,c.height)*0.35;
-  if(!S.mScale||S.mScale===0){ S.mScale=base; S.jScale=base; }
+  if (!c) return;
+  const wrap = c.parentElement || document.getElementById('cwrap');
+  // Prefer shared helper; fall back if auto-start.js not loaded yet or parent has no size yet
+  if (typeof window.resizeCanvas === 'function') {
+    window.resizeCanvas(c);
+  }
+  if ((!c.width || !c.height) && wrap) {
+    const r = wrap.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = Math.max(1, Math.floor(r.width));
+    const h = Math.max(1, Math.floor(r.height));
+    c.style.width = w + 'px';
+    c.style.height = h + 'px';
+    c.width = Math.floor(w * dpr);
+    c.height = Math.floor(h * dpr);
+  }
+  if (!c.width || !c.height) return;
+  const base = Math.min(c.width / 2, c.height) * 0.35;
+  if (!S.mScale || S.mScale === 0) { S.mScale = base; S.jScale = base; }
 }
 
 window.addEventListener('load',()=>{
@@ -2887,9 +3087,55 @@ window.addEventListener('load',()=>{
 });
 
 // ═══════════════════════════════════════════════════════
+//  Shared helpers for full-panel fractal tabs
+//  resizeCanvas() sets a DPR transform — path drawing uses CSS pixels
+//  from the return value; putImageData uses identity + buffer pixels.
+// ═══════════════════════════════════════════════════════
+function _tabCss(canvasId) {
+  const c = document.getElementById(canvasId);
+  if (!c) return null;
+  const sz = typeof window.resizeCanvas === 'function' ? window.resizeCanvas(c) : null;
+  if (!sz || !sz[0] || !sz[1]) {
+    // Fallback if wrap not laid out yet
+    const wrap = c.parentElement;
+    if (!wrap) return null;
+    const r = wrap.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return null;
+    const dpr = window.devicePixelRatio || 1;
+    c.style.width = r.width + 'px';
+    c.style.height = r.height + 'px';
+    c.width = Math.max(1, Math.floor(r.width * dpr));
+    c.height = Math.max(1, Math.floor(r.height * dpr));
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { c, W: r.width, H: r.height, ctx, dpr };
+  }
+  return { c, W: sz[0], H: sz[1], ctx: sz[2], dpr: window.devicePixelRatio || 1 };
+}
+function _tabPhys(canvasId) {
+  const c = document.getElementById(canvasId);
+  if (!c) return null;
+  if (typeof window.resizeCanvas === 'function') window.resizeCanvas(c);
+  if (!c.width || !c.height) {
+    const wrap = c.parentElement;
+    if (!wrap) return null;
+    const r = wrap.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return null;
+    const dpr = window.devicePixelRatio || 1;
+    c.style.width = r.width + 'px';
+    c.style.height = r.height + 'px';
+    c.width = Math.max(1, Math.floor(r.width * dpr));
+    c.height = Math.max(1, Math.floor(r.height * dpr));
+  }
+  const ctx = c.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // putImageData path — physical pixels
+  return { c, W: c.width, H: c.height, ctx };
+}
+
+// ═══════════════════════════════════════════════════════
 //  TAB: MISIUREWICZ POINTS
 // ═══════════════════════════════════════════════════════
-const MW = { c: { re: -2, im: 0 }, maxIter: 100, animating: false, rafId: null, idx: 0 };
+const MW = { c: { re: -2, im: 0 }, maxIter: 100, animating: false, rafId: null, idx: 0, _bgKey: null, _bg: null };
 const MW_POINTS = {
   'c=-2': { re: -2, im: 0, label: 'c = -2' },
   'c=i': { re: 0, im: 1, label: 'c = i' },
@@ -2907,7 +3153,8 @@ function mwSetIter(v) { MW.maxIter = v; document.getElementById('mw-iter-disp').
 function mwCompute() {
   const c = MW.c;
   let zr = 0, zi = 0, orbit = [{ re: 0, im: 0 }];
-  for (let i = 0; i < 200; i++) {
+  const nMax = Math.max(40, MW.maxIter || 100);
+  for (let i = 0; i < nMax; i++) {
     const nr = zr * zr - zi * zi + c.re, ni = 2 * zr * zi + c.im;
     zr = nr; zi = ni;
     orbit.push({ re: zr, im: zi });
@@ -2924,48 +3171,100 @@ function mwCompute() {
   MW.orbit = orbit;
   MW.k = k >= 0 ? k : orbit.length - 1;
   MW.p = p >= 0 ? p : 0;
-  document.getElementById('mw-pp-disp').textContent = `(${MW.k},${MW.p})`;
-  document.getElementById('mw-k').textContent = MW.k;
-  document.getElementById('mw-p').textContent = MW.p;
-  document.getElementById('mw-len').textContent = orbit.length;
+  const pp = document.getElementById('mw-pp-disp');
+  if (pp) pp.textContent = `(${MW.k},${MW.p})`;
+  const ek = document.getElementById('mw-k'); if (ek) ek.textContent = MW.k;
+  const ep = document.getElementById('mw-p'); if (ep) ep.textContent = MW.p;
+  const el = document.getElementById('mw-len'); if (el) el.textContent = orbit.length;
 }
 function mwDraw() {
-  const c = document.getElementById('mw-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
-  ctx.clearRect(0, 0, W, H);
-  const scale = Math.min(W, H) * 0.18;
-  const cx = W / 2, cy = H / 2;
-  // Draw orbit
-  if (MW.orbit) {
-    for (let i = 0; i < MW.orbit.length; i++) {
-      const x = cx + MW.orbit[i].re * scale, y = cy - MW.orbit[i].im * scale;
-      const alpha = 0.3 + 0.7 * (1 - i / MW.orbit.length);
-      ctx.fillStyle = `rgba(255,68,255,${alpha.toFixed(2)})`;
-      ctx.beginPath(); ctx.arc(x, y, i === 0 ? 5 : 3, 0, 2 * Math.PI); ctx.fill();
-      if (i > 0) {
-        const px = cx + MW.orbit[i - 1].re * scale, py = cy - MW.orbit[i - 1].im * scale;
-        ctx.strokeStyle = `rgba(255,200,50,${(alpha * 0.5).toFixed(2)})`;
-        ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+  if (!MW.orbit) mwCompute();
+  const t = _tabPhys('mw-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
+  const cre = MW.c.re, cim = MW.c.im;
+  // Frame so |z| ≤ ~2.4 fills most of the canvas
+  const span = 2.4;
+  const scale = Math.min(W, H) / (2 * span);
+  const maxIt = Math.min(120, MW.maxIter || 100);
+  // Cache Julia backdrop across animation frames (only recompute on param/size change)
+  const bgKey = cre + ',' + cim + ',' + maxIt + ',' + W + 'x' + H;
+  if (MW._bgKey !== bgKey || !MW._bg) {
+    const img = ctx.createImageData(W, H);
+    const d = img.data;
+    for (let py = 0; py < H; py++) {
+      const zi0 = (H / 2 - py) / scale;
+      for (let px = 0; px < W; px++) {
+        let zr = (px - W / 2) / scale, zi = zi0;
+        let iter = 0;
+        while (iter < maxIt) {
+          const nr = zr * zr - zi * zi + cre, ni = 2 * zr * zi + cim;
+          zr = nr; zi = ni;
+          if (zr * zr + zi * zi > 256) break;
+          iter++;
+        }
+        const i4 = (py * W + px) * 4;
+        if (iter === maxIt) {
+          d[i4] = 8; d[i4 + 1] = 4; d[i4 + 2] = 28; d[i4 + 3] = 255;
+        } else {
+          const tcol = iter / maxIt;
+          d[i4] = Math.floor(20 + 180 * tcol);
+          d[i4 + 1] = Math.floor(10 + 40 * (1 - tcol));
+          d[i4 + 2] = Math.floor(60 + 160 * (1 - tcol));
+          d[i4 + 3] = 255;
+        }
       }
     }
-    // Mark pre-period and period
-    if (MW.k > 0) {
-      const kx = cx + MW.orbit[MW.k].re * scale, ky = cy - MW.orbit[MW.k].im * scale;
-      ctx.strokeStyle = '#00ff99'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(kx, ky, 8, 0, 2 * Math.PI); ctx.stroke();
+    MW._bg = img;
+    MW._bgKey = bgKey;
+  }
+  ctx.putImageData(MW._bg, 0, 0);
+
+  // Critical orbit overlay (identity transform — physical pixels)
+  if (MW.orbit && MW.orbit.length) {
+    const highlight = MW.animating ? MW.idx : MW.orbit.length - 1;
+    ctx.lineWidth = Math.max(1, Math.floor(Math.min(W, H) / 400));
+    for (let i = 0; i < MW.orbit.length; i++) {
+      const x = W / 2 + MW.orbit[i].re * scale;
+      const y = H / 2 - MW.orbit[i].im * scale;
+      const alpha = 0.35 + 0.65 * (1 - i / MW.orbit.length);
+      if (i > 0) {
+        const px = W / 2 + MW.orbit[i - 1].re * scale;
+        const py = H / 2 - MW.orbit[i - 1].im * scale;
+        ctx.strokeStyle = `rgba(255,200,50,${(alpha * 0.55).toFixed(2)})`;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+      }
+      const r = i === 0 ? 6 : (i === highlight ? 5 : 3);
+      ctx.fillStyle = i === highlight ? '#00ff99' : `rgba(255,68,255,${alpha.toFixed(2)})`;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fill();
     }
+    if (MW.k > 0 && MW.k < MW.orbit.length) {
+      const kx = W / 2 + MW.orbit[MW.k].re * scale;
+      const ky = H / 2 - MW.orbit[MW.k].im * scale;
+      ctx.strokeStyle = '#00ff99'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(kx, ky, 10, 0, 2 * Math.PI); ctx.stroke();
+    }
+    // Mark parameter c in plane
+    const cxp = W / 2 + cre * scale, cyp = H / 2 - cim * scale;
+    ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cxp - 8, cyp); ctx.lineTo(cxp + 8, cyp);
+    ctx.moveTo(cxp, cyp - 8); ctx.lineTo(cxp, cyp + 8);
+    ctx.stroke();
   }
 }
 function mwToggleAnim(btn) {
   MW.animating = !MW.animating;
   btn.textContent = MW.animating ? '\u23f8 Pause' : '\u25b6 Animate';
   btn.classList.toggle('active', MW.animating);
-  if (MW.animating) mwAnimate();
+  if (MW.animating) {
+    if (!MW.orbit) mwCompute();
+    mwAnimate();
+  }
 }
 function mwAnimate() {
   if (!MW.animating) return;
+  if (!MW.orbit) mwCompute();
   MW.idx = (MW.idx + 1) % (MW.orbit ? MW.orbit.length : 1);
   mwDraw();
   MW.rafId = requestAnimationFrame(mwAnimate);
@@ -2982,13 +3281,12 @@ function hrSetTheta(v) {
   hrDraw();
 }
 function hrDraw() {
-  const c = document.getElementById('hr-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
+  const t = _tabCss('hr-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
   ctx.clearRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
-  const r1 = Math.min(W, H) * 0.15, r2 = Math.min(W, H) * 0.35;
+  const r1 = Math.min(W, H) * 0.22, r2 = Math.min(W, H) * 0.46;
   const theta = HR.theta * 2 * Math.PI;
   // Draw ring
   const grad = ctx.createRadialGradient(cx, cy, r1, cx, cy, r2);
@@ -3057,13 +3355,12 @@ function sdBrjunoSum(theta) {
   return sum;
 }
 function sdDraw() {
-  const c = document.getElementById('sd-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
+  const t = _tabCss('sd-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
   ctx.clearRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.35;
+  const R = Math.min(W, H) * 0.46;
   const theta = SD.theta * 2 * Math.PI;
   // Draw disk
   const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
@@ -3124,37 +3421,49 @@ function rnSetView(v, btn) {
   rnDraw();
 }
 function rnDraw() {
-  const c = document.getElementById('rn-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
-  ctx.clearRect(0, 0, W, H);
+  const t = _tabPhys('rn-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
+  // Full Mandelbrot backdrop with nested "mini-brot" frames
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  const zoom = Math.pow(2.2, RN.level - 1);
+  // Zoom into period-2 bulb region as levels increase
+  const centerRe = -0.12 - 0.02 * (RN.level - 1);
+  const centerIm = 0.75;
+  const span = 1.6 / zoom;
+  const maxIt = 80 + RN.level * 20;
+  for (let py = 0; py < H; py++) {
+    const ci = centerIm + (H / 2 - py) / H * 2 * span * (H / Math.min(W, H));
+    for (let px = 0; px < W; px++) {
+      const cr = centerRe + (px - W / 2) / W * 2 * span * (W / Math.min(W, H));
+      let zr = 0, zi = 0, iter = 0;
+      while (iter < maxIt) {
+        const nr = zr * zr - zi * zi + cr, ni = 2 * zr * zi + ci;
+        zr = nr; zi = ni;
+        if (zr * zr + zi * zi > 256) break;
+        iter++;
+      }
+      const i4 = (py * W + px) * 4;
+      if (iter === maxIt) { d[i4] = 10; d[i4 + 1] = 6; d[i4 + 2] = 30; }
+      else {
+        const u = iter / maxIt;
+        d[i4] = Math.floor(30 + 200 * u);
+        d[i4 + 1] = Math.floor(10 + 80 * (1 - u));
+        d[i4 + 2] = Math.floor(80 + 160 * (1 - u));
+      }
+      d[i4 + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  // Nested frame guides (CSS-scale approx via buffer px)
+  const baseR = Math.min(W, H) * 0.42;
   const cx = W / 2, cy = H / 2;
-  const baseR = Math.min(W, H) * 0.4;
-  // Draw nested mini-brots
   for (let lv = 0; lv <= RN.level; lv++) {
-    const r = baseR * Math.pow(0.35, lv);
-    const x = cx + (lv % 2 === 0 ? 0 : r * 0.5);
-    const y = cy + (lv % 2 === 0 ? 0 : -r * 0.3);
-    ctx.strokeStyle = `hsla(${(lv * 60 + 280) % 360},70%,60%,${(0.8 - lv * 0.12).toFixed(2)})`;
-    ctx.lineWidth = 2 - lv * 0.2;
-    ctx.beginPath();
-    // Draw cardioid shape
-    for (let t = 0; t <= 2 * Math.PI; t += 0.05) {
-      const px = x + r * 0.5 * (1 - Math.cos(t)) * Math.cos(t);
-      const py = y + r * 0.5 * (1 - Math.cos(t)) * Math.sin(t);
-      t === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-    }
-    ctx.stroke();
-    // Draw bulbs
-    for (let b = 0; b < 6; b++) {
-      const ba = b * Math.PI / 3;
-      const bx = x + r * 0.45 * Math.cos(ba), by = y + r * 0.45 * Math.sin(ba);
-      const br = r * 0.12 * Math.pow(0.35, lv);
-      ctx.beginPath(); ctx.arc(bx, by, br, 0, 2 * Math.PI);
-      ctx.strokeStyle = `hsla(${(lv * 60 + 200 + b * 20) % 360},60%,50%,${(0.5 - lv * 0.08).toFixed(2)})`;
-      ctx.stroke();
-    }
+    const r = baseR * Math.pow(0.38, lv);
+    ctx.strokeStyle = `hsla(${(lv * 60 + 280) % 360},80%,65%,${(0.85 - lv * 0.1).toFixed(2)})`;
+    ctx.lineWidth = Math.max(1, 2.5 - lv * 0.25);
+    ctx.strokeRect(cx - r, cy - r * 0.75, r * 2, r * 1.5);
   }
   document.getElementById('rn-lvl').textContent = RN.level;
   document.getElementById('rn-c').textContent = 'Level ' + RN.level;
@@ -3191,20 +3500,17 @@ function rbSetType(key, btn) {
 }
 function rbSetIter(v) { RB.maxIter = v; document.getElementById('rb-iter-disp').textContent = v; rbDraw(); }
 function rbDraw() {
-  const c = document.getElementById('rb-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
-  ctx.clearRect(0, 0, W, H);
+  const t = _tabPhys('rb-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
   const param = RB_PARAMS[RB.type];
-  const scale = Math.min(W, H) * 0.35;
-  const cx = W / 2, cy = H / 2;
-  // Render Julia set for the rabbit parameter
+  // Fit |z|≤~1.8 across the shorter canvas side so Julia fills the view
+  const scale = Math.min(W, H) / 3.6;
   const imgData = ctx.createImageData(W, H);
   const d = imgData.data;
   for (let py = 0; py < H; py++) {
     for (let px = 0; px < W; px++) {
-      let zr = (px - W / 2) / scale, zi = (py - H / 2) / scale;
+      let zr = (px - W / 2) / scale, zi = (H / 2 - py) / scale;
       let iter = 0;
       while (iter < RB.maxIter) {
         const nr = zr * zr - zi * zi + param.re, ni = 2 * zr * zi + param.im;
@@ -3215,11 +3521,10 @@ function rbDraw() {
       const i4 = (py * W + px) * 4;
       if (iter === RB.maxIter) { d[i4] = 0; d[i4 + 1] = 0; d[i4 + 2] = 20; }
       else {
-        const t = (iter / RB.maxIter) * 5;
-        const r = Math.floor(20 + 200 * (1 - t % 1));
-        const g = Math.floor(10 + 100 * ((t + 0.5) % 1));
-        const b = Math.floor(50 + 200 * ((t + 0.3) % 1));
-        d[i4] = r; d[i4 + 1] = g; d[i4 + 2] = b;
+        const u = (iter / RB.maxIter) * 5;
+        d[i4] = Math.floor(20 + 200 * (1 - u % 1));
+        d[i4 + 1] = Math.floor(10 + 100 * ((u + 0.5) % 1));
+        d[i4 + 2] = Math.floor(50 + 200 * ((u + 0.3) % 1));
       }
       d[i4 + 3] = 255;
     }
@@ -3257,13 +3562,18 @@ function ftSetMult(v) {
   ftDraw();
 }
 function ftDraw() {
-  const c = document.getElementById('ft-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
+  const t = _tabCss('ft-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
   ctx.clearRect(0, 0, W, H);
+  // Soft fill so the domain is not a tiny ring in a black void
+  const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.min(W, H) * 0.55);
+  bg.addColorStop(0, 'rgba(20,10,40,0.95)');
+  bg.addColorStop(1, 'rgba(5,5,15,1)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.35;
+  const R = Math.min(W, H) * 0.46;
   // Draw based on type
   if (FT.type === 'attracting') {
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
@@ -3355,36 +3665,41 @@ function mlcSetView(v, btn) {
   mlcDraw();
 }
 function mlcDraw() {
-  const c = document.getElementById('mlc-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
-  ctx.clearRect(0, 0, W, H);
-  const cx = W / 2, cy = H / 2;
-  const scale = Math.min(W, H) * 0.4 * MLC.zoom;
-  // Draw Mandelbrot boundary approximation
-  ctx.strokeStyle = 'rgba(255,68,255,0.6)'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  for (let t = 0; t <= 2 * Math.PI; t += 0.02) {
-    const r = 0.5 * (1 - Math.cos(t));
-    const x = cx + r * Math.cos(t) * scale / MLC.zoom;
-    const y = cy + r * Math.sin(t) * scale / MLC.zoom;
-    t === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  // Draw filaments/antenna
-  if (MLC.view === 'filaments' || MLC.view === 'antenna') {
-    for (let i = 0; i < 8; i++) {
-      const a = i * Math.PI / 4 + MLC.phase;
-      const len = scale * (0.3 + 0.1 * Math.sin(i * 2.5 + MLC.phase));
-      ctx.strokeStyle = `hsla(${(i * 45 + 280) % 360},60%,50%,0.3)`;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(cx + scale * 0.5 * Math.cos(a), cy + scale * 0.5 * Math.sin(a));
-      ctx.lineTo(cx + len * Math.cos(a), cy + len * Math.sin(a));
-      ctx.stroke();
+  const t = _tabPhys('mlc-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
+  // Full Mandelbrot boundary at current zoom — fills the canvas
+  const img = ctx.createImageData(W, H);
+  const d = img.data;
+  const zoom = MLC.zoom;
+  let centerRe = -0.5, centerIm = 0, span = 1.6 / zoom;
+  if (MLC.view === 'filaments') { centerRe = -0.75; centerIm = 0.1; span = 0.9 / zoom; }
+  if (MLC.view === 'antenna') { centerRe = -1.75; centerIm = 0; span = 0.6 / zoom; }
+  const maxIt = 60 + zoom * 20;
+  const aspect = W / H;
+  for (let py = 0; py < H; py++) {
+    const ci = centerIm + (0.5 - py / H) * 2 * span;
+    for (let px = 0; px < W; px++) {
+      const cr = centerRe + (px / W - 0.5) * 2 * span * aspect;
+      let zr = 0, zi = 0, iter = 0;
+      while (iter < maxIt) {
+        const nr = zr * zr - zi * zi + cr, ni = 2 * zr * zi + ci;
+        zr = nr; zi = ni;
+        if (zr * zr + zi * zi > 256) break;
+        iter++;
+      }
+      const i4 = (py * W + px) * 4;
+      if (iter === maxIt) { d[i4] = 12; d[i4 + 1] = 6; d[i4 + 2] = 32; }
+      else {
+        const u = iter / maxIt;
+        d[i4] = Math.floor(40 + 200 * u);
+        d[i4 + 1] = Math.floor(10 + 60 * (1 - u));
+        d[i4 + 2] = Math.floor(100 + 140 * (1 - u));
+      }
+      d[i4 + 3] = 255;
     }
   }
+  ctx.putImageData(img, 0, 0);
   document.getElementById('mlc-zoom').textContent = MLC.zoom + '\u00d7';
   document.getElementById('mlc-view').textContent = MLC.view;
 }
@@ -3413,13 +3728,17 @@ function dySetTopic(key, btn) {
   dyDraw();
 }
 function dyDraw() {
-  const c = document.getElementById('dy-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
+  const t = _tabCss('dy-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
   ctx.clearRect(0, 0, W, H);
+  const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.min(W, H) * 0.55);
+  g.addColorStop(0, 'rgba(18,12,40,1)');
+  g.addColorStop(1, 'rgba(5,5,15,1)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.35;
+  const R = Math.min(W, H) * 0.46;
   if (DY.topic === 'thurston') {
     // Draw sphere with branched covering
     ctx.strokeStyle = 'rgba(255,68,255,0.4)'; ctx.lineWidth = 1.5;
@@ -3504,21 +3823,17 @@ function piSetEps(v) {
   piDraw();
 }
 function piDraw() {
-  const c = document.getElementById('pi-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
-  ctx.clearRect(0, 0, W, H);
-  const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.35;
-  // Draw Julia set approximation with perturbation
-  const scale = R * 1.5;
+  const t = _tabPhys('pi-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
+  // Fit Julia |z|≤~2 across the canvas so parabolic implosion fills the view
+  const scale = Math.min(W, H) / 4.0;
   const imgData = ctx.createImageData(W, H);
   const d = imgData.data;
   const cRe = PI.c.re + PI.eps, cIm = PI.c.im;
   for (let py = 0; py < H; py++) {
     for (let px = 0; px < W; px++) {
-      let zr = (px - W / 2) / scale, zi = (py - H / 2) / scale;
+      let zr = (px - W / 2) / scale, zi = (H / 2 - py) / scale;
       let iter = 0;
       while (iter < 100) {
         const nr = zr * zr - zi * zi + cRe, ni = 2 * zr * zi + cIm;
@@ -3529,10 +3844,10 @@ function piDraw() {
       const i4 = (py * W + px) * 4;
       if (iter === 100) { d[i4] = 0; d[i4 + 1] = 0; d[i4 + 2] = 20; }
       else {
-        const t = (iter / 100) * 4;
-        d[i4] = Math.floor(20 + 200 * (1 - t % 1));
-        d[i4 + 1] = Math.floor(10 + 100 * ((t + 0.5) % 1));
-        d[i4 + 2] = Math.floor(50 + 200 * ((t + 0.3) % 1));
+        const u = (iter / 100) * 4;
+        d[i4] = Math.floor(20 + 200 * (1 - u % 1));
+        d[i4 + 1] = Math.floor(10 + 100 * ((u + 0.5) % 1));
+        d[i4 + 2] = Math.floor(50 + 200 * ((u + 0.3) % 1));
       }
       d[i4 + 3] = 255;
     }
@@ -3571,26 +3886,28 @@ function crSetTheta(v) {
   crDraw();
 }
 function crDraw() {
-  const c = document.getElementById('cr-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
+  const t = _tabCss('cr-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
   ctx.clearRect(0, 0, W, H);
+  const bg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.min(W, H) * 0.55);
+  bg.addColorStop(0, 'rgba(24,8,32,1)');
+  bg.addColorStop(1, 'rgba(5,5,15,1)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
   const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.35;
-  // Draw non-linearizable dynamics — chaotic orbits
-  ctx.strokeStyle = 'rgba(255,68,255,0.3)'; ctx.lineWidth = 1.5;
+  const R = Math.min(W, H) * 0.46;
+  ctx.strokeStyle = 'rgba(255,68,255,0.35)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI); ctx.stroke();
-  // Draw chaotic orbit approximation
-  for (let i = 0; i < 30; i++) {
-    const a = i * CR.theta * 2 * Math.PI + CR.phase;
-    const r = R * (0.1 + 0.8 * (0.5 + 0.5 * Math.sin(i * 1.3 + CR.phase)));
+  // Dense non-linearizable orbit cloud fills the disk
+  for (let i = 0; i < 220; i++) {
+    const a = i * CR.theta * 2 * Math.PI + CR.phase + i * 0.17;
+    const r = R * (0.08 + 0.88 * (0.5 + 0.5 * Math.sin(i * 1.3 + CR.phase * 0.7)));
     const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
-    ctx.fillStyle = `hsla(${(i * 12 + 280) % 360},70%,60%,${(0.1 + 0.5 * (1 - i / 30)).toFixed(2)})`;
-    ctx.beginPath(); ctx.arc(x, y, 2, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = `hsla(${(i * 7 + 280) % 360},70%,60%,${(0.12 + 0.45 * (1 - i / 220)).toFixed(2)})`;
+    ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 2 * Math.PI); ctx.fill();
   }
-  // Fixed point
-  ctx.fillStyle = '#ff44ff'; ctx.beginPath(); ctx.arc(cx, cy, 4, 0, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = '#ff44ff'; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fill();
   document.getElementById('cr-theta-val').textContent = CR.theta.toFixed(4);
 }
 function crToggleAnim(btn) {
@@ -3634,40 +3951,78 @@ function lyComputeLyapunov(c, n) {
   return sum / n;
 }
 function lyDraw() {
-  const c = document.getElementById('ly-c');
-  if (!c || !c.width) return;
-  window.resizeCanvas(c);
-  const ctx = c.getContext('2d'), W = c.width, H = c.height;
+  const t = _tabCss('ly-c');
+  if (!t) return;
+  const { ctx, W, H } = t;
   ctx.clearRect(0, 0, W, H);
-  const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.35;
-  // Draw Lyapunov spectrum
-  const nSamples = 200;
+  // Chart uses nearly full canvas with padding
+  const padL = 48, padR = 20, padT = 24, padB = 36;
+  const x0 = padL, x1 = W - padR, y0 = padT, y1 = H - padB;
+  const plotW = x1 - x0, plotH = y1 - y0;
+  ctx.fillStyle = 'rgba(12,12,28,1)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(18,18,40,1)';
+  ctx.fillRect(x0, y0, plotW, plotH);
+  ctx.strokeStyle = 'rgba(80,80,140,0.5)'; ctx.lineWidth = 1;
+  ctx.strokeRect(x0, y0, plotW, plotH);
+
+  const nSamples = Math.min(320, Math.floor(plotW));
   const cMin = -2, cMax = 0.25;
+  const samples = [];
+  let minL = 0, maxL = 0;
+  for (let i = 0; i < nSamples; i++) {
+    const cVal = cMin + (cMax - cMin) * i / (nSamples - 1);
+    const lambda = lyComputeLyapunov(cVal, Math.min(LY.maxIter, 120));
+    samples.push(lambda);
+    if (lambda < minL) minL = lambda;
+    if (lambda > maxL) maxL = lambda;
+  }
+  minL = Math.min(minL, -1);
+  maxL = Math.max(maxL, 1);
+  const mapY = (lam) => y0 + plotH * (1 - (lam - minL) / (maxL - minL));
+
+  // Fill under curve
+  ctx.beginPath();
+  ctx.moveTo(x0, mapY(0));
+  for (let i = 0; i < nSamples; i++) {
+    const x = x0 + (i / (nSamples - 1)) * plotW;
+    ctx.lineTo(x, mapY(samples[i]));
+  }
+  ctx.lineTo(x1, mapY(0));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,229,255,0.12)';
+  ctx.fill();
+
   ctx.beginPath();
   for (let i = 0; i < nSamples; i++) {
-    const cVal = cMin + (cMax - cMin) * i / nSamples;
-    const lambda = lyComputeLyapunov(cVal, LY.maxIter);
-    const x = cx - R + (i / nSamples) * 2 * R;
-    const y = cy - Math.min(Math.max(lambda * R * 0.5, -R), R);
+    const x = x0 + (i / (nSamples - 1)) * plotW;
+    const y = mapY(samples[i]);
     i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
   }
-  ctx.strokeStyle = 'rgba(0,229,255,0.6)'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,229,255,0.85)'; ctx.lineWidth = 2; ctx.stroke();
+
   // Zero line
-  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.stroke();
-  // Current c marker
-  const cx2 = cx - R + ((LY.c - cMin) / (cMax - cMin)) * 2 * R;
+  const yZero = mapY(0);
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x0, yZero); ctx.lineTo(x1, yZero); ctx.stroke();
+
   const lyVal = lyComputeLyapunov(LY.c, LY.maxIter);
-  const cy2 = cy - Math.min(Math.max(lyVal * R * 0.5, -R), R);
-  ctx.fillStyle = '#ff44ff'; ctx.beginPath(); ctx.arc(cx2, cy2, 5, 0, 2 * Math.PI); ctx.fill();
+  const cx2 = x0 + ((LY.c - cMin) / (cMax - cMin)) * plotW;
+  const cy2 = mapY(lyVal);
   ctx.strokeStyle = '#ff44ff'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx2, cy - R); ctx.lineTo(cx2, cy + R); ctx.stroke();
-  // Labels
-  ctx.fillStyle = 'rgba(85,85,138,0.7)'; ctx.font = '11px monospace'; ctx.textAlign = 'center';
-  ctx.fillText('-2.0', cx - R, cy + R + 14);
-  ctx.fillText('0.25', cx + R, cy + R + 14);
-  ctx.fillText('\u03bb = 0', cx - R - 30, cy + 4);
+  ctx.beginPath(); ctx.moveTo(cx2, y0); ctx.lineTo(cx2, y1); ctx.stroke();
+  ctx.fillStyle = '#ff44ff'; ctx.beginPath(); ctx.arc(cx2, cy2, 6, 0, 2 * Math.PI); ctx.fill();
+
+  ctx.fillStyle = 'rgba(160,160,200,0.85)'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('-2.0', x0, y1 + 18);
+  ctx.fillText('0.25', x1, y1 + 18);
+  ctx.fillText('c', (x0 + x1) / 2, y1 + 30);
+  ctx.save();
+  ctx.translate(16, (y0 + y1) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('\u03bb', 0, 0);
+  ctx.restore();
+
   document.getElementById('ly-c-val').textContent = LY.c.toFixed(2);
   document.getElementById('ly-lambda').textContent = lyVal.toFixed(4);
   document.getElementById('ly-status').textContent = lyVal > 0 ? 'Chaotic' : lyVal < 0 ? 'Stable' : 'Bifurcation';
@@ -3687,30 +4042,8 @@ function lyAnimate() {
 }
 function lyReset() { LY.animating = false; LY.c = -1.0; LY.phase = 0; if (LY.rafId) cancelAnimationFrame(LY.rafId); LY.rafId = null; lyDraw(); }
 
-// ═══════════════════════════════════════════════════════
-//  SWITCH TAB — extended with new tabs
-// ═══════════════════════════════════════════════════════
-function switchTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
-  btn.classList.add('active');
-  const panel = document.getElementById('panel-' + name);
-  if (panel) { panel.classList.add('active'); panel.style.display = 'flex'; }
-  if (name === 'orbit') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('orbit-anim-c')); orbitAnimBuild(); OA.idx=0; orbitAnimDraw(); }); }
-  if (name === 'hausdorff') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('boxcount-c')); runBoxCount(); }); }
-  if (name === 'rays') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('ray-c')); rayDraw(); }); }
-  if (name === 'feigenbaum') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('bifurc-c')); renderBifurc(); bifurcInitClick(); }); }
-  if (name === 'buddhabrot') { requestAnimationFrame(()=>{ bbInit(); }); }
-  if (name === 'newton') { requestAnimationFrame(()=>{ nfInit(); }); }
-  if (name === 'burning') { requestAnimationFrame(()=>{ bsInit(); }); }
-  if (name === 'misiurewicz') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('mw-c')); mwCompute(); mwDraw(); }); }
-  if (name === 'herman') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('hr-c')); hrDraw(); }); }
-  if (name === 'siegel') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('sd-c')); sdDraw(); }); }
-  if (name === 'renorm') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('rn-c')); rnDraw(); }); }
-  if (name === 'rabbit') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('rb-c')); rbDraw(); }); }
-  if (name === 'fatou') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('ft-c')); ftDraw(); }); }
-  if (name === 'mlc') { requestAnimationFrame(()=>{ window.resizeCanvas(document.getElementById('mlc-c')); mlcDraw(); }); }
-}
+// switchTab is defined once above (with _cancelAllAnims03 + all tab inits including
+// dynamics / parabolic / cremer / lyapunov). Do not redeclare it here.
 </script>
 <div id="proof-panel">
   <div class="pp-head">

@@ -1940,157 +1940,259 @@ function computeFTBins(){
 }
 
 function draw7(){
-  const W=c7.width=c7.offsetWidth, H=c7.height=c7.offsetHeight;
+  const cssW=Math.max(1,c7.offsetWidth|0), cssH=Math.max(1,c7.offsetHeight|0);
+  if(c7.width!==cssW||c7.height!==cssH){ c7.width=cssW; c7.height=cssH; }
+  const W=c7.width, H=c7.height;
+  ctx7.setTransform(1,0,0,1,0,0);
   ctx7.clearRect(0,0,W,H);
+  ctx7.fillStyle='#06060f';
+  ctx7.fillRect(0,0,W,H);
 
   if(ftTrajs.length===0){
-    ctx7.fillStyle='rgba(255,107,53,0.5)';ctx7.font='14px Share Tech Mono';
-    ctx7.fillText('Press "Run Trajectories" to start',W/2-140,H/2);
+    ctx7.fillStyle='rgba(255,107,53,0.55)';
+    ctx7.font='14px Share Tech Mono';
+    ctx7.textAlign='center';
+    ctx7.fillText('Press "Run Trajectories" to start',W/2,H/2);
+    ctx7.textAlign='left';
     return;
   }
 
-  const kT=ftT;
-  const beta=1/kT;
+  const kT=Math.max(ftT,1e-6);
   const N=ftN;
   const mu=0.3;
   const sigma=Math.sqrt(2*mu*kT);
   const mean=N*mu;
-  const std=Math.sqrt(N)*sigma;
-
-  // --- Histogram of dS ---
-  const hx=W*0.03, hy=H*0.04, hw=W*0.55, hh=H*0.55;
-  ctx7.fillStyle='rgba(255,107,53,0.04)';ctx7.fillRect(hx,hy,hw,hh);
-  ctx7.strokeStyle='rgba(255,107,53,0.25)';ctx7.lineWidth=1;ctx7.strokeRect(hx,hy,hw,hh);
-  ctx7.fillStyle='#ff6b3599';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('P(ΔS) entropy production distribution',hx+4,hy+12);
-
+  const std=Math.max(Math.sqrt(N)*sigma,1e-6);
   const BINS=30;
   const range=ftBins.range||1;
   const maxBin=Math.max(1,...ftBins);
-  const binW=hw/BINS;
 
-  // Draw histogram bars
-  for(let b=0;b<BINS;b++){
-    const bh=(ftBins[b]/maxBin)*(hh-30)*0.85;
-    const dSval=(b/BINS-0.5)*range*2;
-    // Color: positive dS = orange, negative = blue
-    ctx7.fillStyle=dSval>=0?'rgba(255,107,53,0.6)':'rgba(68,153,255,0.6)';
-    ctx7.fillRect(hx+b*binW+1, hy+hh-bh-15, binW-2, bh);
-  }
+  // ── Layout: left column (hist + ratio) | right column (check panel)
+  // All panels guaranteed inside [pad … W-pad] × [pad … H-pad]
+  const pad=10;
+  const gap=10;
+  const leftW=Math.floor((W-pad*2-gap)*0.58);
+  const rightW=W-pad*2-gap-leftW;
+  const colH=H-pad*2;
+  const histH=Math.floor(colH*0.58);
+  const ratioH=colH-histH-gap;
 
-  // Theoretical FT curve: P(dS) = P(-dS)*exp(dS/kT)
-  // For Gaussian: P(dS) = exp(-(dS-mean)^2/(2*std^2))/sqrt(2*pi*std^2)
-  ctx7.beginPath();ctx7.strokeStyle='#ffffff88';ctx7.lineWidth=2;
-  for(let px=0;px<hw;px++){
-    const dSval=((px/hw)-0.5)*range*2;
+  const hx=pad, hy=pad, hw=leftW, hh=histH;
+  const rx=pad, ry=hy+hh+gap, rw=leftW, rh=Math.max(40,ratioH);
+  const vx=pad+leftW+gap, vy=pad, vw=rightW, vh=colH;
+
+  // Clip everything to the canvas (safety net)
+  ctx7.save();
+  ctx7.beginPath();
+  ctx7.rect(0,0,W,H);
+  ctx7.clip();
+
+  // ── Histogram panel ──────────────────────────────────────────────
+  ctx7.fillStyle='rgba(255,107,53,0.04)'; ctx7.fillRect(hx,hy,hw,hh);
+  ctx7.strokeStyle='rgba(255,107,53,0.25)'; ctx7.lineWidth=1; ctx7.strokeRect(hx,hy,hw,hh);
+
+  const titlePad=16, bottomPad=18, sidePad=6;
+  const plotL=hx+sidePad, plotR=hx+hw-sidePad;
+  const plotT=hy+titlePad+4, plotB=hy+hh-bottomPad;
+  const plotW=Math.max(1,plotR-plotL), plotH=Math.max(1,plotB-plotT);
+
+  ctx7.fillStyle='#ff6b3599'; ctx7.font='12px Share Tech Mono';
+  ctx7.fillText('P(ΔS) entropy production',hx+6,hy+13);
+
+  // Precompute theoretical curve peak so it fits the plot height
+  let theoPeak=0;
+  for(let i=0;i<=plotW;i+=4){
+    const dSval=((i/plotW)-0.5)*range*2;
     const gauss=Math.exp(-(dSval-mean)*(dSval-mean)/(2*std*std))/(std*Math.sqrt(2*Math.PI));
     const norm=gauss*(range*2/BINS)*ftNTr;
-    const py=hy+hh-15-(norm/maxBin)*(hh-30)*0.85;
-    if(px===0)ctx7.moveTo(hx+px,py);else ctx7.lineTo(hx+px,py);
+    if(norm>theoPeak) theoPeak=norm;
+  }
+  const yScale=Math.max(maxBin, theoPeak, 1);
+
+  const binW=plotW/BINS;
+  ctx7.save();
+  ctx7.beginPath();
+  ctx7.rect(plotL,plotT,plotW,plotH);
+  ctx7.clip();
+
+  for(let b=0;b<BINS;b++){
+    const bh=Math.min(plotH,(ftBins[b]/yScale)*plotH*0.92);
+    const dSval=(b/BINS-0.5)*range*2;
+    ctx7.fillStyle=dSval>=0?'rgba(255,107,53,0.65)':'rgba(68,153,255,0.65)';
+    ctx7.fillRect(plotL+b*binW+1, plotB-bh, Math.max(1,binW-2), bh);
+  }
+
+  // Theoretical Gaussian (clamped to plot)
+  ctx7.beginPath();
+  ctx7.strokeStyle='rgba(255,255,255,0.55)';
+  ctx7.lineWidth=2;
+  for(let px=0;px<=plotW;px++){
+    const dSval=((px/plotW)-0.5)*range*2;
+    const gauss=Math.exp(-(dSval-mean)*(dSval-mean)/(2*std*std))/(std*Math.sqrt(2*Math.PI));
+    const norm=gauss*(range*2/BINS)*ftNTr;
+    const py=plotB-Math.min(plotH,(norm/yScale)*plotH*0.92);
+    if(px===0) ctx7.moveTo(plotL+px,py); else ctx7.lineTo(plotL+px,py);
   }
   ctx7.stroke();
 
-  // Zero line
-  const zeroX=hx+hw/2;
-  ctx7.strokeStyle='rgba(255,255,255,0.3)';ctx7.lineWidth=1;ctx7.setLineDash([4,4]);
-  ctx7.beginPath();ctx7.moveTo(zeroX,hy+10);ctx7.lineTo(zeroX,hy+hh-10);ctx7.stroke();
+  // Zero line (ΔS = 0 at center of ±range axis)
+  const zeroX=plotL+plotW/2;
+  ctx7.strokeStyle='rgba(255,255,255,0.28)';
+  ctx7.lineWidth=1;
+  ctx7.setLineDash([4,4]);
+  ctx7.beginPath(); ctx7.moveTo(zeroX,plotT); ctx7.lineTo(zeroX,plotB); ctx7.stroke();
   ctx7.setLineDash([]);
-  ctx7.fillStyle='rgba(255,255,255,0.5)';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('ΔS=0',zeroX+4,hy+20);
+  ctx7.restore(); // end hist clip
 
-  // Negative region label
-  ctx7.fillStyle='rgba(68,153,255,0.7)';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('ΔS<0 (2nd law violations)',hx+6,hy+hh-2);
-  ctx7.fillStyle='rgba(255,107,53,0.7)';
-  ctx7.fillText('ΔS>0',hx+hw-80,hy+hh-2);
+  ctx7.fillStyle='rgba(255,255,255,0.5)'; ctx7.font='11px Share Tech Mono';
+  ctx7.fillText('ΔS=0',Math.min(zeroX+4,plotR-36),plotT+12);
+  ctx7.fillStyle='rgba(68,153,255,0.75)';
+  ctx7.fillText('ΔS<0 violations',hx+6,hy+hh-5);
+  ctx7.fillStyle='rgba(255,107,53,0.75)';
+  ctx7.textAlign='right';
+  ctx7.fillText('ΔS>0',hx+hw-6,hy+hh-5);
+  ctx7.textAlign='left';
 
-  // --- Ratio plot P(+)/P(-) = exp(dS/kT) ---
-  const rx=hx, ry=hy+hh+H*0.03, rw=hw, rh=H*0.30;
-  ctx7.fillStyle='rgba(255,107,53,0.04)';ctx7.fillRect(rx,ry,rw,rh);
-  ctx7.strokeStyle='rgba(255,107,53,0.25)';ctx7.lineWidth=1;ctx7.strokeRect(rx,ry,rw,rh);
-  ctx7.fillStyle='#ff6b3599';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('P(ΔS)/P(-ΔS) = exp(ΔS/kT)  —  Evans-Searles FT',rx+4,ry+12);
+  // ── Ratio panel ──────────────────────────────────────────────────
+  ctx7.fillStyle='rgba(255,107,53,0.04)'; ctx7.fillRect(rx,ry,rw,rh);
+  ctx7.strokeStyle='rgba(255,107,53,0.25)'; ctx7.lineWidth=1; ctx7.strokeRect(rx,ry,rw,rh);
+  ctx7.fillStyle='#ff6b3599'; ctx7.font='11px Share Tech Mono';
+  ctx7.fillText('P(+)/P(−) vs exp(ΔS/kT)',rx+6,ry+13);
 
-  // Compute ratio from histogram
+  const rPlotL=rx+6, rPlotR=rx+rw-6;
+  const rPlotT=ry+18, rPlotB=ry+rh-16;
+  const rPlotW=Math.max(1,rPlotR-rPlotL), rPlotH=Math.max(1,rPlotB-rPlotT);
+  const logMax=Math.log(11); // same scale as before: log(x+1)/log(10+1)
+
+  const mapRatioY=(ratio)=>{
+    const t=Math.min(Math.max(Math.log(ratio+1)/logMax,0),1);
+    return rPlotB-t*rPlotH;
+  };
+
+  ctx7.save();
+  ctx7.beginPath();
+  ctx7.rect(rPlotL,rPlotT,rPlotW,rPlotH);
+  ctx7.clip();
+
+  // Empirical ratio from symmetric bins
   const halfB=Math.floor(BINS/2);
-  ctx7.beginPath();ctx7.strokeStyle='#ff6b35';ctx7.lineWidth=2;
+  ctx7.beginPath();
+  ctx7.strokeStyle='#ff6b35';
+  ctx7.lineWidth=2;
   let first=true;
   for(let b=0;b<halfB;b++){
     const posB=BINS-1-b;
-    const posCount=ftBins[posB]||1;
-    const negCount=ftBins[b]||1;
-    const ratio=posCount/negCount;
-    const dSval=((posB/BINS)-0.5)*range*2;
+    const posCount=ftBins[posB]||0;
+    const negCount=ftBins[b]||0;
+    if(posCount===0&&negCount===0) continue;
+    const ratio=(posCount||0.5)/(negCount||0.5);
+    const dSval=((posB+0.5)/BINS-0.5)*range*2;
     if(dSval<=0) continue;
-    const px2=rx+(dSval/(range))*rw;
-    const py2=ry+rh-10-Math.min(Math.log(ratio+1)/Math.log(10+1),1)*(rh-20);
-    if(first){ctx7.moveTo(px2,py2);first=false;}else ctx7.lineTo(px2,py2);
+    // Map dS ∈ (0, range] → x across panel (range is half-width of hist axis)
+    const px2=rPlotL+Math.min(1,dSval/range)*rPlotW;
+    const py2=mapRatioY(ratio);
+    if(first){ ctx7.moveTo(px2,py2); first=false; }
+    else ctx7.lineTo(px2,py2);
+  }
+  if(!first) ctx7.stroke();
+
+  // Theory: exp(ΔS/kT)
+  ctx7.beginPath();
+  ctx7.strokeStyle='rgba(255,255,255,0.5)';
+  ctx7.lineWidth=1.5;
+  ctx7.setLineDash([4,4]);
+  for(let px=0;px<=rPlotW;px++){
+    const dSval=(px/rPlotW)*range;
+    const theo=Math.exp(dSval/kT);
+    const py2=mapRatioY(theo);
+    if(px===0) ctx7.moveTo(rPlotL+px,py2); else ctx7.lineTo(rPlotL+px,py2);
   }
   ctx7.stroke();
+  ctx7.setLineDash([]);
+  ctx7.restore();
 
-  // Theoretical line: exp(dS/kT)
-  ctx7.beginPath();ctx7.strokeStyle='#ffffff88';ctx7.lineWidth=1.5;ctx7.setLineDash([4,4]);
-  for(let px=0;px<rw;px++){
-    const dSval=(px/rw)*range;
-    const theo=Math.exp(dSval/kT);
-    const py2=ry+rh-10-Math.min(Math.log(theo+1)/Math.log(10+1),1)*(rh-20);
-    if(px===0)ctx7.moveTo(rx+px,py2);else ctx7.lineTo(rx+px,py2);
-  }
-  ctx7.stroke();ctx7.setLineDash([]);
-  ctx7.fillStyle='rgba(255,255,255,0.5)';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('exp(ΔS/kT) theory',rx+rw-120,ry+rh-6);
+  ctx7.fillStyle='rgba(255,255,255,0.45)';
+  ctx7.font='10px Share Tech Mono';
+  ctx7.textAlign='right';
+  ctx7.fillText('theory (dashed)',rx+rw-6,ry+rh-4);
+  ctx7.textAlign='left';
 
-  // --- Right panel: FT verification ---
-  const vx=W*0.60, vy=H*0.04, vw=W*0.38, vh=H*0.88;
-  ctx7.fillStyle='rgba(255,107,53,0.04)';ctx7.fillRect(vx,vy,vw,vh);
-  ctx7.strokeStyle='rgba(255,107,53,0.25)';ctx7.lineWidth=1;ctx7.strokeRect(vx,vy,vw,vh);
-  ctx7.fillStyle='#ff6b3599';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('Fluctuation Theorem Check',vx+6,vy+14);
+  // ── Right panel: FT verification ─────────────────────────────────
+  ctx7.fillStyle='rgba(255,107,53,0.04)'; ctx7.fillRect(vx,vy,vw,vh);
+  ctx7.strokeStyle='rgba(255,107,53,0.25)'; ctx7.lineWidth=1; ctx7.strokeRect(vx,vy,vw,vh);
+  ctx7.fillStyle='#ff6b3599'; ctx7.font='12px Share Tech Mono';
+  ctx7.fillText('Fluctuation Theorem Check',vx+8,vy+16);
 
-  // Compute actual ratio for a few dS values
   const checkVals=[];
-  for(let dScheck=0.5;dScheck<=3.0;dScheck+=0.5){
+  const dSMax=Math.min(range*0.9, Math.max(1.5, mean+std));
+  const dSStep=dSMax/5;
+  for(let i=1;i<=5;i++){
+    const dScheck=dSStep*i;
     const posIdx=Math.floor((dScheck/range+0.5)*BINS);
     const negIdx=Math.floor((-dScheck/range+0.5)*BINS);
-    const pPos=ftBins[posIdx]||1;
-    const pNeg=ftBins[negIdx]||1;
-    const ratio=(pPos/pNeg);
+    const pPos=(posIdx>=0&&posIdx<BINS)?(ftBins[posIdx]||0):0;
+    const pNeg=(negIdx>=0&&negIdx<BINS)?(ftBins[negIdx]||0):0;
+    const ratio=(pPos||0.5)/(pNeg||0.5);
     const theo=Math.exp(dScheck/kT);
     checkVals.push({dS:dScheck, ratio, theo});
   }
 
-  ctx7.fillStyle='rgba(255,200,150,0.8)';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('ΔS    P(+)/P(-)   exp(ΔS/kT)',vx+8,vy+34);
+  ctx7.fillStyle='rgba(255,200,150,0.85)';
+  ctx7.font='11px Share Tech Mono';
+  ctx7.fillText('ΔS     P(+)/P(−)    exp(ΔS/kT)',vx+10,vy+36);
   checkVals.forEach((cv,k)=>{
-    ctx7.fillStyle='rgba(255,200,150,0.7)';ctx7.font='12px Share Tech Mono';
-    ctx7.fillText(cv.dS.toFixed(1)+'    '+cv.ratio.toFixed(2)+'        '+cv.theo.toFixed(2),vx+8,vy+54+k*20);
+    const y=vy+54+k*16;
+    if(y>vy+vh-8) return;
+    ctx7.fillStyle='rgba(255,200,150,0.7)';
+    ctx7.fillText(
+      cv.dS.toFixed(2).padStart(5)+'   '+
+      cv.ratio.toFixed(2).padStart(7)+'     '+
+      cv.theo.toFixed(2).padStart(7),
+      vx+10,y
+    );
   });
 
-  // System info
-  const infoY=vy+54+checkVals.length*20+10;
-  ctx7.fillStyle='rgba(255,107,53,0.06)';ctx7.fillRect(vx+6,infoY,vw-12,vh-infoY-6);
-  ctx7.fillStyle='#ff6b3599';ctx7.font='12px Share Tech Mono';
-  ctx7.fillText('System parameters',vx+10,infoY+16);
+  // System info — keep fully inside the right panel
+  const meanDS=ftTrajs.reduce((a,b)=>a+b,0)/ftTrajs.length;
   const infos=[
     `N = ${ftN} particles`,
     `kT = ${ftT.toFixed(2)}`,
     `Trajectories = ${ftNTr}`,
-    `Mean ΔS = ${(ftTrajs.reduce((a,b)=>a+b,0)/ftTrajs.length).toFixed(3)}`,
+    `Mean ΔS = ${meanDS.toFixed(3)}`,
     `Violations (ΔS<0) = ${ftViolations} (${(ftViolations/ftNTr*100).toFixed(1)}%)`,
-    `FT prediction: P(+)/P(-) = e^{ΔS/kT}`
+    `FT: P(+)/P(−) = e^{ΔS/kT}`
   ];
-  ctx7.fillStyle='rgba(255,200,150,0.7)';ctx7.font='12px Share Tech Mono';
-  infos.forEach((l,k)=>ctx7.fillText(l,vx+10,infoY+34+k*18));
+  const infoTop=Math.min(vy+54+checkVals.length*16+14, vy+vh-infos.length*16-28);
+  const infoH=Math.max(40, vy+vh-6-infoTop);
+  ctx7.fillStyle='rgba(255,107,53,0.06)';
+  ctx7.fillRect(vx+6,infoTop,vw-12,infoH);
+  ctx7.fillStyle='#ff6b3599';
+  ctx7.font='11px Share Tech Mono';
+  ctx7.fillText('System parameters',vx+12,infoTop+14);
+  ctx7.fillStyle='rgba(255,200,150,0.7)';
+  infos.forEach((l,k)=>{
+    const y=infoTop+30+k*15;
+    if(y>vy+vh-6) return;
+    // Truncate long lines to panel width
+    let s=l;
+    while(ctx7.measureText(s).width>vw-28 && s.length>4) s=s.slice(0,-2);
+    ctx7.fillText(s,vx+12,y);
+  });
 
-  // Update sidebar stats
+  ctx7.restore(); // end canvas clip
+
+  // Sidebar stats
   const posCount=ftTrajs.filter(d=>d>0).length;
   const negCount=ftTrajs.filter(d=>d<0).length;
   const ratioVal=negCount>0?(posCount/negCount):Infinity;
-  const meanDS=ftTrajs.reduce((a,b)=>a+b,0)/ftTrajs.length;
-  document.getElementById('stat_ftRatio').textContent=`P(+)/P(-) = ${ratioVal===Infinity?'∞':ratioVal.toFixed(3)}`;
-  document.getElementById('stat_ftExp').textContent=`exp(ΔS/k) ≈ ${Math.exp(meanDS/kT).toFixed(3)}`;
-  document.getElementById('stat_ftViol').textContent=`Violations = ${ftViolations} (${(ftViolations/ftNTr*100).toFixed(1)}%)`;
-  document.getElementById('stat_ftMean').textContent=`<ΔS> = ${meanDS.toFixed(3)}`;
+  const elR=document.getElementById('stat_ftRatio');
+  const elE=document.getElementById('stat_ftExp');
+  const elV=document.getElementById('stat_ftViol');
+  const elM=document.getElementById('stat_ftMean');
+  if(elR) elR.textContent=`P(+)/P(-) = ${ratioVal===Infinity?'∞':ratioVal.toFixed(3)}`;
+  if(elE) elE.textContent=`exp(ΔS/k) ≈ ${Math.exp(meanDS/kT).toFixed(3)}`;
+  if(elV) elV.textContent=`Violations = ${ftViolations} (${(ftViolations/ftNTr*100).toFixed(1)}%)`;
+  if(elM) elM.textContent=`<ΔS> = ${meanDS.toFixed(3)}`;
 }
 
 function updateFT(){
@@ -2250,8 +2352,9 @@ function draw8(){
 
   // --- Block-spin visualization (right side) ---
   const blockData=rgBlockSpin(rgLevel);
+  // Layout anchors shared by both level>0 and level==0 branches
+  const bx=W*0.53, by=H*0.04, bSize=Math.min(W*0.42, H*0.42);
   if(blockData){
-    const bx=W*0.53, by=H*0.04, bSize=Math.min(W*0.42, H*0.42);
     const bCell=bSize/blockData.n;
     ctx8.fillStyle='rgba(255,107,53,0.04)';ctx8.fillRect(bx,by,bSize,bSize);
     ctx8.strokeStyle='rgba(255,107,53,0.3)';ctx8.lineWidth=1;ctx8.strokeRect(bx,by,bSize,bSize);

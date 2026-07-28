@@ -8,6 +8,13 @@ module.exports = defineConfig({
   fullyParallel: true,
   workers: 8,
   reporter: [['list'], ['json', { outputFile: 'test-results/results.json' }]],
+  // Start Express on fixed port for tests (reuse if already running)
+  webServer: {
+    command: 'node -e "process.env.PORT=4271; require(\'./server.js\')"',
+    port: 4271,
+    reuseExistingServer: true,
+    timeout: 30000,
+  },
   use: {
     baseURL: 'http://localhost:4271',
     browserName: 'chromium',
