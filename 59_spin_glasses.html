@@ -2078,7 +2078,9 @@ function initTab10(){
   const cv=document.getElementById('cv10');
   window.paused10=false;
   const pb=document.getElementById('pauseBtn10'); if(pb) pb.textContent='⏸ Pause';
-  let N=24, edges=[], msgs={}, pos=[], iter=0, qcav=0;
+  let N=24, edges=[], msgs={}, pos=[], vel=[], m_i=[], h_i=[], iter=0, qcav=0, phaseT=0;
+  let focus=0, focusJ=1; // cavity focus: remove spin focus, message toward focusJ
+  let qHist=[], msgHist=[]; // rolling histories for side charts
   let rr=_rng59(7);
 
   function setup(){
@@ -2087,11 +2089,10 @@ function initTab10(){
     document.getElementById('cav_Nv').textContent=N;
     document.getElementById('cav_cv').textContent=c;
     rr=_rng59((Date.now()&0xffff)||7);
-    // random regular-ish graph
     edges=[];
     const deg=new Array(N).fill(0);
     let attempts=0;
-    while(edges.length < Math.floor(N*c/2) && attempts<N*c*20){
+    while(edges.length < Math.floor(N*c/2) && attempts<N*c*40){
       attempts++;
       const i=Math.floor(rr()*N), j=Math.floor(rr()*N);
       if(i===j||deg[i]>=c||deg[j]>=c) continue;
@@ -2102,14 +2103,20 @@ function initTab10(){
     }
     msgs={};
     edges.forEach(e=>{
-      msgs[e.a+'>'+e.b]=0; msgs[e.b+'>'+e.a]=0;
+      msgs[e.a+'>'+e.b]=rr()*0.4-0.2;
+      msgs[e.b+'>'+e.a]=rr()*0.4-0.2;
     });
-    pos=[];
+    pos=[]; vel=[];
     for(let i=0;i<N;i++){
-      const ang=2*Math.PI*i/N - Math.PI/2;
-      pos.push({x:Math.cos(ang), y:Math.sin(ang)});
+      const ang=2*Math.PI*i/N - Math.PI/2 + rr()*0.15;
+      const r=0.72+rr()*0.22;
+      pos.push({x:Math.cos(ang)*r, y:Math.sin(ang)*r});
+      vel.push({x:0, y:0});
     }
-    iter=0;
+    m_i=new Array(N).fill(0);
+    h_i=new Array(N).fill(0);
+    iter=0; qcav=0; phaseT=0; focus=0; focusJ=1;
+    qHist=[]; msgHist=[];
   }
   setup();
   document.getElementById('cav_reset').onclick=setup;
@@ -2118,36 +2125,44 @@ function initTab10(){
   function u(h,J,beta){
     const th=Math.tanh(beta*h), tJ=Math.tanh(beta*J);
     const z=tJ*th;
-    if(Math.abs(z)>0.999) return Math.sign(z)*5;
+    if(Math.abs(z)>0.999) return Math.sign(z)*4;
     return Math.atanh(z)/beta;
+  }
+
+  function neighList(){
+    const neigh=Array.from({length:N},()=>[]);
+    edges.forEach(e=>{ neigh[e.a].push(e); neigh[e.b].push(e); });
+    return neigh;
   }
 
   function bpStep(){
     const T=Math.max(0.05,+document.getElementById('cav_T').value);
     const beta=1/T;
-    const neigh=Array.from({length:N},()=>[]);
-    edges.forEach(e=>{ neigh[e.a].push(e); neigh[e.b].push(e); });
+    const neigh=neighList();
     const newMsgs={};
     edges.forEach(e=>{
-      // message a→b
       let h=0;
       neigh[e.a].forEach(ne=>{
         const k=ne.a===e.a?ne.b:ne.a;
         if(k===e.b) return;
         h += u(msgs[k+'>'+e.a]||0, ne.J, beta);
       });
-      newMsgs[e.a+'>'+e.b]=0.7*h+0.3*(msgs[e.a+'>'+e.b]||0);
-      // b→a
+      newMsgs[e.a+'>'+e.b]=0.65*h+0.35*(msgs[e.a+'>'+e.b]||0);
       h=0;
       neigh[e.b].forEach(ne=>{
         const k=ne.a===e.b?ne.b:ne.a;
         if(k===e.a) return;
         h += u(msgs[k+'>'+e.b]||0, ne.J, beta);
       });
-      newMsgs[e.b+'>'+e.a]=0.7*h+0.3*(msgs[e.b+'>'+e.a]||0);
+      newMsgs[e.b+'>'+e.a]=0.65*h+0.35*(msgs[e.b+'>'+e.a]||0);
     });
+    // low-T: soft noise so messages keep “breathing” (survey-like fluctuations)
+    if(T<0.95){
+      Object.keys(newMsgs).forEach(k=>{
+        newMsgs[k]+= (rr()-0.5)*0.04*(1.1-T);
+      });
+    }
     msgs=newMsgs;
-    // cavity magnetizations
     let q=0;
     for(let i=0;i<N;i++){
       let h=0;
@@ -2155,68 +2170,227 @@ function initTab10(){
         const k=ne.a===i?ne.b:ne.a;
         h += u(msgs[k+'>'+i]||0, ne.J, beta);
       });
-      const mi=Math.tanh(beta*h);
-      q+=mi*mi;
+      h_i[i]=h;
+      m_i[i]=Math.tanh(beta*h);
+      q+=m_i[i]*m_i[i];
     }
     qcav=q/N;
     iter++;
+    // cycle cavity focus slowly
+    if(iter%8===0){
+      focus=(focus+1)%N;
+      const nb=neigh[focus];
+      if(nb.length){
+        const e=nb[Math.floor(rr()*nb.length)];
+        focusJ=e.a===focus?e.b:e.a;
+      }
+    }
+  }
+
+  function layoutStep(){
+    // gentle force layout so graph “lives” while messages flow
+    const kRep=0.012, kSpring=0.04;
+    for(let i=0;i<N;i++){ vel[i].x*=0.85; vel[i].y*=0.85; }
+    for(let i=0;i<N;i++){
+      for(let j=i+1;j<N;j++){
+        let dx=pos[i].x-pos[j].x, dy=pos[i].y-pos[j].y;
+        let d2=dx*dx+dy*dy+1e-4, d=Math.sqrt(d2);
+        const f=kRep/(d2);
+        dx/=d; dy/=d;
+        vel[i].x+=f*dx; vel[i].y+=f*dy;
+        vel[j].x-=f*dx; vel[j].y-=f*dy;
+      }
+    }
+    edges.forEach(e=>{
+      let dx=pos[e.b].x-pos[e.a].x, dy=pos[e.b].y-pos[e.a].y;
+      const d=Math.sqrt(dx*dx+dy*dy)+1e-4;
+      const f=kSpring*(d-0.55);
+      dx/=d; dy/=d;
+      vel[e.a].x+=f*dx; vel[e.a].y+=f*dy;
+      vel[e.b].x-=f*dx; vel[e.b].y-=f*dy;
+    });
+    // weak pull to circle
+    for(let i=0;i<N;i++){
+      const ang=2*Math.PI*i/N - Math.PI/2;
+      vel[i].x+=0.01*(Math.cos(ang)*0.85-pos[i].x);
+      vel[i].y+=0.01*(Math.sin(ang)*0.85-pos[i].y);
+      pos[i].x+=vel[i].x; pos[i].y+=vel[i].y;
+      const r=Math.hypot(pos[i].x,pos[i].y)||1;
+      if(r>1.05){ pos[i].x*=1.05/r; pos[i].y*=1.05/r; }
+    }
+  }
+
+  function drawArrow(ctx,x1,y1,x2,y2,col,lw){
+    const dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1;
+    const ux=dx/L, uy=dy/L;
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    const ah=7;
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-ah*ux+ah*0.45*uy, y2-ah*uy-ah*0.45*ux);
+    ctx.lineTo(x2-ah*ux-ah*0.45*uy, y2-ah*uy+ah*0.45*ux);
+    ctx.closePath(); ctx.fill();
   }
 
   function draw(){
     const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[10]=requestAnimationFrame(draw);return;}
+    const spd=window.animSpeed||1;
     if(!window.paused10){
-      const steps=Math.max(1,Math.round(1*(window.animSpeed||1)));
+      phaseT+=0.016*spd;
+      const steps=Math.max(1,Math.round(1.5*spd));
       for(let s=0;s<steps;s++) bpStep();
+      layoutStep();
+      qHist.push(qcav); if(qHist.length>80) qHist.shift();
+      // sample message magnitudes for hist
+      const mags=Object.values(msgs).map(v=>Math.abs(v));
+      msgHist=mags;
     }
     document.getElementById('cav_Tv').textContent=(+document.getElementById('cav_T').value).toFixed(2);
     ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
 
-    const cx=W*0.38, cy=H*0.5, R=Math.min(W,H)*0.36;
-    // edges
+    // layout regions: graph left, charts right
+    const gx0=12, gy0=28, gW=W*0.58, gH=H-48;
+    const cx=gx0+gW*0.5, cy=gy0+gH*0.5, R=Math.min(gW,gH)*0.42;
+
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 13px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Cavity BP on sparse graph  ·  h_{i→j} = Σ_{k≠j} u(h_{k→i}, J)', 14, 18);
+
+    // soft ring
+    ctx.strokeStyle='rgba(255,136,204,0.12)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(cx,cy,R*1.08,0,Math.PI*2); ctx.stroke();
+
+    // edges + animated message packets
+    const packetPhase=(phaseT*0.55)%1;
     edges.forEach(e=>{
       const a=pos[e.a], b=pos[e.b];
-      const mag=Math.abs(msgs[e.a+'>'+e.b]||0)+Math.abs(msgs[e.b+'>'+e.a]||0);
-      ctx.strokeStyle=e.J>0?`rgba(100,140,255,${0.25+Math.min(0.7,mag*0.15)})`:`rgba(255,100,100,${0.25+Math.min(0.7,mag*0.15)})`;
-      ctx.lineWidth=1+Math.min(3,mag*0.5);
-      ctx.beginPath();
-      ctx.moveTo(cx+a.x*R, cy+a.y*R);
-      ctx.lineTo(cx+b.x*R, cy+b.y*R);
-      ctx.stroke();
-      // message arrow a→b (partial)
-      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
-      const msg=msgs[e.a+'>'+e.b]||0;
-      ctx.fillStyle='#ffcc44';
-      ctx.beginPath(); ctx.arc(cx+mx*R, cy+my*R, 2+Math.min(4,Math.abs(msg)), 0, Math.PI*2); ctx.fill();
+      const x1=cx+a.x*R, y1=cy+a.y*R, x2=cx+b.x*R, y2=cy+b.y*R;
+      const mab=msgs[e.a+'>'+e.b]||0, mba=msgs[e.b+'>'+e.a]||0;
+      const mag=Math.abs(mab)+Math.abs(mba);
+      const hiCav=(e.a===focus||e.b===focus);
+      ctx.strokeStyle=e.J>0
+        ?`rgba(100,150,255,${0.2+Math.min(0.65,mag*0.12)+(hiCav?0.2:0)})`
+        :`rgba(255,110,110,${0.2+Math.min(0.65,mag*0.12)+(hiCav?0.2:0)})`;
+      ctx.lineWidth=1.2+Math.min(3.5,mag*0.55)+(hiCav?1:0);
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+
+      // two directed packets (a→b and b→a)
+      [[mab,0],[mba,0.5]].forEach(([msg,off],di)=>{
+        const s=((packetPhase+off+Math.abs(msg)*0.03)%1);
+        const from=di===0?[x1,y1]:[x2,y2], to=di===0?[x2,y2]:[x1,y1];
+        const px=from[0]+(to[0]-from[0])*s, py=from[1]+(to[1]-from[1])*s;
+        const sz=2.2+Math.min(5,Math.abs(msg)*1.2);
+        const col=msg>=0?'#ffcc44':'#88ffcc';
+        ctx.fillStyle=col;
+        ctx.beginPath(); ctx.arc(px,py,sz,0,Math.PI*2); ctx.fill();
+      });
     });
-    // nodes
+
+    // cavity construction overlay: remove focus spin, show incoming cavity fields
+    const fx=cx+pos[focus].x*R, fy=cy+pos[focus].y*R;
+    const pulse=0.45+0.35*Math.sin(phaseT*3.5);
+    ctx.strokeStyle=`rgba(255,204,68,${pulse})`; ctx.lineWidth=2;
+    ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.arc(fx,fy,16+4*Math.sin(phaseT*2),0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#ffcc44'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('cavity: remove '+focus, fx, fy-22);
+
+    // highlight messages into focus (cavity field)
+    const neigh=neighList();
+    neigh[focus].forEach(ne=>{
+      const k=ne.a===focus?ne.b:ne.a;
+      const xk=cx+pos[k].x*R, yk=cy+pos[k].y*R;
+      const msg=msgs[k+'>'+focus]||0;
+      drawArrow(ctx, xk, yk, fx*0.85+xk*0.15, fy*0.85+yk*0.15,
+        msg>=0?`rgba(255,200,80,${0.55+0.35*pulse})`:`rgba(120,255,200,${0.55+0.35*pulse})`, 1.8);
+    });
+
+    // nodes colored by m_i
     for(let i=0;i<N;i++){
       const x=cx+pos[i].x*R, y=cy+pos[i].y*R;
-      ctx.fillStyle='#1a1a38'; ctx.strokeStyle='#ff88cc'; ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle='#aaaacc'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+      const m=m_i[i]||0;
+      const up=m>0;
+      const a=0.35+0.55*Math.min(1,Math.abs(m));
+      ctx.fillStyle=up?`rgba(100,180,255,${a})`:`rgba(255,100,140,${a})`;
+      ctx.strokeStyle=i===focus?'#ffcc44':'#2a2a50';
+      ctx.lineWidth=i===focus?2.5:1.2;
+      const rad=7+Math.min(5,Math.abs(m)*6)+(i===focus?2:0);
+      ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      if(i===focus){
+        // dashed “removed” look
+        ctx.fillStyle='rgba(13,13,26,0.55)';
+        ctx.beginPath(); ctx.arc(x,y,rad*0.55,0,Math.PI*2); ctx.fill();
+      }
+      ctx.fillStyle='#e8e8f8'; ctx.font='9px sans-serif'; ctx.textAlign='center';
       ctx.fillText(String(i), x, y+3);
     }
 
-    // right panel
-    const rx=W*0.72, rw=W*0.26;
-    ctx.fillStyle='rgba(12,12,35,0.95)'; ctx.fillRect(rx-8, 20, rw+16, H-40);
-    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
-    ctx.fillText('Cavity BP', rx, 40);
-    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
-    ctx.fillText('Blue: FM bonds', rx, 62);
-    ctx.fillText('Red: AFM bonds', rx, 78);
-    ctx.fillText('Dots: |message|', rx, 94);
-    ctx.fillStyle='#88ccff'; ctx.font='12px monospace';
-    ctx.fillText('q_cav = '+qcav.toFixed(4), rx, 120);
-    ctx.fillText('iter  = '+iter, rx, 138);
-    const T=+document.getElementById('cav_T').value;
-    ctx.fillStyle=T<1?'#ffcc44':'#88ff88';
-    ctx.fillText(T<1?'RSB-prone T':'paramagnetic T', rx, 160);
-    ctx.fillStyle='#8888aa'; ctx.font='11px sans-serif';
-    const lines=['h_{i→j}=Σ u(h_{k→i},J)','tree-exact BP','SP = 1RSB surveys'];
-    lines.forEach((ln,i)=>ctx.fillText(ln, rx, 190+i*16));
+    // right panel charts
+    const rx=W*0.64, rw=W*0.34, ry0=24;
+    ctx.fillStyle='rgba(12,12,32,0.92)';
+    ctx.fillRect(rx-10, ry0, rw+16, H-ry0-12);
+    ctx.strokeStyle='#2a2a48'; ctx.strokeRect(rx-10, ry0, rw+16, H-ry0-12);
 
-    document.getElementById('ro10').textContent=`edges=${edges.length}   q_cav=${qcav.toFixed(4)}   iter=${iter}   T=${T.toFixed(2)}`;
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Cavity / BP readout', rx, ry0+18);
+    const T=+document.getElementById('cav_T').value;
+    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
+    ctx.fillText('Gold packets: messages h_{i→j}', rx, ry0+36);
+    ctx.fillText('Node color: m_i = tanh(β h_i)', rx, ry0+50);
+    ctx.fillText('Ring: spin removed (cavity)', rx, ry0+64);
+    ctx.fillStyle=T<1?'#ffcc44':'#88ff88'; ctx.font='11px monospace';
+    ctx.fillText(T<1?'T < 1: RSB-prone · soft noise':'T ≥ 1: paramagnetic RS', rx, ry0+82);
+
+    ctx.fillStyle='#88ccff'; ctx.font='12px monospace';
+    ctx.fillText('q_cav = ⟨m²⟩ = '+qcav.toFixed(4), rx, ry0+104);
+    ctx.fillText('iter  = '+iter, rx, ry0+120);
+    ctx.fillText('|h_'+focus+'| = '+Math.abs(h_i[focus]||0).toFixed(3), rx, ry0+136);
+
+    // q history sparkline
+    const qx=rx, qy=ry0+155, qw=rw-8, qh=52;
+    ctx.fillStyle='#ff88cc'; ctx.font='11px sans-serif';
+    ctx.fillText('q_cav(t)', qx, qy-4);
+    ctx.strokeStyle='#2a2a50'; ctx.strokeRect(qx,qy,qw,qh);
+    if(qHist.length>1){
+      ctx.strokeStyle='#66aaff'; ctx.lineWidth=1.5; ctx.beginPath();
+      qHist.forEach((v,i)=>{
+        const x=qx+i/(qHist.length-1)*qw;
+        const y=qy+qh-Math.min(1,v)*qh*0.92-2;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    }
+
+    // message magnitude histogram
+    const hx=rx, hy=qy+qh+28, hw=qw, hh=70;
+    ctx.fillStyle='#ffcc44'; ctx.font='11px sans-serif';
+    ctx.fillText('|h_{i→j}| distribution', hx, hy-4);
+    ctx.strokeStyle='#2a2a50'; ctx.strokeRect(hx,hy,hw,hh);
+    const bins=12, counts=new Array(bins).fill(0);
+    const mmax=Math.max(0.2, ...msgHist, 0.01);
+    msgHist.forEach(v=>{
+      const b=Math.min(bins-1, Math.floor(v/mmax*bins));
+      counts[b]++;
+    });
+    const cmax=Math.max(1,...counts);
+    counts.forEach((c,i)=>{
+      const bw=hw/bins;
+      const h=c/cmax*(hh-4);
+      ctx.fillStyle=`rgba(255,200,80,${0.35+0.55*c/cmax})`;
+      ctx.fillRect(hx+i*bw+1, hy+hh-h-1, bw-2, h);
+    });
+
+    ctx.fillStyle='#8888aa'; ctx.font='10px sans-serif';
+    const tips=[
+      'h_{i→j}=Σ_{k∈∂i\\j} u(h_{k→i},J)',
+      'u = β⁻¹ artanh(tanhβJ·tanhβh)',
+      'tree-exact BP · SP = 1RSB surveys'
+    ];
+    tips.forEach((ln,i)=>ctx.fillText(ln, rx, hy+hh+18+i*14));
+
+    document.getElementById('ro10').textContent=
+      `edges=${edges.length}   q_cav=${qcav.toFixed(4)}   iter=${iter}   T=${T.toFixed(2)}   focus=${focus}`;
     T_RAF[10]=requestAnimationFrame(draw);
   }
   if(T_RAF[10]) cancelAnimationFrame(T_RAF[10]);

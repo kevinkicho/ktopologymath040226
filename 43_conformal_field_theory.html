@@ -2955,46 +2955,46 @@ function drawAnim10(){ draw10(); }
 
 function rcftData(){
   if(rcftModel==='ising'){
-    const labs = ['1','ε','σ'];
-    // Ising S matrix
-    const s2 = Math.SQRT1_2;
+    // Ising modular S (1, ε, σ): (1/2) [[1,1,√2],[1,1,−√2],[√2,−√2,0]]
+    const r = Math.SQRT2 / 2; // √2/2
     const S = [
-      [0.5, 0.5, s2],
-      [0.5, 0.5, -s2],
-      [s2, -s2, 0]
+      [0.5, 0.5, r],
+      [0.5, 0.5,-r],
+      [r,  -r,   0]
     ];
-    // normalize roughly
-    const n = Math.sqrt(0.5);
-    for(let i=0;i<3;i++) for(let j=0;j<3;j++) S[i][j]*=n*1.2;
-    return {labs, S, fusion: 'σ×σ=1+ε'};
+    return {labs:['1','ε','σ'], S, fusion:'σ×σ = 1+ε  ·  ε×ε=1  ·  ε×σ=σ', c:'1/2'};
   }
   if(rcftModel==='potts'){
-    const labs = ['1','ε','σ','Z','Y'];
+    const labs = ['1','ψ','σ','Z','Y'];
     const n = labs.length;
-    const S = Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>
-      Math.cos(2*Math.PI*(i+1)*(j+1)/(2*n+1))/Math.sqrt(n)
-    ));
-    return {labs, S, fusion: 'Potts M(6,5)'};
+    const S = Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>{
+      // educational Kac-table-ish modular data (normalized)
+      return Math.sin(Math.PI*(i+1)*(j+1)/(n+1)) * Math.sqrt(2/(n+1));
+    }));
+    return {labs, S, fusion:'M(6,5) Potts · 5 primaries', c:'4/5'};
   }
-  // SU(2)_k
-  const n = rcftK + 1; // j=0..k/2 → k+1 labels
+  // SU(2)_k  — exact modular S
+  const n = rcftK + 1;
   const labs = [];
-  for(let i=0;i<n;i++) labs.push('j='+(i/2).toFixed(1));
+  for(let i=0;i<n;i++) labs.push(i===0?'1':('j='+(i/2)));
   const S = Array.from({length:n},()=>Array(n).fill(0));
   for(let i=0;i<n;i++) for(let j=0;j<n;j++){
     S[i][j] = Math.sqrt(2/(rcftK+2)) * Math.sin(Math.PI*(i+1)*(j+1)/(rcftK+2));
   }
-  return {labs, S, fusion: 'SU(2)_'+rcftK+' truncated CG'};
+  return {labs, S, fusion:'SU(2)_'+rcftK+' truncated Clebsch–Gordan', c:'3k/(k+2)'};
 }
 
 function verlindeN(S, i, j, k){
   const n = S.length;
   let sum = 0;
   for(let r=0;r<n;r++){
-    const s0 = S[0][r] || 1e-9;
+    const s0 = S[0][r];
+    if(Math.abs(s0)<1e-12) continue;
     sum += S[i][r]*S[j][r]*S[k][r]/s0;
   }
-  return Math.max(0, Math.round(sum*1000)/1000);
+  // integer-ish for unitary RCFT
+  const r = Math.round(sum);
+  return Math.abs(sum-r)<0.08 ? r : Math.max(0, Math.round(sum*100)/100);
 }
 
 function drawRCFT(ctx, W, H, t){
@@ -3002,63 +3002,230 @@ function drawRCFT(ctx, W, H, t){
   const data = rcftData();
   const {labs, S} = data;
   const n = labs.length;
+  const s00 = Math.abs(S[0][0]) || 1e-9;
+  const dims = labs.map((_,i)=>Math.abs(S[i][0])/s00);
+  const D2 = dims.reduce((a,d)=>a+d*d, 0);
 
-  // S-matrix heatmap
-  const cell = Math.min(36, Math.floor((Math.min(W,H)*0.42)/n));
-  const ox = 40, oy = 50;
-  ctx.fillStyle = '#cc44ff'; ctx.font = 'bold 13px Segoe UI';
-  ctx.fillText('Modular S-matrix', ox, 28);
+  // ── Layout: fill entire canvas ──
+  // Top title bar
+  const titleH = 26;
+  // Bottom strip: quantum dimensions (~22% height)
+  const botH = Math.max(72, Math.min(120, H*0.22));
+  // Main area split left S-matrix / right fusion
+  const mainT = titleH + 6;
+  const mainH = H - mainT - botH - 8;
+  const leftW = Math.floor(W * 0.46);
+  const rightX = leftW + 10;
+  const rightW = W - rightX - 10;
+
+  // Title
+  ctx.fillStyle = '#cc44ff'; ctx.font = 'bold 14px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('RCFT / Verlinde  ·  '+data.fusion, 14, 18);
+  ctx.fillStyle = '#8866aa'; ctx.font = '11px Segoe UI';
+  ctx.fillText('c = '+data.c+'   ·   N_{ij}^k = Σ_r S_{ir} S_{jr} S^*_{kr}/S_{0r}   ·   D² = Σ d_i² = '+D2.toFixed(3), 14, 32);
+
+  // ════════ LEFT: Modular S heatmap (scaled to fill) ════════
+  const labPad = 36;
+  const sPadT = 18;
+  const sAvailW = leftW - labPad - 16;
+  const sAvailH = mainH - sPadT - 8;
+  const cell = Math.max(18, Math.floor(Math.min(sAvailW, sAvailH) / n));
+  const gridW = cell * n, gridH = cell * n;
+  const ox = labPad + Math.max(0, (sAvailW - gridW) / 2);
+  const oy = mainT + sPadT + Math.max(0, (sAvailH - gridH) / 2);
+
+  ctx.fillStyle = '#aa88ff'; ctx.font = 'bold 12px Segoe UI';
+  ctx.fillText('Modular S-matrix', ox, oy - 8);
+
+  // pulse highlight row/col cycling
+  const hi = Math.floor((t * 0.55) % n);
+  const hj = Math.floor((t * 0.37 + 1.7) % n);
+
   for(let i=0;i<n;i++){
     for(let j=0;j<n;j++){
       const v = S[i][j];
-      const a = Math.min(1, Math.abs(v)*2);
-      const pos = v>=0;
-      ctx.fillStyle = pos ? `rgba(120,80,255,${0.15+a*0.7})` : `rgba(255,80,120,${0.15+a*0.7})`;
-      ctx.fillRect(ox+j*cell, oy+i*cell, cell-2, cell-2);
-      ctx.fillStyle = '#eeddff'; ctx.font = Math.max(8, cell/3.5)+'px Segoe UI';
-      ctx.fillText(v.toFixed(2), ox+j*cell+3, oy+i*cell+cell*0.6);
+      const a = Math.min(1, Math.abs(v) * 1.8);
+      const glow = (i===hi || j===hj) ? 0.25 : 0;
+      const pulse = 0.85 + 0.15 * Math.sin(t * 2 + i * 0.4 + j * 0.3);
+      if(v>=0) ctx.fillStyle = `rgba(120,80,255,${(0.12+a*0.75+glow)*pulse})`;
+      else ctx.fillStyle = `rgba(255,70,120,${(0.12+a*0.75+glow)*pulse})`;
+      ctx.fillRect(ox + j*cell, oy + i*cell, cell - 2, cell - 2);
+      if(cell >= 28){
+        ctx.fillStyle = '#f0e8ff';
+        ctx.font = Math.max(9, Math.min(13, cell * 0.32)) + 'px Segoe UI';
+        ctx.textAlign = 'center';
+        ctx.fillText(v.toFixed(2), ox + j*cell + (cell-2)/2, oy + i*cell + cell*0.62);
+      }
     }
-    ctx.fillStyle = '#8866aa'; ctx.font = '10px Segoe UI';
-    ctx.fillText(labs[i], ox - 36, oy+i*cell+cell*0.6);
-    ctx.fillText(labs[i], ox+i*cell+2, oy-6);
+  }
+  // axis labels
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#9977bb';
+  ctx.font = Math.max(9, Math.min(12, cell * 0.35)) + 'px Segoe UI';
+  for(let i=0;i<n;i++){
+    const hl = i===hi;
+    ctx.fillStyle = hl ? '#ffccff' : '#8866aa';
+    ctx.fillText(labs[i], ox - 6, oy + i*cell + cell*0.62);
+  }
+  ctx.textAlign = 'center';
+  for(let j=0;j<n;j++){
+    const hl = j===hj;
+    ctx.fillStyle = hl ? '#ffccff' : '#8866aa';
+    ctx.fillText(labs[j], ox + j*cell + (cell-2)/2, oy - 4);
+  }
+  ctx.textAlign = 'left';
+
+  // ════════ RIGHT TOP: Fusion anyon ring ════════
+  const ringH = Math.floor(mainH * 0.52);
+  const ringCx = rightX + rightW * 0.5;
+  const ringCy = mainT + ringH * 0.52;
+  const ringR = Math.min(rightW, ringH) * 0.34;
+
+  ctx.fillStyle = '#aa88ff'; ctx.font = 'bold 12px Segoe UI';
+  ctx.fillText('Fusion ring (anyons)', rightX + 4, mainT + 14);
+
+  // soft disk
+  ctx.beginPath();
+  ctx.arc(ringCx, ringCy, ringR + 18, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(40,20,70,0.35)';
+  ctx.fill();
+
+  // node positions
+  const nodes = [];
+  for(let i=0;i<n;i++){
+    const ang = -Math.PI/2 + i * 2 * Math.PI / n;
+    nodes.push({
+      x: ringCx + ringR * Math.cos(ang),
+      y: ringCy + ringR * Math.sin(ang),
+      ang
+    });
   }
 
-  // Fusion N_ij^k for animated (i,j)
-  const ii = Math.floor((t*0.3)%n);
-  const jj = Math.floor((t*0.19+1)%n);
-  const fx = ox + n*cell + 40;
-  ctx.fillStyle = '#cc44ff'; ctx.font = 'bold 13px Segoe UI';
-  ctx.fillText('Verlinde  N_{ij}^k', fx, 28);
-  ctx.fillStyle = '#eeddff'; ctx.font = '12px Segoe UI';
-  ctx.fillText(labs[ii]+' × '+labs[jj]+' = Σ N  '+data.fusion, fx, 50);
+  // Verlinde pair cycling
+  const ii = Math.floor((t * 0.35) % n);
+  const jj = Math.floor((t * 0.22 + 1.3) % n);
+  const Nk = [];
+  for(let k=0;k<n;k++) Nk.push(verlindeN(S, ii, jj, k));
 
-  let fp = 0;
+  // fusion arcs i,j → k for N>0
   for(let k=0;k<n;k++){
-    const N = verlindeN(S, ii, jj, k);
-    const y = 70 + k*28;
-    const bw = Math.min(180, Math.abs(N)*60 + 8);
-    ctx.fillStyle = N>0.1 ? '#aa66ff' : '#333355';
-    ctx.globalAlpha = 0.7 + 0.3*Math.sin(t+k);
-    ctx.fillRect(fx, y, bw, 18);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = '#eeddff'; ctx.font = '11px Segoe UI';
-    ctx.fillText('→ '+labs[k]+'   N='+N.toFixed(2), fx+bw+8, y+13);
-    fp += Math.max(0,N);
+    if(Nk[k] < 0.5) continue;
+    const a = nodes[ii], b = nodes[jj], c = nodes[k];
+    // quadratic Bezier through center with offset
+    const mx = (a.x + b.x) * 0.35 + ringCx * 0.3;
+    const my = (a.y + b.y) * 0.35 + ringCy * 0.3;
+    ctx.strokeStyle = `hsla(${280 + k * 25}, 75%, 65%, ${0.35 + 0.4 * Math.sin(t + k)})`;
+    ctx.lineWidth = 1.5 + Nk[k];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.quadraticCurveTo(mx, my, c.x, c.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(b.x, b.y);
+    ctx.quadraticCurveTo(mx + 12, my - 8, c.x, c.y);
+    ctx.stroke();
+    // packet along arc
+    const u = (t * 0.4 + k * 0.15) % 1;
+    const px = (1-u)*(1-u)*a.x + 2*(1-u)*u*mx + u*u*c.x;
+    const py = (1-u)*(1-u)*a.y + 2*(1-u)*u*my + u*u*c.y;
+    ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI*2);
+    ctx.fillStyle = '#ffcc88'; ctx.fill();
   }
 
-  // quantum dimensions d_i = S_{i0}/S_{00}
-  const s00 = Math.abs(S[0][0])||1e-9;
-  ctx.fillStyle = '#88ddff'; ctx.font = '12px Segoe UI';
-  ctx.fillText('Quantum dims dᵢ = Sᵢ₀/S₀₀', fx, 70+n*28+24);
-  labs.forEach((lab,i)=>{
-    const d = Math.abs(S[i][0])/s00;
-    ctx.fillStyle = '#cc88ff';
-    ctx.fillText(lab+': d='+d.toFixed(3), fx + (i%3)*110, 70+n*28+44 + Math.floor(i/3)*16);
+  // highlight factors i,j
+  nodes.forEach((nd, i)=>{
+    const isF = i===ii || i===jj;
+    const isP = Nk[i] >= 0.5;
+    const r = isF ? 16 : (isP ? 14 : 11);
+    ctx.beginPath(); ctx.arc(nd.x, nd.y, r, 0, Math.PI*2);
+    if(isF) ctx.fillStyle = '#ff66cc';
+    else if(isP) ctx.fillStyle = '#8866ff';
+    else ctx.fillStyle = '#2a1840';
+    ctx.fill();
+    ctx.strokeStyle = isF ? '#ffe0ff' : '#6644aa';
+    ctx.lineWidth = isF ? 2.5 : 1.2;
+    ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold ' + (isF?12:11) + 'px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(labs[i], nd.x, nd.y + 4);
   });
+  ctx.textAlign = 'left';
 
+  ctx.fillStyle = '#eeddff'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText(labs[ii]+'  ×  '+labs[jj]+'  →  products (gold packets)', ringCx, mainT + ringH - 6);
+  ctx.textAlign = 'left';
+
+  // ════════ RIGHT BOTTOM: Verlinde N bars (fill remaining) ════════
+  const barT = mainT + ringH + 4;
+  const barH = mainH - ringH - 4;
+  const barX = rightX + 4;
+  const barW = rightW - 12;
+
+  ctx.fillStyle = '#aa88ff'; ctx.font = 'bold 12px Segoe UI';
+  ctx.fillText('Verlinde coefficients  N_{'+labs[ii]+','+labs[jj]+'}^k', barX, barT + 12);
+
+  const rowH = Math.max(16, Math.min(36, (barH - 28) / n));
+  let maxN = 1;
+  Nk.forEach(v => { if(v > maxN) maxN = v; });
+
+  for(let k=0;k<n;k++){
+    const N = Nk[k];
+    const y = barT + 22 + k * rowH;
+    const maxBar = barW - 90;
+    const bw = Math.max(4, (N / maxN) * maxBar * (0.92 + 0.08 * Math.sin(t * 2.2 + k)));
+    ctx.fillStyle = '#1a1028';
+    ctx.fillRect(barX, y, maxBar, rowH - 4);
+    ctx.fillStyle = N >= 0.5 ? `rgba(170,100,255,${0.55 + 0.35 * Math.sin(t + k)})` : '#2a2040';
+    ctx.fillRect(barX, y, bw, rowH - 4);
+    ctx.strokeStyle = '#3a2060';
+    ctx.strokeRect(barX, y, maxBar, rowH - 4);
+    ctx.fillStyle = '#eeddff';
+    ctx.font = Math.max(10, Math.min(13, rowH * 0.55)) + 'px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText('→ '+labs[k], barX + maxBar + 8, y + rowH * 0.65);
+    ctx.fillStyle = N >= 0.5 ? '#ffccff' : '#665588';
+    ctx.fillText('N=' + N, barX + 6, y + rowH * 0.65);
+  }
+
+  // ════════ BOTTOM: Quantum dimensions full width ════════
+  const botY = H - botH;
+  ctx.fillStyle = 'rgba(20,10,40,0.85)';
+  ctx.fillRect(8, botY, W - 16, botH - 4);
+  ctx.strokeStyle = '#2a1040';
+  ctx.strokeRect(8, botY, W - 16, botH - 4);
+
+  ctx.fillStyle = '#88ddff'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('Quantum dimensions  dᵢ = Sᵢ₀ / S₀₀     ·     global dimension D = √Σ dᵢ² = ' + Math.sqrt(D2).toFixed(3), 18, botY + 16);
+
+  const dMax = Math.max(...dims, 1);
+  const gap = 8;
+  const dBarArea = botH - 36;
+  const colW = (W - 32 - gap * (n - 1)) / n;
+  dims.forEach((d, i)=>{
+    const x = 16 + i * (colW + gap);
+    const bh = Math.max(4, (d / dMax) * (dBarArea - 22));
+    const y = botY + botH - 14 - bh;
+    const pulse = 0.75 + 0.25 * Math.sin(t * 1.5 + i * 0.7);
+    ctx.fillStyle = `rgba(150,100,255,${0.45 * pulse})`;
+    ctx.fillRect(x, y, colW, bh);
+    ctx.strokeStyle = '#aa88ff';
+    ctx.strokeRect(x, y, colW, bh);
+    ctx.fillStyle = '#eeddff';
+    ctx.font = 'bold 11px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(labs[i], x + colW / 2, botY + botH - 4);
+    ctx.fillStyle = '#ccbbff';
+    ctx.font = '10px Segoe UI';
+    ctx.fillText('d=' + d.toFixed(2), x + colW / 2, y - 4);
+  });
+  ctx.textAlign = 'left';
+
+  // readout strip
+  let fp = 0;
+  Nk.forEach(v => { fp += Math.max(0, v); });
   document.getElementById('rcftN').textContent = String(n);
-  document.getElementById('rcftFP').textContent = fp.toFixed(2);
-  document.getElementById('rcftV').textContent = 'N ok';
+  document.getElementById('rcftFP').textContent = Math.sqrt(D2).toFixed(3);
+  document.getElementById('rcftV').textContent = labs[ii]+'×'+labs[jj];
 }
 
 // ============================================================

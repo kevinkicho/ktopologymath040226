@@ -353,7 +353,7 @@ input[type=range]{accent-color:var(--accent);cursor:pointer}
 <!-- ===== TAB 6: TOPOLOGICAL CODES ===== -->
 <div class="pane" role="tabpanel" data-role="panel" id="pane6">
   <div class="canvas-col">
-    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Toric code on identified rectangle · Drag anyons to braid · Toggle Fibonacci view</div>
+    <div style="font-size:.8rem;color:var(--accent);flex-shrink:0">Toric code: auto demo of Z/X strings, e/m anyons &amp; braiding (−1) · Add/drag anyons · Fibonacci braid view</div>
     <canvas aria-label="63 · Quantum Error Correction — panel 7" id="c6" style="flex:1;min-height:0"></canvas>
     <div class="controls" data-role="sidebar">
       <button id="btnPause6" class="active-btn" onclick="toggleQecPause(this)">⏸ Pause</button>
@@ -1874,139 +1874,359 @@ function resetTab6(){
   document.getElementById('braidPhase').textContent='0';
   drawTab6();
 }
+/** Toric-code lattice geometry: N×N plaquettes, qubits on edges, vertices A_v, faces B_p */
+function toricGeom(W,H){
+  const margin=48, N=5; // N plaquettes per side → N+1 vertices
+  const gW=W-margin*2, gH=H-margin*2-28;
+  const sx=gW/N, sy=gH/N;
+  function V(i,j){return {x:margin+i*sx, y:margin+18+j*sy};} // vertex (i,j)
+  function midH(i,j){ // horizontal edge qubit between V(i,j)–V(i+1,j)
+    const a=V(i,j), b=V(i+1,j); return {x:(a.x+b.x)/2, y:a.y, i, j, kind:'h'};
+  }
+  function midV(i,j){ // vertical edge qubit between V(i,j)–V(i,j+1)
+    const a=V(i,j), b=V(i,j+1); return {x:a.x, y:(a.y+b.y)/2, i, j, kind:'v'};
+  }
+  function plaq(i,j){ // face center
+    const a=V(i,j); return {x:a.x+sx/2, y:a.y+sy/2, i, j};
+  }
+  return {margin, N, sx, sy, V, midH, midV, plaq, gW, gH};
+}
+
+/**
+ * Auto-demo timeline (period ~14s at 1×): clean lattice → Z-error → e-pair hop
+ * → X-error → m-pair → e braids around m (−1 phase) → annihilate → loop.
+ * User-added anyons (Add e/m) still drawn on top and remain draggable.
+ */
 function drawToricCode(ctx,W,H){
-  const margin=40, gridN=6;
-  const gW=W-margin*2, gH=H-margin*2;
-  const sx=gW/(gridN-1), sy=gH/(gridN-1);
+  const G=toricGeom(W,H);
+  const {N,sx,sy,V,midH,midV,plaq,margin}=G;
+  const t=qecAnimTime;
+  const T=14; // seconds-ish period (qecAnimTime advances ~1 unit/sec at speed 1)
+  const phase=((t%T)+T)%T;
+  const u=phase/T; // 0..1
 
-  // identified edges (top=bottom gold, left=right gold)
+  // --- background lattice: horizontal & vertical qubit edges ---
+  for(let j=0;j<=N;j++){
+    for(let i=0;i<N;i++){
+      const a=V(i,j), b=V(i+1,j);
+      const pulse=0.35+0.25*Math.sin(t*2.2+i*0.7+j*0.4);
+      ctx.strokeStyle=`rgba(100,110,180,${pulse})`;
+      ctx.lineWidth=2.2;
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    }
+  }
+  for(let i=0;i<=N;i++){
+    for(let j=0;j<N;j++){
+      const a=V(i,j), b=V(i,j+1);
+      const pulse=0.35+0.25*Math.sin(t*2.2+i*0.5+j*0.9+1);
+      ctx.strokeStyle=`rgba(100,110,180,${pulse})`;
+      ctx.lineWidth=2.2;
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    }
+  }
+
+  // Torus identification markers
   ctx.strokeStyle=GOLD; ctx.lineWidth=2;
-  // top/bottom arrows
-  for(let i=0;i<gridN;i++){
-    const x=margin+i*sx;
-    ctx.beginPath(); ctx.moveTo(x,margin); ctx.lineTo(x,margin+12); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x,H-margin); ctx.lineTo(x,H-margin-12); ctx.stroke();
-  }
-  // left/right arrows
-  for(let j=0;j<gridN;j++){
-    const y=margin+j*sy;
-    ctx.beginPath(); ctx.moveTo(margin,y); ctx.lineTo(margin+12,y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(W-margin,y); ctx.lineTo(W-margin-12,y); ctx.stroke();
-  }
-  // grid lines with shimmer wave
-  for(let i=0;i<gridN;i++){
-    const shimmer=0.2+0.15*Math.sin(qecAnimTime*1.5+i*0.8);
-    ctx.strokeStyle='#334'+Math.round(shimmer*255/0.5).toString(16).padStart(2,'0').slice(0,2);
-    ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(margin+i*sx,margin); ctx.lineTo(margin+i*sx,H-margin); ctx.stroke();
-  }
-  for(let j=0;j<gridN;j++){
-    const shimmer=0.2+0.15*Math.sin(qecAnimTime*1.5+j*0.8+2);
-    ctx.strokeStyle='#334'+Math.round(shimmer*255/0.5).toString(16).padStart(2,'0').slice(0,2);
-    ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(margin,margin+j*sy); ctx.lineTo(W-margin,margin+j*sy); ctx.stroke();
-  }
-  // identified label
+  ctx.setLineDash([4,4]);
+  ctx.strokeRect(V(0,0).x, V(0,0).y, N*sx, N*sy);
+  ctx.setLineDash([]);
   ctx.font='12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
-  ctx.fillText('↕ identified (torus)',W/2,H-margin+16);
-  ctx.save(); ctx.translate(margin-20,H/2); ctx.rotate(-Math.PI/2);
-  ctx.fillText('↔ identified',0,0); ctx.restore();
+  ctx.fillText('↕ identified  ·  torus T²  ·  ↔ identified', W/2, H-12);
 
-  // draw anyons with bobbing
+  // Vertex stars A_v (faint)
+  for(let i=0;i<=N;i++){
+    for(let j=0;j<=N;j++){
+      const p=V(i,j);
+      const sat=0.12+0.08*Math.sin(t*1.4+i+j);
+      ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2);
+      ctx.fillStyle=`rgba(167,139,250,${sat})`; ctx.fill();
+    }
+  }
+  // Plaquette centers B_p
+  for(let i=0;i<N;i++){
+    for(let j=0;j<N;j++){
+      const p=plaq(i,j);
+      ctx.fillStyle=`rgba(45,212,191,${0.06+0.04*Math.sin(t*1.1+i*0.5+j)})`;
+      ctx.fillRect(p.x-sx*0.28, p.y-sy*0.28, sx*0.56, sy*0.56);
+    }
+  }
+
+  // --- demo error path & anyons from timeline ---
+  // Path for Z errors (creates e anyons at endpoints): horizontal edges row 2
+  const errPathH=[[0,2],[1,2],[2,2],[3,2]]; // h-edges
+  // Path for X errors (creates m anyons): vertical edges col 2
+  const errPathV=[[2,0],[2,1],[2,2],[2,3]];
+
+  let status='Ground state: all A_v = +1, B_p = +1';
+  let demoAnyons=[]; // {type,x,y,label}
+  let litH=new Set(), litV=new Set(); // error edges to highlight
+  let braidFlash=0;
+  let phaseShow=null;
+
+  function key(i,j){return i+','+j;}
+
+  if(u<0.12){
+    status='Ground state · stabilizers satisfied · qubits on edges';
+    // gentle A_v pulse all green-ish
+    for(let i=0;i<=N;i++) for(let j=0;j<=N;j++){
+      const p=V(i,j);
+      ctx.beginPath(); ctx.arc(p.x,p.y,5+2*Math.sin(t*3),0,Math.PI*2);
+      ctx.strokeStyle=`rgba(45,212,191,${0.25+0.2*Math.sin(t*3+i)})`;
+      ctx.lineWidth=1.5; ctx.stroke();
+    }
+  } else if(u<0.28){
+    // Growing Z-string (red) on horizontal edges
+    status='Z-string error on edges → creates e anyons (vertex A_v violations)';
+    const grow=Math.min(1,(u-0.12)/0.16);
+    const nLit=Math.max(1, Math.ceil(grow*errPathH.length));
+    for(let k=0;k<nLit;k++) litH.add(key(errPathH[k][0],errPathH[k][1]));
+    // e pair at ends of string
+    const e0=V(0,2), e1=V(Math.min(N, nLit), 2);
+    demoAnyons.push({type:'e', x:e0.x, y:e0.y, label:'e'});
+    demoAnyons.push({type:'e', x:e1.x, y:e1.y, label:'e'});
+  } else if(u<0.42){
+    // e anyons hop further apart then pause
+    status='e-anyons free on the dual lattice (hopping along vertices)';
+    for(const e of errPathH) litH.add(key(e[0],e[1]));
+    const hop=(u-0.28)/0.14;
+    const eL=V(0,2);
+    const eR=V(Math.min(N, 1+Math.floor(hop*3)), 2);
+    demoAnyons.push({type:'e', x:eL.x, y:eL.y, label:'e'});
+    demoAnyons.push({type:'e', x:eR.x, y:eR.y, label:'e'});
+  } else if(u<0.55){
+    status='X-string error → m anyons (plaquette B_p violations)';
+    for(const e of errPathH) litH.add(key(e[0],e[1]));
+    const grow=Math.min(1,(u-0.42)/0.13);
+    const nLit=Math.max(1, Math.ceil(grow*errPathV.length));
+    for(let k=0;k<nLit;k++) litV.add(key(errPathV[k][0],errPathV[k][1]));
+    demoAnyons.push({type:'e', x:V(0,2).x, y:V(0,2).y, label:'e'});
+    demoAnyons.push({type:'e', x:V(4,2).x, y:V(4,2).y, label:'e'});
+    const m0=plaq(2,0), m1=plaq(2, Math.min(N-1, nLit-1));
+    demoAnyons.push({type:'m', x:m0.x, y:m0.y, label:'m'});
+    demoAnyons.push({type:'m', x:m1.x, y:m1.y, label:'m'});
+  } else if(u<0.72){
+    // Braid: one e walks around an m (circle)
+    status='Braid e around m · mutual statistics θ_em = −1';
+    for(const e of errPathH) litH.add(key(e[0],e[1]));
+    for(const e of errPathV) litV.add(key(e[0],e[1]));
+    const m=plaq(2,2);
+    const ang=-Math.PI/2 + ((u-0.55)/0.17)*Math.PI*2;
+    const R=Math.min(sx,sy)*1.15;
+    const ex=m.x+R*Math.cos(ang), ey=m.y+R*Math.sin(ang);
+    demoAnyons.push({type:'m', x:m.x, y:m.y, label:'m'});
+    demoAnyons.push({type:'e', x:ex, y:ey, label:'e'});
+    demoAnyons.push({type:'e', x:V(0,2).x, y:V(0,2).y, label:'e'});
+    demoAnyons.push({type:'m', x:plaq(2,0).x, y:plaq(2,0).y, label:'m'});
+    // braid path trail
+    ctx.strokeStyle='rgba(248,113,113,0.45)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.arc(m.x,m.y,R, -Math.PI/2, ang, false); ctx.stroke();
+    ctx.setLineDash([]);
+    braidFlash=0.3+0.5*Math.sin(t*8);
+    phaseShow='θ_em = e^{iπ} = −1';
+  } else if(u<0.88){
+    status='Recombine anyon pairs · stabilizer recovery / decoding';
+    for(const e of errPathH) litH.add(key(e[0],e[1]));
+    for(const e of errPathV) litV.add(key(e[0],e[1]));
+    const s=(u-0.72)/0.16;
+    // e's approach
+    const eA=V(0,2), eB=V(4,2);
+    demoAnyons.push({type:'e', x:eA.x+s*(eB.x-eA.x)*0.5, y:eA.y, label:'e'});
+    demoAnyons.push({type:'e', x:eB.x-s*(eB.x-eA.x)*0.5, y:eB.y, label:'e'});
+    const mA=plaq(2,0), mB=plaq(2,3);
+    demoAnyons.push({type:'m', x:mA.x, y:mA.y+s*(mB.y-mA.y)*0.5, label:'m'});
+    demoAnyons.push({type:'m', x:mB.x, y:mB.y-s*(mB.y-mA.y)*0.5, label:'m'});
+    if(s>0.85){
+      ctx.font='bold 16px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
+      ctx.fillText('pairs annihilate → vacuum', W/2, margin);
+    }
+  } else {
+    status='Loop complete · logical ops need non-contractible anyon worldlines';
+    // residual soft glow
+    const g=Math.sin((u-0.88)/0.12*Math.PI);
+    ctx.fillStyle=`rgba(251,191,36,${0.08*g})`;
+    ctx.fillRect(V(0,0).x, V(0,0).y, N*sx, N*sy);
+  }
+
+  // Highlight error edges
+  litH.forEach(k=>{
+    const [i,j]=k.split(',').map(Number);
+    const a=V(i,j), b=V(i+1,j);
+    ctx.strokeStyle=RED; ctx.lineWidth=3.5;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    // qubit tick
+    const m=midH(i,j);
+    ctx.fillStyle=RED; ctx.beginPath(); ctx.arc(m.x,m.y,3.5,0,Math.PI*2); ctx.fill();
+  });
+  litV.forEach(k=>{
+    const [i,j]=k.split(',').map(Number);
+    const a=V(i,j), b=V(i,j+1);
+    ctx.strokeStyle=TEAL; ctx.lineWidth=3.5;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    const m=midV(i,j);
+    ctx.fillStyle=TEAL; ctx.beginPath(); ctx.arc(m.x,m.y,3.5,0,Math.PI*2); ctx.fill();
+  });
+
+  // Demo anyons
+  for(let ai=0;ai<demoAnyons.length;ai++){
+    const a=demoAnyons[ai];
+    const bob=2.5*Math.sin(t*3+ai);
+    const r=10+(a.type==='m'?1:0);
+    const grd=ctx.createRadialGradient(a.x,a.y+bob,1,a.x,a.y+bob,r+6);
+    grd.addColorStop(0, a.type==='e'?'#f87171':'#2dd4bf');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(a.x,a.y+bob,r+6,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(a.x,a.y+bob,r,0,Math.PI*2);
+    ctx.fillStyle=a.type==='e'?RED:TEAL; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#0a0a1a'; ctx.textAlign='center';
+    ctx.fillText(a.label, a.x, a.y+bob+4);
+  }
+
+  // User anyons (interactive)
   for(let ai=0;ai<anyons.length;ai++){
     const a=anyons[ai];
-    const bob=3*Math.sin(qecAnimTime*2.5+ai*1.3);
+    const bob=3*Math.sin(t*2.5+ai*1.3);
     const dy=a.y+bob;
-    ctx.beginPath(); ctx.arc(a.x,dy,9,0,Math.PI*2);
+    ctx.beginPath(); ctx.arc(a.x,dy,11,0,Math.PI*2);
     ctx.fillStyle=a.type==='e'?RED:TEAL; ctx.fill();
-    ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    ctx.strokeStyle=GOLD; ctx.lineWidth=2; ctx.stroke();
     ctx.font='bold 12px Segoe UI'; ctx.fillStyle='#fff'; ctx.textAlign='center';
-    ctx.fillText(a.type,a.x,dy+3);
+    ctx.fillText(a.type,a.x,dy+4);
   }
 
-  // braid phase info
-  if(braidPhaseTotal>0){
-    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
-    ctx.fillText('Braid phase: (−1)^'+braidPhaseTotal+' = '+(braidPhaseTotal%2===0?'+1':'−1'),W/2,20);
-  }
-}
-function drawFibView(ctx,W,H){
+  // Legend + status
+  ctx.font='12px Segoe UI'; ctx.textAlign='left';
+  ctx.fillStyle=RED; ctx.fillRect(margin, 8, 10, 10);
+  ctx.fillStyle='#e8e8f8'; ctx.fillText('e = A_v violation (Z-string ends)', margin+14, 17);
+  ctx.fillStyle=TEAL; ctx.fillRect(margin+230, 8, 10, 10);
+  ctx.fillStyle='#e8e8f8'; ctx.fillText('m = B_p violation (X-string ends)', margin+244, 17);
+
   ctx.font='bold 13px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
-  ctx.fillText('Fibonacci Anyon Data',W/2,30);
+  ctx.fillText(status, W/2, H-28);
 
+  if(phaseShow){
+    ctx.font='bold 15px Segoe UI';
+    ctx.fillStyle=`rgba(251,191,36,${0.7+braidFlash*0.3})`;
+    ctx.fillText(phaseShow, W/2, 34);
+  }
+  if(braidPhaseTotal>0){
+    ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='right';
+    ctx.fillText('Manual braid crossings: (−1)^'+braidPhaseTotal+' = '+(braidPhaseTotal%2===0?'+1':'−1'), W-margin, 18);
+  }
+
+  // progress bar for demo loop
+  const barW=W-margin*2, barY=H-42;
+  ctx.fillStyle='#1a1a2e'; ctx.fillRect(margin, barY, barW, 4);
+  ctx.fillStyle=ACCENT; ctx.fillRect(margin, barY, barW*u, 4);
+}
+
+function drawFibView(ctx,W,H){
+  const t=qecAnimTime;
   const phi=(1+Math.sqrt(5))/2;
-  const phiInv=1/phi, phiSqrt=Math.sqrt(phiInv);
 
-  var fibMatrixCallIdx=0;
-  function drawMatrix(label,entries,mx,my,cw,ch){
-    const matBase=fibMatrixCallIdx*4;
-    fibMatrixCallIdx++;
-    ctx.font='bold 12px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
-    ctx.fillText(label,mx+cw,my-8);
-    for(let r=0;r<2;r++){
-      for(let c=0;c<2;c++){
-        const cellIdx=matBase+r*2+c;
-        const cx2=mx+c*cw+4, cy2=my+r*ch+4;
-        // sequential glow: one cell highlighted at a time
-        const glowPhase=Math.floor(qecAnimTime*1.8)%8;
-        const isGlow=(cellIdx===glowPhase);
-        ctx.fillStyle=isGlow?'#2a2a4a':'#1a1a2a';
-        ctx.strokeStyle=isGlow?GOLD+'88':'#334'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.roundRect(cx2,cy2,cw-6,ch-6,3); ctx.fill(); ctx.stroke();
-        ctx.font='12px monospace'; ctx.fillStyle=isGlow?GOLD:'#e8e8f8'; ctx.textAlign='center';
-        ctx.fillText(entries[r*2+c], cx2+(cw-6)/2, cy2+(ch-6)/2+4);
-      }
+  // Left: animated braid of three τ anyons
+  const lx=W*0.28, top=50, bot=H-50, mid=H*0.5;
+  ctx.font='bold 14px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
+  ctx.fillText('Fibonacci braiding (τ anyons)', lx, 28);
+
+  // worldlines: three strands with a half-twist over time
+  const strands=[-70,0,70];
+  const braidU=((t*0.35)%2);
+  // 0..1 first swap left-mid, 1..2 swap mid-right (repeating)
+  function strandX(s, y){
+    const v=(y-top)/(bot-top); // 0..1 down
+    let x=strands[s];
+    const cycle=(t*0.12+v)%1;
+    // continuous weaving
+    if(s===0) x+=22*Math.sin(v*Math.PI*2+t*0.9);
+    if(s===1) x+=18*Math.sin(v*Math.PI*2+t*0.9+2.1);
+    if(s===2) x+=22*Math.sin(v*Math.PI*2+t*0.9+4.2);
+    return lx+x;
+  }
+  const cols=[RED, GOLD, TEAL];
+  for(let s=0;s<3;s++){
+    ctx.strokeStyle=cols[s]; ctx.lineWidth=3; ctx.lineJoin='round';
+    ctx.beginPath();
+    for(let k=0;k<=40;k++){
+      const y=top+(bot-top)*k/40;
+      const x=strandX(s,y);
+      if(k===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
     }
-    // brackets
-    ctx.strokeStyle='#8888aa'; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.moveTo(mx+2,my+1); ctx.lineTo(mx-3,my+1); ctx.lineTo(mx-3,my+ch*2-1); ctx.lineTo(mx+2,my+ch*2-1); ctx.stroke();
-    const rr=mx+cw*2-2;
-    ctx.beginPath(); ctx.moveTo(rr-2,my+1); ctx.lineTo(rr+3,my+1); ctx.lineTo(rr+3,my+ch*2-1); ctx.lineTo(rr-2,my+ch*2-1); ctx.stroke();
+    ctx.stroke();
+    // particle at moving front
+    const yf=top+(bot-top)*((t*0.15+s*0.2)%1);
+    const xf=strandX(s,yf);
+    ctx.beginPath(); ctx.arc(xf,yf,9,0,Math.PI*2);
+    ctx.fillStyle=cols[s]; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    ctx.font='bold 11px Segoe UI'; ctx.fillStyle='#0a0a1a'; ctx.textAlign='center';
+    ctx.fillText('τ', xf, yf+4);
   }
-
-  const cw=90,ch=40;
-  const fMx=W*0.1, fMy=60;
-  drawMatrix('F-matrix',[
-    'φ⁻¹','φ⁻¹/²',
-    'φ⁻¹/²','−φ⁻¹'
-  ],fMx,fMy,cw,ch);
-
-  const rMx=W*0.55, rMy=60;
-  drawMatrix('R-matrix',[
-    'e^(−4πi/5)','0',
-    '0','e^(3πi/5)'
-  ],rMx,rMy,cw,ch);
-
-  // quantum dimension
-  ctx.font='13px Segoe UI'; ctx.fillStyle='#e8e8f8'; ctx.textAlign='center';
-  ctx.fillText('Quantum dimension: d_τ = φ = (1+√5)/2 ≈ '+phi.toFixed(4),W/2,H*0.42);
-
-  // fusion rule
-  ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='center';
-  ctx.fillText('Fusion rule: τ × τ = 1 + τ',W/2,H*0.52);
-  ctx.fillText('Topological spin: θ_τ = e^(4πi/5)',W/2,H*0.60);
-
-  // pentagon diagram
-  const px=W/2, py=H*0.80, pr=Math.min(W,H)*0.13;
   ctx.font='12px Segoe UI'; ctx.fillStyle='#8888aa'; ctx.textAlign='center';
-  ctx.fillText('Pentagon equation satisfied (unitarity of F)',px,H*0.70);
-  const corners=[];
-  for(let i=0;i<5;i++){
-    const a=-Math.PI/2+i*2*Math.PI/5;
-    corners.push([px+pr*Math.cos(a),py+pr*Math.sin(a)]);
+  ctx.fillText('τ × τ = 1 + τ   ·   d_τ = φ ≈ '+phi.toFixed(3), lx, bot+18);
+  ctx.fillText('Non-Abelian braids → universal QC', lx, bot+34);
+
+  // Right: compact F/R matrices with pulse + fusion tree animation
+  const rx=W*0.62;
+  ctx.font='bold 14px Segoe UI'; ctx.fillStyle=GOLD; ctx.textAlign='center';
+  ctx.fillText('F & R data', rx+80, 28);
+
+  function cell(x,y,w,h,txt,on){
+    ctx.fillStyle=on?'#2a2450':'#16162a';
+    ctx.strokeStyle=on?GOLD:'#334'; ctx.lineWidth=on?2:1;
+    ctx.beginPath(); ctx.roundRect(x,y,w,h,4); ctx.fill(); ctx.stroke();
+    ctx.font='12px monospace'; ctx.fillStyle=on?GOLD:'#e8e8f8'; ctx.textAlign='center';
+    ctx.fillText(txt, x+w/2, y+h/2+4);
   }
-  ctx.strokeStyle=TEAL+'88'; ctx.lineWidth=1;
-  ctx.beginPath();
-  corners.forEach((c,i)=>{if(i===0)ctx.moveTo(c[0],c[1]);else ctx.lineTo(c[0],c[1]);});
-  ctx.closePath(); ctx.stroke();
-  for(const corner of corners){
-    ctx.beginPath(); ctx.arc(corner[0],corner[1],4,0,Math.PI*2);
-    ctx.fillStyle=TEAL; ctx.fill();
-  }
+  const glow=Math.floor(t*1.6)%4;
+  const mw=78, mh=36, mx=rx, my=48;
+  ctx.font='12px Segoe UI'; ctx.fillStyle=ACCENT; ctx.textAlign='left';
+  ctx.fillText('F-matrix', mx, my-8);
+  cell(mx,my,mw,mh,'φ⁻¹',glow===0); cell(mx+mw+4,my,mw,mh,'φ⁻½',glow===1);
+  cell(mx,my+mh+4,mw,mh,'φ⁻½',glow===2); cell(mx+mw+4,my+mh+4,mw,mh,'−φ⁻¹',glow===3);
+
+  ctx.fillStyle=TEAL; ctx.fillText('R-matrix', mx, my+mh*2+28);
+  const my2=my+mh*2+36;
+  cell(mx,my2,mw,mh,'e^(−4πi/5)',glow===0); cell(mx+mw+4,my2,mw,mh,'0',glow===1);
+  cell(mx,my2+mh+4,mw,mh,'0',glow===2); cell(mx+mw+4,my2+mh+4,mw,mh,'e^(3πi/5)',glow===3);
+
+  // Fusion tree animation
+  const ftx=rx+80, fty=H*0.72;
+  ctx.font='12px Segoe UI'; ctx.fillStyle='#e8e8f8'; ctx.textAlign='center';
+  ctx.fillText('Fusion tree (animated)', ftx, fty-50);
+  const ftPhase=(Math.sin(t*1.2)+1)/2;
+  // three leaves → two parents → root
+  const leaves=[[ftx-60,fty],[ftx,fty],[ftx+60,fty]];
+  leaves.forEach((p,i)=>{
+    ctx.beginPath(); ctx.arc(p[0],p[1],8,0,Math.PI*2);
+    ctx.fillStyle=cols[i]; ctx.fill();
+    ctx.fillStyle='#0a0a1a'; ctx.font='bold 11px Segoe UI';
+    ctx.fillText('τ', p[0], p[1]+4);
+  });
+  const midY=fty-28;
+  const m1x=ftx-30, m2x=ftx+30;
+  ctx.strokeStyle=`rgba(167,139,250,${0.4+0.4*ftPhase})`; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(leaves[0][0],leaves[0][1]-8); ctx.lineTo(m1x,midY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(leaves[1][0],leaves[1][1]-8); ctx.lineTo(m1x,midY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(leaves[1][0],leaves[1][1]-8); ctx.lineTo(m2x,midY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(leaves[2][0],leaves[2][1]-8); ctx.lineTo(m2x,midY); ctx.stroke();
+  ctx.beginPath(); ctx.arc(m1x,midY,7,0,Math.PI*2); ctx.fillStyle=GOLD; ctx.fill();
+  ctx.beginPath(); ctx.arc(m2x,midY,7,0,Math.PI*2); ctx.fillStyle=GOLD; ctx.fill();
+  const rootY=midY-32;
+  ctx.strokeStyle=ACCENT; ctx.beginPath();
+  ctx.moveTo(m1x,midY-7); ctx.lineTo(ftx,rootY);
+  ctx.moveTo(m2x,midY-7); ctx.lineTo(ftx,rootY); ctx.stroke();
+  ctx.beginPath(); ctx.arc(ftx,rootY,9,0,Math.PI*2);
+  ctx.fillStyle=ACCENT; ctx.fill();
+  ctx.fillStyle='#0a0a1a'; ctx.font='bold 11px Segoe UI';
+  ctx.fillText(ftPhase>0.5?'τ':'1', ftx, rootY+4);
 }
 function drawTab6(){
   const c=document.getElementById('c6');
-  const W=+c.style.width.replace('px',''), H=+c.style.height.replace('px','');
+  if(!c)return;
+  let W=+String(c.style.width||'').replace('px','')||c.clientWidth;
+  let H=+String(c.style.height||'').replace('px','')||c.clientHeight;
+  if(!W||!H){resizeC6();W=+String(c.style.width||'').replace('px','')||c.clientWidth;H=+String(c.style.height||'').replace('px','')||c.clientHeight;}
   if(!W||!H)return;
   const ctx=c.getContext('2d');
   ctx.clearRect(0,0,W,H);
