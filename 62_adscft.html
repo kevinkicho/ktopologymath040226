@@ -511,7 +511,7 @@ button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0
   </div>
   <div class="side-panel" data-role="sidebar">
     <h3>SYK Model</h3>
-    <div class="eq">$$H=i^{q/2}\sum_{i_1<\cdots<i_q}J_{i_1\cdots i_q}\,\psi_{i_1}\cdots\psi_{i_q}$$</div>
+    <div class="eq">$$H=i^{q/2}\sum_{i_1\lt\cdots\lt i_q}J_{i_1\cdots i_q}\,\psi_{i_1}\cdots\psi_{i_q}$$</div>
     <p>Sachdev–Ye–Kitaev: $N$ Majorana fermions with random $q$-body couplings. Solvable at large $N$; exhibits maximal chaos $\lambda_L=2\pi/\beta$ and emergent conformal symmetry in the IR.</p>
     <h3>JT Gravity</h3>
     <div class="eq">$$I_{\mathrm{JT}}=\frac{1}{2}\int\sqrt{g}\,\Phi(R+2)+I_{\partial}$$</div>
@@ -657,15 +657,39 @@ function syncSpeedControl62(tab){
   if(s&&v){s.value=window.animSpeed||1;v.textContent=(window.animSpeed || 1).toFixed(1)+'x';}
 }
 
+// Recover panes that HTML parsing nested under a sibling (e.g. raw '<' in
+// LaTeX ate closing </div> tags). Keep every pane a direct child of #main.
+function _fixPaneParents62(){
+  const main=document.getElementById('main');
+  if(!main)return;
+  for(let n=0;n<NUM_TABS_62;n++){
+    const p=document.getElementById('pane'+n);
+    if(p && p.parentElement!==main) main.appendChild(p);
+  }
+}
+
 function switchTab(i){
   stopAll();
+  _fixPaneParents62();
+  adsCurTab=i;
   document.querySelectorAll('.tab').forEach((t,j)=>{
     t.classList.toggle('active',i===j);
     t.setAttribute('aria-selected', i===j ? 'true':'false');
   });
-  document.querySelectorAll('.pane').forEach((p,j)=>p.classList.toggle('active',i===j));
+  // Activate by id (robust if DOM order drifted)
+  for(let n=0;n<NUM_TABS_62;n++){
+    const p=document.getElementById('pane'+n);
+    if(p) p.classList.toggle('active', n===i);
+  }
   syncSpeedControl62(i);
-  startTab(i);
+  // Double-rAF so flex layout gives canvas non-zero size before first draw
+  const tabN=i;
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      if(adsCurTab!==tabN) return;
+      startTab(i);
+    });
+  });
 }
 
 // ============================================================
@@ -3220,11 +3244,16 @@ window.addEventListener('resize',()=>{
 
 window.addEventListener('load',()=>{
   window.animSpeed=window.animSpeed||1;
+  _fixPaneParents62();
   for(var i=0;i<NUM_TABS_62;i++){syncSpeedControl62(i);}
   startTab(0);
 });
 // initial boot
-if(document.readyState==='complete'){window.animSpeed=window.animSpeed||1;startTab(0);}
+if(document.readyState==='complete'){
+  window.animSpeed=window.animSpeed||1;
+  _fixPaneParents62();
+  startTab(0);
+}
 else { /* load handler above */ }
 </script>
 <script src="glossary-data.js" defer></script>

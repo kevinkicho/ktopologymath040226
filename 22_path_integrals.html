@@ -2886,59 +2886,79 @@ function draw14(){
   document.getElementById('sdNv').textContent=nPt;
   const t=animOffset14;
 
-  // Toy SD residual: ⟨−□φ + m²φ + λφ³/6 − J⟩ ≈ 0
+  // Euclidean φ⁴: S = ∫ [½(∂φ)² + ½ m² φ² + (λ/4!) φ⁴]
+  // Master SD: ⟨δS/δφ⟩_J = J  with  δS/δφ = −□φ + m²φ + (λ/3!) φ³
+  // Constant mean-field: m² φ + (λ/6) φ³ = J  (□ = 0)
   const m2=0.25;
-  const phiCl=J/(m2+0.15*lam); // rough mean field
-  const residual=Math.abs(-m2*phiCl - (lam/6)*Math.pow(phiCl,3) + J);
-  document.getElementById('sdRes').textContent=residual.toFixed(4);
-  document.getElementById('sdTower').textContent=nPt+'-point ↔ '+(nPt+3)+'-point (φ⁴)';
+  // Linear free-field guess (fails when λφ² ≳ m²)
+  const phiLin = m2>1e-9 ? J/m2 : 0;
+  // Nonlinear mean-field via Newton on f(φ)= m²φ + (λ/6)φ³ − J
+  let phiMF = phiLin;
+  for(let it=0; it<12; it++){
+    const f = m2*phiMF + (lam/6)*phiMF*phiMF*phiMF - J;
+    const df = m2 + (lam/2)*phiMF*phiMF;
+    phiMF -= f/Math.max(Math.abs(df),1e-9);
+  }
+  const eomMF = m2*phiMF + (lam/6)*phiMF*phiMF*phiMF;
+  const residualMF = Math.abs(eomMF - J); // should be ~0 (sanity)
+  // Linear residual: how badly φ=J/m² fails the nonlinear SD/EOM
+  const residualLin = Math.abs(m2*phiLin + (lam/6)*Math.pow(phiLin,3) - J);
+  document.getElementById('sdRes').textContent=residualLin.toFixed(4)+' (lin)';
+  document.getElementById('sdTower').textContent=nPt+'-pt needs '+(nPt+3)+'-pt (φ⁴)';
 
   ctx14.fillStyle='#ffdd44'; ctx14.font='bold 14px sans-serif'; ctx14.textAlign='center';
-  ctx14.fillText('Schwinger–Dyson: δS/δφ  inside the path integral', W/2, 22);
+  ctx14.fillText('Schwinger–Dyson: ⟨δS/δφ⟩_J = J  (Euclidean)', W/2, 22);
   ctx14.fillStyle='#55558a'; ctx14.font='11px sans-serif';
-  ctx14.fillText('⟨δS/δφ(x)⟩_J = J(x)  ·  infinite correlator tower', W/2, 40);
+  ctx14.fillText('from ∫ 𝒟φ (δ/δφ) e^{−S+Jφ} = 0  ·  infinite correlator tower', W/2, 40);
 
   // Master equation panel
   const mx=40, my=60;
   ctx14.fillStyle='rgba(28,28,68,0.7)';
-  ctx14.fillRect(mx,my,W*0.42,100);
+  ctx14.fillRect(mx,my,W*0.42,108);
   ctx14.fillStyle='#ffdd44'; ctx14.font='13px sans-serif'; ctx14.textAlign='left';
-  ctx14.fillText('Master SD identity', mx+12, my+24);
-  ctx14.fillStyle='#c0c0ea'; ctx14.font='13px sans-serif';
-  ctx14.fillText('⟨ −□φ + m²φ + (λ/3!)φ³ ⟩ = J', mx+12, my+50);
-  ctx14.fillStyle='#8888aa'; ctx14.font='11px sans-serif';
-  ctx14.fillText('from ∫ Dφ  (δ/δφ) e^{−S+Jφ} = 0', mx+12, my+74);
-
-  // Diagrammatic Dyson equation for propagator
-  const dx=W*0.55, dy=90;
+  ctx14.fillText('Master SD identity (φ⁴)', mx+12, my+22);
   ctx14.fillStyle='#c0c0ea'; ctx14.font='12px sans-serif';
-  ctx14.fillText('Dyson equation (2-point SD)', dx, dy-16);
-  // bare line
-  function lineArrow(x1,y1,x2,y2,col,w){
+  ctx14.fillText('⟨ −□φ + m²φ + (λ/3!)φ³ ⟩_J  =  J', mx+12, my+46);
+  ctx14.fillStyle='#8888aa'; ctx14.font='11px sans-serif';
+  ctx14.fillText('const. MF:  m²φ + (λ/6)φ³ = J', mx+12, my+68);
+  ctx14.fillText('φ_MF='+phiMF.toFixed(3)+'  (Newton)  ·  φ_lin=J/m²='+phiLin.toFixed(3), mx+12, my+90);
+
+  // Diagrammatic Dyson: G = G₀ + G₀ Σ G  (not G Σ G)
+  const dx=W*0.55, dy=96;
+  ctx14.fillStyle='#c0c0ea'; ctx14.font='12px sans-serif'; ctx14.textAlign='left';
+  ctx14.fillText('Dyson (2-pt SD):  G = G₀ + G₀ Σ G', dx, dy-20);
+  function lineArrow(x1,y1,x2,y2,col,w,dash){
     ctx14.strokeStyle=col; ctx14.lineWidth=w||2;
+    if(dash) ctx14.setLineDash(dash); else ctx14.setLineDash([]);
     ctx14.beginPath(); ctx14.moveTo(x1,y1); ctx14.lineTo(x2,y2); ctx14.stroke();
+    ctx14.setLineDash([]);
   }
-  lineArrow(dx,dy,dx+70,dy,'#44ddff',2.5);
-  ctx14.fillStyle='#44ddff'; ctx14.font='11px sans-serif'; ctx14.fillText('G', dx+28, dy-8);
-  ctx14.fillStyle='#aaa'; ctx14.fillText('=', dx+82, dy+4);
-  lineArrow(dx+100,dy,dx+160,dy,'#8888aa',1.5);
-  ctx14.fillStyle='#888'; ctx14.fillText('G₀', dx+120, dy-8);
-  ctx14.fillStyle='#aaa'; ctx14.fillText('+', dx+172, dy+4);
-  lineArrow(dx+190,dy,dx+230,dy,'#44ddff',2.5);
-  // self-energy blob
+  // G (full)
+  lineArrow(dx,dy,dx+55,dy,'#44ddff',2.5);
+  ctx14.fillStyle='#44ddff'; ctx14.font='11px sans-serif'; ctx14.fillText('G', dx+22, dy-8);
+  ctx14.fillStyle='#aaa'; ctx14.fillText('=', dx+62, dy+4);
+  // G0 bare
+  lineArrow(dx+78,dy,dx+128,dy,'#8888aa',1.5,[5,3]);
+  ctx14.fillStyle='#888'; ctx14.fillText('G₀', dx+92, dy-8);
+  ctx14.fillStyle='#aaa'; ctx14.fillText('+', dx+136, dy+4);
+  // G0 · Σ · G
+  lineArrow(dx+152,dy,dx+188,dy,'#8888aa',1.5,[5,3]);
+  ctx14.fillStyle='#888'; ctx14.font='10px sans-serif'; ctx14.fillText('G₀', dx+160, dy-8);
   const pulse=0.5+0.5*Math.sin(t*2);
   ctx14.fillStyle=`rgba(255,136,68,${0.45+0.4*pulse})`;
-  ctx14.beginPath(); ctx14.ellipse(dx+255,dy,22,16,0,0,2*Math.PI); ctx14.fill();
-  ctx14.strokeStyle='#ff8844'; ctx14.stroke();
+  ctx14.beginPath(); ctx14.ellipse(dx+212,dy,18,14,0,0,2*Math.PI); ctx14.fill();
+  ctx14.strokeStyle='#ff8844'; ctx14.lineWidth=2; ctx14.stroke();
   ctx14.fillStyle='#ff8844'; ctx14.font='11px sans-serif'; ctx14.textAlign='center';
-  ctx14.fillText('Σ', dx+255, dy+4);
-  lineArrow(dx+278,dy,dx+330,dy,'#44ddff',2.5);
-  ctx14.fillStyle='#44ddff'; ctx14.textAlign='left'; ctx14.fillText('G', dx+300, dy-8);
+  ctx14.fillText('Σ', dx+212, dy+4);
+  lineArrow(dx+232,dy,dx+290,dy,'#44ddff',2.5);
+  ctx14.fillStyle='#44ddff'; ctx14.textAlign='left'; ctx14.fillText('G', dx+252, dy-8);
+  ctx14.fillStyle='#55558a'; ctx14.font='10px sans-serif';
+  ctx14.fillText('⇔  G⁻¹ = G₀⁻¹ − Σ', dx, dy+28);
 
   // Tower levels
-  const ty=H*0.42;
+  const ty=H*0.44;
   ctx14.fillStyle='#ffdd44'; ctx14.font='12px sans-serif'; ctx14.textAlign='left';
-  ctx14.fillText('Correlator tower (φ⁴ coupling opens n → n+3)', 40, ty);
+  ctx14.fillText('Correlator tower: φ⁴ inserts three fields ⇒ n-pt SD needs (n+3)-pt', 40, ty);
   for(let n=1;n<=4;n++){
     const y=ty+20+n*36;
     const active=n===nPt;
@@ -2949,27 +2969,28 @@ function draw14(){
     ctx14.fillStyle=active?'#ffdd44':'#8888aa'; ctx14.font='13px sans-serif';
     ctx14.fillText(n+'-point', 52, y+4);
     ctx14.fillStyle='#c0c0ea'; ctx14.font='12px sans-serif';
-    ctx14.fillText('→ involves '+(n+3)+'-point  ·  λ = '+lam.toFixed(2), 130, y+4);
-    // small vertices
+    ctx14.fillText('⟨φⁿ δS/δφ⟩ couples to (n+3)-pt  ·  λ='+lam.toFixed(2), 120, y+4);
     for(let k=0;k<n;k++){
       ctx14.fillStyle=active?'#44ddff':'#556';
-      ctx14.beginPath(); ctx14.arc(W*0.42+k*16, y, 4,0,2*Math.PI); ctx14.fill();
+      ctx14.beginPath(); ctx14.arc(W*0.48+k*14, y, 4,0,2*Math.PI); ctx14.fill();
     }
   }
 
-  // Right: residual gauge
+  // Right: linear-MF residual (grows with λ) vs nonlinear MF residual (~0)
   const rx=W*0.62, ry=H*0.48;
   ctx14.fillStyle='#c0c0ea'; ctx14.font='12px sans-serif'; ctx14.textAlign='left';
-  ctx14.fillText('Mean-field residual |⟨EOM⟩−J|', rx, ry);
-  const barW=W*0.32, barH=14;
-  ctx14.fillStyle='#111'; ctx14.fillRect(rx,ry+12,barW,barH);
-  const rNorm=Math.min(1,residual*8);
-  ctx14.fillStyle=rNorm<0.2?'#44ff88':'#ff8844';
-  ctx14.fillRect(rx,ry+12,barW*rNorm,barH);
+  ctx14.fillText('Linear MF error |m²φ_lin+(λ/6)φ_lin³−J|', rx, ry);
+  const barW=W*0.32, barH=12;
+  ctx14.fillStyle='#111'; ctx14.fillRect(rx,ry+10,barW,barH);
+  const rNorm=Math.min(1, residualLin/(Math.abs(J)+0.05));
+  ctx14.fillStyle=rNorm<0.15?'#44ff88':'#ff8844';
+  ctx14.fillRect(rx,ry+10,barW*rNorm,barH);
+  ctx14.fillStyle='#8888aa'; ctx14.font='11px sans-serif';
+  ctx14.fillText('lin residual '+residualLin.toFixed(4)+'  ·  NL residual '+residualMF.toExponential(1), rx, ry+38);
   ctx14.fillStyle='#aaa'; ctx14.font='11px sans-serif';
-  ctx14.fillText('φ_cl ≈ J/(m²+…λ) = '+phiCl.toFixed(3)+'   residual '+residual.toFixed(4), rx, ry+44);
+  ctx14.fillText('φ_lin fails as λφ²/m² grows; Newton MF keeps EOM≈J', rx, ry+56);
   ctx14.fillStyle='#55558a';
-  ctx14.fillText('Nonperturbative truncations close the tower (2PI, DSE QCD…)', rx, ry+68);
+  ctx14.fillText('Truncations close the tower (2PI, rainbow-ladder DSE…)', rx, ry+74);
 
   // Animated functional derivative arrow
   const ax=W*0.7, ay=H*0.82;

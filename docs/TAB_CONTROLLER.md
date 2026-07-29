@@ -53,21 +53,25 @@ To disable auto-start for a module: pass `autoStart: false`.
 
 - **Do not** mass-migrate all 63 modules in one change.
 - Opt in when fixing lifecycle bugs or expanding a module.
-- Keep Playwright guardrails green: `npm run test:lifecycle`
+- Keep Playwright guardrails green: `npm run test:all-guards` (or at least `npm run test:lifecycle` + `npm run test:all-canvases`)
 
 ## Tests
 
 ```bash
+npm run test:all-guards         # full hard suite (recommended pre-commit)
 npm run test:lifecycle          # all modules
 npm run test:lifecycle:15       # quaternions + TabController unit checks
+npm run test:all-canvases       # every tab · every canvas
 # or filter by name:
 # npx playwright test tests/tab-lifecycle.spec.js -g "03_mandel|15_quat"
 ```
 
-Hard fails:
+Hard fails (lifecycle):
 - `pageerror` / `ReferenceError` on load or tab switch
 - duplicate tab labels within a module
 - opt-in modules missing `window.TabController`
 - majority of canvas tabs fully blank after settle
+
+Hard fails (all-canvases): every canvas in the active panel zero-sized, nested under `display:none`, or fully blank after settle — see [`TESTING.md`](TESTING.md).
 
 Does **not** fail if animations are paused or auto-start is off — only lifecycle safety.

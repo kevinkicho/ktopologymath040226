@@ -4,6 +4,8 @@
 
 This document details the systematic audit and fixes applied to animation controls across modules 04-63. The fixes ensure consistent animation behavior when switching between tabs and panels.
 
+**July 2026:** Empty late tabs were often **layout nesting**, not animation flags — raw `<` in HTML math nested panels under `display:none` parents. See [`TESTING.md`](TESTING.md) and `npm run test:all-canvases`.
+
 ## Issues Fixed
 
 ### 1. Pre-marked Active Buttons

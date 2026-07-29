@@ -185,20 +185,45 @@ Universal animation launcher and control injector for all modules:
 
 ## Testing
 
-A Playwright audit covers all 61 modules:
+Playwright specs cover all **63 modules**. Prefer the hard **guard suite** for pre-commit; softer audits still exist for deeper reports.
+
+### Hard guards (pre-commit)
+
+```bash
+npm install                  # first time; installs @playwright/test
+npx playwright install chromium   # first time only
+npm run test:all-guards      # lifecycle + controls + layout + fit + all-canvases
+```
+
+| Script | Spec | Hard fails on |
+|--------|------|----------------|
+| `npm run test:lifecycle` | `tests/tab-lifecycle.spec.js` | pageerrors on load/tab switch; duplicate tab labels; majority blank canvases |
+| `npm run test:controls` | `tests/controls-and-autoplay.spec.js` | throws from anim controls; tracks speed→`animSpeed` + autoplay |
+| `npm run test:layout` | `tests/canvas-layout.spec.js` | 0×0 / default 300×150 / broken resize / layout collapse |
+| `npm run test:fit` | `tests/canvas-fit-and-labels.spec.js` | content overflow; DOM label collisions |
+| `npm run test:all-canvases` | `tests/all-canvases.spec.js` | **every tab · every canvas**: nested panels, zero size, blank paint |
+
+Filter one module:
+
+```bash
+MODULE_FILTER=62 npm run test:all-canvases
+npx playwright test tests/all-canvases.spec.js -g "54_trapped"
+```
+
+### Soft / report audits
 
 ```bash
 npx playwright test tests/audit.spec.js --workers=2 --reporter=list
+npx playwright test tests/deep-audit.spec.js tests/full-tab-audit.spec.js tests/passive-anim-test.spec.js
 ```
 
-Checks per module:
-1. **KaTeX errors** — no `.katex-error` elements
-2. **DOM overflow** — no sidebar/panel escaping its container
-3. **Canvas blank** — 16×16 grid pixel sampling detects un-rendered canvases
-4. **Console errors** — no uncaught JS errors
-5. **Tab stability** — clicking every tab does not crash the page
+These record blank/frozen/overflow notes as reports; they do not replace the hard guards.
 
-Current status: **0 issues** across 60/61 modules (05_fourier has a pre-existing headless-Chrome crash on the Epicycles tab unrelated to app code).
+### Blank-canvas class of bugs
+
+Late tabs can go empty when raw `<` in LaTeX (e.g. `$k<n$`, `$\sum_{i<j}$`) is parsed as HTML and swallows `</div>` tags, nesting later panels inside a `display:none` parent (0×0 canvas). Prefer `\lt` in HTML math. The all-canvases guard hard-fails this pattern.
+
+Details: [`docs/TESTING.md`](docs/TESTING.md).
 
 ---
 
