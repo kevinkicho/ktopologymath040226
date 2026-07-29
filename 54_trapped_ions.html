@@ -503,7 +503,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Distance (km) <span class="val-disp" id="p14DistDisp">10</span></label>
       <input type="range" id="p14DistSl" min="0.1" max="100" step="1" value="10"
         oninput="p14DistDisp.textContent=this.value;p14Dist=+this.value">
-      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(14)">Reset</button>
@@ -532,7 +532,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">ν₀ (Hz)</span><span id="p15FreqDisp">—</span></div>
       <div class="vrow"><span class="vlbl">Δν/ν</span><span id="p15PrecDisp">—</span></div>
-      <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(15)">Reset</button>
@@ -559,7 +559,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">Qubits</span><span id="p16QubitDisp">—</span></div>
       <div class="vrow"><span class="vlbl">2Q fidelity</span><span id="p16FidDisp">—</span></div>
-      <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(16)">Reset</button>
@@ -586,27 +586,43 @@ function _cancelAllAnims(){
   _stops = [];
 }
 
+// Ensure late panels sit under .content (HTML nesting recovery: p14–p16 were
+// parsed inside p13, giving them 0×0 size when p13 is display:none).
+function _fixPanelParents(){
+  const content=document.querySelector('.content');
+  if(!content) return;
+  for(let n=1;n<=16;n++){
+    const p=document.getElementById('p'+n);
+    if(p && p.parentElement!==content) content.appendChild(p);
+  }
+}
 function switchTab(n){
   _cancelAllAnims();
+  _fixPanelParents();
   currentTab = n;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
-  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
-  if(n===1) _stops.push(initTab1());
-  if(n===2) _stops.push(initTab2());
-  if(n===3) _stops.push(initTab3());
-  if(n===4) _stops.push(initTab4());
-  if(n===5) _stops.push(initTab5());
-  if(n===6) _stops.push(initTab6());
-  if(n===7) _stops.push(initTab7());
-  if(n===8) _stops.push(initTab8());
-  if(n===9) _stops.push(initTab9());
-  if(n===10) _stops.push(initTab10());
-  if(n===11) _stops.push(initTab11());
-  if(n===12) _stops.push(initTab12());
-  if(n===13) _stops.push(initTab13());
-  if(n===14) _stops.push(initTab14());
-  if(n===15) _stops.push(initTab15());
-  if(n===16) _stops.push(initTab16());
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const on=i===n-1;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', on?'true':'false');
+  });
+  // Activate by id (robust) not only by index
+  for(let i=1;i<=16;i++){
+    const p=document.getElementById('p'+i);
+    if(p) p.classList.toggle('active', i===n);
+  }
+  const starters={
+    1:initTab1,2:initTab2,3:initTab3,4:initTab4,5:initTab5,6:initTab6,7:initTab7,8:initTab8,
+    9:initTab9,10:initTab10,11:initTab11,12:initTab12,13:initTab13,14:initTab14,15:initTab15,16:initTab16
+  };
+  const start=starters[n];
+  // Double-rAF so flex layout gives main-area non-zero size before first draw
+  const tabN=n;
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      if(currentTab!==tabN) return;
+      if(start) _stops.push(start());
+    });
+  });
 }
 
 function resetTab1_54(){
@@ -693,13 +709,25 @@ function _resetTab(n){
 
 function fitCanvas(cv) {
   const dpr = window.devicePixelRatio || 1;
-  const W = cv.parentElement.clientWidth;
-  const H = cv.parentElement.clientHeight;
-  if(Math.round(cv.width) !== Math.round(W*dpr)) {
-    cv.width = W*dpr; cv.height = H*dpr;
-    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  const parent = cv.parentElement || cv;
+  let W = parent.clientWidth || parent.offsetWidth || 0;
+  let H = parent.clientHeight || parent.offsetHeight || 0;
+  // Fallback if nested in a display:none ancestor still resolving
+  if (W < 2 || H < 2) {
+    const content = document.querySelector('.content');
+    if (content) {
+      W = Math.max(W, Math.floor(content.clientWidth * 0.55));
+      H = Math.max(H, content.clientHeight || 400);
+    }
   }
-  return {W, H, ctx: cv.getContext('2d')};
+  W = Math.max(1, W); H = Math.max(1, H);
+  if (Math.round(cv.width) !== Math.round(W * dpr) || Math.round(cv.height) !== Math.round(H * dpr)) {
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  }
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { W, H, ctx };
 }
 
 // ── Tab 1 — Paul Trap ────────────────────────────────────────
@@ -2645,20 +2673,23 @@ function initTab15() {
     ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH); ctx.stroke();
 
+    // Bar height ∝ better precision (smaller Δν/ν → taller). Map log10 from -19..-14.
+    const logMin=-19, logMax=-14;
     clocks.forEach((cl, ci) => {
       const bx = padL + (ci+0.5)*(plotW/clocks.length);
       const logPrec = Math.log10(cl.prec);
-      const barH = (logPrec + 15) / 3 * plotH * 0.7;
+      const t = Math.max(0, Math.min(1, (logMax - logPrec) / (logMax - logMin)));
+      const barH = Math.max(8, t * plotH * 0.72);
       ctx.fillStyle = cl.col;
-      ctx.fillRect(bx-15, padT+plotH-barH, 30, barH);
-      ctx.fillStyle = cl.col; ctx.font='12px monospace'; ctx.textAlign='center';
-      ctx.fillText(cl.name, bx, padT+plotH-barH-6);
-      ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace';
+      ctx.fillRect(bx-18, padT+plotH-barH, 36, barH);
+      ctx.fillStyle = cl.col; ctx.font='11px monospace'; ctx.textAlign='center';
+      ctx.fillText(cl.name, bx, padT+plotH-barH-8);
+      ctx.fillStyle='#c0c0ea'; ctx.font='11px monospace';
       ctx.fillText(cl.prec.toExponential(1), bx, padT+plotH-barH+14);
     });
 
     ctx.fillStyle='#55558a'; ctx.font='12px monospace'; ctx.textAlign='left';
-    ctx.fillText('Fractional uncertainty Δν/ν', padL+4, padT+14);
+    ctx.fillText('Taller = better fractional stability (log scale)', padL+4, padT+14);
   }
 
   function draw() {
@@ -2860,6 +2891,7 @@ function initTab16() {
 }
 
 window.animSpeed=1;
+_fixPanelParents();
 switchTab(1);
 window.addEventListener('resize', () => { _cancelAllAnims(); switchTab(currentTab); });
 </script>
