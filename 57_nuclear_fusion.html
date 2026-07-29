@@ -26,19 +26,20 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
 .back:hover{color:var(--accent)}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%;flex-wrap:nowrap}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text);background:var(--bg2)}
 .tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
-.content{flex:1;display:flex;overflow:hidden}
-.panel{display:none;flex:1;overflow:hidden}
+.content{flex:1;display:flex;overflow:hidden;min-height:0}
+.panel{display:none;flex:1;overflow:hidden;min-height:0;min-width:0}
 .panel.active{display:flex}
 .sidebar{background:var(--bg2);border-right:1px solid var(--border);
   padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
 .sidebar.right{border-right:none;border-left:1px solid var(--border);width:270px}
-.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
-canvas{display:block;width:100%;height:100%}
+.main-area{flex:1;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative}
+canvas{display:block;width:100%;height:100%;min-height:0}
 .section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
 .eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
 .eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
@@ -95,8 +96,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" onclick="fusionReaction='DD';setBtn(this)">D-D</button>
         <button class="btn" onclick="fusionReaction='pB';setBtn(this)">p-¹¹B</button>
       </div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal1">1.00</span>×</label>
+      <input type="range" id="speed1" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal1.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p1Paused=!p1Paused;this.textContent=p1Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn1" onclick="toggleFusionPause('p1Paused',this,'_draw1')">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(1)">Reset</button>
       </div>
       <div class="callout" style="margin-top:10px">NIF 2022 achieved the first ever $Q>1$ — 3.15 MJ out from 2.05 MJ in. The ignition region is shaded above the contour.</div>
@@ -106,14 +110,19 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-title">Lawson Criterion</div>
       <div class="eq-block">$$n\tau_E T \geq 3\times10^{21}\,\text{keV} \cdot \text{s/m}^3$$</div>
       <div class="eq-block">$$^2\text{H}+^3\text{H}\to^4\text{He}+n$$<br>Q = 17.6 MeV</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> Power balance $P_{\alpha}+P_{\mathrm{aux}}=P_{\mathrm{loss}}$ yields $nT\tau_E \gtrsim 12T^2/\langle\sigma v\rangle E_\alpha$ for ignition ($P_{\mathrm{aux}}\!\to\!0$). D-T minimum near $T\sim15$–$20$ keV.</div>
       <div class="callout">All three factors must be simultaneously large: density $n$, confinement time $\tau_E$, and temperature $T$.</div>
+      <div class="callout"><strong>Frontier:</strong> SPARC (CFS, ~20 T REBCO) and ITER ($Q=10$ goal) target magnetic-confinement Lawson; NIF already crossed ICF ignition. Private + public race for net electricity this decade–next.</div>
     </div>
   </div>
   <!-- Panel 2 -->
   <div class="panel" role="tabpanel" data-role="panel" id="p2">
     <div class="sidebar" data-role="sidebar">
-      <div class="btn-row">
-        <button class="btn" onclick="imp2Paused=!imp2Paused;this.textContent=imp2Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      <label>Speed <span class="val-disp" id="speedVal2">1.00</span>×</label>
+      <input type="range" id="speed2" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal2.textContent=(this.value/100).toFixed(2)">
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" id="pauseBtn2" onclick="toggleFusionPause('imp2Paused',this,'_draw2')">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(2)">Reset</button>
       </div>
       <div style="margin-top:8px">
@@ -130,7 +139,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">RT Instability</div>
       <div class="eq-block">$$\gamma_{RT} = \sqrt{A k g}$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc (ablative RT):</strong> $\gamma=\sqrt{Akg/(1+kL)}-{\beta}kv_a$ — ablative flow $v_a$ and density scale length $L$ stabilize high-$k$. NIF pulse shaping keeps adiabat low while controlling feedthrough.</div>
       <div class="callout">A = Atwood number, k = wavenumber, g = effective gravity. Higher k modes grow fastest but are stabilized by ablative flow at the surface.</div>
+      <div class="callout"><strong>Frontier:</strong> High-yield NIF shots (&gt;5 MJ) stress 3D mix models; hybrid direct/indirect and DI designs (Omega, laser megajoule) test alternative symmetry control.</div>
     </div>
   </div>
   <!-- Panel 3 -->
@@ -140,8 +151,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn active" onclick="logScale3=false;setBtn(this)">Linear</button>
         <button class="btn" onclick="logScale3=true;setBtn(this)">Log</button>
       </div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal3">1.00</span>×</label>
+      <input type="range" id="speed3" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal3.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p3Paused=!p3Paused;this.textContent=p3Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn3" onclick="toggleFusionPause('p3Paused',this,'_draw3')">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(3)">Reset</button>
       </div>
       <div class="callout" style="margin-top:10px">Each point is an NIF implosion shot. The Dec 2022 shot (gold) crossed Q=1 for the first time.</div>
@@ -150,7 +164,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Ignition Gain</div>
       <div class="eq-block">$$Q = \frac{E_{fusion}}{E_{laser}}$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> Target gain $G=E_{\mathrm{fus}}/E_{\mathrm{laser}}$; wall-plug $Q_{\mathrm{eng}}=G\cdot\eta_{\mathrm{driver}}\cdot\eta_{\mathrm{thermal}}$. For $\eta_{\mathrm{driver}}\!\sim\!1\%$ (flashlamps), commercial needs $G\gg100$; diode-pumped lasers change the economics.</div>
       <div class="callout">NIF Dec 2022: $E_{laser}=2.05$ MJ, $E_{fusion}=3.15$ MJ → $Q\approx1.54$. Commercial power requires $Q\gtrsim100$.</div>
+      <div class="callout"><strong>Frontier:</strong> Post-ignition NIF campaign: higher $G$, burn fraction, and repeatability. IFE path needs ~10 Hz drivers + target factories — not just single-shot $G&gt;1$.</div>
     </div>
   </div>
 
@@ -168,6 +184,13 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <input type="range" id="p4TempSlider" min="1" max="100" value="20"
           oninput="document.getElementById('p4TempVal').textContent=this.value;p4Temp=+this.value;p4Redraw()">
       </div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal4">1.00</span>×</label>
+      <input type="range" id="speed4" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal4.textContent=(this.value/100).toFixed(2)">
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" id="pauseBtn4" onclick="toggleFusionPause('p4Paused',this,'_draw4')">⏸ Pause</button>
+        <button class="btn" onclick="_resetTab(4)">Reset</button>
+      </div>
       <div class="callout" style="margin-top:10px">
         <strong>Gamow window:</strong> narrow energy range where tunneling probability and thermal population overlap. Peak shifts with temperature.
       </div>
@@ -181,6 +204,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-block">$$P_{tunnel} \propto e^{-2\pi\eta}$$$$\eta = \frac{Z_1 Z_2 e^2}{\hbar v}$$</div>
       <div class="eq-title">Astrophysical S-Factor</div>
       <div class="eq-block">$$\sigma(E) = \frac{S(E)}{E}\,e^{-2\pi\eta(E)}$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc (reactivity):</strong> $\langle\sigma v\rangle=\int\sigma(v)vf(v)\,d^3v$ with Maxwellian $f$. Bosch–Hale parametrizations for D-T/D-D used in reactor scoping; resonances (e.g. $^3$He) matter for advanced fuels.</div>
       <div class="eq-title">D-T Reaction</div>
       <div class="eq-block">$$^2\text{H}+^3\text{H}\to ^4\text{He}(3.5\,\text{MeV})+n(14.1\,\text{MeV})$$</div>
       <div class="eq-title">Lawson (Triple Product)</div>
@@ -191,6 +215,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="callout" style="margin-top:6px">
         S-factor for D-T: $S(0)\approx 6.27\times10^{-2}$ MeV·b. Nearly constant near peak — tunneling factor dominates the energy dependence.
       </div>
+      <div class="callout"><strong>Frontier:</strong> Precision $\langle\sigma v\rangle$ for D-T at reactor $T$; p-¹¹B / D-³He cross-section campaigns for aneutronic concepts. Module stays reactor-relevant — not full stellar nucleosynthesis.</div>
     </div>
   </div>
 
@@ -218,8 +243,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" onclick="p5Mode='kink';setBtn(this)">Kink Mode</button>
         <button class="btn" onclick="p5Mode='elm';setBtn(this)">ELM</button>
       </div>
+      <label style="margin-top:6px">Speed <span class="val-disp" id="speedVal5">1.00</span>×</label>
+      <input type="range" id="speed5" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal5.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p5Paused=!p5Paused;this.textContent=p5Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn5" onclick="toggleFusionPause('p5Paused',this,'_draw5')">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(5)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px">
@@ -234,6 +262,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-block">$$\Delta^*\psi = -\mu_0 R^2 p'(\psi) - FF'(\psi)$$</div>
       <div class="eq-title">Safety Factor</div>
       <div class="eq-block">$$q = \frac{r B_t}{R B_p}$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> Troyon $\beta_N=\beta/(I_p/aB)\lesssim3.5$; ELMs at $q_{95}\!\sim\!3$ require pellet pacing / RMP mitigation. Bootstrap $f_{\mathrm{bs}}\!\sim\!\epsilon^{1/2}\beta_p$ enables steady-state scenarios.</div>
       <div class="callout">Kink instability (m=1,n=1) occurs when $q<1$ on axis — Kruskal-Shafranov limit.</div>
       <div class="eq-title">ITER Parameters</div>
       <div class="vrow"><span class="vlbl">R (major)</span><span>6.2 m</span></div>
@@ -243,19 +272,23 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Q (goal)</span><span>10</span></div>
       <div class="vrow"><span class="vlbl">JET 2022</span><span>59 MJ</span></div>
       <div class="callout" style="margin-top:6px">
-        <strong>SPARC</strong> (Commonwealth Fusion): 20 T REBCO magnets, R=1.85 m, Q>2 planned ~2025.
+        <strong>SPARC</strong> (Commonwealth Fusion): 20 T REBCO magnets, R=1.85 m, Q>2 planned ~2025–27.
       </div>
       <div class="callout" style="margin-top:6px">
         Heating: NBI (neutral beam injection), ICRH (ion cyclotron), ECRH (electron cyclotron).
       </div>
+      <div class="callout"><strong>Frontier:</strong> High-field HTS tokamaks (SPARC/ARC, Tokamak Energy) vs stellarators (W7-X optimized neoclassical). Disruption avoidance + tritium breeding remain path-critical.</div>
     </div>
   </div>
 
   <!-- Panel 6 — ICF & NIF Ignition -->
   <div class="panel" role="tabpanel" data-role="panel" id="p6">
     <div class="sidebar" data-role="sidebar">
-      <div class="btn-row">
-        <button class="btn" onclick="icf6Paused=!icf6Paused;this.textContent=icf6Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+      <label>Speed <span class="val-disp" id="speedVal6">1.00</span>×</label>
+      <input type="range" id="speed6" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal6.textContent=(this.value/100).toFixed(2)">
+      <div class="btn-row" style="margin-top:6px">
+        <button class="btn" id="pauseBtn6" onclick="toggleFusionPause('icf6Paused',this,'_draw6')">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(6)">↺ Reset</button>
       </div>
       <div style="margin-top:8px">
@@ -288,6 +321,8 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="callout" style="margin-top:6px">
         Facilities: NIF (1.8 MJ), Omega (30 kJ, Rochester), SG-III (China, 200 kJ), ELI-NP (Europe).
       </div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> Hot-spot ignition needs $\rho R_{\mathrm{hs}}\!\gtrsim\!0.3\,\mathrm{g/cm}^2$ so $\alpha$ range is shorter than hot-spot radius. Burn propagation into cold fuel multiplies yield once $\alpha$-heating runaway starts.</div>
+      <div class="callout"><strong>Frontier:</strong> Hybrid designs, high-density carbon ablators, and improved hohlraum fill-gas for symmetry. Next: multi-MJ yields and path to high-rep IFE.</div>
     </div>
   </div>
 
@@ -304,8 +339,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn active" onclick="p7Mode='turb';setBtn(this)">ITG Turbulence</button>
         <button class="btn" onclick="p7Mode='neo';setBtn(this)">Neoclassical</button>
       </div>
+      <label style="margin-top:6px">Speed <span class="val-disp" id="speedVal7">1.00</span>×</label>
+      <input type="range" id="speed7" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal7.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p7Paused=!p7Paused;this.textContent=p7Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn7" onclick="toggleFusionPause('p7Paused',this,'_draw7')">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(7)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px">
@@ -339,8 +377,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" onclick="p8View='breeding';setBtn(this)">T Breeding</button>
         <button class="btn" onclick="p8View='lcoe';setBtn(this)">LCOE</button>
       </div>
+      <label style="margin-top:6px">Speed <span class="val-disp" id="speedVal8">1.00</span>×</label>
+      <input type="range" id="speed8" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal8.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p8Paused=!p8Paused;this.textContent=p8Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn8" onclick="toggleFusionPause('p8Paused',this,'_draw8')">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(8)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px">
@@ -354,6 +395,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Tritium Breeding</div>
       <div class="eq-block">$$^6\text{Li}+n\to T+^4\text{He}+4.78\,\text{MeV}$$$$^7\text{Li}+n\to T+^4\text{He}+n'-2.47\,\text{MeV}$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> TBR $\gtrsim1.05$ after T½=12.3 yr decay + inventory. Solid breeders (Li₄SiO₄, Li₂TiO₃) vs liquid LiPb; Be/Pb multipliers for $^7$Li channel. First-wall 14 MeV damage ~10–20 dpa/yr in DEMO.</div>
       <div class="eq-title">Fusion Ventures</div>
       <div class="vrow"><span class="vlbl">Commonwealth Fusion</span><span>SPARC/ARC</span></div>
       <div class="vrow"><span class="vlbl">Helion Energy</span><span>FRC, ~2028</span></div>
@@ -367,6 +409,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="callout" style="margin-top:6px">
         <strong>TAE p-¹¹B</strong>: aneutronic — no 14 MeV neutrons, minimal activation. Requires $T\sim300$ keV — far harder than D-T.
       </div>
+      <div class="callout"><strong>Frontier:</strong> From physics Q to plant LCOE — magnets, blankets, remote maintenance, and licensing dominate cost. Module focuses on fusion energy systems, not general stellar evolution.</div>
     </div>
   </div>
   <!-- Panel 9 — Proton-Proton Chain & CNO Cycle -->
@@ -380,9 +423,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Temperature (MK) <span class="val-disp" id="p9TempDisp">15</span></label>
       <input type="range" id="p9TempSl" min="5" max="50" step="1" value="15"
         oninput="p9TempDisp.textContent=this.value;p9Temp=+this.value">
-      <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal9">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal9">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn9" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(9)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">Energy (MeV)</span><span id="p9EnergyDisp">—</span></div>
@@ -409,9 +452,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Beta (%) <span class="val-disp" id="p10BetaDisp">3.0</span></label>
       <input type="range" id="p10BetaSl" min="0.5" max="10" step="0.1" value="3"
         oninput="p10BetaDisp.textContent=(+this.value).toFixed(1);p10Beta=+this.value">
-      <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal10">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal10">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn10" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(10)">Reset</button>
         <button class="btn" id="p10ViewBtn" onclick="p10ToggleView()">Stability</button>
       </div>
@@ -437,9 +480,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Fuel ρR (g/cm²) <span class="val-disp" id="p11RhoRDisp">0.3</span></label>
       <input type="range" id="p11RhoRSl" min="0.05" max="1" step="0.05" value="0.3"
         oninput="p11RhoRDisp.textContent=(+this.value).toFixed(2);p11RhoR=+this.value">
-      <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal11">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal11">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn11" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(11)">Reset</button>
         <button class="btn" id="p11ViewBtn" onclick="p11ToggleView()">Burn</button>
       </div>
@@ -466,9 +509,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Mass number A <span class="val-disp" id="p12ADisp">100</span></label>
       <input type="range" id="p12ASl" min="20" max="250" step="5" value="100"
         oninput="p12ADisp.textContent=this.value;p12A=+this.value">
-      <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal12">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal12">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn12" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(12)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px"><strong>s-process:</strong> Slow neutron capture in AGB stars. <strong>r-process:</strong> Rapid capture in supernovae/neutron star mergers. <strong>p-nuclei:</strong> Proton-rich isotopes via photodisintegration.</div>
@@ -493,9 +536,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Temperature (keV) <span class="val-disp" id="p13TempDisp">20</span></label>
       <input type="range" id="p13TempSl" min="1" max="100" step="1" value="20"
         oninput="p13TempDisp.textContent=this.value;p13Temp=+this.value">
-      <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal13">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal13">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn13" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(13)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">⟨σv⟩ (m³/s)</span><span id="p13SigvDisp">—</span></div>
@@ -520,9 +563,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>TBR target <span class="val-disp" id="p14TbrDisp">1.10</span></label>
       <input type="range" id="p14TbrSl" min="0.8" max="1.5" step="0.05" value="1.1"
         oninput="p14TbrDisp.textContent=(+this.value).toFixed(2);p14Tbr=+this.value">
-      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn14" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(14)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">T inventory (kg/GW)</span><span id="p14InvDisp">—</span></div>
@@ -545,9 +588,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" id="p15SpheBtn" onclick="p15Concept='spheromak';updateP15Btn()">Spheromak</button>
         <button class="btn" id="p15FrcBtn" onclick="p15Concept='FRC';updateP15Btn()">FRC</button>
       </div>
-      <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn15" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(15)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">B (T)</span><span id="p15BDisp">—</span></div>
@@ -571,9 +614,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Muon flux (s⁻¹) <span class="val-disp" id="p16FluxDisp">10¹⁰</span></label>
       <input type="range" id="p16FluxSl" min="1e8" max="1e12" step="1e8" value="1e10"
         oninput="p16FluxDisp.textContent=(+this.value).toExponential(0);p16Flux=+this.value">
-      <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn16" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(16)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">Fusions/μ</span><span id="p16FusionsDisp">—</span></div>
@@ -598,10 +641,21 @@ function _cancelAllAnims(){
   _stops = [];
 }
 
+/** Pause/Play that restarts RAF via stored draw refs (T-driven tabs). */
+function toggleFusionPause(flag, btn, drawKey){
+  window[flag] = !window[flag];
+  btn.textContent = window[flag] ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window[flag]);
+  if(!window[flag] && typeof window[drawKey] === 'function'){
+    requestAnimationFrame(window[drawKey]);
+  }
+}
+
 window.fusionReaction = 'DT';
 window.showRT = false;
 window.imp2Paused = false;
 window.logScale3 = false;
+window.p4Paused = false;
 
 window.p4View = 'barrier';
 window.p4Temp = 20;
@@ -624,7 +678,11 @@ window.p8View = 'plant';
 function switchTab(n){
   _cancelAllAnims();
   currentTab = n;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const on = i===n-1;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
   document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
   setTimeout(()=>{
   if(n===1) _stops.push(initTab1());
@@ -643,6 +701,10 @@ function switchTab(n){
   if(n===14) _stops.push(initTab14());
   if(n===15) _stops.push(initTab15());
   if(n===16) _stops.push(initTab16());
+  for(let k=1;k<=16;k++){
+    const b=document.getElementById('pauseBtn'+k);
+    if(b) b.textContent='⏸ Pause';
+  }
   },10);
 }
 
@@ -686,7 +748,7 @@ function setBtn(btn) {
 // ── Tab 1 — Lawson Criterion ──────────────────────────────────
 function initTab1() {
   const cv = document.getElementById('cv1');
-  let raf1;
+  let raf1, t1=0;
   window.p1Paused = false;
 
   const reactParams = {
@@ -705,6 +767,7 @@ function initTab1() {
   function draw() {
     const {W,H,ctx} = fitCanvas(cv);
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const pulse = 0.55 + 0.45*Math.sin(t1*0.05);
 
     const pad={l:70,r:20,t:30,b:60};
     const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
@@ -746,26 +809,38 @@ function initTab1() {
           else ctx.lineTo(pad.l+px,y);
         }
       }
-      ctx.strokeStyle=key===window.fusionReaction?rp.color:rp.color+'44';
-      ctx.lineWidth=key===window.fusionReaction?2.5:1;
+      const active = key===window.fusionReaction;
+      ctx.strokeStyle=active?rp.color:rp.color+'44';
+      ctx.lineWidth=active?2.5:1;
+      ctx.globalAlpha = active ? (0.75+0.25*pulse) : 0.55;
       ctx.stroke();
+      ctx.globalAlpha = 1;
       ctx.fillStyle=rp.color; ctx.font='12px monospace';
-      if(key===window.fusionReaction) ctx.fillText(rp.label, pad.l+pw*0.5, pad.t+20);
+      if(active) ctx.fillText(rp.label, pad.l+pw*0.5, pad.t+20);
     });
 
-    devices.forEach(d=>{
+    // T-driven highlight scanning devices
+    const hi = Math.floor((t1*0.015) % devices.length);
+    devices.forEach((d,i)=>{
       const x=toX(d.T), y=toY(d.nTauT);
       if(y<pad.t||y>pad.t+ph) return;
-      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2);
-      ctx.fillStyle=d.col; ctx.fill();
+      const r = i===hi ? 7+4*pulse : 7;
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle=d.col; ctx.globalAlpha=i===hi?1:0.75; ctx.fill(); ctx.globalAlpha=1;
+      if(i===hi){
+        ctx.strokeStyle=d.col; ctx.lineWidth=1.5; ctx.globalAlpha=0.4*pulse;
+        ctx.beginPath(); ctx.arc(x,y,r+6,0,Math.PI*2); ctx.stroke(); ctx.globalAlpha=1;
+      }
       ctx.fillStyle=d.col; ctx.font='12px monospace';
       ctx.fillText(d.name, x+9, y+4);
     });
 
     if(!window.p1Paused) {
+      t1 += (window.animSpeed || 1);
       raf1=requestAnimationFrame(draw);
     }
   }
+  window._draw1 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf1);}};
 }
@@ -774,6 +849,7 @@ function initTab1() {
 function initTab2() {
   const cv = document.getElementById('cv2');
   let raf2, t2=0;
+  window.imp2Paused = false;
 
   function draw() {
     const {W,H,ctx} = fitCanvas(cv);
@@ -836,6 +912,7 @@ function initTab2() {
     if(!window.imp2Paused) t2+=(window.animSpeed || 1);
     if(!window.imp2Paused) raf2=requestAnimationFrame(draw);
   }
+  window._draw2 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf2);}};
 }
@@ -843,7 +920,7 @@ function initTab2() {
 // ── Tab 3 — NIF Gain Curve ────────────────────────────────────
 function initTab3() {
   const cv = document.getElementById('cv3');
-  let raf3;
+  let raf3, t3=0;
   window.p3Paused = false;
 
   const shots=[
@@ -858,12 +935,20 @@ function initTab3() {
   function draw() {
     const {W,H,ctx} = fitCanvas(cv);
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
+    const pulse = 0.55 + 0.45*Math.sin(t3*0.06);
 
     const pad={l:70,r:20,t:40,b:60};
     const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
     const Emax=4;
     function toX(E){return pad.l+(E/Emax)*pw;}
-    function toY(E){return pad.t+ph-(Math.min(E,Emax)/Emax)*ph;}
+    function toY(E){
+      if(window.logScale3){
+        const lo=1e-3, hi=4;
+        const v=Math.max(lo, Math.min(hi,E));
+        return pad.t+ph - Math.log10(v/lo)/Math.log10(hi/lo)*ph;
+      }
+      return pad.t+ph-(Math.min(E,Emax)/Emax)*ph;
+    }
 
     ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
@@ -876,13 +961,17 @@ function initTab3() {
     ctx.strokeStyle='rgba(255,215,0,0.4)'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle='#ffd700'; ctx.font='12px monospace'; ctx.fillText('Q=1', toX(3)+5, toY(3)-5);
 
-    shots.forEach(s=>{
+    const progress = Math.min(shots.length, 1 + Math.floor((t3*0.02) % (shots.length+2)));
+    shots.forEach((s,i)=>{
+      if(i>=progress) return;
       const x=toX(s.Ein), y=toY(s.Eout);
       if(y<pad.t||y>pad.t+ph) return;
-      ctx.beginPath(); ctx.arc(x,y,s.label?9:6,0,Math.PI*2);
-      ctx.fillStyle=s.label.includes('ignition')?'#ffd700':'#ff8844';
-      ctx.shadowColor=s.label.includes('ignition')?'#ffd700':'transparent';
-      ctx.shadowBlur=s.label.includes('ignition')?18:0;
+      const isIgn = s.label.includes('ignition');
+      const r = isIgn ? 9+3*pulse : (i===progress-1 ? 7+2*pulse : 6);
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle=isIgn?'#ffd700':'#ff8844';
+      ctx.shadowColor=isIgn?'#ffd700':'transparent';
+      ctx.shadowBlur=isIgn?12+12*pulse:0;
       ctx.fill(); ctx.shadowBlur=0;
       if(s.label){
         ctx.fillStyle='#c0c0ea'; ctx.font='12px monospace';
@@ -891,9 +980,11 @@ function initTab3() {
     });
 
     if(!window.p3Paused) {
+      t3 += (window.animSpeed || 1);
       raf3=requestAnimationFrame(draw);
     }
   }
+  window._draw3 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf3);}};
 }
@@ -901,8 +992,9 @@ function initTab3() {
 // ── Tab 4 — Nuclear Physics of Fusion ────────────────────────
 function initTab4() {
   const cv = document.getElementById('cv4');
-  let raf4;
+  let raf4, t4=0;
   let dirty = true;
+  window.p4Paused = false;
 
   window.p4Redraw = function(){ dirty = true; };
 
@@ -1183,16 +1275,24 @@ function initTab4() {
   }
 
   function draw() {
-    if(!dirty){ raf4=requestAnimationFrame(draw); return; }
-    dirty=false;
     const {W,H,ctx} = fitCanvas(cv);
+    // Always redraw so T-driven marker / fitCanvas resize stay live
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
     const v=window.p4View;
     if(v==='barrier') drawBarrier(ctx,W,H);
     else if(v==='cross') drawCrossSection(ctx,W,H);
     else drawGamow(ctx,W,H);
-    raf4=requestAnimationFrame(draw);
+    // T-driven temperature cursor pulse
+    const pulse = 0.5+0.5*Math.sin(t4*0.07);
+    ctx.fillStyle=`rgba(255,136,68,${0.35+0.4*pulse})`;
+    ctx.font='12px monospace';
+    ctx.fillText(`T = ${window.p4Temp} keV  ·  view: ${v}`, 14, H-12);
+    if(!window.p4Paused){
+      t4 += (window.animSpeed || 1);
+      raf4=requestAnimationFrame(draw);
+    }
   }
+  window._draw4 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf4);}};
 }
@@ -1341,6 +1441,7 @@ function initTab5() {
     if(!window.p5Paused) t5+=(window.animSpeed || 1);
     if(!window.p5Paused) raf5=requestAnimationFrame(draw);
   }
+  window._draw5 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf5);}};
 }
@@ -1540,6 +1641,7 @@ function initTab6() {
 
     if(!window.icf6Paused) raf6=requestAnimationFrame(draw);
   }
+  window._draw6 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf6);}};
 }
@@ -1702,6 +1804,7 @@ function initTab7() {
       raf7=requestAnimationFrame(draw);
     }
   }
+  window._draw7 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf7);}};
 }
@@ -1928,6 +2031,7 @@ function initTab8() {
       raf8=requestAnimationFrame(draw);
     }
   }
+  window._draw8 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf8);}};
 }

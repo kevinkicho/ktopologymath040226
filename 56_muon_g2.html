@@ -26,19 +26,20 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
 .back:hover{color:var(--accent)}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%;flex-wrap:nowrap}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text);background:var(--bg2)}
 .tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
-.content{flex:1;display:flex;overflow:hidden}
-.panel{display:none;flex:1;overflow:hidden}
+.content{flex:1;display:flex;overflow:hidden;min-height:0}
+.panel{display:none;flex:1;overflow:hidden;min-height:0;min-width:0}
 .panel.active{display:flex}
 .sidebar{background:var(--bg2);border-right:1px solid var(--border);
   padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
 .sidebar.right{border-right:none;border-left:1px solid var(--border);width:260px}
-.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
-canvas{display:block;width:100%;height:100%}
+.main-area{flex:1;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative}
+canvas{display:block;width:100%;height:100%;min-height:0}
 .section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
 .eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
 .eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
@@ -93,16 +94,16 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn active" id="smBtn" onclick="showSM=true;this.classList.add('active');document.getElementById('measBtn').classList.remove('active')">SM Pred.</button>
         <button class="btn" id="measBtn" onclick="showSM=false;this.classList.add('active');document.getElementById('smBtn').classList.remove('active')">Measured</button>
       </div>
-      <label style="margin-top:8px">Speed <span class="val-disp" id="ringSpeedDisp">1.0</span>×</label>
-      <input type="range" id="ringSpeedSl" min="0.1" max="1" step="0.05" value="1"
-        oninput="ringSpeedDisp.textContent=(+this.value).toFixed(1);ringSpeed=+this.value">
+      <label style="margin-top:8px">Speed <span class="val-disp" id="ringSpeedDisp">1.00</span>×</label>
+      <input type="range" id="ringSpeedSl" min="1" max="100" step="1" value="100"
+        oninput="ringSpeedDisp.textContent=(this.value/100).toFixed(2);window.animSpeed=this.value/100;ringSpeed=this.value/100">
       <div class="vrow" style="margin-top:4px"><span class="vlbl">Ring radius</span><span>14.185 m</span></div>
       <div class="vrow"><span class="vlbl">B field</span><span>1.45 T</span></div>
       <div class="vrow"><span class="vlbl">γ factor</span><span>29.3</span></div>
       <div class="vrow"><span class="vlbl">τ (lab frame)</span><span>64.4 μs</span></div>
       <div class="callout" style="margin-top:8px">The spin precesses slightly <em>faster</em> than the momentum — $a_\mu$ causes a growing phase gap. <strong>Visual amplified ×10⁷</strong> to make the drift visible.</div>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="toggleAnim1(this)">⏸</button>
+        <button class="btn" id="pauseBtn1" onclick="toggleAnim1(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(1)">Reset</button>
       </div>
     </div>
@@ -111,7 +112,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-title">Anomalous Moment</div>
       <div class="eq-block">$$a_\mu = \frac{g_\mu - 2}{2}$$</div>
       <div class="eq-block">$$a_\mu^{QED(1)} = \frac{\alpha}{2\pi}$$</div>
+      <div class="eq-block" style="font-size:.74rem"><strong style="color:var(--text)">Post-doc:</strong> At magic $\gamma$, electric focusing drops out of $\vec\omega_a = -(e/m)[a_\mu\vec B - (a_\mu-\gamma^{-2})\vec\beta\times\vec E/c]$, leaving $\omega_a = a_\mu eB/m$.</div>
       <div class="callout">Fermilab 2023 combined:<br>$a_\mu = 116\,592\,059(22)\times10^{-11}$<br>SM dispersive:<br>$116\,591\,810(43)\times10^{-11}$<br><strong>5.1σ discrepancy</strong></div>
+      <div class="callout"><strong>Frontier:</strong> Final E989 (goal 0.14 ppm) + J-PARC g-2/EDM (ultra-cold μ, different systematics). Theory: White Paper 2020 vs BMW lattice / CMD-3 — HVP still the pivot. Precision-focused; not a full SM survey (see module 38).</div>
     </div>
   </div>
   <!-- Panel 2 -->
@@ -120,15 +123,20 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="callout">
         <strong>Click a diagram</strong> to highlight it and see its running contribution to $a_\mu$.
       </div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal2">1.00</span>×</label>
+      <input type="range" id="speed2" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal2.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="toggleAnim2(this)">⏸</button>
+        <button class="btn" id="pauseBtn2" onclick="toggleAnim2(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(2)">Reset</button>
       </div>
     </div>
     <div class="main-area"><canvas aria-label="Muon g−2 Anomaly | Road to Reality — panel 2" id="cv2"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Loop Contributions</div>
+      <div class="eq-block" style="font-size:.74rem"><strong style="color:var(--text)">Post-doc:</strong> $a_\mu^{\mathrm{SM}}=a_\mu^{\mathrm{QED}}+a_\mu^{\mathrm{EW}}+a_\mu^{\mathrm{HVP}}+a_\mu^{\mathrm{HLbL}}$. Error budget: HVP $\sim43$, HLbL $\sim18$ (units $10^{-11}$); pure QED is subdominant.</div>
       <div class="callout">The hadronic VP (HVP) dominates the theory uncertainty. The BMW lattice QCD value disagrees with the dispersive e⁺e⁻ data — creating an internal SM tension before even comparing to experiment.</div>
+      <div class="callout"><strong>Frontier:</strong> Theory Initiative White Paper + lattice continuum/finite-volume extrapolations (BMW, Mainz, RBC/UKQCD). MUonE (CERN) aims to measure space-like HVP independently of $e^+e^-$ data.</div>
     </div>
   </div>
   <!-- Panel 3 -->
@@ -142,8 +150,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="callout" style="margin-top:10px">
         <strong>The tension depends on which SM HVP calculation you trust.</strong> Dispersive (data-driven) gives 4.2σ; BMW 2020 lattice gives only 1.5σ. The two SM predictions disagree with each other.
       </div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal3">1.00</span>×</label>
+      <input type="range" id="speed3" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal3.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="toggleAnim3(this)">⏸</button>
+        <button class="btn" id="pauseBtn3" onclick="toggleAnim3(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(3)">Reset</button>
       </div>
     </div>
@@ -151,6 +162,8 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Current Values</div>
       <div class="callout">SM (dispersive): $116\,591\,810(43)$<br>SM (BMW lattice): $116\,591\,900(53)$<br>Fermilab 2023: $116\,592\,059(22)$<br>Units: $\times10^{-11}$</div>
+      <div class="eq-block" style="font-size:.74rem"><strong style="color:var(--text)">Post-doc:</strong> Pull $\sigma=(a_\mu^{\mathrm{exp}}-a_\mu^{\mathrm{SM}})/\sqrt{\delta_{\mathrm{exp}}^2+\delta_{\mathrm{SM}}^2}$. Switching HVP alone moves $\Delta a_\mu$ by $\sim90\times10^{-11}$ — comparable to the full anomaly.</div>
+      <div class="callout"><strong>Frontier:</strong> Resolve BMW vs $e^+e^-$ (window quantities, isospin breaking, radiative corrections). CMD-3 ππ vs BaBar/KLOE remains open; next lattice generation targets &lt;0.5% HVP.</div>
     </div>
   </div>
 
@@ -168,8 +181,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Hadronic VP</span><span style="color:#ffd700">+6845.0</span></div>
       <div class="vrow"><span class="vlbl">Hadronic LbL</span><span style="color:#ff8844">+92.0</span></div>
       <div style="margin-top:6px;font-size:.68rem;color:var(--dim)">Units: ×10⁻¹¹ (relative to tree). Click diagram to animate.</div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal4">1.00</span>×</label>
+      <input type="range" id="speed4" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal4.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="toggleAnim4(this)">⏸</button>
+        <button class="btn" id="pauseBtn4" onclick="toggleAnim4(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(4)">Reset</button>
       </div>
     </div>
@@ -202,8 +218,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn active" id="showOmegaBtn" onclick="showOmegaViz=true;this.classList.add('active');document.getElementById('showRingBtn').classList.remove('active')">Frequencies</button>
         <button class="btn" id="showRingBtn" onclick="showOmegaViz=false;this.classList.add('active');document.getElementById('showOmegaBtn').classList.remove('active')">Ring view</button>
       </div>
+      <label style="margin-top:6px">Speed <span class="val-disp" id="speedVal5">1.00</span>×</label>
+      <input type="range" id="speed5" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal5.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:6px">
-        <button class="btn" onclick="toggleAnim5(this)">⏸</button>
+        <button class="btn" id="pauseBtn5" onclick="toggleAnim5(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(5)">Reset</button>
       </div>
     </div>
@@ -212,10 +231,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-title">Precession Formula</div>
       <div class="eq-block" style="font-size:.75rem">$$\omega_a = \frac{eB}{m_\mu}\,a_\mu$$</div>
       <div class="eq-block" style="font-size:.75rem">$$a_\mu = \frac{\omega_a}{\omega_c}$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc (magic γ):</strong> $\gamma_{\mathrm{magic}}=\sqrt{1+1/a_\mu}\approx29.3$. Then the $\vec E$ term in the BMT equation cancels to $O(a_\mu^2)$ — electric quads focus without spoiling $\omega_a$.</div>
       <div class="callout">The anomalous frequency $\omega_a = \omega_s - \omega_c$ is the measurable beat note between spin and cyclotron precession. Only the <em>anomalous</em> part of the magnetic moment survives.</div>
       <div class="eq-title" style="margin-top:8px">Thomas Precession</div>
       <div class="eq-block" style="font-size:.75rem">$$\omega_s = \frac{eB}{m_\mu}\!\left(a_\mu + \frac{1}{\gamma}\right)$$</div>
       <div class="callout">CBO (coherent betatron oscillation) at ~470 kHz modulates the decay positron count and is the dominant systematic. The electric focusing quadrupoles are shimmed to suppress radial-field imperfections to ppb level.</div>
+      <div class="callout"><strong>Frontier:</strong> E989 absolute $B$ map via trolley NMR to &lt;70 ppb; pitch / E-field / μ loss corrections now sub-100 ppb. J-PARC will use reaccelerated ultra-cold muons — no magic-γ ring, independent method.</div>
     </div>
   </div>
 
@@ -234,8 +255,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" id="babarHVPBtn" onclick="hvpDataset='BaBar';updateHVPBtn()">BaBar</button>
       </div>
       <div class="callout" style="margin-top:8px"><strong>CMD-3 2023</strong> measured $\sigma(\pi^+\pi^-)$ ~2.5% higher than CMD-2 — shifting $a_\mu^{HVP}$ UP by ~9 units, potentially resolving the g-2 tension. But CMD-3 disagrees with BaBar ISR data. The HVP puzzle is unresolved.</div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal6">1.00</span>×</label>
+      <input type="range" id="speed6" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal6.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="toggleAnim6(this)">⏸</button>
+        <button class="btn" id="pauseBtn6" onclick="toggleAnim6(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(6)">Reset</button>
       </div>
     </div>
@@ -243,10 +267,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Dispersion Relation</div>
       <div class="eq-block" style="font-size:.73rem">$$a_\mu^{HVP} = \frac{\alpha^2}{3\pi^2}\!\int_{m_\pi^2}^{\infty}\!\frac{K(s)}{s}\,\hat{\sigma}(s)\,ds$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> Kernel $K(s)\sim m_\mu^2/s$ at low $s$; $\rho(770)\!\to\!\pi\pi$ supplies ~75% of HVP. VP subtraction, FSR, and VP running of $\alpha$ enter at the precision frontier of modern analyses.</div>
       <div class="callout">$K(s)$ is a known QED kernel weighting low-$s$ heavily — the ρ peak is the dominant region. This is why disagreements at the 1% level in $\sigma_{\pi\pi}$ propagate to the g-2 tension.</div>
       <div class="eq-title" style="margin-top:8px">BMW Lattice QCD</div>
       <div class="callout">BMW group (2020, PRL): $a_\mu^{HVP(lat)} = 7075(55)\!\times\!10^{-11}$, about +90 units above dispersive. If correct, the SM prediction rises and tension with experiment drops to ~1.5σ. But BMW disagrees with CMD-2/BaBar window quantities — the "BMW vs data" sub-puzzle.</div>
       <div class="callout" style="margin-top:6px">Crivellin et al. 2020: internal consistency of electroweak precision data would be spoiled if BMW result is used — hinting dispersive may be correct.</div>
+      <div class="callout"><strong>Frontier:</strong> Intermediate window quantities (RBC/UKQCD, Mainz) bridge lattice vs data. τ-decay $V$ spectral functions (after isospin breaking) remain a cross-check. Focus is HVP for $a_\mu$ — not full hadron spectroscopy.</div>
     </div>
   </div>
 
@@ -263,8 +289,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow" style="margin-top:6px"><span class="vlbl">EDM freq</span><span>ω<sub>EDM</sub> = 2d<sub>μ</sub>E/ℏ</span></div>
       <div class="vrow"><span class="vlbl">MDM freq</span><span>ω<sub>a</sub> ~ 229 kHz</span></div>
       <div class="callout" style="margin-top:8px">An EDM causes the spin to tilt vertically out of the ring plane, oscillating at ω<sub>a</sub>. Detected by up-down asymmetry in decay positron counts.</div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal7">1.00</span>×</label>
+      <input type="range" id="speed7" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal7.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="toggleAnim7(this)">⏸</button>
+        <button class="btn" id="pauseBtn7" onclick="toggleAnim7(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(7)">Reset</button>
       </div>
     </div>
@@ -272,11 +301,13 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">NP Sensitivity</div>
       <div class="eq-block" style="font-size:.75rem">$$\Delta a_\mu \sim \frac{m_\mu^2}{\Lambda_{NP}^2}$$</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> Chirally enhanced SUSY: $a_\mu^{\tilde\mu\chi^0}\propto\tan\beta\cdot\mu M_2/m_{\tilde\mu}^2$. Leptoquark $S_1$ or $U_1$ couples $L_2Q_3$ for same-sign $\Delta a_\mu$ and $R_{K^{(*)}}$ patterns — LHC dilepton bounds bite hard.</div>
       <div class="callout">A 4.2σ anomaly of $\Delta a_\mu \approx 2.5\!\times\!10^{-9}$ implies NP at $\Lambda_{NP}\sim\!O(100\text{ GeV}–1\text{ TeV})$ — precisely the LHC scale.</div>
       <div class="eq-title" style="margin-top:8px">SUSY Loop</div>
       <div class="callout">Smuon-neutralino (or sneutrino-chargino) loop contributes:<br>$a_\mu^{SUSY}\!\sim\!\frac{\alpha m_\mu^2\tan\beta}{m_{SUSY}^2}$<br>For $\tan\beta\!\sim\!40$, $m_{SUSY}\!\sim\!400$ GeV gives the right size.</div>
       <div class="callout" style="margin-top:6px">The $(g-2)_\mu$ anomaly and the $(g-2)_e$ anomaly (opposite sign, Cs measurement) together disfavor simple one-loop NP — pointing toward lepton-nonuniversal NP or hadronic effects.</div>
       <div class="callout" style="margin-top:6px">CP violation: an EDM at $10^{-21}$ would require CP phases $\delta_{CP}\!\sim\!10^{-3}$ in SUSY, or $O(1)$ in TeV-scale composite models.</div>
+      <div class="callout"><strong>Frontier:</strong> If final E989 + lattice agree with SM, TeV-scale muon-philic NP is squeezed. If tension holds after HVP resolution, muon colliders / dedicated μEDM rings become decisive.</div>
     </div>
   </div>
 
@@ -295,8 +326,11 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">W mass CDF</span><span style="color:#ffd700">7σ anom</span></div>
       <div class="vrow"><span class="vlbl">μH Lamb</span><span style="color:#ff8844">7σ 2010</span></div>
       <div class="callout" style="margin-top:8px">Dirac 1928 predicted $g=2$ exactly. Kusch &amp; Foley measured $g\neq 2$ in 1947. Schwinger explained the discrepancy with the one-loop QED correction in 1948.</div>
+      <label style="margin-top:8px">Speed <span class="val-disp" id="speedVal8">1.00</span>×</label>
+      <input type="range" id="speed8" min="1" max="100" value="100"
+        oninput="window.animSpeed=this.value/100;speedVal8.textContent=(this.value/100).toFixed(2)">
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="toggleAnim8(this)">⏸</button>
+        <button class="btn" id="pauseBtn8" onclick="toggleAnim8(this)">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(8)">Reset</button>
       </div>
     </div>
@@ -308,6 +342,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-title" style="margin-top:8px">W Boson Mass</div>
       <div class="callout">CDF 2022: $M_W = 80.4335(94)$ GeV — 7σ above SM prediction of 80.357 GeV. ATLAS 2023 and LHCb disagree with CDF. The tension may be experimental, but it dominated precision electroweak discussions.</div>
       <div class="callout" style="margin-top:6px">Dark sector: a dark photon of mass $m_{A'}\!\sim\!10$–$100$ MeV could contribute $\Delta a_\mu\!\sim\!10^{-9}$ — the right size. Current dark photon searches exclude most parameter space, but dark Z and axion-like particles remain viable.</div>
+      <div class="callout"><strong>Frontier:</strong> Precision suite ($a_e$, $a_\mu$, $r_p$, $M_W$) as a network — not a full SM particle table (module 38). Next: E989 final, lattice HVP consensus, and electroweak global fits with new $M_W$ inputs.</div>
     </div>
   </div>
   <!-- Panel 9 — Muon Anomalous Magnetic Moment & g-2 -->
@@ -320,9 +355,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>γ factor <span class="val-disp" id="p9GammaDisp">29.3</span></label>
       <input type="range" id="p9GammaSl" min="10" max="50" step="0.5" value="29.3"
         oninput="p9GammaDisp.textContent=(+this.value).toFixed(1);p9Gamma=+this.value">
-      <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal9">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal9">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn9" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(9)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">ω_a (kHz)</span><span id="p9WaDisp">—</span></div>
@@ -336,6 +371,8 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-block">$$\omega_a = \frac{eB}{m_\mu}a_\mu$$</div>
       <div class="eq-block">$$\omega_s = \frac{eB}{m_\mu}\left(a_\mu + \frac{1}{\gamma}\right)$$</div>
       <div class="callout">Fermilab 2023: $a_\mu = 116\,592\,059(22)\times10^{-11}$ (0.46 ppm). The SM prediction (dispersive) is $116\,591\,810(43)\times10^{-11}$ — a 4.2σ discrepancy.</div>
+      <div class="eq-block" style="font-size:.72rem"><strong style="color:var(--text)">Post-doc:</strong> Measured ratio $\omega_a/\tilde\omega_p'$ plus CODATA $\mu_\mu/\mu_p$ and $g_e$ yields $a_\mu$ without absolute $e/m_\mu$. Magic $\gamma$ cancels leading $E$-field bias.</div>
+      <div class="callout"><strong>Frontier:</strong> E989 final dataset targets 0.14 ppm; independent J-PARC measurement will test whether the anomaly is real or a common systematics story.</div>
     </div>
   </div>
   <!-- Panel 10 — Hadronic Vacuum Polarization & Lattice QCD -->
@@ -349,9 +386,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>ρ peak (MeV) <span class="val-disp" id="p10RhoDisp">775</span></label>
       <input type="range" id="p10RhoSl" min="700" max="850" step="5" value="775"
         oninput="p10RhoDisp.textContent=this.value;p10Rho=+this.value">
-      <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal10">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal10">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn10" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(10)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">a_μ^HVP</span><span id="p10HvpDisp">—</span></div>
@@ -373,9 +410,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" id="p11QuarkBtn" onclick="p11Channel='quark';updateP11Btn()">Quark loop</button>
         <button class="btn" id="p11ScalarBtn" onclick="p11Channel='scalar';updateP11Btn()">Scalar</button>
       </div>
-      <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal11">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal11">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn11" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(11)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">a_μ^HLbL</span><span id="p11HlblDisp">92.0</span></div>
@@ -397,9 +434,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" id="p12TwoBtn" onclick="p12Order=2;updateP12Btn()">2-loop</button>
         <button class="btn" id="p12ThreeBtn" onclick="p12Order=3;updateP12Btn()">3-loop</button>
       </div>
-      <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal12">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal12">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn12" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(12)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">a_μ^EW</span><span id="p12EwDisp">153.6</span></div>
@@ -421,9 +458,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         <button class="btn" id="p13Run2Btn" onclick="p13Run=2;updateP13Btn()">Run-2/3</button>
         <button class="btn" id="p13FinalBtn" onclick="p13Run=3;updateP13Btn()">Final</button>
       </div>
-      <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal13">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal13">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn13" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(13)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">a_μ (×10⁻¹¹)</span><span id="p13AμDisp">—</span></div>
@@ -449,9 +486,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>NP scale Λ (TeV) <span class="val-disp" id="p14LambdaDisp">1.0</span></label>
       <input type="range" id="p14LambdaSl" min="0.1" max="5" step="0.05" value="1"
         oninput="p14LambdaDisp.textContent=(+this.value).toFixed(2);p14Lambda=+this.value">
-      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn14" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(14)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">Δa_μ (×10⁻¹¹)</span><span id="p14DeltaDisp">—</span></div>
@@ -472,9 +509,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>|d_μ| (10⁻¹⁹ e·cm) <span class="val-disp" id="p15EdmDisp">1.0</span></label>
       <input type="range" id="p15EdmSl" min="0" max="5" step="0.1" value="1"
         oninput="p15EdmDisp.textContent=(+this.value).toFixed(1);p15Edm=+this.value">
-      <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn15" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(15)">Reset</button>
         <button class="btn" id="p15ViewBtn" onclick="p15ToggleView()">Constraints</button>
       </div>
@@ -501,9 +538,9 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>DM mass (MeV) <span class="val-disp" id="p16MassDisp">100</span></label>
       <input type="range" id="p16MassSl" min="1" max="1000" step="5" value="100"
         oninput="p16MassDisp.textContent=this.value;p16Mass=+this.value">
-      <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
+      <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" id="pauseBtn16" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(16)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">Δa_μ (×10⁻¹¹)</span><span id="p16DeltaDisp">—</span></div>
@@ -530,7 +567,11 @@ function _cancelAllAnims(){
 function switchTab(n){
   _cancelAllAnims();
   currentTab = n;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const on = i===n-1;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
   document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
   setTimeout(()=>{
   if(n===1) _stops.push(initTab1());
@@ -549,6 +590,11 @@ function switchTab(n){
   if(n===14) _stops.push(initTab14());
   if(n===15) _stops.push(initTab15());
   if(n===16) _stops.push(initTab16());
+  // Sync pause button labels to running state after auto-start
+  for(let k=1;k<=16;k++){
+    const b=document.getElementById('pauseBtn'+k);
+    if(b) b.textContent='⏸ Pause';
+  }
   },10);
 }
 
@@ -661,8 +707,8 @@ function initTab1() {
 }
 window.toggleAnim1 = function(btn) {
   window.paused1 = !window.paused1;
-  btn.textContent = window.paused1 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused1);
+  btn.textContent = window.paused1 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused1);
   if (!window.paused1 && typeof window._draw1 === 'function') {
     window._raf1 = requestAnimationFrame(window._draw1);
   }
@@ -680,7 +726,7 @@ function roundRect(ctx,x,y,w,h,r){
 
 function initTab2() {
   const cv = document.getElementById('cv2');
-  let raf2;
+  let raf2, t2=0;
   window.paused2=false;
   window.highlightedDiagram = -1;
 
@@ -744,10 +790,25 @@ function initTab2() {
       ctx.fillText('×10⁻¹¹', x+6+ctx.measureText(`+${d.value.toFixed(1)}`).width+2, y+ch*0.85);
     });
 
+    // T-driven pulse on active contribution bar
+    const pulse = 0.55 + 0.45*Math.sin(t2*0.06);
+    const total = diagrams.reduce((s,d)=>s+d.value,0);
+    let acc=0;
+    const barY=H-52, barH=10, barX=20, barW=W-40;
+    diagrams.forEach((d,i)=>{
+      const w=barW*(d.value/total);
+      ctx.fillStyle=d.color+(i===Math.floor((t2*0.02)%diagrams.length)?'ff':'88');
+      ctx.globalAlpha = i===Math.floor((t2*0.02)%diagrams.length) ? pulse : 0.7;
+      ctx.fillRect(barX+acc, barY, Math.max(1,w-1), barH);
+      acc+=w;
+    });
+    ctx.globalAlpha=1;
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.strokeRect(barX,barY,barW,barH);
+
     if(window.highlightedDiagram>=0){
       const hi = window.highlightedDiagram;
       const runningTotal=diagrams.slice(0,hi+1).reduce((s,d)=>s+d.value,0);
-      const pct = runningTotal / diagrams.reduce((s,d)=>s+d.value,0) * 100;
+      const pct = runningTotal / total * 100;
       ctx.fillStyle='#ff44aa'; ctx.font='bold 12px monospace';
       ctx.fillText(`Running a_μ: ${runningTotal.toFixed(1)} × 10⁻¹¹ = ${pct.toFixed(1)}% of total`, 20, H-28);
       ctx.fillStyle='#888888'; ctx.font='12px monospace';
@@ -757,8 +818,10 @@ function initTab2() {
       ctx.fillText('Click a diagram to see its contribution to a_μ', 20, H-12);
     }
 
+    if (!window.paused2) t2+=(window.animSpeed || 1);
     if (!window.paused2) raf2=requestAnimationFrame(draw);
   }
+  window._draw2 = draw;
 
   function onClick(e) {
     const {W,H}=fitCanvas(cv);
@@ -771,6 +834,7 @@ function initTab2() {
       const x=20+col*cw+4, y=20+row*ch+4;
       if(mx>x&&mx<x+cw-8&&my>y&&my<y+ch-8) window.highlightedDiagram=(window.highlightedDiagram===i?-1:i);
     });
+    if(window.paused2) draw();
   }
   cv.addEventListener('click',onClick);
   draw();
@@ -778,9 +842,9 @@ function initTab2() {
 }
 window.toggleAnim2 = function(btn) {
   window.paused2 = !window.paused2;
-  btn.textContent = window.paused2 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused2);
-  if (!window.paused2) raf2=requestAnimationFrame(draw);
+  btn.textContent = window.paused2 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused2);
+  if (!window.paused2 && typeof window._draw2 === 'function') requestAnimationFrame(window._draw2);
 };
 
 // ── Tab 3 — Tension Meter ─────────────────────────────────────
@@ -888,14 +952,15 @@ function initTab3() {
     if (!window.paused3) animT = (animT + 0.3*(window.animSpeed || 1)) % (steps[steps.length-1].t + 90);
     if (!window.paused3) raf3=requestAnimationFrame(draw);
   }
+  window._draw3 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf3);}};
 }
 window.toggleAnim3 = function(btn) {
   window.paused3 = !window.paused3;
-  btn.textContent = window.paused3 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused3);
-  if (!window.paused3) raf3=requestAnimationFrame(draw);
+  btn.textContent = window.paused3 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused3);
+  if (!window.paused3 && typeof window._draw3 === 'function') requestAnimationFrame(window._draw3);
 };
 
 // ── Tab 4 — QED Feynman Diagram Expansion ────────────────────
@@ -1095,14 +1160,15 @@ function initTab4() {
     });
   }
   cv.addEventListener('click',onClick4);
+  window._draw4 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf4);cv.removeEventListener('click',onClick4);}};
 }
 window.toggleAnim4 = function(btn) {
   window.paused4 = !window.paused4;
-  btn.textContent = window.paused4 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused4);
-  if (!window.paused4) raf4=requestAnimationFrame(draw);
+  btn.textContent = window.paused4 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused4);
+  if (!window.paused4 && typeof window._draw4 === 'function') requestAnimationFrame(window._draw4);
 };
 
 // ── Tab 5 — Storage Ring & Spin Precession (deep) ────────────
@@ -1243,14 +1309,15 @@ function initTab5() {
     if (!window.paused5) t5+=(window.animSpeed || 1);
     if (!window.paused5) raf5=requestAnimationFrame(draw);
   }
+  window._draw5 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf5);}};
 }
 window.toggleAnim5 = function(btn) {
   window.paused5 = !window.paused5;
-  btn.textContent = window.paused5 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused5);
-  if (!window.paused5) raf5=requestAnimationFrame(draw);
+  btn.textContent = window.paused5 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused5);
+  if (!window.paused5 && typeof window._draw5 === 'function') requestAnimationFrame(window._draw5);
 };
 
 // ── Tab 6 — Hadronic Vacuum Polarization ─────────────────────
@@ -1390,14 +1457,15 @@ function initTab6() {
     if (!window.paused6) t6+=(window.animSpeed || 1);
     if (!window.paused6) raf6=requestAnimationFrame(draw);
   }
+  window._draw6 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf6);}};
 }
 window.toggleAnim6 = function(btn) {
   window.paused6 = !window.paused6;
-  btn.textContent = window.paused6 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused6);
-  if (!window.paused6) raf6=requestAnimationFrame(draw);
+  btn.textContent = window.paused6 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused6);
+  if (!window.paused6 && typeof window._draw6 === 'function') requestAnimationFrame(window._draw6);
 };
 
 // ── Tab 7 — Muon EDM & New Physics ───────────────────────────
@@ -1551,14 +1619,15 @@ function initTab7() {
     if (!window.paused7) t7+=(window.animSpeed || 1);
     if (!window.paused7) raf7=requestAnimationFrame(draw);
   }
+  window._draw7 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf7);}};
 }
 window.toggleAnim7 = function(btn) {
   window.paused7 = !window.paused7;
-  btn.textContent = window.paused7 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused7);
-  if (!window.paused7) raf7=requestAnimationFrame(draw);
+  btn.textContent = window.paused7 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused7);
+  if (!window.paused7 && typeof window._draw7 === 'function') requestAnimationFrame(window._draw7);
 };
 
 // ── Tab 8 — Precision SM Tests ───────────────────────────────
@@ -1674,14 +1743,15 @@ function initTab8() {
     if (!window.paused8) t8+=(window.animSpeed || 1);
     if (!window.paused8) raf8=requestAnimationFrame(draw);
   }
+  window._draw8 = draw;
   draw();
   return { stop(){cancelAnimationFrame(raf8);}};
 }
 window.toggleAnim8 = function(btn) {
   window.paused8 = !window.paused8;
-  btn.textContent = window.paused8 ? '▶' : '⏸';
-  btn.classList.toggle('active', window.paused8);
-  if (!window.paused8) raf8=requestAnimationFrame(draw);
+  btn.textContent = window.paused8 ? '▶ Play' : '⏸ Pause';
+  btn.classList.toggle('active', !window.paused8);
+  if (!window.paused8 && typeof window._draw8 === 'function') requestAnimationFrame(window._draw8);
 };
 
 // ── Tab 9 — Muon Anomalous Magnetic Moment & g-2 ─────────────

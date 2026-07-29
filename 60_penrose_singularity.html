@@ -3,1357 +3,1624 @@
 <head>
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>60 — Penrose Singularity Theorem</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>60 — Penrose Singularity Theorems</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false})"></script>
 <style>
-
+:root{
+  --bg:#05050f; --bg2:#0b0b1e; --bg3:#111128;
+  --border:#1c1c44; --text:#c0c0ea; --dim:#55558a;
+  --accent:#cc88ff; --warn:#ffcc44; --hot:#ff6644; --ok:#44ff88;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a0f;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;padding-bottom:50px}
-header{padding:18px 28px;border-bottom:1px solid #222240}
-header h1{font-size:1.25rem;font-weight:600;color:#cc88ff}
-header p{font-size:.82rem;color:#8888aa;margin-top:3px}
-.tabs{display:flex;gap:0;border-bottom:1px solid #222240;background:#0d0d18}
-.tab-btn{padding:10px 22px;background:none;border:none;color:#8888aa;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;transition:.2s}
-.tab-btn.active{color:#cc88ff;border-bottom-color:#cc88ff}
-.tab-btn:hover:not(.active){color:#bbbbdd}
-.tab-pane{display:none;padding:22px 28px}
-.tab-pane.active{display:flex;flex-direction:column;gap:16px}
-canvas{display:block;border-radius:6px;background:#0d0d1a;border:1px solid #1a1a38}
-.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.82rem;color:#aaaacc}
-.controls label{display:flex;align-items:center;gap:6px}
-.controls input[type=range]{accent-color:#cc88ff;width:110px}
-.readout{font-family:monospace;background:#111128;border:1px solid #1e1e42;border-radius:4px;padding:8px 12px;font-size:.8rem;line-height:1.6;color:#ccccee;white-space:pre}
-.info{font-size:.82rem;color:#9999bb;line-height:1.55;max-width:720px}
-body{padding-bottom:38px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+     height:100vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:38px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 22px;
+       display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+.back{font-size:.85rem;opacity:.75}
+.badge{background:var(--accent);color:#000;font-weight:700;font-size:.78rem;padding:3px 9px;border-radius:20px}
+.title-block h1{font-size:1.2rem;color:var(--accent);letter-spacing:.02em}
+.title-block p{font-size:.76rem;color:var(--dim);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);
+      padding:0 8px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.tabs::-webkit-scrollbar{height:4px}
+.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab-btn{padding:9px 12px;background:none;border:none;color:var(--dim);cursor:pointer;
+         font-size:.78rem;border-bottom:2px solid transparent;transition:.2s;white-space:nowrap;flex-shrink:0}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover:not(.active){color:var(--text)}
+#main{display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0}
+.pane{display:none;flex:1;flex-direction:row;overflow:hidden;min-height:0}
+.pane.active{display:flex}
+.p-main{display:flex;flex-direction:column;flex:1;overflow:hidden;padding:10px;gap:8px;min-width:0;min-height:0}
+.side-panel{width:280px;min-width:200px;background:var(--bg2);border-left:1px solid var(--border);
+            display:flex;flex-direction:column;overflow-y:auto;padding:12px 11px;gap:9px;flex-shrink:0}
+.side-panel h3{font-size:.86rem;color:var(--accent);margin-bottom:2px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.side-panel p,.side-panel li{font-size:.74rem;color:var(--dim);line-height:1.6}
+.side-panel ul{padding-left:16px}
+.side-panel .eq{font-size:.78rem;color:var(--text);background:var(--bg3);border-radius:4px;
+                padding:6px 8px;margin:3px 0;line-height:1.55;font-family:monospace}
+.side-panel .frontier{margin-top:4px;padding-top:6px;border-top:1px solid rgba(255,200,100,.25);
+                      color:#ffcc88;font-size:.73rem;line-height:1.55}
+canvas{background:var(--bg2);border:1px solid var(--border);border-radius:6px;display:block;
+       flex:1;min-height:0;width:100%;height:100%}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:2px 0;flex-shrink:0;font-size:.76rem;color:var(--dim)}
+.controls label{display:flex;align-items:center;gap:5px}
+.controls input[type=range]{width:100px;accent-color:var(--accent)}
+.controls span.val{color:var(--accent);min-width:34px;font-size:.74rem}
+button{background:var(--bg3);border:1px solid var(--border);color:var(--text);
+       padding:4px 11px;border-radius:4px;cursor:pointer;font-size:.76rem;transition:.15s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.active-btn{border-color:var(--accent);color:var(--accent);background:#1a0a28}
+.readout{font-family:monospace;background:var(--bg3);border:1px solid var(--border);border-radius:4px;
+         padding:6px 10px;font-size:.76rem;line-height:1.5;color:#ccccee;flex-shrink:0;white-space:pre-wrap}
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+          padding:7px 11px;font-size:.74rem;color:var(--dim);line-height:1.55;flex-shrink:0}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
-<header style="display:flex;align-items:baseline;gap:18px;flex-wrap:wrap">
-  <a href="index.html" style="font-size:.78rem;color:#8888aa;text-decoration:none;white-space:nowrap" onmouseover="this.style.color='#cc88ff'" onmouseout="this.style.color='#8888aa'">← Dashboard</a>
-  <div>
-    <h1>Module 60 — Penrose Singularity Theorem</h1>
-    <p>2020 Nobel (Roger Penrose) · trapped surfaces · Raychaudhuri equation · causal structure</p>
+<header>
+  <a class="back" href="index.html">← Dashboard</a>
+  <span class="badge">60</span>
+  <div class="title-block">
+    <h1>Penrose Singularity Theorems</h1>
+    <p>2020 Nobel · causal structure · energy conditions · incompleteness · censorship · BKL — post-doc / frontier</p>
   </div>
 </header>
 
 <div class="tabs" role="tablist" data-role="tab-bar">
-  <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab(1)">1 · Penrose Diagram</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(2)">2 · Raychaudhuri Phase</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(3)">3 · Gravitational Collapse</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(4)">4 · Trapped Surfaces</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(5)">5 · Hawking Radiation</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(6)">6 · CCC</button>
+  <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab(0)">Penrose Diagram</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(1)">Energy Conditions</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(2)">Raychaudhuri</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(3)">Focusing Theorem</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(4)">Trapped Surfaces</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(5)">Penrose Incompleteness</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(6)">Gravitational Collapse</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(7)">Hawking Cosmology</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(8)">Cosmic Censorship</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(9)">Cauchy Horizons</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(10)">BKL Mixmaster</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(11)">Hawking Radiation</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(12)">CCC Bridge</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(13)">QG Resolutions</button>
 </div>
 
-<div id="pane1" class="tab-pane active" data-role="panel">
-  <div class="info">A Penrose (conformal) diagram compresses all of spacetime into a finite picture while preserving causal structure. Light rays always travel at 45°. The singularity is the top jagged line — all future-directed null geodesics from inside the horizon terminate there. Mass M scales the Schwarzschild radius r_s = 2GM/c².</div>
-  <div class="controls" data-role="sidebar">
-      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
-      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
-      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+<div id="main">
 
-    <label title="Mass of the black hole in solar masses. Scales r_s = 2GM/c² and the positions of the horizon and trapped surface in the diagram.">Mass M <input type="range" id="massSlider" min="0.2" max="2" step="0.05" value="1"> <span id="massVal">1.00</span> M☉</label>
-    <label><input type="checkbox" id="showGeodesics" checked> Light rays</label>
-    <label><input type="checkbox" id="showTrapped" checked> Trapped surface</label>
-    <label><input type="checkbox" id="showHorizon" checked> Horizon</label>
-    <button id="tourBtn1" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Guided tour</button>
+<!-- 0 Penrose Diagram -->
+<div class="pane active" role="tabpanel" data-role="panel" id="pane0">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Mass M <input type="range" id="m0" min="0.2" max="2" step="0.05" value="1" oninput="v0m.textContent=(+this.value).toFixed(2);draw0()"><span class="val" id="v0m">1.00</span> M☉</label>
+      <label><input type="checkbox" id="c0geo" checked onchange="draw0()"> Light rays</label>
+      <label><input type="checkbox" id="c0trap" checked onchange="draw0()"> Trapped surface</label>
+      <label><input type="checkbox" id="c0hor" checked onchange="draw0()"> Horizon</label>
+      <button id="animBtn0" onclick="toggleAnim(0)">▶ Play</button>
+      <label>Speed <input type="range" id="spd0" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v0s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v0s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Penrose Diagram" id="cv0"></canvas>
+    <div class="readout" id="ro0">r_s: —</div>
   </div>
-  <canvas aria-label="60 — Penrose Singularity Theorem — panel 1" id="cv1" width="820" height="480"></canvas>
-  <div class="readout" id="ro1">r_s: —   Light cone inside: converging</div>
+  <div class="side-panel">
+    <h3>Conformal (Penrose) Diagram</h3>
+    <p>Compresses infinite spacetime into a finite diamond while preserving causal structure: null geodesics remain at 45°.</p>
+    <div class="eq">ds² → Ω² ds² &nbsp; (causal angles fixed)</div>
+    <p><b>Region I</b>: exterior. <b>II</b>: black-hole interior (all future nulls hit r=0). Horizons are the diagonals; singularity is the jagged top edge.</p>
+    <p>Mass M sets r_s = 2GM/c² and scales the visual horizon fraction.</p>
+    <div class="frontier"><b>Frontier:</b> Carter–Penrose diagrams for Kerr, RN, and dynamical Vaidya; conformal compactification of asymptotically AdS (cf. module 62).</div>
+  </div>
 </div>
 
-<div id="pane2" class="tab-pane" data-role="panel">
-  <div class="info">The Raychaudhuri equation governs focusing of null geodesic congruences: dθ/dλ = −θ²/2 − σ_μν σ^μν + ω_μν ω^μν − R_μν k^μ k^ν. Under the Null Energy Condition (R_μν k^μ k^ν ≥ 0) and for irrotational congruences (ω=0), θ must decrease and reach −∞ in finite affine parameter — a caustic/singularity.</div>
-  <div class="controls" data-role="sidebar">
-    <label>Initial θ₀ <input type="range" id="theta0" min="-2" max="2" step="0.05" value="0.5"> <span id="theta0V">0.50</span></label>
-    <label>Shear σ <input type="range" id="shearSl" min="0" max="1" step="0.05" value="0.3"> <span id="shearV">0.30</span></label>
-    <label>Ric (R_μν k²) <input type="range" id="ricciSl" min="0" max="2" step="0.05" value="0.5"> <span id="ricciV">0.50</span></label>
-    <button id="pauseBtn2" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused2=!window.paused2;this.textContent=window.paused2?'▶ Play':'⏸ Pause'">▶ Play</button>
+<!-- 1 Energy Conditions -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane1">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>ρ <input type="range" id="m1rho" min="-1" max="3" step="0.05" value="1" oninput="v1rho.textContent=(+this.value).toFixed(2);draw1()"><span class="val" id="v1rho">1.00</span></label>
+      <label>p_∥ <input type="range" id="m1ppar" min="-2" max="2" step="0.05" value="0.2" oninput="v1pp.textContent=(+this.value).toFixed(2);draw1()"><span class="val" id="v1pp">0.20</span></label>
+      <label>p_⊥ <input type="range" id="m1pperp" min="-2" max="2" step="0.05" value="0.2" oninput="v1pe.textContent=(+this.value).toFixed(2);draw1()"><span class="val" id="v1pe">0.20</span></label>
+      <button id="animBtn1" onclick="toggleAnim(1)">▶ Play</button>
+      <label>Speed <input type="range" id="spd1" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v1s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v1s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Energy Conditions" id="cv1"></canvas>
+    <div class="readout" id="ro1">NEC: —  WEC: —  SEC: —  DEC: —</div>
   </div>
-  <canvas aria-label="60 — Penrose Singularity Theorem — panel 2" id="cv2" width="820" height="440"></canvas>
-  <div class="readout" id="ro2">Focusing: —   Caustic at λ: —</div>
+  <div class="side-panel">
+    <h3>Energy Conditions</h3>
+    <p>Classical singularity theorems assume matter obeys energy inequalities that force geodesic focusing.</p>
+    <div class="eq">NEC: ρ + p_i ≥ 0 &nbsp;∀ i</div>
+    <div class="eq">WEC: ρ ≥ 0 and ρ + p_i ≥ 0</div>
+    <div class="eq">SEC: ρ + Σ p_i ≥ 0 and ρ + p_i ≥ 0</div>
+    <div class="eq">DEC: ρ ≥ |p_i| &nbsp;(dominant)</div>
+    <p>Null energy condition (NEC) is the weakest used by Penrose 1965: R_μν k^μ k^ν ≥ 0 for null k.</p>
+    <div class="frontier"><b>Frontier:</b> Quantum energy inequalities (QEI) replace pointwise NEC; ANEC holds for free QFTs on Minkowski (Faulkner et al.); semiclassical violations near horizons fuel Hawking flux.</div>
+  </div>
 </div>
 
-<div id="pane4" class="tab-pane" data-role="panel">
-  <div class="info"><b>Trapped Surfaces</b> — A closed 2-surface is <em>trapped</em> when <em>both</em> families of null normals (ingoing and outgoing) have negative expansion θ &lt; 0. Outside the horizon, outgoing light expands (θ&gt;0) and ingoing converges (θ&lt;0). Inside, <em>both</em> converge. Drag the surface radially to watch the outgoing normals flip at the horizon. The existence of a trapped surface is the key hypothesis of Penrose's 1965 theorem.</div>
-  <div class="controls" data-role="sidebar">
-    <label>Surface radius <input type="range" id="trappedR" min="20" max="200" step="1" value="120"> <span id="trappedRV">120</span> px</label>
-    <label>Show normals <input type="checkbox" id="showNormals" checked></label>
-    <button id="pauseBtn4" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused4=!window.paused4;this.textContent=window.paused4?'▶ Play':'⏸ Pause'">▶ Play</button>
+<!-- 2 Raychaudhuri -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane2">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>θ₀ <input type="range" id="m2th" min="-2" max="2" step="0.05" value="0.5" oninput="v2th.textContent=(+this.value).toFixed(2);draw2()"><span class="val" id="v2th">0.50</span></label>
+      <label>σ <input type="range" id="m2sg" min="0" max="1" step="0.05" value="0.3" oninput="v2sg.textContent=(+this.value).toFixed(2);draw2()"><span class="val" id="v2sg">0.30</span></label>
+      <label>R_kk <input type="range" id="m2ric" min="0" max="2" step="0.05" value="0.5" oninput="v2ric.textContent=(+this.value).toFixed(2);draw2()"><span class="val" id="v2ric">0.50</span></label>
+      <button id="animBtn2" onclick="toggleAnim(2)">▶ Play</button>
+      <label>Speed <input type="range" id="spd2" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v2s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v2s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Raychaudhuri" id="cv2"></canvas>
+    <div class="readout" id="ro2">Focusing: —  caustic λ: —</div>
   </div>
-  <canvas aria-label="60 — Penrose Singularity Theorem — panel 3" id="cv4" width="820" height="480"></canvas>
-  <div class="readout" id="ro4">Outgoing θ: +  (expanding)   Ingoing θ: −  (converging)   Surface: OUTSIDE horizon</div>
+  <div class="side-panel">
+    <h3>Raychaudhuri Equation</h3>
+    <div class="eq">dθ/dλ = −θ²/2 − σ² + ω² − R_μν k^μ k^ν</div>
+    <p>For irrotational (ω=0) null congruences under NEC (R_kk≥0): θ is driven to −∞ in finite affine parameter — a caustic.</p>
+    <p>Shear σ accelerates focusing; rotation ω can defocus (but ω=0 for hypersurface-orthogonal null generators).</p>
+    <div class="frontier"><b>Frontier:</b> Quantum Raychaudhuri (QRE) with ⟨T_μν⟩; Bohmian / entanglement-entropy corrections (Das et al.); applications to holographic complexity.</div>
+  </div>
 </div>
 
-<div id="pane5" class="tab-pane" data-role="panel">
-  <div class="info"><b>Hawking Radiation</b> — Near the event horizon, quantum field theory in curved spacetime predicts that virtual particle–antiparticle pairs are promoted to real particles. One partner falls inward (negative energy, reducing M) while the other escapes as thermal radiation at the Hawking temperature T_H = ℏc³/(8πGMk_B). For a solar-mass black hole T_H ≈ 60 nK — colder than the CMB. As M decreases, T_H increases: smaller black holes are hotter and evaporate faster.</div>
-  <div class="controls" data-role="sidebar">
-    <label>Mass M <input type="range" id="hwkMass" min="0.1" max="10" step="0.1" value="2"> <span id="hwkMassV">2.0</span> M☉</label>
-    <label>Animation speed <input type="range" id="hwkSpeed" min="0.5" max="3" step="0.1" value="1"> <span id="hwkSpeedV">1.0</span>×</label>
-    <label><input type="checkbox" id="hwkEvaporate"> Show evaporation</label>
-    <button id="pauseBtn5" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused5=!window.paused5;this.textContent=window.paused5?'▶ Play':'⏸ Pause'">▶ Play</button>
+<!-- 3 Focusing Theorem -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane3">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>θ₀ &lt; 0 depth <input type="range" id="m3th" min="0.1" max="2" step="0.05" value="0.8" oninput="v3th.textContent=(+this.value).toFixed(2);draw3()"><span class="val" id="v3th">0.80</span></label>
+      <label>NEC strength <input type="range" id="m3nec" min="0" max="1.5" step="0.05" value="0.6" oninput="v3nec.textContent=(+this.value).toFixed(2);draw3()"><span class="val" id="v3nec">0.60</span></label>
+      <button id="animBtn3" onclick="toggleAnim(3)">▶ Play</button>
+      <label>Speed <input type="range" id="spd3" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v3s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v3s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Focusing Theorem" id="cv3"></canvas>
+    <div class="readout" id="ro3">λ_focus ≤ 2/|θ₀|: —</div>
   </div>
-  <canvas aria-label="60 — Penrose Singularity Theorem — panel 4" id="cv5" width="820" height="480"></canvas>
-  <div class="readout" id="ro5">T_H: —   r_s: —   Luminosity ∝ 1/M²: —</div>
+  <div class="side-panel">
+    <h3>Focusing Theorem</h3>
+    <p>If θ(λ₀)=θ₀&lt;0 and NEC holds with ω=0, then within affine length</p>
+    <div class="eq">λ_f − λ₀ ≤ 2 / |θ₀|</div>
+    <p>the expansion reaches −∞ (unless the geodesic ends earlier). This is the engine behind both Penrose and Hawking singularity theorems.</p>
+    <p>Intuition: negative expansion means cross-section area decreases; gravity can only make it worse under NEC.</p>
+    <div class="frontier"><b>Frontier:</b> Average null energy condition (ANEC) suffices for many focusing results; quantum focusing conjecture (QFC) of Bousso et al. — proven in free QFT on Minkowski, open in curved spacetime.</div>
+  </div>
 </div>
 
-<div id="pane6" class="tab-pane" data-role="panel">
-  <div class="info"><b>Conformal Cyclic Cosmology (CCC)</b> — Roger Penrose proposes that the universe undergoes infinite cycles (aeons). The remote future of each aeon — dominated by massless radiation — is conformally equivalent to the Big Bang of the next. The conformal rescaling Ω maps the future conformal boundary ℐ⁺ of one aeon to the spacelike initial singularity of the next, allowing a smooth crossover. Hawking radiation from supermassive black holes leaves imprints (Penrose's "Hawking points") in the CMB, potentially detectable as anomalous hot spots.</div>
-  <div class="controls" data-role="sidebar">
-    <label>Aeon speed <input type="range" id="cccSpeed" min="0.2" max="2" step="0.1" value="0.8"> <span id="cccSpeedV">0.8</span>×</label>
-    <label>Show Ω mapping <input type="checkbox" id="cccShowOmega" checked></label>
-    <label>Black holes <input type="checkbox" id="cccShowBH" checked></label>
-    <button id="pauseBtn6" style="background:#1a1a38;color:#cc88ff;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused6=!window.paused6;this.textContent=window.paused6?'▶ Play':'⏸ Pause'">▶ Play</button>
+<!-- 4 Trapped Surfaces -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane4">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Surface r <input type="range" id="m4r" min="20" max="200" step="1" value="120" oninput="v4r.textContent=this.value;draw4()"><span class="val" id="v4r">120</span></label>
+      <label><input type="checkbox" id="c4n" checked onchange="draw4()"> Normals</label>
+      <button id="animBtn4" onclick="toggleAnim(4)">▶ Play</button>
+      <label>Speed <input type="range" id="spd4" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v4s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v4s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Trapped Surfaces" id="cv4"></canvas>
+    <div class="readout" id="ro4">θ_out: —  θ_in: —</div>
   </div>
-  <canvas aria-label="60 — Penrose Singularity Theorem — panel 5" id="cv6" width="820" height="500"></canvas>
-  <div class="readout" id="ro6">Aeon: 1   Phase: Expansion   Conformal time: —</div>
+  <div class="side-panel">
+    <h3>Trapped Surfaces</h3>
+    <p>A closed 2-surface is <em>trapped</em> when both outgoing and ingoing null expansions are negative: θ_out &lt; 0 and θ_in &lt; 0.</p>
+    <p>Outside the horizon θ_out &gt; 0 (expanding), θ_in &lt; 0. Inside, both converge — the geometric hallmark that collapse has gone past the point of no return.</p>
+    <p>Existence of a trapped surface is the key hypothesis of Penrose's 1965 theorem (not the event horizon itself, which is teleological).</p>
+    <div class="frontier"><b>Frontier:</b> Marginally outer trapped surfaces (MOTS) and dynamical horizons in numerical GR; apparent horizon finders; quantum trapped surfaces in semiclassical gravity.</div>
+  </div>
 </div>
 
-<div id="pane3" class="tab-pane" data-role="panel">
-  <div class="info">Gravitational collapse of a massive star. As the shell contracts past the Schwarzschild radius r_s = 2GM/c², an event horizon forms. Light emitted from inside can no longer escape — the trapped surface is born. Penrose's theorem then guarantees a singularity at r=0.</div>
-  <div class="controls" data-role="sidebar">
-    <label>Mass M <input type="range" id="massSl3" min="0.5" max="3" step="0.1" value="1.5"> <span id="massV3">1.50</span> M☉</label>
-    <label>Collapse speed <input type="range" id="speedSl" min="0.3" max="1" step="0.05" value="0.6"> <span id="speedV">0.60</span></label>
-    <button id="resetBtn3" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset</button>
-    <button id="pauseBtn3" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused3=!window.paused3;this.textContent=window.paused3?'▶ Play':'⏸ Pause'">▶ Play</button>
+<!-- 5 Penrose Incompleteness -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane5">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Hypothesis strength <input type="range" id="m5h" min="0" max="1" step="0.01" value="1" oninput="v5h.textContent=(+this.value).toFixed(2);draw5()"><span class="val" id="v5h">1.00</span></label>
+      <label><input type="checkbox" id="c5nec" checked onchange="draw5()"> NEC</label>
+      <label><input type="checkbox" id="c5trap" checked onchange="draw5()"> Trapped surface</label>
+      <label><input type="checkbox" id="c5glob" checked onchange="draw5()"> Global hyperbolicity</label>
+      <button id="animBtn5" onclick="toggleAnim(5)">▶ Play</button>
+      <label>Speed <input type="range" id="spd5" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v5s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v5s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Penrose Incompleteness" id="cv5"></canvas>
+    <div class="readout" id="ro5">Theorem status: —</div>
   </div>
-  <canvas aria-label="60 — Penrose Singularity Theorem — panel 6" id="cv3" width="820" height="480"></canvas>
-  <div class="readout" id="ro3">Phase: Collapse   r/r_s: —</div>
+  <div class="side-panel">
+    <h3>Penrose 1965 Incompleteness</h3>
+    <p><b>Theorem (Penrose):</b> If (M,g) is globally hyperbolic, satisfies NEC, and contains a closed trapped surface, then it is future null geodesically incomplete.</p>
+    <div class="eq">trapped + NEC + causality → incompleteness</div>
+    <p>"Singularity" here means geodesic incompleteness — not necessarily curvature blow-up (though that typically follows under extra assumptions).</p>
+    <p>Nobel Prize in Physics 2020 for this insight: collapse to a black hole is generic, not fine-tuned.</p>
+    <div class="frontier"><b>Frontier:</b> Low-regularity singularity theorems (Kunzinger–Steinbauer et al.); trapped surfaces in dynamical spacetimes; incompleteness without global hyperbolicity via trapped surfaces + noncompact Cauchy surfaces.</div>
+  </div>
 </div>
+
+<!-- 6 Gravitational Collapse -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane6">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Mass M <input type="range" id="m6m" min="0.5" max="3" step="0.1" value="1.5" oninput="v6m.textContent=(+this.value).toFixed(2)"><span class="val" id="v6m">1.50</span> M☉</label>
+      <label>Collapse speed <input type="range" id="m6sp" min="0.3" max="1" step="0.05" value="0.6" oninput="v6sp.textContent=(+this.value).toFixed(2)"><span class="val" id="v6sp">0.60</span></label>
+      <button id="animBtn6" onclick="toggleAnim(6)">▶ Play</button>
+      <button onclick="t6=0;draw6()">Reset</button>
+      <label>Speed <input type="range" id="spd6" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v6s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v6s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Gravitational Collapse" id="cv6"></canvas>
+    <div class="readout" id="ro6">Phase: —  r/r_s: —</div>
+  </div>
+  <div class="side-panel">
+    <h3>Gravitational Collapse</h3>
+    <p>As a massive star contracts past r_s = 2GM/c², an event horizon forms and a trapped surface is born. Penrose's theorem then guarantees incompleteness at r=0.</p>
+    <p>Light emitted from inside cannot escape; both families of null normals converge.</p>
+    <div class="frontier"><b>Frontier:</b> Critical collapse (Choptuik scaling); naked singularities in fine-tuned dust (Tolman–Bondi); numerical GR of binary merger ringdown (cf. module 35 for BH exterior physics).</div>
+  </div>
+</div>
+
+<!-- 7 Hawking Cosmology -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane7">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Ω_m <input type="range" id="m7om" min="0.05" max="1" step="0.01" value="0.3" oninput="v7om.textContent=(+this.value).toFixed(2);draw7()"><span class="val" id="v7om">0.30</span></label>
+      <label>SEC strength <input type="range" id="m7sec" min="0" max="1.5" step="0.05" value="0.8" oninput="v7sec.textContent=(+this.value).toFixed(2);draw7()"><span class="val" id="v7sec">0.80</span></label>
+      <button id="animBtn7" onclick="toggleAnim(7)">▶ Play</button>
+      <label>Speed <input type="range" id="spd7" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v7s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v7s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Hawking Cosmology" id="cv7"></canvas>
+    <div class="readout" id="ro7">Past incompleteness: —</div>
+  </div>
+  <div class="side-panel">
+    <h3>Hawking–Penrose Cosmology</h3>
+    <p>Hawking's cosmological singularity theorem: under SEC (or suitable average energy conditions), global hyperbolicity, and a compact Cauchy surface with positive mean expansion (or a closed trapped surface in time-reversed form), spacetime is past incomplete — the Big Bang is not an artifact of FLRW symmetry.</p>
+    <div class="eq">SEC + expansion + causality → past incompleteness</div>
+    <p>Inflation can violate SEC temporarily (p ≈ −ρ), reopening the question of past completeness (Borde–Guth–Vilenkin theorem addresses expanding inflating spacetimes).</p>
+    <div class="frontier"><b>Frontier:</b> BGV theorem (past incompleteness of inflation); quantum cosmology bounce scenarios; Hartle–Hawking no-boundary vs Vilenkin tunneling.</div>
+  </div>
+</div>
+
+<!-- 8 Cosmic Censorship -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane8">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Angular momentum a/M <input type="range" id="m8a" min="0" max="1.2" step="0.02" value="0.7" oninput="v8a.textContent=(+this.value).toFixed(2);draw8()"><span class="val" id="v8a">0.70</span></label>
+      <label>Charge Q/M <input type="range" id="m8q" min="0" max="1.2" step="0.02" value="0" oninput="v8q.textContent=(+this.value).toFixed(2);draw8()"><span class="val" id="v8q">0.00</span></label>
+      <button id="animBtn8" onclick="toggleAnim(8)">▶ Play</button>
+      <label>Speed <input type="range" id="spd8" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v8s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v8s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Cosmic Censorship" id="cv8"></canvas>
+    <div class="readout" id="ro8">WCCC: —  SCCC: —</div>
+  </div>
+  <div class="side-panel">
+    <h3>Cosmic Censorship</h3>
+    <p><b>Weak (WCCC, Penrose):</b> Singularities from generic collapse are hidden behind event horizons — no naked singularities visible from ℐ⁺.</p>
+    <p><b>Strong (SCCC):</b> The maximal Cauchy development of generic initial data is locally inextendible as a C⁰ metric (or suitable class) — observers cannot cross Cauchy horizons into non-unique futures.</p>
+    <div class="eq">extremal: a² + Q² = M² &nbsp; (naked if &gt;)</div>
+    <div class="frontier"><b>Frontier:</b> Christodoulou's proof of WCCC for spherical scalar collapse; Dafermos–Luk on Kerr Cauchy horizon stability (C⁰ extendible, C² unstable); overcharging/overspinning thought experiments with backreaction.</div>
+  </div>
+</div>
+
+<!-- 9 Cauchy Horizons / Mass Inflation -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane9">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Charge Q/M <input type="range" id="m9q" min="0.1" max="0.95" step="0.01" value="0.6" oninput="v9q.textContent=(+this.value).toFixed(2);draw9()"><span class="val" id="v9q">0.60</span></label>
+      <label>Influx ε <input type="range" id="m9e" min="0.01" max="1" step="0.01" value="0.3" oninput="v9e.textContent=(+this.value).toFixed(2);draw9()"><span class="val" id="v9e">0.30</span></label>
+      <button id="animBtn9" onclick="toggleAnim(9)">▶ Play</button>
+      <label>Speed <input type="range" id="spd9" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v9s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v9s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Cauchy Horizons" id="cv9"></canvas>
+    <div class="readout" id="ro9">Mass inflation: —</div>
+  </div>
+  <div class="side-panel">
+    <h3>Cauchy Horizons &amp; Mass Inflation</h3>
+    <p>In RN and Kerr interiors, the inner (Cauchy) horizon is a null surface beyond which predictability fails. Poisson–Israel mass inflation: blue-shifted radiation makes the Misner–Sharp mass diverge as v→∞ along the Cauchy horizon.</p>
+    <div class="eq">m(v) ∼ e^{κ_- v} · (Price tail) → ∞</div>
+    <p>This produces a weak null singularity: curvature blows up but tidal forces may remain integrable (Ori). Supports SCCC in the C² sense while allowing C⁰ extensions in some models.</p>
+    <div class="frontier"><b>Frontier:</b> Nonlinear stability of Kerr Cauchy horizon (Dafermos–Luk); charged Vaidya models; quantum stress-tensor near CH; holographic duals of mass inflation.</div>
+  </div>
+</div>
+
+<!-- 10 BKL Mixmaster -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane10">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Anisotropy β₊ <input type="range" id="m10bp" min="-1" max="1" step="0.02" value="0.3" oninput="v10bp.textContent=(+this.value).toFixed(2);draw10()"><span class="val" id="v10bp">0.30</span></label>
+      <label>Anisotropy β₋ <input type="range" id="m10bm" min="-1" max="1" step="0.02" value="0.15" oninput="v10bm.textContent=(+this.value).toFixed(2);draw10()"><span class="val" id="v10bm">0.15</span></label>
+      <label>Chaos rate <input type="range" id="m10ch" min="0.2" max="2" step="0.05" value="1" oninput="v10ch.textContent=(+this.value).toFixed(2)"><span class="val" id="v10ch">1.00</span></label>
+      <button id="animBtn10" onclick="toggleAnim(10)">▶ Play</button>
+      <label>Speed <input type="range" id="spd10" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v10s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v10s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — BKL Mixmaster" id="cv10"></canvas>
+    <div class="readout" id="ro10">Kasner epochs: —  billiard bounce: —</div>
+  </div>
+  <div class="side-panel">
+    <h3>BKL / Mixmaster Chaos</h3>
+    <p>Belinski–Khalatnikov–Lifshitz: near a spacelike singularity, spatial points decouple and each evolves as a homogeneous Bianchi IX cosmology — the Mixmaster universe.</p>
+    <div class="eq">ds² = −dt² + Σ a_i(t)² (σ^i)²</div>
+    <p>Scale factors undergo infinite Kasner epochs separated by bounces off curvature walls — a chaotic billiard on the hyperbolic plane (Misner, Chitre, Damour–Henneaux).</p>
+    <div class="frontier"><b>Frontier:</b> Cosmological billiards in supergravity / M-theory; U-duality Weyl chambers; numerical GR confirmation of BKL in Gowdy and generic asymmetric collapse.</div>
+  </div>
+</div>
+
+<!-- 11 Hawking Radiation (lite bridge) -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane11">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Mass M <input type="range" id="m11m" min="0.1" max="10" step="0.1" value="2" oninput="v11m.textContent=(+this.value).toFixed(1)"><span class="val" id="v11m">2.0</span> M☉</label>
+      <label><input type="checkbox" id="c11ev"> Evaporation</label>
+      <button id="animBtn11" onclick="toggleAnim(11)">▶ Play</button>
+      <label>Speed <input type="range" id="spd11" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v11s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v11s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — Hawking Radiation" id="cv11"></canvas>
+    <div class="readout" id="ro11">T_H: —  (bridge to module 35)</div>
+  </div>
+  <div class="side-panel">
+    <h3>Hawking Radiation (bridge)</h3>
+    <p>QFT in curved spacetime: near-horizon vacuum modes split into escaping thermal flux and negative-energy partners. T_H = ℏc³/(8πGMk_B).</p>
+    <div class="eq">T_H ≈ 62 nK · (M☉/M)</div>
+    <p>This module only sketches the causal link: evaporation shrinks horizons and challenges classical incompleteness assumptions. Full BH thermodynamics → module 35.</p>
+    <div class="frontier"><b>Frontier:</b> Information paradox / islands; Page curve; soft hair; connection of semiclassical flux to energy-condition violations that may resolve singularities.</div>
+  </div>
+</div>
+
+<!-- 12 CCC Bridge -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane12">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Aeon pace <input type="range" id="m12sp" min="0.2" max="2" step="0.1" value="0.8" oninput="v12sp.textContent=(+this.value).toFixed(1)"><span class="val" id="v12sp">0.8</span></label>
+      <label><input type="checkbox" id="c12om" checked> Ω map</label>
+      <button id="animBtn12" onclick="toggleAnim(12)">▶ Play</button>
+      <label>Speed <input type="range" id="spd12" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v12s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v12s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — CCC Bridge" id="cv12"></canvas>
+    <div class="readout" id="ro12">Aeon: —  (light bridge → module 28)</div>
+  </div>
+  <div class="side-panel">
+    <h3>CCC Light Bridge</h3>
+    <p>Penrose's Conformal Cyclic Cosmology: the remote future of one aeon (radiation-dominated, conformally flat) is identified with the Big Bang of the next via g̃ = Ω² g.</p>
+    <div class="eq">ℐ⁺(aeon N) ≅ BB(aeon N+1)</div>
+    <p>Only the conformal/causal skeleton is shown here. Full CCC, Weyl curvature hypothesis, and observational claims → module 28.</p>
+    <div class="frontier"><b>Frontier:</b> Hawking points in CMB; low-variance circles; tension with standard inflationary power spectrum — contested observational status.</div>
+  </div>
+</div>
+
+<!-- 13 QG Resolutions -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane13">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>Approach
+        <select id="m13mode" onchange="draw13()" style="background:#141428;color:#e8e8f0;border:1px solid #333;border-radius:4px;padding:3px 6px">
+          <option value="lqg">LQG bounce</option>
+          <option value="string">String / fuzzball</option>
+          <option value="asymp">Asymptotic safety</option>
+          <option value="semiclass">Semiclassical regular</option>
+        </select>
+      </label>
+      <label>Planck cutoff <input type="range" id="m13pl" min="0.1" max="1" step="0.05" value="0.4" oninput="v13pl.textContent=(+this.value).toFixed(2);draw13()"><span class="val" id="v13pl">0.40</span></label>
+      <button id="animBtn13" onclick="toggleAnim(13)">▶ Play</button>
+      <label>Speed <input type="range" id="spd13" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;v13s.textContent=(+this.value).toFixed(2)+'x'"><span class="val" id="v13s">1.00x</span></label>
+    </div>
+    <canvas aria-label="60 — Penrose Singularity Theorems — QG Resolutions" id="cv13"></canvas>
+    <div class="readout" id="ro13">Resolution: —</div>
+  </div>
+  <div class="side-panel">
+    <h3>Quantum Gravity Resolutions (lite)</h3>
+    <p>Classical theorems assume continuum Lorentzian geometry + energy conditions. Quantum gravity may evade incompleteness by:</p>
+    <ul>
+      <li><b>LQG / polymer</b>: bounce at ρ∼ρ_Pl; effective NEC violation</li>
+      <li><b>Strings / fuzzballs</b>: horizon-scale microstructure, no interior singularity</li>
+      <li><b>Asymptotic safety</b>: UV fixed point softens curvature</li>
+      <li><b>Regular metrics</b>: Hayward / Bardeen cores with de Sitter interior</li>
+    </ul>
+    <div class="frontier"><b>Frontier:</b> Whether any UV completion preserves a suitable focusing theorem; singularity resolution vs information recovery; links to modules 24 (LQG) and 61 (strings).</div>
+  </div>
+</div>
+
+</div><!-- #main -->
 
 <script>
-let currentTab = 1;
-const tabHandlers = {1:null, 2:null, 3:null, 4:null, 5:null, 6:null};
-let _tabSignal = null;
+window.animSpeed = window.animSpeed || 1;
+const NUM_TABS = 14;
+let activeTab = 0;
+const animId = new Array(NUM_TABS).fill(null);
+const animRunning = new Array(NUM_TABS).fill(false);
+const tAnim = new Array(NUM_TABS).fill(0);
+let t6 = 0, pairs11 = [], evapM11 = null;
 
-function switchTab(n){
-  if (tabHandlers[currentTab]) tabHandlers[currentTab].stop();
-  if (_tabSignal) _tabSignal.abort();
-  _tabSignal = new AbortController();
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-  const pane = document.getElementById('pane'+n);
-  if (pane) pane.classList.add('active');
-  currentTab = n;
-  if (n===1) tabHandlers[1] = initTab1();
-  else if (n===2) tabHandlers[2] = initTab2();
-  else if (n===3) tabHandlers[3] = initTab3();
-  else if (n===4) tabHandlers[4] = initTab4();
-  else if (n===5) tabHandlers[5] = initTab5();
-  else if (n===6) tabHandlers[6] = initTab6();
+// ── Pattern 14/12 layout helpers ──
+function _pLayout(W, H) {
+  const padL = Math.max(44, Math.min(64, W * 0.055));
+  const padR = Math.max(16, Math.min(36, W * 0.03));
+  const padT = Math.max(28, Math.min(44, H * 0.055));
+  const padB = Math.max(28, Math.min(46, H * 0.06));
+  const f1 = Math.max(11, Math.min(13, Math.min(W, H) * 0.018)) | 0;
+  const f2 = Math.max(12, Math.min(16, Math.min(W, H) * 0.022)) | 0;
+  return { padL, padR, padT, padB, x: padL, y: padT, w: Math.max(40, W - padL - padR), h: Math.max(40, H - padT - padB), f1, f2, W, H };
+}
+function _pFit(ctx, text, maxW, font) {
+  ctx.font = font;
+  if (ctx.measureText(text).width <= maxW) return text;
+  let s = text;
+  while (s.length > 3 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+  return s + '…';
+}
+function _pTitle(ctx, L, title) {
+  ctx.fillStyle = 'rgba(204,136,255,0.92)';
+  ctx.font = 'bold ' + L.f2 + 'px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText(_pFit(ctx, title, L.w, ctx.font), L.x, L.y - 8);
+}
+function setupCanvas(cv) {
+  if (!cv) return { ctx: null, W: 0, H: 0 };
+  const dpr = window.devicePixelRatio || 1;
+  const rect = cv.getBoundingClientRect();
+  let cssW = rect.width || cv.clientWidth || 820;
+  let cssH = rect.height || cv.clientHeight || 420;
+  if (cssW < 40) cssW = 820;
+  if (cssH < 40) cssH = 420;
+  const bw = Math.round(cssW * dpr), bh = Math.round(cssH * dpr);
+  if (cv.width !== bw || cv.height !== bh) {
+    cv.width = bw; cv.height = bh;
+  }
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, W: cssW, H: cssH };
 }
 
+function cancelAll() {
+  for (let k = 0; k < NUM_TABS; k++) {
+    if (animId[k]) { cancelAnimationFrame(animId[k]); animId[k] = null; }
+    animRunning[k] = false;
+    const b = document.getElementById('animBtn' + k);
+    if (b) { b.textContent = '▶ Play'; b.classList.remove('active-btn'); }
+  }
+}
 
-// ─── Tab 1: Penrose Diagram ───────────────────────────────────────────────────
-function initTab1() {
-  const cv = document.getElementById('cv1');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
-  cv.style.width = '820px'; cv.style.height = '480px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 480;
-
-  // Guided tour state
-  let tourRunning = false, tourT = 0;
-  const tourSteps = [
-    { dur:100, tip:'The full Penrose diagram of a Schwarzschild black hole. Horizontal = space, vertical = time. Each point is a 2-sphere.', focusEl:null },
-    { dur:100, tip:'SINGULARITY (top jagged line): all future-directed null geodesics must end here. Curvature → ∞. Penrose 1965 theorem proves this is inevitable.', focusEl:'sing' },
-    { dur:100, tip:'EVENT HORIZON (yellow diagonal): once crossed, no signal can escape. This is a global structure — defined by the full causal history of spacetime.', focusEl:'horiz' },
-    { dur:100, tip:'TRAPPED SURFACE (purple circle): both ingoing AND outgoing light rays converge toward r=0. Its existence + NEC → singularity theorem.', focusEl:'trapped' },
-    { dur:100, tip:'Region I = exterior. Region II = black hole interior. Light rays inside are ALL future-directed toward singularity — there is no escape.', focusEl:'regions' },
-  ];
-  let tourIdx = 0, tourStepT = 0, tourTip = '';
-  const tourBtn = document.getElementById('tourBtn1');
-  if (tourBtn) tourBtn.onclick = () => {
-    tourRunning = !tourRunning;
-    tourBtn.textContent = tourRunning ? '⏸ Tour' : '▶ Guided tour';
-    if (tourRunning) { tourIdx = 0; tourStepT = 0; }
+function toggleAnim(k) {
+  if (animRunning[k]) {
+    animRunning[k] = false;
+    if (animId[k]) { cancelAnimationFrame(animId[k]); animId[k] = null; }
+    const b = document.getElementById('animBtn' + k);
+    if (b) { b.textContent = '▶ Play'; b.classList.remove('active-btn'); }
+    return;
+  }
+  animRunning[k] = true;
+  const b = document.getElementById('animBtn' + k);
+  if (b) { b.textContent = '⏸ Pause'; b.classList.add('active-btn'); }
+  const loop = () => {
+    if (!animRunning[k] || activeTab !== k) {
+      animId[k] = null;
+      return;
+    }
+    tAnim[k] += 0.016 * (window.animSpeed || 1);
+    drawFns[k]();
+    animId[k] = requestAnimationFrame(loop);
   };
-
-  function draw() {
-    const M = +document.getElementById('massSlider').value;
-    document.getElementById('massVal').textContent = M.toFixed(2);
-    // r_s scales the horizon position fraction within the diagram (visual only)
-    // M=1 → normal; M>1 → horizon line at larger fraction of diagram; M<1 → smaller
-    const horizFrac = 0.4 + 0.3*(M-1); // fraction of size where horizon sits
-
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
-
-    const cx = W/2, cy = H*0.52;
-    const size = Math.min(W,H)*0.36;
-
-    // Background quadrants
-    ctx.fillStyle='#0f0f22'; // Region I: right exterior
-    ctx.beginPath();
-    ctx.moveTo(cx+size, cy); ctx.lineTo(cx, cy-size); ctx.lineTo(cx, cy+size); ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle='#1a0808'; // Region II: top interior
-    ctx.beginPath();
-    ctx.moveTo(cx-size,cy); ctx.lineTo(cx,cy-size); ctx.lineTo(cx+size,cy); ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle='#0a0f22'; // Region III/IV: left/bottom (Kruskal)
-    ctx.beginPath();
-    ctx.moveTo(cx-size,cy); ctx.lineTo(cx,cy+size); ctx.lineTo(cx+size,cy); ctx.lineTo(cx,cy-size); ctx.closePath();
-    ctx.fill();
-    // re-draw Region I on top
-    ctx.fillStyle='#0f0f22';
-    ctx.beginPath();
-    ctx.moveTo(cx+size, cy); ctx.lineTo(cx, cy-size); ctx.lineTo(cx, cy+size); ctx.closePath();
-    ctx.fill();
-
-    // Diamond outline
-    ctx.strokeStyle='#333355'; ctx.lineWidth=1;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy-size); ctx.lineTo(cx+size,cy); ctx.lineTo(cx,cy+size); ctx.lineTo(cx-size,cy); ctx.closePath();
-    ctx.stroke();
-
-    // Singularity: jagged line at top
-    const jagAmp = 7, jagStep = 12;
-    const topY = cy - size;
-    ctx.strokeStyle='#ff4444'; ctx.lineWidth=2.5;
-    ctx.beginPath();
-    let fst = true;
-    for (let x = cx-size; x <= cx+size; x += jagStep) {
-      const y = topY + (Math.floor((x-cx+size)/jagStep) % 2 === 0 ? jagAmp : 0);
-      fst ? ctx.moveTo(x, y) : ctx.lineTo(x, y); fst = false;
-    }
-    ctx.stroke();
-    ctx.fillStyle='#ff4444'; ctx.font='bold 12px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('Singularity r=0', cx, topY-10);
-
-    // Event horizon (future): two diagonals meeting at top center
-    // Position scales with M: at M=1, horizon is at cx (center vertical line)
-    // As M increases, horizon position in diagram shifts (conceptually)
-    const hxLeft  = cx - size*(1-horizFrac);
-    const hxRight = cx;
-    if (document.getElementById('showHorizon').checked) {
-      ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2; ctx.setLineDash([]);
-      // Future horizon: right diagonal cx,cy → cx,cy-size
-      ctx.beginPath(); ctx.moveTo(hxRight,cy); ctx.lineTo(hxRight,cy-size); ctx.stroke();
-      // Past horizon: left diagonal cx-size,cy → cx,cy-size
-      ctx.beginPath(); ctx.moveTo(hxLeft,cy); ctx.lineTo(hxRight,cy-size); ctx.stroke();
-      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
-      ctx.fillText(`Event horizon (r_s=${(2.95*M).toFixed(2)} km)`, hxRight+4, cy-size*0.55);
-    }
-
-    // Light rays (null geodesics) at 45°
-    if (document.getElementById('showGeodesics').checked) {
-      // Exterior rays
-      ctx.strokeStyle='rgba(200,200,255,0.35)'; ctx.lineWidth=1;
-      [{x:cx+size*0.55,y:cy+size*0.05},{x:cx+size*0.7,y:cy},{x:cx+size*0.55,y:cy-size*0.1}].forEach(o=>{
-        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x-size*0.45, o.y-size*0.45); ctx.stroke();
-        ctx.setLineDash([3,4]); ctx.strokeStyle='rgba(200,200,255,0.18)';
-        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x+size*0.25,o.y-size*0.25); ctx.stroke();
-        ctx.setLineDash([]); ctx.strokeStyle='rgba(200,200,255,0.35)';
-      });
-      // Inside: both rays hit singularity
-      ctx.strokeStyle='rgba(255,120,120,0.6)'; ctx.lineWidth=1.5;
-      [{x:cx-size*0.08,y:cy-size*0.28},{x:cx+size*0.08,y:cy-size*0.25}].forEach(o=>{
-        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x-size*0.15,o.y-size*0.15); ctx.stroke();
-        ctx.setLineDash([2,3]);
-        ctx.beginPath(); ctx.moveTo(o.x,o.y); ctx.lineTo(o.x+size*0.15,o.y-size*0.15); ctx.stroke();
-        ctx.setLineDash([]);
-      });
-    }
-
-    // Trapped surface: position scales with M (relative to diagram)
-    if (document.getElementById('showTrapped').checked) {
-      const tsR = 14 + M*4;
-      const tsX = cx, tsY = cy - size*(0.28 + 0.08*(M-1));
-      ctx.strokeStyle='#cc88ff'; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.arc(tsX, tsY, tsR, 0, 2*Math.PI); ctx.stroke();
-      ctx.fillStyle='#cc88ff'; ctx.font='12px sans-serif'; ctx.textAlign='left';
-      ctx.fillText('Trapped surface', tsX+tsR+4, tsY+4);
-      // Both arrows converge upward
-      ctx.strokeStyle='#cc88ff88'; ctx.lineWidth=1;
-      [-1,1].forEach(dir=>{
-        ctx.beginPath(); ctx.moveTo(tsX+dir*tsR, tsY); ctx.lineTo(tsX+dir*(tsR+12), tsY-16); ctx.stroke();
-      });
-    }
-
-    // Region labels — positioned to avoid overlap
-    ctx.fillStyle='#7777aa'; ctx.font='13px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('I  Exterior', cx+size*0.45, cy+12);
-    ctx.fillText('II  Interior', cx+size*0.1, cy-size*0.5);
-    ctx.fillStyle='#555577'; ctx.font='12px sans-serif';
-    ctx.fillText('III  Past region', cx-size*0.4, cy-8);
-    ctx.fillText('IV  Antipodal', cx-size*0.4, cy+8);
-
-    // Infinity labels — clear corners
-    ctx.fillStyle='#555577'; ctx.font='12px monospace';
-    ctx.fillText('i⁺', cx-8, cy-size-14);
-    ctx.fillText('i⁻', cx-8, cy+size+18);
-    ctx.textAlign='left'; ctx.fillText('i⁰', cx+size+6, cy+4);
-    ctx.textAlign='right'; ctx.fillText('i⁰', cx-size-6, cy+4);
-    ctx.textAlign='left';
-
-    // Tour tip overlay
-    if (tourRunning && tourIdx < tourSteps.length) {
-      const step = tourSteps[tourIdx];
-      tourTip = step.tip;
-      tourStepT++;
-      if (tourStepT >= step.dur) { tourIdx++; tourStepT = 0; }
-      if (tourIdx >= tourSteps.length) { tourRunning=false; if(tourBtn)tourBtn.textContent='▶ Guided tour'; }
-    }
-    if (tourTip) {
-      const tw = Math.min(500, W-60);
-      const tx = (W-tw)/2, ty = H-90;
-      ctx.fillStyle='rgba(8,8,24,0.9)';
-      ctx.beginPath(); if(ctx.roundRect)ctx.roundRect(tx,ty,tw,72,7);else ctx.rect(tx,ty,tw,72);
-      ctx.fill();
-      ctx.strokeStyle='#cc88ff44'; ctx.lineWidth=1; ctx.stroke();
-      ctx.fillStyle='#cc88ff'; ctx.font='12px sans-serif';
-      const wrds=tourTip.split(' '); let ln2='', ly2=ty+18;
-      wrds.forEach(w=>{const tt2=ln2+w+' ';if(ctx.measureText(tt2).width>tw-20&&ln2){ctx.fillText(ln2,tx+10,ly2);ly2+=15;ln2=w+' ';}else ln2=tt2;});
-      if(ln2)ctx.fillText(ln2,tx+10,ly2);
-    }
-
-    document.getElementById('ro1').textContent =
-      `r_Schwarzschild = 2GM/c² = ${(2.95*M).toFixed(2)} km   M = ${M.toFixed(2)} M☉   horizon fraction in diagram: ${(horizFrac*100).toFixed(0)}%`;
-  }
-
-  [document.getElementById('massSlider'),
-   document.getElementById('showGeodesics'),
-   document.getElementById('showTrapped'),
-   document.getElementById('showHorizon')
-  ].forEach(el=>{if(el&&_tabSignal){el.addEventListener('input',draw,{signal:_tabSignal.signal});el.addEventListener('change',draw,{signal:_tabSignal.signal});}});
-  draw();
-  let raf1=null;
-  function animLoop(){ draw(); raf1=requestAnimationFrame(animLoop); }
-  raf1=requestAnimationFrame(animLoop);
-  return { stop() { if(raf1){cancelAnimationFrame(raf1);raf1=null;} } };
+  animId[k] = requestAnimationFrame(loop);
 }
 
-// ─── Tab 2: Raychaudhuri Phase Portrait ──────────────────────────────────────
-window.paused2 = false;
-function initTab2() {
-  const cv = document.getElementById('cv2');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
-  cv.style.width = '820px'; cv.style.height = '440px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 440;
+const drawFns = [];
 
-  function draw() {
-    const theta0 = +document.getElementById('theta0').value;
-    const sigma   = +document.getElementById('shearSl').value;
-    const Ric     = +document.getElementById('ricciSl').value;
-    document.getElementById('theta0V').textContent  = theta0.toFixed(2);
-    document.getElementById('shearV').textContent   = sigma.toFixed(2);
-    document.getElementById('ricciV').textContent   = Ric.toFixed(2);
-
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
-
-    const pad={l:70,r:30,t:30,b:50};
-    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
-    const lambdaMax = 5, thetaMin=-4, thetaMax=3;
-
-    function lToX(l){return pad.l+l/lambdaMax*pW;}
-    function thToY(th){return pad.t+(1-(th-thetaMin)/(thetaMax-thetaMin))*pH;}
-
-    // Grid
-    ctx.strokeStyle='#1a1a38'; ctx.lineWidth=1;
-    [0,1,2,3,4,5].forEach(l=>{
-      const x=lToX(l);
-      ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+pH);ctx.stroke();
-      ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='center';
-      ctx.fillText(l,x,pad.t+pH+16);
-    });
-    [-4,-3,-2,-1,0,1,2,3].forEach(th=>{
-      const y=thToY(th);
-      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+pW,y);ctx.stroke();
-      ctx.fillStyle='#666688';ctx.font='12px monospace';ctx.textAlign='right';
-      ctx.fillText(th,pad.l-8,y+4);
-    });
-    ctx.fillStyle='#9999bb';ctx.font='13px sans-serif';ctx.textAlign='center';
-    ctx.fillText('Affine parameter λ',pad.l+pW/2,H-6);
-    ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);
-    ctx.fillText('Expansion θ',0,0);ctx.restore();
-
-    // θ=0 line
-    ctx.strokeStyle='#333355';ctx.lineWidth=1;ctx.setLineDash([2,4]);
-    ctx.beginPath();ctx.moveTo(pad.l,thToY(0));ctx.lineTo(pad.l+pW,thToY(0));ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Integrate Raychaudhuri: dθ/dλ = −θ²/2 − σ² − Ric
-    // (ignoring rotation ω=0)
-    function integrate(th0, color, label) {
-      const steps = 2000, dl = lambdaMax / steps;
-      let th = th0;
-      let caustic_l = null;
-      const pts = [];
-      for (let i = 0; i <= steps; i++) {
-        const l = i * dl;
-        pts.push({l, th});
-        if (th < thetaMin - 0.5) { caustic_l = l; break; }
-        const dth = -(th**2)/2 - sigma**2 - Ric;
-        th += dth * dl;
-      }
-
-      ctx.strokeStyle = color; ctx.lineWidth = 2;
-      ctx.beginPath(); let first=true;
-      pts.forEach(({l,th})=>{
-        const x=lToX(l), y=thToY(th);
-        if (y < pad.t - 5 || y > pad.t+pH+5) {first=true;return;}
-        first?ctx.moveTo(x,y):ctx.lineTo(x,y); first=false;
-      });
-      ctx.stroke();
-
-      if (caustic_l !== null) {
-        const xC = lToX(caustic_l);
-        ctx.strokeStyle=color; ctx.lineWidth=1; ctx.setLineDash([2,3]);
-        ctx.beginPath(); ctx.moveTo(xC,pad.t); ctx.lineTo(xC,pad.t+pH); ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle=color; ctx.font='12px sans-serif'; ctx.textAlign='left';
-        ctx.fillText(`${label} caustic λ≈${caustic_l.toFixed(2)}`, xC+3, pad.t+16);
-      }
-      return caustic_l;
-    }
-
-    const cl = integrate(theta0, '#cc88ff', 'θ₀');
-    // Phase portrait: vector field
-    ctx.strokeStyle='rgba(150,100,200,0.2)'; ctx.lineWidth=0.8;
-    for (let l=0; l<lambdaMax; l+=0.4) for (let th=thetaMin+0.5; th<thetaMax; th+=0.5) {
-      const dth = -(th**2)/2 - sigma**2 - Ric;
-      const x=lToX(l), y=thToY(th);
-      const scale=0.08;
-      const ex=lToX(l+scale*lambdaMax/5)-x, ey=thToY(th+dth*scale)-y;
-      const len=Math.sqrt(ex**2+ey**2);
-      if (len>0.5) {
-        ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+ex,y+ey); ctx.stroke();
-      }
-    }
-
-    // Separator: θ = −√(2*(σ²+Ric)) is fixed point
-    const thEq = -Math.sqrt(2*(sigma**2+Ric));
-    const yEq = thToY(thEq);
-    if (yEq > pad.t && yEq < pad.t+pH) {
-      ctx.strokeStyle='#ffcc4466'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-      ctx.beginPath(); ctx.moveTo(pad.l,yEq); ctx.lineTo(pad.l+pW,yEq); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='left';
-      ctx.fillText(`θ_eq ≈ ${thEq.toFixed(2)} (unstable fixed pt)`, pad.l+5, yEq-4);
-    }
-
-    const focusing = theta0 < 0 || (sigma > 0) || (Ric > 0) ? 'YES' : 'Marginally';
-    document.getElementById('ro2').textContent =
-      `Focusing guaranteed: ${focusing}   Caustic (θ→−∞) at λ ≈ ${cl ? cl.toFixed(3) : 'none in range'}   θ_eq = ${thEq.toFixed(3)}`;
-  }
-
-  let raf2t = null, animDot = 0;
-  function loop2() {
-    animDot = (animDot + 0.004) % 5; // dot sliding along θ₀ trajectory
-    draw();
-    raf2t = requestAnimationFrame(loop2);
-  }
-
-  // Animated indicator dot on the theta curve + tooltip
-  const origDraw = draw;
-  function drawWithDot() {
-    origDraw();
-    // Add an animated dot sliding along the trajectory
-    const theta0 = +document.getElementById('theta0').value;
-    const sigma   = +document.getElementById('shearSl').value;
-    const Ric     = +document.getElementById('ricciSl').value;
-    const pad={l:70,r:30,t:30,b:50};
-    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
-    const lambdaMax=5, thetaMin=-4, thetaMax=3;
-    function lToX(l){return pad.l+l/lambdaMax*pW;}
-    function thToY(th){return pad.t+(1-(th-thetaMin)/(thetaMax-thetaMin))*pH;}
-
-    // Trace to animDot position
-    const steps=2000, dl=lambdaMax/steps;
-    let th=theta0;
-    const targetL = animDot;
-    let dotX=lToX(0), dotY=thToY(theta0);
-    for(let i=0;i<=steps;i++){
-      const l=i*dl;
-      if(l>=targetL){dotX=lToX(l);dotY=thToY(th);break;}
-      if(th<thetaMin-0.5)break;
-      const dth=-(th**2)/2-sigma**2-Ric;
-      th+=dth*dl;
-    }
-    ctx.beginPath(); ctx.arc(dotX, Math.max(pad.t,Math.min(pad.t+pH,dotY)), 5, 0, 2*Math.PI);
-    ctx.fillStyle='#ffcc44'; ctx.shadowColor='#ffcc44'; ctx.shadowBlur=8; ctx.fill(); ctx.shadowBlur=0;
-
-    // Tooltip
-    const ttips = [
-      {lRange:[0,1],   col:'#88ff88', text:'θ > 0: rays diverging (expanding congruence). NEC says dθ/dλ < 0 always.'},
-      {lRange:[1,3],   col:'#ffcc44', text:'θ decreasing: gravity focuses rays. Shear (σ) and Ricci (R_μνkk) add extra focusing.'},
-      {lRange:[3,5],   col:'#ff4444', text:'θ → −∞: caustic! Geodesics converge to a point — the singularity is inevitable (Penrose theorem).'},
-    ];
-    const tip2 = ttips.find(t=>animDot>=t.lRange[0]&&animDot<t.lRange[1]);
-    if(tip2){
-      ctx.fillStyle='rgba(8,8,20,0.88)';
-      const bx=pad.l, bW=W-pad.l-pad.r;
-      ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,H-65,bW,52,6);else ctx.rect(bx,H-65,bW,52);
-      ctx.fill();
-      ctx.strokeStyle=tip2.col+'55';ctx.lineWidth=1;ctx.stroke();
-      ctx.fillStyle=tip2.col;ctx.font='12px sans-serif';
-      const ws=tip2.text.split(' ');let ln='',ly2=H-50;
-      ws.forEach(w=>{const tt=ln+w+' ';if(ctx.measureText(tt).width>bW-16&&ln){ctx.fillText(ln,bx+8,ly2);ly2+=14;ln=w+' ';}else ln=tt;});
-      if(ln)ctx.fillText(ln,bx+8,ly2);
-    }
-  }
-
-  // Override draw ref
-  const _draw = draw;
-  function draw2() { _draw(); }
-
-  [document.getElementById('theta0'),
-   document.getElementById('shearSl'),
-   document.getElementById('ricciSl')
-  ].forEach(el=>el.addEventListener('input',draw,{signal:_tabSignal.signal}));
-
-  // Use loop version with animated dot
-  function loop2b() {
-    if (!window.paused2) {
-      animDot = (animDot + 0.006) % 5;
-    }
-    draw();
-    // Re-draw animated dot on top
-    const theta0 = +document.getElementById('theta0').value;
-    const sigma   = +document.getElementById('shearSl').value;
-    const Ric     = +document.getElementById('ricciSl').value;
-    const pad={l:70,r:30,t:30,b:50};
-    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
-    const lambdaMax2=5, thetaMin=-4, thetaMax=3;
-    function lToX(l){return pad.l+l/lambdaMax2*pW;}
-    function thToY(th){return pad.t+(1-(th-thetaMin)/(thetaMax-thetaMin))*pH;}
-    const steps=1000, dl2=lambdaMax2/steps;
-    let th=theta0;
-    let dotX=lToX(0), dotY=thToY(theta0), found=false;
-    for(let i=0;i<=steps;i++){
-      const l=i*dl2;
-      if(!found && l>=animDot){dotX=lToX(l);dotY=thToY(th);found=true;}
-      if(th<thetaMin-0.5)break;
-      const dth=-(th**2)/2-sigma**2-Ric;
-      th+=dth*dl2;
-    }
-    ctx.beginPath(); ctx.arc(dotX, Math.max(pad.t,Math.min(pad.t+pH,dotY)), 6, 0, 2*Math.PI);
-    ctx.fillStyle='#ffcc44'; ctx.shadowColor='#ffcc44'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
-    raf2t = requestAnimationFrame(loop2b);
-  }
-
-  if(raf2t) cancelAnimationFrame(raf2t);
-  window.paused2 = false;
-  document.getElementById('pauseBtn2').textContent = '⏸ Pause';
-  loop2b();
-  return { stop() { cancelAnimationFrame(raf2t); raf2t=null; } };
-}
-
-// ─── Tab 3: Gravitational Collapse Animation ──────────────────────────────────
-let raf3 = null;
-window.paused3 = false;
-
-function initTab3() {
-  const cv = document.getElementById('cv3');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
-  cv.style.width = '820px'; cv.style.height = '480px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 480;
-
-  // Looping: each cycle = 10s = ~600 frames at 60fps
-  const CYCLE_FRAMES = 600;
-  let t = 0;
-  let lightRays = [];
-  let lastM = 1.5, lastSpeed = 0.6; // track last param values for restart
-
-  function reset() {
-    t = 0; lightRays = [];
-    window.paused3 = false;
-    document.getElementById('pauseBtn3').textContent = 'Pause';
-  }
-  document.getElementById('resetBtn3').onclick = reset;
-  document.getElementById('pauseBtn3').onclick = () => {
-    window.paused3 = !window.paused3;
-    document.getElementById('pauseBtn3').textContent = window.paused3 ? 'Resume' : 'Pause';
-  };
-  // Restart animation when slider changes
-  ['massSl3','speedSl'].forEach(id => {
-    document.getElementById(id).addEventListener('input', reset, {signal:_tabSignal.signal});
+function switchTab(n) {
+  cancelAll();
+  activeTab = n;
+  document.querySelectorAll('.pane').forEach((p, i) => p.classList.toggle('active', i === n));
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === n);
+    b.setAttribute('aria-selected', i === n ? 'true' : 'false');
   });
-  window.paused3 = false;
-
-  function frame() {
-    const M = +document.getElementById('massSl3').value;
-    const baseSpeed = +document.getElementById('speedSl').value;
-    const speed = baseSpeed;
-    document.getElementById('massV3').textContent = M.toFixed(2);
-    document.getElementById('speedV').textContent  = speed.toFixed(2);
-
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
-
-    const cx = W/2, cy = H*0.55;
-    // r_s in pixels: proportional to M (M=1.5 → 60px baseline)
-    const rs_px = Math.round(40 * M);
-    // Looping cycle: use modular t so animation loops every CYCLE_FRAMES frames
-    const tCycle = t % CYCLE_FRAMES;
-    // totalTime scales with speed: fast speed = shorter collapse (fewer frames)
-    const totalTime = Math.round(CYCLE_FRAMES * 0.65 / speed);
-    const collapseFrac = Math.min(tCycle / totalTime, 1);
-    const starR = rs_px * (1 + 3 * (1 - collapseFrac));
-    // After collapse, star is at rs_px
-    const currentR = Math.max(rs_px * 0.2, starR);
-    const horizonFormed = currentR <= rs_px;
-
-    // Draw gravitational grid lines (curved spacetime)
-    ctx.strokeStyle='#1a1a3a'; ctx.lineWidth=1;
-    const gridN = 14;
-    for (let i = 0; i < gridN; i++) {
-      const r = (i+1) * W / gridN;
-      ctx.beginPath();
-      // Warp lines around center
-      for (let angle = 0; angle < 2*Math.PI; angle += 0.1) {
-        const dist = r;
-        const warp = horizonFormed ? rs_px * rs_px / (dist+1) : 0;
-        const px = cx + (dist - warp) * Math.cos(angle);
-        const py = cy + (dist - warp) * Math.sin(angle);
-        angle < 0.15 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
-      }
-      ctx.stroke();
-    }
-
-    // Event horizon
-    if (currentR <= rs_px * 1.5) {
-      ctx.strokeStyle = '#ffcc44';
-      ctx.lineWidth = 2;
-      ctx.setLineDash(horizonFormed ? [] : [4,4]);
-      ctx.beginPath(); ctx.arc(cx, cy, rs_px, 0, 2*Math.PI); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif'; ctx.textAlign='center';
-      ctx.fillText(`r_s = ${(2.95*M).toFixed(2)} km`, cx, cy - rs_px - 8);
-    }
-
-    // Star
-    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, currentR);
-    if (horizonFormed) {
-      gradient.addColorStop(0, '#330000');
-      gradient.addColorStop(0.6, '#220011');
-      gradient.addColorStop(1, '#110005');
-    } else {
-      const f = 1 - collapseFrac;
-      gradient.addColorStop(0, `rgba(255,${Math.round(200*f)},${Math.round(100*f)},1)`);
-      gradient.addColorStop(0.5, `rgba(220,${Math.round(100*f)},0,0.9)`);
-      gradient.addColorStop(1, `rgba(180,60,0,0.5)`);
-    }
-    ctx.beginPath(); ctx.arc(cx, cy, currentR, 0, 2*Math.PI);
-    ctx.fillStyle = gradient; ctx.fill();
-
-    // Light rays: emit every 15 frames (use tCycle for consistent timing)
-    if (tCycle % 15 === 0 && !horizonFormed) {
-      for (let angle = 0; angle < 2*Math.PI; angle += Math.PI/4) {
-        lightRays.push({
-          x: cx + currentR * Math.cos(angle),
-          y: cy + currentR * Math.sin(angle),
-          vx: Math.cos(angle),
-          vy: Math.sin(angle),
-          born: t,
-          inside: currentR < rs_px
-        });
-      }
-    }
-    if (tCycle % 15 === 0 && horizonFormed) {
-      lightRays.push({
-        x: cx + (rs_px*0.7) * Math.cos(tCycle/10),
-        y: cy + (rs_px*0.7) * Math.sin(tCycle/10),
-        vx: Math.cos(tCycle/10), vy: Math.sin(tCycle/10),
-        born: t, inside: true
-      });
-    }
-
-    // Update and draw light rays
-    lightRays = lightRays.filter(ray => {
-      const age = t - ray.born;
-      const dist = Math.sqrt((ray.x + ray.vx*age - cx)**2 + (ray.y + ray.vy*age - cy)**2);
-      // Inside horizon: rays curve back
-      const rx = ray.x + ray.vx * age - cx;
-      const ry = ray.y + ray.vy * age - cy;
-      const r = Math.sqrt(rx**2+ry**2);
-      const insideNow = r < rs_px;
-      // Draw trail
-      ctx.strokeStyle = insideNow ? 'rgba(255,80,80,0.5)' : 'rgba(255,255,180,0.5)';
-      ctx.lineWidth = 1;
-      const pts = 20;
-      ctx.beginPath();
-      for (let s = 0; s < pts; s++) {
-        const frac = s / pts;
-        let px = ray.x + ray.vx * age * frac - cx;
-        let py = ray.y + ray.vy * age * frac - cy;
-        const pr = Math.sqrt(px**2+py**2);
-        // Bend toward center if inside (trapped surface effect)
-        if (pr < rs_px) {
-          const inward = rs_px / (pr+1);
-          px -= px/pr * inward * frac * 0.05;
-          py -= py/pr * inward * frac * 0.05;
-        }
-        const sx = cx+px, sy = cy+py;
-        s===0?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);
-      }
-      ctx.stroke();
-      return age < 60 && dist < W;
+  // sync speed from tab's slider if present
+  const spd = document.getElementById('spd' + n);
+  if (spd) window.animSpeed = +spd.value;
+  // first paint then auto-start
+  requestAnimationFrame(() => {
+    if (activeTab !== n) return;
+    if (drawFns[n]) drawFns[n]();
+    requestAnimationFrame(() => {
+      if (activeTab !== n) return;
+      toggleAnim(n);
     });
-
-    // Trapped surface indicator
-    if (horizonFormed) {
-      ctx.strokeStyle='#cc88ff'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
-      ctx.beginPath(); ctx.arc(cx, cy, currentR*1.15, 0, 2*Math.PI); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle='#cc88ff'; ctx.font='12px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('TRAPPED SURFACE — Singularity inevitable (Penrose 1965)', cx, cy + rs_px + 30);
-    }
-
-    // Phase label
-    const phase = collapseFrac < 0.3 ? 'Pre-collapse' :
-                  collapseFrac < 0.7 ? 'Horizon forming' :
-                  horizonFormed ? 'Black hole (Penrose 1965 ✓)' : 'Near-critical';
-    ctx.fillStyle='#cc88ff'; ctx.font='13px sans-serif'; ctx.textAlign='left';
-    ctx.fillText(`Phase: ${phase}`, 20, 24);
-    ctx.fillStyle='#aaaacc';
-    ctx.fillText(`r/r_s = ${(currentR/rs_px).toFixed(2)}`, 20, 42);
-    // Loop counter
-    const loopNum = Math.floor(t / CYCLE_FRAMES) + 1;
-    const cycleT_s = (tCycle / 60).toFixed(1);
-    ctx.fillStyle='#555577'; ctx.font='12px monospace';
-    ctx.fillText(`Loop ${loopNum}  t = ${cycleT_s}s / 10s`, 20, 58);
-
-    document.getElementById('ro3').textContent =
-      `Phase: ${phase}   r/r_s = ${(currentR/rs_px).toFixed(2)}   Horizon: ${horizonFormed?'YES':'no'}   Loop: ${loopNum}`;
-
-    if (!window.paused3) t++;
-    raf3 = requestAnimationFrame(frame);
-  }
-
-  if (raf3) cancelAnimationFrame(raf3);
-  frame();
-  return { stop() { cancelAnimationFrame(raf3); raf3 = null; } };
+  });
 }
 
-// ─── Tab 4: Trapped Surfaces ──────────────────────────────────────────────────
-function initTab4() {
-  const cv = document.getElementById('cv4');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
-  cv.style.width = '820px'; cv.style.height = '480px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 480;
+// ═══════════════════ TAB 0: Penrose Diagram ═══════════════════
+function draw0() {
+  const cv = document.getElementById('cv0');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const M = +document.getElementById('m0').value;
+  const t = tAnim[0];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Schwarzschild Penrose diagram');
 
-  let raf4 = null;
-  let animT4 = 0;
-  let dragActive = false;
-  let userR = null; // null = use slider
+  const cx = L.x + L.w / 2, cy = L.y + L.h * 0.52;
+  const size = Math.min(L.w, L.h) * 0.38;
+  const horizFrac = 0.4 + 0.3 * (M - 1);
 
-  // Dragging
-  cv.addEventListener('mousedown', e => {
-    dragActive = true;
-    const rect = cv.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / (rect.width / W);
-    const cx = W / 2;
-    userR = Math.max(20, Math.min(200, Math.abs(mx - cx)));
-    document.getElementById('trappedR').value = Math.round(userR);
-    document.getElementById('trappedRV').textContent = Math.round(userR);
-  }, {signal:_tabSignal.signal});
-  cv.addEventListener('mousemove', e => {
-    if (!dragActive) return;
-    const rect = cv.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / (rect.width / W);
-    const cx = W / 2;
-    userR = Math.max(20, Math.min(200, Math.abs(mx - cx)));
-    document.getElementById('trappedR').value = Math.round(userR);
-    document.getElementById('trappedRV').textContent = Math.round(userR);
-  }, {signal:_tabSignal.signal});
-  cv.addEventListener('mouseup', () => { dragActive = false; }, {signal:_tabSignal.signal});
-  cv.addEventListener('mouseleave', () => { dragActive = false; }, {signal:_tabSignal.signal});
+  // regions
+  ctx.fillStyle = '#0f0f22';
+  ctx.beginPath(); ctx.moveTo(cx + size, cy); ctx.lineTo(cx, cy - size); ctx.lineTo(cx, cy + size); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#1a0808';
+  ctx.beginPath(); ctx.moveTo(cx - size, cy); ctx.lineTo(cx, cy - size); ctx.lineTo(cx + size, cy); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0a0f22';
+  ctx.beginPath(); ctx.moveTo(cx - size, cy); ctx.lineTo(cx, cy + size); ctx.lineTo(cx + size, cy); ctx.lineTo(cx, cy - size); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0f0f22';
+  ctx.beginPath(); ctx.moveTo(cx + size, cy); ctx.lineTo(cx, cy - size); ctx.lineTo(cx, cy + size); ctx.closePath(); ctx.fill();
 
-  document.getElementById('trappedR').addEventListener('input', function() {
-    userR = +this.value;
-    document.getElementById('trappedRV').textContent = Math.round(userR);
-  }, {signal:_tabSignal.signal});
+  ctx.strokeStyle = '#333355'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(cx, cy - size); ctx.lineTo(cx + size, cy); ctx.lineTo(cx, cy + size); ctx.lineTo(cx - size, cy); ctx.closePath(); ctx.stroke();
 
-  window.paused4 = false;
-  function drawFrame() {
-    const surfR = userR !== null ? userR : +document.getElementById('trappedR').value;
-    const showNormals = document.getElementById('showNormals').checked;
-    if (!window.paused4) animT4 += 0.018*(window.animSpeed || 1);
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
-
-    const cx = W / 2, cy = H / 2 + 20;
-    // Horizon radius fixed at 100px visual
-    const horizR = 100;
-
-    // Draw embedding diagram: curved grid representing Flamm's paraboloid
-    // Simplified: concentric rings with vertical displacement to suggest funnel
-    for (let r = 20; r <= 320; r += 22) {
-      const depth = horizR * 1.2 / (r + horizR * 0.5); // funnel depth factor
-      const yOff = depth * 18;
-      ctx.strokeStyle = r < horizR ? 'rgba(255,80,80,0.12)' : 'rgba(100,100,180,0.18)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.ellipse(cx, cy + yOff, r, r * 0.28 + yOff * 0.4, 0, 0, 2 * Math.PI);
-      ctx.stroke();
-    }
-    // Radial grid lines
-    for (let a = 0; a < 2 * Math.PI; a += Math.PI / 6) {
-      ctx.strokeStyle = 'rgba(80,80,130,0.2)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + 300 * Math.cos(a), cy + 300 * Math.sin(a) * 0.28);
-      ctx.stroke();
-    }
-
-    // Black hole: filled dark circle with glow
-    const bhGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, horizR);
-    bhGrad.addColorStop(0, '#000000');
-    bhGrad.addColorStop(0.7, '#0a0005');
-    bhGrad.addColorStop(1, '#200010');
-    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI);
-    ctx.fillStyle = bhGrad; ctx.fill();
-
-    // Event horizon ring
-    ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI); ctx.stroke();
-    ctx.fillStyle = '#ffcc44'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('Event Horizon  r = r_s', cx, cy - horizR - 10);
-
-    // Trapped surface (user-controlled circle)
-    const trapped = surfR < horizR;
-    ctx.strokeStyle = trapped ? '#cc88ff' : '#88aaff';
-    ctx.lineWidth = 2.5;
-    ctx.setLineDash(trapped ? [] : [5, 4]);
-    ctx.beginPath(); ctx.arc(cx, cy, surfR, 0, 2 * Math.PI); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = trapped ? '#cc88ff' : '#88aaff';
-    ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText(trapped ? 'TRAPPED SURFACE (θ_out<0, θ_in<0)' : 'Normal surface (θ_out>0, θ_in<0)',
-      cx, cy + surfR + 18);
-
-    // Null normals: outgoing and ingoing arrows
-    if (showNormals) {
-      const nAngles = 8;
-      for (let i = 0; i < nAngles; i++) {
-        const angle = (i / nAngles) * 2 * Math.PI + animT4 * 0.3;
-        const px = cx + surfR * Math.cos(angle);
-        const py = cy + surfR * Math.sin(angle);
-
-        // Outgoing null normal
-        const outLen = trapped ? -20 : 24; // negative = converging
-        const oAnim = trapped
-          ? 14 + 8 * Math.sin(animT4 * 2 + i)  // converging pulse
-          : 18 + 6 * Math.sin(animT4 * 1.5 + i); // expanding pulse
-        const outX = px + (trapped ? -1 : 1) * oAnim * Math.cos(angle);
-        const outY = py + (trapped ? -1 : 1) * oAnim * Math.sin(angle);
-        ctx.strokeStyle = trapped ? '#ff6644' : '#44ff88';
-        ctx.lineWidth = 1.8;
-        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(outX, outY); ctx.stroke();
-        // arrowhead
-        const hdx = outX - px, hdy = outY - py;
-        const hlen = Math.sqrt(hdx * hdx + hdy * hdy) || 1;
-        const ax = outX - (hdx / hlen) * 7, ay = outY - (hdy / hlen) * 7;
-        ctx.beginPath();
-        ctx.moveTo(outX, outY);
-        ctx.lineTo(ax + (hdy / hlen) * 4, ay - (hdx / hlen) * 4);
-        ctx.lineTo(ax - (hdy / hlen) * 4, ay + (hdx / hlen) * 4);
-        ctx.fillStyle = trapped ? '#ff6644' : '#44ff88'; ctx.fill();
-
-        // Ingoing null normal — always converging
-        const inAnim = 16 + 5 * Math.sin(animT4 * 2.2 + i + 1);
-        const inX = px - inAnim * Math.cos(angle);
-        const inY = py - inAnim * Math.sin(angle);
-        ctx.strokeStyle = '#ff8888';
-        ctx.lineWidth = 1.8;
-        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(inX, inY); ctx.stroke();
-        const hdxi = inX - px, hdyi = inY - py;
-        const hleni = Math.sqrt(hdxi * hdxi + hdyi * hdyi) || 1;
-        const axi = inX - (hdxi / hleni) * 7, ayi = inY - (hdyi / hleni) * 7;
-        ctx.beginPath();
-        ctx.moveTo(inX, inY);
-        ctx.lineTo(axi + (hdyi / hleni) * 4, ayi - (hdxi / hleni) * 4);
-        ctx.lineTo(axi - (hdyi / hleni) * 4, ayi + (hdxi / hleni) * 4);
-        ctx.fillStyle = '#ff8888'; ctx.fill();
-      }
-    }
-
-    // Legend
-    const legX = 18, legY = 20;
-    ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
-    ctx.fillStyle = '#44ff88'; ctx.fillText('→ Outgoing null normal (θ_out)', legX, legY);
-    ctx.fillStyle = '#ff8888'; ctx.fillText('← Ingoing null normal (θ_in)', legX, legY + 18);
-    ctx.fillStyle = '#cc88ff'; ctx.fillText('── Trapped surface (drag or use slider)', legX, legY + 36);
-    ctx.fillStyle = '#ffcc44'; ctx.fillText('── Event horizon', legX, legY + 54);
-
-    // Readout
-    const thetaOut = trapped ? '< 0 (converging!)' : '> 0 (expanding)';
-    const thetaIn  = '< 0 (converging)';
-    const status   = trapped ? 'INSIDE HORIZON — TRAPPED' : 'OUTSIDE HORIZON — normal';
-    document.getElementById('ro4').textContent =
-      `Outgoing θ: ${thetaOut}   Ingoing θ: ${thetaIn}   Surface r=${Math.round(surfR)}px, r_s=${horizR}px   ${status}`;
-
-    raf4 = requestAnimationFrame(drawFrame);
+  // singularity
+  const topY = cy - size, jagAmp = 6, jagStep = 11;
+  ctx.strokeStyle = '#ff4444'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let x = cx - size, i = 0; x <= cx + size; x += jagStep, i++) {
+    const y = topY + (i % 2 === 0 ? jagAmp : 0);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
   }
+  ctx.stroke();
+  ctx.fillStyle = '#ff4444'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('Singularity r=0', cx, topY - 8);
 
-  if (raf4) cancelAnimationFrame(raf4);
-  window.paused4 = false;
-  drawFrame();
-  return {
-    stop() { cancelAnimationFrame(raf4); raf4 = null; window.paused4 = false; }
-  };
-}
-
-// ─── Tab 5: Hawking Radiation ─────────────────────────────────────────────────
-let raf5 = null;
-window.paused5 = false;
-function initTab5() {
-  const cv = document.getElementById('cv5');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(480 * dpr);
-  cv.style.width = '820px'; cv.style.height = '480px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 480;
-
-  let animT5 = 0;
-  let pairs = [];
-  let evapM = null; // current mass for evaporation mode
-
-  // T_H = hbar c^3 / (8 pi G M k_B)
-  // In SI: T_H [K] = 6.169e-8 / M[solar masses]
-  function hawkingTemp(Msol) { return 6.169e-8 / Msol; }
-  function rs_km(Msol) { return 2.95 * Msol; }
-
-  function addPair(M) {
-    const horizR = 90 + M * 10;
-    const cx = W * 0.38, cy = H / 2;
-    const angle = Math.random() * 2 * Math.PI;
-    const pr = horizR + (Math.random() - 0.5) * 14;
-    pairs.push({
-      x: cx + pr * Math.cos(angle),
-      y: cy + pr * Math.sin(angle),
-      angle: angle,
-      born: animT5,
-      cx, cy, horizR, M
-    });
-  }
-
-  function drawFrame() {
-    const Mbase = +document.getElementById('hwkMass').value;
-    const baseSpd = +document.getElementById('hwkSpeed').value;
-    const spd = baseSpd;
-    const doEvap = document.getElementById('hwkEvaporate').checked;
-    document.getElementById('hwkMassV').textContent = Mbase.toFixed(1);
-    document.getElementById('hwkSpeedV').textContent = spd.toFixed(1);
-
-    if (!window.paused5) animT5 += 0.016 * spd;
-
-    // Evaporation mode: mass slowly decreases
-    if (doEvap) {
-      if (evapM === null) evapM = Mbase;
-      evapM = Math.max(0.1, evapM - 0.0002 * spd * (1 / (evapM * evapM)));
-      if (evapM < 0.12) evapM = Mbase; // reset
-    } else {
-      evapM = null;
-    }
-    const M = evapM !== null ? evapM : Mbase;
-    const T_H = hawkingTemp(M);
-    const horizR = Math.min(160, 60 + M * 18);
-    const cx = W * 0.38, cy = H / 2;
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
-
-    // Background: faint curved space grid
-    ctx.strokeStyle = 'rgba(30,30,80,0.4)'; ctx.lineWidth = 1;
-    for (let r = 30; r < 350; r += 28) {
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke();
-    }
-
-    // Black hole body
-    const bhGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, horizR);
-    bhGrad.addColorStop(0, '#000');
-    bhGrad.addColorStop(0.75, '#080010');
-    bhGrad.addColorStop(1, '#1a0025');
-    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI);
-    ctx.fillStyle = bhGrad; ctx.fill();
-
-    // Hawking glow
-    const glowR = horizR * 1.35;
-    const gGrad = ctx.createRadialGradient(cx, cy, horizR * 0.9, cx, cy, glowR);
-    const glowIntensity = Math.min(1, 0.15 / M);
-    gGrad.addColorStop(0, `rgba(255,180,60,${glowIntensity.toFixed(3)})`);
-    gGrad.addColorStop(1, 'rgba(255,100,20,0)');
-    ctx.beginPath(); ctx.arc(cx, cy, glowR, 0, 2 * Math.PI);
-    ctx.fillStyle = gGrad; ctx.fill();
-
-    // Event horizon ring
+  if (document.getElementById('c0hor').checked) {
     ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, 2 * Math.PI); ctx.stroke();
-    ctx.fillStyle = '#ffcc44'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText(`r_s = ${rs_km(M).toFixed(2)} km`, cx, cy - horizR - 8);
-
-    // Add pairs periodically
-    if (Math.floor(animT5 * 30) % Math.max(1, Math.round(8 / spd)) === 0) {
-      for (let k = 0; k < 2; k++) addPair(M);
-    }
-
-    // Draw and update pairs
-    pairs = pairs.filter(p => {
-      const age = animT5 - p.born;
-      if (age > 3.5) return false;
-      const frac = age / 3.5;
-
-      // Particle that escapes (outgoing)
-      const escDist = p.horizR + age * 55;
-      const ex = p.cx + escDist * Math.cos(p.angle);
-      const ey = p.cy + escDist * Math.sin(p.angle);
-      // Particle that falls in (ingoing, curves toward center)
-      const fallDist = Math.max(0, p.horizR - age * 45);
-      const fx = p.cx + fallDist * Math.cos(p.angle + Math.PI);
-      const fy = p.cy + fallDist * Math.sin(p.angle + Math.PI);
-
-      const alpha = Math.max(0, 1 - frac * 1.2);
-
-      // Escaping particle
-      ctx.beginPath(); ctx.arc(ex, ey, 4, 0, 2 * Math.PI);
-      ctx.fillStyle = `rgba(255,200,80,${alpha})`; ctx.fill();
-      ctx.strokeStyle = `rgba(255,220,100,${alpha * 0.5})`;
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(ex, ey); ctx.stroke();
-
-      // Infalling particle
-      if (fallDist > 4) {
-        ctx.beginPath(); ctx.arc(fx, fy, 4, 0, 2 * Math.PI);
-        ctx.fillStyle = `rgba(255,80,80,${alpha})`; ctx.fill();
-        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(fx, fy);
-        ctx.strokeStyle = `rgba(255,80,80,${alpha * 0.4})`; ctx.stroke();
-      }
-
-      // Origin dot (virtual pair creation point)
-      ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 2 * Math.PI);
-      ctx.fillStyle = `rgba(200,180,255,${alpha * 0.7})`; ctx.fill();
-
-      return true;
-    });
-
-    // Right panel: thermal spectrum
-    const spX = W * 0.62, spY = 50, spW = W * 0.36, spH = H - 100;
-    ctx.strokeStyle = '#2a2a50'; ctx.lineWidth = 1;
-    ctx.strokeRect(spX, spY, spW, spH);
-    ctx.fillStyle = '#0f0f22'; ctx.fillRect(spX, spY, spW, spH);
-
-    ctx.fillStyle = '#9999bb'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('Planck Thermal Spectrum', spX + spW / 2, spY + 18);
-    ctx.fillStyle = '#666688'; ctx.font = '12px monospace';
-    ctx.fillText(`T_H = ${(T_H * 1e9).toFixed(2)} nK`, spX + spW / 2, spY + 34);
-
-    // Planck spectrum: B(ν) ∝ ν³ / (exp(hν/kT)−1)
-    // We plot in normalised units, ν from 0 to ~6 kT/h
-    const specPad = { l: 38, r: 10, t: 50, b: 36 };
-    const specW = spW - specPad.l - specPad.r;
-    const specH_px = spH - specPad.t - specPad.b;
-    let maxB = 0;
-    const Npts = 200;
-    const specPts = [];
-    for (let i = 1; i <= Npts; i++) {
-      const x_nu = i / Npts * 6; // normalised freq x = hν/kT
-      const B = x_nu * x_nu * x_nu / (Math.exp(x_nu) - 1 + 1e-10);
-      specPts.push(B);
-      if (B > maxB) maxB = B;
-    }
-    // Colour mapped by temperature (hotter = bluer)
-    const hue = Math.max(0, 240 - M * 18); // high M (cold) = red, low M (hot) = blue
-    ctx.strokeStyle = `hsl(${hue},80%,65%)`; ctx.lineWidth = 2;
-    ctx.beginPath();
-    specPts.forEach((B, i) => {
-      const sx = spX + specPad.l + (i / Npts) * specW;
-      const sy = spY + specPad.t + specH_px - (B / maxB) * specH_px;
-      i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
-    });
-    ctx.stroke();
-
-    // Fill under curve
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(spX + specPad.l, spY + specPad.t + specH_px);
-    specPts.forEach((B, i) => {
-      const sx = spX + specPad.l + (i / Npts) * specW;
-      const sy = spY + specPad.t + specH_px - (B / maxB) * specH_px;
-      ctx.lineTo(sx, sy);
-    });
-    ctx.lineTo(spX + specPad.l + specW, spY + specPad.t + specH_px);
-    ctx.closePath();
-    ctx.fillStyle = `hsla(${hue},70%,50%,0.15)`; ctx.fill();
-    ctx.restore();
-
-    // Axes labels
-    ctx.fillStyle = '#666688'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
-    ctx.fillText('ν / (kT/h)', spX + specPad.l + specW / 2, spY + specPad.t + specH_px + 24);
-    ctx.save(); ctx.translate(spX + specPad.l - 24, spY + specPad.t + specH_px / 2);
-    ctx.rotate(-Math.PI / 2); ctx.fillText('B(ν)', 0, 0); ctx.restore();
-
-    // Evaporation bar
-    if (doEvap && evapM !== null) {
-      const frac = (evapM - 0.1) / (Mbase - 0.1 + 0.001);
-      const barX = spX + specPad.l, barY = spY + spH - 20, barW = specW;
-      ctx.fillStyle = '#1a1a38'; ctx.fillRect(barX, barY, barW, 10);
-      ctx.fillStyle = `hsl(${hue},70%,55%)`; ctx.fillRect(barX, barY, barW * frac, 10);
-      ctx.fillStyle = '#8888aa'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText(`M remaining: ${evapM.toFixed(2)} M☉`, barX, barY - 3);
-    }
-
-    // Labels on main diagram
-    ctx.fillStyle = '#ffaa44'; ctx.font = '12px sans-serif'; ctx.textAlign = 'left';
-    ctx.fillText('Hawking particle (escapes)', cx + horizR + 14, cy - 30);
-    ctx.fillStyle = '#ff6666';
-    ctx.fillText('Infalling partner (reduces M)', cx - horizR - 120, cy + 50);
-    ctx.fillStyle = '#aaaacc';
-    ctx.fillText('Virtual pair creation near horizon', cx + 10, cy + horizR + 30);
-
-    // Formula
-    ctx.fillStyle = '#cc88ff'; ctx.font = 'italic 12px serif'; ctx.textAlign = 'center';
-    ctx.fillText('T_H = ℏc³ / (8πGMk_B)', cx, H - 24);
-    ctx.fillStyle = '#8888aa'; ctx.font = '12px sans-serif';
-    ctx.fillText(`= ${(T_H * 1e9).toFixed(3)} nanokelvin  (M = ${M.toFixed(2)} M☉)`, cx, H - 10);
-
-    document.getElementById('ro5').textContent =
-      `T_H = ${(T_H * 1e9).toFixed(4)} nK   r_s = ${rs_km(M).toFixed(3)} km   Luminosity ∝ 1/M² = ${(1 / (M * M)).toFixed(4)} (norm.)   Active pairs: ${pairs.length}`;
-
-    raf5 = requestAnimationFrame(drawFrame);
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - size); ctx.stroke();
+    const hxLeft = cx - size * (1 - Math.max(0.2, Math.min(0.9, horizFrac)));
+    ctx.beginPath(); ctx.moveTo(hxLeft, cy); ctx.lineTo(cx, cy - size); ctx.stroke();
+    ctx.fillStyle = '#ffcc44'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('Event horizon', cx + 4, cy - size * 0.5);
   }
 
-  ['hwkMass', 'hwkSpeed'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => { evapM = null; }, {signal:_tabSignal.signal});
-  });
-  document.getElementById('hwkEvaporate').addEventListener('change', () => { evapM = null; }, {signal:_tabSignal.signal});
+  if (document.getElementById('c0geo').checked) {
+    const pulse = 0.3 + 0.15 * Math.sin(t * 2);
+    ctx.strokeStyle = `rgba(200,200,255,${0.25 + pulse})`; ctx.lineWidth = 1;
+    [{ x: cx + size * 0.55, y: cy }, { x: cx + size * 0.7, y: cy + size * 0.05 }].forEach(o => {
+      ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(o.x - size * 0.4, o.y - size * 0.4); ctx.stroke();
+    });
+    ctx.strokeStyle = `rgba(255,120,120,${0.45 + pulse})`;
+    [{ x: cx - size * 0.05, y: cy - size * 0.25 }, { x: cx + size * 0.08, y: cy - size * 0.22 }].forEach(o => {
+      ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(o.x - size * 0.12, o.y - size * 0.12); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(o.x + size * 0.1, o.y - size * 0.1); ctx.stroke();
+    });
+  }
 
-  if (raf5) cancelAnimationFrame(raf5);
-  window.paused5 = false;
-  drawFrame();
-  return { stop() { cancelAnimationFrame(raf5); raf5 = null; window.paused5 = false; } };
+  if (document.getElementById('c0trap').checked) {
+    const tsR = 12 + M * 4;
+    const tsY = cy - size * (0.28 + 0.05 * Math.sin(t));
+    ctx.strokeStyle = '#cc88ff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, tsY, tsR, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#cc88ff'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('Trapped surface', cx + tsR + 4, tsY + 4);
+  }
+
+  ctx.fillStyle = '#7777aa'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('I Exterior', cx + size * 0.42, cy + 10);
+  ctx.fillText('II Interior', cx + size * 0.08, cy - size * 0.48);
+  ctx.fillStyle = '#555577';
+  ctx.fillText('i⁺', cx - 6, cy - size - 12);
+  ctx.fillText('i⁻', cx - 6, cy + size + 14);
+  ctx.textAlign = 'left'; ctx.fillText('i⁰', cx + size + 4, cy + 4);
+
+  document.getElementById('ro0').textContent =
+    `r_s = ${(2.95 * M).toFixed(2)} km   M = ${M.toFixed(2)} M☉   conformal compactification preserves 45° nulls`;
 }
+drawFns[0] = draw0;
 
-// ─── Tab 6: Conformal Cyclic Cosmology ───────────────────────────────────────
-let raf6 = null;
-window.paused6 = false;
-function initTab6() {
-  const cv = document.getElementById('cv6');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(500 * dpr);
-  cv.style.width = '820px'; cv.style.height = '500px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 500;
+// ═══════════════════ TAB 1: Energy Conditions ═══════════════════
+function draw1() {
+  const cv = document.getElementById('cv1');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const rho = +document.getElementById('m1rho').value;
+  const ppar = +document.getElementById('m1ppar').value;
+  const pperp = +document.getElementById('m1pperp').value;
+  const t = tAnim[1];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Energy conditions in the (ρ, p) plane');
 
-  let animT6 = 0;
-  let bhList = [];
+  const nec = (rho + ppar >= -1e-9) && (rho + pperp >= -1e-9);
+  const wec = nec && rho >= -1e-9;
+  const sec = nec && (rho + ppar + 2 * pperp >= -1e-9);
+  const dec = (rho >= Math.abs(ppar) - 1e-9) && (rho >= Math.abs(pperp) - 1e-9);
 
-  // Generate random black holes per aeon
-  function genBHs() {
-    bhList = [];
-    for (let i = 0; i < 6; i++) {
-      bhList.push({
-        x: 0.1 + Math.random() * 0.8,
-        y: 0.3 + Math.random() * 0.35,
-        r: 6 + Math.random() * 10,
-        evapT: 0.4 + Math.random() * 0.4
-      });
-    }
+  // axes
+  const ax = L.x + 50, ay = L.y + 20, aw = L.w - 70, ah = L.h - 50;
+  const xOf = p => ax + aw * (p + 2) / 4;
+  const yOf = r => ay + ah * (1 - (r + 1) / 4);
+
+  ctx.strokeStyle = '#2a2a55'; ctx.lineWidth = 1;
+  ctx.strokeRect(ax, ay, aw, ah);
+  // ρ=0, p=0
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(xOf(0), ay); ctx.lineTo(xOf(0), ay + ah); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ax, yOf(0)); ctx.lineTo(ax + aw, yOf(0)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // NEC region shade: ρ+p ≥ 0 for p = ppar (schematic half-plane)
+  ctx.fillStyle = 'rgba(68,255,136,0.06)';
+  ctx.beginPath();
+  ctx.moveTo(xOf(-2), yOf(2)); ctx.lineTo(xOf(2), yOf(-2)); ctx.lineTo(xOf(2), yOf(3)); ctx.lineTo(xOf(-2), yOf(3));
+  ctx.closePath(); ctx.fill();
+
+  // point
+  const px = xOf(ppar), py = yOf(rho);
+  const pulse = 4 + 2 * Math.sin(t * 3);
+  ctx.beginPath(); ctx.arc(px, py, pulse, 0, Math.PI * 2);
+  ctx.fillStyle = nec ? '#44ff88' : '#ff6644'; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+
+  // also show p_perp as diamond
+  const px2 = xOf(pperp);
+  ctx.beginPath();
+  ctx.moveTo(px2, py - 6); ctx.lineTo(px2 + 6, py); ctx.lineTo(px2, py + 6); ctx.lineTo(px2 - 6, py);
+  ctx.closePath();
+  ctx.strokeStyle = '#88aaff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  ctx.fillStyle = '#9999bb'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('p', ax + aw / 2, ay + ah + 16);
+  ctx.save(); ctx.translate(ax - 28, ay + ah / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('ρ', 0, 0); ctx.restore();
+
+  // status cards
+  const cards = [
+    { name: 'NEC', ok: nec, eq: 'ρ+p_i ≥ 0' },
+    { name: 'WEC', ok: wec, eq: 'ρ≥0 & NEC' },
+    { name: 'SEC', ok: sec, eq: 'ρ+Σp≥0 & NEC' },
+    { name: 'DEC', ok: dec, eq: 'ρ ≥ |p_i|' }
+  ];
+  cards.forEach((c, i) => {
+    const cx = L.x + i * (L.w / 4 + 4);
+    const cy = L.y + L.h - 8;
+    ctx.fillStyle = c.ok ? '#44ff8866' : '#ff664466';
+    ctx.fillRect(cx, L.y + L.h * 0.78, L.w / 4 - 8, L.h * 0.16);
+    ctx.fillStyle = c.ok ? '#44ff88' : '#ff6644';
+    ctx.font = 'bold ' + L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText(c.name + (c.ok ? ' ✓' : ' ✗'), cx + 6, L.y + L.h * 0.78 + 16);
+    ctx.fillStyle = '#aaaacc'; ctx.font = L.f1 + 'px monospace';
+    ctx.fillText(c.eq, cx + 6, L.y + L.h * 0.78 + 32);
+  });
+
+  document.getElementById('ro1').textContent =
+    `NEC: ${nec ? 'OK' : 'VIOLATED'}   WEC: ${wec ? 'OK' : 'no'}   SEC: ${sec ? 'OK' : 'no'}   DEC: ${dec ? 'OK' : 'no'}   ρ=${rho.toFixed(2)} p∥=${ppar.toFixed(2)} p⊥=${pperp.toFixed(2)}`;
+}
+drawFns[1] = draw1;
+
+// ═══════════════════ TAB 2: Raychaudhuri ═══════════════════
+function draw2() {
+  const cv = document.getElementById('cv2');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const theta0 = +document.getElementById('m2th').value;
+  const sigma = +document.getElementById('m2sg').value;
+  const Ric = +document.getElementById('m2ric').value;
+  const t = tAnim[2];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Raychaudhuri: θ(λ) phase portrait');
+
+  const pad = { l: L.x + 20, r: 20, t: L.y + 8, b: 40 };
+  const pW = L.w - 40, pH = L.h - 50;
+  const lambdaMax = 5, thetaMin = -4, thetaMax = 3;
+  const lToX = l => pad.l + l / lambdaMax * pW;
+  const thToY = th => pad.t + (1 - (th - thetaMin) / (thetaMax - thetaMin)) * pH;
+
+  ctx.strokeStyle = '#1a1a38'; ctx.lineWidth = 1;
+  for (let l = 0; l <= 5; l++) {
+    const x = lToX(l);
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + pH); ctx.stroke();
+    ctx.fillStyle = '#666688'; ctx.font = L.f1 + 'px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(String(l), x, pad.t + pH + 14);
   }
-  genBHs();
+  for (let th = -4; th <= 3; th++) {
+    const y = thToY(th);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + pW, y); ctx.stroke();
+    ctx.fillStyle = '#666688'; ctx.font = L.f1 + 'px monospace'; ctx.textAlign = 'right';
+    ctx.fillText(String(th), pad.l - 6, y + 4);
+  }
+  ctx.fillStyle = '#9999bb'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('affine λ', pad.l + pW / 2, H - 8);
 
-  function drawFrame() {
-    const baseSpd = +document.getElementById('cccSpeed').value;
-    const spd = baseSpd;
-    const showOmega = document.getElementById('cccShowOmega').checked;
-    const showBH = document.getElementById('cccShowBH').checked;
-    document.getElementById('cccSpeedV').textContent = spd.toFixed(1);
+  // integrate
+  const steps = 1200, dl = lambdaMax / steps;
+  let th = theta0, caustic = null;
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const l = i * dl;
+    pts.push({ l, th });
+    if (th < thetaMin - 0.5) { caustic = l; break; }
+    th += (-(th * th) / 2 - sigma * sigma - Ric) * dl;
+  }
+  ctx.strokeStyle = '#cc88ff'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  let first = true;
+  pts.forEach(({ l, th: thv }) => {
+    const x = lToX(l), y = thToY(thv);
+    if (y < pad.t - 4 || y > pad.t + pH + 4) { first = true; return; }
+    first ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    first = false;
+  });
+  ctx.stroke();
 
-    if (!window.paused6) animT6 += 0.005 * spd;
-    const fullCycle = 2.0; // duration of one aeon in animation units
-    const cycleFrac = (animT6 % fullCycle) / fullCycle; // 0→1
+  // animated marker
+  const targetL = (t * 0.4) % lambdaMax;
+  let dth = theta0, dx = lToX(0), dy = thToY(theta0);
+  for (let i = 0; i <= steps; i++) {
+    const l = i * dl;
+    if (l >= targetL) { dx = lToX(l); dy = thToY(dth); break; }
+    if (dth < thetaMin - 0.5) break;
+    dth += (-(dth * dth) / 2 - sigma * sigma - Ric) * dl;
+  }
+  ctx.beginPath(); ctx.arc(dx, Math.max(pad.t, Math.min(pad.t + pH, dy)), 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffcc44'; ctx.shadowColor = '#ffcc44'; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0;
 
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#08080f'; ctx.fillRect(0, 0, W, H);
-
-    // Layout: show two aeons stacked, with crossover in the middle
-    // Aeon N: upper half (y: 20 → H*0.5 - 20)
-    // Crossover band: y H*0.5 - 20 → H*0.5 + 20
-    // Aeon N+1: lower half (y: H*0.5 + 20 → H - 20)
-
-    const AEON_H = H * 0.5 - 40;
-    const CROSS_Y = H * 0.5;
-
-    // Function to draw one aeon in a strip
-    function drawAeon(yTop, yBot, aeonFrac, aeonLabel, bright) {
-      const aH = yBot - yTop;
-      const aW = W - 60;
-      const ax = 30;
-
-      // Background gradient: dark → cosmic
-      const grad = ctx.createLinearGradient(ax, yTop, ax, yBot);
-      grad.addColorStop(0, `rgba(8,8,30,${bright})`);
-      grad.addColorStop(0.5, `rgba(15,10,40,${bright})`);
-      grad.addColorStop(1, `rgba(4,4,20,${bright})`);
-      ctx.fillStyle = grad; ctx.fillRect(ax, yTop, aW, aH);
-
-      // Cosmic web: faint lines
-      ctx.strokeStyle = `rgba(40,40,100,${bright * 0.5})`; ctx.lineWidth = 0.5;
-      for (let i = 0; i < 12; i++) {
-        const lx = ax + (i / 12) * aW;
-        ctx.beginPath(); ctx.moveTo(lx, yTop); ctx.lineTo(lx + 20, yBot); ctx.stroke();
-      }
-
-      // Big Bang boundary (left side) — spacelike singularity
-      const bbGrad = ctx.createLinearGradient(ax, yTop, ax + 30, yTop);
-      bbGrad.addColorStop(0, `rgba(255,200,80,${bright * 0.9})`);
-      bbGrad.addColorStop(1, 'rgba(255,200,80,0)');
-      ctx.fillStyle = bbGrad; ctx.fillRect(ax, yTop, 28, aH);
-      // Jagged line for singularity
-      ctx.strokeStyle = `rgba(255,200,80,${bright})`; ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let y = yTop; y <= yBot; y += 8) {
-        const x = ax + (Math.floor((y - yTop) / 8) % 2 === 0 ? 6 : 0);
-        y === yTop ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // Future boundary ℐ⁺ (right) — light-like / spacelike
-      const futGrad = ctx.createLinearGradient(ax + aW - 30, yTop, ax + aW, yTop);
-      futGrad.addColorStop(0, 'rgba(100,200,255,0)');
-      futGrad.addColorStop(1, `rgba(100,200,255,${bright * 0.8})`);
-      ctx.fillStyle = futGrad; ctx.fillRect(ax + aW - 28, yTop, 28, aH);
-      ctx.strokeStyle = `rgba(100,200,255,${bright})`; ctx.lineWidth = 2;
-      ctx.setLineDash([4, 3]);
-      ctx.beginPath(); ctx.moveTo(ax + aW, yTop); ctx.lineTo(ax + aW, yBot); ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Expansion: scale factor a(t) shown as width of "universe"
-      // Big Bang is narrow, future boundary is full width
-      ctx.strokeStyle = `rgba(60,60,180,${bright * 0.4})`; ctx.lineWidth = 1;
-      for (let t = 0; t <= 1; t += 0.05) {
-        const x1 = ax + 30 + t * (aW - 60);
-        // Schematic a(t) ~ sinh^(2/3) — just use a smooth curve
-        const ySc = aH * 0.5 * (1 - Math.pow(Math.sin(t * Math.PI * 0.9 + 0.1), 0.5) * 0.7);
-        ctx.beginPath();
-        ctx.moveTo(x1, yTop + aH * 0.5 + ySc);
-        ctx.lineTo(x1, yBot - aH * 0.5 + ySc - aH * 0.5 + aH * 0.5 - ySc);
-        ctx.stroke();
-      }
-
-      // Black holes
-      if (showBH) {
-        bhList.forEach(bh => {
-          const bhX = ax + 30 + bh.x * (aW - 60);
-          const bhY = yTop + bh.y * aH;
-          const formed = aeonFrac > bh.evapT - 0.2;
-          const evapd  = aeonFrac > bh.evapT;
-          if (!formed) return;
-          const sizeNow = evapd
-            ? bh.r * Math.max(0, 1 - (aeonFrac - bh.evapT) * 5)
-            : bh.r;
-          if (sizeNow < 0.5) return;
-          ctx.beginPath(); ctx.arc(bhX, bhY, sizeNow, 0, 2 * Math.PI);
-          ctx.fillStyle = `rgba(0,0,0,${bright})`; ctx.fill();
-          ctx.strokeStyle = `rgba(255,180,40,${bright * 0.7})`; ctx.lineWidth = 1;
-          ctx.stroke();
-          // Hawking glow when evaporating
-          if (evapd) {
-            const gGrad2 = ctx.createRadialGradient(bhX, bhY, 0, bhX, bhY, sizeNow * 3 + 8);
-            gGrad2.addColorStop(0, `rgba(255,200,80,${bright * 0.4})`);
-            gGrad2.addColorStop(1, 'rgba(255,200,80,0)');
-            ctx.beginPath(); ctx.arc(bhX, bhY, sizeNow * 3 + 8, 0, 2 * Math.PI);
-            ctx.fillStyle = gGrad2; ctx.fill();
-          }
-        });
-      }
-
-      // Label
-      ctx.fillStyle = `rgba(200,180,255,${bright})`; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'left';
-      ctx.fillText(aeonLabel, ax + 5, yTop + 16);
-      ctx.fillStyle = `rgba(80,80,150,${bright})`; ctx.font = '12px monospace';
-      ctx.fillText('Big Bang →', ax + 2, yBot - 6);
-      ctx.textAlign = 'right'; ctx.fillText('← ℐ⁺ (future boundary)', ax + aW - 2, yBot - 6);
-      ctx.textAlign = 'left';
-    }
-
-    // Draw aeon N (upper)
-    const aeonNFrac = cycleFrac;
-    drawAeon(20, CROSS_Y - 22, aeonNFrac, `Aeon N   (conformal time τ = ${(cycleFrac).toFixed(2)})`, 1.0);
-
-    // Draw aeon N+1 (lower) with offset phase
-    const aeonN1Frac = (cycleFrac + 0.15) % 1;
-    drawAeon(CROSS_Y + 22, H - 20, aeonN1Frac, 'Aeon N+1', 0.75);
-
-    // Crossover band with Ω conformal rescaling arrows
-    const bandY1 = CROSS_Y - 22, bandY2 = CROSS_Y + 22;
-    ctx.fillStyle = 'rgba(140,80,220,0.12)'; ctx.fillRect(30, bandY1, W - 60, bandY2 - bandY1);
-    ctx.strokeStyle = 'rgba(140,80,220,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
-    ctx.beginPath(); ctx.moveTo(30, bandY1); ctx.lineTo(W - 30, bandY1); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(30, bandY2); ctx.lineTo(W - 30, bandY2); ctx.stroke();
+  if (caustic !== null) {
+    const xC = lToX(caustic);
+    ctx.strokeStyle = '#ff6644'; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(xC, pad.t); ctx.lineTo(xC, pad.t + pH); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(180,120,255,0.9)'; ctx.font = 'bold 12px serif'; ctx.textAlign = 'center';
-    ctx.fillText('Conformal crossover: ℐ⁺(N) ≅ Big Bang(N+1)   via  g̃_μν = Ω² g_μν', W / 2, CROSS_Y + 5);
-
-    // Omega arrows: show the conformal rescaling mapping
-    if (showOmega) {
-      const arrowCount = 7;
-      for (let i = 0; i < arrowCount; i++) {
-        const ax2 = 50 + (i / (arrowCount - 1)) * (W - 100);
-        const pulse = 0.5 + 0.5 * Math.sin(animT6 * 3 + i * 0.8);
-        ctx.strokeStyle = `rgba(200,140,255,${0.4 + 0.4 * pulse})`; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(ax2, bandY1 - 10); ctx.lineTo(ax2, bandY2 + 10); ctx.stroke();
-        // Arrow tip at bottom
-        ctx.beginPath();
-        ctx.moveTo(ax2, bandY2 + 10);
-        ctx.lineTo(ax2 - 4, bandY2 + 4);
-        ctx.lineTo(ax2 + 4, bandY2 + 4);
-        ctx.fillStyle = `rgba(200,140,255,${0.4 + 0.4 * pulse})`; ctx.fill();
-      }
-      ctx.fillStyle = 'rgba(180,120,255,0.7)'; ctx.font = '12px serif'; ctx.textAlign = 'center';
-      ctx.fillText('Ω', W / 2 - 60, CROSS_Y - 28);
-    }
-
-    // Readout
-    const aeonNum = Math.floor(animT6 / fullCycle) + 1;
-    document.getElementById('ro6').textContent =
-      `Aeon: ${aeonNum}   Conformal time τ = ${cycleFrac.toFixed(3)}   Phase: ${cycleFrac < 0.15 ? 'Radiation-dominated (Big Bang)' : cycleFrac < 0.65 ? 'Matter/dark energy era' : 'Dark energy dominates → ℐ⁺'}`;
-
-    raf6 = requestAnimationFrame(drawFrame);
+    ctx.fillStyle = '#ff6644'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText('caustic λ≈' + caustic.toFixed(2), xC + 3, pad.t + 14);
   }
 
-  ['cccSpeed', 'cccShowOmega', 'cccShowBH'].forEach(id => {
-    const el = document.getElementById(id);
-    el.addEventListener('input', () => {}, {signal:_tabSignal.signal});
-    el.addEventListener('change', () => {}, {signal:_tabSignal.signal});
+  document.getElementById('ro2').textContent =
+    `Focusing: ${caustic !== null ? 'YES' : 'not in range'}   caustic λ ≈ ${caustic !== null ? caustic.toFixed(3) : '—'}   dθ/dλ = −θ²/2 − σ² − R_kk`;
+}
+drawFns[2] = draw2;
+
+// ═══════════════════ TAB 3: Focusing Theorem ═══════════════════
+function draw3() {
+  const cv = document.getElementById('cv3');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const th0 = -Math.abs(+document.getElementById('m3th').value);
+  const nec = +document.getElementById('m3nec').value;
+  const t = tAnim[3];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Focusing theorem: congruence area collapse');
+
+  // left: tube of geodesics
+  const cx = L.x + L.w * 0.32, cy = L.y + L.h * 0.5;
+  const lamFocus = 2 / Math.abs(th0);
+  const prog = Math.min(0.98, ((t * 0.15) % (lamFocus * 1.2)) / lamFocus);
+
+  ctx.fillStyle = '#9999bb'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('null congruence cross-section', cx, L.y + 8);
+
+  for (let s = 0; s <= 12; s++) {
+    const frac = s / 12;
+    const R = 80 * Math.max(0.02, 1 + th0 * frac * lamFocus * 0.5 - nec * frac * frac);
+    const y = L.y + 30 + frac * (L.h - 50);
+    const alpha = 0.15 + 0.5 * (1 - frac);
+    ctx.strokeStyle = `rgba(204,136,255,${alpha})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(cx, y, Math.max(2, R), Math.max(1, R * 0.35), 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  // current section
+  const Rc = 80 * Math.max(0.02, 1 + th0 * prog * lamFocus * 0.5 - nec * prog * prog);
+  const yc = L.y + 30 + prog * (L.h - 50);
+  ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.ellipse(cx, yc, Math.max(2, Rc), Math.max(1, Rc * 0.35), 0, 0, Math.PI * 2); ctx.stroke();
+  if (prog > 0.9) {
+    ctx.fillStyle = '#ff4444'; ctx.font = 'bold ' + L.f2 + 'px Segoe UI';
+    ctx.fillText('θ → −∞', cx, yc - 14);
+  }
+
+  // right: bound
+  const rx = L.x + L.w * 0.58, rw = L.w * 0.4;
+  ctx.fillStyle = '#111128'; ctx.fillRect(rx, L.y + 10, rw, L.h - 20);
+  ctx.strokeStyle = '#2a2a55'; ctx.strokeRect(rx, L.y + 10, rw, L.h - 20);
+  ctx.fillStyle = '#cc88ff'; ctx.font = 'bold ' + L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('Focusing bound', rx + 12, L.y + 32);
+  ctx.fillStyle = '#ccccee'; ctx.font = L.f1 + 'px monospace';
+  ctx.fillText('θ₀ = ' + th0.toFixed(2) + ' < 0', rx + 12, L.y + 56);
+  ctx.fillText('λ_f ≤ 2/|θ₀| = ' + lamFocus.toFixed(3), rx + 12, L.y + 76);
+  ctx.fillText('NEC strength = ' + nec.toFixed(2), rx + 12, L.y + 96);
+  ctx.fillStyle = '#ffcc88'; ctx.font = L.f1 + 'px Segoe UI';
+  const lines = [
+    'If θ(λ₀)<0, ω=0, NEC:',
+    'then ∃ λ ≤ λ₀+2/|θ₀|',
+    'with θ→−∞ (caustic),',
+    'unless geodesic ends first.',
+    '',
+    'This forces incompleteness',
+    'once a trapped surface',
+    'supplies θ_out<0.'
+  ];
+  lines.forEach((ln, i) => ctx.fillText(ln, rx + 12, L.y + 130 + i * 16));
+
+  document.getElementById('ro3').textContent =
+    `λ_focus ≤ ${lamFocus.toFixed(3)}   progress ${(prog * 100).toFixed(0)}%   θ₀=${th0.toFixed(2)}   NEC=${nec.toFixed(2)}`;
+}
+drawFns[3] = draw3;
+
+// ═══════════════════ TAB 4: Trapped Surfaces ═══════════════════
+function draw4() {
+  const cv = document.getElementById('cv4');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const surfR = +document.getElementById('m4r').value;
+  const showN = document.getElementById('c4n').checked;
+  const t = tAnim[4];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Trapped surfaces: null expansions');
+
+  const cx = L.x + L.w / 2, cy = L.y + L.h / 2 + 10;
+  const horizR = Math.min(100, L.h * 0.28);
+  const scale = Math.min(1, L.w / 500);
+  const sR = surfR * scale * 0.9;
+  const hR = horizR;
+
+  for (let r = 20; r <= 280; r += 24) {
+    ctx.strokeStyle = r < hR ? 'rgba(255,80,80,0.1)' : 'rgba(100,100,180,0.15)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.28, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, hR);
+  g.addColorStop(0, '#000'); g.addColorStop(1, '#200010');
+  ctx.beginPath(); ctx.arc(cx, cy, hR, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(cx, cy, hR, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = '#ffcc44'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('r = r_s', cx, cy - hR - 8);
+
+  const trapped = sR < hR;
+  ctx.strokeStyle = trapped ? '#cc88ff' : '#88aaff'; ctx.lineWidth = 2.5;
+  ctx.setLineDash(trapped ? [] : [5, 4]);
+  ctx.beginPath(); ctx.arc(cx, cy, sR, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = trapped ? '#cc88ff' : '#88aaff';
+  ctx.fillText(trapped ? 'TRAPPED (θ_out<0, θ_in<0)' : 'untrapped (θ_out>0)', cx, cy + sR + 16);
+
+  if (showN) {
+    for (let i = 0; i < 8; i++) {
+      const ang = (i / 8) * Math.PI * 2 + t * 0.4;
+      const px = cx + sR * Math.cos(ang), py = cy + sR * Math.sin(ang);
+      const oAnim = 16 + 5 * Math.sin(t * 2 + i);
+      const outX = px + (trapped ? -1 : 1) * oAnim * Math.cos(ang);
+      const outY = py + (trapped ? -1 : 1) * oAnim * Math.sin(ang);
+      ctx.strokeStyle = trapped ? '#ff6644' : '#44ff88'; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(outX, outY); ctx.stroke();
+      const inAnim = 14 + 4 * Math.sin(t * 2.2 + i);
+      ctx.strokeStyle = '#ff8888';
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px - inAnim * Math.cos(ang), py - inAnim * Math.sin(ang)); ctx.stroke();
+    }
+  }
+
+  ctx.fillStyle = '#44ff88'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('→ out θ', L.x, L.y + 8);
+  ctx.fillStyle = '#ff8888'; ctx.fillText('← in θ', L.x + 70, L.y + 8);
+
+  document.getElementById('ro4').textContent =
+    `θ_out: ${trapped ? '<0 converging' : '>0 expanding'}   θ_in: <0   r=${Math.round(sR)}  r_s=${Math.round(hR)}   ${trapped ? 'INSIDE — TRAPPED' : 'OUTSIDE'}`;
+}
+drawFns[4] = draw4;
+
+// ═══════════════════ TAB 5: Penrose Incompleteness ═══════════════════
+function draw5() {
+  const cv = document.getElementById('cv5');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const strength = +document.getElementById('m5h').value;
+  const nec = document.getElementById('c5nec').checked;
+  const trap = document.getElementById('c5trap').checked;
+  const glob = document.getElementById('c5glob').checked;
+  const t = tAnim[5];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Penrose 1965: logical structure');
+
+  const hyps = [
+    { on: trap, label: 'Closed trapped surface', sub: 'θ_out < 0 and θ_in < 0' },
+    { on: nec, label: 'Null energy condition', sub: 'R_μν k^μ k^ν ≥ 0' },
+    { on: glob, label: 'Global hyperbolicity', sub: 'Cauchy surface Σ exists' }
+  ];
+  const allOn = nec && trap && glob;
+  const proved = allOn && strength > 0.5;
+
+  hyps.forEach((h, i) => {
+    const y = L.y + 20 + i * 70;
+    ctx.fillStyle = h.on ? 'rgba(68,255,136,0.12)' : 'rgba(255,100,68,0.1)';
+    ctx.strokeStyle = h.on ? '#44ff88' : '#ff6644';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, L.x, y, L.w * 0.45, 58, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = h.on ? '#44ff88' : '#ff6644';
+    ctx.font = 'bold ' + L.f2 + 'px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillText((h.on ? '✓ ' : '✗ ') + h.label, L.x + 12, y + 24);
+    ctx.fillStyle = '#9999bb'; ctx.font = L.f1 + 'px Segoe UI';
+    ctx.fillText(h.sub, L.x + 12, y + 44);
   });
 
-  if (raf6) cancelAnimationFrame(raf6);
-  window.paused6 = false;
-  drawFrame();
-  return { stop() { cancelAnimationFrame(raf6); raf6 = null; window.paused6 = false; } };
+  // arrow
+  const midY = L.y + L.h * 0.45;
+  const ax0 = L.x + L.w * 0.48, ax1 = L.x + L.w * 0.58;
+  ctx.strokeStyle = proved ? '#cc88ff' : '#555577'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(ax0, midY); ctx.lineTo(ax1, midY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ax1, midY); ctx.lineTo(ax1 - 10, midY - 6); ctx.lineTo(ax1 - 10, midY + 6); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+
+  // conclusion box
+  const bx = L.x + L.w * 0.6, by = L.y + L.h * 0.25, bw = L.w * 0.38, bh = L.h * 0.45;
+  ctx.fillStyle = proved ? 'rgba(204,136,255,0.15)' : 'rgba(80,80,100,0.15)';
+  ctx.strokeStyle = proved ? '#cc88ff' : '#555577';
+  roundRect(ctx, bx, by, bw, bh, 10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = proved ? '#cc88ff' : '#8888aa';
+  ctx.font = 'bold ' + L.f2 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText(proved ? 'INCOMPLETE' : 'no conclusion', bx + bw / 2, by + 36);
+  ctx.fillStyle = '#ccccee'; ctx.font = L.f1 + 'px Segoe UI';
+  const concl = proved
+    ? ['Future null geodesic', 'incompleteness:', 'some generator from', 'the trapped surface', 'cannot be extended', 'to infinite affine λ']
+    : ['Need all three', 'hypotheses.', 'Toggle checkboxes', 'and raise strength.'];
+  concl.forEach((ln, i) => ctx.fillText(ln, bx + bw / 2, by + 64 + i * 18));
+
+  // pulse when proved
+  if (proved) {
+    const a = 0.3 + 0.3 * Math.sin(t * 3);
+    ctx.strokeStyle = `rgba(255,68,68,${a})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(bx + bw / 2, by + bh - 30, 12 + 4 * Math.sin(t * 4), 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#ff4444'; ctx.font = L.f1 + 'px Segoe UI';
+    ctx.fillText('singularity', bx + bw / 2, by + bh - 10);
+  }
+
+  document.getElementById('ro5').textContent =
+    `Theorem status: ${proved ? 'APPLIES — geodesic incompleteness' : 'hypotheses incomplete'}   strength=${strength.toFixed(2)}`;
+}
+drawFns[5] = draw5;
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+  else ctx.rect(x, y, w, h);
 }
 
-tabHandlers[1] = initTab1();
+// ═══════════════════ TAB 6: Collapse ═══════════════════
+function draw6() {
+  const cv = document.getElementById('cv6');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const M = +document.getElementById('m6m').value;
+  const baseSp = +document.getElementById('m6sp').value;
+  if (animRunning[6]) t6 += 0.8 * baseSp * (window.animSpeed || 1);
+  const CYCLE = 400;
+  const tCycle = t6 % CYCLE;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Gravitational collapse → trapped surface');
 
-window.animSpeed=1;
+  const cx = L.x + L.w / 2, cy = L.y + L.h * 0.55;
+  const rs = Math.round(36 * M);
+  const totalTime = Math.round(CYCLE * 0.65);
+  const frac = Math.min(tCycle / totalTime, 1);
+  const starR = Math.max(rs * 0.2, rs * (1 + 3 * (1 - frac)));
+  const horizonFormed = starR <= rs;
 
+  ctx.strokeStyle = '#1a1a3a';
+  for (let i = 1; i < 12; i++) {
+    const r = i * Math.min(W, H) / 14;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  if (starR <= rs * 1.5) {
+    ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2;
+    ctx.setLineDash(horizonFormed ? [] : [4, 4]);
+    ctx.beginPath(); ctx.arc(cx, cy, rs, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ffcc44'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText('r_s = ' + (2.95 * M).toFixed(2) + ' km', cx, cy - rs - 8);
+  }
+
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, starR);
+  if (horizonFormed) {
+    grad.addColorStop(0, '#330000'); grad.addColorStop(1, '#110005');
+  } else {
+    const f = 1 - frac;
+    grad.addColorStop(0, `rgba(255,${Math.round(200 * f)},${Math.round(100 * f)},1)`);
+    grad.addColorStop(1, `rgba(180,60,0,0.5)`);
+  }
+  ctx.beginPath(); ctx.arc(cx, cy, starR, 0, Math.PI * 2); ctx.fillStyle = grad; ctx.fill();
+
+  if (horizonFormed) {
+    ctx.strokeStyle = '#cc88ff'; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.arc(cx, cy, starR * 1.12, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#cc88ff'; ctx.font = L.f1 + 'px Segoe UI';
+    ctx.fillText('TRAPPED — singularity inevitable (Penrose 1965)', cx, cy + rs + 28);
+  }
+
+  // light pulse
+  if (!horizonFormed) {
+    const ang = tAnim[6] * 2;
+    for (let k = 0; k < 6; k++) {
+      const a = ang + k * Math.PI / 3;
+      ctx.strokeStyle = 'rgba(255,255,180,0.4)';
+      ctx.beginPath();
+      ctx.moveTo(cx + starR * Math.cos(a), cy + starR * Math.sin(a));
+      ctx.lineTo(cx + (starR + 40) * Math.cos(a), cy + (starR + 40) * Math.sin(a));
+      ctx.stroke();
+    }
+  }
+
+  const phase = frac < 0.3 ? 'Pre-collapse' : frac < 0.7 ? 'Horizon forming' : horizonFormed ? 'Black hole' : 'Near-critical';
+  document.getElementById('ro6').textContent =
+    `Phase: ${phase}   r/r_s = ${(starR / rs).toFixed(2)}   Horizon: ${horizonFormed ? 'YES' : 'no'}   loop ${Math.floor(t6 / CYCLE) + 1}`;
+}
+drawFns[6] = draw6;
+
+// ═══════════════════ TAB 7: Hawking Cosmology ═══════════════════
+function draw7() {
+  const cv = document.getElementById('cv7');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const om = +document.getElementById('m7om').value;
+  const sec = +document.getElementById('m7sec').value;
+  const t = tAnim[7];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Hawking cosmological singularity (past incompleteness)');
+
+  // FLRW a(t) schematic with past incompleteness
+  const ax = L.x + 40, ay = L.y + 16, aw = L.w * 0.55, ah = L.h - 40;
+  ctx.strokeStyle = '#2a2a55'; ctx.strokeRect(ax, ay, aw, ah);
+  ctx.fillStyle = '#9999bb'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('scale factor a(t)', ax + aw / 2, ay + ah + 14);
+
+  // matter-dominated a ~ t^{2/3} from singularity
+  ctx.strokeStyle = '#cc88ff'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i <= 100; i++) {
+    const u = i / 100; // 0..1 time from BB
+    const a = Math.pow(u, 2 / 3 * (0.5 + om)); // schematic
+    const x = ax + u * aw;
+    const y = ay + ah - a * ah * 0.9;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // singularity marker
+  const pulse = 6 + 3 * Math.sin(t * 4);
+  ctx.fillStyle = '#ff4444';
+  ctx.beginPath(); ctx.arc(ax, ay + ah, pulse, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ff4444'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('a=0 singularity', ax + 10, ay + ah - 10);
+
+  // expansion arrows
+  const ex = ax + aw * (0.3 + 0.2 * Math.sin(t));
+  const ea = Math.pow((ex - ax) / aw, 2 / 3 * (0.5 + om));
+  const ey = ay + ah - ea * ah * 0.9;
+  ctx.strokeStyle = '#44ff88'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 20, ey - 15); ctx.stroke();
+  ctx.fillStyle = '#44ff88'; ctx.fillText('H > 0 expansion', ex + 24, ey - 12);
+
+  // right panel theorem
+  const rx = L.x + L.w * 0.62, rw = L.w * 0.36;
+  ctx.fillStyle = '#111128'; ctx.fillRect(rx, L.y + 10, rw, L.h - 20);
+  ctx.strokeStyle = '#2a2a55'; ctx.strokeRect(rx, L.y + 10, rw, L.h - 20);
+  ctx.fillStyle = '#cc88ff'; ctx.font = 'bold ' + L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('Hawking–Penrose', rx + 10, L.y + 32);
+  ctx.fillStyle = '#ccccee'; ctx.font = L.f1 + 'px Segoe UI';
+  const lines = [
+    'SEC: ρ+3p ≥ 0 (here ' + sec.toFixed(2) + ')',
+    'Ω_m = ' + om.toFixed(2),
+    '',
+    'Compact Cauchy Σ with',
+    'positive mean curvature',
+    '(or past trapped surface)',
+    '+ SEC + causality',
+    '⇒ past incomplete.',
+    '',
+    'Big Bang is generic,',
+    'not FLRW fine-tuning.'
+  ];
+  lines.forEach((ln, i) => ctx.fillText(ln, rx + 10, L.y + 56 + i * 16));
+
+  const incomplete = sec > 0.2;
+  document.getElementById('ro7').textContent =
+    `Past incompleteness: ${incomplete ? 'YES (SEC active)' : 'SEC weak — may avoid'}   Ω_m=${om.toFixed(2)}   SEC=${sec.toFixed(2)}`;
+}
+drawFns[7] = draw7;
+
+// ═══════════════════ TAB 8: Cosmic Censorship ═══════════════════
+function draw8() {
+  const cv = document.getElementById('cv8');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const a = +document.getElementById('m8a').value;
+  const Q = +document.getElementById('m8q').value;
+  const t = tAnim[8];
+  const extremal = a * a + Q * Q;
+  const naked = extremal > 1;
+  const nearExt = Math.abs(extremal - 1) < 0.05;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Cosmic censorship: weak & strong');
+
+  // parameter plane a²+Q² vs M²=1
+  const ax = L.x + 30, ay = L.y + 20, aw = L.w * 0.48, ah = L.h * 0.7;
+  ctx.strokeStyle = '#2a2a55'; ctx.strokeRect(ax, ay, aw, ah);
+  // unit circle = extremal
+  const cx = ax + aw * 0.15, cy = ay + ah * 0.85, R = Math.min(aw, ah) * 0.7;
+  ctx.fillStyle = 'rgba(68,255,136,0.08)';
+  ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, 0); ctx.lineTo(cx, cy); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,68,68,0.1)';
+  ctx.fillRect(ax, ay, aw, ah);
+  ctx.fillStyle = 'rgba(68,255,136,0.08)';
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, -Math.PI / 2, 0); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, 0); ctx.stroke();
+  ctx.fillStyle = '#ffcc44'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('extremal a²+Q²=M²', cx + R * 0.5, cy - R * 0.5);
+
+  const px = cx + a * R, py = cy - Q * R;
+  ctx.beginPath(); ctx.arc(px, py, 6 + 2 * Math.sin(t * 3), 0, Math.PI * 2);
+  ctx.fillStyle = naked ? '#ff4444' : '#44ff88'; ctx.fill();
+  ctx.fillStyle = '#ccccee'; ctx.font = L.f1 + 'px monospace';
+  ctx.fillText(`a/M=${a.toFixed(2)} Q/M=${Q.toFixed(2)}`, ax + 8, ay + 16);
+  ctx.fillText(naked ? 'NAKED (WCCC violated if formed)' : 'cloaked by horizon', ax + 8, ay + 34);
+  ctx.fillStyle = '#8888aa';
+  ctx.fillText('Q/M →', ax + aw - 40, ay + ah - 8);
+  ctx.save(); ctx.translate(ax + 12, ay + 40); ctx.rotate(-Math.PI / 2); ctx.fillText('a/M', 0, 0); ctx.restore();
+
+  // WCCC / SCCC panels
+  const rx = L.x + L.w * 0.55;
+  ctx.fillStyle = naked ? 'rgba(255,68,68,0.12)' : 'rgba(68,255,136,0.1)';
+  ctx.strokeStyle = naked ? '#ff6644' : '#44ff88';
+  roundRect(ctx, rx, L.y + 16, L.w * 0.42, L.h * 0.35, 8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = naked ? '#ff6644' : '#44ff88';
+  ctx.font = 'bold ' + L.f2 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('WCCC: ' + (naked ? 'THREATENED' : 'SAFE'), rx + 12, L.y + 44);
+  ctx.fillStyle = '#bbb'; ctx.font = L.f1 + 'px Segoe UI';
+  ctx.fillText(naked ? 'Over-extremal: singularity' : 'Horizon cloaks curvature', rx + 12, L.y + 68);
+  ctx.fillText(naked ? 'visible from ℐ⁺ if formed.' : 'singularity from ℐ⁺.', rx + 12, L.y + 86);
+  ctx.fillText('Generic collapse avoids this.', rx + 12, L.y + 110);
+
+  ctx.fillStyle = 'rgba(204,136,255,0.1)';
+  ctx.strokeStyle = '#cc88ff';
+  roundRect(ctx, rx, L.y + L.h * 0.5, L.w * 0.42, L.h * 0.4, 8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#cc88ff'; ctx.font = 'bold ' + L.f2 + 'px Segoe UI';
+  ctx.fillText('SCCC: open problem', rx + 12, L.y + L.h * 0.5 + 28);
+  ctx.fillStyle = '#bbb'; ctx.font = L.f1 + 'px Segoe UI';
+  ['Cauchy horizon stability', 'in Kerr: C⁰ ok, C² fails', '(Dafermos–Luk). Mass', 'inflation supports SCCC', 'in the C² sense.'].forEach((ln, i) => {
+    ctx.fillText(ln, rx + 12, L.y + L.h * 0.5 + 52 + i * 16);
+  });
+
+  document.getElementById('ro8').textContent =
+    `WCCC: ${naked ? 'violated if over-extremal forms' : 'horizon present'}   SCCC: CH unstable (mass inflation)   a²+Q²=${extremal.toFixed(3)} M²`;
+}
+drawFns[8] = draw8;
+
+// ═══════════════════ TAB 9: Cauchy Horizons ═══════════════════
+function draw9() {
+  const cv = document.getElementById('cv9');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const Q = +document.getElementById('m9q').value;
+  const eps = +document.getElementById('m9e').value;
+  const t = tAnim[9];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'RN interior: Cauchy horizon & mass inflation');
+
+  // simplified RN Penrose: diamond with inner horizon
+  const cx = L.x + L.w * 0.32, cy = L.y + L.h * 0.5;
+  const size = Math.min(L.w * 0.28, L.h * 0.4);
+  const rPlus = size * 0.9;
+  const rMinus = size * (0.35 + 0.4 * Q);
+
+  ctx.strokeStyle = '#333355'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - size); ctx.lineTo(cx + size, cy); ctx.lineTo(cx, cy + size); ctx.lineTo(cx - size, cy); ctx.closePath();
+  ctx.stroke();
+
+  // outer horizon
+  ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(cx - size * 0.5, cy - size * 0.5); ctx.lineTo(cx + size * 0.5, cy + size * 0.5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + size * 0.5, cy - size * 0.5); ctx.lineTo(cx - size * 0.5, cy + size * 0.5); ctx.stroke();
+  ctx.fillStyle = '#ffcc44'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('r₊ event', cx + size * 0.2, cy - size * 0.55);
+
+  // inner Cauchy horizon
+  const chPulse = 0.5 + 0.5 * Math.sin(t * 4);
+  ctx.strokeStyle = `rgba(255,100,255,${0.5 + 0.5 * chPulse})`; ctx.lineWidth = 2;
+  const inn = rMinus / size;
+  ctx.beginPath(); ctx.moveTo(cx - size * inn * 0.7, cy - size * inn * 0.3); ctx.lineTo(cx + size * inn * 0.7, cy + size * inn * 0.3); ctx.stroke();
+  ctx.fillStyle = '#ff88ff'; ctx.fillText('r₋ Cauchy horizon', cx - size, cy + size * 0.55);
+
+  // blue-shift rays
+  for (let i = 0; i < 5; i++) {
+    const phase = (t * 0.8 + i * 0.4) % 1;
+    const x0 = cx + size * 0.6;
+    const y0 = cy - size * 0.3 + i * 12;
+    const x1 = cx + size * (0.1 - phase * 0.3);
+    const y1 = cy + size * (0.1 + phase * 0.2);
+    ctx.strokeStyle = `rgba(100,200,255,${0.3 + eps * 0.5})`;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  }
+
+  // mass inflation plot
+  const px = L.x + L.w * 0.58, py = L.y + 24, pw = L.w * 0.4, ph = L.h * 0.7;
+  ctx.fillStyle = '#111128'; ctx.fillRect(px, py, pw, ph);
+  ctx.strokeStyle = '#2a2a55'; ctx.strokeRect(px, py, pw, ph);
+  ctx.fillStyle = '#cc88ff'; ctx.font = 'bold ' + L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('m(v) mass inflation', px + 10, py + 20);
+
+  ctx.strokeStyle = '#ff6644'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  const kappa = 0.8 + Q;
+  for (let i = 0; i <= 80; i++) {
+    const v = i / 80;
+    const m = eps * Math.exp(kappa * v * 4) * Math.pow(1 - v + 0.05, 2); // Price tail * blueshift
+    const x = px + 20 + v * (pw - 40);
+    const y = py + ph - 30 - Math.min(ph - 50, Math.log(1 + m) * 18);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#ff6644'; ctx.font = L.f1 + 'px Segoe UI';
+  ctx.fillText('m → ∞ as v → ∞ along CH', px + 10, py + ph - 12);
+  ctx.fillStyle = '#8888aa';
+  ctx.fillText('advanced time v →', px + pw / 2 - 30, py + ph - 28);
+
+  document.getElementById('ro9').textContent =
+    `Mass inflation: m(v)∼e^{κ₋ v}×Price   Q/M=${Q.toFixed(2)}  ε=${eps.toFixed(2)}   CH: weak null singularity (Ori)`;
+}
+drawFns[9] = draw9;
+
+// ═══════════════════ TAB 10: BKL Mixmaster ═══════════════════
+function draw10() {
+  const cv = document.getElementById('cv10');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  let bp = +document.getElementById('m10bp').value;
+  let bm = +document.getElementById('m10bm').value;
+  const chaos = +document.getElementById('m10ch').value;
+  const t = tAnim[10] * chaos;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'BKL Mixmaster: Kasner epochs & curvature walls');
+
+  // animate billiard in β plane
+  const epochs = Math.floor(t * 0.5) % 8;
+  // simple reflection dynamics schematic
+  const u = t * 0.35;
+  let x = bp + 0.4 * Math.sin(u * 1.7);
+  let y = bm + 0.4 * Math.cos(u * 1.3);
+  // bounce off triangular walls (schematic)
+  const walls = [
+    { nx: 1, ny: 0, c: 0.9 },
+    { nx: -0.5, ny: 0.866, c: 0.9 },
+    { nx: -0.5, ny: -0.866, c: 0.9 }
+  ];
+
+  const cx = L.x + L.w * 0.32, cy = L.y + L.h * 0.55;
+  const sc = Math.min(L.w, L.h) * 0.22;
+
+  // equilateral wall triangle
+  ctx.strokeStyle = '#ffcc4488'; ctx.lineWidth = 2;
+  const verts = [];
+  for (let i = 0; i < 3; i++) {
+    const ang = -Math.PI / 2 + i * 2 * Math.PI / 3;
+    verts.push({ x: cx + sc * 1.6 * Math.cos(ang), y: cy + sc * 1.6 * Math.sin(ang) });
+  }
+  ctx.beginPath();
+  verts.forEach((v, i) => i === 0 ? ctx.moveTo(v.x, v.y) : ctx.lineTo(v.x, v.y));
+  ctx.closePath(); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,200,68,0.05)'; ctx.fill();
+  ctx.fillStyle = '#ffcc44'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('curvature walls', cx, cy + sc * 1.9);
+
+  // trajectory trail
+  ctx.strokeStyle = 'rgba(204,136,255,0.5)'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < 60; i++) {
+    const tt = t - i * 0.04;
+    if (tt < 0) break;
+    const px = cx + sc * (bp + 0.45 * Math.sin(tt * 1.7 + epochs));
+    const py = cy + sc * (bm + 0.45 * Math.cos(tt * 1.3 + epochs * 0.7));
+    // fold into triangle roughly
+    const rr = Math.min(1.4, Math.hypot(px - cx, py - cy) / sc);
+    const ang = Math.atan2(py - cy, px - cx);
+    const fx = cx + sc * Math.min(1.35, rr) * Math.cos(ang);
+    const fy = cy + sc * Math.min(1.35, rr) * Math.sin(ang);
+    i === 0 ? ctx.moveTo(fx, fy) : ctx.lineTo(fx, fy);
+  }
+  ctx.stroke();
+
+  const bx = cx + sc * (bp + 0.45 * Math.sin(t * 1.7 + epochs));
+  const by = cy + sc * (bm + 0.45 * Math.cos(t * 1.3 + epochs * 0.7));
+  const ang = Math.atan2(by - cy, bx - cx);
+  const rr = Math.min(1.35, Math.hypot(bx - cx, by - cy) / sc);
+  const fx = cx + sc * rr * Math.cos(ang);
+  const fy = cy + sc * rr * Math.sin(ang);
+  ctx.beginPath(); ctx.arc(fx, fy, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#cc88ff'; ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = L.f1 + 'px Segoe UI';
+  ctx.fillText('β', fx + 10, fy + 4);
+
+  // Kasner exponents
+  const p1 = (1 + bp + Math.sqrt(3) * bm) / 3;
+  const p2 = (1 + bp - Math.sqrt(3) * bm) / 3;
+  const p3 = (1 - 2 * bp) / 3;
+  const rx = L.x + L.w * 0.58, rw = L.w * 0.4;
+  ctx.fillStyle = '#111128'; ctx.fillRect(rx, L.y + 16, rw, L.h - 30);
+  ctx.strokeStyle = '#2a2a55'; ctx.strokeRect(rx, L.y + 16, rw, L.h - 30);
+  ctx.fillStyle = '#cc88ff'; ctx.font = 'bold ' + L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('Kasner epoch #' + (epochs + 1), rx + 10, L.y + 40);
+  ctx.fillStyle = '#ccccee'; ctx.font = L.f1 + 'px monospace';
+  ctx.fillText('p1 = ' + p1.toFixed(3), rx + 10, L.y + 68);
+  ctx.fillText('p2 = ' + p2.toFixed(3), rx + 10, L.y + 88);
+  ctx.fillText('p3 = ' + p3.toFixed(3), rx + 10, L.y + 108);
+  ctx.fillText('Σ p_i = ' + (p1 + p2 + p3).toFixed(3), rx + 10, L.y + 128);
+  ctx.fillText('Σ p_i² ≈ ' + (p1 * p1 + p2 * p2 + p3 * p3).toFixed(3), rx + 10, L.y + 148);
+  ctx.fillStyle = '#ffcc88'; ctx.font = L.f1 + 'px Segoe UI';
+  ['Infinite bounces as t→0', 'Chaos: u→1+1/u map', 'Billiard on hyperbolic plane', 'Spatial points decouple (BKL)'].forEach((ln, i) => {
+    ctx.fillText(ln, rx + 10, L.y + 180 + i * 18);
+  });
+
+  // scale factors sketch
+  const a1 = Math.exp(2 * Math.sin(t + epochs));
+  const a2 = Math.exp(2 * Math.sin(t * 1.3 + 2));
+  const a3 = Math.exp(2 * Math.sin(t * 0.9 + 4));
+  document.getElementById('ro10').textContent =
+    `Kasner epochs: ${epochs + 1}   billiard bounce active   β₊=${bp.toFixed(2)} β₋=${bm.toFixed(2)}   a_i chaotic`;
+}
+drawFns[10] = draw10;
+
+// ═══════════════════ TAB 11: Hawking Radiation lite ═══════════════════
+function draw11() {
+  const cv = document.getElementById('cv11');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const Mbase = +document.getElementById('m11m').value;
+  const doEvap = document.getElementById('c11ev').checked;
+  if (animRunning[11]) {
+    if (doEvap) {
+      if (evapM11 === null) evapM11 = Mbase;
+      evapM11 = Math.max(0.1, evapM11 - 0.0003 * (window.animSpeed || 1) / (evapM11 * evapM11));
+      if (evapM11 < 0.12) evapM11 = Mbase;
+    } else evapM11 = null;
+  }
+  const M = evapM11 !== null ? evapM11 : Mbase;
+  const T_H = 6.169e-8 / M;
+  const t = tAnim[11];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Hawking flux (causal bridge — not full thermo)');
+
+  const cx = L.x + L.w * 0.35, cy = L.y + L.h * 0.5;
+  const horizR = Math.min(140, 50 + M * 14);
+
+  const bh = ctx.createRadialGradient(cx, cy, 0, cx, cy, horizR);
+  bh.addColorStop(0, '#000'); bh.addColorStop(1, '#1a0025');
+  ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, Math.PI * 2); ctx.fillStyle = bh; ctx.fill();
+  const glow = ctx.createRadialGradient(cx, cy, horizR * 0.9, cx, cy, horizR * 1.4);
+  glow.addColorStop(0, `rgba(255,180,60,${Math.min(0.35, 0.2 / M)})`);
+  glow.addColorStop(1, 'rgba(255,100,20,0)');
+  ctx.beginPath(); ctx.arc(cx, cy, horizR * 1.4, 0, Math.PI * 2); ctx.fillStyle = glow; ctx.fill();
+  ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, horizR, 0, Math.PI * 2); ctx.stroke();
+
+  // pairs
+  if (animRunning[11] && Math.floor(t * 20) % 4 === 0) {
+    pairs11.push({ ang: Math.random() * Math.PI * 2, born: t, r: horizR });
+  }
+  pairs11 = pairs11.filter(p => {
+    const age = t - p.born;
+    if (age > 2.5) return false;
+    const esc = p.r + age * 50;
+    const fall = Math.max(0, p.r - age * 40);
+    const a = Math.max(0, 1 - age / 2.5);
+    ctx.beginPath(); ctx.arc(cx + esc * Math.cos(p.ang), cy + esc * Math.sin(p.ang), 3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,200,80,${a})`; ctx.fill();
+    if (fall > 3) {
+      ctx.beginPath(); ctx.arc(cx + fall * Math.cos(p.ang + Math.PI), cy + fall * Math.sin(p.ang + Math.PI), 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,80,80,${a})`; ctx.fill();
+    }
+    return true;
+  });
+
+  ctx.fillStyle = '#ccccee'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  const tx = L.x + L.w * 0.62;
+  ctx.fillText('T_H = ℏc³/(8πGMk_B)', tx, L.y + 40);
+  ctx.fillStyle = '#ffcc44';
+  ctx.fillText(`T_H = ${(T_H * 1e9).toFixed(3)} nK`, tx, L.y + 62);
+  ctx.fillStyle = '#9999bb';
+  ctx.fillText(`r_s = ${(2.95 * M).toFixed(2)} km`, tx, L.y + 84);
+  ctx.fillText('NEC violated by ⟨T_μν⟩', tx, L.y + 110);
+  ctx.fillText('→ focusing can fail', tx, L.y + 128);
+  ctx.fillText('→ singularity theorems', tx, L.y + 146);
+  ctx.fillText('need quantum revision', tx, L.y + 164);
+  ctx.fillStyle = '#ffcc88';
+  ctx.fillText('Full thermo → module 35', tx, L.y + 200);
+
+  document.getElementById('ro11').textContent =
+    `T_H = ${(T_H * 1e9).toFixed(4)} nK   M = ${M.toFixed(2)} M☉   pairs ${pairs11.length}   (bridge only)`;
+}
+drawFns[11] = draw11;
+
+// ═══════════════════ TAB 12: CCC Bridge ═══════════════════
+function draw12() {
+  const cv = document.getElementById('cv12');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const pace = +document.getElementById('m12sp').value;
+  const showOm = document.getElementById('c12om').checked;
+  // t advanced only in toggleAnim loop; pace scales visual phase
+  const t = tAnim[12] * pace;
+  const cycle = ((t * 0.25) % 2) / 2;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#08080f'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'CCC light bridge: conformal aeon matching');
+
+  const midY = L.y + L.h * 0.5;
+  // aeon N
+  ctx.fillStyle = '#0f0f28';
+  ctx.fillRect(L.x, L.y + 8, L.w, midY - L.y - 20);
+  ctx.fillStyle = '#0a0a20';
+  ctx.fillRect(L.x, midY + 12, L.w, L.h - (midY - L.y) - 20);
+
+  // BB jagged left
+  ctx.strokeStyle = '#ffcc44'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let y = L.y + 8, i = 0; y < midY - 12; y += 8, i++) {
+    const x = L.x + 8 + (i % 2) * 5;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  // I+
+  ctx.strokeStyle = '#66ccff'; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(L.x + L.w - 10, L.y + 8); ctx.lineTo(L.x + L.w - 10, midY - 12); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#cc88ff'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('Aeon N  τ=' + cycle.toFixed(2), L.x + 20, L.y + 28);
+  ctx.fillText('Aeon N+1', L.x + 20, midY + 32);
+  ctx.fillStyle = '#ffcc44'; ctx.fillText('BB', L.x + 4, L.y + L.h * 0.28);
+  ctx.fillStyle = '#66ccff'; ctx.textAlign = 'right';
+  ctx.fillText('ℐ⁺', L.x + L.w - 14, L.y + L.h * 0.28);
+
+  // crossover
+  ctx.fillStyle = 'rgba(140,80,220,0.15)';
+  ctx.fillRect(L.x, midY - 12, L.w, 24);
+  ctx.fillStyle = '#cc88ff'; ctx.font = 'bold ' + L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('g̃ = Ω² g   ℐ⁺(N) ≅ BB(N+1)', L.x + L.w / 2, midY + 4);
+
+  if (showOm) {
+    for (let i = 0; i < 8; i++) {
+      const x = L.x + 30 + i * (L.w - 60) / 7;
+      const pulse = 0.4 + 0.4 * Math.sin(t * 3 + i);
+      ctx.strokeStyle = `rgba(200,140,255,${pulse})`;
+      ctx.beginPath(); ctx.moveTo(x, midY - 20); ctx.lineTo(x, midY + 20); ctx.stroke();
+    }
+  }
+
+  // faint BH dots evaporating
+  for (let i = 0; i < 4; i++) {
+    const bx = L.x + L.w * (0.25 + i * 0.15);
+    const by = L.y + L.h * (0.25 + 0.05 * Math.sin(t + i));
+    const ev = cycle > 0.6;
+    ctx.beginPath(); ctx.arc(bx, by, ev ? 2 : 5, 0, Math.PI * 2);
+    ctx.fillStyle = ev ? `rgba(255,200,80,${0.5 + 0.5 * Math.sin(t * 5)})` : '#000';
+    ctx.fill();
+    ctx.strokeStyle = '#ffaa44'; ctx.stroke();
+  }
+
+  document.getElementById('ro12').textContent =
+    `Aeon phase τ=${cycle.toFixed(3)}   conformal match active   full CCC → module 28`;
+}
+drawFns[12] = draw12;
+
+// ═══════════════════ TAB 13: QG Resolutions ═══════════════════
+function draw13() {
+  const cv = document.getElementById('cv13');
+  const { ctx, W, H } = setupCanvas(cv);
+  if (!ctx) return;
+  const L = _pLayout(W, H);
+  const mode = document.getElementById('m13mode').value;
+  const pl = +document.getElementById('m13pl').value;
+  const t = tAnim[13];
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#0d0d1a'; ctx.fillRect(0, 0, W, H);
+  _pTitle(ctx, L, 'Quantum resolutions of classical incompleteness');
+
+  // classical a(t)→0 vs resolved bounce/core
+  const ax = L.x + 40, ay = L.y + 20, aw = L.w * 0.5, ah = L.h - 50;
+  ctx.strokeStyle = '#2a2a55'; ctx.strokeRect(ax, ay, aw, ah);
+  ctx.fillStyle = '#9999bb'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'center';
+  ctx.fillText('curvature / density vs time', ax + aw / 2, ay + ah + 16);
+
+  // classical divergence
+  ctx.strokeStyle = '#ff444488'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  for (let i = 1; i <= 80; i++) {
+    const u = i / 80;
+    const curv = 1 / Math.max(0.02, u);
+    const x = ax + u * aw;
+    const y = ay + ah - Math.min(ah - 10, Math.log(1 + curv) * 28);
+    i === 1 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#ff4444'; ctx.font = L.f1 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('classical → ∞', ax + 8, ay + 18);
+
+  // resolved curve
+  ctx.strokeStyle = '#44ff88'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i = 0; i <= 100; i++) {
+    const u = i / 100;
+    let curv;
+    if (mode === 'lqg') {
+      // bounce: max at mid density
+      const tau = (u - 0.5) * 4;
+      curv = (1 / pl) / (1 + tau * tau) * pl * 8;
+    } else if (mode === 'string') {
+      curv = (1 / pl) * (1 - Math.exp(-u * 3)) * Math.exp(-pl * 2);
+      curv = Math.min(1 / pl, 1 / (pl + u));
+    } else if (mode === 'asymp') {
+      curv = (1 / pl) * (1 - Math.tanh((u - pl) * 5)) * 0.5 + 0.2 / (u + 0.2);
+    } else {
+      // regular core
+      curv = 1 / (pl * pl + (u - 0.15) * (u - 0.15) * 4);
+    }
+    const x = ax + u * aw;
+    const y = ay + ah - Math.min(ah - 10, Math.log(1 + curv) * 22 + 10 * Math.sin(t + u * 4) * 0.15);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#44ff88';
+  ctx.fillText('quantum-resolved', ax + aw - 120, ay + 18);
+
+  // Planck band
+  const plX = ax + pl * aw * 0.5;
+  ctx.fillStyle = 'rgba(255,200,68,0.12)';
+  ctx.fillRect(ax, ay, Math.max(8, pl * aw * 0.4), ah);
+  ctx.fillStyle = '#ffcc44'; ctx.font = L.f1 + 'px Segoe UI';
+  ctx.fillText('ℓ_Pl regime', ax + 4, ay + ah - 8);
+
+  // description card
+  const labels = {
+    lqg: ['LQG bounce', 'ρ ≤ ρ_c ∼ ρ_Pl', 'effective NEC violation', 'geodesics extend', 'through bounce', '→ module 24'],
+    string: ['String / fuzzball', 'horizon microstructure', 'no classical interior', 'singularity replaced', 'by stringy degrees', '→ module 61'],
+    asymp: ['Asymptotic safety', 'UV fixed point g_*', 'running G(k), Λ(k)', 'curvature softens', 'at k∼M_Pl', 'continuum QG'],
+    semiclass: ['Regular metrics', 'Hayward / Bardeen', 'de Sitter core', 'finite curvature', 'classical effective', 'model only']
+  };
+  const lines = labels[mode] || labels.lqg;
+  const rx = L.x + L.w * 0.58, rw = L.w * 0.4;
+  ctx.fillStyle = '#111128'; ctx.fillRect(rx, L.y + 16, rw, L.h - 30);
+  ctx.strokeStyle = '#44ff88'; ctx.strokeRect(rx, L.y + 16, rw, L.h - 30);
+  ctx.fillStyle = '#44ff88'; ctx.font = 'bold ' + L.f2 + 'px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText(lines[0], rx + 12, L.y + 44);
+  ctx.fillStyle = '#ccccee'; ctx.font = L.f1 + 'px Segoe UI';
+  lines.slice(1).forEach((ln, i) => ctx.fillText(ln, rx + 12, L.y + 72 + i * 20));
+
+  document.getElementById('ro13').textContent =
+    `Resolution: ${lines[0]}   Planck cutoff param=${pl.toFixed(2)}   classical incompleteness evaded in effective model`;
+}
+drawFns[13] = draw13;
+
+// ── resize & boot ──
 window.addEventListener('resize', () => {
   clearTimeout(window._resizeTimer60);
-  window._resizeTimer60 = setTimeout(() => { switchTab(currentTab); }, 60);
+  window._resizeTimer60 = setTimeout(() => {
+    if (drawFns[activeTab]) drawFns[activeTab]();
+  }, 60);
 });
-switchTab(1);
+
+// Initial tab
+switchTab(0);
 </script>
 
 <script src="glossary-data.js"></script>
 <script src="glossary-tooltip.js"></script>
-
 <script src="auto-start.js"></script>
 </body>
 </html>

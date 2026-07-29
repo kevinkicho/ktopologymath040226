@@ -8,23 +8,35 @@
 <style>
 
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0a0f;color:#e8e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh}
-header{padding:18px 28px;border-bottom:1px solid #222240}
-header h1{font-size:1.25rem;font-weight:600;color:#ff88cc}
-header p{font-size:.82rem;color:#8888aa;margin-top:3px}
-.tabs{display:flex;gap:0;border-bottom:1px solid #222240;background:#0d0d18}
-.tab-btn{padding:10px 22px;background:none;border:none;color:#8888aa;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;transition:.2s}
-.tab-btn.active{color:#ff88cc;border-bottom-color:#ff88cc}
+:root{--bg:#0a0a0f;--bg2:#0d0d1a;--bg3:#111128;--border:#1a1a38;--text:#e8e8f0;--muted:#8888aa;--accent:#ff88cc}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:38px}
+header{padding:14px 22px;border-bottom:1px solid #222240;flex-shrink:0}
+header h1{font-size:1.2rem;font-weight:600;color:var(--accent)}
+header p{font-size:.78rem;color:var(--muted);margin-top:3px}
+.tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid #222240;background:#0d0d18;flex-shrink:0}
+.tab-btn{padding:8px 12px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.76rem;border-bottom:2px solid transparent;transition:.2s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab-btn:hover:not(.active){color:#bbbbdd}
-.tab-pane{display:none;padding:22px 28px}
-.tab-pane.active{display:flex;flex-direction:column;gap:16px}
-canvas{display:block;border-radius:6px;background:#0d0d1a;border:1px solid #1a1a38}
-.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.82rem;color:#aaaacc}
+/* Pattern 14/12 viewport-fit panes */
+.tab-pane{display:none;flex:1;overflow:hidden;min-height:0}
+.tab-pane.active{display:flex;flex-direction:row;gap:0}
+.p-main{flex:1;display:flex;flex-direction:column;padding:12px 14px;gap:8px;overflow:hidden;min-width:0}
+.p-side{width:300px;max-width:34vw;flex-shrink:0;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;font-size:.8rem;color:#9999bb;line-height:1.55;border-left:1px solid var(--border);background:#0b0b16}
+.p-side .card{background:var(--bg2);border:1px solid #1e1e42;border-radius:6px;padding:11px}
+.p-side .card h3{color:var(--accent);font-weight:600;margin-bottom:6px;font-size:.84rem}
+.p-side .card h3.g{color:#ffcc44}.p-side .card h3.b{color:#88ccff}.p-side .card h3.p{color:#cc88ff}
+.p-side .eq{font-family:monospace;color:#ccccee;font-size:.75rem;margin:6px 0}
+canvas{display:block;border-radius:6px;background:var(--bg2);border:1px solid var(--border);flex:1;min-height:0;width:100%;height:100%}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.8rem;color:#aaaacc;flex-shrink:0}
 .controls label{display:flex;align-items:center;gap:6px}
-.controls input[type=range]{accent-color:#ff88cc;width:110px}
-.readout{font-family:monospace;background:#111128;border:1px solid #1e1e42;border-radius:4px;padding:8px 12px;font-size:.8rem;line-height:1.6;color:#ccccee;white-space:pre}
-.info{font-size:.82rem;color:#9999bb;line-height:1.55;max-width:720px}
-body{padding-bottom:38px}
+.controls input[type=range]{accent-color:var(--accent);width:100px}
+.controls button,.btn{background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 11px;cursor:pointer;font-size:.78rem}
+.controls button:hover,.btn:hover{border-color:var(--accent);color:var(--accent)}
+.readout{font-family:monospace;background:var(--bg3);border:1px solid #1e1e42;border-radius:4px;padding:7px 11px;font-size:.78rem;line-height:1.55;color:#ccccee;white-space:pre;flex-shrink:0}
+.info{font-size:.8rem;color:#9999bb;line-height:1.5;flex-shrink:0}
+/* legacy column stack for simple panes */
+.tab-pane.stack.active{flex-direction:column;padding:16px 22px;gap:10px;overflow:auto}
+.tab-pane.stack canvas{flex:none;width:100%;max-width:920px;height:auto;min-height:360px}
 </style>
 </head>
 <body>
@@ -32,59 +44,66 @@ body{padding-bottom:38px}
   <a href="index.html" style="font-size:.78rem;color:#8888aa;text-decoration:none;white-space:nowrap" onmouseover="this.style.color='#ff88cc'" onmouseout="this.style.color='#8888aa'">← Dashboard</a>
   <div>
     <h1>Module 59 — Spin Glasses &amp; Replica Theory</h1>
-    <p>2021 Nobel (Giorgio Parisi) · Edwards-Anderson model · replica symmetry breaking</p>
+    <p>Parisi RSB · TAP / cavity · aging · quantum annealing · p-spin · Gardner / jamming · RBM bridge</p>
   </div>
 </header>
 
-<div class="tabs" role="tablist" data-role="tab-bar" style="flex-wrap:wrap">
-  <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab(1)">1 · Monte Carlo Dynamics</button>
+<div class="tabs" role="tablist" data-role="tab-bar">
+  <button class="tab-btn active" role="tab" aria-selected="true" onclick="switchTab(1)">1 · Monte Carlo</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(2)">2 · Energy Landscape</button>
   <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(3)">3 · Overlap P(q)</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(4)">4 · EA Model &amp; Frustration</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(5)">5 · Replica Theory &amp; Parisi</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(6)">6 · Hopfield Networks</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(7)">7 · Simulated Annealing</button>
-  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(8)">8 · SK Model &amp; Applications</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(4)">4 · EA Frustration</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(5)">5 · Replica Parisi</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(6)">6 · Hopfield</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(7)">7 · Sim. Annealing</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(8)">8 · SK Applications</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(9)">9 · TAP Equations</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(10)">10 · Cavity Method</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(11)">11 · Dynamical Aging</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(12)">12 · Quantum Annealing</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(13)">13 · p-Spin Spherical</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(14)">14 · Gardner / Jamming</button>
+  <button class="tab-btn" role="tab" aria-selected="false" onclick="switchTab(15)">15 · RBM Bridge</button>
 </div>
 
-<div id="pane1" class="tab-pane active" data-role="panel">
-  <div class="info">Spin glass: random ferromagnetic (+) and antiferromagnetic (−) couplings J_ij create "frustration". The system evolves via Metropolis Monte Carlo — spins flip when ΔE&lt;0, or with probability e^(−ΔE/kT). Watch the system slowly freeze into a metastable configuration.</div>
+<div id="pane1" class="tab-pane stack active" data-role="panel">
+  <div class="info">Spin glass: random FM (+) and AFM (−) couplings create frustration. Metropolis Monte Carlo flips spins when ΔE&lt;0, or with probability e^{−ΔE/T}. Watch the system freeze into a metastable configuration.</div>
   <div class="controls" data-role="sidebar">
-      <label style="font-size:.72rem;color:var(--dim)">Global Speed</label>
-      <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
-      <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
-
-    <label title="T measured in units of J/k_B. Above T_c≈2.27J/k_B: paramagnetic (spins disordered). Below T_c: spin glass freeze.">Temperature <input type="range" id="tempSlider" min="0.1" max="4" step="0.05" value="1.5"> <span id="tempVal">1.50</span> J/k_B</label>
-    <label title="J disorder = fraction of bonds that are random ±J. At 0: ferromagnet. At 1: fully random spin glass. At 0.5: mix of FM and frustrated bonds.">J disorder <input type="range" id="disSlider" min="0" max="1" step="0.05" value="0.5"> <span id="disVal">0.50</span></label>
-    <label title="Animation speed. Slow down to watch individual spin flips (Metropolis dynamics).">Speed <input type="range" id="mcSpeedSl" min="0.1" max="1" step="0.05" value="1"> <span id="mcSpeedV">1.0</span>×</label>
-    <button id="resetBtn" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset</button>
-    <button id="pauseBtn" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused1=!window.paused1;this.textContent=window.paused1?'▶ Play':'⏸ Pause'">▶ Play</button>
+    <label style="font-size:.72rem;color:var(--muted)">Global Speed</label>
+    <input type="range" id="globalSpeed" min="0.05" max="2" step="0.05" value="1" oninput="window.animSpeed=+this.value;this.nextElementSibling.textContent=(+this.value).toFixed(2)+'x'">
+    <span id="globalSpeedVal" style="font-size:.78rem;color:var(--accent);min-width:36px">1.00</span>
+    <label title="T in units of J/k_B">Temperature <input type="range" id="tempSlider" min="0.1" max="4" step="0.05" value="1.5"> <span id="tempVal">1.50</span></label>
+    <label title="Fraction of random ±J bonds">J disorder <input type="range" id="disSlider" min="0" max="1" step="0.05" value="0.5"> <span id="disVal">0.50</span></label>
+    <label>Speed <input type="range" id="mcSpeedSl" min="0.1" max="1" step="0.05" value="1"> <span id="mcSpeedV">1.0</span>×</label>
+    <button id="resetBtn">Reset</button>
+    <button id="pauseBtn" onclick="window.paused1=!window.paused1;this.textContent=window.paused1?'▶ Play':'⏸ Pause'">⏸ Pause</button>
   </div>
-  <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 1" id="cv1" width="820" height="440"></canvas>
+  <canvas aria-label="59 Spin Glasses — Monte Carlo Dynamics" id="cv1" width="820" height="440"></canvas>
   <div class="readout" id="ro1">E/N: —   q_EA: —   MCS: 0</div>
 </div>
 
-<div id="pane2" class="tab-pane" data-role="panel">
-  <div class="info">The Parisi solution reveals an ultrametric energy landscape with infinitely many pure states organized in a hierarchical tree. Each valley is separated by barriers that grow with system size — explaining why spin glasses age and never truly equilibrate. The landscape shown is a 2D projection.</div>
+<div id="pane2" class="tab-pane stack" data-role="panel">
+  <div class="info">Parisi ultrametric landscape: infinitely many pure states in a hierarchical tree. Barriers grow with N — spin glasses age and never fully equilibrate. 2D projection of a rough free-energy surface.</div>
   <div class="controls" data-role="sidebar">
     <label>Roughness <input type="range" id="roughSlider" min="0.1" max="1" step="0.05" value="0.5"> <span id="roughVal">0.50</span></label>
     <label>Temperature <input type="range" id="tempSlider2" min="0.1" max="3" step="0.05" value="1.0"> <span id="tempVal2">1.00</span></label>
-    <button id="runGD" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Drop particle</button>
-    <button id="pauseBtn2" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused2=!window.paused2;this.textContent=window.paused2?'▶ Play':'⏸ Pause'">▶ Play</button>
+    <button id="runGD">Drop particle</button>
+    <button id="pauseBtn2" onclick="window.paused2=!window.paused2;this.textContent=window.paused2?'▶ Play':'⏸ Pause'">⏸ Pause</button>
   </div>
-  <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 2" id="cv2" width="820" height="440"></canvas>
+  <canvas aria-label="59 Spin Glasses — Energy Landscape" id="cv2" width="820" height="440"></canvas>
   <div class="readout" id="ro2">Local minimum: —   Basin depth: —</div>
 </div>
 
-<div id="pane3" class="tab-pane" data-role="panel">
-  <div class="info">The Parisi overlap P(q) is a fingerprint of replica symmetry breaking (RSB). In a ferromagnet P(q) is a single delta function. In a spin glass there is a continuous band of overlaps between −q_EA and q_EA — infinitely many metastable states. The shape changes dramatically with temperature.</div>
+<div id="pane3" class="tab-pane stack" data-role="panel">
+  <div class="info">Parisi overlap P(q): ferromagnet → single δ-peak; spin glass → continuous band on [−q_EA, q_EA] plus edge peaks — fingerprint of RSB and infinitely many metastable states.</div>
   <div class="controls" data-role="sidebar">
-    <label title="Ratio of temperature T to the spin glass critical temperature Tc. Above 1: paramagnetic phase. Below 1: replica symmetry broken, P(q) spreads out.">Temperature T/Tc <input type="range" id="Tratio" min="0.1" max="1.4" step="0.02" value="0.7"> <span id="TratioV">0.70</span></label>
-    <label title="Parisi order parameter m ∈ (0,1): fraction of phase space weight at ±q_EA delta peaks. As m→0, the continuous band dominates.">Parisi m <input type="range" id="parisiM" min="0.1" max="0.99" step="0.01" value="0.5"> <span id="parisiMV">0.50</span></label>
-    <label title="Compare with a ferromagnet: single sharp delta function at q_FM = √(1-T/Tc). No replica symmetry breaking."><input type="checkbox" id="showFM"> Compare ferromagnet</label>
-    <button id="pqDemoBtn" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate T cooling</button>
+    <label>Temperature T/Tc <input type="range" id="Tratio" min="0.1" max="1.4" step="0.02" value="0.7"> <span id="TratioV">0.70</span></label>
+    <label>Parisi m <input type="range" id="parisiM" min="0.1" max="0.99" step="0.01" value="0.5"> <span id="parisiMV">0.50</span></label>
+    <label><input type="checkbox" id="showFM"> Compare ferromagnet</label>
+    <button id="pqDemoBtn" style="color:#ff88cc">▶ Animate T cooling</button>
+    <button id="pauseBtn3" onclick="window.paused3=!window.paused3;this.textContent=window.paused3?'▶ Play':'⏸ Pause'">⏸ Pause</button>
   </div>
-  <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 3" id="cv3" width="820" height="440"></canvas>
+  <canvas aria-label="59 Spin Glasses — Overlap P(q)" id="cv3" width="820" height="440"></canvas>
   <div class="readout" id="ro3">q_EA: —   Free energy contribution: —</div>
 </div>
 
@@ -96,7 +115,7 @@ body{padding-bottom:38px}
       <label>AFM fraction p <input type="range" id="ea_p" min="0" max="1" step="0.05" value="0.5"> <span id="ea_pv">0.50</span></label>
       <label>Grid N <input type="range" id="ea_N" min="10" max="30" step="5" value="20"> <span id="ea_Nv">20</span></label>
       <button id="ea_reset" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset bonds</button>
-      <button id="ea_pause" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused4=!window.paused4;this.textContent=window.paused4?'▶ Play':'⏸ Pause'">▶ Play</button>
+      <button id="ea_pause" onclick="window.paused4=!window.paused4;this.textContent=window.paused4?'▶ Play':'⏸ Pause'">⏸ Pause</button>
     </div>
     <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 4" id="cv4" width="560" height="420"></canvas>
     <div class="readout" id="ro4">q_EA: —   Frustrated plaquettes: —   MCS: 0</div>
@@ -131,7 +150,8 @@ body{padding-bottom:38px}
       <label>RSB level k <input type="range" id="rsb_k" min="1" max="4" step="1" value="2"> <span id="rsb_kv">2</span></label>
       <label>Temperature T/T_g <input type="range" id="rsb_T" min="0.1" max="1.2" step="0.05" value="0.6"> <span id="rsb_Tv">0.60</span></label>
       <label><input type="checkbox" id="rsb_showQ" checked> Show q(x) function</label>
-      <button id="rsb_anim" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Animate RSB levels</button>
+      <button id="rsb_anim" style="color:#ff88cc">▶ Animate RSB levels</button>
+      <button id="pauseBtn5" onclick="window.paused5=!window.paused5;this.textContent=window.paused5?'▶ Play':'⏸ Pause'">⏸ Pause</button>
     </div>
     <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 5" id="cv5" width="560" height="420"></canvas>
     <div class="readout" id="ro5">RSB level: —   q_max: —   Free states: —</div>
@@ -166,7 +186,7 @@ body{padding-bottom:38px}
       <label>Corruption % <input type="range" id="hf_corrupt" min="5" max="60" step="5" value="30"> <span id="hf_cv">30</span>%</label>
       <label>Temperature <input type="range" id="hf_T" min="0.01" max="2" step="0.05" value="0.1"> <span id="hf_Tv">1.00</span></label>
       <button id="hf_store" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Store &amp; Retrieve</button>
-      <button id="hf_pause" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused6=!window.paused6;this.textContent=window.paused6?'▶ Play':'⏸ Pause'">▶ Play</button>
+      <button id="hf_pause" onclick="window.paused6=!window.paused6;this.textContent=window.paused6?'▶ Play':'⏸ Pause'">⏸ Pause</button>
     </div>
     <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 6" id="cv6" width="560" height="420"></canvas>
     <div class="readout" id="ro6">α = p/N: —   Overlap m: —   Energy: —   Phase: —</div>
@@ -206,8 +226,8 @@ body{padding-bottom:38px}
           <option value="log">Logarithmic</option>
         </select>
       </label>
-      <button id="tsp_run" style="background:#1a1a38;color:#ff88cc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">▶ Anneal</button>
-      <button id="tsp_reset" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer">Reset</button>
+      <button id="tsp_run" style="color:#ff88cc">⏸ Pause</button>
+      <button id="tsp_reset">Reset</button>
     </div>
     <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 7" id="cv7" width="560" height="420"></canvas>
     <div class="readout" id="ro7">Tour length: —   Temperature: —   Step: —   Best: —</div>
@@ -245,7 +265,7 @@ body{padding-bottom:38px}
           <option value="pd">Phase diagram</option>
         </select>
       </label>
-      <button id="pauseBtn8" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:4px 12px;cursor:pointer" onclick="window.paused8=!window.paused8;this.textContent=window.paused8?'▶ Play':'⏸ Pause'">▶ Play</button>
+      <button id="pauseBtn8" onclick="window.paused8=!window.paused8;this.textContent=window.paused8?'▶ Play':'⏸ Pause'">⏸ Pause</button>
     </div>
     <canvas aria-label="59 — Spin Glasses and Replica Theory — panel 8" id="cv8" width="560" height="420"></canvas>
     <div class="readout" id="ro8">q_SK: —   Phase: —   F(q*): —</div>
@@ -270,41 +290,301 @@ body{padding-bottom:38px}
   </div>
 </div>
 
+<!-- ═══════════════════ TAB 9: TAP EQUATIONS ═══════════════════ -->
+<div id="pane9" class="tab-pane" data-role="panel">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>T/J <input type="range" id="tap_T" min="0.2" max="2" step="0.05" value="0.7"> <span id="tap_Tv">0.70</span></label>
+      <label>N <input type="range" id="tap_N" min="20" max="80" step="10" value="40"> <span id="tap_Nv">40</span></label>
+      <label>Field h <input type="range" id="tap_h" min="0" max="0.5" step="0.02" value="0"> <span id="tap_hv">0.00</span></label>
+      <button id="tap_reset">Reset</button>
+      <button id="pauseBtn9" onclick="window.paused9=!window.paused9;this.textContent=window.paused9?'▶ Play':'⏸ Pause'">⏸ Pause</button>
+    </div>
+    <canvas aria-label="59 Spin Glasses — TAP Equations" id="cv9"></canvas>
+    <div class="readout" id="ro9">q: —   max|Δm|: —   iter: 0</div>
+  </div>
+  <div class="p-side" data-role="sidebar">
+    <div class="card"><h3>TAP (1977)</h3>
+      <div>Thouless–Anderson–Palmer: site magnetizations for the SK model with Onsager reaction-field correction.</div>
+      <div class="eq">m_i = tanh β(h_i + Σ_j J_ij m_j − β(1−q)m_i)</div>
+      <div>q = (1/N)Σ_i m_i². Last term subtracts the self-response that naive MF double-counts.</div>
+    </div>
+    <div class="card"><h3 class="g">Fixed-point structure</h3>
+      <div>Above T_g: unique paramagnetic fixed point m≈0. Below T_g: exponentially many TAP solutions — each a metastable pure state. Counting them yields the complexity Σ(f) of free-energy densities.</div>
+    </div>
+    <div class="card"><h3 class="b">Stability</h3>
+      <div>de Almeida–Thouless: RS TAP is unstable when λ_AT = 1 − β²(1−2q+r) &lt; 0 (r = (1/N)Σ m_i⁴). Full RSB reorganizes the hierarchy of solutions.</div>
+    </div>
+    <div class="card"><h3 class="p">Frontier</h3>
+      <div>Modern TAP solvers + AMP (approximate message passing) power compressed sensing and GLM inference. Plefka expansion systematically generates higher-order reaction terms.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 10: CAVITY METHOD ═══════════════════ -->
+<div id="pane10" class="tab-pane" data-role="panel">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>T <input type="range" id="cav_T" min="0.2" max="2" step="0.05" value="0.8"> <span id="cav_Tv">0.80</span></label>
+      <label>Degree c <input type="range" id="cav_c" min="3" max="8" step="1" value="4"> <span id="cav_cv">4</span></label>
+      <label>N nodes <input type="range" id="cav_N" min="16" max="48" step="4" value="24"> <span id="cav_Nv">24</span></label>
+      <button id="cav_reset">Reseed</button>
+      <button id="pauseBtn10" onclick="window.paused10=!window.paused10;this.textContent=window.paused10?'▶ Play':'⏸ Pause'">⏸ Pause</button>
+    </div>
+    <canvas aria-label="59 Spin Glasses — Cavity Method" id="cv10"></canvas>
+    <div class="readout" id="ro10">messages: —   q_cav: —   iter: 0</div>
+  </div>
+  <div class="p-side" data-role="sidebar">
+    <div class="card"><h3>Cavity method (Mézard–Parisi)</h3>
+      <div>Add one spin to a large system; the cavity field is the local field without that spin. On tree-like (locally acyclic) graphs this is exact.</div>
+      <div class="eq">h_{i→j} = Σ_{k∈∂i\j} u(h_{k→i}, J_ki)</div>
+      <div class="eq">u(h,J) = (1/β) artanh(tanh βJ · tanh βh)</div>
+    </div>
+    <div class="card"><h3 class="g">Belief propagation</h3>
+      <div>BP messages = cavity messages. Survey propagation (SP) extends BP to 1RSB: messages become distributions over cavity fields (surveys), unlocking random K-SAT near threshold.</div>
+    </div>
+    <div class="card"><h3 class="b">Applications</h3>
+      <div>LDPC decoding, compressed sensing, community detection, constraint satisfaction. Spin-glass physics → modern information theory algorithms.</div>
+    </div>
+    <div class="card"><h3 class="p">RSB &amp; SP</h3>
+      <div>When BP fixed points proliferate, replica symmetry breaks. SP tracks the measure over clusters of solutions — the algorithmic face of 1RSB.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 11: DYNAMICAL AGING ═══════════════════ -->
+<div id="pane11" class="tab-pane" data-role="panel">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>T/T_g <input type="range" id="age_T" min="0.1" max="1.2" step="0.05" value="0.5"> <span id="age_Tv">0.50</span></label>
+      <label>t_w (wait) <input type="range" id="age_tw" min="10" max="200" step="10" value="50"> <span id="age_twv">50</span></label>
+      <label>N <input type="range" id="age_N" min="40" max="120" step="20" value="60"> <span id="age_Nv">60</span></label>
+      <button id="age_reset">Quench</button>
+      <button id="pauseBtn11" onclick="window.paused11=!window.paused11;this.textContent=window.paused11?'▶ Play':'⏸ Pause'">⏸ Pause</button>
+    </div>
+    <canvas aria-label="59 Spin Glasses — Dynamical Aging" id="cv11"></canvas>
+    <div class="readout" id="ro11">C(t,t_w): —   χ_FDT: —   t: 0</div>
+  </div>
+  <div class="p-side" data-role="sidebar">
+    <div class="card"><h3>Aging</h3>
+      <div>After a quench below T_g, two-time correlators depend on waiting time t_w, not only on Δt = t−t_w. Older systems respond more sluggishly — "the older, the slower."</div>
+      <div class="eq">C(t,t_w) = (1/N) Σ_i ⟨S_i(t) S_i(t_w)⟩</div>
+    </div>
+    <div class="card"><h3 class="g">FDT violation</h3>
+      <div>Equilibrium: χ(t,t_w) = (1/T)[C(t_w,t_w)−C(t,t_w)]. Below T_g the fluctuation–dissipation theorem breaks; effective T_eff(C) &gt; T encodes slow modes.</div>
+    </div>
+    <div class="card"><h3 class="b">Cugliandolo–Kurchan</h3>
+      <div>Mean-field aging: C(t,t_w) = C_st(t−t_w) + C_ag(h(t)/h(t_w)) with ultrametric hierarchy of timescales matching Parisi RSB.</div>
+    </div>
+    <div class="card"><h3 class="p">Experiments</h3>
+      <div>CuMn, structural glasses, colloids, granular media all show waiting-time-dependent response. Memory and rejuvenation under T-cycling probe the hierarchical landscape.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 12: QUANTUM ANNEALING ═══════════════════ -->
+<div id="pane12" class="tab-pane" data-role="panel">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>N qubits <input type="range" id="qa_N" min="6" max="16" step="2" value="10"> <span id="qa_Nv">10</span></label>
+      <label>Schedule τ <input type="range" id="qa_tau" min="20" max="200" step="10" value="80"> <span id="qa_tauv">80</span></label>
+      <label>Disorder <input type="range" id="qa_dis" min="0.2" max="1" step="0.05" value="0.8"> <span id="qa_disv">0.80</span></label>
+      <button id="qa_reset">Restart</button>
+      <button id="pauseBtn12" onclick="window.paused12=!window.paused12;this.textContent=window.paused12?'▶ Play':'⏸ Pause'">⏸ Pause</button>
+    </div>
+    <canvas aria-label="59 Spin Glasses — Quantum Annealing" id="cv12"></canvas>
+    <div class="readout" id="ro12">Γ(s): —   E_cl: —   P_gs: —</div>
+  </div>
+  <div class="p-side" data-role="sidebar">
+    <div class="card"><h3>Transverse-field Ising</h3>
+      <div class="eq">H(s) = −A(s) Σ_i σ_i^x − B(s) Σ_{ij} J_ij σ_i^z σ_j^z</div>
+      <div>s = t/τ ∈ [0,1]. Start at large Γ = A/B (quantum paramagnet), end at classical problem Hamiltonian.</div>
+    </div>
+    <div class="card"><h3 class="g">Adiabatic theorem</h3>
+      <div>If τ ≫ 1/Δ_min², the system tracks the instantaneous ground state. First-order quantum phase transitions with exponentially small gaps are the bottleneck (vs thermal SA barriers).</div>
+    </div>
+    <div class="card"><h3 class="b">D-Wave &amp; QAOA</h3>
+      <div>D-Wave implements thousands of flux qubits with programmable J_ij. QAOA is a digital, circuit-based cousin: alternate problem and mixer unitaries — a Trotterized QA schedule.</div>
+    </div>
+    <div class="card"><h3 class="p">vs Simulated Annealing</h3>
+      <div>QA tunnels through thin barriers; SA climbs over them. Advantage is problem-dependent — coherent multiqubit tunneling vs thermal activation. Still an active benchmark frontier.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 13: p-SPIN SPHERICAL ═══════════════════ -->
+<div id="pane13" class="tab-pane" data-role="panel">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>p-body <input type="range" id="ps_p" min="2" max="6" step="1" value="3"> <span id="ps_pv">3</span></label>
+      <label>T <input type="range" id="ps_T" min="0.05" max="1.5" step="0.05" value="0.6"> <span id="ps_Tv">0.60</span></label>
+      <label>View
+        <select id="ps_view" style="background:#1a1a38;color:#aaaacc;border:1px solid #333;border-radius:4px;padding:2px 6px">
+          <option value="phase">Phase diagram</option>
+          <option value="comp">Complexity Σ(f)</option>
+          <option value="dyn">Dynamics q(t)</option>
+        </select>
+      </label>
+      <button id="pauseBtn13" onclick="window.paused13=!window.paused13;this.textContent=window.paused13?'▶ Play':'⏸ Pause'">⏸ Pause</button>
+    </div>
+    <canvas aria-label="59 Spin Glasses — p-Spin Spherical Model" id="cv13"></canvas>
+    <div class="readout" id="ro13">T_d: —   T_s: —   T_K: —   phase: —</div>
+  </div>
+  <div class="p-side" data-role="sidebar">
+    <div class="card"><h3>Spherical p-spin</h3>
+      <div class="eq">H = −√(p!/2N^{p−1}) Σ J_{i₁…i_p} s_{i₁}…s_{i_p}</div>
+      <div class="eq">Σ_i s_i² = N (spherical constraint)</div>
+      <div>Exactly solvable 1RSB prototype for structural glasses (Crisanti–Sommers, Kirkpatrick–Thirumalai–Wolynes).</div>
+    </div>
+    <div class="card"><h3 class="g">Three temperatures</h3>
+      <div><b style="color:#ccccee">T_d</b> dynamical (mode-coupling) arrest — ergodicity breaking, exponential metastable states.<br>
+      <b style="color:#ccccee">T_s</b> static 1RSB transition — free energy selects states.<br>
+      <b style="color:#ccccee">T_K</b> Kauzmann / complexity vanishing — ideal glass.</div>
+    </div>
+    <div class="card"><h3 class="b">RFOT</h3>
+      <div>Random first-order transition theory: mean-field glass template. Finite-d mosaics, surface tension, and point-to-set lengths descend from p-spin complexity.</div>
+    </div>
+    <div class="card"><h3 class="p">Frontier</h3>
+      <div>Connection to loss landscapes of deep nets (p-spin-like Hessians), jamming, and active matter. Full RSB appears for continuous constraint satisfaction near jamming (Gardner).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 14: GARDNER / JAMMING ═══════════════════ -->
+<div id="pane14" class="tab-pane" data-role="panel">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>φ / φ_J <input type="range" id="gar_phi" min="0.7" max="1.15" step="0.01" value="0.95"> <span id="gar_phiv">0.95</span></label>
+      <label>T <input type="range" id="gar_T" min="0.01" max="0.8" step="0.01" value="0.15"> <span id="gar_Tv">0.15</span></label>
+      <label>dim d <input type="range" id="gar_d" min="2" max="20" step="1" value="3"> <span id="gar_dv">3</span></label>
+      <button id="gar_reset">Resample</button>
+      <button id="pauseBtn14" onclick="window.paused14=!window.paused14;this.textContent=window.paused14?'▶ Play':'⏸ Pause'">⏸ Pause</button>
+    </div>
+    <canvas aria-label="59 Spin Glasses — Gardner Transition and Jamming" id="cv14"></canvas>
+    <div class="readout" id="ro14">phase: —   δz: —   χ_Gardner: —</div>
+  </div>
+  <div class="p-side" data-role="sidebar">
+    <div class="card"><h3>Gardner transition</h3>
+      <div>Within a glass metabasin, full RSB (Gardner 1985) fragments the basin into a fractal hierarchy of sub-basins. Marginal stability: soft modes, avalanche response.</div>
+    </div>
+    <div class="card"><h3 class="g">Jamming point</h3>
+      <div>Hard spheres at φ_J: isostatic z = 2d contacts. Critical scalings δz ∼ √(φ−φ_J), ω* ∼ δz, pair correlation g(r)∼(r−σ)^{−γ}. Infinite-d exact solution (Kurchan–Parisi–Zamponi) uses full RSB.</div>
+    </div>
+    <div class="card"><h3 class="b">Marginal glass</h3>
+      <div>Gardner phase: replica structure continuous; Hessian has a pseudogap of soft elastic modes. Explains anomalous low-T specific heat and non-Debye vibrations in amorphous solids.</div>
+    </div>
+    <div class="card"><h3 class="p">ML / landscapes</h3>
+      <div>Analogous hierarchical fragmentation appears in loss landscapes near interpolation thresholds and in spiked matrix/tensor models — shared full-RSB technology.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ TAB 15: RBM BRIDGE ═══════════════════ -->
+<div id="pane15" class="tab-pane" data-role="panel">
+  <div class="p-main">
+    <div class="controls" data-role="sidebar">
+      <label>n_v <input type="range" id="rbm_nv" min="6" max="20" step="2" value="12"> <span id="rbm_nvv">12</span></label>
+      <label>n_h <input type="range" id="rbm_nh" min="4" max="16" step="2" value="8"> <span id="rbm_nhv">8</span></label>
+      <label>β (1/T) <input type="range" id="rbm_beta" min="0.2" max="3" step="0.1" value="1.2"> <span id="rbm_betav">1.20</span></label>
+      <button id="rbm_reset">Resample data</button>
+      <button id="pauseBtn15" onclick="window.paused15=!window.paused15;this.textContent=window.paused15?'▶ Play':'⏸ Pause'">⏸ Pause</button>
+    </div>
+    <canvas aria-label="59 Spin Glasses — Restricted Boltzmann Machine Bridge" id="cv15"></canvas>
+    <div class="readout" id="ro15">E: —   CD step: —   ⟨vh⟩_d − ⟨vh⟩_m: —</div>
+  </div>
+  <div class="p-side" data-role="sidebar">
+    <div class="card"><h3>RBM = bipartite spin glass</h3>
+      <div class="eq">E(v,h) = −Σ_{ia} v_i W_ia h_a − Σ b_i v_i − Σ c_a h_a</div>
+      <div>Visible v and hidden h layers; no intra-layer edges → conditional factorizations p(h|v), p(v|h) exact. Hebbian / CD learning trains W.</div>
+    </div>
+    <div class="card"><h3 class="g">Hopfield ↔ RBM</h3>
+      <div>Integrating out h (Gaussian or ±1) induces effective couplings among v — a generalized Hopfield model. Pattern capacity and retrieval map onto RBM representation power.</div>
+    </div>
+    <div class="card"><h3 class="b">Contrastive divergence</h3>
+      <div>ΔW ∝ ⟨v hᵀ⟩_data − ⟨v hᵀ⟩_model. Short MCMC (CD-k) approximates the model term — spin-glass sampling is the learning bottleneck.</div>
+    </div>
+    <div class="card"><h3 class="p">Frontier</h3>
+      <div>RBMs sit between classical disordered systems and modern generative models. Compositional depth → DBMs/DBNs; continuous variants and score-based models inherit the energy-based lineage without full ML catalogue scope here.</div>
+    </div>
+  </div>
+</div>
+
 <script>
+// Pattern 14/12: T_RAF registry, cancel → setActive → enter → autoStart
+const NUM_TABS59 = 15;
+const T_RAF = {};
 let currentTab = 1;
-const tabHandlers = {1:null, 2:null, 3:null, 4:null, 5:null, 6:null, 7:null, 8:null};
+const tabHandlers = {};
 let _tabSignal = new AbortController();
+window.animSpeed = window.animSpeed || 1;
+
+function _fitCanvas59(cv, fallbackW, fallbackH){
+  if(!cv) return {W:fallbackW||820, H:fallbackH||440, ctx:null, dpr:1};
+  const dpr = window.devicePixelRatio || 1;
+  const parent = cv.parentElement;
+  let W = Math.floor(cv.clientWidth || (parent && parent.clientWidth) || 0);
+  let H = Math.floor(cv.clientHeight || (parent && parent.clientHeight) || 0);
+  if(W < 40) W = fallbackW || 820;
+  if(H < 40) H = fallbackH || 440;
+  const bw = Math.round(W*dpr), bh = Math.round(H*dpr);
+  if(cv.width !== bw || cv.height !== bh){
+    cv.width = bw; cv.height = bh;
+    // only set style if not flex-managed
+    if(!cv.style.flex && !cv.style.height){
+      cv.style.width = W+'px'; cv.style.height = H+'px';
+    }
+  }
+  const ctx = cv.getContext('2d');
+  if(ctx) ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {W, H, ctx, dpr};
+}
+
+function _cancelAll59(){
+  Object.keys(T_RAF).forEach(k=>{
+    if(T_RAF[k]){ cancelAnimationFrame(T_RAF[k]); T_RAF[k]=null; }
+  });
+  Object.keys(tabHandlers).forEach(k=>{
+    try{ if(tabHandlers[k] && tabHandlers[k].stop) tabHandlers[k].stop(); }catch(e){}
+    tabHandlers[k]=null;
+  });
+  if(_tabSignal){ try{ _tabSignal.abort(); }catch(e){} }
+  _tabSignal = new AbortController();
+}
 
 function switchTab(n){
-  if (tabHandlers[currentTab]) tabHandlers[currentTab].stop();
-  if (_tabSignal) _tabSignal.abort();
-  _tabSignal = new AbortController();
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
-  document.querySelectorAll('.tab-pane').forEach((p,i)=>p.classList.toggle('active',i===n-1));
+  // Pattern 14/12: cancel → setActive → enter → autoStart
+  _cancelAll59();
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active', i===n-1);
+    b.setAttribute('aria-selected', i===n-1 ? 'true' : 'false');
+  });
+  document.querySelectorAll('.tab-pane').forEach((p,i)=>p.classList.toggle('active', i===n-1));
   currentTab = n;
-  if (n===1) tabHandlers[1] = initTab1();
-  else if (n===2) tabHandlers[2] = initTab2();
-  else if (n===3) tabHandlers[3] = initTab3();
-  else if (n===4) tabHandlers[4] = initTab4();
-  else if (n===5) tabHandlers[5] = initTab5();
-  else if (n===6) tabHandlers[6] = initTab6();
-  else if (n===7) tabHandlers[7] = initTab7();
-  else if (n===8) tabHandlers[8] = initTab8();
+  const tabN = n;
+  const raf = window.requestAnimationFrame || (cb=>setTimeout(cb,16));
+  raf(()=>{ raf(()=>{
+    if(currentTab !== tabN) return;
+    _enterTab59(tabN);
+  }); });
+}
+
+function _enterTab59(n){
+  const inits = {
+    1:initTab1,2:initTab2,3:initTab3,4:initTab4,5:initTab5,
+    6:initTab6,7:initTab7,8:initTab8,9:initTab9,10:initTab10,
+    11:initTab11,12:initTab12,13:initTab13,14:initTab14,15:initTab15
+  };
+  if(inits[n]) tabHandlers[n] = inits[n]();
 }
 
 
 // ─── Tab 1: Monte Carlo Metropolis on 2D EA spin glass ───────────────────────
-let raf1 = null;
 window.paused1 = false;
 
 function initTab1() {
   const cv = document.getElementById('cv1');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
-  cv.style.width = '820px'; cv.style.height = '440px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 440;
+  const {W,H,ctx} = _fitCanvas59(cv, 820, 440);
+  if(!ctx) return {stop(){}};
 
   const N = 30; // grid size N×N
   let spins = new Float32Array(N * N);
@@ -440,29 +720,25 @@ function initTab1() {
       while (mcSkip >= 1) { mcStep(); mcSkip -= 1; }
     }
     draw();
-    raf1 = requestAnimationFrame(loop);
+    T_RAF[1] = requestAnimationFrame(loop);
   }
 
   document.getElementById('resetBtn').onclick = () => { init(); };
   document.getElementById('disSlider').addEventListener('change', init, {signal:_tabSignal.signal});
   window.paused1 = false;
+  const pb1 = document.getElementById('pauseBtn');
+  if(pb1) pb1.textContent = '⏸ Pause';
 
-  if (raf1) cancelAnimationFrame(raf1);
+  if (T_RAF[1]) cancelAnimationFrame(T_RAF[1]);
   loop();
-  return { stop() { cancelAnimationFrame(raf1); raf1 = null; window.paused1 = false; } };
+  return { stop() { if(T_RAF[1]) cancelAnimationFrame(T_RAF[1]); T_RAF[1]=null; } };
 }
 
 // ─── Tab 2: Energy Landscape ──────────────────────────────────────────────────
-let raf2 = null;
-
 function initTab2() {
   const cv = document.getElementById('cv2');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
-  cv.style.width = '820px'; cv.style.height = '440px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 440;
+  const {W,H,ctx} = _fitCanvas59(cv, 820, 440);
+  if(!ctx) return {stop(){}};
 
   // Generate rough landscape using sum of Gaussians
   function makeRng(seed) {
@@ -660,36 +936,37 @@ function initTab2() {
     ctx.fillStyle='#9999bb'; ctx.font='12px sans-serif'; ctx.textAlign='left';
     ctx.fillText('Energy landscape (blue=valley, red=barrier)', dims.pad.l, dims.pad.t-5);
     drawParticles();
-    raf2 = requestAnimationFrame(loop2);
+    T_RAF[2] = requestAnimationFrame(loop2);
   }
-  if (raf2) cancelAnimationFrame(raf2);
-  // Initialize cache
+  if (T_RAF[2]) cancelAnimationFrame(T_RAF[2]);
   landscapeDirty = true;
   window.paused2 = false;
+  const pb2 = document.getElementById('pauseBtn2');
+  if(pb2) pb2.textContent = '⏸ Pause';
+  // auto-drop a particle so landscape is not static
+  if(particles.length===0) addParticle();
   loop2();
-  return { stop() { cancelAnimationFrame(raf2); raf2 = null; window.paused2 = false; } };
+  return { stop() { if(T_RAF[2]) cancelAnimationFrame(T_RAF[2]); T_RAF[2]=null; } };
 }
 
 // ─── Tab 3: Parisi P(q) overlap distribution ─────────────────────────────────
-let raf3 = null;
-
 function initTab3() {
   const cv = document.getElementById('cv3');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(820 * dpr); cv.height = Math.round(440 * dpr);
-  cv.style.width = '820px'; cv.style.height = '440px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const W = 820, H = 440;
+  const {W,H,ctx} = _fitCanvas59(cv, 820, 440);
+  if(!ctx) return {stop(){}};
+  window.paused3 = false;
 
-  // Cooling animation
-  let pqAnimRunning = false, pqAnimT = 0;
+  // Cooling animation — auto-start for passive anim / autoplay
+  let pqAnimRunning = true, pqAnimT = 0;
   const pqBtn = document.getElementById('pqDemoBtn');
-  if (pqBtn) pqBtn.onclick = () => {
-    pqAnimRunning = !pqAnimRunning;
-    pqBtn.textContent = pqAnimRunning ? '⏸ Stop' : '▶ Animate T cooling';
-    if (pqAnimRunning) pqAnimT = 0;
-  };
+  if (pqBtn) {
+    pqBtn.textContent = '⏸ Stop';
+    pqBtn.onclick = () => {
+      pqAnimRunning = !pqAnimRunning;
+      pqBtn.textContent = pqAnimRunning ? '⏸ Stop' : '▶ Animate T cooling';
+      if (pqAnimRunning) pqAnimT = 0;
+    };
+  }
 
   // Annotation steps for the cooling animation
   const pqAnnotations = [
@@ -701,11 +978,11 @@ function initTab3() {
 
   function draw() {
     let tSliderVal;
-    if (pqAnimRunning) {
-      tSliderVal = Math.max(0.1, 1.4 - pqAnimT * 0.003);
+    if (pqAnimRunning && !window.paused3) {
+      tSliderVal = Math.max(0.1, 1.4 - pqAnimT * 0.003 * (window.animSpeed||1));
       document.getElementById('Tratio').value = tSliderVal;
       pqAnimT++;
-      if (tSliderVal <= 0.1) { pqAnimRunning = false; if(pqBtn)pqBtn.textContent='▶ Animate T cooling'; }
+      if (tSliderVal <= 0.1) { pqAnimT = 0; } // loop cooling for continuous anim
     }
     const t = +document.getElementById('Tratio').value;
     const m = +document.getElementById('parisiM').value;
@@ -828,7 +1105,7 @@ function initTab3() {
       if(ln3)ctx.fillText(ln3,tipX+8,ly3);
     }
 
-    raf3 = requestAnimationFrame(draw);
+    T_RAF[3] = requestAnimationFrame(draw);
   }
 
   [document.getElementById('Tratio'),
@@ -836,23 +1113,18 @@ function initTab3() {
    document.getElementById('showFM')
   ].forEach(el => el.addEventListener('input', draw, {signal:_tabSignal.signal}));
   document.getElementById('showFM').addEventListener('change', draw, {signal:_tabSignal.signal});
-  if (raf3) cancelAnimationFrame(raf3);
+  if (T_RAF[3]) cancelAnimationFrame(T_RAF[3]);
   draw();
-  return { stop() { cancelAnimationFrame(raf3); raf3 = null; } };
+  return { stop() { if(T_RAF[3]) cancelAnimationFrame(T_RAF[3]); T_RAF[3]=null; } };
 }
 
 // ─── Tab 4: Edwards-Anderson Model & Frustration ─────────────────────────────
-let raf4 = null;
 function initTab4() {
   const cv = document.getElementById('cv4');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const W = 560, H = 420;
-  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
-  cv.style.width = W+'px'; cv.style.height = H+'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const {W,H,ctx} = _fitCanvas59(cv, 560, 420);
+  if(!ctx) return {stop(){}};
 
-  let N, spins, Jh, Jv, mcs, paused4 = false;
+  let N, spins, Jh, Jv, mcs;
   function rng2(s){ let st=s; return ()=>{st=(st*1664525+1013904223)>>>0;return st/0xffffffff;}; }
   let rr = rng2(42);
 
@@ -976,33 +1248,34 @@ function initTab4() {
   }
 
   function loop4(){
-    if(!paused4){ mcStep4(); mcStep4(); }
+    if(!window.paused4){
+      const steps = Math.max(1, Math.round(2*(window.animSpeed||1)));
+      for(let s=0;s<steps;s++) mcStep4();
+    }
     draw4();
-    raf4=requestAnimationFrame(loop4);
+    T_RAF[4]=requestAnimationFrame(loop4);
   }
 
   document.getElementById('ea_reset').onclick=()=>{setup();};
   document.getElementById('ea_N').addEventListener('change',setup,{signal:_tabSignal.signal});
   document.getElementById('ea_p').addEventListener('change',setup,{signal:_tabSignal.signal});
   window.paused4 = false;
+  const pb4=document.getElementById('ea_pause'); if(pb4) pb4.textContent='⏸ Pause';
 
-  if(raf4) cancelAnimationFrame(raf4);
+  if(T_RAF[4]) cancelAnimationFrame(T_RAF[4]);
   loop4();
-  return { stop(){ cancelAnimationFrame(raf4); raf4=null; window.paused4=false; } };
+  return { stop(){ if(T_RAF[4]) cancelAnimationFrame(T_RAF[4]); T_RAF[4]=null; } };
 }
 
 // ─── Tab 5: Replica Theory & Parisi RSB ──────────────────────────────────────
-let raf5 = null;
 function initTab5() {
   const cv = document.getElementById('cv5');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const W=560, H=420;
-  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
-  cv.style.width=W+'px'; cv.style.height=H+'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const {W,H,ctx} = _fitCanvas59(cv, 560, 420);
+  if(!ctx) return {stop(){}};
+  window.paused5 = false;
 
-  let rsbAnimRunning=false, rsbAnimK=1;
+  let rsbAnimRunning=true, rsbAnimK=1;
+  document.getElementById('rsb_anim').textContent='⏸ Stop';
   document.getElementById('rsb_anim').onclick=()=>{
     rsbAnimRunning=!rsbAnimRunning;
     document.getElementById('rsb_anim').textContent=rsbAnimRunning?'⏸ Stop':'▶ Animate RSB levels';
@@ -1017,9 +1290,9 @@ function initTab5() {
   }
 
   function draw5(){
-    if(rsbAnimRunning){
+    if(rsbAnimRunning && !window.paused5){
       rsbAnimK+=0.02*(window.animSpeed || 1);
-      if(rsbAnimK>=4.5){ rsbAnimRunning=false; document.getElementById('rsb_anim').textContent='▶ Animate RSB levels'; }
+      if(rsbAnimK>=4.5){ rsbAnimK=1; }
       document.getElementById('rsb_k').value=Math.min(4,Math.round(rsbAnimK));
       document.getElementById('rsb_kv').textContent=Math.min(4,Math.round(rsbAnimK));
     }
@@ -1139,27 +1412,22 @@ function initTab5() {
     }
 
     document.getElementById('ro5').textContent=`RSB level: ${Math.round(k)}   T/Tg: ${T.toFixed(2)}   q_max: ${Math.max(0,1-T*0.8).toFixed(3)}   Pure states (tree leaves): ${Math.pow(2,Math.round(k))}`;
-    raf5=requestAnimationFrame(draw5);
+    T_RAF[5]=requestAnimationFrame(draw5);
   }
 
   ['rsb_k','rsb_T','rsb_showQ'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{},{signal:_tabSignal.signal}));
-  if(raf5) cancelAnimationFrame(raf5);
+  if(T_RAF[5]) cancelAnimationFrame(T_RAF[5]);
   draw5();
-  return { stop(){ cancelAnimationFrame(raf5); raf5=null; } };
+  return { stop(){ if(T_RAF[5]) cancelAnimationFrame(T_RAF[5]); T_RAF[5]=null; } };
 }
 
 // ─── Tab 6: Hopfield Network ──────────────────────────────────────────────────
-let raf6 = null;
 function initTab6() {
   const cv = document.getElementById('cv6');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const W=560, H=420;
-  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
-  cv.style.width=W+'px'; cv.style.height=H+'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const {W,H,ctx} = _fitCanvas59(cv, 560, 420);
+  if(!ctx) return {stop(){}};
 
-  let N, p, patterns, W_mat, state, target, mcs6=0, paused6=false, overlapHistory=[];
+  let N, p, patterns, W_mat, state, target, mcs6=0, overlapHistory=[];
   function rng6(s){let st=s;return()=>{st=(st*1664525+1013904223)>>>0;return st/0xffffffff;};}
   let rr6=rng6(999);
 
@@ -1214,11 +1482,14 @@ function initTab6() {
 
   document.getElementById('hf_store').onclick=()=>{ setup6(); };
   window.paused6 = false;
+  const pb6=document.getElementById('hf_pause'); if(pb6) pb6.textContent='⏸ Pause';
 
-  if(raf6) cancelAnimationFrame(raf6);
+  if(T_RAF[6]) cancelAnimationFrame(T_RAF[6]);
   function animLoop6(){
-    if(!window.paused6){mcStep6();mcStep6();}
-    // do drawing inline
+    if(!window.paused6){
+      const steps=Math.max(1,Math.round(2*(window.animSpeed||1)));
+      for(let s=0;s<steps;s++) mcStep6();
+    }
     ctx.clearRect(0,0,W,H); ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
     const sqN=Math.ceil(Math.sqrt(N));
     const cellSz=Math.min(Math.floor(180/sqN),12);
@@ -1270,24 +1541,19 @@ function initTab6() {
     const E=totalE6();
     document.getElementById('hf_Tv').textContent=(+document.getElementById('hf_T').value).toFixed(2);
     document.getElementById('ro6').textContent=`α=p/N=${alpha.toFixed(3)}  (α_c=0.138)   m₁=${m0.toFixed(3)}   E/N=${E.toFixed(3)}   ${alpha>alphac?'ABOVE CAPACITY (spurious states!)':'Below capacity (retrieval ok)'}`;
-    raf6=requestAnimationFrame(animLoop6);
+    T_RAF[6]=requestAnimationFrame(animLoop6);
   }
   animLoop6();
-  return { stop(){ cancelAnimationFrame(raf6); raf6=null; } };
+  return { stop(){ if(T_RAF[6]) cancelAnimationFrame(T_RAF[6]); T_RAF[6]=null; } };
 }
 
 // ─── Tab 7: Simulated Annealing / TSP ────────────────────────────────────────
-let raf7 = null;
 function initTab7() {
   const cv = document.getElementById('cv7');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const W=560, H=420;
-  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
-  cv.style.width=W+'px'; cv.style.height=H+'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const {W,H,ctx} = _fitCanvas59(cv, 560, 420);
+  if(!ctx) return {stop(){}};
 
-  let cities=[], tour=[], T_ann=10, step=0, running=false, best=Infinity, bestTour=[];
+  let cities=[], tour=[], T_ann=10, step=0, running=true, best=Infinity, bestTour=[];
   let energyHistory=[], THistory=[];
   function rng7(s){let st=s;return()=>{st=(st*1664525+1013904223)>>>0;return st/0xffffffff;};}
   let rr7=rng7(77);
@@ -1301,14 +1567,14 @@ function initTab7() {
     rr7=rng7(Date.now()&0xffff);
     cities=[]; tour=[];
     const margin=30;
-    for(let i=0;i<n;i++) cities.push({x:margin+rr7()*(280-2*margin), y:margin+rr7()*(H*0.6-2*margin)});
+    const mapW=W*0.55, mapH=H*0.55;
+    for(let i=0;i<n;i++) cities.push({x:margin+rr7()*(mapW-2*margin), y:margin+rr7()*(mapH-2*margin)});
     for(let i=0;i<n;i++) tour.push(i);
-    // Shuffle tour
     for(let i=n-1;i>0;i--){ const j=Math.floor(rr7()*(i+1)); [tour[i],tour[j]]=[tour[j],tour[i]]; }
     T_ann=+document.getElementById('tsp_T0').value;
-    step=0; running=false; best=tourLen(tour); bestTour=[...tour];
+    step=0; running=true; best=tourLen(tour); bestTour=[...tour];
     energyHistory=[]; THistory=[];
-    document.getElementById('tsp_run').textContent='▶ Anneal';
+    document.getElementById('tsp_run').textContent='⏸ Pause';
   }
   setupTSP();
 
@@ -1316,7 +1582,7 @@ function initTab7() {
     const sched=document.getElementById('tsp_sched').value;
     const T0=+document.getElementById('tsp_T0').value;
     const maxSteps=5000;
-    if(T_ann<0.001){ running=false; document.getElementById('tsp_run').textContent='▶ Anneal'; return; }
+    if(T_ann<0.001){ T_ann=+document.getElementById('tsp_T0').value; step=0; return; }
     // 2-opt move: reverse a segment
     const n=tour.length;
     const i=Math.floor(rr7()*n);
@@ -1345,7 +1611,10 @@ function initTab7() {
 
   function drawTSP(){
     ctx.clearRect(0,0,W,H); ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
-    if(running) for(let k=0;k<8;k++) annealStep();
+    if(running){
+      const steps=Math.max(2,Math.round(8*(window.animSpeed||1)));
+      for(let k=0;k<steps;k++) annealStep();
+    }
 
     const mapH=H*0.55, mapW=W*0.55;
     // City map
@@ -1425,32 +1694,29 @@ function initTab7() {
     const L=tourLen(tour);
     document.getElementById('tsp_T0v').textContent=(+document.getElementById('tsp_T0').value).toFixed(0);
     document.getElementById('ro7').textContent=`Tour: ${L.toFixed(2)}   T: ${T_ann.toFixed(4)}   Step: ${step}   Best: ${best.toFixed(2)}`;
-    raf7=requestAnimationFrame(drawTSP);
+    T_RAF[7]=requestAnimationFrame(drawTSP);
   }
 
   document.getElementById('tsp_run').onclick=()=>{
     running=!running;
-    document.getElementById('tsp_run').textContent=running?'⏸ Pause':'▶ Anneal';
+    document.getElementById('tsp_run').textContent=running?'⏸ Pause':'▶ Play';
     if(running){ T_ann=+document.getElementById('tsp_T0').value; step=0; energyHistory=[]; THistory=[]; }
   };
   document.getElementById('tsp_reset').onclick=()=>{ setupTSP(); };
   document.getElementById('tsp_N').addEventListener('change',setupTSP,{signal:_tabSignal.signal});
 
-  if(raf7) cancelAnimationFrame(raf7);
+  if(T_RAF[7]) cancelAnimationFrame(T_RAF[7]);
   drawTSP();
-  return { stop(){ cancelAnimationFrame(raf7); raf7=null; } };
+  return { stop(){ if(T_RAF[7]) cancelAnimationFrame(T_RAF[7]); T_RAF[7]=null; } };
 }
 
 // ─── Tab 8: SK Model & Mean-Field Theory ─────────────────────────────────────
-let raf8 = null;
 function initTab8() {
   const cv = document.getElementById('cv8');
-  const ctx = cv.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const W=560, H=420;
-  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
-  cv.style.width=W+'px'; cv.style.height=H+'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const fit8 = _fitCanvas59(cv, 560, 420);
+  let W=fit8.W, H=fit8.H; const ctx=fit8.ctx;
+  if(!ctx) return {stop(){}};
+  let skPhase=0;
 
   // Gauss-Hermite quadrature points/weights (n=20)
   const ghX=[
@@ -1492,6 +1758,9 @@ function initTab8() {
   }
 
   function draw8(){
+    const fit=_fitCanvas59(cv,560,420); W=fit.W; H=fit.H;
+    if(!window.paused8) skPhase += 0.01*(window.animSpeed||1);
+    // subtle animated T/h marker pulse even when static-ish
     const T=+document.getElementById('sk_T').value;
     const h=+document.getElementById('sk_h').value;
     const view=document.getElementById('sk_view').value;
@@ -1662,31 +1931,1038 @@ function initTab8() {
       ctx.fillText('Temperature T/J',pad.l+pW/2,H-6);
       ctx.save();ctx.translate(14,pad.t+pH/2);ctx.rotate(-Math.PI/2);
       ctx.fillText('Field h/J',0,0);ctx.restore();
-      // Current T,h marker
-      ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(tToX(T),hToY(h),6,0,2*Math.PI); ctx.fill();
+      // Current T,h marker with pulse
+      const pr=6+2*Math.sin(skPhase*3);
+      ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(tToX(T),hToY(h),pr,0,2*Math.PI); ctx.fill();
       ctx.strokeStyle='#ff88cc'; ctx.lineWidth=1.5; ctx.stroke();
       const qStar=selfConsistencyQ(T,h);
       const phase=qStar>0.02&&T<1?(h>0.1?'SG + field':'Spin glass'):'Paramagnet';
       document.getElementById('ro8').textContent=`T=${T.toFixed(2)}   h=${h.toFixed(2)}   q*=${qStar.toFixed(4)}   Phase: ${phase}`;
     }
 
-    if (!window.paused8) raf8=requestAnimationFrame(draw8);
+    T_RAF[8]=requestAnimationFrame(draw8);
   }
 
   ['sk_T','sk_h','sk_view'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{},{signal:_tabSignal.signal}));
   window.paused8 = false;
-  if(raf8) cancelAnimationFrame(raf8);
+  const pb8=document.getElementById('pauseBtn8'); if(pb8) pb8.textContent='⏸ Pause';
+  if(T_RAF[8]) cancelAnimationFrame(T_RAF[8]);
   draw8();
-  return { stop(){ cancelAnimationFrame(raf8); raf8=null; window.paused8=false; } };
+  return { stop(){ if(T_RAF[8]) cancelAnimationFrame(T_RAF[8]); T_RAF[8]=null; } };
 }
 
-tabHandlers[1] = initTab1();
+// ═══════════════════════════════════════════════════════════════════════════
+// TABS 9–15 — FRONTIER (TAP, cavity, aging, QA, p-spin, Gardner, RBM)
+// ═══════════════════════════════════════════════════════════════════════════
 
-window.animSpeed=1;
+function _rng59(seed){ let s=seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/0xffffffff; }; }
+
+// ─── Tab 9: TAP equations ────────────────────────────────────────────────────
+function initTab9(){
+  const cv=document.getElementById('cv9');
+  let N=40, m, J, q=0, iter=0, maxdm=0;
+  let rr=_rng59(42);
+  window.paused9=false;
+  const pb=document.getElementById('pauseBtn9'); if(pb) pb.textContent='⏸ Pause';
+
+  function setup(){
+    N=+document.getElementById('tap_N').value;
+    document.getElementById('tap_Nv').textContent=N;
+    rr=_rng59((Date.now()&0xffff)||42);
+    m=new Float64Array(N);
+    J=new Float64Array(N*N);
+    const inv=1/Math.sqrt(N);
+    for(let i=0;i<N;i++){
+      m[i]=(rr()-0.5)*0.4;
+      for(let j=i+1;j<N;j++){
+        const v=(rr()*2-1)*inv; // uniform approx to N(0,1/N)
+        J[i*N+j]=v; J[j*N+i]=v;
+      }
+    }
+    iter=0; q=0;
+  }
+  setup();
+  document.getElementById('tap_reset').onclick=setup;
+  document.getElementById('tap_N').addEventListener('change',setup,{signal:_tabSignal.signal});
+
+  function tapStep(){
+    const T=Math.max(0.05,+document.getElementById('tap_T').value);
+    const h=+document.getElementById('tap_h').value;
+    const beta=1/T;
+    q=0; for(let i=0;i<N;i++) q+=m[i]*m[i]; q/=N;
+    const mNew=new Float64Array(N);
+    maxdm=0;
+    for(let i=0;i<N;i++){
+      let field=h;
+      for(let j=0;j<N;j++) if(i!==j) field+=J[i*N+j]*m[j];
+      // Onsager reaction: −β(1−q)m_i
+      field -= beta*(1-q)*m[i];
+      mNew[i]=Math.tanh(beta*field);
+      maxdm=Math.max(maxdm, Math.abs(mNew[i]-m[i]));
+    }
+    // damping for stability
+    for(let i=0;i<N;i++) m[i]=0.6*mNew[i]+0.4*m[i];
+    iter++;
+  }
+
+  function draw(){
+    const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[9]=requestAnimationFrame(draw);return;}
+    if(!window.paused9){
+      const steps=Math.max(1,Math.round(2*(window.animSpeed||1)));
+      for(let s=0;s<steps;s++) tapStep();
+    }
+    document.getElementById('tap_Tv').textContent=(+document.getElementById('tap_T').value).toFixed(2);
+    document.getElementById('tap_hv').textContent=(+document.getElementById('tap_h').value).toFixed(2);
+
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const pad={l:50,r:20,t:28,b:36};
+    // left: magnetization bars
+    const leftW=W*0.48;
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('TAP magnetizations m_i', pad.l, 16);
+    const barH=Math.max(2,(H-pad.t-pad.b)/N);
+    for(let i=0;i<N;i++){
+      const y=pad.t+i*barH;
+      const mid=pad.l+(leftW-pad.l)/2;
+      const bw2=Math.abs(m[i])*(leftW-pad.l)*0.45;
+      ctx.fillStyle=m[i]>=0?'#ff88cc':'#6688ff';
+      if(m[i]>=0) ctx.fillRect(mid,y,bw2,Math.max(1,barH-1));
+      else ctx.fillRect(mid-bw2,y,bw2,Math.max(1,barH-1));
+    }
+    ctx.strokeStyle='#333355'; ctx.beginPath();
+    ctx.moveTo(pad.l+(leftW-pad.l)/2, pad.t); ctx.lineTo(pad.l+(leftW-pad.l)/2, H-pad.b); ctx.stroke();
+
+    // right: q history + free-energy-ish
+    const rx=leftW+10, rw=W-rx-pad.r, rh=H-pad.t-pad.b;
+    ctx.fillStyle='rgba(15,15,40,0.9)'; ctx.fillRect(rx,pad.t,rw,rh);
+    ctx.fillStyle='#88ccff'; ctx.font='12px sans-serif';
+    ctx.fillText('Order parameter q = ⟨m²⟩', rx+8, pad.t+16);
+    // q bar
+    const qClamped=Math.max(0,Math.min(1,q));
+    ctx.fillStyle='#222244'; ctx.fillRect(rx+20, pad.t+40, rw-40, 18);
+    ctx.fillStyle='#ff88cc'; ctx.fillRect(rx+20, pad.t+40, (rw-40)*qClamped, 18);
+    ctx.fillStyle='#ccccee'; ctx.font='12px monospace';
+    ctx.fillText('q = '+q.toFixed(4), rx+20, pad.t+78);
+
+    // histogram of m
+    const bins=20, hist=new Array(bins).fill(0);
+    for(let i=0;i<N;i++){ const b=Math.min(bins-1, Math.floor((m[i]+1)/2*bins)); hist[b]++; }
+    const hmax=Math.max(...hist,1);
+    const hy0=H-pad.b-10, hH=rh*0.45;
+    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
+    ctx.fillText('P(m) histogram', rx+8, hy0-hH-8);
+    for(let b=0;b<bins;b++){
+      const x=rx+20+b*((rw-40)/bins);
+      const bh=(hist[b]/hmax)*hH;
+      ctx.fillStyle='#66aaff';
+      ctx.fillRect(x, hy0-bh, (rw-40)/bins-1, bh);
+    }
+
+    const T=+document.getElementById('tap_T').value;
+    const phase=T>=1?'paramagnetic (unique FP)':(q>0.05?'spin glass (many TAP states)':'critical');
+    ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif';
+    ctx.fillText('Phase: '+phase, rx+8, pad.t+100);
+    ctx.fillStyle='#8888aa'; ctx.font='11px sans-serif';
+    ctx.fillText('Onsager term −β(1−q)m corrects naive MF', rx+8, pad.t+118);
+
+    document.getElementById('ro9').textContent=`q=${q.toFixed(4)}   max|Δm|=${maxdm.toFixed(5)}   iter=${iter}   T=${T.toFixed(2)}   ${phase}`;
+    T_RAF[9]=requestAnimationFrame(draw);
+  }
+  if(T_RAF[9]) cancelAnimationFrame(T_RAF[9]);
+  draw();
+  return {stop(){ if(T_RAF[9]) cancelAnimationFrame(T_RAF[9]); T_RAF[9]=null; }};
+}
+
+// ─── Tab 10: Cavity method / BP ──────────────────────────────────────────────
+function initTab10(){
+  const cv=document.getElementById('cv10');
+  window.paused10=false;
+  const pb=document.getElementById('pauseBtn10'); if(pb) pb.textContent='⏸ Pause';
+  let N=24, edges=[], msgs={}, pos=[], iter=0, qcav=0;
+  let rr=_rng59(7);
+
+  function setup(){
+    N=+document.getElementById('cav_N').value;
+    const c=+document.getElementById('cav_c').value;
+    document.getElementById('cav_Nv').textContent=N;
+    document.getElementById('cav_cv').textContent=c;
+    rr=_rng59((Date.now()&0xffff)||7);
+    // random regular-ish graph
+    edges=[];
+    const deg=new Array(N).fill(0);
+    let attempts=0;
+    while(edges.length < Math.floor(N*c/2) && attempts<N*c*20){
+      attempts++;
+      const i=Math.floor(rr()*N), j=Math.floor(rr()*N);
+      if(i===j||deg[i]>=c||deg[j]>=c) continue;
+      if(edges.some(e=>(e.a===i&&e.b===j)||(e.a===j&&e.b===i))) continue;
+      const J=rr()<0.5?1:-1;
+      edges.push({a:i,b:j,J});
+      deg[i]++; deg[j]++;
+    }
+    msgs={};
+    edges.forEach(e=>{
+      msgs[e.a+'>'+e.b]=0; msgs[e.b+'>'+e.a]=0;
+    });
+    pos=[];
+    for(let i=0;i<N;i++){
+      const ang=2*Math.PI*i/N - Math.PI/2;
+      pos.push({x:Math.cos(ang), y:Math.sin(ang)});
+    }
+    iter=0;
+  }
+  setup();
+  document.getElementById('cav_reset').onclick=setup;
+  ['cav_N','cav_c'].forEach(id=>document.getElementById(id).addEventListener('change',setup,{signal:_tabSignal.signal}));
+
+  function u(h,J,beta){
+    const th=Math.tanh(beta*h), tJ=Math.tanh(beta*J);
+    const z=tJ*th;
+    if(Math.abs(z)>0.999) return Math.sign(z)*5;
+    return Math.atanh(z)/beta;
+  }
+
+  function bpStep(){
+    const T=Math.max(0.05,+document.getElementById('cav_T').value);
+    const beta=1/T;
+    const neigh=Array.from({length:N},()=>[]);
+    edges.forEach(e=>{ neigh[e.a].push(e); neigh[e.b].push(e); });
+    const newMsgs={};
+    edges.forEach(e=>{
+      // message a→b
+      let h=0;
+      neigh[e.a].forEach(ne=>{
+        const k=ne.a===e.a?ne.b:ne.a;
+        if(k===e.b) return;
+        h += u(msgs[k+'>'+e.a]||0, ne.J, beta);
+      });
+      newMsgs[e.a+'>'+e.b]=0.7*h+0.3*(msgs[e.a+'>'+e.b]||0);
+      // b→a
+      h=0;
+      neigh[e.b].forEach(ne=>{
+        const k=ne.a===e.b?ne.b:ne.a;
+        if(k===e.a) return;
+        h += u(msgs[k+'>'+e.b]||0, ne.J, beta);
+      });
+      newMsgs[e.b+'>'+e.a]=0.7*h+0.3*(msgs[e.b+'>'+e.a]||0);
+    });
+    msgs=newMsgs;
+    // cavity magnetizations
+    let q=0;
+    for(let i=0;i<N;i++){
+      let h=0;
+      neigh[i].forEach(ne=>{
+        const k=ne.a===i?ne.b:ne.a;
+        h += u(msgs[k+'>'+i]||0, ne.J, beta);
+      });
+      const mi=Math.tanh(beta*h);
+      q+=mi*mi;
+    }
+    qcav=q/N;
+    iter++;
+  }
+
+  function draw(){
+    const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[10]=requestAnimationFrame(draw);return;}
+    if(!window.paused10){
+      const steps=Math.max(1,Math.round(1*(window.animSpeed||1)));
+      for(let s=0;s<steps;s++) bpStep();
+    }
+    document.getElementById('cav_Tv').textContent=(+document.getElementById('cav_T').value).toFixed(2);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    const cx=W*0.38, cy=H*0.5, R=Math.min(W,H)*0.36;
+    // edges
+    edges.forEach(e=>{
+      const a=pos[e.a], b=pos[e.b];
+      const mag=Math.abs(msgs[e.a+'>'+e.b]||0)+Math.abs(msgs[e.b+'>'+e.a]||0);
+      ctx.strokeStyle=e.J>0?`rgba(100,140,255,${0.25+Math.min(0.7,mag*0.15)})`:`rgba(255,100,100,${0.25+Math.min(0.7,mag*0.15)})`;
+      ctx.lineWidth=1+Math.min(3,mag*0.5);
+      ctx.beginPath();
+      ctx.moveTo(cx+a.x*R, cy+a.y*R);
+      ctx.lineTo(cx+b.x*R, cy+b.y*R);
+      ctx.stroke();
+      // message arrow a→b (partial)
+      const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;
+      const msg=msgs[e.a+'>'+e.b]||0;
+      ctx.fillStyle='#ffcc44';
+      ctx.beginPath(); ctx.arc(cx+mx*R, cy+my*R, 2+Math.min(4,Math.abs(msg)), 0, Math.PI*2); ctx.fill();
+    });
+    // nodes
+    for(let i=0;i<N;i++){
+      const x=cx+pos[i].x*R, y=cy+pos[i].y*R;
+      ctx.fillStyle='#1a1a38'; ctx.strokeStyle='#ff88cc'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#aaaacc'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(String(i), x, y+3);
+    }
+
+    // right panel
+    const rx=W*0.72, rw=W*0.26;
+    ctx.fillStyle='rgba(12,12,35,0.95)'; ctx.fillRect(rx-8, 20, rw+16, H-40);
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Cavity BP', rx, 40);
+    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
+    ctx.fillText('Blue: FM bonds', rx, 62);
+    ctx.fillText('Red: AFM bonds', rx, 78);
+    ctx.fillText('Dots: |message|', rx, 94);
+    ctx.fillStyle='#88ccff'; ctx.font='12px monospace';
+    ctx.fillText('q_cav = '+qcav.toFixed(4), rx, 120);
+    ctx.fillText('iter  = '+iter, rx, 138);
+    const T=+document.getElementById('cav_T').value;
+    ctx.fillStyle=T<1?'#ffcc44':'#88ff88';
+    ctx.fillText(T<1?'RSB-prone T':'paramagnetic T', rx, 160);
+    ctx.fillStyle='#8888aa'; ctx.font='11px sans-serif';
+    const lines=['h_{i→j}=Σ u(h_{k→i},J)','tree-exact BP','SP = 1RSB surveys'];
+    lines.forEach((ln,i)=>ctx.fillText(ln, rx, 190+i*16));
+
+    document.getElementById('ro10').textContent=`edges=${edges.length}   q_cav=${qcav.toFixed(4)}   iter=${iter}   T=${T.toFixed(2)}`;
+    T_RAF[10]=requestAnimationFrame(draw);
+  }
+  if(T_RAF[10]) cancelAnimationFrame(T_RAF[10]);
+  draw();
+  return {stop(){ if(T_RAF[10]) cancelAnimationFrame(T_RAF[10]); T_RAF[10]=null; }};
+}
+
+// ─── Tab 11: Dynamical aging ─────────────────────────────────────────────────
+function initTab11(){
+  const cv=document.getElementById('cv11');
+  window.paused11=false;
+  const pb=document.getElementById('pauseBtn11'); if(pb) pb.textContent='⏸ Pause';
+  let N=60, spins, J, t=0, snap={}, C_hist=[], C_eq=[];
+  let rr=_rng59(99);
+
+  function setup(){
+    N=+document.getElementById('age_N').value;
+    document.getElementById('age_Nv').textContent=N;
+    rr=_rng59((Date.now()&0xffff)||99);
+    spins=new Int8Array(N);
+    for(let i=0;i<N;i++) spins[i]=rr()<0.5?1:-1;
+    J=new Float32Array(N*N);
+    const inv=1/Math.sqrt(N);
+    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){
+      const v=(rr()*2-1)*inv; J[i*N+j]=v; J[j*N+i]=v;
+    }
+    t=0; snap={}; C_hist=[]; C_eq=[];
+  }
+  setup();
+  document.getElementById('age_reset').onclick=setup;
+  document.getElementById('age_N').addEventListener('change',setup,{signal:_tabSignal.signal});
+
+  function mcStep(){
+    const T=Math.max(0.05,+document.getElementById('age_T').value);
+    for(let k=0;k<N;k++){
+      const i=Math.floor(rr()*N);
+      let h=0; for(let j=0;j<N;j++) if(j!==i) h+=J[i*N+j]*spins[j];
+      const dE=2*spins[i]*h;
+      if(dE<=0||rr()<Math.exp(-dE/T)) spins[i]*=-1;
+    }
+    t++;
+    const tw=+document.getElementById('age_tw').value;
+    if(t===tw){ snap=new Int8Array(spins); }
+    if(t>=tw && snap.length){
+      let c=0; for(let i=0;i<N;i++) c+=spins[i]*snap[i];
+      c/=N;
+      C_hist.push(c);
+      if(C_hist.length>240) C_hist.shift();
+      // equilibrium-like envelope ~ exp(-(t-tw)/tau) for comparison
+      const tau=T>=1?20:200/(1.01-T);
+      C_eq.push(Math.exp(-(t-tw)/tau));
+      if(C_eq.length>240) C_eq.shift();
+    }
+  }
+
+  function draw(){
+    const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[11]=requestAnimationFrame(draw);return;}
+    if(!window.paused11){
+      const steps=Math.max(1,Math.round(3*(window.animSpeed||1)));
+      for(let s=0;s<steps;s++) mcStep();
+    }
+    const T=+document.getElementById('age_T').value;
+    const tw=+document.getElementById('age_tw').value;
+    document.getElementById('age_Tv').textContent=T.toFixed(2);
+    document.getElementById('age_twv').textContent=String(tw);
+
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const pad={l:55,r:20,t:30,b:45};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('Two-time correlator C(t, t_w) after quench', pad.l, 18);
+
+    // axes
+    ctx.strokeStyle='#333355'; ctx.lineWidth=1;
+    ctx.strokeRect(pad.l, pad.t, pW, pH);
+    ctx.fillStyle='#666688'; ctx.font='11px monospace'; ctx.textAlign='center';
+    ctx.fillText('t − t_w  (MCS)', pad.l+pW/2, H-10);
+    ctx.save(); ctx.translate(14, pad.t+pH/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('C(t,t_w)', 0, 0); ctx.restore();
+
+    // C=0 and C=1 lines
+    [0,0.5,1].forEach(v=>{
+      const y=pad.t+(1-v)*pH;
+      ctx.strokeStyle='#1a1a38'; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pW,y); ctx.stroke();
+      ctx.fillStyle='#555577'; ctx.textAlign='right'; ctx.fillText(v.toFixed(1), pad.l-6, y+4);
+    });
+
+    if(C_hist.length>2){
+      // aging curve
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2; ctx.beginPath();
+      C_hist.forEach((c,i)=>{
+        const x=pad.l+(i/(C_hist.length-1))*pW;
+        const y=pad.t+(1-Math.max(-0.1,Math.min(1.05,c)))*pH;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      // FDT/eq comparison
+      ctx.strokeStyle='rgba(100,200,255,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+      ctx.beginPath();
+      C_eq.forEach((c,i)=>{
+        const x=pad.l+(i/(C_eq.length-1))*pW;
+        const y=pad.t+(1-c)*pH;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // spin strip
+    const stripY=pad.t+4;
+    for(let i=0;i<Math.min(N,80);i++){
+      ctx.fillStyle=spins[i]>0?'#ff88cc':'#223355';
+      ctx.fillRect(pad.l+pW-90+(i%20)*4, stripY+Math.floor(i/20)*4, 3, 3);
+    }
+
+    ctx.fillStyle='#ff88cc'; ctx.font='11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('aging C(t,t_w)', pad.l+8, pad.t+14);
+    ctx.fillStyle='#66aaff'; ctx.fillText('eq-like exp decay', pad.l+120, pad.t+14);
+    ctx.fillStyle=T<1?'#ffcc44':'#88ff88';
+    ctx.fillText(T<1?`T/Tg=${T.toFixed(2)} < 1 → aging / FDT violation`:`T/Tg=${T.toFixed(2)} ≥ 1 → equilibrium`, pad.l+8, H-pad.b+28);
+
+    const Clast=C_hist.length?C_hist[C_hist.length-1]:1;
+    const chiFDT=T>0?(1-Clast)/T:0;
+    document.getElementById('ro11').textContent=`C(t,tw)=${Clast.toFixed(3)}   χ_FDT≈${chiFDT.toFixed(3)}   t=${t}   tw=${tw}   ${t<tw?'waiting…':'measuring'}`;
+    T_RAF[11]=requestAnimationFrame(draw);
+  }
+  if(T_RAF[11]) cancelAnimationFrame(T_RAF[11]);
+  draw();
+  return {stop(){ if(T_RAF[11]) cancelAnimationFrame(T_RAF[11]); T_RAF[11]=null; }};
+}
+
+// ─── Tab 12: Quantum annealing ───────────────────────────────────────────────
+function initTab12(){
+  const cv=document.getElementById('cv12');
+  window.paused12=false;
+  const pb=document.getElementById('pauseBtn12'); if(pb) pb.textContent='⏸ Pause';
+  let N=10, J, s=0, spins, Ecl=0, Pgs=0, histE=[], histG=[], histP=[];
+  let rr=_rng59(123);
+
+  function setup(){
+    N=+document.getElementById('qa_N').value;
+    document.getElementById('qa_Nv').textContent=N;
+    const dis=+document.getElementById('qa_dis').value;
+    rr=_rng59((Date.now()&0xffff)||123);
+    J=new Float32Array(N*N);
+    for(let i=0;i<N;i++) for(let j=i+1;j<N;j++){
+      const v=rr()<dis?(rr()<0.5?1:-1):1;
+      J[i*N+j]=v; J[j*N+i]=v;
+    }
+    spins=new Int8Array(N);
+    for(let i=0;i<N;i++) spins[i]=1;
+    s=0; histE=[]; histG=[]; histP=[];
+  }
+  setup();
+  document.getElementById('qa_reset').onclick=setup;
+  document.getElementById('qa_N').addEventListener('change',setup,{signal:_tabSignal.signal});
+  document.getElementById('qa_dis').addEventListener('change',setup,{signal:_tabSignal.signal});
+
+  function classicalE(sp){
+    let E=0; for(let i=0;i<N;i++) for(let j=i+1;j<N;j++) E-=J[i*N+j]*sp[i]*sp[j];
+    return E;
+  }
+  function bestClassical(){
+    // greedy multi-start for small N
+    let best=Infinity, bestSp=null;
+    for(let trial=0;trial<40;trial++){
+      const sp=new Int8Array(N);
+      for(let i=0;i<N;i++) sp[i]=rr()<0.5?1:-1;
+      for(let it=0;it<N*3;it++){
+        let bi=-1,bdE=0;
+        for(let i=0;i<N;i++){
+          let h=0; for(let j=0;j<N;j++) if(j!==i) h+=J[i*N+j]*sp[j];
+          const dE=2*sp[i]*h;
+          if(dE<bdE){bdE=dE;bi=i;}
+        }
+        if(bi<0) break; sp[bi]*=-1;
+      }
+      const E=classicalE(sp);
+      if(E<best){best=E; bestSp=sp;}
+    }
+    return {E:best, sp:bestSp};
+  }
+
+  function annealStep(){
+    const tau=+document.getElementById('qa_tau').value;
+    s += (1/tau)*(window.animSpeed||1)*0.4;
+    if(s>1){ s=0; setup(); return; }
+    // schedule: A(s)=1-s, B(s)=s  (linear)
+    const Gamma=Math.max(0,1-s);
+    const B=s;
+    // effective classical dynamics with quantum-assisted flips: accept uphill with rate ~ Gamma
+    const T_eff=0.15+Gamma*1.5;
+    for(let k=0;k<N;k++){
+      const i=Math.floor(rr()*N);
+      let h=0; for(let j=0;j<N;j++) if(j!==i) h+=J[i*N+j]*spins[j];
+      const dE=2*spins[i]*h*B;
+      // tunneling boost: extra acceptance when Gamma large even for larger barriers (thin-barrier caricature)
+      const tunnel=Math.exp(-Math.abs(dE)/(T_eff+0.01))*Gamma;
+      if(dE<=0||rr()<Math.exp(-dE/Math.max(0.05,T_eff))+tunnel*0.3) spins[i]*=-1;
+    }
+    Ecl=classicalE(spins);
+    const gs=bestClassical();
+    // pseudo success: overlap with greedy GS
+    let ov=0; if(gs.sp) for(let i=0;i<N;i++) ov+=spins[i]*gs.sp[i];
+    Pgs=Math.max(0, ov/N);
+    // also compare energy
+    if(Ecl<=gs.E+0.5) Pgs=Math.max(Pgs, 0.7+0.3*Math.random());
+    histE.push(Ecl); histG.push(Gamma); histP.push(Pgs);
+    if(histE.length>200){ histE.shift(); histG.shift(); histP.shift(); }
+  }
+
+  function draw(){
+    const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[12]=requestAnimationFrame(draw);return;}
+    if(!window.paused12) annealStep();
+    document.getElementById('qa_tauv').textContent=String(+document.getElementById('qa_tau').value);
+    document.getElementById('qa_disv').textContent=(+document.getElementById('qa_dis').value).toFixed(2);
+
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const Gamma=Math.max(0,1-s);
+    // top: schedule
+    const pad={l:50,r:20,t:28,b:30};
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif';
+    ctx.fillText('Quantum annealing schedule & state', pad.l, 16);
+
+    // schedule plot
+    const sW=W-pad.l-pad.r, sH=H*0.28;
+    ctx.strokeStyle='#333355'; ctx.strokeRect(pad.l, pad.t, sW, sH);
+    ctx.strokeStyle='#66aaff'; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<=50;i++){
+      const ss=i/50, g=1-ss;
+      const x=pad.l+ss*sW, y=pad.t+(1-g)*sH;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.strokeStyle='#ff88cc'; ctx.beginPath();
+    for(let i=0;i<=50;i++){
+      const ss=i/50;
+      const x=pad.l+ss*sW, y=pad.t+(1-ss)*sH;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // current s
+    ctx.strokeStyle='#ffcc44'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(pad.l+s*sW, pad.t); ctx.lineTo(pad.l+s*sW, pad.t+sH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#66aaff'; ctx.font='11px sans-serif';
+    ctx.fillText('A(s)=Γ (transverse)', pad.l+8, pad.t+14);
+    ctx.fillStyle='#ff88cc'; ctx.fillText('B(s) (problem)', pad.l+140, pad.t+14);
+
+    // spins
+    const sy=pad.t+sH+30;
+    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
+    ctx.fillText('σ^z configuration', pad.l, sy-6);
+    const cell=Math.min(28, (sW)/N);
+    for(let i=0;i<N;i++){
+      ctx.fillStyle=spins[i]>0?'#ff88cc':'#4455aa';
+      ctx.fillRect(pad.l+i*cell, sy, cell-2, 22);
+    }
+
+    // energy / P history
+    const py=sy+40, pH=H-py-pad.b;
+    ctx.strokeStyle='#333355'; ctx.strokeRect(pad.l, py, sW, pH);
+    if(histE.length>2){
+      const emin=Math.min(...histE), emax=Math.max(...histE);
+      ctx.strokeStyle='#ffcc44'; ctx.lineWidth=1.5; ctx.beginPath();
+      histE.forEach((e,i)=>{
+        const x=pad.l+(i/(histE.length-1))*sW;
+        const y=py+(1-(e-emin)/(emax-emin+1e-6))*pH;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.strokeStyle='#88ff88'; ctx.beginPath();
+      histP.forEach((p,i)=>{
+        const x=pad.l+(i/(histP.length-1))*sW;
+        const y=py+(1-p)*pH;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    }
+    ctx.fillStyle='#ffcc44'; ctx.font='11px sans-serif';
+    ctx.fillText('E_classical', pad.l+8, py+14);
+    ctx.fillStyle='#88ff88'; ctx.fillText('P ~ GS overlap', pad.l+100, py+14);
+
+    document.getElementById('ro12').textContent=`s=${s.toFixed(3)}   Γ=${Gamma.toFixed(3)}   E_cl=${Ecl.toFixed(2)}   P_gs≈${Pgs.toFixed(3)}   N=${N}`;
+    T_RAF[12]=requestAnimationFrame(draw);
+  }
+  if(T_RAF[12]) cancelAnimationFrame(T_RAF[12]);
+  draw();
+  return {stop(){ if(T_RAF[12]) cancelAnimationFrame(T_RAF[12]); T_RAF[12]=null; }};
+}
+
+// ─── Tab 13: p-spin spherical ────────────────────────────────────────────────
+function initTab13(){
+  const cv=document.getElementById('cv13');
+  window.paused13=false;
+  const pb=document.getElementById('pauseBtn13'); if(pb) pb.textContent='⏸ Pause';
+  let tAnim=0, qDyn=1;
+
+  // Crisanti-Sommers-like temperatures (schematic for p>=3)
+  function temps(p){
+    // schematic analytic-ish values
+    const Td = p===2?1.0: (0.6 + 0.15*(p-3));
+    const Ts = Td * (0.85 - 0.03*(p-3));
+    const TK = Ts * 0.75;
+    return {Td: Math.max(0.2,Td), Ts:Math.max(0.15,Ts), TK:Math.max(0.1,TK)};
+  }
+
+  function draw(){
+    const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[13]=requestAnimationFrame(draw);return;}
+    if(!window.paused13) tAnim += 0.02*(window.animSpeed||1);
+    const p=+document.getElementById('ps_p').value;
+    const T=+document.getElementById('ps_T').value;
+    const view=document.getElementById('ps_view').value;
+    document.getElementById('ps_pv').textContent=String(p);
+    document.getElementById('ps_Tv').textContent=T.toFixed(2);
+    const {Td,Ts,TK}=temps(p);
+
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    const pad={l:55,r:24,t:32,b:42};
+    const pW=W-pad.l-pad.r, pH=H-pad.t-pad.b;
+
+    if(view==='phase'){
+      ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif';
+      ctx.fillText(`Spherical ${p}-spin phase diagram (schematic RFOT)`, pad.l, 18);
+      // T axis horizontal, complexity/phase vertical regions
+      ctx.strokeStyle='#333355'; ctx.strokeRect(pad.l,pad.t,pW,pH);
+      const Tmax=1.5;
+      function tX(tt){return pad.l+(tt/Tmax)*pW;}
+      // regions
+      const phases=[
+        {t0:0,t1:TK,col:'rgba(180,60,120,0.45)',lab:'Ideal glass (Σ=0)'},
+        {t0:TK,t1:Ts,col:'rgba(200,100,60,0.4)',lab:'1RSB glass (eq.)'},
+        {t0:Ts,t1:Td,col:'rgba(255,200,80,0.28)',lab:'Metastable (dyn. arrested)'},
+        {t0:Td,t1:Tmax,col:'rgba(40,80,140,0.35)',lab:'Ergodic liquid'},
+      ];
+      phases.forEach(ph=>{
+        ctx.fillStyle=ph.col;
+        ctx.fillRect(tX(ph.t0), pad.t, tX(ph.t1)-tX(ph.t0), pH);
+        ctx.fillStyle='#ddddee'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+        ctx.fillText(ph.lab, (tX(ph.t0)+tX(ph.t1))/2, pad.t+pH/2);
+      });
+      // critical lines
+      [[Td,'T_d'],[Ts,'T_s'],[TK,'T_K']].forEach(([tt,lab])=>{
+        ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(tX(tt),pad.t); ctx.lineTo(tX(tt),pad.t+pH); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='#ffcc44'; ctx.font='11px monospace'; ctx.textAlign='center';
+        ctx.fillText(lab, tX(tt), pad.t+pH+16);
+      });
+      // current T marker
+      const pulse=4+2*Math.sin(tAnim*3);
+      ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(tX(T), pad.t+pH*0.2, pulse,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#ff88cc'; ctx.stroke();
+      ctx.fillStyle='#666688'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('Temperature T', pad.l+pW/2, H-8);
+    } else if(view==='comp'){
+      ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('Complexity Σ(f) of metastable states', pad.l, 18);
+      ctx.strokeStyle='#333355'; ctx.strokeRect(pad.l,pad.t,pW,pH);
+      // schematic parabola-like complexity
+      ctx.strokeStyle='#ff88cc'; ctx.lineWidth=2; ctx.beginPath();
+      for(let i=0;i<=100;i++){
+        const f=i/100; // free energy density scaled
+        // Σ peaks between f_min and f_th
+        const f0=0.2, f1=0.85;
+        let sig=0;
+        if(f>=f0&&f<=f1){
+          const u=(f-f0)/(f1-f0);
+          sig=4*u*(1-u)* (T<Td?1:0.15);
+        }
+        const x=pad.l+f*pW, y=pad.t+(1-sig)*pH;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
+      ctx.fillText('Σ=0 at Kauzmann threshold; max at threshold states', pad.l+8, pad.t+16);
+      ctx.fillStyle='#666688'; ctx.textAlign='center';
+      ctx.fillText('free-energy density f', pad.l+pW/2, H-8);
+    } else {
+      // dynamics q(t)
+      ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('Correlation q(t)=⟨s(t)·s(0)⟩/N  (Langevin caricature)', pad.l, 18);
+      if(!window.paused13){
+        // schematic MCT dynamics
+        const qeq = T>=Td?0: Math.max(0.2, 1-T/Td);
+        const tau = T>=Td? 8: 80/(Math.max(0.05,Td-T));
+        const tt=tAnim*15;
+        qDyn = qeq + (1-qeq)*Math.exp(-tt/tau) + (T<Td?0.15*Math.exp(-tt/(tau*5)):0);
+      }
+      ctx.strokeStyle='#333355'; ctx.strokeRect(pad.l,pad.t,pW,pH);
+      // draw curve history using formula over window
+      ctx.strokeStyle='#88ccff'; ctx.lineWidth=2; ctx.beginPath();
+      for(let i=0;i<=100;i++){
+        const tt=i/100*80;
+        const qeq = T>=Td?0: Math.max(0.2, 1-T/Td);
+        const tau = T>=Td? 8: 80/(Math.max(0.05,Td-T));
+        const q = qeq + (1-qeq)*Math.exp(-tt/tau) + (T<Td?0.12*Math.exp(-tt/(tau*6)):0);
+        const x=pad.l+(i/100)*pW, y=pad.t+(1-q)*pH;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      // plateau line
+      if(T<Td){
+        const qeq=Math.max(0.2,1-T/Td);
+        ctx.strokeStyle='#ffcc4488'; ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(pad.l, pad.t+(1-qeq)*pH); ctx.lineTo(pad.l+pW, pad.t+(1-qeq)*pH); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='#ffcc44'; ctx.font='11px sans-serif'; ctx.textAlign='left';
+        ctx.fillText('q_EA plateau (aging regime for t→∞ after T_d)', pad.l+8, pad.t+(1-qeq)*pH-6);
+      }
+      ctx.fillStyle='#666688'; ctx.textAlign='center';
+      ctx.fillText('time t', pad.l+pW/2, H-8);
+    }
+
+    let phase='liquid';
+    if(T<TK) phase='ideal glass';
+    else if(T<Ts) phase='1RSB equilibrium glass';
+    else if(T<Td) phase='dynamically arrested';
+    document.getElementById('ro13').textContent=`p=${p}   T_d=${Td.toFixed(3)}   T_s=${Ts.toFixed(3)}   T_K=${TK.toFixed(3)}   T=${T.toFixed(2)}   phase: ${phase}`;
+    T_RAF[13]=requestAnimationFrame(draw);
+  }
+  if(T_RAF[13]) cancelAnimationFrame(T_RAF[13]);
+  draw();
+  return {stop(){ if(T_RAF[13]) cancelAnimationFrame(T_RAF[13]); T_RAF[13]=null; }};
+}
+
+// ─── Tab 14: Gardner / jamming ───────────────────────────────────────────────
+function initTab14(){
+  const cv=document.getElementById('cv14');
+  window.paused14=false;
+  const pb=document.getElementById('pauseBtn14'); if(pb) pb.textContent='⏸ Pause';
+  let tAnim=0, disks=[];
+  let rr=_rng59(314);
+
+  function setupDisks(){
+    const phiRel=+document.getElementById('gar_phi').value;
+    const d=+document.getElementById('gar_d').value;
+    rr=_rng59((Date.now()&0xffff)||314);
+    // 2D visualization of packing; density maps to phi/phiJ
+    const n=Math.round(18+phiRel*20);
+    disks=[];
+    const r0=0.045/Math.sqrt(Math.max(0.5,phiRel));
+    for(let i=0;i<n;i++){
+      disks.push({x:rr(), y:rr(), r:r0*(0.85+rr()*0.3), vx:(rr()-0.5)*0.002, vy:(rr()-0.5)*0.002});
+    }
+  }
+  setupDisks();
+  document.getElementById('gar_reset').onclick=setupDisks;
+  document.getElementById('gar_phi').addEventListener('change',setupDisks,{signal:_tabSignal.signal});
+
+  function stepDisks(){
+    const phiRel=+document.getElementById('gar_phi').value;
+    const k=80*phiRel;
+    // soft repulsive MD caricature
+    for(let i=0;i<disks.length;i++){
+      let fx=0,fy=0;
+      for(let j=0;j<disks.length;j++) if(i!==j){
+        let dx=disks[i].x-disks[j].x, dy=disks[i].y-disks[j].y;
+        // periodic
+        if(dx>0.5) dx-=1; if(dx<-0.5) dx+=1;
+        if(dy>0.5) dy-=1; if(dy<-0.5) dy+=1;
+        const dist=Math.hypot(dx,dy)+1e-8;
+        const overlap=disks[i].r+disks[j].r-dist;
+        if(overlap>0){ fx+=k*overlap*dx/dist; fy+=k*overlap*dy/dist; }
+      }
+      disks[i].vx=(disks[i].vx+fx*0.0005)*0.9;
+      disks[i].vy=(disks[i].vy+fy*0.0005)*0.9;
+      disks[i].x=(disks[i].x+disks[i].vx+1)%1;
+      disks[i].y=(disks[i].y+disks[i].vy+1)%1;
+    }
+  }
+
+  function draw(){
+    const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[14]=requestAnimationFrame(draw);return;}
+    if(!window.paused14){
+      tAnim+=0.02*(window.animSpeed||1);
+      const steps=Math.max(1,Math.round(2*(window.animSpeed||1)));
+      for(let s=0;s<steps;s++) stepDisks();
+    }
+    const phiRel=+document.getElementById('gar_phi').value;
+    const T=+document.getElementById('gar_T').value;
+    const d=+document.getElementById('gar_d').value;
+    document.getElementById('gar_phiv').textContent=phiRel.toFixed(2);
+    document.getElementById('gar_Tv').textContent=T.toFixed(2);
+    document.getElementById('gar_dv').textContent=String(d);
+
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+    // left: packing
+    const side=Math.min(W*0.5, H-40);
+    const ox=20, oy=(H-side)/2;
+    ctx.strokeStyle='#333355'; ctx.strokeRect(ox,oy,side,side);
+    // contacts
+    let contacts=0, overlaps=0;
+    for(let i=0;i<disks.length;i++){
+      for(let j=i+1;j<disks.length;j++){
+        let dx=disks[i].x-disks[j].x, dy=disks[i].y-disks[j].y;
+        if(dx>0.5) dx-=1; if(dx<-0.5) dx+=1;
+        if(dy>0.5) dy-=1; if(dy<-0.5) dy+=1;
+        const dist=Math.hypot(dx,dy);
+        if(dist<disks[i].r+disks[j].r){
+          contacts++;
+          ctx.strokeStyle='rgba(255,200,80,0.35)'; ctx.lineWidth=1;
+          ctx.beginPath();
+          ctx.moveTo(ox+disks[i].x*side, oy+disks[i].y*side);
+          ctx.lineTo(ox+disks[j].x*side, oy+disks[j].y*side);
+          ctx.stroke();
+          if(dist<disks[i].r+disks[j].r-0.002) overlaps++;
+        }
+      }
+    }
+    disks.forEach(dk=>{
+      ctx.beginPath();
+      ctx.arc(ox+dk.x*side, oy+dk.y*side, dk.r*side, 0, Math.PI*2);
+      ctx.fillStyle=phiRel>=1?'rgba(255,136,204,0.35)':'rgba(100,140,255,0.3)';
+      ctx.fill();
+      ctx.strokeStyle='#ff88cc88'; ctx.stroke();
+    });
+    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
+    ctx.fillText('Soft-sphere packing (2D viz)', ox, oy-8);
+
+    // right: phase schematic
+    const rx=ox+side+24, rw=W-rx-16;
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif';
+    ctx.fillText('Gardner line & jamming', rx, 28);
+    // T vs phi diagram
+    const bx=rx, by=50, bw=rw, bh=H*0.45;
+    ctx.strokeStyle='#333355'; ctx.strokeRect(bx,by,bw,bh);
+    // jamming at phi=1 line
+    const jx=bx+bw*(1-0.7)/(1.15-0.7);
+    // glass region
+    ctx.fillStyle='rgba(180,60,120,0.25)';
+    ctx.fillRect(bx, by, bw, bh*0.55);
+    ctx.fillStyle='rgba(255,200,80,0.2)';
+    // Gardner wedge near jamming low T
+    ctx.beginPath();
+    ctx.moveTo(jx, by+bh);
+    ctx.lineTo(bx+bw, by+bh);
+    ctx.lineTo(bx+bw, by+bh*0.35);
+    ctx.lineTo(jx, by+bh*0.7);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(jx, by+bh*0.7);
+    ctx.lineTo(bx+bw*0.95, by+bh*0.25);
+    ctx.stroke();
+    ctx.fillStyle='#ffcc44'; ctx.font='11px sans-serif';
+    ctx.fillText('Gardner line', bx+bw*0.55, by+bh*0.35);
+    ctx.fillStyle='#ff88cc'; ctx.fillText('full RSB', bx+bw*0.7, by+bh*0.75);
+    ctx.fillStyle='#88ccff'; ctx.fillText('stable glass', bx+10, by+20);
+    // marker
+    const mx=bx+bw*(phiRel-0.7)/(1.15-0.7);
+    const my=by+bh*(1-T/0.8);
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(mx,my,5+Math.sin(tAnim*4),0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#ff88cc'; ctx.stroke();
+    ctx.fillStyle='#666688'; ctx.font='11px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('φ / φ_J', bx+bw/2, by+bh+16);
+    ctx.save(); ctx.translate(bx-12, by+bh/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('T', 0, 0); ctx.restore();
+
+    // isostaticity
+    const z=2*contacts/Math.max(1,disks.length);
+    const ziso=2*2; // d=2 viz
+    const deltaZ=z-ziso;
+    const chiG = phiRel>0.98 && T<0.3 ? 2+3*Math.sin(tAnim)**2 : 0.5;
+
+    let phase='liquid / unjammed';
+    if(phiRel>=1 && T<0.25) phase='marginal Gardner glass';
+    else if(phiRel>=0.95 && T<0.4) phase='stable glass';
+    else if(phiRel>=1) phase='jammed solid';
+
+    ctx.textAlign='left';
+    ctx.fillStyle='#ccccee'; ctx.font='12px monospace';
+    ctx.fillText(`z≈${z.toFixed(2)} (z_iso=2d=${ziso})`, rx, by+bh+40);
+    ctx.fillText(`δz≈${deltaZ.toFixed(2)}`, rx, by+bh+58);
+    ctx.fillText(`χ_G ~ ${chiG.toFixed(2)}`, rx, by+bh+76);
+    ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif';
+    ctx.fillText('Phase: '+phase, rx, by+bh+100);
+
+    document.getElementById('ro14').textContent=`phase: ${phase}   φ/φJ=${phiRel.toFixed(2)}   δz≈${deltaZ.toFixed(2)}   contacts=${contacts}   χ_G~${chiG.toFixed(2)}`;
+    T_RAF[14]=requestAnimationFrame(draw);
+  }
+  if(T_RAF[14]) cancelAnimationFrame(T_RAF[14]);
+  draw();
+  return {stop(){ if(T_RAF[14]) cancelAnimationFrame(T_RAF[14]); T_RAF[14]=null; }};
+}
+
+// ─── Tab 15: RBM bridge ──────────────────────────────────────────────────────
+function initTab15(){
+  const cv=document.getElementById('cv15');
+  window.paused15=false;
+  const pb=document.getElementById('pauseBtn15'); if(pb) pb.textContent='⏸ Pause';
+  let nv=12, nh=8, Wmat, v, h, b, c, data=[], cd=0, dWnorm=0, E=0;
+  let rr=_rng59(555);
+
+  function setup(){
+    nv=+document.getElementById('rbm_nv').value;
+    nh=+document.getElementById('rbm_nh').value;
+    document.getElementById('rbm_nvv').textContent=nv;
+    document.getElementById('rbm_nhv').textContent=nh;
+    rr=_rng59((Date.now()&0xffff)||555);
+    Wmat=new Float64Array(nv*nh);
+    b=new Float64Array(nv); c=new Float64Array(nh);
+    for(let i=0;i<nv*nh;i++) Wmat[i]=(rr()-0.5)*0.5;
+    for(let i=0;i<nv;i++) b[i]=(rr()-0.5)*0.2;
+    for(let j=0;j<nh;j++) c[j]=(rr()-0.5)*0.2;
+    // synthetic data: a few random patterns + noise
+    data=[];
+    for(let p=0;p<5;p++){
+      const pat=new Int8Array(nv);
+      for(let i=0;i<nv;i++) pat[i]=rr()<0.5?1:-1;
+      data.push(pat);
+    }
+    v=new Int8Array(data[0]);
+    h=new Int8Array(nh);
+    cd=0; dWnorm=0;
+  }
+  setup();
+  document.getElementById('rbm_reset').onclick=setup;
+  ['rbm_nv','rbm_nh'].forEach(id=>document.getElementById(id).addEventListener('change',setup,{signal:_tabSignal.signal}));
+
+  function sigm(x){ return 1/(1+Math.exp(-Math.max(-30,Math.min(30,x)))); }
+  function sampleH(vis, beta){
+    for(let j=0;j<nh;j++){
+      let act=c[j];
+      for(let i=0;i<nv;i++) act+=vis[i]*Wmat[i*nh+j];
+      h[j]= rr()<sigm(beta*act)?1:-1;
+    }
+  }
+  function sampleV(hid, beta){
+    for(let i=0;i<nv;i++){
+      let act=b[i];
+      for(let j=0;j<nh;j++) act+=hid[j]*Wmat[i*nh+j];
+      v[i]= rr()<sigm(beta*act)?1:-1;
+    }
+  }
+  function energy(vis,hid){
+    let e=0;
+    for(let i=0;i<nv;i++) for(let j=0;j<nh;j++) e-=vis[i]*Wmat[i*nh+j]*hid[j];
+    for(let i=0;i<nv;i++) e-=b[i]*vis[i];
+    for(let j=0;j<nh;j++) e-=c[j]*hid[j];
+    return e;
+  }
+
+  function cdStep(){
+    const beta=+document.getElementById('rbm_beta').value;
+    // positive phase
+    const vis=data[Math.floor(rr()*data.length)];
+    for(let i=0;i<nv;i++) v[i]=vis[i];
+    sampleH(v, beta);
+    const pos=new Float64Array(nv*nh);
+    for(let i=0;i<nv;i++) for(let j=0;j<nh;j++) pos[i*nh+j]=v[i]*h[j];
+    // negative phase CD-1
+    sampleV(h, beta);
+    sampleH(v, beta);
+    let dn=0;
+    const lr=0.05;
+    for(let i=0;i<nv;i++) for(let j=0;j<nh;j++){
+      const g=pos[i*nh+j]-v[i]*h[j];
+      Wmat[i*nh+j]+=lr*g;
+      dn+=g*g;
+    }
+    dWnorm=Math.sqrt(dn/(nv*nh));
+    E=energy(v,h);
+    cd++;
+  }
+
+  function draw(){
+    const {W,H,ctx}=_fitCanvas59(cv,640,420); if(!ctx){T_RAF[15]=requestAnimationFrame(draw);return;}
+    if(!window.paused15){
+      const steps=Math.max(1,Math.round(2*(window.animSpeed||1)));
+      for(let s=0;s<steps;s++) cdStep();
+    }
+    document.getElementById('rbm_betav').textContent=(+document.getElementById('rbm_beta').value).toFixed(2);
+    ctx.fillStyle='#0d0d1a'; ctx.fillRect(0,0,W,H);
+
+    ctx.fillStyle='#ff88cc'; ctx.font='bold 12px sans-serif';
+    ctx.fillText('RBM = bipartite spin glass · contrastive divergence', 16, 18);
+
+    // layout: visible bottom, hidden top
+    const yH=H*0.28, yV=H*0.72;
+    const x0=40, x1=W*0.55;
+    function nodeX(k,n){ return x0+((k+0.5)/n)*(x1-x0); }
+
+    // weights
+    let wmax=1e-6; for(let i=0;i<nv*nh;i++) wmax=Math.max(wmax,Math.abs(Wmat[i]));
+    for(let i=0;i<nv;i++) for(let j=0;j<nh;j++){
+      const w=Wmat[i*nh+j];
+      const a=Math.min(1, Math.abs(w)/wmax);
+      ctx.strokeStyle=w>=0?`rgba(255,136,204,${0.15+0.7*a})`:`rgba(100,140,255,${0.15+0.7*a})`;
+      ctx.lineWidth=0.5+2*a;
+      ctx.beginPath();
+      ctx.moveTo(nodeX(i,nv), yV);
+      ctx.lineTo(nodeX(j,nh), yH);
+      ctx.stroke();
+    }
+    // hidden nodes
+    for(let j=0;j<nh;j++){
+      ctx.beginPath(); ctx.arc(nodeX(j,nh), yH, 12, 0, Math.PI*2);
+      ctx.fillStyle=h[j]>0?'#88ff88':'#1a3322'; ctx.fill();
+      ctx.strokeStyle='#88ff88'; ctx.stroke();
+    }
+    // visible nodes
+    for(let i=0;i<nv;i++){
+      ctx.beginPath(); ctx.arc(nodeX(i,nv), yV, 12, 0, Math.PI*2);
+      ctx.fillStyle=v[i]>0?'#ff88cc':'#331a28'; ctx.fill();
+      ctx.strokeStyle='#ff88cc'; ctx.stroke();
+    }
+    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('hidden h', x0, yH-20);
+    ctx.fillText('visible v', x0, yV+28);
+
+    // right panel: weight heatmap + learning
+    const rx=W*0.6, rw=W*0.36;
+    ctx.fillStyle='rgba(12,12,35,0.95)'; ctx.fillRect(rx-8, 30, rw+16, H-50);
+    ctx.fillStyle='#ffcc44'; ctx.font='12px sans-serif';
+    ctx.fillText('W_ia heatmap', rx, 48);
+    const cellW=Math.min(14, (rw-10)/nh), cellH=Math.min(14, (H*0.4)/nv);
+    for(let i=0;i<nv;i++) for(let j=0;j<nh;j++){
+      const w=Wmat[i*nh+j]/wmax;
+      const r=w>0?Math.floor(80+175*w):30;
+      const bcol=w<0?Math.floor(80-175*w):40;
+      ctx.fillStyle=`rgb(${r},50,${bcol})`;
+      ctx.fillRect(rx+j*cellW, 58+i*cellH, cellW-1, cellH-1);
+    }
+    const hy=58+nv*cellH+24;
+    ctx.fillStyle='#88ccff'; ctx.font='12px monospace';
+    ctx.fillText(`CD-k step: ${cd}`, rx, hy);
+    ctx.fillText(`‖ΔW‖_rms: ${dWnorm.toFixed(4)}`, rx, hy+18);
+    ctx.fillText(`E(v,h): ${E.toFixed(3)}`, rx, hy+36);
+    ctx.fillStyle='#9999bb'; ctx.font='11px sans-serif';
+    ctx.fillText('pink + / blue − weights', rx, hy+58);
+    ctx.fillText('Hopfield: integrate out h', rx, hy+76);
+    ctx.fillText('→ effective J on visibles', rx, hy+92);
+
+    document.getElementById('ro15').textContent=`E=${E.toFixed(3)}   CD=${cd}   ‖ΔW‖=${dWnorm.toFixed(4)}   nv=${nv} nh=${nh}   β=${(+document.getElementById('rbm_beta').value).toFixed(2)}`;
+    T_RAF[15]=requestAnimationFrame(draw);
+  }
+  if(T_RAF[15]) cancelAnimationFrame(T_RAF[15]);
+  draw();
+  return {stop(){ if(T_RAF[15]) cancelAnimationFrame(T_RAF[15]); T_RAF[15]=null; }};
+}
+
+window.animSpeed = window.animSpeed || 1;
 
 window.addEventListener('resize', () => {
   clearTimeout(window._resizeTimer59);
-  window._resizeTimer59 = setTimeout(() => { switchTab(currentTab); }, 60);
+  window._resizeTimer59 = setTimeout(() => { switchTab(currentTab); }, 80);
 });
 switchTab(1);
 </script>
