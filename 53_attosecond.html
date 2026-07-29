@@ -26,19 +26,20 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
 .back:hover{color:var(--accent)}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%;flex-wrap:nowrap}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.79rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+  color:var(--dim);font-size:.79rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text);background:var(--bg2)}
 .tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
 .content{flex:1;display:flex;overflow:hidden}
-.panel{display:none;flex:1;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden;min-height:0;min-width:0}
 .panel.active{display:flex}
 .sidebar{background:var(--bg2);border-right:1px solid var(--border);
   padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
 .sidebar.right{border-right:none;border-left:1px solid var(--border);width:260px}
-.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
-canvas{display:block;width:100%;height:100%}
+.main-area{flex:1;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative}
+canvas{display:block;width:100%;height:100%;min-height:0}
 .section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
 .eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
 .eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
@@ -98,7 +99,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="wlDisp.textContent=this.value;laserWL=+this.value">
       <label>Speed:</label><input type="range" id="speed1" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal1">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="hhgPaused=!hhgPaused;this.textContent=hhgPaused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="hhgPaused=!hhgPaused;this.textContent=hhgPaused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(1)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">γ (Keldysh)</span><span id="keldDisp">—</span></div>
@@ -109,9 +110,15 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Three-Step Model</div>
       <div class="eq-block">$$E_{cut} = I_p + 3.17\,U_p$$</div>
-      <div class="eq-block">$$U_p = \frac{e^2 E_0^2}{4m_e\omega^2}$$</div>
+      <div class="eq-block">$$U_p = \frac{e^2 E_0^2}{4m_e\omega^2} \approx 9.33\,I_{14}\lambda_\mu^2\;\mathrm{eV}$$</div>
       <div class="eq-block">$$\gamma = \omega\frac{\sqrt{2m_e I_p}}{eE_0}$$</div>
+      <div class="eq-block" style="font-size:.78rem">
+        <strong style="color:var(--text)">Post-doc (SFA):</strong>
+        $$d(\omega)\propto\int\!dt\,d^*(t)\,e^{iS(t)/\hbar}$$
+        with classical action $S=\int(\mathbf{p}+\mathbf{A})^2/2m-I_p$ — Lewenstein integral; saddle points = short/long trajectories.
+      </div>
       <div class="callout">Tunnel regime requires $\gamma &lt; 1$. At 800 nm, 3×10¹⁴ W/cm² gives $\gamma \approx 0.9$.</div>
+      <div class="callout"><strong>Frontier:</strong> CEP-stable few-cycle drivers + mid-IR (2–4 μm) push cutoffs to keV soft-X-ray; isolated attosecond pulses via polarization gating / double optical gating (DOG). Water-window HHG (283–543 eV) enables carbon K-edge imaging.</div>
     </div>
   </div>
   <!-- Panel 2 -->
@@ -121,7 +128,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <button class="btn" id="freqToggleBtn" onclick="toggleFreqDomain()">→ Freq. Domain</button>
       <label>Speed:</label><input type="range" id="speed2" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal2">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p2Paused=!p2Paused;this.textContent=p2Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p2Paused=!p2Paused;this.textContent=p2Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(2)">Reset</button>
       </div>
       <div class="callout" style="margin-top:12px">
@@ -133,7 +140,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-title">Harmonic Comb</div>
       <div class="eq-block">$\omega_n = (2n+1)\omega_L$</div>
       <div class="eq-block">$$\tau_{pulse} \sim \frac{1}{N_{harm}\,\omega_L}$$</div>
-      <div class="callout">Only <strong>odd harmonics</strong> appear due to the inversion symmetry of the two-color interaction each half cycle.</div>
+      <div class="eq-block" style="font-size:.78rem">
+        <strong style="color:var(--text)">Post-doc:</strong> Train spectrum is a comb with spacing $2\omega_L$; relative phase $\varphi_n$ between harmonics sets the temporal structure. Filter + GDD compensation → near-TL bursts:
+        $$\Delta t_{\mathrm{FWHM}}\approx\frac{0.44}{\Delta\nu_{\mathrm{FWHM}}}$$
+      </div>
+      <div class="callout">Only <strong>odd harmonics</strong> appear due to inversion symmetry of the two half-cycle recollisions (centrosymmetric medium, linear pol.).</div>
+      <div class="callout"><strong>Frontier:</strong> Two-color ($\omega$–$2\omega$) and non-collinear schemes break symmetry for even harmonics &amp; controllable chirp; attosecond pulse shaping via multi-color waveform synthesis (attoclock + waveform control).</div>
     </div>
   </div>
   <!-- Panel 3 -->
@@ -145,7 +157,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="t3Paused=true;scrubT=+this.value;t3Disp.textContent=(scrubT*10).toFixed(0)+' as'">
       <label>Speed:</label><input type="range" id="speed3" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal3">1.00x</span>
       <div class="btn-row">
-        <button class="btn" onclick="t3Paused=!t3Paused;this.textContent=t3Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="t3Paused=!t3Paused;this.textContent=t3Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(3)">Reset</button>
       </div>
       <div class="callout" style="margin-top:12px">
@@ -155,9 +167,16 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="main-area"><canvas aria-label="Attosecond Science | Road to Reality — panel 3" id="cv3"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Wave Packet Dynamics</div>
-      <div class="eq-block">$$|\psi(x,t)|^2 \propto e^{-(x-x_0)^2/2\sigma^2}$$</div>
-      <div class="eq-block">ADK rate: $W(E) \sim e^{-2(2I_p)^{3/2}/3E}$</div>
-      <div class="callout">The wavefunction spreads as $\sigma(t)\propto\sqrt{t}$ — quantum dispersion makes attosecond time resolution essential.</div>
+      <div class="eq-block">$$|\psi(x,t)|^2 \propto e^{-(x-x_0(t))^2/2\sigma(t)^2}$$</div>
+      <div class="eq-block">ADK: $W(E)\sim |E|^{-1}e^{-2(2I_p)^{3/2}/3|E|}$</div>
+      <div class="eq-block" style="font-size:.78rem">
+        <strong style="color:var(--text)">Post-doc:</strong> Free evolution after tunnel exit $t_0$:
+        $$\sigma(t)=\sigma_0\sqrt{1+\frac{\hbar^2(t-t_0)^2}{4m_e^2\sigma_0^4}},\quad
+        x_0(t)=x_{\mathrm{exit}}+\int_{t_0}^t\!\frac{p+A(t')}{m}\,dt'$$
+        PPT/SFA rates correct ADK for multiphoton corrections near $\gamma\sim1$.
+      </div>
+      <div class="callout">The wavefunction spreads as $\sigma(t)\propto t$ (far field) — attosecond probes catch the packet before classical quiver averages wash structure.</div>
+      <div class="callout"><strong>Frontier:</strong> Attoclock angular streaking + TDSE/R-matrix benchmarks constrain tunneling exit time &amp; nonadiabatic corrections; mid-IR drivers map longer trajectories for holographic imaging of molecular orbitals.</div>
     </div>
   </div>
 
@@ -173,7 +192,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p4WlDisp.textContent=this.value;p4LaserWL=+this.value">
       <label>Speed:</label><input type="range" id="speed4" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal4">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p4Paused=!p4Paused;this.textContent=p4Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p4Paused=!p4Paused;this.textContent=p4Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(4)">Reset</button>
         <button class="btn" id="p4ViewBtn" onclick="p4ToggleView()">Spectrum</button>
       </div>
@@ -216,7 +235,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p5TauDisp.textContent=(+this.value/20).toFixed(2)+' fs';p5Tau=+this.value;p5Paused=true">
       <label>Speed:</label><input type="range" id="speed5" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal5">1.00x</span>
       <div class="btn-row" style="margin-top:6px">
-        <button class="btn" onclick="p5Paused=!p5Paused;this.textContent=p5Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p5Paused=!p5Paused;this.textContent=p5Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(5)">Reset</button>
         <button class="btn" id="p5ViewBtn" onclick="p5ToggleView()">Streaking</button>
       </div>
@@ -258,7 +277,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">EWS delay</span><span id="p6DelayDisp">~5 as</span></div>
       <label>Speed:</label><input type="range" id="speed6" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal6">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p6Paused=!p6Paused;this.textContent=p6Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p6Paused=!p6Paused;this.textContent=p6Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(6)">Reset</button>
         <button class="btn" id="p6ViewBtn" onclick="p6ToggleView()">Ionization</button>
       </div>
@@ -303,7 +322,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Inversion sym.</span><span id="p7InvDisp">Broken</span></div>
       <label>Speed:</label><input type="range" id="speed7" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal7">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p7Paused=!p7Paused;this.textContent=p7Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p7Paused=!p7Paused;this.textContent=p7Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(7)">Reset</button>
         <button class="btn" id="p7ViewBtn" onclick="p7ToggleView()">Band Str.</button>
       </div>
@@ -347,7 +366,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Peak bright.</span><span id="p8BrightDisp">10³³</span></div>
       <label>Speed:</label><input type="range" id="speed8" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal8">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p8Paused=!p8Paused;this.textContent=p8Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p8Paused=!p8Paused;this.textContent=p8Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(8)">Reset</button>
         <button class="btn" id="p8ViewBtn" onclick="p8ToggleView()">Diffraction</button>
       </div>
@@ -383,7 +402,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p9TauDisp.textContent=(+this.value/20).toFixed(2);p9Tau=+this.value;p9Paused=true">
       <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal9">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(9)">Reset</button>
         <button class="btn" id="p9ViewBtn" onclick="p9ToggleView()">FROG-CRAB</button>
       </div>
@@ -419,7 +438,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p10DurDisp.textContent=parseFloat(this.value).toFixed(1);p10Dur=+this.value">
       <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal10">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(10)">Reset</button>
         <button class="btn" id="p10ViewBtn" onclick="p10ToggleView()">Trajectories</button>
       </div>
@@ -455,7 +474,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p11BwDisp.textContent=this.value;p11Bw=+this.value">
       <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal11">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(11)">Reset</button>
         <button class="btn" id="p11ViewBtn" onclick="p11ToggleView()">Wigner</button>
       </div>
@@ -471,12 +490,16 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="eq-block">$$E(t) = A(t)\,e^{i(\omega_0 t + \phi(t))}$$</div>
       <div class="eq-block">$$\tilde{E}(\omega) = \int E(t)\,e^{-i\omega t}dt$$</div>
       <div class="eq-block">$$\phi(t) = \phi_0 + \beta t^2 \quad\text{(chirp)}$$</div>
+      <div class="eq-block" style="font-size:.76rem">
+        <strong style="color:var(--text)">Post-doc:</strong> Group delay $\tau_g=\partial\phi/\partial\omega$; GDD $=\partial^2\phi/\partial\omega^2$. Time–frequency Wigner distribution $W(t,\omega)$ visualizes chirp; FROG-CRAB inverts $S(\omega,\tau)$ via PCGPA.
+      </div>
       <div class="callout">
-        <strong>Techniques:</strong> RABBITT (relative phase), FROG-CRAB (full reconstruction), SPIDER (spectral shearing), d-scan (dispersion scan). Each has trade-offs in dynamic range, complexity, and pulse energy.
+        <strong>Techniques:</strong> RABBITT, FROG-CRAB, SPIDER, d-scan — trade-offs in dynamic range, complexity, and pulse energy (not a full laser module survey).
       </div>
       <div class="callout" style="margin-top:6px">
-        <strong>Transform limit:</strong> For a Gaussian spectrum $S(\omega) \propto \exp[-({\omega-\omega_0})^2/\Delta\omega^2]$, the shortest pulse is $\Delta t = 0.44/\Delta\nu$. Chirp broadens the pulse without changing the spectrum.
+        <strong>Transform limit:</strong> Gaussian $S(\omega)\propto e^{-(\omega-\omega_0)^2/\Delta\omega^2}$ → $\Delta t=0.44/\Delta\nu$. Chirp broadens without changing the spectrum.
       </div>
+      <div class="callout"><strong>Frontier:</strong> Attosecond metrology at XFELs (seeded SASE + streaking); single-shot ptychographic reconstruction of isolated pulses below 50 as.</div>
     </div>
   </div>
   <!-- Panel 12 — Time-Dependent Schrödinger Equation -->
@@ -491,7 +514,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p12FreqDisp.textContent=parseFloat(this.value).toFixed(3);p12Freq=+this.value">
       <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal12">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(12)">Reset</button>
         <button class="btn" id="p12ViewBtn" onclick="p12ToggleView()">Spectrum</button>
       </div>
@@ -528,7 +551,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Ionization pot. (eV)</span><span id="p13IpDisp">15.4</span></div>
       <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal13">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(13)">Reset</button>
         <button class="btn" id="p13ViewBtn" onclick="p13ToggleView()">Dissociation</button>
       </div>
@@ -565,7 +588,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Harmonic cutoff</span><span id="p14CutDisp">—</span></div>
       <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(14)">Reset</button>
         <button class="btn" id="p14ViewBtn" onclick="p14ToggleView()">Phase</button>
       </div>
@@ -602,7 +625,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Demag. time (fs)</span><span id="p15DemagDisp">~300</span></div>
       <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(15)">Reset</button>
         <button class="btn" id="p15ViewBtn" onclick="p15ToggleView()">MOKE</button>
       </div>
@@ -640,7 +663,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="vrow"><span class="vlbl">Flux (ph/pulse)</span><span id="p16FluxDisp">10⁶</span></div>
       <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(16)">Reset</button>
         <button class="btn" id="p16ViewBtn" onclick="p16ToggleView()">Applications</button>
       </div>
@@ -846,7 +869,7 @@ function initTab2() {
   const cv = document.getElementById('cv2');
   window.showFreqDomain = false;
   window.p2Paused = false;
-  let raf2;
+  let raf2, t2 = 0;
 
   function draw() {
     const {W, H, ctx} = fitCanvas(cv);
@@ -855,6 +878,7 @@ function initTab2() {
 
     const pad = 60;
     const plotW = W - pad*2, plotH = H*0.7 - pad;
+    const spd = window.animSpeed || 1;
 
     if (!window.showFreqDomain) {
       ctx.strokeStyle = '#55558a'; ctx.lineWidth = 1;
@@ -865,21 +889,31 @@ function initTab2() {
       ctx.fillText('I(t)', pad-35, pad+plotH/2);
 
       const numBursts = 8;
+      const activeB = Math.floor((t2 * 0.08) % numBursts);
       for (let b = 0; b < numBursts; b++) {
+        const highlight = b === activeB ? 1.0 : 0.55;
         for (let x = 0; x < plotW; x++) {
           const xv = x / plotW * numBursts - b - 0.5;
           const gauss = Math.exp(-xv*xv*30);
           if (gauss > 0.01) {
             const px = pad + x;
-            const py = pad + plotH - gauss * plotH * 0.85;
-            ctx.fillStyle = `rgba(126,200,255,${gauss})`;
+            const py = pad + plotH - gauss * plotH * 0.85 * highlight;
+            const a = Math.min(1, gauss * highlight);
+            ctx.fillStyle = b===activeB ? 'rgba(255,215,0,'+a+')' : 'rgba(126,200,255,'+(a*0.85)+')';
             ctx.fillRect(px, py, 1, pad+plotH-py);
           }
         }
         const bx = pad + (b+0.5) * (plotW/numBursts);
-        ctx.fillStyle = '#ffd700'; ctx.font = '12px monospace';
+        ctx.fillStyle = b===activeB ? '#ffd700' : '#55558a'; ctx.font = '12px monospace';
         if (b === 3) ctx.fillText('~100 as', bx-18, pad+plotH-plotH*0.9-10);
       }
+      // scanning cursor along the drive cycle
+      const scanX = pad + ((t2 * 0.6) % plotW);
+      ctx.strokeStyle = 'rgba(255,68,170,0.7)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(scanX, pad); ctx.lineTo(scanX, pad+plotH); ctx.stroke();
+      ctx.fillStyle = '#ff44aa'; ctx.font = '11px monospace';
+      ctx.fillText('t', scanX+3, pad+12);
+
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255,136,68,0.5)'; ctx.lineWidth = 1.5;
       for (let x = 0; x <= plotW; x++) {
@@ -901,13 +935,14 @@ function initTab2() {
       ctx.fillText('I(ω)', pad-30, pad+plotH/2);
 
       const maxH = 33;
+      const pulse = 0.75 + 0.25*Math.sin(t2 * 0.04);
       for (let h = 1; h <= maxH; h += 2) {
         const hx = pad + (h/maxH)*plotW;
         const cutN = 25;
         const intensity = h < cutN
           ? 0.3 + 0.7*Math.exp(-(((h-5)/8)**2))
           : 0.05 * Math.exp(-(((h-cutN)/3)**2));
-        const hy = pad + plotH*(1-intensity*0.85);
+        const hy = pad + plotH*(1-intensity*0.85*pulse);
         ctx.fillStyle = h <= cutN ? '#7ec8ff' : 'rgba(126,200,255,0.3)';
         ctx.fillRect(hx-3, hy, 6, pad+plotH-hy);
         if (h%4===1) {
@@ -924,7 +959,8 @@ function initTab2() {
       ctx.stroke(); ctx.setLineDash([]);
     }
 
-    if(!window.p2Paused) raf2 = requestAnimationFrame(draw);
+    if (!window.p2Paused) t2 += spd;
+    raf2 = requestAnimationFrame(draw);
   }
 
   window.toggleFreqDomain = function() {
@@ -933,7 +969,7 @@ function initTab2() {
     if (btn) btn.textContent = window.showFreqDomain ? '→ Time Domain' : '→ Freq. Domain';
   };
 
-  raf2 = requestAnimationFrame(draw);
+  draw();
   return { stop() { cancelAnimationFrame(raf2); } };
 }
 

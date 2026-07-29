@@ -4,7 +4,7 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>47 · Laser Cooling, BEC &amp; Optical Tweezers</title>
+<title>47 · Quantum Optics — Cooling, Cavities &amp; Photons</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
@@ -25,8 +25,8 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 
 .badge{background:var(--accent);color:#000;font-weight:700;font-size:.76rem;padding:3px 9px;border-radius:20px}
 .title-block h1{font-size:1.25rem;color:var(--accent);letter-spacing:.02em}
 .title-block p{font-size:.74rem;color:var(--muted);margin-top:2px}
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 20px;flex-shrink:0}
-.tab{padding:9px 18px;cursor:pointer;font-size:.81rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s}
+.tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 12px;flex-shrink:0;max-height:72px;overflow-y:auto}
+.tab{padding:7px 12px;cursor:pointer;font-size:.74rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s;white-space:nowrap}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .tab:hover:not(.active){color:var(--text)}
 #main{display:flex;flex-direction:column;flex:1;overflow:hidden}
@@ -56,8 +56,8 @@ button.on{border-color:var(--accent);color:var(--accent);background:#1a1500}
   <span class="badge">Ch. 22</span>
   <span style="font-size:1.5rem;color:var(--accent)">λ</span>
   <div class="title-block">
-    <h1>Laser Cooling, BEC &amp; Optical Tweezers</h1>
-    <p>Nobel 1997 · 2001 · 2018 — Chu, Cohen-Tannoudji, Phillips · Cornell, Wieman, Ketterle · Ashkin, Mourou, Strickland</p>
+    <h1>Quantum Optics</h1>
+    <p>Laser cooling · BEC · cavities · nonclassical light · EIT · optomechanics · solid-state emitters · Nobel 1997 · 2001 · 2012 · 2018</p>
   </div>
 </header>
 
@@ -71,6 +71,12 @@ button.on{border-color:var(--accent);color:var(--accent);background:#1a1500}
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(6)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(6)}">Cavity QED</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(7)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(7)}">Single Photons</div>
   <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(8)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(8)}">Quantum Networks</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(9)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(9)}">Rabi / Bloch</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(10)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(10)}">Hong–Ou–Mandel</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(11)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(11)}">EIT</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(12)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(12)}">Optomechanics</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(13)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(13)}">Photon Blockade</div>
+  <div class="tab" role="tab" tabindex="0" aria-selected="false" onclick="switchTab(14)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab(14)}">NV Centers</div>
 </div>
 
 <div id="main">
@@ -479,6 +485,218 @@ button.on{border-color:var(--accent);color:var(--accent);background:#1a1500}
   </div>
 </div>
 
+<!-- ===== TAB 9: RABI / BLOCH SPHERE ===== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane9">
+  <div class="canvas-col">
+    <canvas aria-label="47 · Quantum Optics — Rabi Bloch sphere atom-light" id="c9" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Ω/2π (MHz):</label>
+      <input type="range" id="rabiOmega" min="1" max="40" value="12" oninput="updateRabiOmega()">
+      <span id="rabiOmegaVal">12</span>
+      <label>Detuning Δ:</label>
+      <input type="range" id="rabiDet" min="-40" max="40" value="0" oninput="updateRabiDet()">
+      <span id="rabiDetVal">0</span>
+      <label>Phase φ:</label>
+      <input type="range" id="rabiPhi" min="0" max="360" value="0" oninput="updateRabiPhi()">
+      <span id="rabiPhiVal">0°</span>
+      <button id="btnAnim9" onclick="toggleAnim9()">▶ Play</button>
+      <button onclick="reset9()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal9">1x</span>
+    </div>
+    <div class="info-box">
+      Driven two-level atom: effective field $\boldsymbol{\Omega}_\text{eff}=(\Omega\cos\varphi,\,\Omega\sin\varphi,\,\Delta)$.
+      Bloch vector $\mathbf{r}$ precesses about $\boldsymbol{\Omega}_\text{eff}$ at the generalized Rabi frequency $\Omega_R=\sqrt{\Omega^2+\Delta^2}$.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about9">
+    <h3>Optical Bloch Equations</h3>
+    <div class="eq">$\dot{\mathbf{r}} = \boldsymbol{\Omega}_\text{eff}\times\mathbf{r} - \Gamma\,\mathbf{r}_\perp - \frac{\Gamma}{2}(r_z+1)\hat{z}$</div>
+    <p>Coherent drive $\Omega$, detuning $\Delta=\omega_L-\omega_0$, and spontaneous emission $\Gamma$ govern atom–light dynamics in the rotating frame.</p>
+    <h3>Generalized Rabi Frequency</h3>
+    <div class="eq">$\Omega_R = \sqrt{\Omega^2 + \Delta^2},\quad P_e(t)=\frac{\Omega^2}{\Omega_R^2}\sin^2\!\left(\frac{\Omega_R t}{2}\right)$</div>
+    <p>On resonance ($\Delta=0$) full population inversion; off-resonant drive reduces peak $P_e$ to $\Omega^2/\Omega_R^2$.</p>
+    <h3>Bloch Sphere Geometry</h3>
+    <p>$|g\rangle$ south pole, $|e\rangle$ north pole, equatorial pure superpositions. $\pi$-pulse inverts; $\pi/2$-pulse creates $|+\rangle_x$ or $|+\rangle_y$ depending on drive phase $\varphi$.</p>
+    <h3>Frontier</h3>
+    <p>Ultrastrong coupling ($\Omega\sim\omega_0$), Floquet engineering of effective Hamiltonians, and geometric phases from closed Bloch paths underlie modern quantum control and gate calibration.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 10: HONG–OU–MANDEL ===== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane10">
+  <div class="canvas-col">
+    <canvas aria-label="47 · Quantum Optics — Hong-Ou-Mandel interference dip" id="c10" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Delay Δt (ps):</label>
+      <input type="range" id="homDelay" min="-100" max="100" value="0" oninput="updateHomDelay()">
+      <span id="homDelayVal">0</span>
+      <label>Indistinguishability:</label>
+      <input type="range" id="homIndist" min="0" max="100" value="100" oninput="updateHomIndist()">
+      <span id="homIndistVal">100%</span>
+      <label>BS Reflectivity:</label>
+      <input type="range" id="homR" min="10" max="90" value="50" oninput="updateHomR()">
+      <span id="homRVal">50%</span>
+      <button id="btnAnim10" onclick="toggleAnim10()">▶ Play</button>
+      <button onclick="reset10()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal10">1x</span>
+    </div>
+    <div class="info-box">
+      Two-photon interference at a beamsplitter: $|1,1\rangle\to\frac{1}{\sqrt{2}}(|2,0\rangle-|0,2\rangle)$ when photons are indistinguishable.
+      Coincidence rate shows the HOM dip; visibility $V$ certifies boson indistinguishability.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about10">
+    <h3>HOM Amplitude Cancellation</h3>
+    <div class="eq">$A_{RR}+A_{TT}=0\quad\text{(50/50 BS, identical photons)}$</div>
+    <p>Reflect–reflect and transmit–transmit paths to opposite detectors cancel; only bunching amplitudes survive.</p>
+    <h3>Dip Shape</h3>
+    <div class="eq">$C(\Delta t)=C_\infty\!\left[1-V\,e^{-(\Delta t/\tau_c)^2}\right]$</div>
+    <p>Coherence time $\tau_c$ sets dip width. For pure Fock wavepackets $\tau_c\sim 1/\Delta\nu$. Partial distinguishability (polarization, frequency, spatial mode) reduces $V&lt;1$.</p>
+    <h3>Frontier</h3>
+    <p>Near-unity HOM from quantum-dot resonant fluorescence ($V&gt;0.99$), time-bin encoded multiphoton interference, and boson sampling all rest on this elementary two-photon unitarity test (Hong, Ou &amp; Mandel, 1987).</p>
+  </div>
+</div>
+
+<!-- ===== TAB 11: EIT ===== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane11">
+  <div class="canvas-col">
+    <canvas aria-label="47 · Quantum Optics — electromagnetically induced transparency" id="c11" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Ω<sub>c</sub> (coupling):</label>
+      <input type="range" id="eitOc" min="1" max="40" value="15" oninput="updateEitOc()">
+      <span id="eitOcVal">15</span>
+      <label>Ω<sub>p</sub> (probe):</label>
+      <input type="range" id="eitOp" min="1" max="20" value="3" oninput="updateEitOp()">
+      <span id="eitOpVal">3</span>
+      <label>γ<sub>12</sub> dephasing:</label>
+      <input type="range" id="eitG12" min="0" max="20" value="2" oninput="updateEitG12()">
+      <span id="eitG12Val">0.2</span>
+      <button id="btnAnim11" onclick="toggleAnim11()">▶ Play</button>
+      <button onclick="reset11()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal11">1x</span>
+    </div>
+    <div class="info-box">
+      Λ-system: strong coupling field opens a transparency window for a weak probe via destructive interference of excitation pathways (dark state).
+      Steep dispersion yields slow light: $v_g = c/(1+n_g)$ with $n_g\sim 10^6$–$10^7$ demonstrated.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about11">
+    <h3>Dark State</h3>
+    <div class="eq">$|D\rangle = \frac{\Omega_c|g\rangle - \Omega_p|s\rangle}{\sqrt{\Omega_c^2+\Omega_p^2}}$</div>
+    <p>No excited-state amplitude — coherent population trapping. Absorption vanishes on two-photon resonance when $\gamma_{12}$ is small.</p>
+    <h3>Susceptibility</h3>
+    <div class="eq">$\chi(\Delta_p)\propto\frac{i\Gamma}{\Gamma-i\Delta_p+\Omega_c^2/(\gamma_{12}-i\Delta_p)}$</div>
+    <p>Im$\,\chi$ (absorption) shows a narrow EIT window; Re$\,\chi$ (dispersion) is steep → group delay for quantum memories.</p>
+    <h3>Frontier</h3>
+    <p>EIT-based quantum memories (DLCZ, Λ-GEM), Rydberg EIT for photon blockade and few-photon nonlinear optics, and stopped-light storage of entangled states are active research fronts.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 12: OPTOMECHANICS ===== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane12">
+  <div class="canvas-col">
+    <canvas aria-label="47 · Quantum Optics — cavity optomechanics lite" id="c12" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>Coupling g₀:</label>
+      <input type="range" id="omG0" min="1" max="30" value="12" oninput="updateOmG0()">
+      <span id="omG0Val">12</span>
+      <label>Detuning Δ:</label>
+      <input type="range" id="omDet" min="-40" max="40" value="-15" oninput="updateOmDet()">
+      <span id="omDetVal">−ωₘ</span>
+      <label>Drive power:</label>
+      <input type="range" id="omPow" min="1" max="30" value="10" oninput="updateOmPow()">
+      <span id="omPowVal">10</span>
+      <button id="btnAnim12" onclick="toggleAnim12()">▶ Play</button>
+      <button onclick="reset12()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal12">1x</span>
+    </div>
+    <div class="info-box">
+      Radiation-pressure interaction $H_\text{int}=-\hbar g_0\hat{a}^\dagger\hat{a}(\hat{b}+\hat{b}^\dagger)$.
+      Red-detuned drive → sideband cooling; blue-detuned → parametric amplification / entanglement.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about12">
+    <h3>Linearized Optomechanics</h3>
+    <div class="eq">$H = -\hbar\Delta\hat{a}^\dagger\hat{a}+\hbar\omega_m\hat{b}^\dagger\hat{b}-\hbar g(\hat{a}^\dagger+\hat{a})(\hat{b}+\hat{b}^\dagger)$</div>
+    <p>$g=g_0\sqrt{\bar{n}_c}$ is the enhanced coupling. Resolved-sideband regime $\omega_m\gg\kappa$ enables ground-state cooling.</p>
+    <h3>Cooling Rate</h3>
+    <div class="eq">$n_f \approx \left(\frac{\kappa}{4\omega_m}\right)^2 + n_\text{th}\frac{\gamma_m}{\Gamma_\text{opt}}$</div>
+    <p>Final phonon occupancy limited by quantum backaction and residual thermal bath. $n_f&lt;1$ demonstrated in many platforms (beams, membranes, levitated nanoparticles).</p>
+    <h3>Frontier</h3>
+    <p>Quantum non-demolition sensing, gravitational-wave QND, macroscopic entanglement, and tabletop tests of quantum gravity / CSL models via optomechanics.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 13: PHOTON BLOCKADE ===== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane13">
+  <div class="canvas-col">
+    <canvas aria-label="47 · Quantum Optics — photon blockade and g2 antibunching" id="c13" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>g / κ:</label>
+      <input type="range" id="pbGk" min="1" max="40" value="20" oninput="updatePbGk()">
+      <span id="pbGkVal">20</span>
+      <label>Drive ε:</label>
+      <input type="range" id="pbEps" min="1" max="30" value="8" oninput="updatePbEps()">
+      <span id="pbEpsVal">8</span>
+      <label>Detuning:</label>
+      <input type="range" id="pbDet" min="-30" max="30" value="0" oninput="updatePbDet()">
+      <span id="pbDetVal">0</span>
+      <button id="btnAnim13" onclick="toggleAnim13()">▶ Play</button>
+      <button onclick="reset13()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal13">1x</span>
+    </div>
+    <div class="info-box">
+      JC anharmonicity: first photon resonant, second photon detuned by $g(\sqrt{2}-1)$.
+      Transmitted light is antibunched: $g^{(2)}(0)\ll 1$ — an effective photon turnstile.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about13">
+    <h3>Blockade Condition</h3>
+    <div class="eq">$\frac{g^2}{\kappa\gamma}\gg 1 \quad\Rightarrow\quad g^{(2)}(0)\to 0$</div>
+    <p>Strong coupling + weak drive on the first dressed transition yields a single-photon nonlinearity without a true two-level emitter in the output field.</p>
+    <h3>Unconventional Blockade</h3>
+    <div class="eq">$g^{(2)}(0)=\frac{\langle a^{\dagger 2}a^2\rangle}{\langle a^\dagger a\rangle^2}$</div>
+    <p>Destructive interference of two-photon amplitudes (Liew &amp; Savona) can produce $g^{(2)}(0)\approx 0$ even outside strong coupling — useful in weakly nonlinear resonators.</p>
+    <h3>Frontier</h3>
+    <p>Circuit-QED photon blockade, Rydberg polariton blockade, and few-photon logic gates for all-optical quantum information processing.</p>
+  </div>
+</div>
+
+<!-- ===== TAB 14: NV CENTERS ===== -->
+<div class="pane" role="tabpanel" data-role="panel" id="pane14">
+  <div class="canvas-col">
+    <canvas aria-label="47 · Quantum Optics — NV center solid-state emitter" id="c14" style="flex:1;min-height:0"></canvas>
+    <div class="controls" data-role="sidebar">
+      <label>B-field (mT):</label>
+      <input type="range" id="nvB" min="0" max="50" value="10" oninput="updateNvB()">
+      <span id="nvBVal">10</span>
+      <label>MW Rabi (MHz):</label>
+      <input type="range" id="nvMw" min="0" max="30" value="8" oninput="updateNvMw()">
+      <span id="nvMwVal">8</span>
+      <label>T₂ (μs):</label>
+      <input type="range" id="nvT2" min="1" max="200" value="50" oninput="updateNvT2()">
+      <span id="nvT2Val">50</span>
+      <button id="btnAnim14" onclick="toggleAnim14()">▶ Play</button>
+      <button onclick="reset14()">Reset</button>
+      <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="10" oninput="this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x';window.animSpeed=this.value/100"><span id="speedVal14">1x</span>
+    </div>
+    <div class="info-box">
+      NV⁻ centre: spin-1 ground state with zero-field splitting $D\approx 2.87\,\text{GHz}$.
+      Optically detected magnetic resonance (ODMR) maps spin to red photoluminescence — a room-temperature spin–photon interface.
+    </div>
+  </div>
+  <div class="side-panel" data-role="sidebar" id="about14">
+    <h3>Level Structure</h3>
+    <div class="eq">$H = D\hat{S}_z^2 + \gamma_e\mathbf{B}\cdot\mathbf{S} + A_\parallel\hat{S}_z\hat{I}_z$</div>
+    <p>$m_s=0$ bright; $m_s=\pm 1$ shelved via intersystem crossing → reduced PL. Hyperfine coupling to $^{14}$N and nearby $^{13}$C nuclear spins enables multi-qubit registers.</p>
+    <h3>Spin–Photon Interface</h3>
+    <div class="eq">$T_1\sim\text{ms (RT)},\quad T_2^\text{Hahn}\sim\text{ms (dyn. dec.)}$</div>
+    <p>Room-temperature single-photon source with spin-selective fluorescence. Coherent spin control + photonic entanglement demonstrated over km-scale links (Delft, Munich, …).</p>
+    <h3>Frontier</h3>
+    <p>SiV/SnV/GeV group-IV centres (transform-limited, cavity-enhanced), nuclear quantum memories, nanoscale NMR, and modular quantum network nodes at cryogenic and ambient conditions.</p>
+  </div>
+</div>
+
 </div><!-- #main -->
 
 <script>
@@ -488,41 +706,37 @@ const tabs  = document.querySelectorAll('.tab');
 let activeTab = 0;
 
 function _cancelAllAnims47(){
-  [raf0,raf1,raf2,raf3,raf4,raf5,raf6,raf7,raf8].forEach(id=>{if(id)cancelAnimationFrame(id);});
-  raf0=raf1=raf2=raf3=raf4=raf5=raf6=raf7=raf8=null;
-  // Reset buttons
-  const btns=['btnAnim0','btnAnim1','btnAnim2','btnAnim3','btnAnim4','btnAnim5','btnAnim6','btnAnim7','btnAnim8'];
-  btns.forEach(id=>{
-    const b=document.getElementById(id);
+  [raf0,raf1,raf2,raf3,raf4,raf5,raf6,raf7,raf8,raf9,raf10,raf11,raf12,raf13,raf14].forEach(id=>{if(id)cancelAnimationFrame(id);});
+  raf0=raf1=raf2=raf3=raf4=raf5=raf6=raf7=raf8=raf9=raf10=raf11=raf12=raf13=raf14=null;
+  // Reset buttons only — do NOT clear anim* flags (auto-start must restart)
+  for(let i=0;i<=14;i++){
+    const b=document.getElementById('btnAnim'+i);
     if(b){b.textContent='\u25b6 Play';b.classList.remove('on');}
-  });
+  }
 }
 function syncSpeedControl47(i){
   const slider=document.getElementById('speed'+i);
   const display=document.getElementById('speedVal'+i);
   if(slider&&display){
-    display.textContent=''+(slider.value/100)+'x';
+    display.textContent=(slider.value/100).toFixed(2)+'x';
   }
 }
+const _inits47=[
+  ()=>initPane0(),()=>initPane1(),()=>initPane2(),()=>initPane3(),()=>initPane4(),
+  ()=>initPane5(),()=>initPane6(),()=>initPane7(),()=>initPane8(),()=>initPane9(),
+  ()=>initPane10(),()=>initPane11(),()=>initPane12(),()=>initPane13(),()=>initPane14()
+];
 function switchTab(n){
   // Null pane states so loop* guards (if(!p*) return) fire immediately
-  p0=p1=p2=p3=p4=p5=p6=p7=p8=null;
+  p0=p1=p2=p3=p4=p5=p6=p7=p8=p9=p10=p11=p12=p13=p14=null;
   _cancelAllAnims47();
-  // Reset all anim flags to true for new tab
-  anim0=anim1=anim2=anim3=anim4=anim5=anim6=anim7=anim8=true;
-  tabs.forEach((t,i)=>t.classList.toggle('active',i===n));
+  // Reset all anim flags to true for new tab (auto-start)
+  anim0=anim1=anim2=anim3=anim4=anim5=anim6=anim7=anim8=anim9=anim10=anim11=anim12=anim13=anim14=true;
+  tabs.forEach((t,i)=>{t.classList.toggle('active',i===n);t.setAttribute('aria-selected',i===n?'true':'false');});
   panes.forEach((p,i)=>p.classList.toggle('active',i===n));
   activeTab = n;
   syncSpeedControl47(n);
-  if(n===0) initPane0();
-  if(n===1) initPane1();
-  if(n===2) initPane2();
-  if(n===3) initPane3();
-  if(n===4) initPane4();
-  if(n===5) initPane5();
-  if(n===6) initPane6();
-  if(n===7) initPane7();
-  if(n===8) initPane8();
+  if(_inits47[n]) _inits47[n]();
 }
 
 // ─── UTIL ─────────────────────────────────────────────────────────────────────
@@ -538,8 +752,15 @@ function setupCanvas(id){
 
 function hsl(h,s,l){ return `hsl(${h},${s}%,${l}%)`; }
 
+// ─── Pane / RAF / anim flags (all tabs 0–14) ──────────────────────────────────
+let p0=null,p1=null,p2=null,p3=null,p4=null,p5=null,p6=null,p7=null,p8=null;
+let p9=null,p10=null,p11=null,p12=null,p13=null,p14=null;
+let raf0=null,raf1=null,raf2=null,raf3=null,raf4=null,raf5=null,raf6=null,raf7=null,raf8=null;
+let raf9=null,raf10=null,raf11=null,raf12=null,raf13=null,raf14=null;
+let anim0=true,anim1=true,anim2=true,anim3=true,anim4=true,anim5=true,anim6=true,anim7=true,anim8=true;
+let anim9=true,anim10=true,anim11=true,anim12=true,anim13=true,anim14=true;
+
 // ─── TAB 0: LASER COOLING ────────────────────────────────────────────────────
-let p0 = null, raf0 = null, anim0 = true;
 
 function initPane0(){
   if(raf0) cancelAnimationFrame(raf0);
@@ -736,7 +957,7 @@ function loop0(){
 const var_border = '#2a2a50';
 
 // ─── TAB 1: BEC ───────────────────────────────────────────────────────────────
-let p1=null, raf1=null, anim1=true, becTRatio=1.8, released=false, releaseT=0, twoCloud=false;
+let becTRatio=1.8, released=false, releaseT=0, twoCloud=false;
 let becParticles=[];
 
 function initPane1(){
@@ -916,7 +1137,6 @@ function loop1(ts){
 }
 
 // ─── TAB 2: OPTICAL TWEEZERS ─────────────────────────────────────────────────
-let p2=null, raf2=null, anim2=true;
 let bead={x:0,y:0,vx:0,vy:0};
 let bead2={x:0,y:0,vx:0,vy:0};
 let beadDragging=false, bead2Dragging=false;
@@ -1212,7 +1432,7 @@ function drawArrow(ctx,x1,y1,x2,y2,color,lw){
 }
 
 // ─── TAB 3: CPA ───────────────────────────────────────────────────────────────
-let p3=null, raf3=null, anim3=true, cpaStage=-1, cpaT=0, cpaPlaying=false;
+let cpaStage=-1, cpaT=0, cpaPlaying=false;
 let stretchFactor=1000, freqColor=true;
 
 function initPane3(){
@@ -1371,7 +1591,7 @@ window.addEventListener('load',()=>{
     initPane0();
     document.getElementById('btnCool').classList.add('on');
     // re-render math in about panels
-    ['about0','about1','about2','about3','about4','about5','about6','about7','about8'].forEach(id=>{
+    ['about0','about1','about2','about3','about4','about5','about6','about7','about8','about9','about10','about11','about12','about13','about14'].forEach(id=>{
       const el=document.getElementById(id);
       if(el&&window.renderMathInElement){
         renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
@@ -1381,22 +1601,15 @@ window.addEventListener('load',()=>{
 });
 
 window.addEventListener('resize',()=>{
-  if(activeTab===0&&p0){cancelAnimationFrame(raf0);initPane0();}
-  if(activeTab===1&&p1){cancelAnimationFrame(raf1);initPane1();}
-  if(activeTab===2&&p2){cancelAnimationFrame(raf2);initPane2();}
-  if(activeTab===3&&p3){cancelAnimationFrame(raf3);initPane3();}
-  if(activeTab===4&&p4){cancelAnimationFrame(raf4);initPane4();}
-  if(activeTab===5&&p5){cancelAnimationFrame(raf5);initPane5();}
-  if(activeTab===6&&p6){cancelAnimationFrame(raf6);initPane6();}
-  if(activeTab===7&&p7){cancelAnimationFrame(raf7);initPane7();}
-  if(activeTab===8&&p8){cancelAnimationFrame(raf8);initPane8();}
+  const panesRef=[p0,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14];
+  const rafs=[raf0,raf1,raf2,raf3,raf4,raf5,raf6,raf7,raf8,raf9,raf10,raf11,raf12,raf13,raf14];
+  if(panesRef[activeTab]){if(rafs[activeTab])cancelAnimationFrame(rafs[activeTab]);if(_inits47[activeTab])_inits47[activeTab]();}
 });
 
 </script>
 
 <script>
 // ─── TAB 4: COHERENT & SQUEEZED STATES ───────────────────────────────────────
-let p4=null, raf4=null, anim4=true;
 let sqr=0.0, sqPhi=0.0;
 
 function updateSqr(){sqr=+document.getElementById('sqrSlider').value/10;document.getElementById('sqrVal').textContent=sqr.toFixed(1);}
@@ -1508,7 +1721,6 @@ function loop4(ts){
 }
 
 // ─── TAB 5: WIGNER FUNCTION ───────────────────────────────────────────────────
-let p5=null, raf5=null, anim5=true;
 let wignerN=0, wignerStateId='0', dampPct=0;
 let wignerDirty=true;
 
@@ -1663,7 +1875,6 @@ function loop5(){
 }
 
 // ─── TAB 6: CAVITY QED ───────────────────────────────────────────────────────
-let p6=null, raf6=null, anim6=true;
 let couplingG=15, cqedViewMode='rabi';
 
 function updateCoupling(){couplingG=+document.getElementById('couplingSlider').value;document.getElementById('couplingVal').textContent=couplingG;}
@@ -1863,7 +2074,6 @@ function loop6(ts){
 }
 
 // ─── TAB 7: SINGLE PHOTON SOURCES ────────────────────────────────────────────
-let p7=null, raf7=null, anim7=true;
 let spSceneMode='spdc';
 
 function updateSpScene(){spSceneMode=document.getElementById('spScene').value;}
@@ -2059,7 +2269,6 @@ function loop7(ts){
 }
 
 // ─── TAB 8: QUANTUM NETWORKS ─────────────────────────────────────────────────
-let p8=null, raf8=null, anim8=true;
 let netDist=50, netReps=3;
 let netPhotons=[];
 
@@ -2206,12 +2415,708 @@ function loop8(ts){
   if(anim8) raf8=requestAnimationFrame(loop8);
 }
 
+// ─── TAB 9: RABI / BLOCH SPHERE ──────────────────────────────────────────────
+let rabiOmega=12, rabiDet=0, rabiPhi=0;
+function updateRabiOmega(){rabiOmega=+document.getElementById('rabiOmega').value;document.getElementById('rabiOmegaVal').textContent=rabiOmega;}
+function updateRabiDet(){rabiDet=+document.getElementById('rabiDet').value;document.getElementById('rabiDetVal').textContent=rabiDet;}
+function updateRabiPhi(){rabiPhi=+document.getElementById('rabiPhi').value;document.getElementById('rabiPhiVal').textContent=rabiPhi+'\u00b0';}
+function initPane9(){
+  if(raf9) cancelAnimationFrame(raf9);
+  const {cv,ctx,W,H}=setupCanvas('c9');
+  p9={cv,ctx,W,H,t0:null};
+  anim9=true;
+  const b=document.getElementById('btnAnim9'); if(b){b.textContent='\u23f8 Pause';b.classList.add('on');}
+  loop9();
+}
+function toggleAnim9(){
+  anim9=!anim9;
+  const b=document.getElementById('btnAnim9');
+  if(b){b.textContent=anim9?'\u23f8 Pause':'\u25b6 Play';b.classList.toggle('on',anim9);}
+  if(anim9&&!raf9) loop9();
+}
+function reset9(){
+  if(raf9){cancelAnimationFrame(raf9);raf9=null;}
+  rabiOmega=12;rabiDet=0;rabiPhi=0;
+  document.getElementById('rabiOmega').value=12;document.getElementById('rabiOmegaVal').textContent='12';
+  document.getElementById('rabiDet').value=0;document.getElementById('rabiDetVal').textContent='0';
+  document.getElementById('rabiPhi').value=0;document.getElementById('rabiPhiVal').textContent='0\u00b0';
+  p9=null; initPane9();
+}
+function loop9(ts){
+  if(!p9) return;
+  if(p9.t0===null) p9.t0=ts||Date.now();
+  const {ctx,W,H}=p9;
+  const t=((ts||Date.now())-p9.t0)*0.001*(window.animSpeed||1);
+  ctx.clearRect(0,0,W,H);
+  const cx=W*0.38, cy=H*0.48, R=Math.min(W,H)*0.32;
+  const Om=rabiOmega*0.15, Del=rabiDet*0.08, phi=rabiPhi*Math.PI/180;
+  const OmR=Math.sqrt(Om*Om+Del*Del)+1e-6;
+  // Bloch precession from |g> about Omega_eff
+  const nx=Om*Math.cos(phi)/OmR, ny=Om*Math.sin(phi)/OmR, nz=Del/OmR;
+  const ang=OmR*t;
+  // Rodrigues rotate initial (0,0,-1) about n
+  const ux=0,uy=0,uz=-1;
+  const cA=Math.cos(ang), sA=Math.sin(ang);
+  const dot=nx*ux+ny*uy+nz*uz;
+  let rx=ux*cA+sA*(ny*uz-nz*uy)+nx*dot*(1-cA);
+  let ry=uy*cA+sA*(nz*ux-nx*uz)+ny*dot*(1-cA);
+  let rz=uz*cA+sA*(nx*uy-ny*ux)+nz*dot*(1-cA);
+  const nrm=Math.sqrt(rx*rx+ry*ry+rz*rz)||1; rx/=nrm; ry/=nrm; rz/=nrm;
+  // Sphere
+  ctx.strokeStyle='rgba(100,180,255,0.35)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.stroke();
+  // Equator
+  ctx.strokeStyle='rgba(136,136,170,0.35)'; ctx.setLineDash([4,4]);
+  ctx.beginPath(); ctx.ellipse(cx,cy,R,R*0.28,0,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+  // Axes
+  const axes=[{x:1,y:0,z:0,l:'x'},{x:0,y:1,z:0,l:'y'},{x:0,y:0,z:1,l:'z'}];
+  axes.forEach(a=>{
+    const sx=cx+a.x*R*0.95, sy=cy-a.z*R*0.95+a.y*R*0.22;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(sx,sy);
+    ctx.strokeStyle='rgba(136,136,170,0.45)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='rgba(200,200,230,0.75)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(a.l,sx+(a.x||a.y)*10,sy-(a.z)*8);
+  });
+  // Poles
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('|e\u27e9',cx,cy-R-8);
+  ctx.fillText('|g\u27e9',cx,cy+R+16);
+  // Omega_eff arrow
+  const ox=cx+nx*R*0.7, oy=cy-nz*R*0.7+ny*R*0.18;
+  drawArrow(ctx,cx,cy,ox,oy,'rgba(255,100,80,0.85)',2);
+  ctx.fillStyle='rgba(255,100,80,0.85)'; ctx.font='12px sans-serif';
+  ctx.fillText('\u03a9_eff',ox+8,oy);
+  // Bloch vector
+  const bx=cx+rx*R*0.92, by=cy-rz*R*0.92+ry*R*0.22;
+  drawArrow(ctx,cx,cy,bx,by,'rgba(100,255,180,0.95)',2.5);
+  ctx.beginPath(); ctx.arc(bx,by,6,0,Math.PI*2);
+  ctx.fillStyle='rgba(100,255,180,0.95)'; ctx.shadowColor='rgba(100,255,180,0.6)'; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+  // Trail ring about precession
+  ctx.strokeStyle='rgba(100,255,180,0.2)'; ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let i=0;i<=48;i++){
+    const a2=i/48*Math.PI*2;
+    const c2=Math.cos(a2), s2=Math.sin(a2);
+    let tx=ux*c2+s2*(ny*uz-nz*uy)+nx*dot*(1-c2);
+    let ty=uy*c2+s2*(nz*ux-nx*uz)+ny*dot*(1-c2);
+    let tz=uz*c2+s2*(nx*uy-ny*ux)+nz*dot*(1-c2);
+    const px=cx+tx*R*0.92, py=cy-tz*R*0.92+ty*R*0.22;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  // Population plot
+  const grX=W*0.62, grY=H*0.15, grW=W*0.34, grH=H*0.55;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(grX,grY,grW,grH); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('P_e(t) Rabi oscillation',grX+grW/2,grY+14);
+  const Pe=(rz+1)/2;
+  ctx.beginPath();
+  for(let i=0;i<=grW;i++){
+    const tsamp=t-3+i*(6/grW);
+    const aS=OmR*tsamp;
+    const cS=Math.cos(aS), sS=Math.sin(aS);
+    let rzS=uz*cS+sS*(nx*uy-ny*ux)+nz*dot*(1-cS);
+    const pe=(rzS+1)/2;
+    const px=grX+i, py=grY+grH-12-pe*(grH-28);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.strokeStyle='rgba(255,150,80,0.95)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(grX+grW*0.5,grY+grH-12-Pe*(grH-28),4,0,Math.PI*2);
+  ctx.fillStyle='#ffdd44'; ctx.fill();
+  ctx.fillStyle='rgba(200,200,230,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('P_e = '+Pe.toFixed(3),grX+8,grY+grH-8);
+  ctx.fillText('\u03a9_R = '+OmR.toFixed(2),grX+8,grY+30);
+  ctx.fillStyle='rgba(136,136,170,0.75)'; ctx.textAlign='center';
+  ctx.fillText('Bloch sphere · optical Bloch equations',W/2,H-10);
+  if(anim9) raf9=requestAnimationFrame(loop9);
+}
+
+// ─── TAB 10: HONG–OU–MANDEL ──────────────────────────────────────────────────
+let homDelay=0, homIndist=1, homR=0.5;
+function updateHomDelay(){homDelay=+document.getElementById('homDelay').value;document.getElementById('homDelayVal').textContent=homDelay;}
+function updateHomIndist(){homIndist=+document.getElementById('homIndist').value/100;document.getElementById('homIndistVal').textContent=Math.round(homIndist*100)+'%';}
+function updateHomR(){homR=+document.getElementById('homR').value/100;document.getElementById('homRVal').textContent=Math.round(homR*100)+'%';}
+function initPane10(){
+  if(raf10) cancelAnimationFrame(raf10);
+  const {cv,ctx,W,H}=setupCanvas('c10');
+  p10={cv,ctx,W,H,t0:null};
+  anim10=true;
+  const b=document.getElementById('btnAnim10'); if(b){b.textContent='\u23f8 Pause';b.classList.add('on');}
+  loop10();
+}
+function toggleAnim10(){
+  anim10=!anim10;
+  const b=document.getElementById('btnAnim10');
+  if(b){b.textContent=anim10?'\u23f8 Pause':'\u25b6 Play';b.classList.toggle('on',anim10);}
+  if(anim10&&!raf10) loop10();
+}
+function reset10(){
+  if(raf10){cancelAnimationFrame(raf10);raf10=null;}
+  homDelay=0;homIndist=1;homR=0.5;
+  document.getElementById('homDelay').value=0;document.getElementById('homDelayVal').textContent='0';
+  document.getElementById('homIndist').value=100;document.getElementById('homIndistVal').textContent='100%';
+  document.getElementById('homR').value=50;document.getElementById('homRVal').textContent='50%';
+  p10=null; initPane10();
+}
+function loop10(ts){
+  if(!p10) return;
+  if(p10.t0===null) p10.t0=ts||Date.now();
+  const {ctx,W,H}=p10;
+  const t=((ts||Date.now())-p10.t0)*0.001*(window.animSpeed||1);
+  ctx.clearRect(0,0,W,H);
+  const bsX=W*0.32, bsY=H*0.42;
+  // Beamsplitter
+  ctx.save(); ctx.translate(bsX,bsY); ctx.rotate(Math.PI/4);
+  ctx.fillStyle='rgba(100,180,255,0.18)'; ctx.strokeStyle='rgba(100,180,255,0.85)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.rect(-10,-50,20,100); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle='rgba(100,180,255,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('50/50 BS  R='+Math.round(homR*100)+'%',bsX+28,bsY-18);
+  // Incoming paths
+  ctx.strokeStyle='rgba(255,200,60,0.35)'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(bsX-140,bsY); ctx.lineTo(bsX-12,bsY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bsX,bsY-120); ctx.lineTo(bsX,bsY-12); ctx.stroke();
+  ctx.setLineDash([]);
+  // Output paths
+  ctx.strokeStyle='rgba(100,255,160,0.3)'; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(bsX+12,bsY); ctx.lineTo(bsX+130,bsY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bsX,bsY+12); ctx.lineTo(bsX,bsY+100); ctx.stroke();
+  ctx.setLineDash([]);
+  // Detectors
+  [[bsX+140,bsY,'D1'],[bsX,bsY+112,'D2']].forEach(([dx,dy,lab])=>{
+    ctx.beginPath(); ctx.arc(dx,dy,10,0,Math.PI*2);
+    ctx.fillStyle='rgba(180,180,220,0.35)'; ctx.strokeStyle='rgba(200,200,240,0.7)'; ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(200,200,240,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(lab,dx,dy+24);
+  });
+  // Animated photons with delay
+  const period=2.2, ph=(t%period)/period;
+  const dShift=homDelay/100*0.18;
+  const f1=Math.min(1,Math.max(0,ph*1.3));
+  const f2=Math.min(1,Math.max(0,(ph-dShift)*1.3));
+  function drawPh(x,y,col){
+    ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=12; ctx.fill(); ctx.shadowBlur=0;
+  }
+  if(f1<0.55) drawPh(bsX-140+f1/0.55*128,bsY,'rgba(255,200,60,0.95)');
+  else {
+    const fo=(f1-0.55)/0.45;
+    // bunching preference when indist high
+    if(homIndist>0.5) drawPh(bsX+fo*120,bsY+(Math.sin(t*3)>0?0:fo*90),'rgba(100,255,160,0.95)');
+    else { drawPh(bsX+fo*120,bsY,'rgba(255,200,60,0.9)'); drawPh(bsX,bsY+fo*90,'rgba(255,160,80,0.9)'); }
+  }
+  if(f2<0.55) drawPh(bsX,bsY-120+f2/0.55*108,'rgba(255,180,80,0.95)');
+  // HOM dip plot
+  const hmX=W*0.58, hmY=H*0.12, hmW=W*0.38, hmH=H*0.55;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(hmX,hmY,hmW,hmH); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Coincidence rate C(\u0394t)',hmX+hmW/2,hmY+14);
+  const tauC=28, V=homIndist*(4*homR*(1-homR)); // max 1 at R=0.5
+  ctx.beginPath();
+  for(let i=0;i<=hmW;i++){
+    const dt=(i/hmW-0.5)*200;
+    const coinc=1-V*Math.exp(-(dt*dt)/(tauC*tauC));
+    const px=hmX+i, py=hmY+hmH-16-coinc*(hmH-36);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.strokeStyle='rgba(100,200,255,0.95)'; ctx.lineWidth=2.2; ctx.stroke();
+  // cursor at current delay
+  const curX=hmX+(homDelay/200+0.5)*hmW;
+  const curC=1-V*Math.exp(-(homDelay*homDelay)/(tauC*tauC));
+  ctx.beginPath(); ctx.moveTo(curX,hmY+16); ctx.lineTo(curX,hmY+hmH-10);
+  ctx.strokeStyle='rgba(255,221,68,0.45)'; ctx.lineWidth=1; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(curX,hmY+hmH-16-curC*(hmH-36),5,0,Math.PI*2);
+  ctx.fillStyle='#ffdd44'; ctx.fill();
+  ctx.fillStyle='rgba(200,200,230,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('V = '+(V).toFixed(3),hmX+8,hmY+hmH-8);
+  ctx.fillText('C = '+curC.toFixed(3),hmX+80,hmY+hmH-8);
+  ctx.fillStyle='rgba(136,136,170,0.75)'; ctx.textAlign='center';
+  ctx.fillText('Hong\u2013Ou\u2013Mandel · two-photon quantum interference',W/2,H-10);
+  if(anim10) raf10=requestAnimationFrame(loop10);
+}
+
+// ─── TAB 11: EIT ─────────────────────────────────────────────────────────────
+let eitOc=15, eitOp=3, eitG12=0.2;
+function updateEitOc(){eitOc=+document.getElementById('eitOc').value;document.getElementById('eitOcVal').textContent=eitOc;}
+function updateEitOp(){eitOp=+document.getElementById('eitOp').value;document.getElementById('eitOpVal').textContent=eitOp;}
+function updateEitG12(){eitG12=+document.getElementById('eitG12').value/10;document.getElementById('eitG12Val').textContent=eitG12.toFixed(1);}
+function initPane11(){
+  if(raf11) cancelAnimationFrame(raf11);
+  const {cv,ctx,W,H}=setupCanvas('c11');
+  p11={cv,ctx,W,H,t0:null};
+  anim11=true;
+  const b=document.getElementById('btnAnim11'); if(b){b.textContent='\u23f8 Pause';b.classList.add('on');}
+  loop11();
+}
+function toggleAnim11(){
+  anim11=!anim11;
+  const b=document.getElementById('btnAnim11');
+  if(b){b.textContent=anim11?'\u23f8 Pause':'\u25b6 Play';b.classList.toggle('on',anim11);}
+  if(anim11&&!raf11) loop11();
+}
+function reset11(){
+  if(raf11){cancelAnimationFrame(raf11);raf11=null;}
+  eitOc=15;eitOp=3;eitG12=0.2;
+  document.getElementById('eitOc').value=15;document.getElementById('eitOcVal').textContent='15';
+  document.getElementById('eitOp').value=3;document.getElementById('eitOpVal').textContent='3';
+  document.getElementById('eitG12').value=2;document.getElementById('eitG12Val').textContent='0.2';
+  p11=null; initPane11();
+}
+function eitChi(dp, Oc, g12, Gam){
+  // simplified steady-state probe susceptibility
+  const denR=Gam*g12-dp*dp+Oc*Oc*0.25;
+  const denI=dp*(Gam+g12);
+  const mag2=denR*denR+denI*denI+1e-9;
+  // chi ~ i*Gam / (Gam - i dp + Oc^2/(g12 - i dp))
+  const numR=Gam*(g12); // rough
+  const im = Gam*(denR)/mag2; // absorption proxy
+  const re = Gam*(-denI)/mag2*0.4; // dispersion proxy
+  return {re, im:Math.max(0,im)};
+}
+function loop11(ts){
+  if(!p11) return;
+  if(p11.t0===null) p11.t0=ts||Date.now();
+  const {ctx,W,H}=p11;
+  const t=((ts||Date.now())-p11.t0)*0.001*(window.animSpeed||1);
+  ctx.clearRect(0,0,W,H);
+  // Lambda diagram (left)
+  const lx=W*0.16, ly0=H*0.72, lyE=H*0.22, lyS=H*0.72;
+  const lxG=lx-50, lxS=lx+50;
+  // levels
+  [[lxG,ly0,'|g\u27e9'],[lxS,lyS,'|s\u27e9'],[lx,lyE,'|e\u27e9']].forEach(([x,y,lab])=>{
+    ctx.beginPath(); ctx.moveTo(x-28,y); ctx.lineTo(x+28,y);
+    ctx.strokeStyle='rgba(200,200,240,0.7)'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='rgba(200,200,240,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(lab,x,y+16);
+  });
+  // Probe and coupling arrows
+  const pulse=0.5+0.5*Math.sin(t*3);
+  drawArrow(ctx,lxG,ly0-4,lx-8,lyE+6,`rgba(255,221,68,${0.5+pulse*0.4})`,2);
+  drawArrow(ctx,lxS,lyS-4,lx+8,lyE+6,`rgba(100,200,255,${0.5+pulse*0.4})`,2);
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+  ctx.fillText('\u03a9_p',lx-20, (ly0+lyE)/2);
+  ctx.fillStyle='rgba(100,200,255,0.85)'; ctx.textAlign='left';
+  ctx.fillText('\u03a9_c',lx+22, (lyS+lyE)/2);
+  // Dark state annotation
+  ctx.fillStyle='rgba(100,255,160,0.8)'; ctx.textAlign='center';
+  ctx.fillText('|D\u27e9 dark state',lx,H*0.88);
+  // Spectrum (right)
+  const sx=W*0.38, sy=H*0.12, sw=W*0.58, sh=H*0.7;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(sx,sy,sw,sh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Probe absorption Im \u03c7  &  dispersion Re \u03c7',sx+sw/2,sy+14);
+  const Gam=8, Oc=eitOc, g12=eitG12+0.05;
+  // absorption curve
+  ctx.beginPath();
+  for(let i=0;i<=sw;i++){
+    const dp=(i/sw-0.5)*60;
+    const {im}=eitChi(dp,Oc,g12,Gam);
+    // without EIT (Oc=0)
+    const im0=Gam/(Gam*Gam+dp*dp)*Gam;
+    const py=sy+sh-20-Math.min(im,2.5)/2.5*(sh-40);
+    i===0?ctx.moveTo(sx+i,py):ctx.lineTo(sx+i,py);
+  }
+  ctx.strokeStyle='rgba(255,120,80,0.95)'; ctx.lineWidth=2.2; ctx.stroke();
+  // dispersion
+  ctx.beginPath();
+  for(let i=0;i<=sw;i++){
+    const dp=(i/sw-0.5)*60;
+    const {re}=eitChi(dp,Oc,g12,Gam);
+    const py=sy+sh/2-re/1.2*(sh*0.35);
+    i===0?ctx.moveTo(sx+i,py):ctx.lineTo(sx+i,py);
+  }
+  ctx.strokeStyle='rgba(100,200,255,0.85)'; ctx.lineWidth=1.8; ctx.stroke();
+  // no-EIT reference dashed
+  ctx.beginPath(); ctx.setLineDash([4,4]);
+  for(let i=0;i<=sw;i++){
+    const dp=(i/sw-0.5)*60;
+    const im0=Gam*Gam/(Gam*Gam+dp*dp);
+    const py=sy+sh-20-im0*(sh-40);
+    i===0?ctx.moveTo(sx+i,py):ctx.lineTo(sx+i,py);
+  }
+  ctx.strokeStyle='rgba(136,136,170,0.4)'; ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]);
+  // EIT window marker
+  const wHalf=Math.max(2,Oc*0.8);
+  const x1=sx+(0.5-wHalf/60)*sw, x2=sx+(0.5+wHalf/60)*sw;
+  ctx.fillStyle='rgba(100,255,160,0.08)';
+  ctx.fillRect(x1,sy+20,x2-x1,sh-30);
+  ctx.fillStyle='rgba(100,255,160,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('EIT window',x1+4,sy+36);
+  ctx.fillStyle='rgba(255,120,80,0.85)'; ctx.fillText('Im \u03c7 (abs.)',sx+8,sy+sh-8);
+  ctx.fillStyle='rgba(100,200,255,0.85)'; ctx.fillText('Re \u03c7 (disp.)',sx+100,sy+sh-8);
+  // group index estimate
+  const ng=(Oc*Oc)/(g12*Gam+0.1)*2;
+  ctx.fillStyle='rgba(255,221,68,0.8)';
+  ctx.fillText('n_g ~ '+(ng).toFixed(0)+'  (slow light)',sx+8,sy+30);
+  ctx.fillStyle='rgba(136,136,170,0.75)'; ctx.textAlign='center';
+  ctx.fillText('Electromagnetically induced transparency · \u039b system',W/2,H-10);
+  if(anim11) raf11=requestAnimationFrame(loop11);
+}
+
+// ─── TAB 12: OPTOMECHANICS ───────────────────────────────────────────────────
+let omG0=12, omDet=-15, omPow=10;
+function updateOmG0(){omG0=+document.getElementById('omG0').value;document.getElementById('omG0Val').textContent=omG0;}
+function updateOmDet(){
+  omDet=+document.getElementById('omDet').value;
+  const el=document.getElementById('omDetVal');
+  if(Math.abs(omDet+15)<3) el.textContent='\u2212\u03c9_m';
+  else if(Math.abs(omDet-15)<3) el.textContent='+\u03c9_m';
+  else el.textContent=''+omDet;
+}
+function updateOmPow(){omPow=+document.getElementById('omPow').value;document.getElementById('omPowVal').textContent=omPow;}
+function initPane12(){
+  if(raf12) cancelAnimationFrame(raf12);
+  const {cv,ctx,W,H}=setupCanvas('c12');
+  p12={cv,ctx,W,H,t0:null,xm:0,vm:0};
+  anim12=true;
+  const b=document.getElementById('btnAnim12'); if(b){b.textContent='\u23f8 Pause';b.classList.add('on');}
+  loop12();
+}
+function toggleAnim12(){
+  anim12=!anim12;
+  const b=document.getElementById('btnAnim12');
+  if(b){b.textContent=anim12?'\u23f8 Pause':'\u25b6 Play';b.classList.toggle('on',anim12);}
+  if(anim12&&!raf12) loop12();
+}
+function reset12(){
+  if(raf12){cancelAnimationFrame(raf12);raf12=null;}
+  omG0=12;omDet=-15;omPow=10;
+  document.getElementById('omG0').value=12;document.getElementById('omG0Val').textContent='12';
+  document.getElementById('omDet').value=-15;document.getElementById('omDetVal').textContent='\u2212\u03c9_m';
+  document.getElementById('omPow').value=10;document.getElementById('omPowVal').textContent='10';
+  p12=null; initPane12();
+}
+function loop12(ts){
+  if(!p12) return;
+  if(p12.t0===null) p12.t0=ts||Date.now();
+  const {ctx,W,H}=p12;
+  const t=((ts||Date.now())-p12.t0)*0.001*(window.animSpeed||1);
+  ctx.clearRect(0,0,W,H);
+  const gEnh=omG0*Math.sqrt(omPow)*0.15;
+  const wm=2.2, kappa=1.2;
+  // cooling if red detuned
+  const red=omDet<0;
+  const GammaOpt=gEnh*gEnh*kappa/(kappa*kappa+Math.pow(omDet+wm*5,2)+0.5);
+  const nth=8;
+  const nf=Math.max(0.05,(kappa/(4*wm*5))**2 + nth*(0.15)/(GammaOpt+0.15));
+  // mechanical oscillator dynamics (visual)
+  const damp=red?0.02+GammaOpt*0.01:0.005;
+  const driveF=red?0:0.08*omPow*0.02;
+  p12.vm += (-wm*wm*0.02*p12.xm - damp*p12.vm + (Math.random()-0.5)*0.15*Math.sqrt(nf) + driveF*Math.sin(t*wm))*1;
+  p12.xm += p12.vm*0.05;
+  p12.xm*=0.999;
+  // Cavity mirrors
+  const cy=H*0.38, mL=W*0.18, mR=W*0.52+p12.xm*18;
+  // left fixed mirror
+  ctx.fillStyle='rgba(100,180,255,0.7)';
+  ctx.fillRect(mL-10,cy-60,12,120);
+  // right movable mirror (mechanics)
+  ctx.fillStyle='rgba(255,180,80,0.85)';
+  ctx.fillRect(mR,cy-50,14,100);
+  // spring
+  ctx.strokeStyle='rgba(200,200,230,0.5)'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  const springX0=mR+14, springX1=W*0.72;
+  for(let i=0;i<=12;i++){
+    const f=i/12, x=springX0+f*(springX1-springX0);
+    const y=cy+(i%2===0?-10:10);
+    i===0?ctx.moveTo(x,cy):ctx.lineTo(x,y);
+  }
+  ctx.lineTo(springX1,cy); ctx.stroke();
+  // cavity field
+  const cavW=mR-(mL+2);
+  const nbar=omPow*(0.5+0.5*Math.cos(t*3+p12.xm));
+  for(let i=0;i<cavW;i+=3){
+    const field=Math.sin(i/cavW*Math.PI*5+t*4)*Math.exp(-0.5)*nbar*0.08;
+    ctx.fillStyle=`rgba(255,221,68,${0.15+nbar*0.03})`;
+    ctx.fillRect(mL+2+i,cy+field*40,2,2);
+  }
+  ctx.fillStyle='rgba(255,221,68,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('optical cavity', (mL+mR)/2, cy-70);
+  ctx.fillStyle='rgba(255,180,80,0.85)';
+  ctx.fillText('mechanical mode', mR+40, cy+70);
+  // Sideband diagram
+  const sx=W*0.12, sy=H*0.62, sw=W*0.5, sh=H*0.28;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(sx,sy,sw,sh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Sidebands · drive detuning',sx+sw/2,sy+12);
+  // carrier + Stokes/Anti-Stokes
+  const peaks=[{f:0.5,a:1,c:'rgba(255,221,68,0.9)',l:'drive'},{f:0.5-0.18,a:red?0.7:0.35,c:'rgba(100,255,160,0.9)',l:'AS'},{f:0.5+0.18,a:red?0.35:0.7,c:'rgba(255,120,80,0.9)',l:'S'}];
+  peaks.forEach(p=>{
+    const px=sx+p.f*sw;
+    ctx.beginPath(); ctx.moveTo(px,sy+sh-8); ctx.lineTo(px,sy+sh-8-p.a*(sh-28));
+    ctx.strokeStyle=p.c; ctx.lineWidth=3; ctx.stroke();
+    ctx.fillStyle=p.c; ctx.font='12px sans-serif';
+    ctx.fillText(p.l,px,sy+sh-8-p.a*(sh-28)-6);
+  });
+  // phonon readout
+  const rx=W*0.68, ry=H*0.62, rw=W*0.28, rh=H*0.28;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border;
+  ctx.beginPath(); ctx.rect(rx,ry,rw,rh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Phonon occupancy',rx+rw/2,ry+14);
+  ctx.fillStyle='rgba(100,200,255,0.9)'; ctx.font='bold 22px sans-serif';
+  ctx.fillText('n\u0304 = '+nf.toFixed(2),rx+rw/2,ry+rh*0.5);
+  ctx.fillStyle=red?'rgba(100,255,160,0.85)':'rgba(255,120,80,0.85)'; ctx.font='12px sans-serif';
+  ctx.fillText(red?'sideband cooling':'parametric amp.',rx+rw/2,ry+rh*0.72);
+  ctx.fillStyle='rgba(136,136,170,0.75)';
+  ctx.fillText('g = g\u2080\u221an\u0304_c = '+gEnh.toFixed(2),rx+rw/2,ry+rh-10);
+  ctx.fillStyle='rgba(136,136,170,0.75)'; ctx.textAlign='center';
+  ctx.fillText('Cavity optomechanics · radiation-pressure interaction',W/2,H-10);
+  if(anim12) raf12=requestAnimationFrame(loop12);
+}
+
+// ─── TAB 13: PHOTON BLOCKADE ─────────────────────────────────────────────────
+let pbGk=20, pbEps=8, pbDet=0;
+function updatePbGk(){pbGk=+document.getElementById('pbGk').value;document.getElementById('pbGkVal').textContent=pbGk;}
+function updatePbEps(){pbEps=+document.getElementById('pbEps').value;document.getElementById('pbEpsVal').textContent=pbEps;}
+function updatePbDet(){pbDet=+document.getElementById('pbDet').value;document.getElementById('pbDetVal').textContent=pbDet;}
+function initPane13(){
+  if(raf13) cancelAnimationFrame(raf13);
+  const {cv,ctx,W,H}=setupCanvas('c13');
+  p13={cv,ctx,W,H,t0:null};
+  anim13=true;
+  const b=document.getElementById('btnAnim13'); if(b){b.textContent='\u23f8 Pause';b.classList.add('on');}
+  loop13();
+}
+function toggleAnim13(){
+  anim13=!anim13;
+  const b=document.getElementById('btnAnim13');
+  if(b){b.textContent=anim13?'\u23f8 Pause':'\u25b6 Play';b.classList.toggle('on',anim13);}
+  if(anim13&&!raf13) loop13();
+}
+function reset13(){
+  if(raf13){cancelAnimationFrame(raf13);raf13=null;}
+  pbGk=20;pbEps=8;pbDet=0;
+  document.getElementById('pbGk').value=20;document.getElementById('pbGkVal').textContent='20';
+  document.getElementById('pbEps').value=8;document.getElementById('pbEpsVal').textContent='8';
+  document.getElementById('pbDet').value=0;document.getElementById('pbDetVal').textContent='0';
+  p13=null; initPane13();
+}
+function loop13(ts){
+  if(!p13) return;
+  if(p13.t0===null) p13.t0=ts||Date.now();
+  const {ctx,W,H}=p13;
+  const t=((ts||Date.now())-p13.t0)*0.001*(window.animSpeed||1);
+  ctx.clearRect(0,0,W,H);
+  const g=pbGk, kappa=1, eps=pbEps*0.1, det=pbDet*0.15;
+  // g2(0) estimate: strong coupling weak drive
+  const cooper=g*g;
+  const g2=1/(1+cooper*cooper/(Math.pow(det*det+1,2)+eps*eps*10+0.5))*Math.exp(-cooper*0.02/(1+eps));
+  const g2clamped=Math.max(0.01,Math.min(1.2,g2*(1+0.15*Math.sin(t*2)*0)));
+  // JC ladder (left)
+  const lx=W*0.08, lw=W*0.32;
+  const levels=[
+    {y:0.85,lab:'|g,0\u27e9',col:'rgba(136,136,170,0.9)'},
+    {y:0.62,lab:'|+,0\u27e9',col:'rgba(100,200,255,0.9)',shift:-0.04},
+    {y:0.54,lab:'|-,0\u27e9',col:'rgba(100,200,255,0.9)',shift:0.04},
+    {y:0.34,lab:'|+,1\u27e9',col:'rgba(255,160,60,0.9)',shift:-0.06},
+    {y:0.26,lab:'|-,1\u27e9',col:'rgba(255,160,60,0.9)',shift:0.06},
+  ];
+  levels.forEach(lv=>{
+    const y=H*lv.y;
+    const x0=lx+lw*0.15+(lv.shift||0)*lw;
+    ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x0+lw*0.55,y);
+    ctx.strokeStyle=lv.col; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=lv.col; ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(lv.lab,x0+lw*0.58,y+4);
+  });
+  const pulse=0.5+0.5*Math.sin(t*3);
+  drawArrow(ctx,lx+lw*0.35,H*0.85-4,lx+lw*0.35,H*0.62+4,`rgba(255,221,68,${0.5+pulse*0.5})`,2.5);
+  ctx.fillStyle='rgba(255,221,68,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+  ctx.fillText('1st photon ON',lx+lw*0.33,H*0.74);
+  drawArrow(ctx,lx+lw*0.5,H*0.54-4,lx+lw*0.5,H*0.54-4-(H*0.54-H*0.34)*0.4,`rgba(255,80,80,${0.4+pulse*0.4})`,2.5);
+  ctx.fillStyle='rgba(255,80,80,0.85)'; ctx.textAlign='left';
+  ctx.fillText('2nd BLOCKED',lx+lw*0.52,H*0.44);
+  ctx.fillStyle='rgba(136,136,170,0.8)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('JC ladder anharmonicity',lx+lw*0.4,H*0.12);
+  // g2 spectrum vs detuning
+  const sx=W*0.48, sy=H*0.12, sw=W*0.48, sh=H*0.45;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(sx,sy,sw,sh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('g\u00b2(0) vs drive detuning',sx+sw/2,sy+14);
+  ctx.beginPath();
+  for(let i=0;i<=sw;i++){
+    const d=(i/sw-0.5)*40;
+    const c2=g*g;
+    const val=Math.min(1.3, (1+0.2*eps)/(1+c2/(1+d*d*0.05+eps))+0.02);
+    // dip near resonance for strong g
+    const dip=1-0.95*(1-Math.exp(-c2*0.01))/(1+Math.pow(d/8,2))/(1+eps*0.3);
+    const gv=Math.max(0.02,dip);
+    const py=sy+sh-14-gv*(sh-30);
+    i===0?ctx.moveTo(sx+i,py):ctx.lineTo(sx+i,py);
+  }
+  ctx.strokeStyle='rgba(100,255,160,0.95)'; ctx.lineWidth=2.2; ctx.stroke();
+  // current marker
+  const mx=sx+(pbDet/30*0.5+0.5)*sw;
+  ctx.beginPath(); ctx.moveTo(mx,sy+18); ctx.lineTo(mx,sy+sh-10);
+  ctx.strokeStyle='rgba(255,221,68,0.4)'; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+  // g2 time trace
+  const tx=W*0.48, ty=H*0.62, tw=W*0.48, th=H*0.28;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border;
+  ctx.beginPath(); ctx.rect(tx,ty,tw,th); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('g\u00b2(\u03c4) antibunching',tx+tw/2,ty+12);
+  const g20=Math.max(0.02,Math.min(1.2, 1/(1+cooper*0.08/(1+eps*eps)) ));
+  ctx.beginPath();
+  for(let i=0;i<=tw;i++){
+    const tau=(i/tw-0.5)*10;
+    const gv=1-(1-g20)*Math.exp(-Math.abs(tau)*1.2);
+    const py=ty+th-10-gv*(th-24);
+    i===0?ctx.moveTo(tx+i,py):ctx.lineTo(tx+i,py);
+  }
+  ctx.strokeStyle='rgba(100,200,255,0.95)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='rgba(100,255,160,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('g\u00b2(0) = '+g20.toFixed(3),tx+8,ty+th-8);
+  ctx.fillStyle='rgba(136,136,170,0.75)'; ctx.textAlign='center';
+  ctx.fillText('Photon blockade · single-photon nonlinearity',W/2,H-10);
+  if(anim13) raf13=requestAnimationFrame(loop13);
+}
+
+// ─── TAB 14: NV CENTERS ──────────────────────────────────────────────────────
+let nvB=10, nvMw=8, nvT2=50;
+function updateNvB(){nvB=+document.getElementById('nvB').value;document.getElementById('nvBVal').textContent=nvB;}
+function updateNvMw(){nvMw=+document.getElementById('nvMw').value;document.getElementById('nvMwVal').textContent=nvMw;}
+function updateNvT2(){nvT2=+document.getElementById('nvT2').value;document.getElementById('nvT2Val').textContent=nvT2;}
+function initPane14(){
+  if(raf14) cancelAnimationFrame(raf14);
+  const {cv,ctx,W,H}=setupCanvas('c14');
+  p14={cv,ctx,W,H,t0:null};
+  anim14=true;
+  const b=document.getElementById('btnAnim14'); if(b){b.textContent='\u23f8 Pause';b.classList.add('on');}
+  loop14();
+}
+function toggleAnim14(){
+  anim14=!anim14;
+  const b=document.getElementById('btnAnim14');
+  if(b){b.textContent=anim14?'\u23f8 Pause':'\u25b6 Play';b.classList.toggle('on',anim14);}
+  if(anim14&&!raf14) loop14();
+}
+function reset14(){
+  if(raf14){cancelAnimationFrame(raf14);raf14=null;}
+  nvB=10;nvMw=8;nvT2=50;
+  document.getElementById('nvB').value=10;document.getElementById('nvBVal').textContent='10';
+  document.getElementById('nvMw').value=8;document.getElementById('nvMwVal').textContent='8';
+  document.getElementById('nvT2').value=50;document.getElementById('nvT2Val').textContent='50';
+  p14=null; initPane14();
+}
+function loop14(ts){
+  if(!p14) return;
+  if(p14.t0===null) p14.t0=ts||Date.now();
+  const {ctx,W,H}=p14;
+  const t=((ts||Date.now())-p14.t0)*0.001*(window.animSpeed||1);
+  ctx.clearRect(0,0,W,H);
+  // Diamond lattice sketch
+  const dx=W*0.18, dy=H*0.38;
+  ctx.strokeStyle='rgba(100,180,255,0.35)'; ctx.lineWidth=1;
+  for(let i=-2;i<=2;i++){
+    for(let j=-2;j<=2;j++){
+      const x=dx+i*28+j*8, y=dy+j*22;
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+      ctx.fillStyle=(i===0&&j===0)?'rgba(255,80,80,0.9)':'rgba(180,220,255,0.45)';
+      ctx.fill();
+      if(i<2){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+28,y);ctx.stroke();}
+      if(j<2){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+8,y+22);ctx.stroke();}
+    }
+  }
+  // NV bond
+  ctx.beginPath(); ctx.moveTo(dx,dy); ctx.lineTo(dx+20,dy-28);
+  ctx.strokeStyle='rgba(255,80,80,0.85)'; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(dx+20,dy-28,7,0,Math.PI*2);
+  ctx.fillStyle='rgba(80,80,100,0.9)'; ctx.fill();
+  ctx.fillStyle='rgba(255,200,200,0.9)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('N',dx+20,dy-40);
+  ctx.fillText('V',dx,dy+18);
+  ctx.fillText('diamond lattice + NV\u207b',dx,dy+70);
+  // Level structure
+  const lx=W*0.42, D=2.87, ge=28; // GHz, MHz/mT
+  const split=nvB*ge/1000; // GHz-ish visual
+  const levels=[
+    {y:H*0.72,lab:'m_s=0',col:'rgba(100,255,160,0.9)',x:0},
+    {y:H*0.55-split*8,lab:'m_s=+1',col:'rgba(255,160,80,0.9)',x:-30},
+    {y:H*0.55+split*8,lab:'m_s=\u22121',col:'rgba(255,120,100,0.9)',x:30},
+    {y:H*0.22,lab:'\u00b3E excited',col:'rgba(100,180,255,0.85)',x:0},
+  ];
+  // ground manifold baseline
+  ctx.fillStyle='rgba(255,221,68,0.7)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('Ground \u00b3A\u2082  D=2.87 GHz',lx-10,H*0.82);
+  levels.forEach(lv=>{
+    const x=lx+lv.x;
+    ctx.beginPath(); ctx.moveTo(x-40,lv.y); ctx.lineTo(x+40,lv.y);
+    ctx.strokeStyle=lv.col; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=lv.col; ctx.font='12px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(lv.lab,x+46,lv.y+4);
+  });
+  // Optical pumping + PL
+  const plBright=0.6+0.35*Math.sin(t*4)*(nvMw>0?Math.cos(t*nvMw*0.4):1);
+  drawArrow(ctx,lx,H*0.72-4,lx,H*0.22+6,`rgba(100,200,255,${0.4+plBright*0.4})`,2);
+  ctx.fillStyle='rgba(100,200,255,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+  ctx.fillText('532 nm pump',lx-8,H*0.45);
+  // Red PL photons
+  for(let i=0;i<5;i++){
+    const ph=(t*0.8+i*0.2)%1;
+    const px=lx+60+ph*80, py=H*0.35+Math.sin(ph*6+i)*20;
+    ctx.beginPath(); ctx.arc(px,py,4,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,60,80,${0.3+plBright*0.5})`; ctx.fill();
+  }
+  ctx.fillStyle='rgba(255,80,100,0.85)'; ctx.textAlign='left';
+  ctx.fillText('637 nm ZPL PL',lx+70,H*0.28);
+  // MW drive between 0 and +1
+  if(nvMw>0){
+    const y0=H*0.72, y1=H*0.55-split*8;
+    drawArrow(ctx,lx-50,y0-2,lx-50,y1+2,`rgba(255,221,68,${0.5+0.4*Math.sin(t*nvMw*0.5)})`,2);
+    ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='right';
+    ctx.fillText('MW \u03a9='+nvMw+' MHz',lx-56,(y0+y1)/2);
+  }
+  // ODMR spectrum
+  const ox=W*0.72, oy=H*0.12, ow=W*0.26, oh=H*0.4;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.rect(ox,oy,ow,oh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('ODMR contrast',ox+ow/2,oy+14);
+  ctx.beginPath();
+  for(let i=0;i<=ow;i++){
+    const f=2.7+i/ow*0.4; // GHz
+    const fPlus=D+split, fMinus=D-split;
+    const dip=1-0.25*Math.exp(-Math.pow((f-fPlus)/0.015,2))-0.25*Math.exp(-Math.pow((f-fMinus)/0.015,2));
+    const py=oy+oh-12-dip*(oh-28);
+    i===0?ctx.moveTo(ox+i,py):ctx.lineTo(ox+i,py);
+  }
+  ctx.strokeStyle='rgba(255,100,120,0.95)'; ctx.lineWidth=2; ctx.stroke();
+  // Rabi / T2 panel
+  const rx=W*0.72, ry=H*0.58, rw=W*0.26, rh=H*0.32;
+  ctx.fillStyle='#12122a'; ctx.strokeStyle=var_border;
+  ctx.beginPath(); ctx.rect(rx,ry,rw,rh); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,221,68,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('Spin Rabi · T\u2082 envelope',rx+rw/2,ry+14);
+  ctx.beginPath();
+  for(let i=0;i<=rw;i++){
+    const tau=i/rw*nvT2*2;
+    const env=Math.exp(-tau/nvT2);
+    const rab=nvMw>0?Math.cos(tau*nvMw*0.15):1;
+    const sig=0.5+0.5*rab*env;
+    const py=ry+rh-10-sig*(rh-28);
+    i===0?ctx.moveTo(rx+i,py):ctx.lineTo(rx+i,py);
+  }
+  ctx.strokeStyle='rgba(100,255,160,0.95)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='rgba(200,200,230,0.85)'; ctx.font='12px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('T\u2082 = '+nvT2+'\u00b5s',rx+8,ry+rh-8);
+  ctx.fillStyle='rgba(136,136,170,0.75)'; ctx.textAlign='center';
+  ctx.fillText('NV centre · room-temperature spin\u2013photon interface',W/2,H-10);
+  if(anim14) raf14=requestAnimationFrame(loop14);
+}
+
 // ─────────────────────────────────────────────────────────────
 // Init
 // ─────────────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
   window.animSpeed=1;
-  for(var i=0;i<9;i++){syncSpeedControl47(i);}
+  for(var i=0;i<=14;i++){syncSpeedControl47(i);}
 });
 switchTab(0);
 </script>

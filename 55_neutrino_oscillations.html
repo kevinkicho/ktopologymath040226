@@ -26,19 +26,20 @@ header{background:linear-gradient(135deg,#08082a 0%,#121240 60%,#08082a 100%);
 .back:hover{color:var(--accent)}
 h1{font-size:1.35rem;color:var(--accent);text-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent);letter-spacing:.05em}
 .sub{font-size:.72rem;color:var(--dim);font-style:italic}
-.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tabs{display:flex;gap:2px;flex-shrink:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch;max-width:100%;flex-wrap:nowrap}
+.tabs::-webkit-scrollbar{height:4px}.tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .tab{padding:7px 14px;border:1px solid transparent;border-bottom:none;background:transparent;
-  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px}
+  color:var(--dim);font-size:.78rem;border-radius:5px 5px 0 0;cursor:pointer;transition:.15s;position:relative;top:1px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text);background:var(--bg2)}
 .tab.active{color:var(--accent);background:var(--bg2);border-color:var(--border)}
 .content{flex:1;display:flex;overflow:hidden}
-.panel{display:none;flex:1;overflow:hidden}
+.panel{display:none;flex:1;overflow:hidden;min-height:0;min-width:0}
 .panel.active{display:flex}
 .sidebar{background:var(--bg2);border-right:1px solid var(--border);
   padding:14px;width:220px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
 .sidebar.right{border-right:none;border-left:1px solid var(--border);width:270px}
-.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
-canvas{display:block;width:100%;height:100%}
+.main-area{flex:1;min-width:0;min-height:0;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);position:relative}
+canvas{display:block;width:100%;height:100%;min-height:0}
 .section-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:5px}
 .eq-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:9px 11px;margin-bottom:7px;font-size:.82rem;line-height:1.6}
 .eq-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:5px}
@@ -109,6 +110,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <label>Energy E (GeV) <span class="val-disp" id="eDisp">1.0</span></label>
       <input type="range" id="eSl" min="0.001" max="10" step="0.001" value="1"
         oninput="eDisp.textContent=(+this.value).toFixed(3);nu.E_GeV=+this.value">
+      <label>Speed:</label><input type="range" id="speed1" min="1" max="100" value="100" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal1">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
         <button class="btn" onclick="toggleAnim1(this)">⏸</button>
         <button class="btn" onclick="_resetTab(1)">Reset</button>
@@ -117,8 +119,15 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="main-area"><canvas aria-label="Neutrino Oscillations | Road to Reality — panel 1" id="cv1"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Oscillation Probability</div>
-      <div class="eq-block">$$P = \sin^2\!2\theta\,\sin^2\!\frac{\Delta m^2 L}{4E}$$</div>
-      <div class="callout"><strong>Yellow</strong> = P(νe), <strong>Cyan</strong> = P(νμ), <strong>Magenta</strong> = P(ντ). Best-fit values from NuFit 5.2.</div>
+      <div class="eq-block">$$P_{\alpha\beta}=\sin^2 2\theta\,\sin^2\!\frac{\Delta m^2 L}{4E}$$</div>
+      <div class="eq-block" style="font-size:.76rem">
+        <strong style="color:var(--text)">Post-doc (3ν):</strong>
+        $$P_{\alpha\beta}=\delta_{\alpha\beta}-4\sum_{i&gt;j}\mathrm{Re}(U_{\alpha i}^*U_{\beta i}U_{\alpha j}U_{\beta j}^*)\sin^2\Delta_{ij}
+        +2\sum_{i&gt;j}\mathrm{Im}(\ldots)\sin 2\Delta_{ij}$$
+        with $\Delta_{ij}=\Delta m_{ij}^2 L/(4E)$. CP-odd term $\propto\sin\delta_{\mathrm{CP}}$.
+      </div>
+      <div class="callout"><strong>Yellow</strong> = P(νe), <strong>Cyan</strong> = P(νμ), <strong>Magenta</strong> = P(ντ). Best-fit NuFit 5.2 / PDG.</div>
+      <div class="callout"><strong>Frontier:</strong> DUNE / Hyper-K aim for $5\sigma$ CP violation &amp; mass ordering; JUNO (reactor, 53 km) precision $\Delta m_{21}^2$ and $\sin^2\theta_{12}$. This module is oscillation-focused — not a full SM particle content survey (see module 38).</div>
     </div>
   </div>
   <!-- Panel 2 -->
@@ -127,7 +136,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
       <div class="section-lbl">CP Violation Phase</div>
       <label>&#948;<sub>CP</sub> / &#960; <span class="val-disp" id="dcpDisp">0.00</span></label>
       <input type="range" id="dcpSl" min="0" max="6.28" step="0.05" value="0"
-        oninput="dcpDisp.textContent=(+this.value/Math.PI).toFixed(2);deltaCP=+this.value">
+        oninput="dcpDisp.textContent=(+this.value/Math.PI).toFixed(2);deltaCP=+this.value;window._dcpUserLock=true">
       <div class="callout" style="margin-top:8px">
         The <strong>PMNS matrix</strong> encodes all neutrino mixing. Each cell shows |U_αi|² — the probability for flavor α to be detected as mass eigenstate i.
       </div>
@@ -139,8 +148,13 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="main-area"><canvas aria-label="Neutrino Oscillations | Road to Reality — panel 2" id="cv2"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">PMNS Matrix</div>
-      <div class="eq-block">$$U = R_{23}\cdot R_{13}(\delta)\cdot R_{12}$$</div>
-      <div class="callout">The CP phase $\delta$ controls matter-antimatter asymmetry in the lepton sector. Current best fit: $\delta \approx 1.2\pi$ (T2K/NOvA).</div>
+      <div class="eq-block">$$U=R_{23}\,R_{13}(\delta_{\mathrm{CP}})\,R_{12}$$</div>
+      <div class="eq-block">$$J_{\mathrm{CP}}=\mathrm{Im}(U_{e1}U_{\mu2}U_{e2}^*U_{\mu1}^*)=\tfrac18\sin 2\theta_{12}\sin 2\theta_{23}\sin 2\theta_{13}\cos\theta_{13}\sin\delta$$</div>
+      <div class="eq-block" style="font-size:.76rem">
+        <strong style="color:var(--text)">Post-doc:</strong> Unitarity triangles in the lepton sector; $|U_{\alpha i}|^2$ rows/cols sum to 1. Majorana phases $\alpha_{21},\alpha_{31}$ drop from oscillations but enter $0\nu\beta\beta$: $m_{\beta\beta}=|\sum_i U_{ei}^2 m_i|$.
+      </div>
+      <div class="callout">$\delta_{\mathrm{CP}}$ sets lepton-sector CP violation. Best fit $\delta\sim 1.2\pi$ (T2K/NOvA tension mild).</div>
+      <div class="callout"><strong>Frontier:</strong> Global fits (NuFit, Esteban et al.) combine accelerator + reactor + atmospheric; next-decade goal is $\delta$ precision $\sim 15^\circ$ and $\theta_{23}$ octant resolution.</div>
     </div>
   </div>
   <!-- Panel 3 -->
@@ -162,7 +176,12 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="main-area"><canvas aria-label="Neutrino Oscillations | Road to Reality — panel 3" id="cv3"></canvas></div>
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">Detector Results</div>
-      <div class="callout"><strong>Super-Kamiokande</strong> (1998): nearly complete νμ disappearance → θ₂₃ ≈ 45°. <strong>SNO</strong> (2002): NC flux matched SSM — confirmed oscillation, not solar deficit.</div>
+      <div class="eq-block">$$P(\nu_\mu\to\nu_\mu)\approx 1-\sin^2 2\theta_{23}\sin^2\!\frac{\Delta m_{32}^2 L}{4E}$$</div>
+      <div class="eq-block" style="font-size:.76rem">
+        <strong style="color:var(--text)">Post-doc:</strong> Atmospheric $L/E$ from $\sim 10$–$10^4$ km/GeV maps first oscillation minimum. Solar MSW: adiabatic conversion $\nu_e\to\nu_2$ in the Sun; day–night regeneration tests $\Delta m_{21}^2$.
+      </div>
+      <div class="callout"><strong>Super-K</strong> (1998): νμ disappearance → θ₂₃≈45°. <strong>SNO</strong> (2002): NC flux matched SSM — oscillation, not solar model failure. Nobel 2015 (Kajita, McDonald).</div>
+      <div class="callout"><strong>Frontier:</strong> IceCube DeepCore / ORCA / KM3NeT atmospheric samples; Hyper-K + DUNE for precision $L/E$ and CP. Multi-messenger SN neutrinos (SNEWS) probe collective flavor conversion.</div>
     </div>
   </div>
 
@@ -196,13 +215,19 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
     <div class="sidebar right" data-role="sidebar">
       <div class="eq-title">PMNS Best-Fit (NuFit 5.2)</div>
       <div class="eq-block">$$U = R_{23}R_{13}(\delta_{CP})R_{12}$$</div>
+      <div class="eq-block" style="font-size:.76rem">
+        <strong style="color:var(--text)">Post-doc:</strong> Effective Hamiltonian in matter
+        $$H_{\mathrm{m}}=\frac{1}{2E}U\,\mathrm{diag}(0,\Delta m_{21}^2,\Delta m_{31}^2)\,U^\dagger+\mathrm{diag}(V_{\mathrm{CC}},0,0)$$
+        with $V_{\mathrm{CC}}=\sqrt{2}G_F n_e$. Ordering flips the sign of $\Delta m_{31}^2$ and reshapes $P(\nu_\mu\to\nu_e)$ vs $P(\bar\nu)$.
+      </div>
       <div class="vrow"><span class="vlbl">θ₁₂</span><span>33.4°</span></div>
       <div class="vrow"><span class="vlbl">θ₂₃</span><span>49.0°</span></div>
       <div class="vrow"><span class="vlbl">θ₁₃</span><span>8.57°</span></div>
       <div class="vrow"><span class="vlbl">δ<sub>CP</sub></span><span>195° (T2K/NOvA)</span></div>
       <div class="vrow"><span class="vlbl">Δm²₂₁</span><span>7.53×10⁻⁵ eV²</span></div>
       <div class="vrow"><span class="vlbl">|Δm²₃₁|</span><span>2.45×10⁻³ eV²</span></div>
-      <div class="callout" style="margin-top:8px"><strong>Mass ordering:</strong> Normal (ν₁&lt;ν₂&lt;ν₃) vs Inverted (ν₃&lt;ν₁&lt;ν₂). NOvA, T2K, JUNO resolving this. <strong>Absolute mass:</strong> KATRIN &lt;0.45 eV (2022). Cosmology: Σmν &lt;0.12 eV.</div>
+      <div class="callout" style="margin-top:8px"><strong>Mass ordering:</strong> NH (ν₁&lt;ν₂&lt;ν₃) vs IH (ν₃&lt;ν₁&lt;ν₂). NOvA/T2K/JUNO resolving. <strong>Absolute mass:</strong> KATRIN &lt;0.45 eV; cosmology Σmν ≲0.12 eV.</div>
+      <div class="callout"><strong>Frontier:</strong> Combined fits prefer NH at mild significance; DUNE matter effects at 1300 km will fix ordering independently of CP.</div>
     </div>
   </div>
 
@@ -356,7 +381,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p9dcpDisp.textContent=this.value;p9dcp=+this.value*Math.PI/180">
       <label>Speed:</label><input type="range" id="speed9" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal9">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p9Paused=!p9Paused;this.textContent=p9Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(9)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px">The PMNS matrix $U = R_{23}R_{13}(\delta)R_{12}$ parameterizes all neutrino mixing. Current best-fit from NuFit 5.2.</div>
@@ -384,7 +409,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p10EDisp.textContent=this.value;p10E=+this.value">
       <label>Speed:</label><input type="range" id="speed10" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal10">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p10Paused=!p10Paused;this.textContent=p10Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(10)">Reset</button>
         <button class="btn" id="p10ViewBtn" onclick="p10ToggleView()">Survival</button>
       </div>
@@ -413,7 +438,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p11LEDisp.textContent=this.value;p11LE=+this.value">
       <label>Speed:</label><input type="range" id="speed11" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal11">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p11Paused=!p11Paused;this.textContent=p11Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(11)">Reset</button>
       </div>
       <div class="callout" style="margin-top:8px"><strong>Super-K 1998:</strong> Upward νμ flux deficit — 50% disappearance at L~13000 km. <strong>SNO 2002:</strong> NC/CC ratio proved solar νe→νμ,ντ conversion.</div>
@@ -439,7 +464,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p12DmDisp.textContent=this.value;p12Dm2=+this.value">
       <label>Speed:</label><input type="range" id="speed12" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal12">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p12Paused=!p12Paused;this.textContent=p12Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(12)">Reset</button>
         <button class="btn" id="p12ViewBtn" onclick="p12ToggleView()">Exclusion</button>
       </div>
@@ -465,7 +490,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p13M0Disp.textContent=(+this.value).toFixed(3);p13M0=+this.value">
       <label>Speed:</label><input type="range" id="speed13" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal13">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p13Paused=!p13Paused;this.textContent=p13Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(13)">Reset</button>
       </div>
       <div class="vrow" style="margin-top:8px"><span class="vlbl">Σm<sub>ν</sub> (eV)</span><span id="p13SumDisp">—</span></div>
@@ -491,7 +516,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p14DistDisp.textContent=this.value;p14Dist=+this.value">
       <label>Speed:</label><input type="range" id="speed14" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal14">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p14Paused=!p14Paused;this.textContent=p14Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(14)">Reset</button>
         <button class="btn" id="p14ViewBtn" onclick="p14ToggleView()">Flux</button>
       </div>
@@ -519,7 +544,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p15EDisp.textContent=(+this.value).toFixed(2);p15E=+this.value">
       <label>Speed:</label><input type="range" id="speed15" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal15">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p15Paused=!p15Paused;this.textContent=p15Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(15)">Reset</button>
         <button class="btn" id="p15ViewBtn" onclick="p15ToggleView()">Multimessenger</button>
       </div>
@@ -547,7 +572,7 @@ label{font-size:.74rem;color:var(--dim);display:block;margin-bottom:2px}
         oninput="p16MbbDisp.textContent=this.value;p16Mbb=+this.value">
       <label>Speed:</label><input type="range" id="speed16" min="1" max="100" value="10" oninput="window.animSpeed=this.value/100;this.nextElementSibling.textContent=(this.value/100).toFixed(2)+'x'"><span id="speedVal16">1.00x</span>
       <div class="btn-row" style="margin-top:8px">
-        <button class="btn" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">▶ Play</button>
+        <button class="btn" onclick="p16Paused=!p16Paused;this.textContent=p16Paused?'▶ Play':'⏸ Pause'">⏸ Pause</button>
         <button class="btn" onclick="_resetTab(16)">Reset</button>
         <button class="btn" id="p16ViewBtn" onclick="p16ToggleView()">Seesaw</button>
       </div>
@@ -577,7 +602,6 @@ function switchTab(n){
   currentTab = n;
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n-1));
   document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===n-1));
-  setTimeout(()=>{
   if(n===1) _stops.push(initTab1());
   if(n===2) _stops.push(initTab2());
   if(n===3) _stops.push(initTab3());
@@ -594,7 +618,6 @@ function switchTab(n){
   if(n===14) _stops.push(initTab14());
   if(n===15) _stops.push(initTab15());
   if(n===16) _stops.push(initTab16());
-  },10);
 }
 
 function _resetTab(n){
@@ -701,7 +724,7 @@ function P3(alpha, L_km, E_GeV) {
 // ── Tab 1 — Flavor Probability Curves ───────────────────────
 function initTab1() {
   const cv = document.getElementById('cv1');
-  let raf1;
+  let raf1, t1 = 0;
   window.paused1=false;
   function draw() {
     const {W, H, ctx} = fitCanvas(cv);
@@ -710,6 +733,7 @@ function initTab1() {
     const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
     const preset = presets[window.nu.preset];
     const E_GeV = window.nu.E_GeV || 1.0;
+    const spd = window.animSpeed || 1;
     ctx.strokeStyle='#55558a'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
     ctx.fillStyle='#55558a'; ctx.font='12px monospace';
@@ -730,6 +754,24 @@ function initTab1() {
       ctx.fillStyle=col; ctx.font='12px monospace';
       ctx.fillText(labels[alpha], W-70, pad.t+18+alpha*18);
     });
+    // Scanning L cursor + instantaneous P markers
+    const frac = 0.5 + 0.5*Math.sin(t1 * 0.02);
+    const Lcur = Lmin * Math.pow(Lmax/Lmin, frac);
+    const mx = pad.l + frac * pw;
+    ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(mx, pad.t); ctx.lineTo(mx, pad.t+ph); ctx.stroke();
+    ctx.setLineDash([]);
+    colors.forEach((col, alpha) => {
+      const p = Math.max(0, Math.min(1, P3(alpha, Lcur, E_GeV)));
+      const py = pad.t + ph*(1-p);
+      ctx.beginPath(); ctx.arc(mx, py, 4.5, 0, Math.PI*2);
+      ctx.fillStyle=col; ctx.fill();
+      ctx.strokeStyle='#0a0a18'; ctx.lineWidth=1; ctx.stroke();
+    });
+    const Lstr = Lcur >= 1000 ? (Lcur/1000).toFixed(1)+'k km' : Lcur.toFixed(0)+' km';
+    ctx.fillStyle='#ffffff'; ctx.font='12px monospace';
+    ctx.fillText('L='+Lstr, mx+6, pad.t+14);
+
     const logRange = Math.log10(Lmax/Lmin);
     for (let i=0; i<=Math.floor(logRange); i++) {
       const L = Lmin * Math.pow(10, i);
@@ -739,7 +781,8 @@ function initTab1() {
     }
     ctx.fillStyle='#ffd700'; ctx.font='12px monospace';
     ctx.fillText(preset.label, pad.l, pad.t-12);
-    if (!window.paused1) raf1 = requestAnimationFrame(draw);
+    if (!window.paused1) t1 += spd;
+    raf1 = requestAnimationFrame(draw);
     window._raf1 = raf1;
   }
   window._draw1 = draw;
@@ -750,17 +793,24 @@ window.toggleAnim1 = function(btn) {
   window.paused1 = !window.paused1;
   btn.textContent = window.paused1 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused1);
-  if (!window.paused1 && typeof window._draw1 === 'function') {
-    window._raf1 = requestAnimationFrame(window._draw1);
-  }
 };
 
 // ── Tab 2 — PMNS Matrix Heatmap ──────────────────────────────
 function initTab2() {
   const cv = document.getElementById('cv2');
-  let raf2;
+  let raf2, t2 = 0;
   window.paused2=false;
   function draw() {
+    if (!window.paused2) {
+      t2 += (window.animSpeed || 1);
+      if (!window._dcpUserLock) {
+        window.deltaCP = (t2 * 0.012) % (Math.PI * 2);
+        const sl = document.getElementById('dcpSl');
+        const disp = document.getElementById('dcpDisp');
+        if (sl) sl.value = window.deltaCP;
+        if (disp) disp.textContent = (window.deltaCP/Math.PI).toFixed(2);
+      }
+    }
     const {W, H, ctx} = fitCanvas(cv);
     ctx.fillStyle='#05050f'; ctx.fillRect(0,0,W,H);
     const s12=window.nu.s12, s23=window.nu.s23, s13=window.nu.s13;
@@ -828,7 +878,7 @@ function initTab2() {
     for(let i=0;i<3;i++){rowSums+=`col${i+1}=${U2.reduce((s,r)=>s+r[i],0).toFixed(3)}  `;}
     ctx.fillStyle='#55558a'; ctx.font='12px monospace';
     ctx.fillText('Unitarity: '+rowSums, W*0.18, H-12);
-    if (!window.paused2) raf2 = requestAnimationFrame(draw);
+    raf2 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf2); } };
@@ -837,7 +887,6 @@ window.toggleAnim2 = function(btn) {
   window.paused2 = !window.paused2;
   btn.textContent = window.paused2 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused2);
-  if (!window.paused2) raf2 = requestAnimationFrame(draw);
 };
 
 // ── Tab 3 — Neutrino Flight / Flavor Evolution ──────────────
@@ -920,8 +969,8 @@ function initTab3() {
     ctx.fillText('ντ', W*0.28+18, legY+11);
     ctx.fillStyle='#666688';
     ctx.fillText('← tube color = instantaneous flavor mix', W*0.38, legY+11);
-    if (!window.paused3) t3++;
-    if (!window.paused3) raf3 = requestAnimationFrame(draw);
+    if (!window.paused3) t3 += (window.animSpeed || 1);
+    raf3 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf3); } };
@@ -930,7 +979,6 @@ window.toggleAnim3 = function(btn) {
   window.paused3 = !window.paused3;
   btn.textContent = window.paused3 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused3);
-  if (!window.paused3) raf3 = requestAnimationFrame(draw);
 };
 
 // ── Tab 4 — Mixing Matrix & Mass Hierarchy ──────────────────
@@ -1076,7 +1124,7 @@ function initTab4() {
     ctx.setLineDash([]);
     ctx.textAlign='left';
 
-    if (!window.paused4) raf4 = requestAnimationFrame(draw);
+    raf4 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf4); } };
@@ -1085,7 +1133,6 @@ window.toggleAnim4 = function(btn) {
   window.paused4 = !window.paused4;
   btn.textContent = window.paused4 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused4);
-  if (!window.paused4) raf4 = requestAnimationFrame(draw);
 };
 
 // ── Tab 5 — Solar / MSW ─────────────────────────────────────
@@ -1299,7 +1346,7 @@ function initTab5() {
     if(window.msw.mode === 'solar') drawSolar(W, H, ctx);
     else drawAtmospheric(W, H, ctx);
     if (!window.paused5) t5 += (window.animSpeed || 1);
-    if (!window.paused5) raf5 = requestAnimationFrame(draw);
+    raf5 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf5); } };
@@ -1308,7 +1355,6 @@ window.toggleAnim5 = function(btn) {
   window.paused5 = !window.paused5;
   btn.textContent = window.paused5 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused5);
-  if (!window.paused5) raf5 = requestAnimationFrame(draw);
 };
 
 // ── Tab 6 — Majorana & 0νββ ─────────────────────────────────
@@ -1480,7 +1526,7 @@ function initTab6() {
     if(window.bbdecay.mode === 'spectrum') drawSpectrum(W, H, ctx);
     else drawFeynman(W, H, ctx);
     if (!window.paused6) t6 += (window.animSpeed || 1);
-    if (!window.paused6) raf6 = requestAnimationFrame(draw);
+    raf6 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf6); } };
@@ -1489,7 +1535,6 @@ window.toggleAnim6 = function(btn) {
   window.paused6 = !window.paused6;
   btn.textContent = window.paused6 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused6);
-  if (!window.paused6) raf6 = requestAnimationFrame(draw);
 };
 
 // ── Tab 7 — Sterile Neutrinos ────────────────────────────────
@@ -1610,7 +1655,7 @@ function initTab7() {
     ctx.textAlign='left';
 
     if (!window.paused7) t7 += spd;
-    if (!window.paused7) raf7 = requestAnimationFrame(draw);
+    raf7 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf7); } };
@@ -1619,7 +1664,6 @@ window.toggleAnim7 = function(btn) {
   window.paused7 = !window.paused7;
   btn.textContent = window.paused7 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused7);
-  if (!window.paused7) raf7 = requestAnimationFrame(draw);
 };
 
 // ── Tab 8 — Next-Generation Experiments ─────────────────────
@@ -1896,7 +1940,7 @@ function initTab8() {
     else if(expt === 'hyperk' || expt === 'icecube') drawHyperK(W, H, ctx);
     else drawSN(W, H, ctx);
     if (!window.paused8) t8 += (window.animSpeed || 1);
-    if (!window.paused8) raf8 = requestAnimationFrame(draw);
+    raf8 = requestAnimationFrame(draw);
   }
   draw();
   return { stop() { cancelAnimationFrame(raf8); } };
@@ -1905,7 +1949,6 @@ window.toggleAnim8 = function(btn) {
   window.paused8 = !window.paused8;
   btn.textContent = window.paused8 ? '▶' : '⏸';
   btn.classList.toggle('active', window.paused8);
-  if (!window.paused8) raf8 = requestAnimationFrame(draw);
 };
 
 // ── Tab 9 — Three-Flavor Mixing & PMNS Matrix ────────────────
